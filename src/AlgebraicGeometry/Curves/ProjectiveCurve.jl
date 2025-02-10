@@ -8,7 +8,7 @@ a homogeneous (but not necessarily radical) ideal.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
 [w   x   y]
@@ -73,10 +73,8 @@ representatives of elements in `R/image`, where `R` is the basering.
 function invert_birational_map(phi::Vector{T}, C::ProjectiveCurve) where {T <: MPolyRingElem}
     s = parent(phi[1])
     I = ideal(s, phi)
-    singular_assure(I)
     IC = defining_ideal(C)
-    singular_assure(IC)
-    L = Singular.LibParaplanecurves.invertBirMap(I.gens.S, IC.gens.S)
+    L = Singular.LibParaplanecurves.invertBirMap(singular_generators(I), singular_generators(IC))
     R = _fromsingular_ring(L[1])
     J = L[2][:J]
     psi = L[2][:psi]

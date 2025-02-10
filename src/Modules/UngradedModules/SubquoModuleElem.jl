@@ -50,7 +50,7 @@ The result is returned as a sparse row.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y]
 [x]
@@ -90,7 +90,7 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in v.coeffs; init=zero(M.sub))
+    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
   end
   return v.repres
 end
@@ -170,7 +170,7 @@ Given an element `m` of a subquotient $M$, say, return
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y]
 [x]
@@ -409,7 +409,7 @@ function *(a::MPolyRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::RingElem, b::SubquoModuleElem)
+function *(a::NCRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -539,7 +539,6 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) wher
   @assert !isdefined(s, :quo)
   @assert s.F === F
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
-  #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   cache_morphism && register_morphism!(emb)
   return s, emb
@@ -598,7 +597,7 @@ If only the submodule itself is desired, use `sub_object` instead.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -608,23 +607,15 @@ julia> N, incl = sub(F, V);
 
 julia> N
 Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-represented as subquotient with no relations.
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+represented as subquotient with no relations
 
 julia> incl
-Map with following data
-Domain:
-=======
-Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-represented as subquotient with no relations.
-Codomain:
-=========
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Module homomorphism
+  from N
+  to F
 ```
 """
 function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
@@ -802,7 +793,7 @@ If `cache_morphism` is set to `true`, the projection is cached and available to 
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -811,26 +802,17 @@ julia> V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
 julia> N, proj = quo(F, V);
 
 julia> N
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> proj
-Map with following data
-Domain:
-=======
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Module homomorphism
+  from F
+  to N
 ```
 """
 function quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
@@ -934,7 +916,9 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubquoModule{T}) where T
-  return SubquoModuleElem{T}[gen(M,i) for i=1:ngens(M)]
+  R = base_ring(M)
+  e = R(1)
+  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -944,9 +928,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v::SRow{T} = sparse_row(R)
-  v.pos = [i]
-  v.values = [R(1)]
+  v = sparse_row(R, [i], [R(1)])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -962,7 +944,9 @@ number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 Given an `R`-module `M`, return `R`.
 """
-base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M.F)
+base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M)
+
+base_ring_type(::Type{SubquoModule{T}}) where {T} = base_ring_type(FreeMod{T})
 
 @doc raw"""
     zero(M::SubquoModule)
@@ -978,11 +962,11 @@ Return `true` if `M` is the zero module, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x^2+y^2;]
 [x^2 + y^2]
@@ -993,12 +977,12 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 1 generator
-1 -> (x^2 + y^2)*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 1 generator
+  1: (x^2 + y^2)*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> is_zero(M)
 false
@@ -1015,13 +999,13 @@ function iterate(F::ModuleGens, i::Int = 1)
     return F[i], i+1
   end
 end
-eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
+Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
   @assert dim(parent(a)) == length(b)
   s = zero(parent(a))
-  for (p,v) = a.coords
+  for (p,v) in coordinates(a)
     s += v*b[p]
   end
   return s
@@ -1034,11 +1018,11 @@ Return `true` if `m` is zero, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -1050,13 +1034,13 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> is_zero(M[1])
 false
@@ -1066,7 +1050,7 @@ true
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1)
 Graded free module Rg^1([0]) of rank 1 over Rg
@@ -1081,13 +1065,13 @@ julia> B = Rg[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> is_zero(M[1])
 false
@@ -1106,8 +1090,10 @@ end
 
 function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
+  isdefined(m, :coeffs) && is_zero(m.coeffs) && return true
+  is_zero(repres(m)) && return true
   if !isdefined(C, :quo)
-    return iszero(repres(m))
+    return false
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)

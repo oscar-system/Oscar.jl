@@ -29,35 +29,7 @@
 # - MPolyQuoRing
 # - MPolyDecRing
 
-const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
-
-@attributes mutable struct MPolyAnyMap{
-    D <: _DomainTypes,
-    C <: NCRing,
-    U,
-    V} <: Map{D, C, Map, MPolyAnyMap}
-
-  domain::D
-  codomain::C
-  coeff_map::U
-  img_gens::Vector{V}
-  temp_ring           # temporary ring used when evaluating maps
-
-  function MPolyAnyMap{D, C, U, V}(domain::D,
-                                codomain::C,
-                                coeff_map::U,
-                                img_gens::Vector{V}) where {D, C, U, V}
-      @assert V === elem_type(C)
-      for g in img_gens
-        @assert parent(g) === codomain "elements does not have the correct parent"
-      end
-    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-  end
-end
-
-function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D, C, U, V}
-  return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
-end
+### See `Types.jl` for the declaration of the type.
 
 ################################################################################
 #
@@ -82,7 +54,7 @@ _images(f::MPolyAnyMap) = f.img_gens
 ################################################################################
 function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), f)
+  println(terse(io), f)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(f))
   println(io, "to ", Lowercase(), codomain(f))
@@ -104,14 +76,12 @@ end
 
 function Base.show(io::IO, f::MPolyAnyMap)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    # no nested printing
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
-    # nested printing allowed, preferably supercompact
     print(io, "Hom: ")
-    print(IOContext(io, :supercompact => true), Lowercase(), domain(f), " -> ")
-    print(IOContext(io, :supercompact => true), Lowercase(), codomain(f))
+    print(terse(io), Lowercase(), domain(f), " -> ")
+    print(terse(io), Lowercase(), codomain(f))
   end
 end
 
@@ -162,7 +132,7 @@ function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map})
     return f.temp_ring::mpoly_ring_type(codomain(coefficient_map(f)))
   end
 
-  S, = polynomial_ring(codomain(coefficient_map(f)), _nvars(domain(f)))
+  S, = polynomial_ring(codomain(coefficient_map(f)), _nvars(domain(f)); cached = false)
   f.temp_ring = S
   return S
 end
@@ -238,6 +208,32 @@ function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, 
     return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
     return Generic.CompositeMap(F, G)
+  end
+end
+
+# No coefficient maps in the second argument
+function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  f = coefficient_map(F)
+  if typeof(codomain(f)) === typeof(coefficient_ring(domain(G)))
+    return hom(domain(F), codomain(G), f, G.(_images(F)), check=false)
+  elseif typeof(codomain(f)) === typeof(domain(G))
+    new_coeff_map = compose(f, G)
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
+  else
+    return Generic.CompositeMap(F, G)
+  end
+end
+
+# No coefficient maps in the first argument
+function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, S}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  g = coefficient_map(G)
+  if domain(g) === coefficient_ring(domain(F))
+    return hom(domain(F), codomain(G), g, G.(_images(F)), check=false)
+  else
+    new_coeff_map = MapFromFunc(coefficient_ring(domain(F)), codomain(g), x->g(domain(g)(x)))
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
   end
 end
 

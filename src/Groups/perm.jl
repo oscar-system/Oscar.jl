@@ -4,11 +4,11 @@
 
 Base.isfinite(G::PermGroup) = true
 
-==(x::PermGroup, y::PermGroup) = x.deg == y.deg && x.X == y.X
+==(x::PermGroup, y::PermGroup) = x.deg == y.deg && GapObj(x) == GapObj(y)
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && x.X == y.X
+==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && GapObj(x) == GapObj(y)
 
-Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
+Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
@@ -26,6 +26,9 @@ an integer `n` that is stored in `G`, with the following meaning.
   get the same degree as the given group.
 - The range `1:degree(G)` is used as the default set of points on which
   `G` and its element acts.
+- One can use the syntax `G(H)` in order to get a group that consists of
+  the same permutations as `H` but has the same degree as `G`,
+  provided that the elements of `H` move only points up to `degree(G)`.
 
 !!! note
     The degree of a group of permutations is not necessarily equal to the
@@ -34,7 +37,9 @@ an integer `n` that is stored in `G`, with the following meaning.
 
 # Examples
 ```jldoctest
-julia> degree(symmetric_group(4))
+julia> s4 = symmetric_group(4);
+
+julia> degree(s4)
 4
 
 julia> t4 = trivial_subgroup(symmetric_group(4))[1];
@@ -42,8 +47,13 @@ julia> t4 = trivial_subgroup(symmetric_group(4))[1];
 julia> degree(t4)
 4
 
-julia> t4 == trivial_subgroup(symmetric_group(5))[1]
+julia> t5 = trivial_subgroup(symmetric_group(5))[1];
+
+julia> t4 == t5
 false
+
+julia> t4 == s4(t5)
+true
 
 julia> show(Vector(gen(symmetric_group(4), 2)))
 [2, 1, 3, 4]
@@ -61,6 +71,19 @@ This value is always greater or equal `number_of_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
+
+# coerce a permutation group to a different degree
+function (G::PermGroup)(H::PermGroup)
+  dH = degree(H)
+  dG = degree(G)
+  if dH == dG
+    return H
+  elseif dH < dG || GAPWrap.LargestMovedPoint(GapObj(H)) <= dG
+    return permutation_group(GapObj(H), dG)
+  end
+  throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
+end
+
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
@@ -80,7 +103,7 @@ julia> length(moved_points(gen(s, 1)))
 3
 ```
 """
-@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
+@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
@@ -100,7 +123,7 @@ julia> number_of_moved_points(gen(s, 1))
 3
 ```
 """
-@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
+@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(GapObj(x))::Int
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
@@ -123,7 +146,29 @@ Sym(6)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GAP.GapObj(L;recursive=true)))
+  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+end
+
+"""
+    smaller_degree_permutation_representation(G::PermGroup) -> PermGroup, map
+  
+Return an isomorphic permutation group of smaller or equal degree
+and the isomorphism from `G` to that group.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> s, _ = sylow_subgroup(g, 3);
+
+julia> rho = smaller_degree_permutation_representation(s)
+(Permutation group of degree 3 and order 3, Hom: s -> permutation group)
+```
+"""
+function smaller_degree_permutation_representation(G::PermGroup)
+  mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
+  img = PermGroup(GAP.Globals.Image(mp))
+  return img, GAPGroupHomomorphism(G, img, mp)
 end
 
 
@@ -161,17 +206,17 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
+   x = GAPWrap.PermList(GapObj(L;recursive=true))
    @req x !== GAP.Globals.fail "the list does not describe a permutation"
-   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   x = GAPWrap.PermList(GapObj(L;recursive=true))
+   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
@@ -181,29 +226,33 @@ end
 # takes as input a list of vectors (not necessarily disjoint)
 @doc raw"""
     cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
+    cperm(L::AbstractVector{<:AbstractVector{T}}) where T <: IntegerUnion
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
-    cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
-    cperm(g::PermGroup,L::Vector{Vector{T}}) where T <: IntegerUnion
+    cperm(G::PermGroup, L::AbstractVector{<:AbstractVector{T}}) where T <: IntegerUnion
 
 For given lists $[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$
 of positive integers, return the
 permutation $x = (a_1, a_2, \ldots, a_n) * (b_1, b_2, \ldots, b_m) * \ldots$.
 Arrays of the form `[n, n+1, ..., n+k]` can be replaced by `n:n+k`.
 
-The parent of $x$ is `G`.
-If `G` is not specified then the parent of $x$ is set to
-[`symmetric_group`](@ref)$(n)$,
-where $n$ is the largest integer that occurs in an entry of `L`.
+The parent of $x$ is `G`. If `G` is not specified then the parent of $x$ is
+set to [`symmetric_group`](@ref)$(n)$, where $n$ is the largest integer that
+occurs in an entry of `L`.
+However this incurs non-trivial overhead and so it is generally better
+to provide `G` explicitly.
 
-An exception is thrown if $x$ is not contained in `G`
+An exception is thrown if $x$ is not contained in `G`,
 or one of the given vectors is empty or contains duplicates.
+
+See also [`perm`](@ref) and [`@perm`](@ref) for other ways to create
+permutations.
 
 # Examples
 ```jldoctest
 julia> cperm([1,2,3],4:7)
 (1,2,3)(4,5,6,7)
 
-julia> cperm([1,2],[2,3])
+julia> cperm([1,2],[2,3])  # cycles may overlap
 (1,3,2)
 
 julia> cperm()
@@ -216,28 +265,31 @@ julia> degree(p)
 7
 ```
 
-Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
+Two permutations coincide if, and only if, they move the same points and their
+parent groups have the same degree.
 ```jldoctest
-julia> G=symmetric_group(5);
+julia> G = symmetric_group(5);
 
-julia> A=alternating_group(5);
+julia> A = alternating_group(5);
 
-julia> x=cperm(G,[1,2,3]);
+julia> x = cperm(G, [1,2,3]);
 
-julia> y=cperm(A,[1,2,3]);
+julia> y = cperm(A, [1,2,3]);
 
-julia> z=cperm([1,2,3]); parent(z)
+julia> z = cperm([1,2,3]); parent(z)
 Sym(3)
 
-julia> x==y
+julia> x == y
 true
 
-julia> x==z
+julia> x == z
 false
 ```
-In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
+In the example above, `x` and `y` are equal because both act on a set of
+cardinality `5`, while `x` and `z` are different because `x` belongs to
+`Sym(5)` and `z` belongs to `Sym(3)`.
 
-cperm can also handle cycles passed in inside of a vector
+`cperm` can also handle cycles passed in inside of a vector
 ```jldoctest
 julia> x = cperm([[1,2],[3,4]])
 (1,2)(3,4)
@@ -248,67 +300,51 @@ julia> y = cperm([1,2],[3,4])
 julia> x == y
 true
 ```
-
-```jldoctest
-julia> G=symmetric_group(5)
-Sym(5)
-
-julia> x = cperm(G,[[1,2],[3,4]])
-(1,2)(3,4)
-
-julia> parent(x)
-Sym(5)
-```
-
-Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
-```jldoctest
-julia> x = cperm([1,2,3],[4,5],[6,7,8])
-(1,2,3)(4,5)(6,7,8)
-
-julia> y = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
-(1,2,3)(4,5)(6,7,8)
-
-julia> x == y
-true
-
-julia> z = @perm (1,2,3)(4,5)(6,7,8)
-(1,2,3)(4,5)(6,7,8)
-
-julia> x == z
-true
-```
-
-At the moment, the input vectors of the function `cperm` need not be disjoint.
-
 """
-function cperm()
-  return one(symmetric_group(1))
+cperm() = one(symmetric_group(1))
+
+cperm(L::AbstractVector{T}, Ls::AbstractVector{T}...) where T <: IntegerUnion = _cperm((L,Ls...))
+
+cperm(L::AbstractVector{<:AbstractVector{<:IntegerUnion}}) = _cperm(L)
+
+cperm(g::PermGroup, L::AbstractVector{<: IntegerUnion}...) = _cperm(g, L)
+
+cperm(g::PermGroup, L::AbstractVector{<:AbstractVector{<:IntegerUnion}}) = _cperm(g, L)
+
+function _cperm(L)
+  # L is something like a Vector{Vector{Int}}, describing a sequence of cycles
+  # figure out the maximal entry occurring in there
+  deg = mapreduce(maximum, max, L; init=1)
+  return _cperm(symmetric_group(deg), L)
 end
 
-function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
-  #TODO: better create the product of GAP permutations?
+function _cperm(g::PermGroup, L)
+  isempty(L) && return one(g)
+  deg = degree(g)
+  l = collect(1:deg)
+  for y in L
+    isempty(y) && continue
+    prev = last(y)
+    for i in y
+      @req 1 <= prev <= deg "the element does not embed in the group"
+      if l[prev] != prev
+        # cycles are not disjoint, fall back to generic but slower code
+        return _cperm_slow(g, L)
+      end
+      l[prev] = i
+      prev = i
+    end
+  end
+  return perm(g, l)
 end
 
-# cperm stays for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarily disjoint)
-# WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup)
-  return one(g)
-end
-
-function cperm(g::PermGroup, L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1, L...])
-  @req x in g.X "the element does not embed in the group"
-  return PermGroupElem(g, x)
-end
-
-function cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
-    return cperm(L...)
-end
-
-function cperm(g::PermGroup,L::Vector{Vector{T}}) where T <: IntegerUnion
-    return cperm(g,L...)
+# fallback in case there are overlapping cycles -- we
+# then resort to multiplication, which is slower but gets the job done
+function _cperm_slow(g::PermGroup, L)
+  h = symmetric_group(degree(g))
+  x = prod(y -> cperm(h, y), L)
+  @req x in g "the element does not embed in the group"
+  return PermGroupElem(g, GapObj(x))
 end
 
 @doc raw"""
@@ -348,9 +384,9 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^x.X)
+^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^GapObj(x))
 
-^(n::Int, x::PermGroupElem) = (n^x.X)::Int
+^(n::Int, x::PermGroupElem) = (n^GapObj(x))::Int
 
 
 @doc raw"""
@@ -370,10 +406,10 @@ julia> sign(cperm(1:3))
 1
 ```
 """
-Base.sign(g::PermGroupElem) = GAPWrap.SignPerm(g.X)
+Base.sign(g::PermGroupElem) = GAPWrap.SignPerm(GapObj(g))
 
 # TODO: document the following?
-Base.sign(G::PermGroup) = GAPWrap.SignPermGroup(G.X)
+Base.sign(G::PermGroup) = GAPWrap.SignPermGroup(GapObj(G))
 
 
 @doc raw"""
@@ -439,12 +475,12 @@ struct CycleType <: AbstractVector{Pair{Int64, Int64}}
     for i = c
       _push_cycle!(s, i)
     end
-    sort!(s, by = x -> x[1])
+    sort!(s; by=first)
     return new(s)
   end
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
-    return new(sort(v, by = x -> x[1]))
+    return new(sort(v; by=first))
 #TODO: check that each cycle length is specified at most once?
   end
 end
@@ -470,7 +506,7 @@ function _push_cycle!(s::Vector{Pair{Int, Int}}, i::Int, j::Int = 1)
   f = findfirst(x->x[1] == i, s)
   if f === nothing
     push!(s, i=>j)
-    sort!(s, by = x -> x[1])
+    sort!(s; by=first)
   else
     s[f] = s[f][1]=>s[f][2] + j
   end
@@ -516,7 +552,7 @@ julia> all(x -> degree(cycle_structure(x)) == degree(g), gens(g))
 true
 ```
 """
-degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
+degree(c::CycleType) = sum(x->x[1]*x[2], c.s; init = 0)
 
 
 @doc raw"""
@@ -601,7 +637,7 @@ julia> cycle_structure(g)
 ```
 """
 function cycle_structure(g::PermGroupElem)
-    c = GAPWrap.CycleStructurePerm(g.X)
+    c = GAPWrap.CycleStructurePerm(GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
@@ -639,6 +675,64 @@ function cycle_structures(G::PermGroup)
   return Set(cycle_structure(x) for x in r)
 end
 
+@doc raw"""
+    cycles(g::PermGroupElem)
+
+Return all cycles (including trivial ones) of the permutation `g` as
+a sorted list of integer vectors.
+
+# Examples
+```jldoctest
+julia> g = cperm(1:3, 6:7, 8:10, 11:15)
+(1,2,3)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia> cycles(g)
+6-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [4]
+ [5]
+ [6, 7]
+ [8, 9, 10]
+ [11, 12, 13, 14, 15]
+
+julia> g = cperm()
+()
+
+julia> cycles(g)
+1-element Vector{Vector{Int64}}:
+ [1]
+```
+"""
+function cycles(g::PermGroupElem)
+  ccycles, cptrs = AbstractAlgebra.Generic.cycledec(Vector(g))
+
+  cycles = Vector{Vector{Int}}(undef, length(cptrs) - 1)
+  for i in 1:length(cptrs) - 1
+    cycles[i] = ccycles[cptrs[i]:cptrs[i + 1] - 1]
+  end
+  return cycles
+end
+
+@doc raw"""
+    cycle_length(g::PermGroupElem, i::IntegerUnion)
+
+Return the length of the cycle of `i` under the action of the permutation `g`.
+
+# Examples
+```jldoctest
+julia> g = cperm(1:3, 6:7, 8:10, 11:15)
+(1,2,3)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia> cycle_length(g, 1)
+3
+
+julia> cycle_length(g, 4)
+1
+```
+"""
+function cycle_length(g::PermGroupElem, i::IntegerUnion)
+  return GAPWrap.CYCLE_LENGTH_PERM_INT(GapObj(g), GapObj(i))
+end
 
 ################################################################################
 #
@@ -646,7 +740,7 @@ end
 #
 # The following code implements a new way to input permutations in Julia. For example
 # it is possible to create a permutation as follow
-# pi = Oscar.Permutations.@perm (1,2,3)(4,5)(6,7,8)
+# pi = @perm (1,2,3)(4,5)(6,7,8)
 # > (1,2,3)(4,5)(6,7,8)
 # For this we use macros to modify the syntax tree of (1,2,3)(4,5)(6,7,8) such that
 # Julia can deal with the expression.
@@ -656,7 +750,14 @@ function _perm_helper(ex::Expr)
     ex == :( () ) && return []
     ex isa Expr || error("Input is not a permutation expression")
 
-    res = []
+    if ex.head == :tuple && any(x -> x isa Expr && x.head == :macrocall && x.args[1] == Symbol("@perm"), ex.args)
+        error("""Encountered @perm macro inside of permutation expression.
+                Either set explicit parentheses for each @perm call (e.g. `@perm((1,2)), @perm((3,4))`),
+                or use the @perm variant that takes a list of permutations (e.g. `@perm n [(1,2), (3,4)]`).
+                Please refer to the docstring of @perm for more information.""")
+    end
+
+    res = Expr[]
     while ex isa Expr && ex.head == :call
         push!(res, Expr(:vect, ex.args[2:end]...))
         ex = ex.args[1]
@@ -666,7 +767,7 @@ function _perm_helper(ex::Expr)
         error("Input is not a permutation.")
     end
 
-    push!(res, Expr(:vect,ex.args...))
+    push!(res, Expr(:vect, ex.args...))
 
     # reverse `res` to match the original order; this ensures
     # the evaluation order is as the user expects
@@ -678,18 +779,37 @@ end
 
 ################################################################################
 #
-#   perm
+#   @perm
 #
+
 @doc raw"""
-    @perm ex
-    
-Input a permutation in cycle notation. Supports arbitrary expressions for
-generating the integer entries of the cycles. The parent group is inferred 
-to be the symmetric group with a degree of the highest integer referenced 
-in the permutation.
+    @perm expr
+    @perm n expr
+    @perm G expr
+
+Input a permutation or a non-empty list of permutations in cycle notation.
+
+Supports arbitrary expressions for generating the integer entries of the cycles.
+
+`expr` may either be a single permutation, a non-empty list of permutations,
+or a non-empty tuple of permutations. **Note:** `@perm ()` denotes the identity
+permutation, NOT the empty tuple of permutations.
+
+If a group `G` is provided, the permutations are created as elements of `G`. This will
+raise an error if the permutations are not elements of `G`.
+
+If an integer `n` is provided, the permutations are created as elements of the
+symmetric group of degree `n`, i.e., `symmetric_group(n)`.
+
+In the remaining case, the parent group is inferred to be the symmetric group
+with a degree of the highest integer referenced in `expr`. This may result in
+evaluating the expressions in the cycle entries multiple times, so it is
+recommended to provide the parent group explicitly in cases of complex expressions.
 
 The actual work is done by [`cperm`](@ref). Thus, for the time being,
 cycles which are *not* disjoint actually are supported.
+
+See also [`cperm`](@ref) and [`perm`](@ref) for other ways to create permutations.
 
 # Examples
 ```jldoctest
@@ -699,39 +819,18 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 julia> parent(x)
 Sym(8)
 
-julia> y = cperm([1,2,3],[4,5],[6,7,8])
-(1,2,3)(4,5)(6,7,8)
-
-julia> x == y
+julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
 
-julia> z = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
-(1,2,3)(4,5)(6,7,8)
+julia> x == cperm([1,2,3],[4,5],[6,7,8])
+true
 
-julia> x == z
+julia> x == perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
 true
 ```
-"""
-macro perm(ex)
-    res = _perm_helper(ex)
-    return esc(:(Oscar.cperm($(res...))))
-end
 
-
-################################################################################
-#
-#   perm(n,gens)
-#
-@doc raw"""
-    @perm n gens
-    
-Input a list of permutations in cycle notation, created as elements of the
-symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
-[`cperm`](@ref) suitably.
-
-# Examples
 ```jldoctest
-julia> gens = @perm 14 [
+julia> gens = @perm [
               (1,10)
               (2,11)
               (3,12)
@@ -757,19 +856,76 @@ julia> parent(gens[1])
 Sym(14)
 ```
 """
-macro perm(n,gens)
+macro perm(expr)
+  type, res = _perm_parse(expr)
+  n = _perm_max_entry(type, res)
+  return _perm_format(type, n, res)
+end
 
-    ores = Expr[]
-    for ex in gens.args
-        res = _perm_helper(ex)
-        push!(ores, esc(:(  [$(res...)]  )))
-    end
+macro perm(n_or_G, expr)
+  type, res = _perm_parse(expr)
+  return _perm_format(type, esc(n_or_G), res)
+end
 
-    return quote
-       let g = symmetric_group($n)
-           [ cperm(g, pi...) for pi in [$(ores...)] ]
-       end
+function _perm_parse(expr::Expr)
+  # case: expr is a non-empty vector
+  if expr.head == :vect || expr.head == :vcat
+    @req length(expr.args) > 0 "empty vector not allowed"
+    return Val(:vector), [esc(:([$(_perm_helper(arg)...)])) for arg in expr.args]
+  end
+
+  # case: expr is a non-empty tuple of permutations
+  # to distinguish this from a single cycle (of arbitrary expressions), we walk through
+  # the expression tree, and look for a place where a tuple is called.
+  # This never happens inside a single cycle, so this is a safe way to distinguish.
+  if expr.head == :tuple && length(expr.args) > 0 && expr.args[1] isa Expr
+    ex = expr.args[1]
+    while true
+      if ex.head == :tuple
+        return Val(:tuple), [esc(:([$(_perm_helper(arg)...)])) for arg in expr.args]
+      end
+      if ex.head == :call && ex.args[1] isa Expr
+        ex = ex.args[1]
+      else
+        break
+      end
     end
+  end
+
+  # otherwise, we have a single permutation
+  return Val(:single), esc.(_perm_helper(expr))
+end
+
+function _perm_max_entry(::Val{:single}, res)
+  return :(mapreduce(maximum, max, [$(res...)]; init=1))
+end
+
+function _perm_max_entry(::Union{Val{:vector}, Val{:tuple}}, res)
+  return :(mapreduce(x -> mapreduce(maximum, max, x; init=1), max, [$(res...)]; init=1))
+end
+
+function _perm_format(::Val{:single}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      cperm(G, $(res...))
+    end
+  end
+end
+
+function _perm_format(::Val{:vector}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      [cperm(G, p...) for p in [$(res...)]]
+    end
+  end
+end
+
+function _perm_format(::Val{:tuple}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      ((cperm(G, p...) for p in [$(res...)])...,)
+    end
+  end
 end
 
 

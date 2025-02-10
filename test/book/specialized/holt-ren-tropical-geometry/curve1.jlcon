@@ -1,0 +1,11 @@
+julia> R,(x,y) = QQ["x","y"];
+
+julia> nu = tropical_semiring_map(QQ);
+
+julia> f = 1+x+y+x*(x^2+y^2);
+
+julia> TropH = tropical_hypersurface(f,nu)
+Min tropical hypersurface
+
+julia> TropC = tropical_curve(TropH)
+Embedded min tropical curve

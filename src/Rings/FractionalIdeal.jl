@@ -30,6 +30,8 @@ function base_ring(a::FractionalIdeal)
   return base_ring(numerator(a))
 end
 
+base_ring_type(::Type{FractionalIdeal{S, T}}) where {S, T} = base_ring_type(S)
+
 function iszero(a::FractionalIdeal)
   return iszero(numerator(a))
 end
@@ -52,6 +54,13 @@ end
 
 function ==(a::FractionalIdeal, b::FractionalIdeal)
   return a.num*b.den == b.num*a.den
+end
+
+function Base.hash(a::FractionalIdeal, h::UInt)
+  b = 0x4680fb583e498597 % UInt
+  # there is nothing better to include in the hash
+  h = hash(base_ring(a), h)
+  return xor(b, h)
 end
 
 function ^(a::FractionalIdeal, b::Int)

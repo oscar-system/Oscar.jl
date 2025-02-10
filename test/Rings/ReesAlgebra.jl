@@ -1,5 +1,5 @@
 @testset "Rees algebras" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   F = FreeMod(R, 3)
   M, inc = sub(F, [a*g for a in gens(R) for g in gens(F)])
   Q, p = quo(F, [a*F[1] for a in gens(R)])
@@ -55,6 +55,6 @@
   Rg = Oscar.rees_algebra(g)
   @test !iszero(one(Rg))
   # Both algebras should be the same despite being created differently.
-  @test all(x->iszero(RM(x)), gens(modulus(Rg)))
-  @test all(x->iszero(Rg(x)), gens(modulus(RM)))
+  @test all(x->iszero(evaluate(x, gens(RM))), gens(modulus(Rg)))
+  @test all(x->iszero(evaluate(x, gens(Rg))), gens(modulus(RM)))
 end

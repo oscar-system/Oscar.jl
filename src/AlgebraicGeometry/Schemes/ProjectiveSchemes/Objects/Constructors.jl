@@ -89,7 +89,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  S, _ = graded_polynomial_ring(A, Symbol.(var_symb))
+  S, _ = graded_polynomial_ring(A, Symbol.(var_symb); cached=false)
   return proj(S)
 end
 
@@ -100,7 +100,7 @@ Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A`
 where `s` is a string for the variable names.
 """
 function projective_space(A::Ring, r::Int; var_name::VarName=:s)
-  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r]; cached=false)
   return proj(S)
 end
 

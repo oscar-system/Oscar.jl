@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
@@ -20,11 +18,17 @@ General textbooks offering details on theory and algorithms include:
 - [HEO05](@cite)
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on group theory in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/GroupTheory/).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
 * [Thomas Breuer](https://www.math.rwth-aachen.de/homes/Thomas.Breuer/),
-* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn).
+* [Max Horn](https://math.rptu.de/en/wgs/agag/people/head/prof-dr-max-horn).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

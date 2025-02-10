@@ -59,15 +59,7 @@ function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
 end
 
 
-@doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
-
-Given modules `M`, `N` which are tensor products with the same number of factors,
-say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
-and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
-$a_1 \otimes \cdots \otimes a_r$.
-"""
-function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
   tN = get_attribute(N, :tensor_product)
@@ -87,18 +79,53 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
     res = pure_N(image_as_tuple)
     return res
   end
-  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))); check=false)
 end
 
+# the case of a non-trivial base change
 @doc raw"""
-    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+
+Given modules `M`, `N` which are tensor products with the same number of factors,
+say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
+and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
+$a_1 \otimes \cdots \otimes a_r$.
+"""
+function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+  tM = get_attribute(M, :tensor_product)
+  tM === nothing && error("both modules must be tensor products")
+  tN = get_attribute(N, :tensor_product)
+  tN === nothing && error("both modules must be tensor products")
+  @assert length(tM) == length(tN) == length(V)
+  @assert all(i-> domain(V[i]) === tM[i] && codomain(V[i]) === tN[i], 1:length(V))
+  #gens of M are M[i][j] tensor M[h][l] for i != h and all j, l
+  #such a pure tensor is mapped to V[i](M[i][j]) tensor V[h](M[j][l])
+  #thus need the pure map - and re-create the careful ordering of the generators as in the 
+  # constructor
+  #store the maps? and possibly more data, like the ordeing
+  decompose_M = get_attribute(M, :tensor_generator_decompose_function)
+  pure_N = get_attribute(N, :tensor_pure_function)
+  function map_gen(g) # Is there something that generalizes FreeModElem and SubquoModuleElem?
+    g_decomposed = decompose_M(g)
+    image_as_tuple = Tuple(f(x) for (f,x) in zip(V,g_decomposed))
+    res = pure_N(image_as_tuple)
+    return res
+  end
+  bc_map = base_ring_map(first(V))
+  bc_map !== nothing && @assert all(domain(g) === domain(bc_map) && codomain(g) === codomain(bc_map) for g in base_ring_map.(V))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))), bc_map)
+end
+
+
+@doc raw"""
+    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
 
 Given modules `M` and `N` which are products with `r` respective `s` factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
-function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
+function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
   tM = get_attribute(M, :direct_product)
   tM === nothing && error("both modules must be direct products")
   tN = get_attribute(N, :direct_product)
@@ -191,7 +218,7 @@ Return $\text{Tor}_i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y];
 
@@ -204,27 +231,27 @@ julia> F = free_module(R, 1);
 julia> Q, _ = quo(F, [x*F[1]]);
 
 julia> T0 = tor(Q, M, 0)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1] \otimes e[1]
-2 -> y*e[1] \otimes e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1] \otimes e[1]
-2 -> y^3*e[1] \otimes e[1]
-3 -> z^4*e[1] \otimes e[1]
-4 -> x*y*e[1] \otimes e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1] \otimes e[1]
+  2: y*e[1] \otimes e[1]
+by submodule with 4 generators
+  1: x^2*e[1] \otimes e[1]
+  2: y^3*e[1] \otimes e[1]
+  3: z^4*e[1] \otimes e[1]
+  4: x*y*e[1] \otimes e[1]
 
 julia> T1 = tor(Q, M, 1)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1] \otimes e[1]
-2 -> x*y*e[1] \otimes e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1] \otimes e[1]
-2 -> y^3*e[1] \otimes e[1]
-3 -> z^4*e[1] \otimes e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1] \otimes e[1]
+  2: x*y*e[1] \otimes e[1]
+by submodule with 3 generators
+  1: x^2*e[1] \otimes e[1]
+  2: y^3*e[1] \otimes e[1]
+  3: z^4*e[1] \otimes e[1]
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators
-represented as subquotient with no relations.
+represented as subquotient with no relations
 ```
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
@@ -233,7 +260,7 @@ function tor(M::ModuleFP, N::ModuleFP, i::Int)
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
-simplify_light(F::FreeMod) = F
+simplify_light(F::FreeMod) = (F, identity_map(F), identity_map(F))
 
 #TODO, mF
 #  (hom lift) => hom and tensor functor
@@ -330,7 +357,7 @@ If `C` is a cochain complex, return a chain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -388,7 +415,7 @@ If `C` is a cochain complex, return a cochain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -444,7 +471,7 @@ Return the homology of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -460,20 +487,20 @@ julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C)
 3-element Vector{SubquoModule{QQMPolyRingElem}}:
- Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
- Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
- Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
+ Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 1 generator
+  1: x^4*e[1]
+ Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
+ Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
 ```
 """
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
@@ -492,7 +519,7 @@ Return the `i`-th homology module of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -507,11 +534,11 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C, 1)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
 ```
 """
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
@@ -544,46 +571,46 @@ Return $\text{Ext}^i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 1);
 
 julia> V = [x*F[1], y*F[1]];
 
 julia> M = quo_object(F, V)
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
 
 julia> ext(M, M, 0)
-Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
-by Submodule with 2 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
+Subquotient of submodule with 1 generator
+  1: (e[1] -> e[1])
+by submodule with 2 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
 
 julia> ext(M, M, 1)
-Subquotient of Submodule with 2 generators
-1 -> (e[1] -> e[1])
-2 -> (e[2] -> e[1])
-by Submodule with 4 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
-3 -> y*(e[2] -> e[1])
-4 -> x*(e[2] -> e[1])
+Subquotient of submodule with 2 generators
+  1: (e[1] -> e[1])
+  2: (e[2] -> e[1])
+by submodule with 4 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
+  3: y*(e[2] -> e[1])
+  4: x*(e[2] -> e[1])
 
 julia> ext(M, M, 2)
-Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
-by Submodule with 2 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
+Subquotient of submodule with 1 generator
+  1: (e[1] -> e[1])
+by submodule with 2 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
-represented as subquotient with no relations.
+represented as subquotient with no relations
 ```
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)

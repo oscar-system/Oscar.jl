@@ -29,7 +29,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   
   # Pick out the singular loci that are more singular than an I_1
   # Then keep only the locus and not the extra info about it
-  interesting_singular_loci = map(tup -> tup[1], filter(locus -> locus[2][3] > 1, sing_loc))
+  interesting_singular_loci = map(first, filter(locus -> locus[2][3] > 1, sing_loc))
   
   # This is a kludge to map polynomials on the base into the ambient space, and should be fixed once the ambient space constructors supply such a map
   base_coords = parent(gens(interesting_singular_loci[1])[1])
@@ -50,7 +50,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
     # Potential components of the fiber over this locus
     # For now, we only consider the associated prime ideal,
     # but we may later want to actually consider the primary ideals
-    potential_components = map(pair -> pair[2], primary_decomposition(strict_transform + res_ring_map(ungraded_locus)))
+    potential_components = map(last, primary_decomposition(strict_transform + res_ring_map(ungraded_locus)))
     
     # Filter out the trivial loci among the potential components
     components = filter(component -> _is_nontrivial(component, res_irr), potential_components)
@@ -59,7 +59,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
     intersections = Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}[]
     for i in 1:length(components) - 1
       for j in i + 1:length(components)
-        intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(pair -> pair[2], primary_decomposition(components[i] + components[j])))
+        intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(last, primary_decomposition(components[i] + components[j])))
         push!(intersections, ((i, j), intersection))
       end
     end
@@ -80,6 +80,11 @@ end
     tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
 Tune a Tate model by fixing a special choice for the model sections.
+Note that it is in particular possible to set a section to zero. We anticipate
+that people might want to be able to come back from this by assigning a non-trivial
+value to a section that was previously tuned to zero. This is why we keep such
+trivial sections and do not delete them, say from `explicit_model_sections`
+or `classes_of_model_sections`.
 
 # Examples
 ```jldoctest
@@ -89,7 +94,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -112,6 +117,44 @@ Global Tate model over a concrete base
 
 julia> tate_section_a1(tuned_t) == x1^4
 true
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice2 = Dict("a1" => x1^4, "a2" => zero(parent(x1)), "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => 0
+  "a1" => x1^4
+
+julia> tuned_t2 = tune(tuned_t, my_choice2)
+Global Tate model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_t2)["a2"])
+true
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice3 = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => x1^8
+  "a1" => x1^4
+
+julia> tuned_t3 = tune(tuned_t2, my_choice3)
+Global Tate model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_t3)["a2"])
+false
 ```
 """
 function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
@@ -120,7 +163,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   isempty(input_sections) && return t
   secs_names = collect(keys(explicit_model_sections(t)))
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(t))
@@ -129,10 +172,10 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
 
   # 1. Tune model sections different from Tate sections
   for x in setdiff(tuned_secs_names, tate_sections)
-    section_parent = parent(input_sections[x])
-    section_degree = degree(input_sections[x])
-    @req section_parent == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
-    @req section_degree == degree(explicit_model_sections(t)[x]) "Degree mismatch between given and existing model section"
+    @req parent(input_sections[x]) == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
+    if is_zero(input_sections[x]) == false
+      @req degree(input_sections[x]) == divisor_class(classes_of_model_sections(t)[x]) "Degree mismatch between given and existing model section"
+    end
     explicit_secs[x] = input_sections[x]
   end
 
@@ -141,7 +184,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   if !isempty(parametrization_keys) && !isempty(secs_names)
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in gens(R)]
+    vars = [string(k) for k in symbols(R)]
     images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
     map = hom(R, S, images)
     for section in tate_sections
@@ -153,7 +196,9 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   for sec in tate_sections
     if haskey(input_sections, sec)
       @req parent(input_sections[sec]) == parent(explicit_model_sections(t)[sec]) "Parent mismatch between given and existing Tate section"
-      @req degree(input_sections[sec]) == degree(explicit_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
+      if is_zero(input_sections[sec]) == false
+        @req degree(input_sections[sec]) == divisor_class(classes_of_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
+      end
       explicit_secs[sec] = input_sections[sec]
       delete!(def_secs_param, sec)
     end
@@ -172,6 +217,29 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
     end
   end
   
-  # 5. Build the new model
-  return global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
+  # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
+  if !isempty(def_secs_param)
+    naive_vars = string.(gens(parent(first(values(def_secs_param)))))
+    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
+    desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
+    for (key, value) in def_secs_param
+      def_secs_param[key] = eval_poly(string(value), desired_ring)
+    end
+  end
+  
+  # 6. Build the new model
+  resulting_model = global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
+
+  # 7. Copy the classes of model sections, but only of those sections that are used!
+  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  for key in keys(explicit_model_sections(resulting_model))
+    m = divisor_class(classes_of_model_sections(t)[key]).coeff
+    @req nrows(m) == 1 "Encountered inconsistency"
+    new_classes_of_model_sections[key] = toric_divisor_class(base_space(resulting_model), m[1, :])
+  end
+  set_attribute!(resulting_model, :classes_of_model_sections => new_classes_of_model_sections)
+
+  # 8. Return the model
+  return resulting_model
+
 end

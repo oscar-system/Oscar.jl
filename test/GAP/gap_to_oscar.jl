@@ -173,16 +173,16 @@ end
     @test F(GAP.Globals.E(5)) == z^3
     @test F(GAP.Globals.E(3)) == z^5
 
-    # to `QQAbElem`
-    x = QQAbElem(GAP.evalstr("2^64"))
+    # to `QQAbFieldElem`
+    x = QQAbFieldElem(GAP.evalstr("2^64"))
     @test x == ZZRingElem(2)^64
 
     F, z = abelian_closure(QQ)
     val = GAP.evalstr("EB(5)")
-    x = QQAbElem(val)
+    x = QQAbFieldElem(val)
     @test x == z(5) + z(5)^4
     @test F(val) == x
-    @test GAP.gap_to_julia(QQAbElem, val) == x
+    @test GAP.gap_to_julia(QQAbFieldElem, val) == x
 
     # not supported conversions
     F, z = quadratic_field(5)
@@ -198,12 +198,12 @@ end
     a = GAP.Globals.PrimitiveElement(gapF)
     @test_throws ArgumentError F(a)
 
-    @test_throws GAP.ConversionError QQAbElem(GAP.evalstr("[ E(3) ]"))
+    @test_throws GAP.ConversionError QQAbFieldElem(GAP.evalstr("[ E(3) ]"))
 end
 
 @testset "matrices over a cyclotomic field" begin
     g = small_group(64, 140)
-    reps = GAP.Globals.IrreducibleRepresentations(g.X)
+    reps = GAP.Globals.IrreducibleRepresentations(GapObj(g))
     gmats = GAP.Globals.GeneratorsOfGroup(GAP.Globals.Image(reps[end]))
     omats, F, z = Oscar.matrices_over_cyclotomic_field(gmats)
 
@@ -253,7 +253,7 @@ end
     R, x = polynomial_ring(oF)
     gpol = image(Oscar.iso_oscar_gap(R), x^2+x+1)
     F = GAP.Globals.AlgebraicExtension(codomain(gF), gpol)
-    mats = GAP.GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]], recursive = true)
+    mats = GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]]; recursive = true)
     omats, F, z = Oscar.matrices_over_cyclotomic_field(mats)
     @test order(F) == 4
     @test omats[1][1,1] == one(F)
@@ -262,4 +262,14 @@ end
     # not a collection in GAP
     mats = GAP.evalstr("[ [ [ Z(2) ] ], [ [ Z(3) ] ] ]")
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(mats)
+end
+
+@testset "straight line programs" begin
+    l = GapObj([[[1, 2], 3], [[3, 2], 2], [1, 2, 2, 1]], recursive = true)
+    gapslp = GAP.Globals.StraightLineProgram(l, 2)
+    slp = straight_line_program(gapslp)
+    @test evaluate(slp, [2, 3]) == 64
+    @test GAP.Globals.ResultOfStraightLineProgram(gapslp, GapObj([2, 3])) == 64
+
+    @test_throws ArgumentError straight_line_program(l)
 end

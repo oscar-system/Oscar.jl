@@ -241,7 +241,7 @@ function action_on_monomials(R::MPolyRing, d::Int, A::Vector{QQMatrix})
       b = zeros(QQ, length(m))
       y = evaluate(x, h)
       for (c,v) = zip(AbstractAlgebra.coefficients(y), AbstractAlgebra.monomials(y))
-        b[findfirst(l -> l==v, m)] = c
+        b[findfirst(==(v), m)] = c
       end
       push!(bb, b)
     end

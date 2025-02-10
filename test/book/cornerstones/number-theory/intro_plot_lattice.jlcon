@@ -1,0 +1,12 @@
+using Plots;
+w1, w2 = Complex(1),(sqrt(Complex(-3)) + 1)/2
+pts = filter(z -> max(abs(imag(z)), abs(real(z))) <= 3,
+             [ a*w1 + b*w2 for a in -5:5 for b in -5:5]);
+x = range(0, real(w1) + real(w2), 100);
+y1 = (x -> min(sqrt(3)*x, imag(w2))).(x);
+y2 = (x -> max(0, sqrt(3)*x - sqrt(3))).(x);
+p = scatter(real.(pts), imag.(pts), framestyle=:origin,
+            legend = false, mc = :red)
+plot!(p, x, y1, fillrange = y2, fillalpha = 0.25, color = :blue)
+# output
+Plot{Plots.GRBackend() n=2}

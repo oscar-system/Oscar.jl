@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Rationals
@@ -272,10 +270,10 @@ ERROR: DivideError: integer division error
 
 * `is_power(a::QQFieldElem, b::Int) -> Bool, QQFieldElem`
 
-Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
-```false``` and any rational otherwise.
+Test if ``a`` is an ``n``-th power. If so, return `true` and the root,
+`false` and any rational otherwise.
 
-* `is_power(a::QQFieldElem) -> Int, QQFieldElem`
+* `is_perfect_power_with_data(a::QQFieldElem) -> Int, QQFieldElem`
 
 Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
@@ -290,7 +288,7 @@ julia> is_power(QQ(8), 3)
 julia> is_power(QQ(8), 2)
 (false, 8)
 
-julia> is_power(QQ(9//16))
+julia> is_perfect_power_with_data(QQ(9//16))
 (2, 3//4)
 
 julia> root(QQ(25//9), 2)

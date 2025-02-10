@@ -240,7 +240,7 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
   end
 
   fus = filter(i -> pi[i] != 0, 1:number_of_conjugacy_classes(tbl))
-  res = Oscar.GAPWrap.ELMS_LIST(chi.values, GAP.GapObj(fus))
+  res = Oscar.GAPWrap.ELMS_LIST(GapObj(chi), GapObj(fus))
 
   if l != 0
     # possible shortcut:
@@ -284,7 +284,7 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
     # The value is a square in 'K'.
     od = KK(1)
   else
-    # Compute \delta_K, as a `QQAbElem`.
+    # Compute \delta_K, as a `QQAbFieldElem`.
     # We need the norm of `z(p) + z(p)^-1 -2` w.r.t. the field extension
     # given by the real subfield of `cyclotomic_field(pf)` over `K`.
     # We compute this in the extension of `cyclotomic_field(p)` over

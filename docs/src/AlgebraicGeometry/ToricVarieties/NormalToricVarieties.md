@@ -16,6 +16,17 @@ the affine and non-affine case:
     Transformations for non-standard lattices will have to be done by the user.
 
 
+## Equality of Normal Toric Varieties
+
+Equality `==` of normal toric varieties checks equality of the
+corresponding polyhedral fans as sets of cones.
+This computes the rays of both of the toric varieties, which can be
+expensive if they are not already computed, meaning if
+`"RAYS" in Polymake.list_properties(Oscar.pm_object(polyhedral_fan(X)))`
+is false for one of the varieties.
+Triple-equality `===` always checks equality of memory locations in OSCAR.
+
+
 ## Constructors
 
 ### Affine Toric Varieties
@@ -32,7 +43,7 @@ affine_normal_toric_variety(v::NormalToricVariety)
 normal_toric_variety
 ```
 
-### Famous Toric Vareties
+### Famous Toric Varieties
 
 The constructors of `del_pezzo_surface`, `hirzebruch_surface`, `projective_space` and `weighted_projective_space ` *always* make a default/standard choice for the grading of the Cox ring.
 
@@ -174,15 +185,15 @@ method `coefficient_ring(v::NormalToricVarietyType)` always return
 the field of rational numbers. For the coordinate names, we provide the
 following setter functions:
 ```@docs
-set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
-set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
+set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
+set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
 ```
-The following methods allow to etract the chosen coordinates:
+The following methods allow to extract the chosen coordinates:
 ```@docs
 coordinate_names(v::NormalToricVarietyType)
 coordinate_names_of_torus(v::NormalToricVarietyType)
 ```
-In order to efficiently construct algebraic cycles (elements of the Chox ring),
+In order to efficiently construct algebraic cycles (elements of the Cox ring),
 cohomology classes (elements of the cohomology ring), or in order to compare ideals,
 it is imperative to fix choices of the coordinate names. The default value for
 coordinate names is `[x1, x2, ... ]`. The choice of coordinate names is fixed,
@@ -201,7 +212,7 @@ is_finalized(v::NormalToricVarietyType)
 ```
 After the variety finalized, one can enforce to obtain the above ideals in different rings.
 Also, one can opt to compute the above rings with a different choice of coordinate names
-and different coefficient ring. To this end, onc provides a custom ring (which
+and different coefficient ring. To this end, one provides a custom ring (which
 reflects the desired choice of coordinate names and coefficient ring) as first argument.
 However, note that the cached ideals and rings are *not* altered.
 ```@docs

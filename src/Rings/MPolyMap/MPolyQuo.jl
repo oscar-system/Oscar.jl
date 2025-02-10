@@ -48,7 +48,7 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
 
 !!! note
     The function returns a well-defined homomorphism `A` $\to$ `S` iff the
-    given data defines a homomorphism from the base ring of `A` to `S` whose
+    given data defines a homomorphism `base_ring(A)` $\to$ `S` whose
     kernel contains the modulus of `A`. This condition is checked by the 
     function in case `check = true` (default).
 
@@ -59,11 +59,11 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
  
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"] );
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
-julia> S, (s, t) = polynomial_ring(QQ, ["s", "t"]);
+julia> S, (s, t) = polynomial_ring(QQ, [:s, :t]);
 
 julia> F = hom(A, S, [s, s^2, s^3])
 Ring homomorphism
@@ -110,6 +110,20 @@ function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   return evaluate(lift(u), _images(F))
 end
 
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoRing}, u)
+  # This workaround deals with the fact that arithmetic in quotient rings is TERRIBLY slow.
+  # All the simplify calls make it unusable in this case, probably due to the fact that
+  # setting `is_reduced` flags does not pay off in such iterative procedures.
+  A = codomain(F)
+  # Shortcut needed because the `evaluate` code can not deal with empty lists
+  is_empty(_images(F)) && return codomain(F)(_constant_coefficient(u)) 
+  v = evaluate(lift(u), lift.(_images(F)))
+  return simplify(A(v))
+end
+
+_constant_coefficient(f::MPolyRingElem) = constant_coefficient(f)
+_constant_coefficient(f::MPolyQuoRingElem) = constant_coefficient(lift(f))
+
 function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), lift(u),
@@ -138,6 +152,7 @@ end
 # The two main evaluation methods
 function (F::MPolyAnyMap{<: MPolyQuoRing})(g)
   if g isa elem_type(domain(F))
+    @req parent(g) === domain(F) "Element not in domain"
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)
     else 

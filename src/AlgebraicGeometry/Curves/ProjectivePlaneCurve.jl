@@ -7,7 +7,7 @@ A reduced curve in the projective plane.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
 Projective plane curve
@@ -66,12 +66,11 @@ end
 Return the defining equation of the (reduced) plane curve `C`.
 """
 function defining_equation(C::ProjectivePlaneCurve{S,MPolyQuoRing{T}}) where {S,T}
-  if isdefined(C, :defining_equation)
-    return C.defining_equation::T
+  if !isdefined(C, :defining_equation)
+    m = minimal_generating_set(vanishing_ideal(C))
+    C.defining_equation = only(m)
   end
-  m = minimal_generating_set(vanishing_ideal(C))
-  @assert length(m) == 1
-  return m[1]::T
+  return C.defining_equation::T
 end
 
 ################################################################################
@@ -122,7 +121,7 @@ end
 # multiplicity
 
 @doc raw"""
-     multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
+    multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
 
 Return the multiplicity of `C` at `P`.
 """
@@ -155,8 +154,8 @@ end
 ################################################################################
 # tangent lines
 
- @doc raw"""
-      tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
+@doc raw"""
+    tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
 """
@@ -177,7 +176,7 @@ function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
 end
 
 @doc raw"""
-     intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+    intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 
 Return the intersection multiplicity of `C` and `D` at `P`.
 """
@@ -193,7 +192,7 @@ end
 
 
 @doc raw"""
-     is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+    is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
@@ -201,79 +200,4 @@ function is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) w
   P in C && P in D || return false
   any(P in i for i in common_components(C,D)) && return false
   intersection_multiplicity(C, D, P) == 1
-end
-
-################################################################################
-
-@doc raw"""
-    arithmetic_genus(C::ProjectivePlaneCurve)
-
-Return the arithmetic genus of `C`.
-
-# Examples
-```jldoctest
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> C = plane_curve(y^2 * z - x^3 - x * z^2)
-Projective plane curve
-  defined by 0 = x^3 + x*z^2 - y^2*z
-
-julia> arithmetic_genus(C)
-1
-```
-"""
-function arithmetic_genus(C::ProjectivePlaneCurve)
-  H = hilbert_polynomial(C)
-  return -ZZ(coeff(H, 0)) + 1
-end
-
-################################################################################
-
-@doc raw"""
-    geometric_genus(C::ProjectivePlaneCurve; check::Bool=true)
-
-Return the geometric genus of `C`.
-
-If `C` is singular this is defined as the geometric genus of any smooth birational model of `C`.
-
-If `check` is true, checks that `C` is an irreducible curve.
-
-# Examples
-```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> C = plane_curve(z*x^2-y^3)
-Projective plane curve
-  defined by 0 = x^2*z - y^3
-
-julia> geometric_genus(C)
-0
-
-```
-"""
-geometric_genus(C::AbsProjectiveCurve)
-
-function geometric_genus(C::ProjectivePlaneCurve{<:QQField}; check::Bool=true)
-  @check is_irreducible(C) "the curve must be irreducible"
-  I = vanishing_ideal(C)
-  singular_assure(I)
-  return ZZ(Singular.LibNormal.genus(I.gens.S)::Int)
-end
-
-function geometric_genus(C::ProjectivePlaneCurve)
-  # buggy
-  A = homogeneous_coordinate_ring(C)
-  L = normalization(A)
-  m = length(L)
-  pa = zero(ZZ)
-  for i in 1:m
-    J = L[i][1].I
-    T, _ = grade(parent(J[1]))
-    V = T.(gens(J))
-    JJ = ideal(T, V)
-    B = quo(T, JJ)
-    H = hilbert_polynomial(B[1])
-    pa = pa - ZZ(coeff(H, 0))
-  end
-  return pa + 1
 end

@@ -8,4 +8,4 @@ include("fundamental_invariants.jl")
 include("affine_algebra.jl")
 
 # postponed inclusion from src/Modules/Modules.jl due to dependency
-include("../Modules/Iterators.jl") 
+include("../Modules/Iterators.jl")

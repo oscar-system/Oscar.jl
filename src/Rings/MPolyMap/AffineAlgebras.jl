@@ -29,7 +29,8 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 
 @attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
 
-@attr Any function _singular_algebra_morphism(f::MPolyAnyMap)
+@attr Any function _singular_algebra_morphism(f::MPolyAnyMap{<:MPolyRing, <:Union{MPolyRing, MPolyQuoRing}, Nothing})
+  @assert coefficient_ring(domain(f)) === coefficient_ring(codomain(f))  "singular does not handle coefficient maps"
   DS = _singular_ring_domain(f)
   CS = _singular_ring_codomain(f)
   CSimgs = CS.(_images(f))
@@ -47,11 +48,9 @@ end
 
 Return the kernel of `F`.
 """
-function kernel(f::AffAlgHom)
-  get_attribute!(f, :kernel) do
-    C = codomain(f)
-    return preimage(f, ideal(C, [zero(C)]))
-  end # TODO: need some ideal_type(domain(f)) here :)
+@attr Any function kernel(f::AffAlgHom) # TODO: need some ideal_type(domain(f)) here :)
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
 end
 
 ##############################################################################
@@ -98,7 +97,7 @@ Return `true` if `F` is bijective, `false` otherwise.
 function is_bijective(F::AffAlgHom)
   return is_injective(F) && is_surjective(F)
 end
-
+ 
 ################################################################################
 #
 #  Finiteness
@@ -121,7 +120,7 @@ function is_finite(F::AffAlgHom)
   b = falses(n)
   for f in gb
     exp = exponent_vector(leading_monomial(f, ordering = o), 1)
-    inds = findall(x -> x != 0, exp)
+    inds = findall(!is_zero, exp)
     if length(inds) > 1 || inds[1] > n
       continue
     end
@@ -144,11 +143,11 @@ If `F` is bijective, return its inverse.
 
 # Examples
 ```jldoctest
-julia> D1, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> D1, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
-julia> C, (t,) = polynomial_ring(QQ, ["t"]);
+julia> C, (t,) = polynomial_ring(QQ, [:t]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
@@ -203,7 +202,6 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 
   T, inc, pr, J = _groebner_data(F)
   o = induce(gens(T)[1:n], default_ordering(S))*induce(gens(T)[n + 1:end], default_ordering(R))
-  gb = groebner_basis(J, ordering = o)
   nf = normal_form(inc(lift(f)), J, ordering = o)
   if isone(cmp(o, gen(T, n), leading_monomial(nf, ordering = o)))
     return true, pr(nf)
@@ -212,11 +210,22 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 end
 
 @doc raw"""
-    preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+    preimage(F::MPolyAnyMap, I::Ideal)
 
 Return the preimage of the ideal `I` under `F`.
 """
-function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
+function preimage(F::MPolyAnyMap, I::Ideal)
+  # This generic routine does not work for maps where the domain is a quotient ring. 
+  # error message: _singular_algebra_morphism(...) does not have a method for this.
+  # Hence it has been split into two specialized methods below.
+  error("not implemented")
+end
+
+function preimage(
+    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
   salghom = _singular_algebra_morphism(f)
@@ -227,6 +236,19 @@ function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   return ideal(D, D.(gens(prIx)))
 end
 
+function preimage(
+    f::MPolyAnyMap{<:MPolyQuoRing, CT}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
+  @req base_ring(I) === codomain(f) "Parent mismatch"
+  R = base_ring(domain(f))
+  help_map = hom(R, domain(f), gens(domain(f)); check=false)
+  g = compose(help_map, f)
+  K = preimage(g, I)
+  return ideal(domain(f), help_map.(gens(K)))
+end
+
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
 # Construct the polynomial ring K[y, x], the natural maps K[x] -> K[y, x]
 # and K[y, x] -> K[y], and the ideal I_2 + (y_i - f_i) in it.
@@ -235,19 +257,19 @@ end
 function _groebner_data(F::AffAlgHom)
   R = domain(F)
   S = codomain(F)
+  K = coefficient_ring(R)
+  @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
   S2 = base_ring(modulus(S))
   m = ngens(R)
   n = ngens(S)
   J = get_attribute!(F, :groebner_data) do
-    K = coefficient_ring(R)
-    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
-    T, _ = polynomial_ring(K, m + n)
+    T, _ = polynomial_ring(K, m + n; cached = false)
 
     S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
 
     fs = map(lift, _images(F))
     return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
-  end
+  end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
   TtoR = hom(T, R, append!(zeros(R, n), gens(R)))

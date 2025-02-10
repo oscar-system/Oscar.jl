@@ -7,7 +7,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
-base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 
 ########################################################################
 # Basic getters                                                        #
@@ -168,12 +167,12 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 function dim(X::AbsCoveredScheme)
   if !has_attribute(X, :dim)
-    d = -1
+    d = -inf
     is_equidimensional=true
     for U in patches(default_covering(X))
       e = dim(U)
       if e > d
-        d == -1 || (is_equidimensional=false)
+        d == -inf || (is_equidimensional=false)
         d = e
       end
     end
@@ -187,10 +186,10 @@ function dim(X::AbsCoveredScheme)
       set_attribute!(X, :is_equidimensional, false)
     end
   end
-  return get_attribute(X, :dim)::Int
+  return get_attribute(X, :dim)::Union{Int, NegInf}
 end
 
-@attr function singular_locus_reduced(X::AbsCoveredScheme)
+@attr Any function singular_locus_reduced(X::AbsCoveredScheme)
   D = IdDict{AbsAffineScheme, Ideal}()
   for U in affine_charts(X)
     _, inc_sing = singular_locus_reduced(U)
@@ -239,14 +238,14 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1: scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
 julia> s
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
@@ -257,7 +256,7 @@ given by the pullback function
     (y//z) -> 0
 ```
 """
-@attr function singular_locus(
+@attr Any function singular_locus(
     X::AbsCoveredScheme;
   )
   D = IdDict{AbsAffineScheme, Ideal}()
@@ -271,17 +270,11 @@ given by the pullback function
   return domain(inc), inc
 end
 
-@attr function ideal_sheaf_of_singular_locus(
+@attr SingularLocusIdealSheaf function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
+    focus=zero_ideal_sheaf(X) # This should really be an AbsIdealSheaf, but the inclusion order forbids mentioning this here.
   )
-  D = IdDict{AbsAffineScheme, Ideal}()
-  covering = get_attribute(X, :simplified_covering, default_covering(X))
-  for U in covering
-    _, inc_sing = singular_locus(U)
-    D[U] = radical(image_ideal(inc_sing))
-  end
-  Ising = IdealSheaf(X, D, check=false)
-  return Ising
+  return SingularLocusIdealSheaf(X; focus)
 end
 
 function simplified_covering(X::AbsCoveredScheme)

@@ -7,7 +7,7 @@ import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
 
 
 function embedding_hom(k, K)
-  return MapFromFunc(k, K, x->K(x))
+  return MapFromFunc(k, K, K)
 end
 
 const BlockSystem_t = Vector{Vector{Int}}
@@ -68,13 +68,14 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     r = roots(G, pr, raw = true)
     c = map(f, r) # TODO: use the embedding map!
     bs = Hecke.MPolyFact.block_system(c)
+
     if all(x->length(x) == length(bs[1]), bs)
       sort!(bs)
       return bs
     end
     pr *= 2
 #    error("adada")
-    @show bs, pr
+    #@show bs, pr
     if pr > 100
       error("too bad")
     end
@@ -123,7 +124,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   while true
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), cs)
+      i = findall(x->any(in(d), x), cs)
       x = Set(d)
       union!(x, cs[i]...)
       empty!(d)
@@ -136,7 +137,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     end
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), bs)
+      i = findall(x->any(in(d), x), bs)
       x = Set(d)
       union!(x, bs[i]...)
       empty!(d)
@@ -258,7 +259,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   # beta = 1/f'(alpha) sum b_i alpha^i
   # f(alpha)/(t-alpha) = sum g_i(alpha) t^i
   # Tr(beta * g_i(alpha)/f'(alpha)) = b_i (dual basis)
-  Kt, t = polynomial_ring(K, "t", cached = false)
+  Kt, t = polynomial_ring(K, :t, cached = false)
   Gk = divexact(map_coefficients(K, defining_polynomial(K), parent = Kt), t-gen(K))
   Qt = parent(defining_polynomial(K))
   Gt = [Qt(x) for x = coefficients(Gk)]
@@ -296,7 +297,7 @@ end
 
 function frob_test(E::SubfieldLatticeElem, si::PermGroupElem)
   #test if the (tentative) block system in E makes sense
-  @show bs = E.b
+  bs = E.b
   L = E.p #the lattice
   for i=3:length(L)
     x = intersect(bs, L[i].b)
@@ -341,6 +342,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   nf = sum(x*x for x = coefficients(f))
   B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
   B = B^2 # Nemo works with norm-squared....
+
   pr = clog(B, p)
   pr *= div(n,2)
   pr += 2*clog(2*n, p)
@@ -360,8 +362,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   r = roots(G, 1, raw = true)
 
   d = map(frobenius, r)
-  si = symmetric_group(degree(K))([findfirst(y->y==x, r) for x = d])
-
+  si = symmetric_group(degree(K))([findfirst(==(x), r) for x = d])
 
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
@@ -397,7 +398,6 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 #      M = M*D
       while true
 #        @show maximum(nbits, M), nbits(B), size(M)
-
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)

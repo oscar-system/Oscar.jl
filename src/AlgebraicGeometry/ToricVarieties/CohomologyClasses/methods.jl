@@ -1,8 +1,13 @@
 @doc raw"""
-    integrate(c::CohomologyClass)
+    integrate(c::CohomologyClass; check::Bool = true)
 
 Integrate the cohomolgy class `c` over the normal
 toric variety `toric_variety(c)`.
+
+The theory underlying this method requires that the toric variety
+in question is simplicial and complete. The check of completeness
+may take a long time to complete. If desired, this can be switched
+off by setting the optional argument `check` to the value `false`.
 
 # Examples
 ```jldoctest
@@ -58,7 +63,7 @@ julia> m = 2;
 
 julia> ray_generators = [e1, -e1, e2, e3, - e2 - e3 - m * e1];
 
-julia> max_cones = IncidenceMatrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
+julia> max_cones = incidence_matrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
 
 julia> X = normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
@@ -88,10 +93,12 @@ julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
 62
 ```
 """
-function integrate(c::CohomologyClass)
+function integrate(c::CohomologyClass; check::Bool = true)
     # can only integrate if the variety is simplicial, complete
-    @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
-    
+    if check
+      @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
+    end
+
     # if the intersection form is known, we can use it
     if has_attribute(toric_variety(c), :_intersection_form_via_exponents)
         intersection_dict = _intersection_form_via_exponents(toric_variety(c))

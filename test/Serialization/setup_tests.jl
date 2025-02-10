@@ -4,44 +4,49 @@ using JSONSchema, Oscar.JSON
 
 # we only need to define this once
 
-if !isdefined(Main, :test_save_load_roundtrip)
+if !isdefined(Main, :mrdi_schema)
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
+end
 
-  function test_save_load_roundtrip(func, path, original::T; params=nothing) where {T}
+if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
+  function test_save_load_roundtrip(func, path, original::T;
+                                    params=nothing, check_func=nothing, kw...) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
-    save(filename, original)
-    loaded = load(filename; params=params)
+    save(filename, original; kw...)
+    loaded = load(filename; params=params, kw...)
     
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer
     io = IOBuffer()
-    save(io, original)
+    save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; params=params)
+    loaded = load(io; params=params, kw...)
 
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer, with prescribed type
     io = IOBuffer()
-    save(io, original)
+    save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; type=T, params=params)
+    loaded = load(io; type=T, params=params, kw...)
 
     @test loaded isa T
     func(loaded)
 
     # test loading on a empty state
-    save(filename, original)
+    save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, kw...)
+    @test loaded isa T
 
     # test schema
     jsondict = JSON.parsefile(filename)
     @test validate(mrdi_schema, jsondict) == nothing
-  end
 
+    isnothing(check_func) || @test check_func(loaded)
+  end
 end

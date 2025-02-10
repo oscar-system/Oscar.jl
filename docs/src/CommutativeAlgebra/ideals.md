@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Ideals in Multivariate Rings
@@ -32,7 +30,7 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y])^2
@@ -90,7 +88,7 @@ cm_regularity(I::MPolyIdeal)
 ```@docs
 degree(I::MPolyIdeal)
 ```
-    
+
 ## Operations on Ideals
 
 ### Simple Ideal Operations
@@ -100,6 +98,7 @@ degree(I::MPolyIdeal)
 ```@docs
 ^(I::MPolyIdeal, m::Int)
 ```
+
 #### Sum of Ideals
 
 ```@docs
@@ -135,7 +134,7 @@ Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
-saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; iteration::Bool=false) where T
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
@@ -212,7 +211,7 @@ polynomial rings over the integers. See [DGP99](@cite) for a survey.
 ### Radical
 
 ```@docs
-radical(I::MPolyIdeal)
+radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
 ```
 
 ### Primary Decomposition
@@ -268,7 +267,7 @@ dehomogenizer(H::Homogenizer)
 ```
 
 ```jldoctest
-julia> P, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> P, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal([x^2+y, x*y+y^2]);
 
@@ -284,13 +283,6 @@ julia> DH = dehomogenizer(H);
 
 julia> DH(Ih) == I   # dehomogenization of Ih
 true
-```
-
-
-## Ideals as Modules
-
-```@docs
-ideal_as_module(I::MPolyIdeal)
 ```
 
 ## Generating Special Ideals

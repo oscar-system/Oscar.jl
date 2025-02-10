@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Nongeneral Type Surfaces in $\mathbb P^4$
@@ -29,7 +27,7 @@ and the references given there.
 
 Below, we present functions which return one hard coded example for each family presented
 in the first two papers above.  Based on these papers, the existence of further families has
-been shown. Explicit examples to be included here are under construction.
+been shown. Hard coded OSCAR examples for these surfaces are under construction.
 
 !!! note
     To ease subsequent computations, all hard coded examples are defined over a finite prime field.
@@ -341,7 +339,7 @@ elliptic_d12_pi14_ss_inf()
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

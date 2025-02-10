@@ -7,9 +7,9 @@ CurrentModule = Oscar
 ## Geometric data
 
 ```@docs
-facets(P::Polyhedron)
-vertices(P::Polyhedron)
-rays(P::Polyhedron)
+facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}}
+vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
+rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types
 minimal_faces(P::Polyhedron{T}) where T<:scalar_types
 affine_hull(P::Polyhedron{T}) where T<:scalar_types
@@ -64,6 +64,9 @@ is_normal(P::Polyhedron{QQFieldElem})
 is_simple(P::Polyhedron)
 is_smooth(P::Polyhedron{QQFieldElem})
 is_very_ample(P::Polyhedron{QQFieldElem})
+is_archimedean_solid(P::Polyhedron)
+is_johnson_solid(P::Polyhedron)
+is_platonic_solid(P::Polyhedron)
 lattice_points(P::Polyhedron{QQFieldElem})
 lattice_volume(P::Polyhedron{QQFieldElem})
 normalized_volume(P::Polyhedron)

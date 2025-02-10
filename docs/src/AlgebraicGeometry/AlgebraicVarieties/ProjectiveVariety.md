@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-```
-
-```@setup oscar
-using Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Projective Varieties
@@ -28,10 +25,22 @@ variety(f::MPolyDecRingElem; check=true)
 ```
 
 ## Attributes
-So far all are inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref).
+In addition to what is inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref), we currently have:
+
+```@docs
+sectional_genus(X::AbsProjectiveVariety)
+```
 
 ## Properties
-So far all are inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref).
+In addition to what is inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref), we currently have:
+
+```@docs
+is_linearly_normal(X::AbsProjectiveVariety)
+```
 
 ## Methods
-So far all are inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref).
+In addition to what is inherited from [Projective Algebraic Sets](@ref) and [Projective schemes](@ref), we currently have:
+
+```@docs
+canonical_bundle(X::AbsProjectiveVariety)
+```

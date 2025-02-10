@@ -1,5 +1,6 @@
 # standard packages
 using Pkg
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
@@ -55,7 +56,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -75,6 +76,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
@@ -85,7 +87,8 @@ import AbstractAlgebra:
   has_gens,
   Ideal,
   Indent,
-  is_finiteorder,
+  is_finite_order,
+  is_terse,
   is_trivial,
   is_unicode_allowed,
   Lowercase,
@@ -113,6 +116,7 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
+  terse,
   total_degree,
   with_unicode
 
@@ -158,6 +162,8 @@ import Nemo:
   ZZRing,
   ZZRingElem
 
+# By default we import everything exported by Hecke, and then also re-export
+# it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
     :change_uniformizer,
     :coefficients,
@@ -192,8 +198,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element,
-  QQBar
+  primitive_element
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)

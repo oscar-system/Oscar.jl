@@ -8,13 +8,13 @@
 # (1) Check and store, whether a covered scheme is empty               #
 ########################################################################
 @doc raw"""
-   is_empty(X::AbsCoveredScheme)
+    is_empty(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is empty.
 
 """
 is_empty(X::AbsCoveredScheme) = is_empty(underlying_scheme(X))
-@attr function is_empty(X::CoveredScheme)
+@attr Bool function is_empty(X::CoveredScheme)
   if !isdefined(X, :coverings)
     return true
   end
@@ -25,13 +25,13 @@ end
 # (2) Check and store, whether a covered scheme is smooth              #
 ########################################################################
 @doc raw"""
-   is_smooth(X::AbsCoveredScheme)
+    is_smooth(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is smooth.
 """
 is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
 
-@attr function is_smooth(X::CoveredScheme)
+@attr Bool function is_smooth(X::CoveredScheme)
   if !isdefined(X, :coverings)
     return true
   end
@@ -53,7 +53,8 @@ function _jacobian_criterion(X::CoveredScheme{<:Field})
 
   dec_info = decomposition_info(default_covering(X))
   for (V, fs) in dec_info
-    R = base_ring(OO(V))
+    R_quotient = OO(V)
+    R = R_quotient isa MPolyRing ? R_quotient : base_ring(R_quotient)
     I = saturated_ideal(defining_ideal(V))
     mat = jacobian_matrix(R, gens(I))
     sing_locus = ideal(R, fs) + ideal(R, minors(mat, codim(V)))
@@ -70,12 +71,12 @@ end
 #     i.e. irreducible and reduced                                     #
 ########################################################################
 @doc raw"""
-   is_integral(X::AbsCoveredScheme)
+    is_integral(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is integral.
 
 """
-@attr function is_integral(X::AbsCoveredScheme)
+@attr Bool function is_integral(X::AbsCoveredScheme)
   !is_empty(X) || return false
   return is_reduced(X) && is_irreducible(X)
 end
@@ -85,7 +86,7 @@ end
 # Note: This does not work with gluing_graph, because empty patches
 #      need to be ignored without changing the covering
 @doc raw"""
-   is_connected_gluing(X::AbsCoveredScheme)
+    is_connected_gluing(X::AbsCoveredScheme)
 
 Return the boolean value whether the gluing graph of the default
 covering of the scheme X is connected.
@@ -94,7 +95,7 @@ covering of the scheme X is connected.
     This function is designed to ignore empty patches, which may arise e.g. upon creation of subschemes of covered schemes,
 
 """
-@attr function is_connected_gluing(X::AbsCoveredScheme)
+@attr Bool function is_connected_gluing(X::AbsCoveredScheme)
   return is_connected(pruned_gluing_graph(default_covering(X)))
 end
 
@@ -102,12 +103,12 @@ end
 # (4) Check and store, whether a covered scheme is connected           #
 ########################################################################
 @doc raw"""
-   is_connected(X::AbsCoveredScheme)
+    is_connected(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is connected.
 
 """
-@attr function is_connected(X::AbsCoveredScheme)
+@attr Bool function is_connected(X::AbsCoveredScheme)
   is_connected_gluing(X) || return false
   # note for future implementation: expensive property
   # 1) do primary decomposition
@@ -119,12 +120,12 @@ end
 # (5) Check and store, whether a scheme is reduced
 ##############################################################################
 @doc raw"""
-   is_reduced(X::AbsCoveredScheme)
+    is_reduced(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is reduced.
 
 """
-@attr function is_reduced(X::AbsCoveredScheme)
+@attr Bool function is_reduced(X::AbsCoveredScheme)
   return all(is_reduced, affine_charts(X))
 end
 
@@ -132,12 +133,12 @@ end
 # (6) Check and store, whether a covered scheme is irreducible
 ##############################################################################
 @doc raw"""
-   is_irreducible(X::AbsCoveredScheme)
+    is_irreducible(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is irreducible.
 
 """
-@attr function is_irreducible(X::AbsCoveredScheme)
+@attr Bool function is_irreducible(X::AbsCoveredScheme)
   is_connected_gluing(X) || return false
   !is_empty(X) || return false
   v=findall(!is_empty, affine_charts(X))  ## only check non-empty patches

@@ -32,7 +32,7 @@ Multivariate polynomial ring in 3 variables x1, x2, x3
 ```
 """
 function katsura(n::Int)
-    R, _ = polynomial_ring(QQ, n + 1)
+    R, _ = polynomial_ring(QQ, n + 1; cached = false)
     return katsura(R)
 end
 
@@ -43,7 +43,7 @@ Return the Katsura ideal in the given polynomial ring `R`.
 
 # Examples
 ```jldoctest
-julia> R, _ = QQ["x", "y", "z"]
+julia> R, _ = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> katsura(R)

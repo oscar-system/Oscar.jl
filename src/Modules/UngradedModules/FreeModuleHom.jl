@@ -21,12 +21,12 @@ img_gens(f::FreeModuleHom) = images_of_generators(f)
 images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
 image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 
 @doc raw"""
@@ -38,14 +38,14 @@ return a matrix `A` over `base_ring(M)` with `rank(F)` rows and
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -97,14 +97,14 @@ the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -113,13 +113,9 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Map with following data
-Domain:
-=======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Module homomorphism
+  from F
+  to G
 
 julia> a(F[2])
 x*e[1] + y*e[2]
@@ -130,20 +126,16 @@ julia> B = R[y 0; x y; 0 z]
 [0   z]
 
 julia> b = hom(F, G, B)
-Map with following data
-Domain:
-=======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Module homomorphism
+  from F
+  to G
 
 julia> a == b
 true
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, 3)
 Graded free module Rg^3([0]) of rank 3 over Rg
@@ -158,11 +150,13 @@ julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
  z*e[2]
 
 julia> a1 = hom(F1, G1, V1)
-F1 -> G1
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
+  from F1
+  to G1
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> F2 = graded_free_module(Rg, [1,1,1])
 Graded free module Rg^3([-1]) of rank 3 over Rg
@@ -177,11 +171,13 @@ julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
  z*e[2]
 
 julia> a2 = hom(F2, G2, V2)
-F2 -> G2
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Homogeneous module homomorphism
+  from F2
+  to G2
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> B = Rg[y 0; x+y y; 0 z]
 [    y   0]
@@ -189,11 +185,13 @@ julia> B = Rg[y 0; x+y y; 0 z]
 [    0   z]
 
 julia> b = hom(F2, G2, B)
-F2 -> G2
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Homogeneous module homomorphism
+  from F2
+  to G2
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> a2 == b
 true
@@ -232,6 +230,7 @@ scalars in `base_ring(F)` to their images under `h`.
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check::Bool=true) where {T} = FreeModuleHom(F, M, V; check)
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
@@ -260,10 +259,6 @@ function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:Modul
 end
 
 base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
-base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
-
-base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
-base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
 
 function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
   return FreeModuleHom{typeof(F), typeof(G), typeof(h)}
@@ -276,40 +271,42 @@ function morphism_type(
 end
 
 function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  # HACK
-  show(io, fmh)
+   println(terse(io), fmh)
+   io = pretty(io)
+   io_compact = IOContext(io, :compact => true)
+   println(io_compact, Indent(), "from ", Lowercase(), domain(fmh))
+   print(io_compact, "to ", Lowercase(), codomain(fmh), Dedent())
+
+  if is_graded(fmh)
+    println(io)
+    print(io, "defined by", Indent())
+    io = terse(io)
+    domain_gens = gens(domain(fmh))
+    for g in domain_gens
+      println(io)
+      print(io, g, " -> ", fmh(g))
+    end
+  end
 end
 
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
-  if is_graded(fmh)  
-    print(io_compact, domain(fmh))
-    print(io, " -> ")
-    print(io_compact, codomain(fmh))
-    if !compact
-      print(io, "\n")
-      for i in 1:ngens(domain(fmh))
-        print(io, domain(fmh)[i], " -> ")
-        print(io_compact, fmh(domain(fmh)[i]))
-        print(io, "\n")
-      end
+  if is_terse(io)
+    if is_graded(fmh)
       A = grading_group(fmh)
       if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
-        print(io, "\n")
+        print(io, "Graded module homomorphism of degree ", degree(fmh))
       end
+    else
+        print(io, "Module homomorphism")
     end
   else
-    println(io, "Map with following data")
-    println(io, "Domain:")
-    println(io, "=======")
-    println(io, domain(fmh))
-    println(io, "Codomain:")
-    println(io, "=========")
-    print(io, codomain(fmh))
+    io = pretty(io)
+    print(io, "Hom: ")
+    io = terse(io)
+    print(io, Lowercase(), domain(fmh), " -> ")
+    print(io, Lowercase(), codomain(fmh))
   end
 end
 
@@ -322,30 +319,26 @@ that converts elements from $S$ into morphisms $F \to G$.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, _ = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> F2 = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
-Map with following data
-Domain:
-=======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Module homomorphism
+  from F1
+  to F2
 
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [1,2,2])
 Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
@@ -357,11 +350,13 @@ julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
-F1 -> F2
-e[1] -> e[1]
-e[2] -> 0
-e[3] -> 0
 Graded module homomorphism of degree [2]
+  from F1
+  to F2
+defined by
+  e[1] -> e[1]
+  e[2] -> 0
+  e[3] -> 0
 
 ```
 """
@@ -382,13 +377,14 @@ function hom(F::FreeMod, G::FreeMod)
   m = ngens(G)
   R = base_ring(F)
   function im(x::FreeModElem)
-    return hom(F, G, Vector{elem_type(G)}([FreeModElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n]), check=false)
+    c = coordinates(x)
+    return hom(F, G, Vector{elem_type(G)}([FreeModElem(c[(i-1)*m+1:i*m], G) for i=1:n]), check=false)
   end
   function pre(h::FreeModuleHom)
     s = sparse_row(F.R)
     o = 0
     for i=1:n
-      for (p,v) = h(gen(F, i)).coords
+      for (p,v) = coordinates(h(gen(F, i)))
         push!(s.pos, o+p)
         push!(s.values, v)
       end
@@ -401,7 +397,6 @@ function hom(F::FreeMod, G::FreeMod)
   return GH, to_hom_map
 end
 
-
 @doc raw"""
     kernel(a::FreeModuleHom)
 
@@ -411,14 +406,14 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -426,20 +421,14 @@ julia> a = hom(F, G, V);
 
 julia> kernel(a)
 (Submodule with 1 generator
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations., Map with following data
-Domain:
-=======
-Submodule with 1 generator
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations.
-Codomain:
-=========
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Hom: submodule with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> F)
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -450,13 +439,11 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 julia> a = hom(F, G, V);
 
 julia> kernel(a)
-(Graded submodule of F
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations, Graded submodule of F
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations -> F
-x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-Homogeneous module homomorphism)
+(Graded submodule of F with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Hom: graded submodule of F with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> F)
 
 ```
 """
@@ -488,8 +475,7 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   g = images_of_generators(h)
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
-  I, inc = sub(F, v)
+  v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
   return sub(F, v)
 end
 
@@ -511,11 +497,13 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   g = vcat(g, relations(M))
   R = base_ring(G)
   H = FreeMod(R, length(g))
+  # This code is also used by graded modules and we need to care for that.
+  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
   phi = hom(H, G, g)
-  K, inc = kernel(phi)
+  K, _ = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
-  return sub(F, v)
+  v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]
+  return sub(F, filter!(!iszero, v))
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})
@@ -543,14 +531,14 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -558,24 +546,18 @@ julia> a = hom(F, G, V);
 
 julia> image(a)
 (Submodule with 3 generators
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations., Map with following data
-Domain:
-=======
-Submodule with 3 generators
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations.
-Codomain:
-=========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations, Hom: submodule with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations -> G)
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -586,19 +568,15 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 julia> a = hom(F, G, V);
 
 julia> image(a)
-(Graded submodule of G
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations, Graded submodule of G
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations -> G
-y*e[1] -> y*e[1]
-x*e[1] + y*e[2] -> x*e[1] + y*e[2]
-z*e[2] -> z*e[2]
-Homogeneous module homomorphism)
+(Graded submodule of G with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations, Hom: graded submodule of G with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations -> G)
 
 ```
 """

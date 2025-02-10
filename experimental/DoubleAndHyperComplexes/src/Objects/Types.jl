@@ -93,7 +93,7 @@ end
       upper_bounds::Vector=[nothing for i in 1:d],
       lower_bounds::Vector=[nothing for i in 1:d]
     ) where {ChainType, MorphismType}
-    @assert d > 0 "can not create zero or negative dimensional hypercomplex"
+    @assert d >= 0 "can not create negative dimensional hypercomplex"
     chains = Dict{Tuple, ChainType}()
     morphisms = Dict{Tuple, Dict{Int, <:MorphismType}}()
     return new{ChainType, MorphismType}(d, chains, morphisms, 
@@ -181,7 +181,7 @@ end
 @doc raw"""
     can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if the entry `D[i, j]` is known or `D` knows how to compute it.
+Return `true` if the entry `D[i, j]` is known or `D` knows how to compute it.
 """
 function can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   can_compute_index(D, (i, j))
@@ -211,7 +211,7 @@ has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(dc, 1, t
 @doc raw"""
     can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if `dc` can compute the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
+Return `true` if `dc` can compute the horizontal morphism `dc[i, j] → dc[i ± 1, j]`,
 the sign depending on the `horizontal_direction` of `dc`, and `false` otherwise.
 """
 can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 1, (i, j))
@@ -220,7 +220,7 @@ can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compu
 @doc raw"""
     vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`). 
+Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`).
 """
 vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = map(C, 2, (i, j))
 vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 2, t)
@@ -240,7 +240,7 @@ has_vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(C, 2, t)
 @doc raw"""
     can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if `dc` can compute the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
+Return `true` if `dc` can compute the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
 the sign depending on the `vertical_direction` of `dc`, and `false` otherwise.
 """
 can_compute_vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 2, (i, j))
@@ -278,7 +278,7 @@ is_bounded(dc::AbsDoubleComplexOfMorphisms) = is_horizontally_bounded(dc) && is_
 @doc raw"""
     has_right_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``i ≤ B`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``i ≤ B`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_right_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 1)
@@ -286,7 +286,7 @@ has_right_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 1)
 @doc raw"""
     has_left_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``B ≤ i`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``B ≤ i`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_left_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 1)
@@ -294,7 +294,7 @@ has_left_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 1)
 @doc raw"""
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``j ≤ B`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``j ≤ B`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_upper_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 2)
@@ -302,7 +302,7 @@ has_upper_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 2)
 @doc raw"""
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``B ≤ j`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``B ≤ j`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_lower_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 2)
@@ -310,7 +310,7 @@ has_lower_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 2)
 @doc raw"""
     right_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``i > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -319,7 +319,7 @@ right_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 1)
 @doc raw"""
     left_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``i < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -328,7 +328,7 @@ left_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 1)
 @doc raw"""
     upper_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``j > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -337,7 +337,7 @@ upper_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 2)
 @doc raw"""
     lower_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``j < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -346,7 +346,7 @@ lower_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 2)
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and 
+Return `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and
 `dc[i, j]` non-zero, the vertex `(i, j)` is lying on an "island" of non-zero entries 
 in the grid of the double complex, which is bounded by either zero entries or 
 entries for indices `(i', j')` where `can_compute_index(dc, i', j') = false`.
@@ -428,7 +428,7 @@ end
 # The first argument will always be the actual double complex itself, 
 # so that the body of the function has access to all data already generated 
 # and the other functionality available to this double complex. 
-function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::ChainType where {ChainType}
+function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {ChainType}
   error("production of the ($i, $j)-th chain not implemented")
 end
 
@@ -444,7 +444,7 @@ function (fac::ChainMorphismFactory)(dc::AbsDoubleComplexOfMorphisms, t1::Tuple)
 end
 
 # A dummy placeholder which must be overwritten; see below.
-function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::MorphismType where {MorphismType}
+function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {MorphismType}
   error("could not construct morphism from ($i, $j)")
 end
 
@@ -585,7 +585,7 @@ end
     ranges = [(k, u) for (k, u) in v if u isa UnitRange]
     d = length(ranges)
     all_ind = [k for (k, u) in v if u isa UnitRange]
-    @assert all(k->k in all_ind, 1:d) "matching of ranges is not unique"
+    @assert all(in(all_ind), 1:d) "matching of ranges is not unique"
 
     mapping_matrix = [0 for i in 1:dim(c), j in 1:d]
     new_ranges = Dict(v)

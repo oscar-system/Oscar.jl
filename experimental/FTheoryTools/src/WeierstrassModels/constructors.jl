@@ -29,14 +29,14 @@ The only difference is that the Weierstrass sections ``f`` and ``g`` can be spec
 
 # Examples
 ```jldoctest
-julia> base = sample_toric_variety()
+julia> chosen_base = sample_toric_variety()
 Normal toric variety
 
-julia> f = generic_section(anticanonical_bundle(base)^4);
+julia> f = generic_section(anticanonical_bundle(chosen_base)^4);
 
-julia> g = generic_section(anticanonical_bundle(base)^6);
+julia> g = generic_section(anticanonical_bundle(chosen_base)^6);
 
-julia> w = weierstrass_model(base, f, g; completeness_check = false)
+julia> w = weierstrass_model(chosen_base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
@@ -53,10 +53,10 @@ function weierstrass_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
   @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
   vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["f", "g"], vs2) "Only the Weierstrass sections f, g must be parametrized"
+  @req all(in(("f", "g")), vs2) "Only the Weierstrass sections f, g must be parametrized"
 
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+  gens_base_names = symbols(cox_ring(base))
+  if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
@@ -69,7 +69,8 @@ function weierstrass_model(base::NormalToricVariety,
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
   D2 = 3 * anticanonical_divisor_class(base)
-  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  D3 = trivial_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, [D1, D2, D3])
   
   # construct the model
   pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
@@ -108,7 +109,7 @@ The following example illustrates this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ["f", "g", "Kbar", "u"]
+julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
 julia> auxiliary_base_grading = [4 6 1 0]
@@ -124,7 +125,7 @@ Weierstrass model over a not fully specified base
 function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
   # Execute consistency checks
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  gens_base_names = [string(g) for g in symbols(auxiliary_base_ring)]
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -149,7 +150,7 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 
   # Compute defining_section_parametrization
   defining_section_parametrization = Dict{String, MPolyRingElem}()
-  vars_S = [string(k) for k in gens(S)]
+  vars_S = [string(k) for k in symbols(S)]
   if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
     defining_section_parametrization["f"] = f
   end
@@ -180,16 +181,16 @@ function Base.show(io::IO, w::WeierstrassModel)
     push!(properties_string, "not fully specified base")
   end
   if has_model_description(w)
-    push!(properties_string, "-- " * string(get_attribute(w, :model_description)))
+    push!(properties_string, "-- " * model_description(w))
     if has_model_parameters(w)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
   if has_arxiv_id(w)
-    push!(properties_string, "based on arXiv paper " * string(get_attribute(w, :arxiv_id)))
+    push!(properties_string, "based on arXiv paper " * arxiv_id(w))
   end
   if has_arxiv_model_equation_number(w)
-    push!(properties_string, "Eq. (" * string(get_attribute(w, :arxiv_model_equation_number)) * ")")
+    push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")
 end

@@ -120,7 +120,7 @@ function schur_polynomial_cbf(R::ZZMPolyRing, lambda::Partition{T}, n::Int = len
   end
 
   #calculate sub_dets[2:n] using Laplace extension
-  exp = zeros(Int, n)
+  exp = zeros(Int, ngens(R))
   for i = 2:n
     for (columnview, ) in sub_dets[i]
       d = R() #the alternating sum of minors
@@ -134,8 +134,11 @@ function schur_polynomial_cbf(R::ZZMPolyRing, lambda::Partition{T}, n::Int = len
 
       #multiply by the factorized term
       factor = MPolyBuildCtx(R)
-      exp = zeros(Int, n)
-      exp[columnview] .= exp_incr[i]
+      exp = zeros(Int, ngens(R))
+      for j in 1:n
+        columnview[j] || continue
+        exp[j] = exp_incr[i]
+      end
       push_term!(factor, one(ZZ), exp)
       sub_dets[i][columnview] = mul!(d, d, finish(factor))
     end

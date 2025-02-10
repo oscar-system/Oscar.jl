@@ -20,13 +20,21 @@ function test_primary_degrees_via_hilbert_series(R::FinGroupInvarRing, degrees::
   return true
 end
 
-function reduce_hilbert_series_by_primary_degrees(R::FinGroupInvarRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
-  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(forget_grading(f)) for f in primary_invariants(R) ], chi)
+function reduce_hilbert_series_by_primary_degrees(
+  R::FinGroupInvarRing, chi::Union{GAPGroupClassFunction,Nothing}=nothing
+)
+  fl, h = _reduce_hilbert_series_by_primary_degrees(
+    R, [total_degree(forget_grading(f)) for f in primary_invariants(R)], chi
+  )
   @assert fl
   return h
 end
 
-function _reduce_hilbert_series_by_primary_degrees(R::FinGroupInvarRing, degrees::Vector{Int}, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function _reduce_hilbert_series_by_primary_degrees(
+  R::FinGroupInvarRing,
+  degrees::Vector{Int},
+  chi::Union{GAPGroupClassFunction,Nothing}=nothing,
+)
   mol = molien_series(R, chi)
   f = numerator(mol)
   g = denominator(mol)
@@ -40,15 +48,16 @@ end
 # Return possible degrees of primary invariants d_1, ..., d_n with
 # d_1 \cdots d_n == k*|G|, where G = group(R).
 # (Note that |G| must divide d_1 \cdots d_n, see DK15, Prop. 3.5.5.)
-function candidates_primary_degrees(R::FinGroupInvarRing, k::Int, bad_prefixes::Vector{Vector{Int}} = Vector{Vector{Int}}())
-
+function candidates_primary_degrees(
+  R::FinGroupInvarRing, k::Int, bad_prefixes::Vector{Vector{Int}}=Vector{Vector{Int}}()
+)
   factors = MSet{Int}()
-  for n in [ k, order(group(R)) ]
+  for n in [k, order(group(R))]
     # If we can't factor the group order in reasonable time, we might as well
     # give up.
     fac = factor(n)
     for (p, e) in fac
-      for i = 1:e
+      for i in 1:e
         push!(factors, Int(p))
       end
     end
@@ -64,9 +73,9 @@ function candidates_primary_degrees(R::FinGroupInvarRing, k::Int, bad_prefixes::
       continue
     end
     ds = ones(Int, n)
-    for i = 1:length(part)
+    for i in 1:length(part)
       for (p, e) in part[i].dict
-       ds[i + n - length(part)] *= p^e
+        ds[i + n - length(part)] *= p^e
       end
     end
 
@@ -103,7 +112,7 @@ function candidates_primary_degrees(R::FinGroupInvarRing, k::Int, bad_prefixes::
     push!(degrees, ds)
   end
 
-  sort!(degrees, lt = (x, y) -> sum(x) < sum(y) || x < y)
+  sort!(degrees; lt=(x, y) -> sum(x) < sum(y) || x < y)
   return degrees
 end
 
@@ -112,12 +121,19 @@ end
 # RG/< invars, f_1, ..., f_k > has Krull dimension n - k, where n == length(invars).
 # If the base field is finite, the answer "true" might be wrong (for theoretical reasons).
 # See Kem99, Theorem 2.
-function check_primary_degrees(RG::FinGroupInvarRing{FldT, GrpT, PolyRingElemT}, degrees::Vector{Int}, invars::Vector{PolyRingElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyRingElemT}, Tuple{MPolyIdeal{PolyRingElemT}, Int}}) where {FldT, GrpT, PolyRingElemT}
+function check_primary_degrees(
+  RG::FinGroupInvarRing{FldT,GrpT,PolyRingElemT},
+  degrees::Vector{Int},
+  invars::Vector{PolyRingElemT},
+  k::Int,
+  iters::Dict{Int,<:VectorSpaceIterator},
+  ideals::Dict{Set{PolyRingElemT},Tuple{MPolyIdeal{PolyRingElemT},Int}},
+) where {FldT,GrpT,PolyRingElemT}
   R = polynomial_ring(RG)
   n = length(degrees)
 
-  deg_dict = Dict{ZZRingElem, Int}()
-  for e in degrees[length(invars) + 1:length(invars) + k]
+  deg_dict = Dict{ZZRingElem,Int}()
+  for e in degrees[(length(invars) + 1):(length(invars) + k)]
     deg_dict[e] = get(deg_dict, e, 0) + 1
   end
   for degs in Hecke.subsets(Set(keys(deg_dict)))
@@ -141,14 +157,24 @@ function check_primary_degrees(RG::FinGroupInvarRing{FldT, GrpT, PolyRingElemT},
   return true
 end
 
-function _primary_invariants_via_optimal_hsop(RG::FinGroupInvarRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
-  iters = Dict{Int, VectorSpaceIterator}()
-  ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Tuple{MPolyIdeal{elem_type(polynomial_ring(RG))}, Int}}()
+function _primary_invariants_via_optimal_hsop(
+  RG::FinGroupInvarRing;
+  ensure_minimality::Int=0,
+  degree_bound::Int=1,
+  primary_degrees::Vector{Int}=Int[],
+)
+  iters = Dict{Int,VectorSpaceIterator}()
+  ideals = Dict{
+    Set{elem_type(polynomial_ring(RG))},
+    Tuple{MPolyIdeal{elem_type(polynomial_ring(RG))},Int},
+  }()
 
   if !isempty(primary_degrees)
     @assert length(primary_degrees) == degree(group(RG))
     invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(RG))}()
-    b, k = primary_invariants_via_optimal_hsop!(RG, primary_degrees, invars_cache, iters, ideals, ensure_minimality, 0)
+    b, k = primary_invariants_via_optimal_hsop!(
+      RG, primary_degrees, invars_cache, iters, ideals, ensure_minimality, 0
+    )
     if !b
       error("No primary invariants of the given degrees exist")
     end
@@ -161,7 +187,9 @@ function _primary_invariants_via_optimal_hsop(RG::FinGroupInvarRing; ensure_mini
     degrees = candidates_primary_degrees(RG, l, bad_prefixes)
     for ds in degrees
       invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(RG))}()
-      b, k = primary_invariants_via_optimal_hsop!(RG, ds, invars_cache, iters, ideals, ensure_minimality, 0)
+      b, k = primary_invariants_via_optimal_hsop!(
+        RG, ds, invars_cache, iters, ideals, ensure_minimality, 0
+      )
       b && return invars_cache
       push!(bad_prefixes, ds[1:k])
     end
@@ -174,8 +202,15 @@ end
 # b == true iff primary invariants of the given degrees exist. In this case
 # invars_cache will contain those invariants.
 # k is only needed for recursive calls of the function.
-function primary_invariants_via_optimal_hsop!(RG::FinGroupInvarRing{FldT, GrpT, PolyRingElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyRingElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyRingElemT}, Tuple{MPolyIdeal{PolyRingElemT}, Int}}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyRingElemT}
-
+function primary_invariants_via_optimal_hsop!(
+  RG::FinGroupInvarRing{FldT,GrpT,PolyRingElemT},
+  degrees::Vector{Int},
+  invars_cache::PrimaryInvarsCache{PolyRingElemT},
+  iters::Dict{Int,<:VectorSpaceIterator},
+  ideals::Dict{Set{PolyRingElemT},Tuple{MPolyIdeal{PolyRingElemT},Int}},
+  ensure_minimality::Int=0,
+  k::Int=0,
+) where {FldT,GrpT,PolyRingElemT}
   n = length(degrees) - length(invars_cache.invars)
   R = polynomial_ring(RG)
 
@@ -202,7 +237,9 @@ function primary_invariants_via_optimal_hsop!(RG::FinGroupInvarRing{FldT, GrpT, 
           continue
         end
       end
-      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, max(0, k - 1))
+      b, kk = primary_invariants_via_optimal_hsop!(
+        RG, degrees, invars_cache, iters, ideals, ensure_minimality, max(0, k - 1)
+      )
       if b
         return true, 0
       end
@@ -292,9 +329,19 @@ julia> primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
 
 ```
 """
-function primary_invariants(RG::FinGroupInvarRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
+function primary_invariants(
+  RG::FinGroupInvarRing;
+  ensure_minimality::Int=0,
+  degree_bound::Int=1,
+  primary_degrees::Vector{Int}=Int[],
+)
   if !isdefined(RG, :primary)
-    RG.primary = _primary_invariants_via_optimal_hsop(RG; ensure_minimality = ensure_minimality, degree_bound = degree_bound, primary_degrees = primary_degrees)
+    RG.primary = _primary_invariants_via_optimal_hsop(
+      RG;
+      ensure_minimality=ensure_minimality,
+      degree_bound=degree_bound,
+      primary_degrees=primary_degrees,
+    )
   end
   return copy(RG.primary.invars)
 end

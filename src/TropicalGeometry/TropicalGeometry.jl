@@ -1,17 +1,5 @@
 ###############################################################################
 #
-#  Temporary workarounds
-#
-###############################################################################
-function symbols(Kt::Generic.RationalFunctionField)
-    return Kt.S
-end
-
-
-
-
-###############################################################################
-#
 #  Includes
 #
 ###############################################################################
@@ -19,6 +7,7 @@ include("semiring.jl")
 include("semiring_map.jl")
 include("matrix.jl")
 include("poly.jl")
+include("homogenization.jl")
 include("groebner_basis.jl")
 include("initial.jl")
 # include("groebner_polyhedron.jl")

@@ -36,7 +36,7 @@ has_zero_entropy
 
 Please direct questions about this part of OSCAR to the following people:
 * [Simon Brandhorst](https://www.math.uni-sb.de/ag/brandhorst/index.php?lang=en).
-* [Matthias Zach](https://www.mathematik.uni-kl.de/en/agag/people/members),
+* [Matthias Zach](https://math.rptu.de/en/wgs/agag/people/members),
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

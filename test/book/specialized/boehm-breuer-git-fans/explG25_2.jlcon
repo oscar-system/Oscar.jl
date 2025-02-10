@@ -1,0 +1,18 @@
+julia> perms_list = [ [1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3] ];
+
+julia> sym = symmetric_group(n);
+
+julia> G, emb = sub([sym(x) for x in perms_list]...);
+
+julia> G
+Permutation group of degree 10
+
+julia> describe(G)
+"S5"
+
+julia> iso = isomorphism(G, symmetric_group(5));
+
+julia> [iso(x) for x in gens(G)]
+2-element Vector{PermGroupElem}:
+ (1,3)
+ (1,5,4,3,2)

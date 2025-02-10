@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Group libraries
@@ -127,6 +125,21 @@ has_small_groups
 number_of_small_groups
 small_group
 small_group_identification
+```
+
+## Groups with a small number of conjugacy classes
+
+The functions in this section give access to the groups with
+up to 14 conjugacy classes.
+These groups have been classified in [V-LV-L85](@cite), [V-LV-L86](@cite),
+[VS07](@cite).
+
+```@docs
+all_groups_with_class_number
+has_number_of_groups_with_class_number
+has_groups_with_class_number
+number_of_groups_with_class_number
+group_with_class_number
 ```
 
 ## Atlas of Group Representations

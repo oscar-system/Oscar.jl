@@ -1,6 +1,7 @@
 ##########################################
-### (1) General methods
+### (1) Blow_up of F-theory models
 ##########################################
+
 
 @doc raw"""
     blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -15,7 +16,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -33,7 +34,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
@@ -48,26 +49,131 @@ function blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate
   return blow_up(m, I; coordinate_name = coordinate_name)
 end
 
-function _my_proper_transform(ring_map::T, p::MPolyRingElem, coordinate_name::String) where {T<:SetElem}
-  total_transform = ring_map(ideal([p]))
-  _e = eval_poly(coordinate_name, codomain(ring_map))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  return gens(strict_transform)[1]
+
+@doc raw"""
+    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+
+Resolve an F-theory model by blowing up a locus in the ambient space.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
+7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+ x
+ y
+ z
+
+julia> blow_up(t, ideal([x, y, x1]); coordinate_name = "e1")
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+```
+"""
+function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+  return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name)
 end
 
-function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+function _ideal_sheaf_to_minimal_supercone_coordinates(X::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name::String = "e")
+  # Return this when cannot convert ideal to minimal supercone coordinates
+  not_possible = nothing
+
+  # X needs to be a smooth toric variety
+  X isa NormalToricVarietyType || return not_possible
+
+  I isa ToricIdealSheafFromCoxRingIdeal || return not_possible
+  defining_ideal = ideal_in_cox_ring(I)
+  all(in(gens(base_ring(defining_ideal))), gens(defining_ideal)) || return not_possible
+  R = cox_ring(X)
+  coords = zeros(QQ, n_rays(X))
+  for i in 1:n_rays(X)
+    R[i] in gens(defining_ideal) && (coords[i] = 1)
+  end
+  coords == zeros(QQ, n_rays(X)) && return not_possible
+  is_minimal_supercone_coordinate_vector(polyhedral_fan(X), coords) || return not_possible
+  return coords
+end
+
+@doc raw"""
+    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+
+Resolve an F-theory model by blowing up a locus in the ambient space.
+For this method, the blowup center is encoded by an ideal sheaf.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
+7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+ x
+ y
+ z
+
+julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
+Sheaf of ideals
+  on normal, simplicial toric variety
+with restrictions
+   1: Ideal (x_5_1, x_4_1, x_1_1)
+   2: Ideal (1)
+   3: Ideal (x_5_3, x_4_3, x_1_3)
+   4: Ideal (x_5_4, x_4_4, x_1_4)
+   5: Ideal (1)
+   6: Ideal (1)
+   7: Ideal (1)
+   8: Ideal (1)
+   9: Ideal (1)
+  10: Ideal (1)
+  11: Ideal (1)
+  12: Ideal (1)
+
+julia> blow_up(t, blowup_center; coordinate_name = "e1")
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+```
+"""
+function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Blowups are currently only supported for Tate and Weierstrass models"
-
-  # This method only works if the model is defined over a toric variety over toric scheme
-  @req base_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
-  @req ambient_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
+  @req (base_space(m) isa FamilyOfSpaces) == false "Base space must be a concrete space for blowups to work"
 
   # Compute the new ambient_space
-  bd = blow_up(ambient_space(m), I; coordinate_name = coordinate_name)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I)
+  if !isnothing(coords)
+    # Apply toric method
+    bd = blow_up_along_minimal_supercone_coordinates(
+      ambient_space(m), coords; coordinate_name=coordinate_name
+    )
+  else
+    # Reroute to scheme theory
+    bd = blow_up(I)
+  end
   new_ambient_space = domain(bd)
 
   # Compute the new base
@@ -76,41 +182,52 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   # FIXME: This is also ties in with the model sections to be saved, see below. Should the base change, so do these sections...
   new_base = base_space(m)
 
-  # Prepare ring map for the computation of the strict transform.
-  # FIXME: This assume that I is generated by indeterminates! Very special!
-  S = cox_ring(new_ambient_space)
-  _e = eval_poly(coordinate_name, S)
-  images = MPolyRingElem[]
-  for v in gens(S)
-    v == _e && continue
-    if string(v) in [string(k) for k in gens(I)]
-      push!(images, v * _e)
-    else
-      push!(images, v)
-    end
-  end
-  ring_map = hom(base_ring(I), S, images)
-
   # Construct the new model
   if m isa GlobalTateModel
-    new_pt = _my_proper_transform(ring_map, tate_polynomial(m), coordinate_name)
-    model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_pt, base_space(m), new_ambient_space)
+    if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
+      f = tate_polynomial(m)
+      new_tate_polynomial = strict_transform(bd, f)
+      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
+    else
+      if bd isa ToricBlowupMorphism
+        new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
+      else
+        new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
+      end
+      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
+    end
   else
-    new_pw = _my_proper_transform(ring_map, weierstrass_polynomial(m), coordinate_name)
-    model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_pw, base_space(m), new_ambient_space)
+    if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
+      f = weierstrass_polynomial(m)
+      new_weierstrass_polynomial = strict_transform(bd, f)
+      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
+    else
+      if bd isa ToricBlowupMorphism
+        new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
+      else
+        new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
+      end
+      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
+    end
   end
 
-  # Copy/overwrite known attributes from old model
+  # Copy/overwrite/set attributes
   model_attributes = m.__attrs
   for (key, value) in model_attributes
     set_attribute!(model, key, value)
   end
   set_attribute!(model, :partially_resolved, true)
+  set_attribute!(model, :blow_down_morphism, bd)
 
   # Return the model
   return model
 end
 
+
+
+##########################################
+### (3) Tuning
+##########################################
 
 @doc raw"""
     tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
@@ -131,7 +248,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -163,13 +280,7 @@ function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Boo
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
   @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
   @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
-  if m isa GlobalTateModel
-    equation = tate_polynomial(m)
-  elseif m isa WeierstrassModel
-    equation = weierstrass_polynomial(m)
-  else
-    equation = hypersurface_equation(m)
-  end
+  equation = hypersurface_equation(m)
   @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
   @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
   p == equation && return m
@@ -208,7 +319,7 @@ Toric line bundle on a normal toric variety
 julia> kbar = anticanonical_bundle(B3)
 Toric line bundle on a normal toric variety
 
-julia> w = basis_of_global_sections(w_bundle)[1];
+julia> w = generic_section(w_bundle);
 
 julia> a21 = generic_section(kbar^2 * w_bundle^(-1));
 
@@ -224,6 +335,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
   # Conduct elementary entry checks
   @req base_space(m) isa FamilyOfSpaces "The model must be defined over a family of spaces"
   @req haskey(concrete_data, "base") "The base space must be specified"
+  @req (concrete_data["base"] isa NormalToricVariety) "Currently, models over families of spaces can only be put over toric bases"
   @req ((m isa WeierstrassModel) || (m isa GlobalTateModel)) "Currently, only Tate or Weierstrass models can be put on a concrete base"
   
   # Work out the Weierstrass/Tate sections
@@ -253,8 +365,8 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
-      if any(x -> x != 0, all_appearing_exponents[k,:])
-        gen_name = string(gens(parent(polys[1]))[k])
+      if any(!is_zero, all_appearing_exponents[k,:])
+        gen_name = string(symbols(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
         @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
         new_model_secs[gen_name] = concrete_data[gen_name]
@@ -283,7 +395,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "g")
         new_sec = mapper(parametrization["g"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["g"] = new_sec
@@ -295,7 +407,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a1")
         new_sec = mapper(parametrization["a1"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"]))) "Degree mismatch"
         end
         new_model_secs["a1"] = new_sec
@@ -305,7 +417,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a2")
         new_sec = mapper(parametrization["a2"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^2)) "Degree mismatch"
         end
         new_model_secs["a2"] = new_sec
@@ -315,7 +427,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a3")
         new_sec = mapper(parametrization["a3"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^3)) "Degree mismatch"
         end
         new_model_secs["a3"] = new_sec
@@ -325,7 +437,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a4")
         new_sec = mapper(parametrization["a4"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^4)) "Degree mismatch"
         end
         new_model_secs["a4"] = new_sec
@@ -335,7 +447,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a6")
         new_sec = mapper(parametrization["a6"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["a6"] = new_sec
@@ -461,8 +573,8 @@ function set_paper_title(m::AbstractFTheoryModel, desired_value::String)
   set_attribute!(m, :paper_title => desired_value)
 end
 
-function set_related_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :related_literature_models => desired_value)
+function set_birational_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
+  set_attribute!(m, :birational_literature_models => desired_value)
 end
 
 
@@ -496,9 +608,9 @@ function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
   !(addition in values) && set_attribute!(m, :paper_buzzwords => vcat(values, [addition]))
 end
 
-function add_related_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = has_related_literature_models(m) ? related_literature_models(m) : []
-  !(addition in values) && set_attribute!(m, :related_literature_models => vcat(values, [addition]))
+function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+  values = has_birational_literature_models(m) ? birational_literature_models(m) : []
+  !(addition in values) && set_attribute!(m, :birational_literature_models => vcat(values, [addition]))
 end
 
 
@@ -511,6 +623,12 @@ function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Stri
   R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+end
+
+function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
@@ -555,6 +673,44 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
+  divs = torusinvariant_prime_divisors(ambient_space(m))
+  cohomology_ring(ambient_space(m); check=false)
+  cox_gens = string.(gens(cox_ring(ambient_space(m))))
+  @req desired_value in cox_gens "Specified zero section is invalid"
+  index = findfirst(==(desired_value), cox_gens)
+  set_attribute!(m, :zero_section_index => index::Int)
+  set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
+end
+
+function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
+  C = algebraic_closure(QQ)
+  function _construct(g::String)
+    if g == "0"
+      return abelian_lie_algebra(C, 0)
+    elseif g == "u(1)"
+      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
+    elseif g[1:2] == "su"
+      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "so"
+      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "sp"
+      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:1] == "e"
+      return lie_algebra(C, :E, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "f"
+      return lie_algebra(C, :F, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "g"
+      return lie_algebra(C, :G, parse(Int, g[3:end-1]))
+    end
+    error("Unknown algebra description")
+  end
+  set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
+end
+
+function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+ set_attribute!(m, :global_gauge_quotients => quotients)
+end
 
 
 ##########################################
@@ -562,7 +718,7 @@ end
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = has_generating_sections(m) ? related_literature_models(m) : []
+  values = has_generating_sections(m) ? birational_literature_models(m) : []
   !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
 end
 
@@ -626,9 +782,6 @@ end
 
 Resolve a model with the index-th resolution that is known.
 
-Careful: Currently, this assumes that all blowups are toric blowups.
-We hope to remove this requirement in the near future.
-
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -636,7 +789,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -645,7 +798,7 @@ julia> t2 = resolve(t, 1)
 Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> cox_ring(ambient_space(t2))
-Multivariate polynomial ring in 12 variables over QQ graded by 
+Multivariate polynomial ring in 12 variables over QQ graded by
   x1 -> [1 0 0 0 0 0 0]
   x2 -> [0 1 0 0 0 0 0]
   x3 -> [0 1 0 0 0 0 0]
@@ -658,62 +811,102 @@ Multivariate polynomial ring in 12 variables over QQ graded by
   e2 -> [-1 -3 -1 1 -1 -1 0]
   e3 -> [0 4 1 -1 1 0 -1]
   s -> [2 6 -1 0 2 1 1]
+
+julia> w2 = 2 * torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, non-prime divisor on a normal toric variety
+
+julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w2), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> t4 = resolve(t3, 1)
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
-function resolve(m::AbstractFTheoryModel, index::Int)
+function resolve(m::AbstractFTheoryModel, resolution_index::Int)
+
+  # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
+  if has_attribute(m, :arxiv_id)
+    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
+      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
+      return load(model_data_path)
+    end
+  end
+
+  # To be extended to hypersurface models...
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Resolve currently supported only for Weierstrass and Tate models"
   @req (base_space(m) isa NormalToricVariety) "Currently, resolve is only supported for models over concrete toric bases"
+  @req (ambient_space(m) isa NormalToricVariety) "Currently, resolve is only supported for singular models defined in a toric space"
   @req has_attribute(m, :resolutions) "No resolutions known for this model"
-  @req index > 0 "The resolution must be specified by a non-negative integer"
-  @req index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
+  @req resolution_index > 0 "The resolution must be specified by a non-negative integer"
+  @req resolution_index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
   
   # Gather information for resolution
-  centers, exceptionals = resolutions(m)[index]
+  centers, exceptionals = resolutions(m)[resolution_index]
   nr_blowups = length(centers)
   
-  # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  resolved_ambient_space = ambient_space(m)
-  R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals), cached = false)
-  for center in centers
-    blow_up_center = center
-    if has_attribute(m, :explicit_model_sections)
-      explicit_model_sections = get_attribute(m, :explicit_model_sections)
-      for l in 1:length(blow_up_center)
-        if haskey(explicit_model_sections, blow_up_center[l])
-          new_locus = string(explicit_model_sections[blow_up_center[l]])
-          blow_up_center[l] = new_locus
-        end
+  # Resolve the model
+  resolved_model = m
+  blow_up_chain = []
+  for k in 1:nr_blowups
+
+    # Replace parameters in the blow_up_center with explicit_model_sections
+    blow_up_center = centers[k]
+    for l in 1:length(blow_up_center)
+      model_sections = explicit_model_sections(resolved_model)
+      if haskey(model_sections, blow_up_center[l])
+        new_locus = string(explicit_model_sections(resolved_model)[blow_up_center[l]])
+        blow_up_center[l] = new_locus
       end
     end
-    @req all(x -> x in gR, [eval_poly(p, R) for p in blow_up_center]) "Non-toric blowup currently not supported"
-  end
-  
-  # If Tate model, use the new resolve function
-  # FIXME: To be extended to Weierstrass and hypersurface models
-  if m isa GlobalTateModel
-    resolved_model = m
-    for k in 1:nr_blowups
-      # Center may involve base coordinates, subject to chosen base sections/variable names in the base. Adjust
-      blow_up_center = centers[k]
-      if has_attribute(resolved_model, :explicit_model_sections)
-        explicit_model_sections = get_attribute(resolved_model, :explicit_model_sections)
-        for l in 1:length(blow_up_center)
-          if haskey(explicit_model_sections, blow_up_center[l])
-            new_locus = string(explicit_model_sections[blow_up_center[l]])
-            blow_up_center[l] = new_locus
+
+    # Conduct the blowup
+    if ambient_space(resolved_model) isa NormalToricVariety
+      # Toric case is easy...
+      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+    else
+      
+      # Compute proper transform of center generated by anything but exceptional divisors
+      filtered_center = [c for c in blow_up_center if !(c in exceptionals)]
+      initial_ambient_space = ambient_space(m)
+      initial_cox_ring = cox_ring(initial_ambient_space)
+      initial_filtered_ideal_sheaf = ideal_sheaf(initial_ambient_space, ideal([eval_poly(l, initial_cox_ring) for l in filtered_center]))
+      bd_morphism = get_attribute(blow_up_chain[1], :blow_down_morphism)
+      filtered_ideal_sheaf = strict_transform(bd_morphism, initial_filtered_ideal_sheaf)
+      for l in 2:k-1
+        bd_morphism = get_attribute(blow_up_chain[l], :blow_down_morphism)
+        filtered_ideal_sheaf = strict_transform(bd_morphism, filtered_ideal_sheaf)
+      end
+
+      # Compute strict transform of ideal sheaves appearing in blowup center
+      exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
+      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
+      exceptional_divisors = [exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for l in positions]
+      exceptional_ideal_sheafs = [ideal_sheaf(d) for d in exceptional_divisors]
+      for l in 1:length(positions)
+        if positions[l] < k-1
+          for m in positions[l]+1: k-1
+            internal_bd_morphism = get_attribute(blow_up_chain[m], :blow_down_morphism)
+            exceptional_ideal_sheafs[l] = strict_transform(internal_bd_morphism, exceptional_ideal_sheafs[l])
           end
         end
       end
-      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+
+      # Compute the prepared center
+      prepared_center = filtered_ideal_sheaf
+      if length(exceptional_ideal_sheafs) > 0
+        prepared_center = prepared_center + sum(exceptional_ideal_sheafs)
+      end
+
+      # Execute the blow-up
+      resolved_model = blow_up(resolved_model, prepared_center; coordinate_name = exceptionals[k])
     end
-  else
-    # Perform resolution
-    for k in 1:nr_blowups
-      S = cox_ring(resolved_ambient_space)
-      resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
-    end
-    resolved_model = resolved_ambient_space
+
+    # Remember the result
+    push!(blow_up_chain, resolved_model)
+
   end
   return resolved_model
 end

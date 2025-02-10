@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Permutation groups
@@ -41,6 +39,7 @@ In OSCAR, every permutation group has a degree `n`, that corresponds to the size
 
 ```@docs
 degree(x::PermGroup)
+smaller_degree_permutation_representation(G::PermGroup)
 ```
 
 
@@ -89,6 +88,7 @@ sign(g::PermGroupElem)
 isodd(g::PermGroupElem)
 iseven(g::PermGroupElem)
 cycle_structure(g::PermGroupElem)
+cycles(g::PermGroupElem)
 ```
 
 ## Permutations as functions

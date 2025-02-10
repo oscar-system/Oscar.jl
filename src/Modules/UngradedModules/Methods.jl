@@ -8,7 +8,7 @@ If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -19,10 +19,12 @@ julia> B = Rg[x^2; y^3; z^4];
 julia> M = SubquoModule(F, A, B);
 
 julia> is_equal_with_morphism(M, M)
-M -> M
-x*e[1] -> x*e[1]
-y*e[1] -> y*e[1]
 Homogeneous module homomorphism
+  from M
+  to M
+defined by
+  x*e[1] -> x*e[1]
+  y*e[1] -> y*e[1]
 ```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
@@ -143,7 +145,7 @@ function transport(M::SubquoModule, v::SubquoModuleElem)
   N = parent(v)
   morphisms = find_sequence_of_morphisms(N, M)
 
-  return foldl((x,f) -> f(x), morphisms; init=v)
+  return foldl(|>, morphisms; init=v)
 end
 
 @doc raw"""
@@ -228,55 +230,15 @@ ring_map(f::FreeModuleHom) = f.ring_map
 ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
-#############################
-#TODO move to Hecke
-#  re-evaluate and use or not
-
-function getindex(r::Hecke.SRow, u::AbstractUnitRange)
-  R = base_ring(r)
-  s = sparse_row(R)
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
-end
-
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
-  s = sparse_row(R)
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
-end
-
-function getindex(a::Hecke.SRow, b::AbstractVector{Int})
-  if length(a.pos) == 0
-    return a
-  end
-  m = minimum(b)
-  b = sparse_row(parent(a.values[1]))
-  for (k,v) = a
-    if k in b
-      push!(b.pos, k-b+1)
-      push!(b.values, v)
-    end
-  end
-  return b
-end
-
 function default_ordering(F::FreeMod)
-  if iszero(F)
-    return default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+  if !isdefined(F, :default_ordering)
+    if iszero(F)
+      F.default_ordering = default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+    else
+      F.default_ordering = default_ordering(base_ring(F))*lex(gens(F))
+    end
   end
-  return default_ordering(base_ring(F))*lex(gens(F))
+  return F.default_ordering::ModuleOrdering{typeof(F)}
 end
 
 ##############################
@@ -354,7 +316,8 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
       throw(DomainError("v does not represent a homomorphism"))
     end
     R = base_ring(M)
-    A = copy_and_reshape(dense_row(repres(v).coords[R, 1:s0*t0], s0*t0), s0, t0)
+    c = coordinates(repres(v))
+    A = copy_and_reshape(dense_row(c[1:s0*t0], s0*t0), s0, t0)
     return A
   end
 
@@ -416,8 +379,8 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod(S, F.S) # the symbols of F
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
 
@@ -425,7 +388,7 @@ function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, F.S)
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod(S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
@@ -437,7 +400,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, S); check=false)
   return MS, map
 end
 
@@ -453,6 +416,16 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
+
+function change_base_ring(phi::Any, f::ModuleFPHom; 
+    domain_base_change=change_base_ring(phi, domain(f))[2], 
+    codomain_base_change=change_base_ring(phi, codomain(f))[2]
+  )
+  new_dom = codomain(domain_base_change)
+  new_cod = codomain(codomain_base_change)
+  return hom(new_dom, new_cod, codomain_base_change.(f.(gens(domain(f)))))
+end
+
 
 ### Duals of modules
 @doc raw"""
@@ -569,7 +542,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns i
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -676,7 +649,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -844,9 +817,10 @@ end
 # constructor of induced maps.
 tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
 
-function tensor_product(maps::Vector{<:ModuleFPHom})
-  dom = tensor_product([domain(f) for f in maps])
-  cod = tensor_product([codomain(f) for f in maps])
-  return tensor_product(dom, cod, maps)
+function tensor_product(maps::Vector{<:ModuleFPHom}; 
+        domain::ModuleFP = tensor_product([domain(f) for f in maps]), 
+        codomain::ModuleFP = tensor_product([codomain(f) for f in maps])
+    )
+  return tensor_product(domain, codomain, maps)
 end
 

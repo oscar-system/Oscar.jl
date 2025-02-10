@@ -1,14 +1,13 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating Multivariate Rings
 
-In this section, for the convenience of the reader, we recall from the chapters on rings and fields
-how to create multivariate polynomial rings and their elements, adding illustrating examples.
+In this section, for the convenience of the reader, we recall from the chapters on
+[rings](@ref rings) and [fields](@ref fields) how to create multivariate polynomial
+rings and their elements, adding illustrating examples.
 At the same time, we introduce and illustrate a ring type for modelling multivariate polynomial
 rings with gradings.
 
@@ -25,10 +24,12 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; cached::Bool = true)
+polynomial_ring(C::Ring, xs::AbstractVector{<:VarName}; cached::Bool = true)
 ```
 
-Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
+Given a ring `C` and a vector `xs` of  Symbols, Strings, or Characters, return 
+a tuple `R, vars`, say, which consists of a polynomial ring `R` with coefficient ring `C`
+and a vector `vars` of generators (variables) which print according to the entries of `xs`.
 
 !!! note
     Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z.
@@ -36,7 +37,7 @@ Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` 
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(ZZ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> typeof(R)
@@ -45,30 +46,43 @@ ZZMPolyRing
 julia> typeof(x)
 ZZMPolyRingElem
 
-julia> S, (a, b, c) = polynomial_ring(ZZ, ["x", "y", "z"])
+julia> S, (a, b, c) = polynomial_ring(ZZ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
-julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
+julia> T, _ = polynomial_ring(ZZ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> R === S === T
 true
+
 ```
 
 ```jldoctest
-julia> R1, x = polynomial_ring(QQ, ["x"])
+julia> R1, _ = polynomial_ring(ZZ, [:x, :y, :z]);
+
+julia> R2, _ = polynomial_ring(ZZ, ["x", "y", "z"]);
+
+julia> R3, _ = polynomial_ring(ZZ, ['x', 'y', 'z']);
+
+julia> R1 === R2 === R3
+true
+
+```
+
+```jldoctest
+julia> R1, x = polynomial_ring(QQ, [:x])
 (Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 Vector{QQMPolyRingElem} (alias for Array{QQMPolyRingElem, 1})
 
-julia> R2, (x,) = polynomial_ring(QQ, ["x"])
+julia> R2, (x,) = polynomial_ring(QQ, [:x])
 (Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 QQMPolyRingElem
 
-julia> R3, x = polynomial_ring(QQ, "x")
+julia> R3, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> typeof(x)
@@ -89,7 +103,7 @@ julia> x
 The constructor illustrated below allows for the convenient handling of variables with multi-indices:
 
 ```jldoctest
-julia> R, x, y, z = polynomial_ring(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1));
+julia> R, x, y, z = polynomial_ring(QQ, :x => (1:3, 1:4), :y => 1:2, :z => (1:1, 1:1, 1:1));
 
 julia> x
 3×4 Matrix{QQMPolyRingElem}:
@@ -142,7 +156,7 @@ julia> finite_field(2, 70, "a")
 ### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
 ```jldoctest
-julia> T, t = polynomial_ring(QQ, "t")
+julia> T, t = polynomial_ring(QQ, :t)
 (Univariate polynomial ring in t over QQ, t)
 
 julia> K, a = number_field(t^2 + 1, "a")
@@ -151,8 +165,8 @@ julia> K, a = number_field(t^2 + 1, "a")
 julia> F = GF(3)
 Prime field of characteristic 3
 
-julia> T, t = polynomial_ring(F, "t")
-(Univariate polynomial ring in t over GF(3), t)
+julia> T, t = polynomial_ring(F, :t)
+(Univariate polynomial ring in t over F, t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
 (Finite field of degree 2 and characteristic 3, a)
@@ -162,7 +176,7 @@ julia> K, a = finite_field(t^2 + 1, "a")
 ### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
 ```jldoctest
-julia> T, t = polynomial_ring(QQ, "t")
+julia> T, t = polynomial_ring(QQ, :t)
 (Univariate polynomial ring in t over QQ, t)
 
 julia> QT = fraction_field(T)
@@ -176,7 +190,7 @@ julia> parent(1//t)
 Fraction field
   of univariate polynomial ring in t over QQ
 
-julia> T, (s, t) = polynomial_ring(GF(3), ["s", "t"]);
+julia> T, (s, t) = polynomial_ring(GF(3), [:s, :t]);
 
 julia> QT = fraction_field(T)
 Fraction field
@@ -296,7 +310,7 @@ Given a multivariate polynomial ring `R` with coefficient ring `C`,
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> coefficient_ring(R)
@@ -326,6 +340,10 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
+weights(R::MPolyDecRing)
+```
+
+```@docs
 monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
@@ -348,7 +366,7 @@ basic arithmetic as shown below:
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
@@ -383,7 +401,7 @@ with exponent vectors given by the elements of `e`.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
@@ -400,11 +418,11 @@ true
 An often more effective way to create polynomials is to use the `MPoly` build context as indicated below:
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate polynomial ring in 2 variables over QQ
+Builder for an element of R
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
@@ -432,12 +450,12 @@ Given an element `f` of a multivariate polynomial ring `R` or a graded version o
     the notion of total degree ignores the weights given to the variables in the graded case.
 
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
-subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
+subsection [Monomials, Terms, and More](@ref monomials_terms_more) of the section on [Gröbner/Standard Bases](@ref gb_fields).
 
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
+julia> R, (x, y) = polynomial_ring(GF(5), [:x, :y])
 (Multivariate polynomial ring in 2 variables over GF(5), FqMPolyRingElem[x, y])
 
 julia> c = map(GF(5), [1, 2, 3])
@@ -502,5 +520,5 @@ refer to `R` and `S`, respectively.
 !!! note
     The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
     the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
 

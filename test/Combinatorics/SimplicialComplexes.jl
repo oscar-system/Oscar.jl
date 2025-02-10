@@ -4,7 +4,7 @@
 
     sphere = simplicial_complex([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
 
-    sphere2 = simplicial_complex(IncidenceMatrix([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]))
+    sphere2 = simplicial_complex(incidence_matrix([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]))
 
     not_known_to_be_a_ball = SimplicialComplex(Polymake.topaz.SimplicialComplex(FACETS=[[0,1]], BALL=nothing))
 
@@ -21,7 +21,7 @@
     @test betti_numbers(sphere) == [0, 0, 1]
     @test euler_characteristic(sphere) == 1
     @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
-    R, _ = polynomial_ring(ZZ, ["a", "x", "i_7", "n"])
+    R, _ = polynomial_ring(ZZ, [:a, :x, :i_7, :n])
     @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
     @test is_isomorphic(fundamental_group(sphere), free_group())
 
@@ -64,5 +64,18 @@
     K1 = simplicial_complex([[1, 2], [2, 3]])
     K2 = simplicial_complex([[1, 2], [2, 3]])
     @test is_isomorphic(K1, K2)
+  end
+
+  @testset "automorphism groups" begin
+    K = simplicial_complex([[1, 2], [2, 3]])
+    G = automorphism_group(K)
+    @test G == permutation_group(3, [cperm([1, 3])])
+
+    g = collect(G)[2]
+    G_K = on_simplicial_complex(K, g)
+    @test Set(facets(simplicial_complex([[1, 2], [2, 3]]))) == Set(facets(G_K))
+    
+    G = automorphism_group(K; action=:on_facets)
+    @test G == permutation_group(2, [cperm([1, 2])])
   end
 end

@@ -234,7 +234,7 @@ end
 Given a class function `chi` on a group `G`, return whether `chi` defines a
 character of `G` (over its codomain).
 """
-is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GAPTable(parent(chi)), chi.values)::Bool
+is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GapObj(parent(chi)), GapObj(chi))::Bool
 
 @doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
@@ -502,12 +502,12 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   H = generators_underlying_group(RR)
 
   # the GAP function which we rely on
-  rep = GG.IrreducibleAffordingRepresentation(chi.values)::GAP.GapObj
+  rep = GG.IrreducibleAffordingRepresentation(GapObj(chi))::GapObj
 
   # we compute certain images than we will convert then.
   # we use them then to construct the mapping in
   # `_linear_representation`
-  _Mat = GAP.GapObj[GG.Image(rep, h.X) for h in H]
+  _Mat = GapObj[GG.Image(rep, h.X) for h in H]
   Mat = AbstractAlgebra.Generic.MatSpaceElem{elem_type(F)}[]
   for _M in _Mat
     rM = eltype(Mat)[transpose(matrix(F.(m))) for m in _M]
@@ -630,7 +630,7 @@ function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T
   E = group(parent(chi))::T
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
-  Z = center(chi)[1]::T
+  Z = center(chi)[1]
   Q = kernel(p)[1]
   return Q.X == Z.X
 end
@@ -847,7 +847,7 @@ end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
   @req length(v) == length(w) "Tensor must have the same number of components"
-  return all(cv -> any(cw -> cv == cw, w), v)
+  return issetequal(v, w)
 end
 
 function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
@@ -855,7 +855,7 @@ function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
   if symmetric
     return 1
   else
-    return sign(perm(Int[findfirst(vv -> vv == ww, v) for ww in w]))
+    return sign(perm(Int[findfirst(==(ww), v) for ww in w]))
   end
 end
 
@@ -888,7 +888,7 @@ space `V`, return an induced action on Sym^d V.
 function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{S}}, d::Int) where S
   n = ncols(mr[1])
   F = base_ring(mr[1])
-  R, _ = graded_polynomial_ring(F, "x"=>1:n; cached=false)
+  R, _ = graded_polynomial_ring(F, :x=>1:n; cached=false)
   R1, R1toR = homogeneous_component(R, 1)
   Rd, RdtoR = homogeneous_component(R, d)
   bsp = reverse!(RdtoR.(gens(Rd)))
@@ -1060,18 +1060,18 @@ end
 function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
-  f_gap = GG.EpimorphismSchurCover(G_gap)::GAP.GapObj
-  H_gap = GG.Source(f_gap)::GAP.GapObj
-  n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
+  f_gap = GG.EpimorphismSchurCover(G_gap)::GapObj
+  H_gap = GG.Source(f_gap)::GapObj
+  n, p = is_perfect_power_with_data(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
-    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   else
-    fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.IsomorphismPermGroup(H_gap)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   end
-  E = Oscar._get_type(E_gap)(E_gap)
-  H = Oscar._get_type(H_gap)(H_gap)
+  E = Oscar._oscar_group(E_gap)
+  H = Oscar._oscar_group(H_gap)
   fff = inv(GAPGroupHomomorphism(H, E, fff_gap))
   f = GAPGroupHomomorphism(H, G, f_gap)
   pschur = compose(fff, f)

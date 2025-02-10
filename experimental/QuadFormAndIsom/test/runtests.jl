@@ -48,7 +48,7 @@ end
   @test evaluate(minimal_polynomial(Vf), -1) == 0
   @test evaluate(characteristic_polynomial(Vf), 0) == 1
 
-  G = matrix(FlintQQ, 6, 6 ,[3, 1, -1, 1, 0, 0, 1, 3, 1, 1, 1, 1, -1, 1, 3, 0, 0, 1, 1, 1, 0, 4, 2, 2, 0, 1, 0, 2, 4, 2, 0, 1, 1, 2, 2, 4])
+  G = matrix(QQ, 6, 6 ,[3, 1, -1, 1, 0, 0, 1, 3, 1, 1, 1, 1, -1, 1, 3, 0, 0, 1, 1, 1, 0, 4, 2, 2, 0, 1, 0, 2, 4, 2, 0, 1, 1, 2, 2, 4])
   V = quadratic_space(QQ, G)
   f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 0 -1 0 0 0; -1 1 -1 0 0 0; 0 0 0 1 0 -1; 0 0 0 0 0 -1; 0 0 0 0 1 -1])
   Vf = @inferred quadratic_space_with_isometry(V, f)
@@ -104,7 +104,17 @@ end
       @test Lf == loaded
     end
   end
-  
+
+  L = integer_lattice(; gram = QQ[1 2; 2 1])
+  h = QQ[4 -1; 1 0]
+  Lf = integer_lattice_with_isometry(L, h)
+
+  mktempdir() do path
+    test_save_load_roundtrip(path, Lf) do loaded
+      @test Lf == loaded
+    end
+  end
+
   L = @inferred integer_lattice_with_isometry(A3)
   @test is_primary(L, 2)
   @test !is_elementary(L, 2)
@@ -242,7 +252,7 @@ end
   cc = conjugacy_classes(OA4)
 
   D = Oscar._test_isometry_enumeration(A4, 6)
-  for n in collect(keys(D))
+  for n in keys(D)
     @test length(D[n]) == length(filter(c -> order(representative(c)) == n, cc))
   end
   
@@ -265,14 +275,20 @@ end
   @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
 end
 
-@testset "Enumeration of hermitian lattices with isometry" begin
+@testset "Enumeration of lattices with isometry of hermitian type" begin
   # Infinite isometry: chi is a Salem polynomial
   G = genus(torsion_quadratic_module(QQ[0;]), (9, 1))
-  _, x = QQ["x"]
+  _, x = QQ[:x]
   chi = x^(10)+x^9-x^7-x^6-x^5-x^4-x^3+x+1
   rht = @inferred representatives_of_hermitian_type(G, chi)
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
+
+  # Galois orbits
+  U = hyperbolic_plane_lattice()
+  L = direct_sum(U, U, U, U)[1]
+  @test length(representatives_of_hermitian_type(L, 5, false)) == 3
+  @test length(representatives_of_hermitian_type(L, 5, true)) == 2
 end
 
 @testset "Primitive extensions and embeddings" begin
@@ -285,7 +301,7 @@ end
   ok, sv = primitive_embeddings(rescale(E8, 2), rescale(k, QQ(1//2)); check=false)
   @test !ok
   @test is_empty(sv)
-  @test_throws ArgumentError primitive_embeddings(rescale(E8, -1), k; check=false)
+  @test isempty(primitive_embeddings(rescale(E8, -1), k; check=false)[2])
 
   k = integer_lattice(; gram=matrix(QQ,1,1,[6]))
   E7 = root_lattice(:E, 7)
@@ -370,8 +386,8 @@ end
   @test length(reps) == 1
 
   ## Odd case
-  B = matrix(FlintQQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
-  G = matrix(FlintQQ, 5, 5 ,[3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
+  B = matrix(QQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
+  G = matrix(QQ, 5, 5 ,[3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
   L = integer_lattice(B, gram = G);
   k = lattice_in_same_ambient_space(L, B[2:2, :])
   N = orthogonal_submodule(L, k)
@@ -384,6 +400,10 @@ end
   ok, reps = primitive_embeddings(GL, A2)
   @test ok
   @test !is_even(reps[1][3])
+
+  k = integer_lattice(; gram=QQ[4;])
+  I = direct_sum(hyperbolic_plane_lattice(), k)[1]
+  @test primitive_embeddings(I, k; classification=:none)[1]
 end
 
 @testset "Equivariant primitive extensions" begin
@@ -404,4 +424,35 @@ end
 
   @test ok
   @test length(reps) == 9
+end
+
+@testset "Fix hermitian miranda-morrison" begin
+  B = matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]);
+  G = matrix(QQ, 4, 4, [0 0 0 4; 0 0 4 0; 0 4 0 0; 4 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 4, 4, [1 0 2 0; 0 1 0 -2; -1 0 -1 0; 0 1 0 -1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 96
+
+  B = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 1 0 0 0; 0 0 0 1 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1]);
+  G = matrix(QQ, 6, 6, [0 0 0 0 0 3; 0 0 0 0 3 0; 0 0 -6 0 0 0; 0 0 0 -6 0 0; 0 3 0 0 0 0; 3 0 0 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 6, 6, [0 1 -1 1 2 0; -1 -2 1 -1 0 -2; 0 0 0 1 2 -2; 2 2 -1 0 -2 2; -1 0 0 1 2 -1; 0 1 0 1 1 0]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 24192
+end
+
+@testset "Fix Galois action" begin
+  U = hyperbolic_plane_lattice()
+  L, _ = direct_sum(U, U)
+  reps = representatives_of_hermitian_type(L, 4, true)
+  @test length(reps) == 1
+  # The rest is for code coverage
+  Lf = first(reps)
+  Lf = rescale(Lf, 5)
+  G, _ = image_centralizer_in_Oq(Lf)
+  _, qLf = discriminant_group(Lf)
+  @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
 end

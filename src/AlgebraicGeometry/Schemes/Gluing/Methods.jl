@@ -66,7 +66,7 @@ end
 
 function Base.show(io::IO, G::AbsGluing)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Gluing")
   else
     print(io, "Gluing: ", Lowercase(), patches(G)[1], " -> ", Lowercase(), patches(G)[2])
@@ -119,7 +119,8 @@ function compose(G::Gluing, H::Gluing)
   V_new = intersect(codomain(f), domain(g))
   return Gluing(X, Z, 
              compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
-             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
+             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new));
+             check=false
          )
 end
 
@@ -140,7 +141,7 @@ function maximal_extension(G::Gluing)
   is_subscheme(domain(g_ext), V_new) || error("extension failed")
   f_ext = restrict(f_ext, U_new, V_new)
   g_ext = restrict(g_ext, V_new, U_new)
-  return Gluing(X, Y, f_ext, g_ext)
+  return Gluing(X, Y, f_ext, g_ext; check=false)
 end
 
 function compose(G::SimpleGluing, H::SimpleGluing)
@@ -198,7 +199,7 @@ struct BaseChangeGluingData{T1, T2}
   patch_change2::AbsAffineSchemeMor
 end
 
-function _compute_gluing_base_change(gd::BaseChangeGluingData)
+function _compute_gluing(gd::BaseChangeGluingData)
   # extraction of the gluing data
   G = gd.G
   pc1 = gd.patch_change1
@@ -222,14 +223,20 @@ function _compute_gluing_base_change(gd::BaseChangeGluingData)
   _, ff, _ = base_change(phi, f, domain_map=map_U, codomain_map=map_V)
   _, gg, _ = base_change(phi, g, domain_map=map_V, codomain_map=map_U)
 
-  return Gluing(XX, YY, ff, gg)
+  return Gluing(XX, YY, ff, gg; check=false)
 end
 
 function base_change(phi::Any, G::AbsGluing;
     patch_change1::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[1])[2], # The base change morphism for 
     patch_change2::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[2])[2]  # the two gluing patches
   )
+  @assert _has_coefficient_map(pullback(patch_change1))
+  @assert _has_coefficient_map(pullback(patch_change2))
   gd = BaseChangeGluingData{typeof(phi), typeof(G)}(phi, G, patch_change1, patch_change2)
-  return LazyGluing(domain(patch_change1), domain(patch_change2), _compute_gluing_base_change, gd)
+  return LazyGluing(domain(patch_change1), domain(patch_change2), gd)
+end
+
+function Base.hash(X::AbsGluing, u::UInt)
+  return u
 end
 

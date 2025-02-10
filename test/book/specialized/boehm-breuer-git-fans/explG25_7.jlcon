@@ -1,0 +1,14 @@
+julia> expanded = GITFans.orbits_of_maximal_GIT_cones(orbit_list, hash_list, matrix_action);
+
+julia> orbit_lengths = map(length, expanded); println(orbit_lengths)
+[1, 10, 30, 20, 10, 5]
+
+julia> sum(orbit_lengths)
+76
+
+julia> maxcones = vcat( expanded... );
+
+julia> full_edges = GITFans.edges_intersection_graph(maxcones, size(Q, 2) - 1);
+
+julia> length(full_edges)
+180

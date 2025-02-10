@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
@@ -29,7 +27,7 @@ x_jx_i = c_{ij}x_ix_j+d_{ij}.
 ```
 
 Working with Gröbner bases requires that we take monomial orderings into account (see the section
-on Gröbner bases in the commutative algebra chapter for monomial orderings). In our context here, we use the following notation.
+on [Gröbner bases](@ref monomial_orderings) in the [commutative algebra](@ref commutative_algebra) chapter for monomial orderings). In our context here, we use the following notation.
 A *standard monomial* in $K \langle x \rangle$ is a word of type $x^\alpha=x_{1}^{\alpha_{1}}\cdots x_{n}^{\alpha_{n}},$
 where $\alpha=(\alpha_1,\dots,\alpha_n)\in\mathbb N^n$. A *standard polynomial* in $K \langle x \rangle$
 is a $K$-linear combination of standard monomials. Each global monomial ordering $>$ on $K[x]$ gives rise to
@@ -80,7 +78,7 @@ Apply this automorphism to the relations of $A$ to obtain the "opposite relation
 ```math
 x_ix_j = c_{ij}x_jx_i+d_{ij}^{\text{\;\!op}}.
 ```
-Also, if $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$, then set $\alpha^{\text{op}} =(\alpha_n, \ldots, \alpha_1)\in \N^n$,
+Also, if $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$, then set $\alpha^{\text{op}} =(\alpha_n, \ldots, \alpha_1)\in \mathbb{N}^n$,
 and if $>$ is an admissible monomial ordering for $A$, then define the "opposite ordering" $ >^{\text{op}}$ by setting
 ```math
 \alpha >^{\text{op}}  \beta \;\Leftrightarrow\;  \alpha^{\text{op}} > \beta^{\text{op}}.

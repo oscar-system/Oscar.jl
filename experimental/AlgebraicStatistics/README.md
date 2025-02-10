@@ -1,13 +1,34 @@
-# An example template for the experimental section
+# AlgebraicStatistics
 
 ## Aims
 
-This is an example for a file structure to set up a new package 
-in the experimental section. All files you find here are part of the 
-minimum requirements. See also the official Oscar documentation.
+This experimental package provides tools for *algebraic statistics*,
+facilitating the use of commutative algebra to solve problems in
+statistics.
+
+The interface is loosely modeled after the [`GraphicalModels`](https://macaulay2.com/doc/Macaulay2/share/doc/Macaulay2/GraphicalModels/html/index.html)
+package of [`Macaulay2`](https://macaulay2.com) but it fully embraces
+features of Julia's type system. We intend to first get the functionality
+of this package on par with its `Macaulay2` predecessor before adding
+new functionality.
 
 ## Status
 
-We plan to also provide a function to automatically copy this template 
-for you to start your own package. 
-
+- [ ] Conditional independence models
+  - [ ] Gaussian ideals
+  - [X] Discrete ideals
+- [ ] Directed graphical models (Bayesian networks)
+  - [ ] Markov properties
+  - [ ] Trek separation
+  - [X] Gaussian parametrization
+  - [ ] Discrete parametrization
+- [X] Undirected graphical models (Markov networks)
+  - [ ] Markov properties
+  - [X] Gaussian parametrization
+  - [ ] Discrete parametrization
+- [ ] Phylogenetics
+  - [X] Cavender--Farris--Neyman model
+  - [X] Jukes--Cantor model
+  - [X] Kimura2 / Kimura3
+  - [X] Fourier parameters
+- [ ] Maximum likelihood

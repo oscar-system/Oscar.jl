@@ -1,7 +1,7 @@
 """
     has_number_of_transitive_groups(deg::Int)
 
-Return whether the number transitive groups groups of degree `deg` are available for
+Return whether the number of transitive groups of degree `deg` is available for
 use via `number_of_transitive_groups`.
 
 # Examples
@@ -18,7 +18,7 @@ has_number_of_transitive_groups(deg::Int) = has_transitive_groups(deg)
 """
     has_transitive_group_identification(deg::Int)
 
-Return whether identification of transitive groups groups of degree `deg` is available
+Return whether identification of transitive groups of degree `deg` is available
 via `transitive_group_identification`.
 
 # Examples
@@ -35,7 +35,7 @@ has_transitive_group_identification(deg::Int) = has_transitive_groups(deg)
 """
     has_transitive_groups(deg::Int)
 
-Return whether the transitive groups groups of degree `deg` are available for
+Return whether the transitive groups of degree `deg` are available for
 use. This function should be used to test for the scope of the library
 available.
 
@@ -143,7 +143,7 @@ function transitive_group_identification(G::PermGroup)
   @req is_transitive(G, moved) "group is not transitive on its moved points"
   deg = length(moved)
   @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
-  res = GAP.Globals.TransitiveIdentification(G.X)::Int
+  res = GAP.Globals.TransitiveIdentification(GapObj(G))::Int
   return deg, res
 end
 

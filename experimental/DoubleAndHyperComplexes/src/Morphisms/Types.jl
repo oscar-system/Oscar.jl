@@ -122,6 +122,7 @@ end
 underlying_complex(c::SimplifiedComplex) = c.complex
 map_to_original_complex(c::SimplifiedComplex) = c.map_to_original
 map_from_original_complex(c::SimplifiedComplex) = c.map_from_original
+original_complex(c::SimplifiedComplex) = c.original_complex
 
 @attributes mutable struct SimpleFreeResolution{ChainType, MorphismType, ModuleType} <: AbsSimpleComplex{ChainType, MorphismType}
   M::ModuleType # The original module to be resolved
@@ -140,4 +141,24 @@ end
 
 underlying_complex(c::SimpleFreeResolution) = c.underlying_complex
 original_module(c::SimpleFreeResolution) = c.M
+
+### Lifting morphisms through projective resolutions
+mutable struct MapLifter{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  dom::AbsHyperComplex
+  cod::AbsHyperComplex
+  orig_map::Map
+  start_index::Int
+  offset::Int
+  check::Bool
+
+  function MapLifter(::Type{MorphismType}, dom::AbsHyperComplex, cod::AbsHyperComplex, phi::Map; 
+      start_index::Int=0, offset::Int=0, check::Bool=true
+    ) where {MorphismType}
+    @assert dim(dom) == 1 && dim(cod) == 1 "lifting of maps is only implemented in dimension one"
+    @assert (is_chain_complex(dom) && is_chain_complex(cod)) || (is_cochain_complex(dom) && is_cochain_complex(cod))
+    @assert domain(phi) === dom[start_index]
+    @assert codomain(phi) === cod[start_index + offset]
+    return new{MorphismType}(dom, cod, phi, start_index, offset)
+  end
+end
 

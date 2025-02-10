@@ -296,7 +296,7 @@ function _free_show(io::IO, C::AbsHyperComplex)
   R = Nemo.base_ring(C[first(rng)])
   R_name = AbstractAlgebra.get_name(R)
   if isnothing(R_name)
-    R_name = "$R"
+    R_name = "($R)"
   end
  
   for i=reverse(rng)
@@ -339,4 +339,35 @@ function _free_show(io::IO, C::AbsHyperComplex)
     len = length("$(reverse(rng)[i])")
   end
 end
+
+### Koszul contraction
+# Given a free `R`-module `F`, a morphism φ: F → R, and an element `v` in ⋀ ᵖ F, 
+# compute the contraction φ(v) ∈ ⋀ ᵖ⁻¹ F.
+# Note: For this internal method φ is only represented as a dense (column) vector.
+# Warning: If the user provides their own parent, they need to make sure that things 
+#          are compatible. As this is an internal function, no sanity checks are done.
+function _contract(
+    v::FreeModElem{T}, phi::Vector{T}; 
+    parent::FreeMod{T}=begin
+      success, F0, p = _is_exterior_power(Oscar.parent(v))
+      @req success "parent is not an exterior power"
+      exterior_power(F0, p-1)
+    end
+  ) where {T}
+  success, F0, p = _is_exterior_power(Oscar.parent(v))
+  @req success "parent is not an exterior power"
+  @assert length(phi) == ngens(F0) "lengths are incompatible"
+  result = zero(parent)
+  n = ngens(F0)
+  for (i, ind) in enumerate(OrderedMultiIndexSet(p, n))
+    is_zero(v[i]) && continue
+    for j in 1:p
+      I = deleteat!(copy(indices(ind)), j)
+      new_ind = OrderedMultiIndex(I, n)
+      result = result + (-1)^j * v[i] * phi[ind[j]] * parent[linear_index(new_ind)]
+    end
+  end
+  return result
+end
+
 

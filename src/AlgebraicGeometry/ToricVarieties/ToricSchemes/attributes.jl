@@ -5,7 +5,7 @@
 @doc raw"""
     forget_toric_structure(X::AffineNormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
+Return a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples
@@ -32,7 +32,7 @@ end
 @doc raw"""
     forget_toric_structure(X::NormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
+Return a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples
@@ -127,7 +127,7 @@ struct ToricGluingData
 # j::Int
 end
 
-function _compute_toric_gluing(gd::ToricGluingData)
+function _compute_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
@@ -172,12 +172,12 @@ function _compute_toric_gluing(gd::ToricGluingData)
 
   xx = gens(OO(UV))
   yy = gens(OO(VU))
-  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
-  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
+  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=false)
+  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=false)
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
-  result = Gluing(U, V, f, g, check=true)
+  result = Gluing(U, V, f, g, check=false)
   return result
 end
 
@@ -221,13 +221,13 @@ with default covering
     3: [x_1_3, x_2_3]
 ```
 """
-@attr function underlying_scheme(Z::NormalToricVariety)
+@attr Any function underlying_scheme(Z::NormalToricVariety)
   @req is_pure(polyhedral_fan(Z)) "underlying_scheme is currently only supported for toric varieties whose fan is pure"
   patch_list = affine_open_covering(Z)
   for (k, A) in enumerate(patch_list)
     C = cone(pm_object(A).WEIGHT_CONE)
     n = length(hilbert_basis(C))
-    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n], cached = false);
+    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n]; cached=false);
     set_attribute!(A, :toric_ideal, toric_ideal(R, A))
   end
   cov = Covering(patch_list)
@@ -237,7 +237,7 @@ with default covering
       X = patch_list[i]
       Y = patch_list[j]
       gd = ToricGluingData(Z, X, Y)
-      add_gluing!(cov, LazyGluing(X, Y, _compute_toric_gluing, gd))
+      add_gluing!(cov, LazyGluing(X, Y, gd))
       continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue

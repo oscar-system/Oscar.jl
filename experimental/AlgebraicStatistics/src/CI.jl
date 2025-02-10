@@ -3,13 +3,13 @@
 export CIStmt, ci_stmt, @CI_str, ci_statements, make_elementary
 
 struct CIStmt
-  I::Vector{String}
-  J::Vector{String}
-  K::Vector{String}
+  I::Vector{<:VarName}
+  J::Vector{<:VarName}
+  K::Vector{<:VarName}
 end
 
 @doc raw"""
-    ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
+    ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
 
 A conditional independence statement asserting that `I` is independent
 of `J` given `K`. These parameters are lists of names of random variables.
@@ -22,7 +22,7 @@ to make the `I` field lexicographically smaller than the `J` to ensure
 that comparisons and hashing respect the symmetry.
 
 If `semigraphoid` is set to `true`, the constructor also removes elements
-in the intersection of `I` and `K` from `I` (and symetrically removes the
+in the intersection of `I` and `K` from `I` (and symmetrically removes the
 intersection of `J` and `K` from `J`).
 
 As all three fields are sets, each of them may be deduplicated and sorted
@@ -30,15 +30,15 @@ to ensure consistent comparison and hashing.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> ci_stmt(["A"], ["B"], ["X"])
-[A ⫫ B | X]
+[A _||_ B | X]
 
 julia> ci_stmt(["1"], ["2", "3"], ["4", "5"])
-[1 ⫫ {2, 3} | {4, 5}]
+[1 _||_ {2, 3} | {4, 5}]
 ```
 """
-function ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
+function ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
   if length(intersect(I, J)) > 0
     error("Functional dependence statements are not yet implemented")
   end
@@ -78,12 +78,12 @@ are extracted, `ci_stmt` is called.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> CI"AB|X"
-[A ⫫ B | X]
+[A _||_ B | X]
 
 julia> CI"1,23|5424"
-[1 ⫫ 3 | {2, 4, 5}]
+[1 _||_ 3 | {2, 4, 5}]
 ```
 """
 macro CI_str(str)
@@ -104,11 +104,15 @@ end
 
 function Base.show(io::IO, stmt::CIStmt)
   fmt(K) = length(K) == 1 ? string(K[1]) : "{" * join([string(x) for x in K], ", ") * "}"
-  print(io, "[$(fmt(stmt.I)) ⫫ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
+  if Oscar.is_unicode_allowed()
+    print(io, "[$(fmt(stmt.I)) ⫫ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
+  else
+    print(io, "[$(fmt(stmt.I)) _||_ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
+  end
 end
 
 @doc raw"""
-    ci_statements(random_variables::Vector{String})
+    ci_statements(random_variables::Vector{<:VarName})
 
 Return a list of all elementary CI statements over a given set of
 variable names. A `CIStmt(I, J, K)` is elementary if both `I` and
@@ -120,32 +124,32 @@ distribution.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> ci_statements(["A", "B", "X", "Y"])
 24-element Vector{CIStmt}:
- [A ⫫ Y | {}]
- [A ⫫ Y | B]
- [A ⫫ Y | X]
- [A ⫫ Y | {B, X}]
- [B ⫫ Y | {}]
- [B ⫫ Y | A]
- [B ⫫ Y | X]
- [B ⫫ Y | {A, X}]
- [X ⫫ Y | {}]
- [X ⫫ Y | A]
+ [A _||_ Y | {}]
+ [A _||_ Y | B]
+ [A _||_ Y | X]
+ [A _||_ Y | {B, X}]
+ [B _||_ Y | {}]
+ [B _||_ Y | A]
+ [B _||_ Y | X]
+ [B _||_ Y | {A, X}]
+ [X _||_ Y | {}]
+ [X _||_ Y | A]
  ⋮
- [A ⫫ X | {B, Y}]
- [B ⫫ X | {}]
- [B ⫫ X | A]
- [B ⫫ X | Y]
- [B ⫫ X | {A, Y}]
- [A ⫫ B | {}]
- [A ⫫ B | X]
- [A ⫫ B | Y]
- [A ⫫ B | {X, Y}]
+ [A _||_ X | {B, Y}]
+ [B _||_ X | {}]
+ [B _||_ X | A]
+ [B _||_ X | Y]
+ [B _||_ X | {A, Y}]
+ [A _||_ B | {}]
+ [A _||_ B | X]
+ [A _||_ B | Y]
+ [A _||_ B | {X, Y}]
 ```
 """
-function ci_statements(random_variables::Vector{String})
+function ci_statements(random_variables::Vector{<:VarName})
   N = collect(1:length(random_variables))
   stmts = Vector{CIStmt}()
   for ij in subsets(N, 2)
@@ -168,9 +172,9 @@ end
 
 Convert a `CIStmt` into an equivalent list of `CIStmt`s all of which
 are elementary. The default operation assumes the semigraphoid axioms
-and converts [I ⫫ J | K] into the list consisting of [i ⫫ j | L]
-for all ``i \in I``, ``j \in J`` and ``L`` in the interval
-``K \subseteq L \subseteq (I \cup J \cup K) \setminus \{i,j\}``.
+and converts ``[I \mathrel{⫫} J \mid K]`` into the list consisting of
+``[i \mathrel{⫫} j \mid L]`` for all ``i \in I``, ``j \in J`` and ``L``
+in the interval ``K \subseteq L \subseteq (I \cup J \cup K) \setminus \{i,j\}``.
 
 If `semigaussoid` is true, the stronger semigaussoid axioms are
 assumed and `L` in the above procedure does not range in the interval
@@ -179,32 +183,32 @@ above `K` but is always fixed to `K`. Semigaussoids are also known as
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> make_elementary(CI"12,34|56")
 16-element Vector{CIStmt}:
- [1 ⫫ 3 | {5, 6}]
- [1 ⫫ 3 | {5, 6, 2}]
- [1 ⫫ 3 | {5, 6, 4}]
- [1 ⫫ 3 | {5, 6, 2, 4}]
- [1 ⫫ 4 | {5, 6}]
- [1 ⫫ 4 | {5, 6, 2}]
- [1 ⫫ 4 | {5, 6, 3}]
- [1 ⫫ 4 | {5, 6, 2, 3}]
- [2 ⫫ 3 | {5, 6}]
- [2 ⫫ 3 | {5, 6, 1}]
- [2 ⫫ 3 | {5, 6, 4}]
- [2 ⫫ 3 | {5, 6, 1, 4}]
- [2 ⫫ 4 | {5, 6}]
- [2 ⫫ 4 | {5, 6, 1}]
- [2 ⫫ 4 | {5, 6, 3}]
- [2 ⫫ 4 | {5, 6, 1, 3}]
+ [1 _||_ 3 | {5, 6}]
+ [1 _||_ 3 | {5, 6, 2}]
+ [1 _||_ 3 | {5, 6, 4}]
+ [1 _||_ 3 | {5, 6, 2, 4}]
+ [1 _||_ 4 | {5, 6}]
+ [1 _||_ 4 | {5, 6, 2}]
+ [1 _||_ 4 | {5, 6, 3}]
+ [1 _||_ 4 | {5, 6, 2, 3}]
+ [2 _||_ 3 | {5, 6}]
+ [2 _||_ 3 | {5, 6, 1}]
+ [2 _||_ 3 | {5, 6, 4}]
+ [2 _||_ 3 | {5, 6, 1, 4}]
+ [2 _||_ 4 | {5, 6}]
+ [2 _||_ 4 | {5, 6, 1}]
+ [2 _||_ 4 | {5, 6, 3}]
+ [2 _||_ 4 | {5, 6, 1, 3}]
 
 julia> make_elementary(CI"12,34|56"; semigaussoid=true)
 4-element Vector{CIStmt}:
- [1 ⫫ 3 | {5, 6}]
- [1 ⫫ 4 | {5, 6}]
- [2 ⫫ 3 | {5, 6}]
- [2 ⫫ 4 | {5, 6}]
+ [1 _||_ 3 | {5, 6}]
+ [1 _||_ 4 | {5, 6}]
+ [2 _||_ 3 | {5, 6}]
+ [2 _||_ 4 | {5, 6}]
 ```
 """
 function make_elementary(stmt::CIStmt; semigaussoid=false)

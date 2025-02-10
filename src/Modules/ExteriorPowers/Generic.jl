@@ -175,6 +175,8 @@ function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, 
   G = Oscar.codomain(phi)
   n = rank(G)
 
+  is_zero(p) && return hom(domain, codomain, gens(codomain); check=false) # Isomorphism of R^1
+
   imgs = phi.(gens(F))
   img_gens = [wedge(imgs[indices(ind)], parent=codomain) for ind in OrderedMultiIndexSet(p, m)]
   return hom(domain, codomain, img_gens; check=false)

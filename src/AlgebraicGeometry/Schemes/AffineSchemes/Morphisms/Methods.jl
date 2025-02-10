@@ -138,7 +138,7 @@ function _induced_map_to_fiber_product(
   W = domain(a)
   @check gens(OO(XxY)) == vcat(pullback(gg).(gens(OO(X))), pullback(ff).(gens(OO(Y)))) "variables must be pullbacks of variables on the factors"
 
-  img_gens = vcat(pullback(a).(gens(OO(X))), pullback(b).(gens(OO(Y))))
+  img_gens = vcat(_images_of_generators(pullback(a)), _images_of_generators(pullback(b)))
   return morphism(W, XxY, img_gens, check=check)
 end
 
@@ -155,8 +155,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   W = domain(a)
   Y = codomain(b)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 function _induced_map_to_fiber_product(
@@ -169,8 +168,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   X = domain(f)
   W = domain(a)
-  img_gens = pullback(a).(gens(OO(X)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(a)), check=check)
 end
 
 # additional method to remove ambiguity
@@ -184,41 +182,100 @@ function _induced_map_to_fiber_product(
   # XxY is a principal open subset of Y.
   XxY = fiber_product[1]
   Y = domain(g)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 ### Some helper functions
+
+_images_of_generators(f::Map) = f.(gens(domain(f)))
+_images_of_generators(f::MPolyAnyMap) = _images(f)
+_images_of_generators(f::MPolyLocalizedRingHom) = _images(restricted_map(f))
+_images_of_generators(f::MPolyQuoLocalizedRingHom) = _images(restricted_map(f))
+
 function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))]; check=check)
+
   @check is_subscheme(D, domain(f)) "domain incompatible"
-  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
+  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
 end
 
 function _restrict_domain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   D === domain(f) && return f
-  @check is_subscheme(D, domain(f)) "domain incompatible"
-  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  inc = inclusion_morphism(D, domain(f); check)
+  return compose(inc, f)
 end
 
 function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f)
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
+    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))], check=check)
   end
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
-  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
+  return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+end
+
+# Some missing constructors
+morphism(A::AbsAffineScheme, B::AbsAffineScheme, coeff_map::Any, img_gens::Vector; check::Bool=true) = morphism(A, B, hom(OO(B), OO(A), coeff_map, img_gens; check); check)
+
+function hom(L::MPolyLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyLocalizedRingHom(L, P, phi; check)
+end
+
+function hom(L::MPolyQuoLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyQuoLocalizedRingHom(L, P, phi; check)
 end
 
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
-  @check is_subscheme(domain(f), preimage(f, D))
-  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check)
+  return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
+@doc raw"""
+    restrict(f::AbsAffineSchemeMor, D::AbsAffineScheme, Z::AbsAffineScheme; check::Bool=true)
+
+This method restricts the domain of the morphism ``f``
+to ``D`` and its codomain to ``Z``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Affine space of dimension 3
+  over rational field
+with coordinates [x1, x2, x3]
+
+julia> R = OO(X)
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal (x1)
+
+julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
+true
+```
+"""
 function restrict(f::AbsAffineSchemeMor, D::AbsAffineScheme, Z::AbsAffineScheme; check::Bool=true)
   interm = _restrict_domain(f, D; check)
   return _restrict_codomain(interm, Z; check)
@@ -339,8 +396,7 @@ function ==(f::AffineSchemeMorType, g::AffineSchemeMorType) where {AffineSchemeM
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(g))))) || return false
-  return true
+  return all(OO(X)(x) == OO(X)(y) for (x, y) in zip(_images_of_generators(pullback(f)), _images_of_generators(pullback(g))))
 end
 
 
@@ -389,7 +445,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsAffineSchemeMor)
 end
 
 function Base.show(io::IO, f::AbsAffineSchemeMor)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Affine scheme morphism")
   else
     io = pretty(io)
@@ -442,9 +498,26 @@ function base_change(phi::Any, f::AbsAffineSchemeMor;
   # For the pullback of F no explicit coeff_map is necessary anymore
   # since both rings in domain and codomain have the same (extended/reduced)
   # coefficient ring by now.
-  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
+  pbF = hom(RR, SS, img_gens, check=false)
+  return domain_map, morphism(XX, YY, pbF, check=false), codomain_map
+end
 
-  return domain_map, morphism(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+function base_change(phi::Any, f::ClosedEmbedding;
+    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
+  )
+  @assert codomain(codomain_map) === codomain(f)
+  @assert codomain(domain_map) === domain(f)
+  g = underlying_morphism(f)
+  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
+  I = image_ideal(f)
+  @assert base_ring(I) === OO(codomain(f))
+  @assert base_ring(I) === OO(codomain(f))
+  #bc_I = ideal(OO(codomain(bc_g)), pullback(codomain_map).(gens(I)))
+  bc_I = pullback(codomain_map)(I)
+  @assert domain(bc_g) === domain(domain_map)
+  @assert codomain(bc_g) === domain(codomain_map)
+  return domain_map, ClosedEmbedding(bc_g, bc_I; check=false), codomain_map
 end
 
 function _register_birationality!(f::AbsAffineSchemeMor,

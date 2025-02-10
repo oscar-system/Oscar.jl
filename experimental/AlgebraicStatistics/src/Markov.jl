@@ -1,24 +1,27 @@
 # -*- Markov rings for discrete random variables -*-
 
-export MarkovRing, markov_ring, tensor_ring, ring, random_variables, unknowns, state_space, marginal, ci_ideal
+export MarkovRing, markov_ring, tensor_ring, ring, random_variables, unknowns, gens, state_space, marginal, ci_ideal
 
 struct MarkovRing
-  ring
-  random_variables
-  state_spaces
+  ring::MPolyRing
+  gens::Dict{<:Tuple, <:MPolyRingElem}
+  random_variables::Vector{VarName}
+  state_spaces::Vector{AbstractArray}
 end
 
 @doc raw"""
-    markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
-    tensor_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+    markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)::MarkovRing
+    tensor_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)::MarkovRing
 
 The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
 and `Q` is the list of states it takes. The polynomial ring being constructed
 will have one variable for each element in the cartesian product of the `Q`s.
-It is an Oscar multivariate polynomial ring whose variables are named `p[...]`
-and whose `base_ring` is by default `QQ`. These settings can be changed via
-the optional arguments.
+It is a multivariate polynomial ring whose variables are named `p[...]` and
+whose coefficient field `K` is by default `QQ`. These settings can be changed
+via the optional arguments.
+
+If `cached` is `true`, the internally generated polynomial ring will be cached.
 
 The name `tensor_ring` is an alias for the constructor `markov_ring` because
 that is really what a `MarkovRing` is: the coordinate ring of tensors of a
@@ -27,16 +30,21 @@ with the Macaulay2 package `GraphicalModels`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 ```
 """
-function markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+function markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
+  varindices = collect(Iterators.product(state_spaces...))
+  varnames = [["$(unknown)[$(join(i, ", "))]" for i in varindices]...]
+  R, p = polynomial_ring(K, varnames; cached=cached)
+  d = Dict([varindices[i] => p[i] for i in 1:length(varindices)])
   return MarkovRing(
-    polynomial_ring(base_ring, unknown => Tuple(state_spaces)),
+    R,
+    d,
     random_variables,
     state_spaces
   )
@@ -45,8 +53,9 @@ end
 const tensor_ring = markov_ring
 
 function Base.show(io::IO, R::MarkovRing)
+  arrow = Oscar.is_unicode_allowed() ? "→" : "->"
   print(io, "$(typeof(R)) for random variables ",
-    join([string(x) * " → " * "{" * join(R.state_spaces[i], ", ") * "}" for (i, x) in Iterators.enumerate(R.random_variables)], ", "),
+    join([string(x) * " $(arrow) " * "{" * join(R.state_spaces[i], ", ") * "}" for (i, x) in Iterators.enumerate(R.random_variables)], ", "),
     " in $(length(gens(ring(R)))) variables over $(base_ring(ring(R)))"
   )
 end
@@ -54,13 +63,13 @@ end
 @doc raw"""
     ring(R::MarkovRing)
 
-Return the Oscar multivariate polynomial ring inside the MarkovRing.
+Return the multivariate polynomial ring inside `R`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> ring(R)
 Multivariate polynomial ring in 16 variables p[1, 1, 1, 1], p[2, 1, 1, 1], p[1, 2, 1, 1], p[2, 2, 1, 1], ..., p[2, 2, 2, 2]
@@ -68,7 +77,7 @@ Multivariate polynomial ring in 16 variables p[1, 1, 1, 1], p[2, 1, 1, 1], p[1, 
 ```
 """
 function ring(R::MarkovRing)
-  return R.ring[1]
+  return R.ring
 end
 
 @doc raw"""
@@ -78,12 +87,12 @@ Return the list of random variables used to create the MarkovRing.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> random_variables(R)
-4-element Vector{String}:
+4-element Vector{Union{Char, AbstractString, Symbol}}:
  "A"
  "B"
  "X"
@@ -99,32 +108,32 @@ end
 
 Returns all the `CIStmt` objects which can be formed on the `random_variables(R)`.
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> ci_statements(R)
 24-element Vector{CIStmt}:
- [A ⫫ Y | {}]
- [A ⫫ Y | B]
- [A ⫫ Y | X]
- [A ⫫ Y | {B, X}]
- [B ⫫ Y | {}]
- [B ⫫ Y | A]
- [B ⫫ Y | X]
- [B ⫫ Y | {A, X}]
- [X ⫫ Y | {}]
- [X ⫫ Y | A]
+ [A _||_ Y | {}]
+ [A _||_ Y | B]
+ [A _||_ Y | X]
+ [A _||_ Y | {B, X}]
+ [B _||_ Y | {}]
+ [B _||_ Y | A]
+ [B _||_ Y | X]
+ [B _||_ Y | {A, X}]
+ [X _||_ Y | {}]
+ [X _||_ Y | A]
  ⋮
- [A ⫫ X | {B, Y}]
- [B ⫫ X | {}]
- [B ⫫ X | A]
- [B ⫫ X | Y]
- [B ⫫ X | {A, Y}]
- [A ⫫ B | {}]
- [A ⫫ B | X]
- [A ⫫ B | Y]
- [A ⫫ B | {X, Y}]
+ [A _||_ X | {B, Y}]
+ [B _||_ X | {}]
+ [B _||_ X | A]
+ [B _||_ X | Y]
+ [B _||_ X | {A, Y}]
+ [A _||_ B | {}]
+ [A _||_ B | X]
+ [A _||_ B | Y]
+ [A _||_ B | {X, Y}]
 ```
 """
 ci_statements(R::MarkovRing) = ci_statements(random_variables(R))
@@ -132,35 +141,45 @@ ci_statements(R::MarkovRing) = ci_statements(random_variables(R))
 @doc raw"""
     unknowns(R::MarkovRing)
 
-Return the tensor of variables in the polynomial ring.
+Return the generators of the polynomial ring.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> unknowns(R)
-2×2×2×2 Array{QQMPolyRingElem, 4}:
-[:, :, 1, 1] =
- p[1, 1, 1, 1]  p[1, 2, 1, 1]
- p[2, 1, 1, 1]  p[2, 2, 1, 1]
-
-[:, :, 2, 1] =
- p[1, 1, 2, 1]  p[1, 2, 2, 1]
- p[2, 1, 2, 1]  p[2, 2, 2, 1]
-
-[:, :, 1, 2] =
- p[1, 1, 1, 2]  p[1, 2, 1, 2]
- p[2, 1, 1, 2]  p[2, 2, 1, 2]
-
-[:, :, 2, 2] =
- p[1, 1, 2, 2]  p[1, 2, 2, 2]
- p[2, 1, 2, 2]  p[2, 2, 2, 2]
+Dict{NTuple{4, Int64}, QQMPolyRingElem} with 16 entries:
+  (2, 2, 2, 2) => p[2, 2, 2, 2]
+  (2, 2, 2, 1) => p[2, 2, 2, 1]
+  (1, 2, 1, 2) => p[1, 2, 1, 2]
+  (1, 2, 1, 1) => p[1, 2, 1, 1]
+  (2, 2, 1, 2) => p[2, 2, 1, 2]
+  (2, 2, 1, 1) => p[2, 2, 1, 1]
+  (1, 1, 2, 2) => p[1, 1, 2, 2]
+  (1, 1, 2, 1) => p[1, 1, 2, 1]
+  (2, 1, 2, 2) => p[2, 1, 2, 2]
+  (2, 1, 2, 1) => p[2, 1, 2, 1]
+  (1, 1, 1, 2) => p[1, 1, 1, 2]
+  (1, 1, 1, 1) => p[1, 1, 1, 1]
+  (1, 2, 2, 2) => p[1, 2, 2, 2]
+  (1, 2, 2, 1) => p[1, 2, 2, 1]
+  (2, 1, 1, 2) => p[2, 1, 1, 2]
+  (2, 1, 1, 1) => p[2, 1, 1, 1]
 ```
 """
 function unknowns(R::MarkovRing)
-  return R.ring[2]
+  return R.gens
+end
+
+@doc raw"""
+    gens(R::MarkovRing)
+
+Alias for `unknowns`. Return generators of the polynomial ring.
+"""
+function gens(R::MarkovRing)
+  return R.gens
 end
 
 @doc raw"""
@@ -202,9 +221,9 @@ in the ring `R`. The result is an `Iterators.product` iterator unless
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> collect(state_space(R, ["A", "B"]))
 2×2 Matrix{Tuple{Int64, Int64}}:
@@ -244,9 +263,9 @@ variables in `R` are summed over their respective state spaces.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> marginal(R, ["A", "X"], [1,2])
 p[1, 1, 2, 1] + p[1, 2, 2, 1] + p[1, 1, 2, 2] + p[1, 2, 2, 2]
@@ -257,11 +276,10 @@ function marginal(R::MarkovRing, K, x)
   N = random_variables(R)
   M = setdiff(N, K)
   summands = Vector()
-  ix = find_state(R, K, x)
-  for iy in state_space_indices(R, M)
+  for y in state_space(R, M)
     idx = apply_permutation(
       find_random_variables(R, [K..., M...]),
-      [ix..., iy...]
+      [x..., y...]
     )
     push!(summands, p[idx...])
   end
@@ -276,9 +294,9 @@ given by `stmts`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2} in 8 variables over Rational field
+MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2} in 8 variables over Rational field
 
 julia> ci_ideal(R, [CI"X,A|B", CI"X,B|A"])
 Ideal generated by
@@ -288,7 +306,7 @@ Ideal generated by
   p[2, 1, 1]*p[2, 2, 2] - p[2, 2, 1]*p[2, 1, 2]
 ```
 """
-function ci_ideal(R::MarkovRing, stmts)::MPolyIdeal
+function ci_ideal(R::MarkovRing, stmts)
   eqs = Vector()
   for stmt in stmts
     # The proper CI equations are the familiar 2x2 determinants in
@@ -297,16 +315,12 @@ function ci_ideal(R::MarkovRing, stmts)::MPolyIdeal
     QI = state_space(R, stmt.I)
     QJ = state_space(R, stmt.J)
     IJK = [stmt.I..., stmt.J..., stmt.K...]
-    for z in state_space(R, stmt.K)
-      for x in subsets(collect(QI), 2)
-        for y in subsets(collect(QJ), 2)
-          p11 = marginal(R, IJK, [x[1], y[1], z...]);
-          p12 = marginal(R, IJK, [x[1], y[2], z...]);
-          p21 = marginal(R, IJK, [x[2], y[1], z...]);
-          p22 = marginal(R, IJK, [x[2], y[2], z...]);
-          push!(eqs, p11*p22 - p12*p21)
-        end
-      end
+    for z in state_space(R, stmt.K), x in subsets(collect(QI), 2), y in subsets(collect(QJ), 2)
+      p11 = marginal(R, IJK, [x[1], y[1], z...]);
+      p12 = marginal(R, IJK, [x[1], y[2], z...]);
+      p21 = marginal(R, IJK, [x[2], y[1], z...]);
+      p22 = marginal(R, IJK, [x[2], y[2], z...]);
+      push!(eqs, p11*p22 - p12*p21)
     end
   end
   return ideal(eqs)

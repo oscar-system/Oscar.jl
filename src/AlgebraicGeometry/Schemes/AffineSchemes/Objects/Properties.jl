@@ -88,9 +88,9 @@ end
 # (2.1) MPolyRing in first argument
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
+  ) where {BRT}
   return OO(X) === OO(Y)
 end
 
@@ -138,9 +138,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
@@ -192,9 +192,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -257,9 +257,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -527,7 +527,7 @@ end
 # TODO: projective schemes, covered schemes
 
 @doc raw"""
-   is_equidimensional(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
+    is_equidimensional(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Check whether the scheme `X` is equidimensional.
 
@@ -537,7 +537,7 @@ This command relies on [`equidimensional_decomposition_radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
@@ -570,9 +570,13 @@ julia> is_equidimensional(Y)
 false
 ```
 """
+## equidimensional decomposition only available for schemes over a field
 @attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))
-# equidimensional decomposition only available for schemes over a field
+  if has_attribute(I, :is_equidimensional)
+    return is_equidimensional(I)
+  end
+
   P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
@@ -589,13 +593,13 @@ end
 # TODO: projective schemes
 
 @doc raw"""
-   is_reduced(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
+    is_reduced(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Check whether the affine scheme `X` is reduced.
 """
 @attr Bool function is_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
-  return is_reduced(quo(base_ring(I), I)[1])
+  return is_radical(I)
 end
 
 ## make is_reduced agnostic to quotient ring
@@ -640,7 +644,7 @@ is locally free over 𝒪(X).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
@@ -695,8 +699,9 @@ true
   L = localized_ring(OO(X))
   I = modulus(OO(X))
   f = gens(saturated_ideal(I))
+  is_empty(f) && return true
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
@@ -706,7 +711,7 @@ end
   I = modulus(OO(X))
   f = gens(I)
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
@@ -722,7 +727,7 @@ is_smooth(X::AbsAffineScheme{<:Field, <:MPolyLocRing}) = true
 #    irreducible = nilradical of OO(X) is prime                   #
 ###################################################################
 @doc raw"""
-   is_irreducible(X::AbsAffineScheme)
+    is_irreducible(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is irreducible.
 
@@ -734,14 +739,15 @@ Check whether the affine scheme `X` is irreducible.
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true
                                            ## integral = irreducible + reduced
-  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
+  I = saturated_ideal(modulus(OO(X)))
+  return is_primary(I)
 end
 
 is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyRing}) = true
 is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyLocRing}) = true
 
 @doc raw"""
-   is_integral(X::AbsAffineScheme)
+    is_integral(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is integral, i.e. irreducible and reduced.
 """
@@ -777,7 +783,7 @@ end
 # Connectedness                                                   #
 ###################################################################
 @doc raw"""
-   is_connected(X::AbsAffineScheme)
+    is_connected(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is connected.
 """

@@ -509,7 +509,7 @@ function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
     par = Int[]  # parities of the jordan blocks
     k = 0
     for v in val0[1]+2:-1:val0[end]-1
-        i = findfirst(x-> x==v, val0)
+        i = findfirst(==(v), val0)
         if i isa Nothing
             push!(ind,(ind0[k+1],ind0[k+1]-1))
             push!(val,v)
@@ -1024,7 +1024,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     if i == n
       # f is a full isometry
       g = G(hom(S, S, f), check = false)
-      if !(g in G.X)
+      if !(g in GapObj(G))
         G = Oscar._orthogonal_group(S, [matrix(s) for s in union(Hecke.gens(G), [g])], check=false)
         if !isempty(waiting)
           waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]

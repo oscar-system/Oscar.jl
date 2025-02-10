@@ -33,7 +33,7 @@ end
 
 @testset "finite fields" begin
    @testset for p in [2, 3]
-      for F in [Nemo.fpField(UInt(p)), Nemo.FpField(ZZRingElem(p))]
+      for F in [fpField(UInt(p)), FpField(ZZRingElem(p))]
          f = Oscar.iso_oscar_gap(F)
          for a in F
             for b in F
@@ -56,7 +56,7 @@ end
    end
 
    p = 257  # GAP regards the Conway polynomial for `GF(257, 1)` as not cheap.
-   @testset for F in [Nemo.fpField(UInt(257)), Nemo.FpField(ZZRingElem(257))]
+   @testset for F in [fpField(UInt(257)), FpField(ZZRingElem(257))]
       f = Oscar.iso_oscar_gap(F)
       oO = one(F)
       oG = f(oO)
@@ -90,8 +90,8 @@ end
          G = GL(4,F)
          for a in gens(G)
             for b in gens(G)
-               @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
-               @test g(a.elm-b.elm) == g(a.elm)-g(b.elm)
+               @test g(matrix(a)*matrix(b)) == g(matrix(a))*g(matrix(b))
+               @test g(matrix(a)-matrix(b)) == g(matrix(a))-g(matrix(b))
             end
          end
          p2 = next_prime(p)
@@ -225,20 +225,20 @@ end
    my_rand_bits(F::NumField, b::Int) = F([my_rand_bits(base_field(F), b) for i in 1:degree(F)])
 
    # absolute number fields
-   R, x = polynomial_ring(QQ, "x")
+   R, x = polynomial_ring(QQ, :x)
    pols = [ x - 1, x^2 - 5, x^2 + 3, x^3 - 2,  # simple
             [x^2 - 2, x^2 + 1] ]        # non-simple
    fields = Any[number_field(pol)[1] for pol in pols]
 
    # non-absolute number fields
    F1, _ = number_field(x^2-2)
-   R1, x1 = polynomial_ring(F1, "x")
+   R1, x1 = polynomial_ring(F1, :x)
    F2, _ = number_field(x1^2-3)
    push!(fields, F2)                                 # simple
    push!(fields, number_field([x1^2-3, x1^2+1])[1])  # non-simple
 
    # and a simple three-step construction (in order to exercise recursion)
-   R2, x2 = polynomial_ring(F2, "x")
+   R2, x2 = polynomial_ring(F2, :x)
    push!(fields, number_field(x2^2+1)[1])
 
    @testset for F in fields
@@ -285,12 +285,12 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `FqPolyRepPolyRing`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpPolyRing`
                 Nemo.Native.GF(2),            # yields `fpPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModPolyRing`
-                Nemo.ZZModRing(ZZRingElem(6)),    # yields `ZZModPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModPolyRing`
+                ZZModRing(ZZRingElem(6)),     # yields `ZZModPolyRing`
                ]
 #TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
-      PR, x = polynomial_ring(R, "x")
+      PR, x = polynomial_ring(R, :x)
       iso = Oscar.iso_oscar_gap(PR)
       for pol in [zero(x), one(x), x, x^3+x+1]
          img = iso(pol)
@@ -298,8 +298,8 @@ end
       end
       m = matrix([x x; x x])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(polynomial_ring(R, "y")[1]())
-      @test_throws ErrorException image(iso, polynomial_ring(R, "y")[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, :y)[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, :y)[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end
@@ -312,7 +312,7 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `AbstractAlgebra.Generic.MPolyRing{FqPolyRepFieldElem}`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpMPolyRing`
                 Nemo.Native.GF(2),            # yields `fpMPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModMPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModMPolyRing`
                ]
 #TODO: How to get `FpMPolyRing`, `FqMPolyRing`?
    @testset for R in baserings
@@ -324,8 +324,8 @@ end
       end
       m = matrix([x x; y z])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(polynomial_ring(R, ["y"])[1]())
-      @test_throws ErrorException image(iso, polynomial_ring(R, ["y"])[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, [:y])[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, [:y])[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end

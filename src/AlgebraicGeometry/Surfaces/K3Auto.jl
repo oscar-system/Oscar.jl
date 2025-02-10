@@ -74,7 +74,7 @@ And the basis matrix of the new `L` in the BorcherdsCtx.
   If `compute_OR` is `true`, then `G` consists the subgroup consisting of
   isometries of `S` that can be extended to isometries of `L`.
 """
-function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
+function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true, check::Bool=true)
   r = rank(L)
   lw = (weyl*gram_matrix(L)*transpose(weyl))[1,1]
   if  r == 26
@@ -111,7 +111,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   # carry S along
   S = lattice(V, basisSL1)
   R = lattice(V, basisRL1)
-  @req is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
+  @check is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
 
   SS = integer_lattice(gram=gram_matrix(S))
 
@@ -232,7 +232,10 @@ Return the ``L|S``-chamber with the given Weyl vector.
 The lattices ``L`` and ``S`` are stored in `data`.
 Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0))
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check=true)
+  if check
+    @req _is_weyl_vector(data.gramL, weyl_vector) "not a weyl vector"
+  end
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -240,7 +243,29 @@ function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatri
   return D
 end
 
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix})
+"""
+Sanity check if it is really a weyl vector.
+"""
+function _is_weyl_vector(gram_matrix::ZZMatrix, weyl_vector::ZZMatrix)
+  # sanity check
+  r = nrows(gram_matrix)
+  lw = (weyl_vector*gram_matrix*transpose(weyl_vector))[1,1]
+  if  r == 26
+    lw == 0 || return false
+  end
+  if r == 18
+    lw == 620 || return false
+  end
+  if  r == 10
+    lw == 1240 || return false
+  end
+  return true
+end
+
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check=true)
+  if check
+    @req _is_weyl_vector(data.gramL, weyl_vector)  "not a weyl vector"
+  end
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -250,8 +275,8 @@ function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatri
 end
 
 # needed to create sets of K3Chambers
-function Base.hash(C::K3Chamber)
-  return hash(C.weyl_vector[:,1:rank(C.data.S)])
+function Base.hash(C::K3Chamber, h::UInt)
+  return hash(view(C.weyl_vector,:,1:rank(C.data.S)), h)
 end
 
 # Two chambers are equal if and only if their Weyl vectors
@@ -260,7 +285,8 @@ end
 # by the first rank(S) coordinates.
 function Base.:(==)(C::K3Chamber, D::K3Chamber)
   @req C.data===D.data "K3Chambers do not have the same context"
-  return C.weyl_vector[:,1:rank(C.data.S)] == D.weyl_vector[:,1:rank(D.data.S)]
+  r = rank(C.data.S)
+  return view(C.weyl_vector, :, 1:r) == view(D.weyl_vector, :, 1:r)
 end
 
 @doc raw"""
@@ -318,7 +344,7 @@ end
 
 function Base.show(io::IO, c::K3Chamber)
   if isdefined(c,:walls)
-    print(IOContext(io, :compact => true), "Chamber  in dimension $(length(walls(c)[1])) with $(length(walls(c))) walls")
+    print(IOContext(io, :compact => true), "Chamber in dimension $(length(walls(c)[1])) with $(length(walls(c))) walls")
   else
     print(IOContext(io, :compact => true), "Chamber: $(c.weyl_vector[1,1:rank(c.data.S)])")
   end
@@ -415,7 +441,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   # fp[1, i] = # vectors v such that v has same length as b_i for all forms
   for i in 1:n
     cvl = gramB[i,i]
-    fp[1, i] = count(x->x==cvl, lengths)
+    fp[1, i] = count(==(cvl), lengths)
 
   end
 
@@ -624,9 +650,11 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   gramW = gram_matrix(W)
   s = solve(bW, v*prW; side = :left) * gramW
   Q = gramW + transpose(s)*s*ch*cv^-2
+  
 
   @vprint :K3Auto 5 Q
   LQ = integer_lattice(gram=-Q*denominator(Q))
+  
 
   S = QQMatrix[]
   h = change_base_ring(QQ, h)
@@ -801,7 +829,7 @@ function alg319(gram::MatrixElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatri
   return alg319(gram, basis, gram_basis, raysD, raysE, membership_test)
 end
 
-function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::QQMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
+function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::ZZMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   # breadth first search
@@ -1189,7 +1217,7 @@ end
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
 
-This is the case if and only if $C = C(w) \cap S \otimes \RR$ has the
+This is the case if and only if $C = C(w) \cap S \otimes \mathbb{R}$ has the
 expected dimension `dim(S)`.
 """
 function is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)
@@ -1338,7 +1366,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     rep[l+i] = (i, s, true)
   end
   @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
-  sort!(rep, by=x->x[2])
+  sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)
   for (i,s,indualDeltaR) in rep
@@ -1359,7 +1387,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     end
   end
   # both Weyl vectors should lie in the positive cone.
-  @assert ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0 "$(D.weyl_vector)    $v\n"
+  @hassert :K3Auto 2 ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0
   return chamber(D.data, w, v)
 end
 
@@ -1437,11 +1465,11 @@ end
 function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers=-1)
   S = data.S
   # for G-sets
-  F = FreeModule(ZZ,rank(S))
+  F = free_module(ZZ,rank(S))
   # initialization
   chambers = Dict{UInt64,Vector{K3Chamber}}()
   explored = Set{K3Chamber}()
-  D = chamber(data, data.weyl_vector, zero_matrix(ZZ, 1, rank(S)))
+  D = chamber(data, data.weyl_vector, zero_matrix(ZZ, 1, rank(S)); check=false)
   waiting_list = [D]
 
   automorphisms = Set{ZZMatrix}()
@@ -1615,11 +1643,14 @@ Return an `S`-nondegenerate Weyl vector of `L`.
 function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix,
                                     ample0::QQMatrix, perturbation_factor=1000)
   V = ambient_space(L)
+  @assert ambient_space(L)==ambient_space(S)
   ample = ample0
   u = u0
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
+  @vprint :K3Auto 3 "for $(u) and $(ample)\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
+  @vprintln :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes"
   @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
   @vprint :K3Auto "new weyl: $(solve(basis_matrix(L),weyl; side = :left)) \n"
@@ -1628,7 +1659,6 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   end
   @vprint :K3Auto 2 "calculating QQDcapS\n"
   QQDcapS = lattice(V, span_in_S(L, S, weyl)*basis_matrix(S))
-
   N = Hecke.orthogonal_submodule(L, QQDcapS)
   N = lll(N)
   @vprint :K3Auto 2 "computing the relevant roots\n"
@@ -1728,7 +1758,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
       A = change_base_ring(ZZ, gram_matrix(R)*transpose(v))
       b = change_base_ring(GF(2), b)
       A = change_base_ring(GF(2), A)
-      x = lift(solve(A, b; side = :left))
+      x = map_entries(x->lift(ZZ,x),solve(A, b; side = :left))
       v = (v + 2*x)*basis_matrix(R)
       @hassert :K3Auto 1 mod(inner_product(V,v,v)[1,1], 8)==0
       u = basis_matrix(U)
@@ -1808,34 +1838,42 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   @req n in [10,18,26] "n must be one of 10, 18 or 26"
   # another example
   S = integer_lattice(gram=gram_matrix(S))
-  L,S,iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
+  L, S, iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
+  weyl, u =  borcherds_method_preprocessing(L, S; ample)
+  return L, S, weyl
+end
+
+function find_hyperbolic_plane(L::ZZLat)
+  V = ambient_space(L)
+  G = gram_matrix(L)
+  # find a hyperbolic plane using indefinite LLL
+  G = gram_matrix(L)
+  g1, u1 = lll_gram_indef_with_transform(change_base_ring(ZZ, G))
+  # apparently we need to run lll two times to produce a zero
+  g2, u2 = lll_gram_indef_with_transform(change_base_ring(ZZ, g1))
+  u = u2*u1
+  @assert g2 == u*G*transpose(u)
+  B = u*basis_matrix(L)
+  B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
+  if inner_product(V, B, B) != QQ[0 1; 1 -2]
+    b, v = Hecke._isisotropic_with_vector(G)
+    @assert b
+    v = matrix(QQ, 1, degree(L), v)
+    v = v*basis_matrix(L)
+    s = find_section(L, v)
+    B = vcat(v, s)
+  end
+  U = lattice(V, B)
+  return U
+end
+
+function borcherds_method_preprocessing(L::ZZLat, S::ZZLat; ample=nothing)
+  # another example
   V = ambient_space(L)
   if gram_matrix(S)[1:2,1:2] == QQ[0 1; 1 -2]
     U = lattice(V,basis_matrix(S)[1:2,:])
   else
-    # find a hyperbolic plane
-    G = gram_matrix(L)
-    g1, u1 = lll_gram_indef_with_transform(change_base_ring(ZZ, G))
-    # apparently we need to run lll two times to produce a zero
-    g2, u2 = lll_gram_indef_with_transform(change_base_ring(ZZ, g1))
-    u = u2*u1
-    @assert g2 == u*G*transpose(u)
-    B = u*basis_matrix(L)
-    B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
-    if inner_product(V,B,B) != QQ[0 1; 1 -2]
-      # find an isotropic vector
-      if gram_matrix(S)[1,1]==0
-        v = basis_matrix(S)[1,:]
-      else
-        b, v = Hecke._isisotropic_with_vector(gram_matrix(L))
-        @assert b
-        v = matrix(QQ, 1, degree(L), v)
-        v = v*basis_matrix(L)
-      end
-      s = find_section(L, v)
-      B = vcat(v, s)
-    end
-    U = lattice(V, B)
+    U = find_hyperbolic_plane(L)
   end
   @assert gram_matrix(U) == QQ[0 1; 1 -2]
   weyl, u0 = weyl_vector(L, U)
@@ -1859,7 +1897,8 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
 
 
   weyl2 = change_base_ring(ZZ, solve(basis_matrix(L), weyl1; side = :left))
-  return L, S, weyl2
+  u2 = change_base_ring(ZZ, solve(basis_matrix(L), u; side = :left))
+  return weyl2, u2
 end
 
 
@@ -1912,14 +1951,13 @@ function ample_class(S::ZZLat)
   end
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
-  i = findfirst(x->x, [d>0 for d in diagonal(D)])
+  i = findfirst(>(0), diagonal(D))
   v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = polynomial_ring(QQ,"x")
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)
@@ -1929,21 +1967,19 @@ function ample_class(S::ZZLat)
       h = r
     else
       rv = (r*gram_matrix(S)*transpose(v))[1,1]
-      p = x^2*vsq + 2*x*rv + rsq
-      rp = roots(CalciumQQBar, p)
-      a = rp[1]
-      b = rp[2]
-      if a > b
-        (a,b) = (b,a)
-      end
-      a = ZZRingElem(floor(a))
-      b = ZZRingElem(ceil(b))
+      p(x) = x^2*vsq + 2*x*rv + rsq
+      # find zeros of x^2*vsq + 2*x*rv + rsq
+      p0 = -rv / vsq
+      q0 = rsq / vsq
+      r0 = sqrt(QQBarFieldElem(p0^2 - q0))
+      a = floor(ZZRingElem, p0 - r0)
+      b = ceil(ZZRingElem, p0 + r0)
       if p(a) == 0  # catches the case of an integer root
-        a = a -1
+        a -= 1
         @assert p(a) > 0
       end
       if p(b) == 0
-        b = b + 1
+        b += 1
         @assert p(b) > 0
       end
       if abs(a) > abs(b)
@@ -2019,7 +2055,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
-    i = findfirst(x->x==1,g)
+    i = findfirst(is_one,g)
     s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else
@@ -2031,14 +2067,17 @@ function find_section(L::ZZLat, f::QQMatrix)
     k = nrows(K)
     Kl = integer_lattice(gram=K*transpose(K))
     # project ss to K
-    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
+    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)); side=:right
+    )
     a = QQ(1)
     cv = []
+    lb = 0
     while true
-      cv = Hecke.close_vectors(Kl, vec(collect(-sK)), a, check=false)
-      if length(cv)>0
+      cv = Hecke.close_vectors_iterator(Kl, vec(collect(-sK)), lb, a, check=false)
+      if !isempty(cv)
         break
       end
+      lb = a
       a = a+2
     end
     sK = transpose(sK)

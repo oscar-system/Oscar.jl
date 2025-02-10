@@ -11,6 +11,7 @@ end
 
 base_ring(F::LazyPolyRing) = F.base_ring
 
+base_ring_type(::Type{LazyPolyRing{T, R}}) where {T,R} = R
 
 ## LazyPoly
 

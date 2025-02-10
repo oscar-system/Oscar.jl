@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Basics
@@ -17,12 +15,13 @@ BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
-is_finiteorder(x::GAPGroupElem)
+is_finite_order(x::GAPGroupElem)
 gens(::GAPGroup)
 has_gens(::GAPGroup)
 number_of_generators(G::GAPGroup)
 gen(::GAPGroup, i::Int)
 small_generating_set(G::GAPGroup)
+minimal_size_generating_set(G::GAPGroup)
 Base.rand(G::GAPGroup)
 rand_pseudo(G::GAPGroup)
 ```
@@ -97,5 +96,6 @@ describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
 prime_of_pgroup
 derived_length
+schur_cover(G::GAPGroup)
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
 ```

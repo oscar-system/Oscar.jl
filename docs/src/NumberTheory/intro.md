@@ -2,7 +2,7 @@
 CurrentModule = Oscar
 ```
 
-# Introduction
+# [Introduction](@id number_theory)
 
 The number theory part of OSCAR provides functionality for algebraic number theory.
 
@@ -15,10 +15,16 @@ General textbooks offering details on theory and algorithms include:
 - [PZ97](@cite)
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on number theory in OSCAR,
+which can be found [here](https://www.oscar-system.org/tutorials/NumberTheory/).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Claus Fieker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-claus-fieker),
+* [Claus Fieker](https://math.rptu.de/en/wgs/agag/people/head/fieker),
 * [Tommy Hofmann](https://www.thofma.com/).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).

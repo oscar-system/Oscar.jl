@@ -5,7 +5,12 @@
 @doc raw"""
     function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
-Tune a Weierstrass model  by fixing a special choice for the model sections.
+Tune a Weierstrass model by fixing a special choice for the model sections.
+Note that it is in particular possible to set a section to zero. We anticipate
+that people might want to be able to come back from this by assigning a non-trivial
+value to a section that was previously tuned to zero. This is why we keep such
+trivial sections and do not delete them, say from `explicit_model_sections`
+or `classes_of_model_sections`.
 
 # Examples
 ```jldoctest
@@ -15,7 +20,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
@@ -37,6 +42,42 @@ Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(tuned_w) == my_choice["f"]
 true
+
+julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+
+julia> my_choice2 = Dict("f" => x1^12, "b" => x2, "c2" => zero(parent(x1)))
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "c2" => 0
+  "f"  => x1^12
+  "b"  => x2
+
+julia> tuned_w2 = tune(tuned_w, my_choice2)
+Weierstrass model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_w2)["c2"])
+true
+
+julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w2)))
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+
+julia> my_choice3 = Dict("f" => x1^12, "b" => x2, "c2" => x1^6)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "c2" => x1^6
+  "f"  => x1^12
+  "b"  => x2
+
+julia> tuned_w3 = tune(tuned_w2, my_choice3)
+Weierstrass model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_w3)["c2"])
+false
 ```
 """
 function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
@@ -45,7 +86,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   isempty(input_sections) && return w
   secs_names = collect(keys(explicit_model_sections(w)))
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(w))
@@ -54,10 +95,10 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
 
   # 1. Tune model sections different from Weierstrass sections
   for x in setdiff(tuned_secs_names, weierstrass_sections)
-    section_parent = parent(input_sections[x])
-    section_degree = degree(input_sections[x])
-    @req section_parent == parent(explicit_model_sections(w)[x]) "Parent mismatch between given and existing model section"
-    @req section_degree == degree(explicit_model_sections(w)[x]) "Degree mismatch between given and existing model section"
+    @req parent(input_sections[x]) == parent(explicit_model_sections(w)[x]) "Parent mismatch between given and existing model section"
+    if is_zero(input_sections[x]) == false
+      @req degree(input_sections[x]) == divisor_class(classes_of_model_sections(w)[x]) "Degree mismatch between given and existing model section"
+    end
     explicit_secs[x] = input_sections[x]
   end
 
@@ -66,7 +107,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   if !isempty(parametrization_keys) && !isempty(secs_names)
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in gens(R)]
+    vars = [string(k) for k in symbols(R)]
     images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
     map = hom(R, S, images)
     for section in weierstrass_sections
@@ -78,7 +119,9 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   for sec in weierstrass_sections
     if haskey(input_sections, sec)
       @req parent(input_sections[sec]) == parent(explicit_model_sections(w)[sec]) "Parent mismatch between given and existing Weierstrass section"
-      @req degree(input_sections[sec]) == degree(explicit_model_sections(w)[sec]) "Degree mismatch between given and existing Weierstrass section"
+      if is_zero(input_sections[sec]) == false
+        @req degree(input_sections[sec]) == divisor_class(classes_of_model_sections(w)[sec]) "Degree mismatch between given and existing Weierstrass section"
+      end
       explicit_secs[sec] = input_sections[sec]
       delete!(def_secs_param, sec)
     end
@@ -97,6 +140,28 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
     end
   end
   
-  # 5. Build the new model
-  return weierstrass_model(base_space(w), explicit_secs, def_secs_param; completeness_check)
+  # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
+  if !isempty(def_secs_param)
+    naive_vars = string.(gens(parent(first(values(def_secs_param)))))
+    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
+    desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
+    for (key, value) in def_secs_param
+      def_secs_param[key] = eval_poly(string(value), desired_ring)
+    end
+  end
+
+  # 6. Build the new model
+  resulting_model = weierstrass_model(base_space(w), explicit_secs, def_secs_param; completeness_check)
+
+  # 7. Copy the classes of model sections
+  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  for (key, value) in classes_of_model_sections(w)
+    m = divisor_class(value).coeff
+    @req nrows(m) == 1 "Encountered inconsistency"
+    new_classes_of_model_sections[key] = toric_divisor_class(base_space(resulting_model), m[1, :])
+  end
+  set_attribute!(resulting_model, :classes_of_model_sections => new_classes_of_model_sections)
+
+  # 8. Return the model
+  return resulting_model
 end

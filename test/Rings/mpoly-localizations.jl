@@ -1,7 +1,7 @@
 const rng = Oscar.get_seeded_rng()
 
 @testset "mpoly-localizations" begin
-  R, variab = ZZ["x", "y"]
+  R, variab = ZZ[:x, :y]
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
@@ -9,11 +9,9 @@ const rng = Oscar.get_seeded_rng()
   I = ideal(R, f)
   S = Oscar.MPolyComplementOfPrimeIdeal(I)
   V, _ = localization(S)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
-  W, _ = localization(T)
   
   k = QQ
-  R, variab = k["x", "y"]
+  R, variab = k[:x, :y]
   x = variab[1]
   y = variab[2] 
   p = 123
@@ -68,49 +66,61 @@ const rng = Oscar.get_seeded_rng()
   K = ideal(V, [f*x, f*y])
   K = ideal(V, [x, y])
   
-  R, v = ZZ["x", "y"]
+  R, v = ZZ[:x, :y]
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)^2
-  S = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
   T = Oscar.MPolyPowersOfElement(R, [f])
+  S = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, [x, y]))
   U = Oscar.MPolyProductOfMultSets(R, [S, T])
   @test f in U
   @test (f*(x-1) in U)
   @test !(f*x in U)
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   o = degrevlex([x, y])*negdegrevlex([z])
   S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
 
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   U = Oscar.MPolyPowersOfElement(R, [x])
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y*(y-x)])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [x*(y-x)])
   @test y in quotient(I, J)
   @test I:J == quotient(I, J)
 
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   f = x^2 + y^3- 2
   I = ideal(R, [f])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   U = Oscar.MPolyComplementOfPrimeIdeal(I)
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [f^4])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [f^2])
   @test f^2 in quotient(I, J)
   @test !(f in quotient(I, J))
   @test I:J == quotient(I, J)
   
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   f = x^2 + y^2- 2
   I = ideal(R, [f])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   U = Oscar.MPolyComplementOfKPointIdeal(R, [1, 1])
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y^2*f^4])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [x*f^2])
   @test f^2 in quotient(I, J)
   @test !(f in quotient(I, J))
@@ -118,7 +128,7 @@ const rng = Oscar.get_seeded_rng()
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
-  R, variab = ZZ["x", "y"]
+  R, variab = ZZ[:x, :y]
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
@@ -127,7 +137,7 @@ end
   # 5 is not a unit in R
   @test !(5*f in S)
 
-  R, variabs = QQ["x","y"]
+  R, variabs = QQ[:x, :y]
   x = variabs[1]
   y = variabs[2]
   f = x^2 + y^4-120
@@ -142,6 +152,8 @@ end
   @test !(x*(x+y) in S)
   @test W(1//x) == 1/W(x)
   I = ideal(W, x*y*(x+y))
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   @test x+y in I
   @test x+y in saturated_ideal(I)
   @test !(x+2*y in I)
@@ -150,7 +162,7 @@ end
 end
 
 @testset "mpoly-localization homomorphisms" begin
-  R, variab = ZZ["x", "y"]
+  R, variab = ZZ[:x, :y]
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
@@ -177,7 +189,7 @@ end
 
 @testset "Ring interface for localized polynomial rings" begin
 # kk = QQ
-# R, v = kk["x", "y"]
+# R, v = kk[:x, :y]
 # x = v[1]
 # y = v[2] 
 # f = x^2+y^2-1
@@ -198,7 +210,7 @@ end
 #  AbstractAlgebra.promote_rule(::Type{fpFieldElem}, ::Type{ZZRingElem}) = fpFieldElem
 
   kk = GF(7) 
-  R, v = kk["x", "y"]
+  R, v = kk[:x, :y]
   x = v[1]
   y = v[2] 
   f = x^2+y^2-1
@@ -218,7 +230,7 @@ end
   test_Ring_interface_recursive(localization(U)[1])
 
 # kk = ZZ
-# R, v = kk["x", "y"]
+# R, v = kk[:x, :y]
 # x = v[1]
 # y = v[2] 
 # f = x^2+y^2-1
@@ -227,7 +239,6 @@ end
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
 # S = Oscar.MPolyPowersOfElement(R, d)
-# T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
 # test_Ring_interface_recursive(localization(S)[1])
@@ -236,7 +247,7 @@ end
 end
 
 @testset "localization_at_orderings_1" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   o = degrevlex([x])*negdegrevlex([y])
   U = Oscar.MPolyLeadingMonOne(R, o)
   @test y-1 in U
@@ -250,7 +261,7 @@ end
 end
 
 @testset "localization_at_orderings_2" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   o = degrevlex([x, y])*negdegrevlex([z])
   S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
@@ -262,7 +273,7 @@ end
 end
 
 @testset "localizations at k-points" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   p = [-5, 8, 1//2]
   U = Oscar.MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(x+5), (y-8)*y-z*(x+5)])
@@ -281,7 +292,7 @@ end
 end
 
 @testset "successive localizations" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   p = [0,0,0]
   U = Oscar.MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(y-1)-z*(x-2), y*x])
@@ -308,7 +319,7 @@ end
 end
 
 @testset "saturated_ideals" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x, y^2+1])
   U = Oscar.MPolyComplementOfPrimeIdeal(I)
   L = Oscar.MPolyLocRing(R, U)
@@ -321,7 +332,7 @@ end
 end
 
 @testset "zero divisors" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   @test !is_zero_divisor(x)
   @test !is_zero_divisor(R(5))
   @test is_zero_divisor(zero(x))
@@ -341,7 +352,7 @@ end
   @test is_zero_divisor(W((x+y)^7*x))
 
   Z4, _ = quo(ZZ, 4)
-  Z4x, (x, y) = Z4["x", "y"]
+  Z4x, (x, y) = Z4[:x, :y]
   f = 2*x
   @test is_zero_divisor(Z4(2))
   @test is_zero_divisor(Z4x(2))
@@ -370,7 +381,7 @@ end
 end
 
 @testset "saturated ideals II" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   L, _ = localization(R, powers_of_element(x))
   I = ideal(R, [x^7*(y-1), (x^5)*(x-1)])
   J = L(I)
@@ -388,7 +399,7 @@ end
 end
 
 @testset "printing" begin
-  R, (x,y) = ZZ["x", "y"]
+  R, (x,y) = ZZ[:x, :y]
   U = powers_of_element(x)
   L, m = localization(R, U)
   @test sprint(show, L(y, x)) == "y/x"
@@ -396,7 +407,7 @@ end
 end
 
 @testset "fractions and divexact: Issue #1885" begin
-  R, (x, y) = ZZ["x", "y"]
+  R, (x, y) = ZZ[:x, :y]
   U = powers_of_element(y)
   L, = localization(R, U)
 
@@ -405,7 +416,7 @@ end
 end
 
 @testset "minimal generating sets" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x-1, y-2])^2
   J = ideal(R, [x, y])^2
   L1, phi1 = localization(R, complement_of_point_ideal(R, [1, 2]))
@@ -419,8 +430,8 @@ end
   @test isone(first(minimal_generating_set(phi1(J))))
 
   small_gens = small_generating_set(phi2(J))
-  @test length(small_gens) == 1
-  @test isone(first(small_gens))
+  @test length(small_gens) == 3 # saturated_ideal is not called here.
+  #@test isone(first(small_gens))
 end
 
 @testset "dimensions of localizations at prime ideals" begin
@@ -438,5 +449,83 @@ end
   U = complement_of_prime_ideal(ideal(R, [x^2 + 1, y, z]))
   L, loc = localization(R, U)
   @test dim(L) == 3
+end
+
+@testset "dimensions of localized ideals" begin
+  R, (x, y) = QQ[:x, :y]
+  U = complement_of_point_ideal(R, [0, 1])
+
+  L, loc_map = localization(R, U)
+
+  I = ideal(R, [y*x, y*(y-1)])
+  @test dim(I) == 1
+  J = loc_map(I)
+  @test dim(J) == 0
+end
+
+@testset "radical computation" begin
+  R, (x, y) = QQ[:x, :y]
+  #U = complement_of_prime_ideal(ideal(R, y))
+  U = powers_of_element(x)
+  J = ideal(R, x-y^2+ 1)
+  W, _ = quo(R, J)
+
+  L, loc_map = localization(W, U)
+
+  I = ideal(L, [y^2, 0]) # Dealing with zero generators lead to a bug once, so this is a real test.
+  @test radical(I) == ideal(L, [y])
+end
+
+@testset "mpoly-loc constructors" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  m = ideal(R, [y - 1, x - 2, z - 3])
+  Q = localization(R, m)
+  I = ideal(Q, [x - 2, (y - 1)^2*z])
+  a = Q(x//(1 + x))
+
+  @test gens(I) == Q.([x - 2, y^2*z - 2*y*z + z])
+  @test fraction(a) == x // (1 + x)
+end
+
+@testset "mpoly-loc operations" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  m = ideal(R, [y - 1, x - 2, z - 3])
+  Q = localization(R, m)
+  I = ideal(Q, [x - 2, (y - 1)^2*z])
+  J = ideal(Q, [x - 2, y - 1])
+  a = Q(x//(1 + x))
+  b = Q((x + y)//(3 + x - y))
+
+  K1 = I+J
+  K2 = I*J
+  K3 = J^3
+  c1 = a+b
+  c2 = a*b
+
+  @test iszero(a-a)
+  @test a*deepcopy(a) == a^2
+  @test det(matrix(Q, [1 x; y z])) == Q(z-x*y)
+
+  @test gens(K1) == Q.([x - 2, y^2*z - 2*y*z + z, x - 2, y - 1])
+  @test gens(K2) == Q.([x^2 - 4*x + 4, x*y - x - 2*y + 2, x*y^2*z - 2*x*y*z + x*z - 2*y^2*z + 4*y*z - 2*z, y^3*z - 3*y^2*z + 3*y*z - z])
+  @test gens(K3) == Q.([x^3 - 6*x^2 + 12*x - 8, x^2*y - x^2 - 4*x*y + 4*x + 4*y - 4, x^2*y - x^2 - 4*x*y + 4*x + 4*y - 4, x*y^2 - 2*x*y + x - 2*y^2 + 4*y - 2, x^2*y - x^2 - 4*x*y + 4*x + 4*y - 4, x*y^2 - 2*x*y + x - 2*y^2 + 4*y - 2, x*y^2 - 2*x*y + x - 2*y^2 + 4*y - 2, y^3 - 3*y^2 + 3*y - 1])
+  @test fraction(c1) == (x*(3 + x - y) + (1 + x)*(x + y))//((1 + x)*(3 + x - y))
+  @test fraction(c2) == (x*(x + y))//((1 + x)*(3 + x - y))
+
+  (x, y, z) = map(Q, (x, y, z))
+  @test inv(x) + inv(y) == (x + y)*inv(x*y)
+  @test_throws Exception x*inv(x - 2)
+end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  L, loc = localization(R, complement_of_prime_ideal(I))
+  J = ideal(L, x)
+  @test dim(J) == 0
+  @test dim(L) == 1
+  K = ideal(L, y)
+  @test dim(K) == -inf
 end
 

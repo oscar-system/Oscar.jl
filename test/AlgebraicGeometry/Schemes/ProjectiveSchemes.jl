@@ -1,7 +1,7 @@
 @testset "projective_schemes_1" begin
   # test for relative projective space over a polynomial ring
-  R, (x,y) = QQ["x", "y"]
-  S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
+  R, (x,y) = QQ[:x, :y]
+  S, (u,v) = graded_polynomial_ring(R, [:u, :v])
 
   I = ideal(S, [x*v - y*u])
   X = proj(S, I)
@@ -16,7 +16,7 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for projective space over a field
-  S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
+  S, (u,v) = graded_polynomial_ring(QQ, [:u, :v])
 
   I = ideal(S, [u])
   X = proj(S, I)
@@ -33,7 +33,7 @@
   # test for relative projective space over MPolyQuoLocalizedRings
   Y = spec(R)
   Q = OO(Y)
-  S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
+  S, (u,v) = graded_polynomial_ring(Q, [:u, :v])
   X = proj(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
@@ -44,7 +44,7 @@
 end
 
 @testset "projective_schemes_2" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2-y*z])
   X = spec(R, I)
   U = AffineSchemeOpenSubscheme(X, [x, y])
@@ -70,7 +70,7 @@ end
 end
 
 @testset "singular schemes" begin
-  A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+  A, (x, y, z) = grade(QQ[:x, :y, :z][1]);
   B, _ = quo(A, ideal(A, [x^2 + y^2]));
   C = proj(B)
   @test !is_smooth(C; algorithm=:projective_jacobian)
@@ -95,7 +95,7 @@ end
 end
 
 @testset "Issue #1580" begin
-  R,(x,) = polynomial_ring(GF(3),["x"])
+  R,(x,) = polynomial_ring(GF(3),[:x])
   Rx,i = localization(R, x)
   x = Rx(x)
   P2 = projective_space(Rx, 2)
@@ -104,7 +104,7 @@ end
 end
 
 @testset "affine cone" begin
-  R,(x,) = polynomial_ring(GF(3),["x"])
+  R,(x,) = polynomial_ring(GF(3),[:x])
   Rx,i = localization(R, x)
   x = Rx(x)
   Rq,j = quo(Rx,ideal(Rx,x))
@@ -114,7 +114,7 @@ end
 end
 
 @testset "morphisms of projective schemes I" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
 
   IP2_X = projective_space(R, 2, var_name="u")
   projective_space(R, ["u", "v", "w"])
@@ -271,7 +271,7 @@ end
 end
 
 @testset "properties of projective schemes" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   S, _ = grade(R)
   X = proj(S)
   I = ideal(S, x^2 - y*z)
@@ -287,7 +287,7 @@ end
   @test is_smooth(C; algorithm=:affine_cone)
   @test arithmetic_genus(C) == 0
 
-  R, (x,y,z,w) = QQ["x", "y", "z", "w"]
+  R, (x,y,z,w) = QQ[:x, :y, :z, :w]
   S, _ = grade(R)
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)
@@ -378,5 +378,47 @@ end
   RS = homogeneous_coordinate_ring(S)
   #W1 = Oscar.kaehler_differentials(RS)
   WS = Oscar.relative_cotangent_module(S)
+end
+
+@testset "arithmetic and geometric genus" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  f = x^3 + y^3 + z^3
+
+  X, inc = sub(IP2, f)
+
+  @test isone(genus(X))
+  @test isone(arithmetic_genus(X))
+
+  g = x^3 + x*y^2
+  Y, _ = sub(IP2, g)
+
+  @test isone(arithmetic_genus(Y))
+  @test arithmetic_genus(Y) isa Int64
+  @test genus(Y) == -2
+end
+
+@testset "rational morphisms of projective schemes" begin
+  IP1 = projective_space(QQ, [:s, :t])
+  IP2 = projective_space(QQ, [:x, :y, :z])
+
+  x, y, z = gens(homogeneous_coordinate_ring(IP2))
+  s, t = gens(homogeneous_coordinate_ring(IP1))
+  phi = rational_map(IP1, IP2, [s^2, s*t, t^2])
+  S, a, b = Oscar.graph_ring(phi)
+
+  C, _ = sub(IP2, ideal(homogeneous_coordinate_ring(IP2), y^2-x*z))
+  img_gens = [s^2, s*t, t^2]
+  phi = rational_map(IP1, C, img_gens)
+
+  IP3 = projective_space(QQ, [:u, :v, :w, :x])
+  S3 = homogeneous_coordinate_ring(IP3)
+  u, v, w, x = gens(S3)
+
+  IP1xIP1, _ = sub(IP3, u*x - v*w)
+
+  pr = rational_map(IP1xIP1, IP1, [u, v])
+  sec = rational_map(IP1, IP1xIP1, [s, t, s, t])
 end
 

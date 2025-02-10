@@ -59,7 +59,7 @@ Return the embedded tropical curve consisting of the polyhedral complex `Sigma` 
 ```jldoctest
 julia> verticesAndRays = [0 0; 1 0; 0 1; -1 -1];
 
-julia> incidenceMatrix = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+julia> incidenceMatrix = incidence_matrix([[1,2],[1,3],[1,4]]);
 
 julia> rayIndices = [2,3,4];
 
@@ -212,7 +212,7 @@ end
 
 # Return `true` if all coefficients of `dtc` are positive, `false` otherwise.
 # """
-# is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
+# is_effective(dtc::DivisorOnTropicalCurve) = all(>=(0), coefficients(dtc))
 
 
 # @doc raw"""
@@ -222,7 +222,7 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+# julia> IM = incidence_matrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 # julia> tc = TropicalCurve(IM)
 # ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
@@ -291,7 +291,7 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+# julia> IM = incidence_matrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 # julia> tc = TropicalCurve(IM)
 # ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
@@ -352,7 +352,7 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+# julia> IM = incidence_matrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 # julia> tc = TropicalCurve(IM)
 # ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
@@ -411,7 +411,7 @@ end
 # ```jldoctest
 # julia> cg = complete_graph(5);
 
-# julia> IM1=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg)])
+# julia> IM1 = incidence_matrix([[src(e), dst(e)] for e in edges(cg)])
 # 10×5 IncidenceMatrix
 # [1, 2]
 # [1, 3]
@@ -438,7 +438,7 @@ end
 
 # julia> cg2 = complete_graph(3);
 
-# julia> IM2=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg2)])
+# julia> IM2 = incidence_matrix([[src(e), dst(e)] for e in edges(cg2)])
 # 3×3 IncidenceMatrix
 # [1, 2]
 # [1, 3]
@@ -456,7 +456,7 @@ end
 #  [1] top-level scope
 #    @ none:1
 
-# julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
+# julia> IM3 = incidence_matrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
 # 5×5 IncidenceMatrix
 # [1, 2]
 # [2, 3]
@@ -500,7 +500,7 @@ end
 # # ```julia
 # # julia> using Revise, Plots, Oscar, Test;
 
-# # julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+# # julia> IM = incidence_matrix([[1,2],[1,3],[1,4]]);
 
 # # julia> VR = [0 0; 1 0; -1 0; 0 1];
 

@@ -132,8 +132,7 @@ function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_gro
                 # computing rays and facets.
                 facets(cone)
                 rays(cone)
-                if ! any(j -> j == cone,
-                      collector_cones)
+                if !any(==(cone), collector_cones)
                     push!(collector_cones, cone)
                 end
             end
@@ -319,7 +318,7 @@ function matrix_action_on_cones(C::Cone{QQFieldElem}, M::QQMatrix)
 end
 
 function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) where T
-    matgens = [image(ghom, g).elm for g in gens(domain(ghom))]
+    matgens = [matrix(image(ghom, g)) for g in gens(domain(ghom))]
     act = matrix_action_on_cones
    
     result = Vector{Vector{Cone{T}}}([])
@@ -333,7 +332,7 @@ function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) w
         # the heavy lifting of computing rays and facets.
         rays(c)
         facets(c)
-        if all(o -> all(x -> c != x, o), result)
+        if all(o -> all(!=(c), o), result)
             push!(result, orbit(c, matgens, act, Base.:(==)))
         end
     end
@@ -352,7 +351,7 @@ function action_on_orbit_cone_orbits(orbs::Vector{Vector{Cone{T}}}, ghom::GAPGro
     end
 
     Ggens = gens(G)
-    matgens = [image(ghom, g).elm for g in Ggens]
+    matgens = [matrix(image(ghom, g)) for g in Ggens]
     act = matrix_action_on_cones
     
     res = GAPGroupHomomorphism[]
@@ -472,7 +471,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         for i in neighbor_hashes
             if i in hash_list
                 # perhaps we have found a new incidence
-                push!(edges, sort!([findfirst(x->x == i, hash_list), current_pos]))
+                push!(edges, sort!([findfirst(==(i), hash_list), current_pos]))
             else
                 # new representative found
                 push!(hash_list, i)
@@ -511,12 +510,12 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
     allrays = sort!(unique(vcat(rays_maxcones...)))
 
     # the indices of rays that belong to each maximal cone (0-based)
-    index_maxcones = [sort([findfirst(x -> x == v, allrays)-1
+    index_maxcones = [sort([findfirst(==(v), allrays)-1
                             for v in rays])
                       for rays in rays_maxcones]
 
     # the indices of rays that belong to each repres. cone
-    index_result_cones = [sort([findfirst(x -> x == v, allrays)
+    index_result_cones = [sort([findfirst(==(v), allrays)
                             for v in rays])
                       for rays in rays_result_cones]
 
@@ -533,7 +532,7 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
     #   each given by its defining rays, via the row indices (zero based)
     #   in the matrix of rays.
     matgens = [image(ghom, x) for x in gens(domain(ghom))]
-    mats_transp = [transpose(x.elm) for x in matgens]
+    mats_transp = [transpose(matrix(x)) for x in matgens]
 
     # Note that the matrices have been transposed because we use
     # matrix times vector multiplication.

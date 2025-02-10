@@ -88,30 +88,38 @@ struct MatrixOrdering <: AbsGenOrdering
 end
 
 function _canonical_matrix(w)
-  ww = matrix(ZZ, 0, ncols(w), [])
+  # we store the results in ww and keep track of the "real" number of rows
+  # in k
+  ww = zero_matrix(ZZ, nrows(w), ncols(w))
+  k = 0
+  piv = Int[]
+  # piv[i] stores the column index of the first non-zero entry in row i of ww
   for i in 1:nrows(w)
     if is_zero_row(w, i)
       continue
     end
-    nw = w[i:i, :]
+    nw = view(w, i:i, :)
     c = content(nw)
     if !isone(c)
-      nw = divexact(nw, c)
+      divexact!(nw, nw, c)
     end
-    for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
+    for j in 1:k
+      h = piv[j]
+      if !is_zero_entry(nw, 1, h)
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*view(ww, j:j, :)
       end
     end
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
-        nw = divexact(nw, c)
+        divexact!(nw, nw, c)
       end
-      ww = vcat(ww, nw)
+      ww[(k + 1):(k + 1), :] = nw
+      push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
+      k += 1
     end
   end
+  ww = view(ww, 1:k, :)
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
@@ -133,7 +141,7 @@ end
 """
 The product of `a` and `b` (`vcat` of the the matrices)
 """
-mutable struct ProdOrdering <: AbsGenOrdering
+struct ProdOrdering <: AbsGenOrdering
   a::AbsGenOrdering
   b::AbsGenOrdering
 end
@@ -187,6 +195,8 @@ mutable struct MonomialOrdering{S}
 end
 
 base_ring(a::MonomialOrdering) = a.R
+
+base_ring_type(::Type{MonomialOrdering{S}}) where {S} = S
 
 @doc raw"""
     support(o::MonomialOrdering)
@@ -243,7 +253,7 @@ Given a vector `V` of variables, return the lexicographical ordering on the set 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = lex(R)
@@ -307,7 +317,7 @@ Given a vector `V` of variables, return the degree lexicographical ordering on t
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = deglex(R)
@@ -379,7 +389,7 @@ Given a vector `V` of variables, return the degree reverse lexicographical order
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex(R)
@@ -426,7 +436,7 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   elseif tdk < tdl
     return -1
   end
-  for i in reverse(o.vars)
+  for i in Iterators.reverse(o.vars)
     ek = exponent(f, k, i)
     el = exponent(g, l, i)
     if ek > el
@@ -451,7 +461,7 @@ Given a vector `V` of variables, return the inverse lexicographical ordering on 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = invlex(R)
@@ -516,7 +526,7 @@ Given a vector `V` of variables, return the degree inverse lexicographical order
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = deginvlex(R)
@@ -590,7 +600,7 @@ Given a vector `V` of variables, return the negative lexicographical ordering on
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = neglex(R)
@@ -654,7 +664,7 @@ Given a vector `V` of variables, return the negative inverse lexicographical ord
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = neginvlex(R)
@@ -718,7 +728,7 @@ Given a vector `V` of variables, return the negative degree reverse lexicographi
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdegrevlex(R)
@@ -790,7 +800,7 @@ Given a vector `V` of variables, return the negative degree lexicographical orde
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdeglex(R)
@@ -898,7 +908,7 @@ lexicographical ordering on the set of monomials in the given variables.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdeglex(R, [1, 2, 3, 4])
@@ -967,7 +977,7 @@ lexicographical ordering on the set of monomials in the given variables.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdegrevlex(R, [1, 2, 3, 4])
@@ -1036,7 +1046,7 @@ negative weighted lexicographical ordering on the set of monomials in the given 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdeglex(R, [1, 2, 3, 4])
@@ -1105,7 +1115,7 @@ weighted reverse lexicographical ordering on the set of monomials in the given v
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdegrevlex(R, [1, 2, 3, 4])
@@ -1185,7 +1195,7 @@ return the matrix ordering on the set of monomials in the given variables which 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = QQ["w", "x", "y", "z"];
+julia> R, (w, x, y, z) = QQ[:w, :x, :y, :z];
 
 julia> M =[1 1 1 1; 0 -1 -1 -1; 0 0 -1 -1; 0 0 0 -1]
 4×4 Matrix{Int64}:
@@ -1230,7 +1240,7 @@ function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T},
 end
 
 @doc raw"""
-    weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
+    weight_ordering(W::Vector{<:IntegerUnion}, ord::MonomialOrdering) -> MonomialOrdering
 
 Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
 `length(W)` variables, return the monomial ordering `ord_W` on this set of monomials
@@ -1244,7 +1254,7 @@ in the case of a tie.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> W = [1, 0, -1];
 
@@ -1278,7 +1288,7 @@ julia> canonical_matrix(o2)
 [0   0    1]
 ```
 """
-function weight_ordering(w::Vector{Int}, o::MonomialOrdering)
+function weight_ordering(w::Vector{<:IntegerUnion}, o::MonomialOrdering)
   i = _support_indices(o.o)
   m = ZZMatrix(1, length(w), w)
   return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
@@ -1330,7 +1340,7 @@ Return a matrix defining `ord` as a matrix ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
@@ -1357,7 +1367,7 @@ end
 @doc raw"""
     simplify(M::MonomialOrdering) -> MonomialOrdering
 
-Returns a matrix ordering with a unique weight matrix.
+Return a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
   w = canonical_matrix(M)
@@ -1375,7 +1385,7 @@ Return the canonical matrix defining `ord` as a matrix ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
@@ -1400,9 +1410,37 @@ function canonical_matrix(M::MonomialOrdering)
   return M.canonical_matrix
 end
 
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+
+# Generic fall back
+function is_obviously_equal(M::AbsOrdering, N::AbsOrdering)
+  return false
+end
+
+function is_obviously_equal(M::SymbOrdering{S}, N::SymbOrdering{S}) where {S}
+  return M.vars == N.vars
+end
+
+function is_obviously_equal(M::WSymbOrdering{S}, N::WSymbOrdering{S}) where {S}
+  return M.vars == N.vars && M.weights == N.weights
+end
+
+function is_obviously_equal(M::MatrixOrdering, N::MatrixOrdering)
+  return M.vars == N.vars && M.matrix == N.matrix
+end
+
+function is_obviously_equal(M::ProdOrdering, N::ProdOrdering)
+  return is_obviously_equal(M.a, N.a) && is_obviously_equal(M.b, N.b)
+end
+
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-   return M === N || canonical_matrix(M) == canonical_matrix(N)
+  if M === N || is_obviously_equal(M.o, N.o)
+    return true
+  end
+  return canonical_matrix(M) == canonical_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
@@ -1425,7 +1463,7 @@ Return `true` if `ord` is global, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> o = matrix_ordering(R, [1 1; 0 -1])
 matrix_ordering([x, y], [1 1; 0 -1])
@@ -1451,7 +1489,7 @@ Return `true` if `ord` is local, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> o = matrix_ordering(R, [-1 -1; 0 -1])
 matrix_ordering([x, y], [-1 -1; 0 -1])
@@ -1477,7 +1515,7 @@ Return `true` if `ord` is mixed, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> o = matrix_ordering(R, [1 -1; 0 -1])
 matrix_ordering([x, y], [1 -1; 0 -1])
@@ -1529,7 +1567,7 @@ a partial ordering that does not distinguish `a` from `b`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> cmp(lex([x,y]), x, one(R))
 1
@@ -1541,9 +1579,9 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
-julia> cmp(lex(R)*invlex(F), F[1], F[2])
+julia> cmp(lex(R)*lex(F), F[1], F[2])
 -1
 ```
 """
@@ -1593,7 +1631,7 @@ Return `false`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> o1 = lex(R)
 lex([w, x, y, z])
@@ -1689,16 +1727,16 @@ function induce(vars::Vector{Int}, o::ProdOrdering)
 end
 
 @doc raw"""
-    induce(vars::AbstractVector{<:MPolyRingElem}, ord::ModuleOrdering)
+    induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)
 
 Return the monomial ordering on the variables `vars` induced by transferring
 the ordering `ord`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> S, (a, b, c) = polynomial_ring(GF(5), ["a", "b", "c"]);
+julia> S, (a, b, c) = polynomial_ring(GF(5), [:a, :b, :c]);
 
 julia> ord = degrevlex([x, y])*neglex([z]);
 
@@ -1717,32 +1755,106 @@ end
 
 # Module orderings (not module Orderings)
 
-mutable struct ModOrdering{T} <: AbsModOrdering
-   gens::T
-   ord::Symbol
-   function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
-     r = new{T}()
-     r.gens = u
-     r.ord = s
-     return r
-   end
+# For ordering the generators (I think)
+struct ModOrdering{T <: AbstractVector{Int}} <: AbsModOrdering
+  gens::T
+  ord::Symbol
 end
 
 mutable struct ModuleOrdering{S}
-   M::S
-   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+  M::S
+  o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+
+  canonical_matrix::ZZMatrix
+
+  function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
+    return new{S}(M, o)
+  end
 end
 
 base_ring(a::ModuleOrdering) = a.M
 
-mutable struct ModProdOrdering <: AbsModOrdering
-   a::AbsOrdering
-   b::AbsOrdering
+base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
+
+struct ModProdOrdering{A <: AbsOrdering, B <: AbsOrdering} <: AbsModOrdering
+  a::A
+  b::B
+  ModProdOrdering(a::A, b::B) where {A <: AbsOrdering, B <: AbsOrdering} = new{A,B}(a,b)
 end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
+
+# For equality checking and hashing
+# we produce a matrix representation by embedding the underlying free module (and its ordering) into a polynomial ring
+# then we build the matrix in this ring
+
+function _embedded_ring_ordering(o::ModuleOrdering)
+  return _embedded_ring_ordering(o.o)
+end
+
+function _embedded_ring_ordering(o::ModOrdering)
+  return SymbOrdering(o.ord, o.gens)
+end
+
+function _embedded_ring_ordering(o::AbsGenOrdering)
+  return deepcopy(o)
+end
+
+function _embedded_ring_ordering(o::ModProdOrdering)
+  ea = _embedded_ring_ordering(o.a)
+  if ea isa ProdOrdering
+    shift = maximum([ea.a.vars;ea.b.vars])
+  else
+    shift = maximum(ea.vars)
+  end
+  eb = _embedded_ring_ordering(o.b)
+  eb.vars .+= shift 
+  return ea*eb
+end
+
+function _canonical_matrix_intern(o::ModuleOrdering)
+  nvrs = ngens(o.M) + ngens(base_ring(o.M))
+  eo = _embedded_ring_ordering(o)
+  return canonical_matrix(nvrs, eo)
+end
+
+function canonical_matrix(o::ModuleOrdering)
+  if !isdefined(o, :canonical_matrix)
+    if isone(ngens(o.M))
+      o.canonical_matrix = canonical_matrix(induced_ring_ordering(o))
+    else
+      o.canonical_matrix = _canonical_matrix_intern(o)
+    end
+  end
+  return o.canonical_matrix
+end
+
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+# The generic fall back is_obviously_equal(::AbsOrdering, ::AbsOrdering) = false
+# is defined above.
+
+function is_obviously_equal(o1::ModOrdering{T}, o2::ModOrdering{T}) where {T}
+  return o1.gens == o2.gens && o1.ord == o2.ord
+end
+
+function is_obviously_equal(o1::ModProdOrdering, o2::ModProdOrdering)
+  return is_obviously_equal(o1.a, o2.a) && is_obviously_equal(o1.b, o2.b)
+end
+
+function Base.:(==)(o1::ModuleOrdering, o2::ModuleOrdering)
+  if o1 === o2 || is_obviously_equal(o1.o, o2.o)
+    return true
+  end
+  return canonical_matrix(o1) == canonical_matrix(o2)
+end
+
+function Base.hash(o::ModuleOrdering, h::UInt)
+  return hash(canonical_matrix(o), h)
+end
 
 #### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
 
@@ -1751,9 +1863,9 @@ function _cmp_vector_monomials(
   n::Int, g::MPolyRingElem, l::Int,
   o::ModOrdering)
 
-  if o.ord == :lex
+  if o.ord == :invlex
     return m < n ? 1 : m > n ? -1 : 0
-  elseif o.ord == :invlex
+  elseif o.ord == :lex
     return m > n ? 1 : m < n ? -1 : 0
   else
     error("oops")
@@ -1791,7 +1903,7 @@ end
 function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    R = parent(first(a))
    g = gens(R)
-   aa = [findfirst(x -> x == y, g) for y = a]
+   aa = [findfirst(==(y), g) for y = a]
    if nothing in aa
      error("only generators allowed")
    end
@@ -1823,10 +1935,10 @@ Return the ring ordering induced by `ord`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
+Free module of rank 3 over R
 
 julia> o = invlex(gens(F))*degrevlex(R)
 invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
@@ -1874,15 +1986,20 @@ end
 Return the permutation that puts the terms of `f` in the order `ord`.
 """
 function permutation_of_terms(f::MPolyRingElem, ord::MonomialOrdering)
+  # redispatch to take advantage of the type of ord.o
+  return __permutation_of_terms(f, ord.o)
+end
+
+function __permutation_of_terms(f::MPolyRingElem, ord::AbsOrdering)
   p = collect(1:length(f))
-  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord.o) < 0), rev = true)
+  sort!(p; lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
   return p
 end
 
 @doc raw"""
     index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
 
-Return the index of the leading term of `f` with repsect to the order `ord`. The
+Return the index of the leading term of `f` with respect to the order `ord`. The
 returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
@@ -2147,3 +2264,4 @@ end
 end  # module Orderings
 
 import Oscar.Orderings: induce # needed at least for group characters
+

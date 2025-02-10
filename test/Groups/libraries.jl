@@ -123,7 +123,7 @@ end
    @test Gs == all_perfect_groups(1:200)
    @test length(all_perfect_groups(7200)) == number_of_perfect_groups(7200)
 
-   # all_perfect_groups with additional attributse
+   # all_perfect_groups with additional attributes
    @test filter(G -> number_of_conjugacy_classes(G) in 5:8, Gs) == all_perfect_groups(1:200, number_of_conjugacy_classes => 5:8)
    @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple)
    @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple => true)
@@ -139,7 +139,10 @@ end
 
 @testset "Small groups" begin
    L = all_small_groups(8)
-   LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+#TODO: As soon as `abelian_group(PcGroup,[2,4])` is supported,
+#      add it as an example.
+#  LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+   LG = [abelian_group(SubPcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
    @test length(L)==5
    @testset for G in LG
       arr = [i for i in 1:5 if is_isomorphic(L[i],G)]
@@ -279,4 +282,33 @@ end
    @test length(info) > 0
    H, emb = atlas_subgroup(info[1], 1)
    @test order(H) == 720
+end
+
+@testset "Library of character tables" begin
+   l1 = all_character_table_names(is_atlas_character_table, !is_duplicate_table)
+   l2 = all_character_table_names(is_atlas_character_table)
+   @test l1 == l2
+end
+
+@testset "Groups with few conjugacy classes" begin
+   @testset for n in 1:14
+      @test has_groups_with_class_number(n)
+      grps = all_groups_with_class_number(n)
+      @test length(grps) == number_of_groups_with_class_number(n)
+   end
+   for n in [0, 15]
+      @test_throws ArgumentError number_of_groups_with_class_number(n)
+      @test_throws ArgumentError all_groups_with_class_number(n)
+   end
+   @test_throws ArgumentError has_groups_with_class_number(0)
+   @test_throws ArgumentError has_number_of_groups_with_class_number(0)
+   @test !has_groups_with_class_number(15)
+   @test !has_number_of_groups_with_class_number(15)
+
+   n = 8
+   grps = all_groups_with_class_number(n)
+   for i in 1:number_of_groups_with_class_number(n)
+     @test is_isomorphic(grps[i], group_with_class_number(n, i))
+     @test is_isomorphic(grps[i], group_with_class_number(PermGroup, n, i))
+   end
 end

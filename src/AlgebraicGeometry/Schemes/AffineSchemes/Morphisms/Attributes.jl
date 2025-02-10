@@ -46,7 +46,7 @@ Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 
@@ -95,7 +95,7 @@ Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 
@@ -143,7 +143,7 @@ Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
   to quotient of multivariate polynomial ring by ideal (x1)
 defined by
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 ```
@@ -254,7 +254,7 @@ Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 
@@ -303,18 +303,4 @@ end
 
 morphism_type(X::AbsAffineScheme, Y::AbsAffineScheme) = morphism_type(typeof(X), typeof(Y))
 
-@doc raw"""
-    isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
-
-For a birational morphism ``f : X → Y`` of `AbsAffineScheme`s this 
-returns an isomorphism of affine schemes ``f' : U → V`` which is 
-the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
-``V ⊂ Y``.
-"""
-function isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
-  if !has_attribute(f, :iso_on_open_subset)
-    is_birational(f) # Should compute and store the attribute
-  end
-  return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
-end
 

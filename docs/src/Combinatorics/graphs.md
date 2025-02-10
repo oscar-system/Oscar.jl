@@ -33,8 +33,8 @@ allow for easier integration elsewhere.
 
 ```@docs
 Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
-dualgraph(p::Polyhedron)
-edgegraph(p::Polyhedron)
+dual_graph(p::Polyhedron)
+vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
 ```
@@ -46,25 +46,32 @@ add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
 ```
 
 ## Auxiliary functions
 ```@docs
+adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+connectivity(g::Graph{Undirected})
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
+degree(g::Graph, v::Int)
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 shortest_path_dijkstra
+signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
+is_bipartite(g::Graph{Undirected})
 ```
 
 ### Edges
@@ -81,3 +88,7 @@ Objects of type `Graph` can be saved to a file and loaded with the methods
 polymake object. In particular, this file can now be read by both polymake and
 OSCAR.
 
+## Quantum Automorphisms
+```@docs
+quantum_automorphism_group(G::Graph{Undirected})
+```

@@ -79,6 +79,9 @@ function base_change(phi::Any, U::PrincipalOpenSubset;
   pbf = pullback(ambient_map)
   h = pbf(complement_equation(U))
   UU = PrincipalOpenSubset(Y, h)
-  return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
+  @assert _has_coefficient_map(pullback(ambient_map))
+  res_map = restrict(ambient_map, UU, U, check=false)
+  #@assert _has_coefficient_map(pullback(res_map))
+  return UU, res_map
 end
 

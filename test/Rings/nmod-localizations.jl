@@ -4,8 +4,7 @@
 
 using Oscar
 
-import Oscar.Nemo.zzModRing
-import Oscar: base_ring, inverted_set, ring, localization, parent, numerator, denominator, one, zero
+import Oscar: base_ring, base_ring_type, inverted_set, ring, localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export NmodComplementOfPrimeIdeal, NmodLocalizedRing, NmodLocalizedRingElem
@@ -71,12 +70,13 @@ end
 
 ### required getter functions
 base_ring(W::NmodLocalizedRing) = W.R::zzModRing
+base_ring_type(::Type{<:NmodLocalizedRing}) = zzModRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
 function localization(S::NmodComplementOfPrimeIdeal)
   L = NmodLocalizedRing(S)
-  return L, MapFromFunc(base_ring(L), L, x->(L(x)))
+  return L, MapFromFunc(base_ring(L), L, L)
 end
 
 

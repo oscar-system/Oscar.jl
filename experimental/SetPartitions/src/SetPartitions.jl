@@ -1,8 +1,10 @@
 module SetPartitions
 
 import Base: 
+    +,  
+    -,
+    *,  
     ==, 
-    *,
     adjoint,
     deepcopy,
     deepcopy_internal,
@@ -10,26 +12,46 @@ import Base:
     size
     
 import Oscar:
+    PermGroupElem,
+    Ring,
+    RingElem,
+    RingElement,
     ⊗,
+    @req,
+    base_ring,
+    base_ring_type,
+    coefficients,
     compose,
+    cycles,
+    degree,
+    elem_type,
     involution,
-    tensor_product,
-    @req
+    iszero,
+    join,
+    parent,
+    parent_type,
+    tensor_product
 
 export ColoredPartition
 export SetPartition
 export SpatialPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops
 export construct_category
+export cycle_partition
 export is_balanced
 export is_composable
+export is_dominated_by
 export is_non_crossing
 export is_pair
+export join
 export levels
+export linear_partition
 export lower_colors
 export lower_points
+export number_of_blocks
 export number_of_lower_points
 export number_of_upper_points
 export print_trace
@@ -44,6 +66,7 @@ export upper_colors
 export upper_points
 
 
+
 include("AbstractPartition.jl")
 include("Util.jl")
 include("SetPartition.jl")
@@ -51,6 +74,7 @@ include("ColoredPartition.jl")
 include("SpatialPartition.jl")
 include("PartitionProperties.jl")
 include("GenerateCategory.jl")
+include("LinearPartition.jl")
 end
 
 using .SetPartitions
@@ -58,17 +82,23 @@ using .SetPartitions
 export ColoredPartition
 export SetPartition
 export SpatialPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops
 export construct_category
+export cycle_partition
 export is_balanced
 export is_composable
+export is_dominated_by
 export is_non_crossing
 export is_pair
+export join
 export levels
+export linear_partition
 export lower_colors
 export lower_points
+export number_of_blocks
 export number_of_lower_points
 export number_of_upper_points
 export print_trace

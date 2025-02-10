@@ -92,7 +92,7 @@ end
 end
 
 @testset "field of rationals, ring of integers" begin
-  for (R, x, y) in [(GAP.Globals.Rationals, GAP.GapObj(2//3), 1),
+  for (R, x, y) in [(GAP.Globals.Rationals, GapObj(2//3), 1),
                     (GAP.Globals.Integers, 2, 3),
                    ]
     iso = Oscar.iso_gap_oscar(R)
@@ -235,7 +235,7 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end
 
@@ -255,6 +255,6 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end

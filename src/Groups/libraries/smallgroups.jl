@@ -83,14 +83,13 @@ Pc group of order 60
 ```
 """
 function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T
-  G = _small_group(n, m)
+  G = small_group(n, m)
   return T(G)
 end
 
 function small_group(n::IntegerUnion, m::IntegerUnion)
   G = _small_group(n, m)
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function _small_group(n::IntegerUnion, m::IntegerUnion)
@@ -117,7 +116,7 @@ ERROR: ArgumentError: identification is not available for groups of order 243290
 function small_group_identification(G::GAPGroup)
    @req is_finite(G) "group is not finite"
    @req has_small_group_identification(order(G)) "identification is not available for groups of order $(order(G))"
-   res = GAP.Globals.IdGroup(G.X)
+   res = GAP.Globals.IdGroup(GapObj(G))
    return Tuple{ZZRingElem,ZZRingElem}(res)
 end
 
@@ -210,7 +209,7 @@ function all_small_groups(L...)
 
    # TODO: perhaps add an option so that ids are returned instead of groups,
    # by calling GAP.Globals.IdsOfAllSmallGroups
-   return [_get_type(x)(x) for x in K]
+   return [_oscar_group(x) for x in K]
 end
 
 #T problem:

@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Affine Algebras and Their Ideals
+# [Affine Algebras and Their Ideals](@id affine_algebras)
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient of $R$
@@ -13,15 +11,15 @@ by an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *
 discuss functionality for handling such algebras in OSCAR.
 
 !!! note
-    To emphasize this point: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
-    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on modules.
+    We emphasize: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
+    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on [modules](@ref modules_multivariate).
 
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
-    basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-    to the monomial ordering entered by the user when creating the quotient; if no such ordering is entered, OSCAR will use the
-	`default_ordering` on the underlying polynomial ring; see the section on Gröbner/Standard Bases for default orderings in OSCAR).
+    basis is delayed until the user performs an operation that indeed requires it. The Gröbner basis is then computed with respect
+    to the monomial ordering entered by the user when creating the quotient; if no ordering is entered, OSCAR will use the
+	`default_ordering` on the underlying polynomial ring. See the section on [Gröbner/Standard Bases](@ref gb_fields) for default orderings in OSCAR.
 	Once computed, the Gröbner basis is cached for later reuse.
 
 !!! note
@@ -31,7 +29,7 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
-    with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
+    with respect to the default ordering on $R$ (see the section on [Gröbner/Standard Bases](@ref gb_fields) for normal forms). Operations involving
     Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
     reduced representatives.
 
@@ -62,13 +60,14 @@ If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
 - `gens(A)` to the generators of `A`,
-- `number_of_generators(A)` / `ngens(A)` to the number of these generators, and
-- `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
+- `number_of_generators(A)` / `ngens(A)` to the number of these generators,
+- `gen(A, i)` as well as `A[i]` to the `i`-th such generator, and
+- `ordering(A)` to the monomial ordering used in the construction of `A`.
 
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
@@ -93,6 +92,9 @@ julia> number_of_generators(A)
 julia> gen(A, 2)
 y
 
+julia> ordering(A)
+degrevlex([x, y, z])
+
 ```
 
 In the graded case, we additionally have:
@@ -116,6 +118,7 @@ dim(A::MPolyQuoRing)
 ```
 
 ```@docs
+is_finite_dimensional_vector_space(A::MPolyQuoRing)
 vector_space_dimension(A::MPolyQuoRing)
 ```
 
@@ -138,7 +141,7 @@ or by directly coercing elements of `R` into `A`.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
@@ -166,6 +169,10 @@ simplify(f::MPolyQuoRingElem)
 
 ```@docs
 ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+```
+
+```@docs
+is_invertible_with_inverse(f::MPolyQuoRingElem)
 ```
 
 In the graded case, we additionally have:
@@ -222,12 +229,14 @@ If `a` is an ideal of the affine algebra `A`, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> a = ideal(A, [x-y, z^4])
-ideal(x - y, z^4)
+Ideal generated by
+  x - y
+  z^4
 
 julia> base_ring(a)
 Quotient
@@ -287,7 +296,6 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
-intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients
@@ -334,9 +342,9 @@ In OSCAR, such homomorphisms are created as follows:
 hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
-Given a ring homomorphism `F` : `R` $\to$ `S` as above, `domain(F)` and `codomain(F)`
-refer to `R` and `S`, respectively. Given ring homomorphisms `F` : `R` $\to$ `S` and
-`G` : `S` $\to$ `T` as above, `compose(F, G)` refers to their composition.
+Given a ring homomorphism `F` : `A` $\to$ `S` as above, `domain(F)` and `codomain(F)`
+refer to `A` and `S`, respectively.  Given ring homomorphisms `F` : `A` $\to$ `B` and
+`G` : `B` $\to$ `T` as above, `compose(F, G)` refers to their composition.
 
 ## Homomorphisms of Affine Algebras
 
@@ -347,16 +355,16 @@ the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{
 ### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
-preimage(F::AffAlgHom, I::MPolyIdeal)
+preimage(F::MPolyAnyMap, I::Ideal)
 kernel(F::AffAlgHom)
 ```
 
 ###### Examples
 
 ```jldoctest
-julia> D1, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> D1, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
-julia> C1, (s,t) = graded_polynomial_ring(QQ, ["s", "t"]);
+julia> C1, (s,t) = graded_polynomial_ring(QQ, [:s, :t]);
 
 julia> V1 = [s^3, s^2*t, s*t^2, t^3];
 
@@ -378,7 +386,7 @@ Ideal generated by
 
 julia> C2, p2 = quo(D1, twistedCubic);
 
-julia> D2, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"]);
+julia> D2, (a, b, c) = graded_polynomial_ring(QQ, [:a, :b, :c]);
 
 julia> V2 = [p2(w-y), p2(x), p2(z)];
 
@@ -398,9 +406,9 @@ Ideal generated by
 ```
 
 ```jldoctest
-julia> D3,y = polynomial_ring(QQ, "y" => 1:3);
+julia> D3,y = polynomial_ring(QQ, :y => 1:3);
 
-julia> C3, x = polynomial_ring(QQ, "x" => 1:3);
+julia> C3, x = polynomial_ring(QQ, :x => 1:3);
 
 julia> V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 
@@ -436,9 +444,9 @@ is_finite(F::AffAlgHom)
 ###### Examples
 
 ```jldoctest
-julia> D, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> D, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> S, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"]);
+julia> S, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c]);
 
 julia> C, p = quo(S, ideal(S, [c-b^3]));
 
@@ -466,9 +474,9 @@ true
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [ "x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [ :x, :y, :z]);
 
-julia> C, (s, t) = polynomial_ring(QQ, ["s", "t"]);
+julia> C, (s, t) = polynomial_ring(QQ, [:s, :t]);
 
 julia> V = [s*t, t, s^2];
 
@@ -491,6 +499,12 @@ true
 
 ```@docs
 inverse(F::AffAlgHom)
+```
+
+## Presenting Finite Extension Rings
+
+```@docs
+present_finite_extension_ring(F::Oscar.AffAlgHom)
 ```
 
 ## Algebraic Independence
@@ -523,7 +537,7 @@ noether_normalization(A::MPolyQuoRing)
 ###### Examples
 
 ```jldoctest; setup = :(Singular.call_interpreter("""system("random", 47);"""))
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [x*y, x*z]));
 
@@ -599,7 +613,7 @@ graded by $G$. That is, $G$ is free and each graded piece $R_g$ has finite dimen
 Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
 well-defined *Hilbert function* of $A$,
 
-$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+$H(A, \underline{\phantom{d}}): G \to \mathbb{N}, \; g\mapsto \dim_K(A_g).$
 
 The *Hilbert series* of $A$ is the generating function
 
@@ -636,7 +650,7 @@ $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensi
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
 of type
 
-$H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),$
+$H(A, \underline{\phantom{d}}): \mathbb{N} \to \mathbb{N}, \;d \mapsto \dim_K(d),$
 
 and the *Hilbert series* of $A$ is the formal power series
 
@@ -666,10 +680,4 @@ degree(A::MPolyQuoRing)
 multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
-```
-
-## Affine Algebras as Modules
-
-```@docs
-quotient_ring_as_module(A::MPolyQuoRing)
 ```

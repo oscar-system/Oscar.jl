@@ -30,20 +30,6 @@ Weierstrass model over a concrete base
 weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
-@doc raw"""
-    hypersurface_model_over_projective_space(d::Int)
-
-This method constructs a hypersurface model over the projective space.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_projective_space(d::Int) = hypersurface_model(projective_space(NormalToricVariety, d); completeness_check = false)
-
-
 #####################################################
 # 2. Models over hirzebruch surfaces
 #####################################################
@@ -74,20 +60,6 @@ Weierstrass model over a concrete base
 ```
 """
 weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
-
-
-@doc raw"""
-    hypersurface_model_over_hirzebruch_surface(r::Int)
-
-This method constructs a hypersurface model over a Hirzebruch surface.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_hirzebruch_surface(1)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_hirzebruch_surface(r::Int) = hypersurface_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
 #####################################################
@@ -122,20 +94,6 @@ Weierstrass model over a concrete base
 weierstrass_model_over_del_pezzo_surface(b::Int) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
-@doc raw"""
-    hypersurface_model_over_del_pezzo_surface(b::Int)
-
-This method constructs a hypersurface model over a del-Pezzo surface.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_del_pezzo_surface(3)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_del_pezzo_surface(b::Int) = hypersurface_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
-
-
 #####################################################
 # 4. Literature models
 #####################################################
@@ -158,7 +116,7 @@ A family of spaces of dimension d = 5
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()
-    auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+    auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
     auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
     a1 = a10
     a2 = a21 * w

@@ -2,7 +2,7 @@
 # TODO : in this file, some functions for matrices and vectors are defined just to make other files work,
 # such as forms.jl, transform_form.jl, linear_conjugate.jl and linear_centralizer.jl
 # TODO : functions in this file are only temporarily, and often inefficient.
-# TODO: once similar working methods are defined in other files or packages (e.g. Hecke), 
+# TODO: once similar working methods are defined in other files or packages (e.g. Hecke),
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
@@ -33,62 +33,26 @@ function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <:
    return X
 end
 
-@doc raw"""
-    upper_triangular_matrix(L)
-
-Return the upper triangular matrix whose entries on and above the diagonal are the elements of `L`.
-
-An exception is thrown whenever the length of `L` is not equal to $n(n+1)/2$,
-for some integer $n$.
-"""
-function upper_triangular_matrix(L)
-   T = eltype(L)
-   @assert T <: RingElem "L must be a collection of ring elements"
-   d = Int(floor((sqrt(1+8*length(L))-1)/2))
-   @req length(L)==div(d*(d+1),2) "Input vector of invalid length"
-   R = parent(L[1])
-   x = zero_matrix(R,d,d)
-   pos=1
-   for i in 1:d, j in i:d
-      x[i,j] = L[pos]
-      pos+=1
-   end
-   return x
-end
-
-@doc raw"""
-    lower_triangular_matrix(L)
-
-Return the upper triangular matrix whose entries on and below the diagonal are the elements of `L`.
-
-An exception is thrown whenever the length of `L` is not equal to $n(n+1)/2$,
-for some integer $n$.
-"""
-function lower_triangular_matrix(L)
-   T = eltype(L)
-   @assert T <: RingElem "L must be a collection of ring elements"
-   d = Int(floor((sqrt(1+8*length(L))-1)/2))
-   @req length(L)==div(d*(d+1),2) "Input vector of invalid length"
-   R = parent(L[1])
-   x = zero_matrix(R,d,d)
-   pos=1
-   for i in 1:d, j in 1:i
-      x[i,j] = L[pos]
-      pos+=1
-   end
-   return x
-end
-
 """
     conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 
 If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
- An exception is thrown if the base ring does not have even degree.
+An exception is thrown if the base ring does not have even degree.
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
-   @req iseven(degree(base_ring(x))) "The base ring must have even degree"
-   e = div(degree(base_ring(x)),2)
-   return transpose(map(y -> frobenius(y,e),x))
+  e = degree(base_ring(x))
+  @req iseven(e) "The base ring must have even degree"
+  e = div(e, 2)
+
+  y = similar(x, ncols(x), nrows(x))
+  for i in 1:ncols(x), j in 1:nrows(x)
+    # This code could be *much* faster, by precomputing the Frobenius map
+    # once; see also FrobeniusCtx in Hecke (but that does not yet support all
+    # finite field types at the time this comment was written).
+    # If you need this function to be faster, talk to Claus or Max.
+    y[i,j] = frobenius(x[j,i],e)
+  end
+  return y
 end
 
 
@@ -161,26 +125,6 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 ########################################################################
 
 # TODO: Move to AbstractAlgebra
-"""
-    is_alternating(B::MatElem)
-
-Return whether the form corresponding to the matrix `B` is alternating,
-i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
-Return `false` if `B` is not a square matrix.
-"""
-function is_alternating(B::MatElem)
-   n = nrows(B)
-   n==ncols(B) || return false
-
-   for i in 1:n
-      B[i,i]==0 || return false
-      for j in i+1:n
-         B[i,j]==-B[j,i] || return false
-      end
-   end
-
-   return true
-end
 
 """
     is_hermitian(B::MatElem{T}) where T <: FinFieldElem
@@ -190,14 +134,12 @@ Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
 function is_hermitian(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
-   n==ncols(B) || return false
+   n == ncols(B) || return false
    e = degree(base_ring(B))
    iseven(e) ? e = div(e,2) : return false
 
-   for i in 1:n
-      for j in i:n
-         B[i,j]==frobenius(B[j,i],e) || return false
-      end
+   for i in 1:n, j in i:n
+      B[i,j] == frobenius(B[j,i],e) || return false
    end
 
    return true
@@ -217,7 +159,7 @@ function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: RingEl
          return y == h*x ? (true,h) : (false, nothing)
       end
    end
-  
+
    # at this point, x must be zero
    return y == 0 ? (true, F(1)) : (false, nothing)
 end
@@ -228,17 +170,7 @@ end
 #
 ########################################################################
 
-
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
-Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)
-
-# evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*x*transpose(u.v))[1]
-
-
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
-Base.:*(x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = matrix(x)*transpose(u.v)
-
 
 Base.:*(v::Vector{T}, x::MatrixGroupElem{T}) where T <: RingElem = v*matrix(x)
 Base.:*(x::MatrixGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
@@ -251,8 +183,3 @@ Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) wher
 function Base.:^(V::AbstractAlgebra.Generic.Submodule{T}, x::MatrixGroupElem{T}) where T <: RingElem
   return sub(V.m, [v^x for v in V.gens])[1]
 end
-
-# evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*matrix(x)*transpose(u.v))[1]
-
-map(f::Function, v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = v.parent(map(f,v.v))

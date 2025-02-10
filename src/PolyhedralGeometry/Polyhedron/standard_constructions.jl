@@ -243,12 +243,12 @@ Construct the regular icosahedron, one out of two exceptional Platonic solids.
 icosahedron() = polyhedron(Polymake.polytope.icosahedron());
 
 const _johnson_indexes_from_oscar = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24,
-                                              25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
-                                              41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-                                              51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-                                              61, 64, 68, 69, 70, 71, 72, 73, 74, 75,
-                                              77, 78, 79, 82, 84, 85, 86, 87, 88, 89,
-                                              90, 92])
+  25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
+  41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+  51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+  61, 64, 68, 69, 70, 71, 72, 73, 74, 75,
+  77, 78, 79, 82, 84, 85, 86, 87, 88, 89,
+  90, 92])
 
 @doc raw"""
     johnson_solid(i::Int)
@@ -257,11 +257,14 @@ Construct the `i`-th proper Johnson solid.
 
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+  See the [Polytope Wiki](https://polytope.miraheze.org/wiki/List_of_Johnson_solids)
+
+See also [`is_johnson_solid`](@ref is_johnson_solid(P::Polyhedron)).
 """
 function johnson_solid(index::Int)
   if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
-    # https://github.com/dmg-lab/JohnsonSrc
+    # https://github.com/dmg-lab/RegularSolidsSrc
     str_index = lpad(index, 2, '0')
     filename = "j$str_index" * ".mrdi"
     return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
@@ -298,7 +301,7 @@ Compute the Newton polytope of the multivariate polynomial `poly`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y) = polynomial_ring(ZZ, ["x", "y"])
+julia> S, (x, y) = polynomial_ring(ZZ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over ZZ, ZZMPolyRingElem[x, y])
 
 julia> f = x^3*y + 3x*y^2 + 1
@@ -615,7 +618,7 @@ julia> s = simplex(7)
 Polytope in ambient dimension 7
 
 julia> facets(s)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^7 described by:
 -x_1 <= 0
 -x_2 <= 0
 -x_3 <= 0
@@ -629,7 +632,7 @@ julia> t = simplex(7, 5)
 Polytope in ambient dimension 7
 
 julia> facets(t)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^7 described by:
 -x_1 <= 0
 -x_2 <= 0
 -x_3 <= 0
@@ -671,7 +674,7 @@ julia> C = cross_polytope(3)
 Polytope in ambient dimension 3
 
 julia> facets(C)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 x_1 + x_2 + x_3 <= 1
 -x_1 + x_2 + x_3 <= 1
 x_1 - x_2 + x_3 <= 1
@@ -685,7 +688,7 @@ julia> D = cross_polytope(3, 2)
 Polytope in ambient dimension 3
 
 julia> facets(D)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 x_1 + x_2 + x_3 <= 2
 -x_1 + x_2 + x_3 <= 2
 x_1 - x_2 + x_3 <= 2
@@ -717,8 +720,10 @@ cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 Construct a Platonic solid with the name given by String `s` from the list
 below.
 
+See also [`is_platonic_solid`](@ref is_platonic_solid(P::Polyhedron)).
+
 # Arguments
-- `s::String`: The name of the desired Archimedean solid.
+- `s::String`: The name of the desired Platonic solid.
     Possible values:
     - "tetrahedron" : Tetrahedron.
           Regular polytope with four triangular facets.
@@ -742,12 +747,15 @@ julia> n_facets(T)
 """
 platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
 
+const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahedron"])
+
 @doc raw"""
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below.  The polytopes are realized with floating point numbers and thus not
-exact; Vertex-facet-incidences are correct in all cases.
+below.
+
+See also [`is_archimedean_solid`](@ref is_archimedean_solid(P::Polyhedron)).
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -758,32 +766,30 @@ exact; Vertex-facet-incidences are correct in all cases.
           Regular polytope with eight triangular and six square facets.
     - "truncated_cube" : Truncated cube.
           Regular polytope with eight triangular and six octagonal facets.
-    - "truncated_octahedron" : Truncated Octahedron.
+    - "truncated_octahedron" : Truncated octahedron.
           Regular polytope with six square and eight hexagonal facets.
     - "rhombicuboctahedron" : Rhombicuboctahedron.
           Regular polytope with eight triangular and 18 square facets.
-    - "truncated_cuboctahedron" : Truncated Cuboctahedron.
+    - "truncated_cuboctahedron" : Truncated cuboctahedron.
           Regular polytope with 12 square, eight hexagonal and six octagonal
           facets.
-    - "snub_cube" : Snub Cube.
+    - "snub_cube" : Snub cube.
           Regular polytope with 32 triangular and six square facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
     - "icosidodecahedron" : Icosidodecahedon.
           Regular polytope with 20 triangular and 12 pentagonal facets.
-    - "truncated_dodecahedron" : Truncated Dodecahedron.
+    - "truncated_dodecahedron" : Truncated dodecahedron.
           Regular polytope with 20 triangular and 12 decagonal facets.
-    - "truncated_icosahedron" : Truncated Icosahedron.
+    - "truncated_icosahedron" : Truncated icosahedron.
           Regular polytope with 12 pentagonal and 20 hexagonal facets.
     - "rhombicosidodecahedron" : Rhombicosidodecahedron.
           Regular polytope with 20 triangular, 30 square and 12 pentagonal
           facets.
-    - "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
+    - "truncated_icosidodecahedron" : Truncated icosidodecahedron.
           Regular polytope with 30 square, 20 hexagonal and 12 decagonal
           facets.
-    - "snub_dodecahedron" : Snub Dodecahedron.
+    - "snub_dodecahedron" : Snub dodecahedron.
           Regular polytope with 80 triangular and 12 pentagonal facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
 
 # Examples
@@ -801,23 +807,58 @@ julia> n_facets(T)
 14
 ```
 """
-archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s))
+function archimedean_solid(s::String)
+  if s in _archimedean_strings_from_oscar
+    filename = s * ".mrdi"
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
+  end
+  pmp = Polymake.polytope.archimedean_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      snub_cube()
+
+Construct the snub cube, an Archimedean solid.
+See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_cube)
+
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
+"""
+function snub_cube()
+  return archimedean_solid("snub_cube")
+end
+
+@doc raw"""
+      snub_dodecahedron()
+
+Construct the snub dodecahedron, an Archimedean solid.
+See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_dodecahedron)
+
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
+"""
+function snub_dodecahedron()
+  return archimedean_solid("snub_dodecahedron")
+end
+
+const _catalan_strings_from_oscar = Set{String}([
+  "pentagonal_icositetrahedron", "pentagonal_hexecontahedron"
+])
 
 @doc raw"""
     catalan_solid(s::String)
 
-Construct a Catalan solid with the name `s` from the list
-below.  The polytopes are realized with floating point coordinates and thus are not
-exact. However, vertex-facet-incidences are correct in all cases.
+Construct a Catalan solid with the name `s` from the list below.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
     Possible values:
-    - "triakis_tetrahedron" : Triakis Tetrahedron.
-          Dual polytope to the Truncated Tetrahedron, made of 12 isosceles
+    - "triakis_tetrahedron" : Triakis tetrahedron.
+          Dual polytope to the truncated tetrahedron, made of 12 isosceles
           triangular facets.
-    - "triakis_octahedron" : Triakis Octahedron.
-          Dual polytope to the Truncated Cube, made of 24 isosceles triangular
+    - "triakis_octahedron" : Triakis octahedron.
+          Dual polytope to the truncated cube, made of 24 isosceles triangular
           facets.
     - "rhombic_dodecahedron" : Rhombic dodecahedron.
           Dual polytope to the cuboctahedron, made of 12 rhombic facets.
@@ -827,17 +868,16 @@ exact. However, vertex-facet-incidences are correct in all cases.
     - "disdyakis_dodecahedron" : Disdyakis dodecahedron.
           Dual polytope to the truncated cuboctahedron, made of 48 scalene
           triangular facets.
-    - "pentagonal_icositetrahedron" : Pentagonal Icositetrahedron.
+    - "pentagonal_icositetrahedron" : Pentagonal icositetrahedron.
           Dual polytope to the snub cube, made of 24 irregular pentagonal facets.
-          The vertices are realized as floating point numbers.
-    - "pentagonal_hexecontahedron" : Pentagonal Hexecontahedron.
+    - "pentagonal_hexecontahedron" : Pentagonal hexecontahedron.
           Dual polytope to the snub dodecahedron, made of 60 irregular pentagonal
-          facets. The vertices are realized as floating point numbers.
+          facets.
     - "rhombic_triacontahedron" : Rhombic triacontahedron.
           Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
     - "triakis_icosahedron" : Triakis icosahedron.
           Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
-    - "deltoidal_icositetrahedron" : Deltoidal Icositetrahedron.
+    - "deltoidal_icositetrahedron" : Deltoidal icositetrahedron.
           Dual polytope to the rhombicubaoctahedron, made of 24 kite facets.
     - "pentakis_dodecahedron" : Pentakis dodecahedron.
           Dual polytope to the truncated icosahedron, made of 60 isosceles
@@ -860,7 +900,40 @@ julia> n_facets(T)
 12
 ```
 """
-catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
+function catalan_solid(s::String)
+  if s in _catalan_strings_from_oscar
+    filename = s * ".mrdi"
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return load(joinpath(oscardir, "data", "CatalanSolids", filename))
+  end
+  pmp = Polymake.polytope.catalan_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      pentagonal_icositetrahedron()
+
+Construct the pentagonal icositetrahedron, a Catalan solid.
+See the [Wikipedia entry](https://en.wikipedia.org/wiki/Pentagonal_icositetrahedron)
+
+See also [`catalan_solid`](@ref catalan_solid(s::String)).
+"""
+function pentagonal_icositetrahedron()
+  return catalan_solid("pentagonal_icositetrahedron")
+end
+
+@doc raw"""
+      pentagonal_hexecontahedron()
+
+Construct the pentagonal hexecontahedron, a Catalan solid.
+See the [Visual Polyhedra entry](https://dmccooey.com/polyhedra/LpentagonalIcositetrahedron.html)
+
+See also [`catalan_solid`](@ref catalan_solid(s::String)).
+"""
+function pentagonal_hexecontahedron()
+  return catalan_solid("pentagonal_hexecontahedron")
+end
 
 @doc raw"""
     upper_bound_f_vector(d::Int, n::Int)
@@ -1014,7 +1087,7 @@ x1^3*x2*x3 + x1^2*x2^2*x3 + x1*x2^3*x3
 function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
   genGT = gelfand_tsetlin_polytope(lambda, sigma)
   n = length(lambda)
-  R = polynomial_ring(ZZ, n)
+  R = polynomial_ring(ZZ, n; cached=false)
   x = R[2]
   s = R[1](0)
   for P in lattice_points(genGT)
@@ -1280,7 +1353,7 @@ $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to
 be descending instead of ascending, as used in [JKS22](@cite), i.e. `alpha` has parameters
 $(a_1,\dots,a_n)$ such that $a_1 \geq \dots \geq a_n \geq 0$.  
 
-# Example
+# Examples
 To produce a $2$-dimensional SIM-body, use for example the following code. 
 Note that the polytope lives in $3$-space, so we project it down to $2$-space 
 by eliminating the last coordinate. 
@@ -1319,7 +1392,7 @@ We use the facet description given in section 9.2. of [Zie95](@cite).
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the polytope. For details, see [CSZ15](@cite).
 
-# Example
+# Examples
 Produce the $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices
 and $5$ facets.
 ```jldoctest
@@ -1335,7 +1408,7 @@ julia> vertices(A)
  [4, 1, 10, 6]
 
 julia> facets(A)
-5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 -x_1 <= -1
 -2*x_1 - 2*x_2 <= -10
 -x_2 <= -1
@@ -1382,7 +1455,7 @@ binary_markov_graph_polytope(observation::AbstractVector{<:Base.Integer}) =
 
 Produce the $d$-dimensional dwarfed cube as defined in [ABS97](@cite). 
 
-# Example
+# Examples
 The $3$-dimensional dwarfed cube is illustrated in [Jos03](@cite).
 
 ```jldoctest
@@ -1414,7 +1487,7 @@ end
 Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [ABS97](@cite).
 It must be $d\geq4$ and even as well as $s\geq 3$.
 
-# Example
+# Examples
 ```jldoctest
 julia> p = dwarfed_product_polygons(4,3)
 Polytope in ambient dimension 4
@@ -1449,7 +1522,7 @@ as defined in [SS12](@cite).
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the simplex.  
 
-# Example
+# Examples
 The $3$-dimensional lecture hall simplex:
 ```jldoctest
 julia> S = lecture_hall_simplex(3) 
@@ -1503,7 +1576,7 @@ Produce a $d$-dimensional cyclic polytope with $n$ points. Clearly $n\geq d$ is 
 It is a prototypical example of a neighborly polytope whose combinatorics completely known 
 due to Gale's evenness criterion. The coordinates are chosen on the trigonometric moment curve.
 
-# Example
+# Examples
 ```jldoctest
 julia> C= cyclic_caratheodory_polytope(4,5)
 Polytope in ambient dimension 4
@@ -1555,7 +1628,7 @@ Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$
 - `no_facets::Bool`: If set equal to `true`, facets of the underlying `polymake` object are not computed.
 - `no_vif::Bool`: If set equal to `true`, vertices in facets of the underlying `polymake` object are not computed.
 
-# Example
+# Examples
 ```jldoctest
 julia> H = hypersimplex(3,4)
 Polytope in ambient dimension 4
@@ -1564,14 +1637,14 @@ julia> G = hypersimplex(3,4,no_facets=true)
 Polytope in ambient dimension 4
 
 julia> facets(G)
-4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 x_4 <= 1
 x_3 <= 1
 -x_1 - x_3 - x_4 <= -2
 x_1 <= 1
 
 julia> facets(H)
-4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 x_4 <= 1
 x_3 <= 1
 -x_1 - x_3 - x_4 <= -2
@@ -1641,7 +1714,7 @@ Here we use the description as a deformed product due to [AZ99](@cite).
 For $g=0$ we obtain a Klee-Minty cube, 
 in particular for $e=g=0$ we obtain the standard cube. 
 
-# Example
+# Examples
 The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}$.
 ```jldoctest
 julia> c = goldfarb_cube(3,1//3,0)
@@ -1712,7 +1785,7 @@ Produce a $d$-dimensional hypertruncated cube with symmetric linear objective fu
 - `k`: cutoff parameter
 - `lambda`: scaling of extra vertex
 
-# Example
+# Examples
 ```jldoctest
 julia> H = hypertruncated_cube(3,2,3)
 Polytope in ambient dimension 3
@@ -1750,7 +1823,7 @@ Warning: Some of the $k-$cyclic polytopes are not simplicial.
 Since the components are rounded, this function might output a polytope which is 
 not a $k-$cyclic polytope! More information see [Sch95](@cite).
 
-# Example
+# Examples
 To produce a (not exactly) regular pentagon, type this:
 ```jldoctest
 julia> p = k_cyclic_polytope(5,[1])
@@ -1800,7 +1873,7 @@ Produce a `d`-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log
 integrally infeasible. With symmetric linear objective function $(1,1..,1)$. 
 Construction due to Pokutta and Schulz, see [PS11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> c = max_GC_rank_polytope(3)
 Polytope in ambient dimension 3
@@ -1831,15 +1904,31 @@ and initial angle divided by pi `alpha_0` (defaults to $0$).
 To store the regular pentagon in the variable p, do this:
 ```jldoctest
 julia> p = n_gon(3)
-Polytope in ambient dimension 2
+Polytope in ambient dimension 2 with QQBarFieldElem type coefficients
 
-julia> n_gon(3,r=3)
-Polytope in ambient dimension 2
+julia> volume(n_gon(4, r=2, alpha_0=1//4))
+Root 8.00000 of x - 8
 ```
 """
-function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
+function n_gon(
+  n::Int;
+  r::Union{RationalUnion,QQBarFieldElem}=1,
+  alpha_0::Union{RationalUnion,QQBarFieldElem}=0,
+)
   @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
-  return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
+  K = algebraic_closure(QQ)
+  e = one(K)
+  s, c = sincospi(2 * e / n)
+  mat_rot = matrix([c -s; s c])
+  G_mat = matrix_group(mat_rot)
+  p = K.([r, 0])
+  if !iszero(alpha_0)
+    s, c = sincospi(alpha_0 * e)
+    p = p * matrix([c -s; s c])
+  end
+  orb = orbit(G_mat, *, p)
+  pts = collect(orb)
+  return convex_hull(K, pts; non_redundant=true)
 end
 
 @doc raw"""
@@ -1847,7 +1936,7 @@ end
 
 Create an $8$-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> perles_nonrational_8_polytope()
 Polytope in ambient dimension 8 with EmbeddedAbsSimpleNumFieldElem type coefficients
@@ -1924,7 +2013,7 @@ pitman_stanley_polytope(y::AbstractVector{<:IntegerUnion}) = pitman_stanley_poly
 Produce a `d`-dimensional del-Pezzo polytope, which is the convex hull of the cross polytope 
 together with the all-ones vector. All coordinates are plus or minus one.
 
-# Example
+# Examples
 ```jldoctest
 julia> DP = pseudo_del_pezzo_polytope(4)
 Polytope in ambient dimension 4
@@ -1950,7 +2039,7 @@ Produce a `d`-dimensional $0/1$-polytope with `n` random vertices. Uniform distr
 # Optional Argument
 -`seed::Int`: Seed for random number generation
 
-# Example
+# Examples
 ```jldoctest
 julia> s = rand01_polytope(2, 4; seed=3)
 Polytope in ambient dimension 2
@@ -1980,12 +2069,12 @@ end
     rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
 Computes the convex hull of `n` points sampled uniformly at random from the integer 
-points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
+points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 
 # Optional Argument
 -`seed`: Seed for random number generation.
 
-# Example
+# Examples
 ```jldoctest
 julia> r = rand_box_polytope(3, 10, 3, seed=1)
 Polyhedron in ambient dimension 3
@@ -2053,7 +2142,7 @@ end
     rand_metric(n::Int; seed=nothing)
 
 Produce a rational n-point metric with random distances. 
-The values are uniformily distributed in $\[1,2\]$.
+The values are uniformily distributed in $[1, 2]$.
 
 # Examples
 ```jldoctest
@@ -2079,7 +2168,7 @@ end
     rand_metric_int(n::Int, digits::Int; seed=nothing)
 
 Produce a `n`-point metric with random integral distances. 
-The values are uniformily distributed in $\[1,2\]$. The distances are integers and lie in 
+The values are uniformily distributed in $[1, 2]$. The distances are integers and lie in
 $[10^digits, 10^(digits+1)[$.
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)
@@ -2103,7 +2192,7 @@ normally distributed in the unit ball.
 -`seed`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
 -`precision`: number of bits for MPFR sphere approximation
 
-# Example
+# Examples
 ```jldoctest
 julia> rnp = rand_normal_polytope(2,4; seed=42, precision=4)
 Polytope in ambient dimension 2
@@ -2136,7 +2225,7 @@ function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
 end
 
 @doc raw"""
-   rss_associahedron(n::Int)
+    rss_associahedron(n::Int)
 
 Produce a polytope of constrained expansions in ambient dimension `n` according to [RSS03](@cite).
 
@@ -2164,7 +2253,7 @@ julia> vertices(a)
  [0, 3, 4, 15, 16]
 
 julia> facets(a) 
-9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^5 described by:
+9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^5 described by:
 x_1 - x_2 <= -1
 x_1 - x_3 <= -4
 x_1 - x_4 <= -9
@@ -2332,7 +2421,7 @@ Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex 
   Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
   Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\frac{1}{2}$. 
 
-# Example
+# Examples
 To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
 ```jldoctest
 julia> T = vertex_figure(cube(3), 8) 
@@ -2365,4 +2454,84 @@ function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scala
   return Polyhedron{T}(
     Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
   )
+end
+
+@doc raw"""
+    tutte_lifting(G::Graph{Undirected})
+
+Compute a realization of `G` in $\mathbb{R}^3$, i.e., a polyhedron whose edge graph is `G`.  Assumes that `G` is planar, 3-connected, and that is has a triangular facet.
+
+# Examples
+```jldoctest
+julia> G = vertex_edge_graph(simplex(3))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
+
+julia> pG = tutte_lifting(G)
+Polytope in ambient dimension 3
+
+julia> vertices(pG)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+ [1, 0, 1//3]
+ [0, 1, 0]
+ [1//3, 1//3, 0]
+
+julia> faces(IncidenceMatrix,pG,1)
+6×4 IncidenceMatrix
+[1, 2]
+[1, 3]
+[1, 4]
+[2, 3]
+[2, 4]
+[3, 4]
+
+```
+"""
+function tutte_lifting(G::Graph{Undirected})
+  pmG = Polymake.graph.Graph{Undirected}(; ADJACENCY=G)
+  return Polyhedron{QQFieldElem}(Polymake.polytope.tutte_lifting(pmG), QQ)
+end
+
+@doc raw"""
+    integer_hull(P::Polyhedron)
+
+Return the convex hull of the lattice points in `P`.  Works even for nonrational polytopes.
+
+# Examples
+```jldoctest
+julia> vertices(integer_hull(dodecahedron()))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [-1, 0, 0]
+ [0, -1, 0]
+ [0, 0, -1]
+ [0, 0, 1]
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function integer_hull(P::Polyhedron{T}) where {T<:scalar_types}
+  return convex_hull(lattice_points(P))
+end
+
+@doc raw"""
+    gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+
+Return the Gomory-Chvátal closure of a rational polyhedron; sometimes also called "elementary closure".
+
+Applying this function iteratively to any rational polytope yields the integer hull after finitely many steps.
+[Sch86](@cite).
+
+# Examples
+```jldoctest
+julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0]
+ [1, 1]
+ [0, 1]
+ [0, 0]
+```
+"""
+function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+  return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
 end

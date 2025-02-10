@@ -29,13 +29,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   function pure(g::FreeModElem...)
     @assert length(g) == length(G)
     @assert all(i -> parent(g[i]) === G[i], 1:length(G))
-    z = [[x] for x = g[1].coords.pos]
-    zz = g[1].coords.values
+    z = [[x] for x = coordinates(g[1]).pos]
+    zz = coordinates(g[1]).values
     for h = g[2:end]
       zzz = Vector{Int}[]
       zzzz = elem_type(F.R)[]
       for i = 1:length(z)
-        for (p, v) = h.coords
+        for (p, v) in coordinates(h)
           push!(zzz, push!(deepcopy(z[i]), p))
           push!(zzzz, zz[i]*v)
         end
@@ -43,19 +43,20 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
       z = zzz
       zz = zzzz
     end
-    indices = Vector{Int}([findfirst(x->x == y, t) for y = z])
+    indices = Vector{Int}([findfirst(==(y), t) for y = z])
     return FreeModElem(sparse_row(F.R, indices, zz), F)
   end
   function pure(T::Tuple)
     return pure(T...)
   end
   function inv_pure(e::FreeModElem)
-    if length(e.coords.pos) == 0
+    c = coordinates(e)
+    if length(c.pos) == 0
       return Tuple(zero(g) for g = G)
     end
-    @assert length(e.coords.pos) == 1
-    @assert isone(e.coords.values[1])
-    return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
+    @assert length(c.pos) == 1
+    @assert isone(c.values[1])
+    return Tuple(gen(G[i], t[c.pos[1]][i]) for i = 1:length(G))
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
@@ -83,7 +84,7 @@ If `task = :map`, additionally return the map which sends a tuple $(m_1,\dots, m
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -139,10 +140,10 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   
   function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
-    coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coordinates(x) for x = tuple_elems))])
+    coeffs_tuples = vec([x for x in Base.Iterators.ProductIterator(coordinates.(tuple_elems))])
     res = zero(s)
     for coeffs_tuple in coeffs_tuples
-      indices = map(x -> x[1], coeffs_tuple)
+      indices = map(first, coeffs_tuple)
       coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
       res += coeff_for_pure*tuples_pure_tensors_dict[indices]
     end

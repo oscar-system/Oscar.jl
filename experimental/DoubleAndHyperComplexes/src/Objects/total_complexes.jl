@@ -27,7 +27,7 @@ function (fac::TotalComplexChainFactory{ChainType})(c::AbsHyperComplex, I::Tuple
   if all(k->has_lower_bound(orig, k), 1:dim(orig))
     b0 = [lower_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
-    for j in MultiIndicesOfDegree(dim(orig), d - b)
+    for j in weak_compositions(d - b, dim(orig))
       j = j + b0
       any(k->(has_upper_bound(orig, k) && j[k] > upper_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
@@ -40,7 +40,7 @@ function (fac::TotalComplexChainFactory{ChainType})(c::AbsHyperComplex, I::Tuple
   else # all(k->has_upper_bound(orig, k), 1:dim(orig)) must be true then
     b0 = [upper_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
-    for j in MultiIndicesOfDegree(dim(orig), b - d)
+    for j in weak_compositions(b - d, dim(orig))
       j = b0 - j
       any(k->(has_lower_bound(orig, k) && j[k] < lower_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
@@ -124,7 +124,7 @@ function (fac::TotalComplexMapFactory)(c::AbsHyperComplex, p::Int, I::Tuple)
     for k in 1:dim(orig)
       target = collect(J) + (direction(orig, k) == :chain ? -1 : 1)*[(l == k ? 1 : 0) for l in 1:dim(orig)]
       T = Tuple(target)
-      index_in_cod = findfirst(t->t == T, index_cache(chain_fac)[next])
+      index_in_cod = findfirst(==(T), index_cache(chain_fac)[next])
       index_in_cod === nothing && continue
       phi = map(orig, k, J)
       @assert codomain(phi) === orig[T]
@@ -172,7 +172,7 @@ function can_compute(fac::TotalComplexChainFactory{ChainType}, c::AbsHyperComple
     b0 = [lower_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
     d - b < 0 && return false
-    for j in MultiIndicesOfDegree(dim(orig), d - b)
+    for j in weak_compositions(d - b, dim(orig))
       j = j + b0
       any(k->(has_upper_bound(orig, k) && j[k] > upper_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
@@ -182,7 +182,7 @@ function can_compute(fac::TotalComplexChainFactory{ChainType}, c::AbsHyperComple
     b0 = [upper_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
     b - d < 0 && return false
-    for j in MultiIndicesOfDegree(dim(orig), b - d)
+    for j in weak_compositions(b - d, dim(orig))
       j = b0 - j
       J = Tuple(j)
       can_compute_index(orig, J) && return true
@@ -228,7 +228,7 @@ end
 function injection(tot::TotalComplex, i::Tuple)
   d = sum(i)
   v = indices_in_summand(tot, d)
-  k = findfirst(k->k==i, v)
+  k = findfirst(==(i), v)
   k === nothing && return nothing
   return injections_for_summand(tot, d)[k]
 end
@@ -236,7 +236,7 @@ end
 function projection(tot::TotalComplex, i::Tuple)
   d = sum(i)
   v = indices_in_summand(tot, d)
-  k = findfirst(k->k==i, v)
+  k = findfirst(==(i), v)
   k === nothing && return nothing
   return projections_for_summand(tot, d)[k]
 end

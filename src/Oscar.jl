@@ -19,10 +19,13 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
-using Preferences
 using LazyArtifacts
 
 include("imports.jl")
+
+AbstractAlgebra.@include_deprecated_bindings()
+Nemo.@include_deprecated_bindings()
+Hecke.@include_deprecated_bindings()
 
 include("utils/utils.jl")
 
@@ -38,14 +41,23 @@ if Sys.iswindows()
   windows_error()
 end
 
-function _print_banner()
-  if displaysize(stdout)[2] >= 79
+function _print_banner(;is_dev = Oscar.is_dev)
+  # lets assemble a version string for the banner
+  version_string = string(VERSION_NUMBER)
+  if is_dev
+    gitinfo = _get_oscar_git_info()
+    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+  else
+    version_string = "Version " * version_string
+  end
+
+  if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
              / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
             | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
             | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
@@ -59,7 +71,7 @@ function __init__()
   # initialize random seed
   set_seed!(rand(UInt32))
 
-  if isinteractive() && Base.JLOptions().banner != 0
+  if AbstractAlgebra.should_show_banner()
     _print_banner()
   end
 
@@ -71,32 +83,23 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
-  __GAP_info_messages_off()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
-  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
-  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
-    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
-  end
-  # We want newer versions of some GAP packages than the distributed ones.
-  # (But we do not complain if the installation fails.)
-  for (pkg, version) in [
-     ("repsn", "3.1.1"),
-     ]
-    GAP.Packages.install(pkg, version, interactive = false, quiet = true)
-  end
-  # We need some GAP packages.
+
+  # We need some GAP packages (currently with unspecified versions).
   for pkg in [
      "atlasrep",
+     "browse",   # needed for all_character_table_names doctest
      "ctbllib",  # character tables
      "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
+     "ferret",   # backtrack in permutation groups
      "fga",      # dealing with free groups
      "forms",    # bilinear/sesquilinear/quadratic forms
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
+     "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
      "smallgrp", # small groups library
      "transgrp", # transitive groups library
@@ -104,16 +107,21 @@ function __init__()
      ]
     GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
   end
-  # We want some GAP packages. (It is no error if they cannot be loaded.)
-  for pkg in [
-     "ferret",   # backtrack in permutation groups
-     ]
-    GAP.Packages.load(pkg)
-  end
+  # Load the OscarInterface package in the end.
+  # It needs some other GAP packages,
+  # and is not needed by packages that can be loaded before Oscar.
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
+  # Switch off GAP's info messages,
+  # also those that are triggered from GAP packages.
+  __GAP_info_messages_off()
   __init_group_libraries()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
+  
+  add_verbosity_scope(:EnriquesAuto)
+  add_assertion_scope(:EnriquesAuto)
 
   add_verbosity_scope(:EllipticSurface)
   add_assertion_scope(:EllipticSurface)
@@ -147,6 +155,12 @@ function __init__()
 
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
+  
+  add_assertion_scope(:Vinberg)
+  add_verbosity_scope(:Vinberg)
+
+  add_assertion_scope(:IdealSheaves)
+  add_verbosity_scope(:IdealSheaves)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
@@ -233,6 +247,7 @@ include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/vinberg.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
@@ -243,8 +258,10 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
-include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+
+include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
@@ -258,21 +275,16 @@ include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
+include("LieTheory/LieTheory.jl")
+
+include("Misc/Misc.jl")
+
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should
 # be written inside the corresponding experimental code sub directory
 include("Serialization/main.jl")
 
 include("../experimental/Experimental.jl")
-
-include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
-
-if is_dev
-#  include("../examples/ModStdNF.jl")
-#  include("../examples/ModStdQ.jl")
-#  include("../examples/ModStdQt.jl")
-  include("../examples/PrimDec.jl")
-end
 
 include("deprecations.jl")
 

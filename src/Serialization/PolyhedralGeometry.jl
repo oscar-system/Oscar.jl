@@ -21,7 +21,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   dict = Dict{Symbol, Any}(s.obj)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
   return bigobject
 end
 
@@ -87,14 +87,24 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-  save_data_dict(s) do 
+  save_data_dict(s) do
     save_object(s, lp.feasible_region, :feasible_region)
     save_object(s, lp.convention, :convention)
     save_json(s, jsonstr, :lpcoeffs)
   end
 end
 
+function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
+  lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
+  save_lp(lp_filename, lp)
+
+  save_object(s, basename(lp_filename))
+end
+
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
+  if s.obj isa String
+    error("Loading this file requires using the LPSerializer")
+  end
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
@@ -111,6 +121,14 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   end
   lp = Polymake._lookup_multi(pm_object(fr), "LP", index-1)
   return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
+end
+
+function load_object(s::DeserializerState{LPSerializer},
+                     ::Type{<:LinearProgram}, field::QQField)
+  load_node(s) do _
+    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj)"
+    pm_lp = load_lp(lp_filename)
+  end
 end
 
 ##############################################################################
@@ -133,7 +151,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQField
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField) 
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do coeffs
@@ -150,7 +168,7 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
       json(vars)
     )
   end
-  
+
   all = Polymake._lookup_multi(pm_object(fr), "MILP")
   index = 0
   for i in 1:length(all)
@@ -170,4 +188,3 @@ end
 @register_serialization_type Polyhedron uses_params
 @register_serialization_type PolyhedralFan uses_params
 @register_serialization_type SubdivisionOfPoints uses_params
-

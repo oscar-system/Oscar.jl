@@ -1,0 +1,14 @@
+julia> plueckerIndices = [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]];
+
+julia> algebraicPlueckerVector = [0,-1,-1,1,1,1];
+
+julia> TropL1 = tropical_linear_space(plueckerIndices,
+                                      algebraicPlueckerVector,
+                                      nu)
+Min tropical linear space
+
+julia> tropicalPlueckerVector = nu.(algebraicPlueckerVector);
+
+julia> TropL2 = tropical_linear_space(plueckerIndices,
+                                      tropicalPlueckerVector)
+Min tropical linear space

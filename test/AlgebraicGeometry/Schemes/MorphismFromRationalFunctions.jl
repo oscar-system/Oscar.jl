@@ -32,7 +32,7 @@ end
   I2 = ideal(S, [x, z])
   I3 = ideal(S, [y, z])
   I = I1*I2*I3
-  II = simplify!(IdealSheaf(IP2_proj, I))
+  II = simplify(IdealSheaf(IP2_proj, I))
   bl = blow_up(II)
   X = domain(projection(bl))
   set_attribute!(X, :is_irreducible, true)
@@ -59,11 +59,11 @@ end
   E1, E2, E3 = weil_divisor.(components(E))
   set_attribute!(Phi, :is_isomorphism, true)
   pbE1 = pushforward(Phi)(E1)
-  @test any(x->x==pbE1, H)
+  @test any(==(pbE1), H)
   pbE2 = pushforward(Phi)(E2)
-  @test any(x->x==pbE2, H)
+  @test any(==(pbE2), H)
   pbE3 = pushforward(Phi)(E3)
-  @test any(x->x==pbE3, H)
+  @test any(==(pbE3), H)
 
   # Test the different versions of realization and their compatibility
   realizations = []

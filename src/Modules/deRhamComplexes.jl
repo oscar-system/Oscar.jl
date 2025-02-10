@@ -15,7 +15,7 @@ function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=t
   n = ngens(R)
   result = FreeMod(R, n)
   symb = symbols(R)
-  result.S = [Symbol("d"*String(symb[i])) for i in 1:n]
+  result.S = [Symbol(:d, symb[i]) for i in 1:n]
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
@@ -30,7 +30,7 @@ function kaehler_differentials(R::MPolyDecRing; cached::Bool=true)
   n = ngens(R)
   result = graded_free_module(R, [1 for i in 1:n])
   symb = symbols(R)
-  result.S = [Symbol("d"*String(symb[i])) for i in 1:n]
+  result.S = [Symbol(:d, symb[i]) for i in 1:n]
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
@@ -126,7 +126,7 @@ Internal method to check whether a module `M` was created as
 some ``p``-th exterior power of the Kaehler differentials 
 ``Ω¹(R/𝕜)`` of some ``𝕜``-algebra ``R``. 
 
-Returns `(true, R, p)` in the affirmative case and 
+Return `(true, R, p)` in the affirmative case and 
 `(false, base_ring(M), 0)` otherwise.
 """
 function is_kaehler_differential_module(M::ModuleFP)
@@ -138,7 +138,7 @@ end
 @doc raw"""
     de_rham_complex(R::Ring; cached::Bool=true)
 
-Constructs the relative de Rham complex of a ``𝕜``-algebra `R` 
+Construct the relative de Rham complex of a ``𝕜``-algebra `R`
 as a `ComplexOfMorphisms`.
 """
 function de_rham_complex(R::Ring; cached::Bool=true)

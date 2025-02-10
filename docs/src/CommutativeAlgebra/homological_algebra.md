@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Homological Algebra
@@ -11,6 +9,13 @@ Some OSCAR functions which are fundamental to homological algebra such as the `k
 for module homomorphisms and basic functions for handling chain and cochain complexes are
 discussed in the module section. Building on these functions, we here introduce further OSCAR functionality
 supporting computations in homological algebra.
+
+
+## Pruning Modules
+
+```@docs
+prune_with_map(M::ModuleFP)
+```
 
 ## Presentations
 
@@ -24,7 +29,7 @@ presentation(M::ModuleFP)
 present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 ```
 
-## Syzygies and Free Resolutions
+## Free Resolutions
 
 ```@docs
 free_resolution(M::SubquoModule{<:MPolyRingElem}; 

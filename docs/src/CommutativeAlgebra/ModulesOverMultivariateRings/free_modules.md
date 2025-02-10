@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Free Modules
+# [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
 over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
@@ -69,7 +67,7 @@ If `F` is a free `R`-module, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -116,7 +114,7 @@ Alternatively, directly write the element as a linear combination of basis vecto
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -140,7 +138,7 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -148,7 +146,7 @@ julia> f = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
 
 julia> parent(f)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> coordinates(f)
 Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]

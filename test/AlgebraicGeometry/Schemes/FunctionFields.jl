@@ -1,5 +1,34 @@
+const rng = Oscar.get_seeded_rng()
+
+if !isdefined(Main, :test_Field_interface)
+  import Oscar.AbstractAlgebra
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+end
+
+function test_elem(K::VarietyFunctionField)
+  F = representative_field(K)
+  P = base_ring(F)::MPolyRing
+  num = rand(P, 0:5, 0:5, 0:5)
+  den = zero(P)
+  while is_zero(den)
+    den = rand(P, 1:5, 1:5, 1:5)
+  end
+  return K(num, den)
+end
+
 @testset "fraction fields of varieties" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  P = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P)
+  C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
+  Ccov = covered_scheme(C)
+  KK = VarietyFunctionField(Ccov)
+
+  test_Field_interface(KK)
+  #test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
+end
+
+@testset "fraction fields of varieties" begin
+  R, (x,y,z) = QQ[:x, :y, :z]
   @test is_irreducible(spec(R))
   @test is_irreducible(spec(R, ideal(R, x)))
   @test !is_irreducible(spec(R, ideal(R, x*y)))
@@ -25,7 +54,7 @@ end
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, _ = graded_polynomial_ring(kk, ["s", "t"])
+  S, _ = graded_polynomial_ring(kk, [:s, :t])
 
   base_P1 = proj(S)
 
@@ -119,7 +148,7 @@ end
 end
 
 @testset "pullbacks for function fields" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   (x, y, z) = gens(homogeneous_coordinate_ring(P))
   Y = covered_scheme(P)
   II = ideal_sheaf(P, [x,y])
@@ -143,7 +172,7 @@ end
 end
 
 @testset "refinements" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(S)
   Y = covered_scheme(P)

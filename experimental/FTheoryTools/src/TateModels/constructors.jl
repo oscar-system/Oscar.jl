@@ -25,20 +25,20 @@ The only difference is that the Tate sections ``a_i`` can be specified with non-
 
 # Examples
 ```jldoctest
-julia> base = sample_toric_variety()
+julia> chosen_base = sample_toric_variety()
 Normal toric variety
 
-julia> a1 = generic_section(anticanonical_bundle(base));
+julia> a1 = generic_section(anticanonical_bundle(chosen_base));
 
-julia> a2 = generic_section(anticanonical_bundle(base)^2);
+julia> a2 = generic_section(anticanonical_bundle(chosen_base)^2);
 
-julia> a3 = generic_section(anticanonical_bundle(base)^3);
+julia> a3 = generic_section(anticanonical_bundle(chosen_base)^3);
 
-julia> a4 = generic_section(anticanonical_bundle(base)^4);
+julia> a4 = generic_section(anticanonical_bundle(chosen_base)^4);
 
-julia> a6 = generic_section(anticanonical_bundle(base)^6);
+julia> a6 = generic_section(anticanonical_bundle(chosen_base)^6);
 
-julia> t = global_tate_model(base, [a1, a2, a3, a4, a6]; completeness_check = false)
+julia> t = global_tate_model(chosen_base, [a1, a2, a3, a4, a6]; completeness_check = false)
 Global Tate model over a concrete base
 ```
 """
@@ -59,10 +59,10 @@ function global_tate_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "a4") "Tate section a4 must be specified"
   @req haskey(explicit_model_sections, "a6") "Tate section a6 must be specified"
   vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["a1", "a2", "a3", "a4", "a6"], vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
+  @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+  gens_base_names = symbols(cox_ring(base))
+  if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
@@ -75,7 +75,8 @@ function global_tate_model(base::NormalToricVariety,
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
   D2 = 3 * anticanonical_divisor_class(base)
-  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  D3 = trivial_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, [D1, D2, D3])
   
   # construct the model
   ais = [explicit_model_sections["a1"], explicit_model_sections["a2"], explicit_model_sections["a3"], explicit_model_sections["a4"], explicit_model_sections["a6"]]
@@ -115,7 +116,7 @@ The following code exemplifies this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 2×6 Matrix{Int64}:
@@ -143,7 +144,7 @@ Global Tate model over a not fully specified base
 function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   
   # Execute consistency checks
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  gens_base_names = [string(g) for g in symbols(auxiliary_base_ring)]
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
@@ -169,7 +170,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 
   # Compute defining_section_parametrization
   defining_section_parametrization = Dict{String, MPolyRingElem}()
-  vars_S = [string(k) for k in gens(S)]
+  vars_S = [string(k) for k in symbols(S)]
   if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
     defining_section_parametrization["a1"] = a1
   end
@@ -211,16 +212,16 @@ function Base.show(io::IO, t::GlobalTateModel)
     push!(properties_string, "not fully specified base")
   end
   if has_model_description(t)
-    push!(properties_string, "-- " * string(get_attribute(t, :model_description)))
+    push!(properties_string, "-- " * model_description(t))
     if has_model_parameters(t)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
   if has_arxiv_id(t)
-    push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))
+    push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
   if has_arxiv_model_equation_number(t)
-    push!(properties_string, "Eq. (" * string(get_attribute(t, :arxiv_model_equation_number)) * ")")
+    push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
 end

@@ -18,7 +18,7 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
+julia> R,(x,y) = polynomial_ring(QQ, [:x,:y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2-y^2, x+1])
@@ -79,7 +79,7 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"])
+julia> R,(x1,x2,x3) = polynomial_ring(QQ, [:x1,:x2,:x3])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
@@ -137,7 +137,7 @@ Given a zero-dimensional ideal, return all rational elements of the vanishing
 set.
 
 ```jldoctest
-julia> R, (x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"]);
+julia> R, (x1,x2,x3) = polynomial_ring(QQ, [:x1,:x2,:x3]);
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2]);
 
@@ -161,7 +161,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   @req dim(I) == 0 "Dimension must be zero"
   @assert length(gb) == ngens(base_ring(I))
   R = base_ring(I)
-  Qx, _ = polynomial_ring(base_ring(R), cached = false)
+  Qx, _ = polynomial_ring(base_ring(R); cached = false)
   rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
   i = ngens(R)
   for f in gb
@@ -205,7 +205,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem})
   #TODO: make this work for non-standard gradings
   S = base_ring(I)
   R = S.R
-  RS, _ = polynomial_ring(base_ring(R), ngens(S) - 1, cached = false)
+  RS, _ = polynomial_ring(base_ring(R), ngens(S) - 1; cached = false)
   Q = base_ring(R)
   all_S = Vector{elem_type(Q)}[]
   for i=1:ngens(S)
