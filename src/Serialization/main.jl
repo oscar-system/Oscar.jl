@@ -496,7 +496,7 @@ See [`load`](@ref).
 
 # Examples
 
-```jldoctest
+```jldoctest; setup = :(rm("/tmp/fourtitwo.mrdi"; force=true))
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
 Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
@@ -583,7 +583,7 @@ See [`save`](@ref).
 
 # Examples
 
-```jldoctest
+```jldoctest; setup = :(rm("/tmp/fourtitwo.mrdi"; force=true); rm("/tmp/p.mrdi"; force=true); rm("/tmp/p_v.mrdi"; force=true))
 julia> save("/tmp/fourtitwo.mrdi", 42);
 
 julia> load("/tmp/fourtitwo.mrdi")
