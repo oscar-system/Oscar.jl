@@ -26,6 +26,7 @@ import Base: length
 # - the list of Minkowski gens contains too many elements, only include those that give us something new
 
 include("LieAlgebras.jl")
+include("ModuleData.jl")
 include("BirationalSequence.jl")
 include("MonomialBasis.jl")
 include("NewMonomial.jl")
