@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-###################################################
-#### PARAMETRIZATION IN PROBABLITY COORDINATES ####
-###################################################
-=======
 ####################################################
 #### PARAMETRIZATION IN PROBABILITY COORDINATES ####
 ####################################################
->>>>>>> master
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
