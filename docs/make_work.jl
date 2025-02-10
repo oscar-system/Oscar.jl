@@ -217,9 +217,9 @@ function doit(
   # extract valid json from search_index.js
   run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it
   
-  # extract paths from doc.main
+  # extract paths from doc
   filelist=String[]
-  docmain = include(joinpath(docspath, "doc.main"))
+  docmain = doc
   while !isempty(docmain)
     n = pop!(docmain)
     if n isa Pair

@@ -60,8 +60,7 @@ blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_s
 ```@docs
 underlying_morphism(bl::ToricBlowupMorphism)
 index_of_exceptional_ray(bl::ToricBlowupMorphism)
-center_data(bl::ToricBlowupMorphism)
-center_unnormalized(bl::ToricBlowupMorphism)
+minimal_supercone_coordinates_of_exceptional_ray(f::ToricBlowupMorphism)
 exceptional_prime_divisor(bl::ToricBlowupMorphism)
 ```
 Based on `underlying_morphism`, also the following attributes of toric

@@ -1315,6 +1315,42 @@ julia> h = euler_characteristic(qsm_model; check = false)
 end
 
 
+@doc raw"""
+    tunable_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that can be tuned.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> length(tunable_sections(m))
+9
+```
+"""
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+
+
+@doc raw"""
+    model_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that were used in the definition of the model.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> length(model_sections(m))
+9
+```
+"""
+model_sections(m::AbstractFTheoryModel) = tunable_sections(m)
+
+
 
 ##########################################
 ### (4) Attributes specially for the QSMs
