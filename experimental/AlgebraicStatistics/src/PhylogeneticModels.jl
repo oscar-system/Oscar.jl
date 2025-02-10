@@ -248,9 +248,8 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b 
-    b a]) for (a,b,e) in zip(list_a, list_b, edgs)
-                                 )
-  
+    b a]) for (a,b,e) in zip(list_a, list_b, edgs))
+
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
@@ -291,9 +290,8 @@ function jukes_cantor_model(graph::Graph{Directed})
     a b b b
     b a b b
     b b a b
-    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs)
-                                 )
-  
+    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs))
+  y
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
@@ -335,8 +333,7 @@ function kimura2_model(graph::Graph{Directed})
     a b c b
     b a b c
     c b a b
-    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edgs)
-                                 )
+    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edgs))
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
@@ -378,8 +375,7 @@ function kimura3_model(graph::Graph{Directed})
     a b c d
     b a d c
     c d a b
-    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edgs)
-                                 )
+    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edgs))
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:4); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
