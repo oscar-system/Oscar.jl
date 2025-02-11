@@ -45,9 +45,9 @@ index_of_exceptional_ray(phi::ToricBlowupMorphism) = phi.index_of_exceptional_ra
     minimal_supercone_coordinates_of_exceptional_ray(phi::ToricBlowupMorphism) -> Vector{QQFieldElem}
 
 Let $\varphi\colon Y \to X$ be the toric blowup corresponding to a star
-subdivision along a ray with minimal generator $r$.
-This function returns the minimal supercone coordinate vector of $r$ in the fan of $X$.
-See `?minimal_supercone_coordinates` for more details.
+subdivision along a primitive vector $r$ in the support of the fan of $X$.
+This function returns the minimal supercone coordinate vector of $r$
+(the output of `minimal_supercone_coordinates(polyhedral_fan(X), r)`).
 
 # Examples
 ```jldoctest
