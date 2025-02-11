@@ -11,15 +11,12 @@
 # A version ending in .0 is consider MAJOR, any other MINOR
 # Don't use this with versions like 4.13.0-beta1
 
-import gzip
 import json
 import os
 import subprocess
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, TextIO
-
-import requests
+from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
