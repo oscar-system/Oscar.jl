@@ -1,14 +1,17 @@
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
+function params_all_equal(params::Vector{<:TypeParams})
+  all(map(x -> isequal(first(params), x), params))
+end
+
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
     return TypeParams(S, TypeParams(T, nothing))
   end
   
   params = type_params.(obj)
-  params_all_equal = all(map(x -> isequal(first(params), x), params))
-  @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -261,26 +264,31 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict
 
-# we might need something like this to get put_type_params to work in the
-# simple_parallelization_framework
-
-# function type_params(obj::Dict{S, T}) where {S, T}
-#   is_empty(obj) && return nothing
-#   result = Dict{S, Any}()
-#   for (key, val) in obj
-#     val_params = type_params(val)
-#     val_params === nothing && continue
-#     result[key] = val_params
-#   end
-#   is_empty(result) && return nothing
-#   return TypeParams(
-#     map(x -> x.first => type_params(x.second), collect(pairs(result)))...
-#   )
-
-function type_params(obj::T) where T <: Dict
+function type_params(obj::Dict{S, T}) where {S <: Union{Symbol, Int, String}, T}
   return TypeParams(
-    T, 
+    Dict, 
     map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
+  )
+end
+
+function type_params(obj::Dict{S, T}) where {S, T}
+  if isempty(obj)
+    return TypeParams(
+      Dict,
+      :key_params => TypeParams(S, nothing),
+      :value_params => TypeParams(T, nothing)
+    )
+  end
+  key_params = Oscar.type_params.(collect(keys(obj)))
+  @req params_all_equal(key_params) "Not all params of keys in $obj are the same"
+
+  value_params = type_params.(collect(values(obj)))
+  @req params_all_equal(value_params) "Not all params of values in $obj are the same"
+
+  return TypeParams(
+    Dict, 
+    :key_params => first(key_params),
+    :value_params => first(value_params)
   )
 end
 
@@ -293,6 +301,20 @@ function save_type_params(
       save_object(s, encode_type(S), :key_type)
       isempty(params(tp)) && save_object(s, encode_type(T), :value_type)
       for (k, param_tp) in params(tp)
+        save_type_params(s, param_tp, Symbol(k))
+      end
+    end
+  end
+end
+
+function save_type_params(
+  s::SerializerState,
+  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{<:Pair}}}) where {T, S}
+  save_data_dict(s) do
+    save_object(s, encode_type(Dict), :name)
+    save_data_dict(s, :params) do
+      for (k, param_tp) in params(tp)
+        println(param_tp)
         save_type_params(s, param_tp, Symbol(k))
       end
     end

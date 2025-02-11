@@ -17,22 +17,6 @@ function save_type_params(s::SerializerState, h::HypersurfaceModel)
   end
 end
 
-
-############################################################################
-# This function loads the types of the data that define a hypersurface model
-############################################################################
-
-function load_type_params(s::DeserializerState, ::Type{<:HypersurfaceModel})
-  return (
-    load_typed_object(s, :base_space),
-    load_typed_object(s, :ambient_space),
-    load_typed_object(s, :fiber_ambient_space),
-    load_typed_object(s, :hypersurface_equation_ring),
-    load_typed_object(s, :hypersurface_equation_parametrization_ring)
-  )
-end
-
-
 ##########################################
 # This function saves a hypersurface model
 ##########################################
@@ -132,8 +116,12 @@ end
 # This function loads a hypersurface model
 ##########################################
 
-function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
-  base_space, amb_space, fiber_ambient_space, R1, R2 = params
+function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Dict)
+  base_space = params[:base_space]
+  amb_space = params[:ambient_space]
+  fiber_ambient_space = params[:fiber_ambient_space]
+  R1 = params[:hypersurface_equation_ring]
+  R2 = params[:hypersurface_equation_parametrization_ring]
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
