@@ -1,33 +1,32 @@
 @attributes mutable struct MonomialBasis
-  modul::ModuleData
+  V::ModuleData
   birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
-  dimension::Int
   monomials::Set{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
 
   function MonomialBasis(
-    modul::ModuleData,
+    V::ModuleData,
     birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   )
+  @req dim(V) = length(monomials)
     return new(
-      modul,
+      V,
       birational_seq,
       monomial_ordering,
-      length(monomials),
       monomials,
       parent(first(monomials)),
     )
   end
 end
 
-base_lie_algebra(basis::MonomialBasis) = base_lie_algebra(basis.modul)
+base_lie_algebra(basis::MonomialBasis) = base_lie_algebra(basis.V)
 
-highest_weight(basis::MonomialBasis) = highest_weight(basis.modul)
+highest_weight(basis::MonomialBasis) = highest_weight(basis.V)
 
-dim(basis::MonomialBasis) = basis.dimension
+dim(basis::MonomialBasis) = dim(basis.V)
 length(basis::MonomialBasis) = dim(basis)
 
 monomials(basis::MonomialBasis) = basis.monomials
