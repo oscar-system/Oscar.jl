@@ -19,11 +19,11 @@ end
 
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
     -> ToricBlowupMorphism
 
 Star subdivide the fan $\Sigma$ of the toric variety $X$ along the
-primitive vector `primitive_vector` in the support of $\Sigma$ (Section
+primitive vector `r` in the support of $\Sigma$ (Section
 11.1 Star Subdivisions in [CLS11](@cite)).
 This function returns the corresponding morphism.
 
@@ -52,9 +52,9 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [0 -1]
 ```
 """
-function blow_up(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(X, coordinate_name)
-  return ToricBlowupMorphism(X, primitive_vector, coordinate_name)
+  return ToricBlowupMorphism(X, r, coordinate_name)
 end
 
 @doc raw"""
