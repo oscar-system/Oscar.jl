@@ -1,7 +1,7 @@
 function basis_lie_highest_weight_compute(
   M::ModuleData,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
-  monomial_ordering_symb::Symbol
+  monomial_ordering_symb::Symbol,
 )
   # Pseudocode:
 
