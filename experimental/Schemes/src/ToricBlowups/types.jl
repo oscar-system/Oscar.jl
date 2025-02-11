@@ -37,7 +37,7 @@
     end
     set_attribute!(Y, :coordinate_names, var_names_Y)
     if n_rays(Y) > n_rays(X)
-      @assert coordinate_name in coordinate_names(Y) "Desired blowup variable name was not assigned"
+      @req coordinate_name in coordinate_names(Y) "Desired blowup variable name was not assigned"
     end
 
     # Construct the toric morphism

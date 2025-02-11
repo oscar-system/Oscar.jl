@@ -101,7 +101,7 @@ function exceptional_prime_divisor(phi::ToricBlowupMorphism)
     j = index_of_exceptional_ray(phi)
     help_list = [i == j ? 1 : 0 for i in 1:ngens(S)]
     E = toric_divisor(X, help_list)
-    @assert is_prime(E) "exceptional prime divisor must be prime"
+    @req is_prime(E) "exceptional prime divisor must be prime"
     phi.exceptional_prime_divisor = E
   end
   return phi.exceptional_prime_divisor
