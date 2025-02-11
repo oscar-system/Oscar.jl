@@ -16,13 +16,13 @@ mutable struct SimpleModuleData <: ModuleData
     dim::ZZRingElem
     character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function SimpleModuleData(base_lie_algebra::LieAlgebra, highest_weight::WeightLatticeElem)
-        new(base_lie_algebra, highest_weight)
+    function SimpleModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem)
+        new(L, highest_weight)
     end
 end
 
 function base_lie_algebra(V::SimpleModuleData)
-    return V.base_lie_algebra
+    return V.L
 end
 
 function highest_weight(V::SimpleModuleData)
@@ -38,13 +38,13 @@ end
 
 function character(V::SimpleModuleData)
     if !isdefined(V, :character)
-        V.character = character(ZZRingElem, V.base_lie_algebra, V.highest_weight)
+        V.character = character(ZZRingElem, base_lie_algebra(V), highest_weight(V))
     end
     return V.character
 end
 
 mutable struct DemazureModuleData <: ModuleData
-    base_lie_algebra::LieAlgebra
+    L::LieAlgebra
     highest_weight::WeightLatticeElem
     weyl_group_elem::WeylGroupElem
 
@@ -52,13 +52,13 @@ mutable struct DemazureModuleData <: ModuleData
     dim::ZZRingElem
     character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function DemazureModuleData(base_lie_algebra::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
-        new(base_lie_algebra, highest_weight, weyl_group_elem)
+    function DemazureModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
+        new(L, highest_weight, weyl_group_elem)
     end
 end
 
-function base_lie_algebra(V::SimDemazuModuleData)
-    return V.base_lie_algebra
+function base_lie_algebra(V::DemazuModuleData)
+    return V.L
 end
 
 function highest_weight(V::DemazureModuleData)
@@ -67,7 +67,7 @@ end
 
 function character(V::DemazureModuleData)
     if !isdefined(V, :character)
-        V.character = demazure_character(ZZRingElem, V.base_lie_algebra, V.highest_weight, V.weyl_group_elem)
+        V.character = demazure_character(ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem)
     end
     return V.character
 end
