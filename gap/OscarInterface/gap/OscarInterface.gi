@@ -18,7 +18,7 @@ InstallOtherMethod( ImagesRepresentative,
 function( hom, elm )
     local data;
     data:= JuliaData( hom );
-    return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
+    return Oscar_jl.permutation(data[1], Oscar_jl.group_element(data[2], elm)).X;
 end );
 
 InstallMethod( RestrictedMapping,
@@ -31,8 +31,8 @@ function( hom, H )
     xset:= UnderlyingExternalSet( hom );
     Omega:= HomeEnumerator( xset ); # the set of Oscar objects
     Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
-    Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
-    OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
+    Hacts:= List( Hgens, x -> Oscar_jl.group_element( OscarG, x ) ); # corresponding Oscar generators of H
+    OscarH:= Oscar_jl._as_subgroup_bare( OscarG, H );
     res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
     SetJuliaData( res, [ data[1], OscarH ] );
     return res;
