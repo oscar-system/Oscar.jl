@@ -166,9 +166,8 @@ def changes_overview(
 ) -> None:
     """Writes files with information for release notes."""
 
-    month = datetime.now().month
-    year = datetime.now().year
-    day = datetime.now().day
+    date = datetime.now().strftime("%Y-%m-%d")
+    release_url = f"https://github.com/oscar-system/Oscar.jl/releases/tag/v{new_version}"
 
     # Could also introduce some consistency checks here for wrong combinations of labels
     newfile = './new.md'
@@ -187,7 +186,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [{new_version}] - {year}-{month}-{day}
+## [{new_version}]({release_url}) - {date}
 
 The following gives an overview of the changes compared to the previous release. This list is not
 complete, many more internal or minor changes were made, but we tried to only list those changes
@@ -222,7 +221,7 @@ which we think might affect some users directly.
             relnotes_file.write("\n")
 
         # Report PRs that have to be updated before inclusion into release notes.
-        relnotes_file.write("### " + "release notes: to be added" + "\n\n")
+        relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
         relnotes_file.write(
             "If there are any PRs listed below, check their title and labels.\n"
         )
@@ -239,7 +238,7 @@ which we think might affect some users directly.
         relnotes_file.write("\n")
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
-        relnotes_file.write("### Uncategorized PR" + "\n\n")
+        relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
         relnotes_file.write(
             "If there are any PRs listed below, either apply the same steps\n"
         )
