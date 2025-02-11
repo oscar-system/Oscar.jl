@@ -108,6 +108,7 @@ GAP.@wrap FreeGroupOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap FusionCharTableTom(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap FusionConjugacyClasses(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GaloisCyc(x::GAP.Obj, GapInt)::GAP.Obj
+GAP.@wrap GeneratorsOfAlgebra(x::GapObj)::GapObj
 GAP.@wrap GeneratorsOfField(x::GapObj)::GapObj
 GAP.@wrap GeneratorsOfGroup(x::GapObj)::GapObj
 GAP.@wrap GenExpList(x::GapObj)::GapObj

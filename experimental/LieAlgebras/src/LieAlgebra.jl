@@ -411,6 +411,21 @@ Return `true` if `L` is perfect, i.e. $[L, L] = L$.
 end
 
 @doc raw"""
+    is_semisimple(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is semisimple, i.e. the solvable radical of `L` is zero.
+
+!!! warning
+    This function is not implemented yet for all cases in positive characteristic.
+"""
+@attr Bool function is_semisimple(L::LieAlgebra)
+  has_attribute(L, :is_simple) && is_simple(L) && return true
+  is_invertible(killing_matrix(L)) && return true
+  characteristic(L) == 0 && return false
+  error("Not implemented.") # TODO
+end
+
+@doc raw"""
     is_simple(L::LieAlgebra) -> Bool
 
 Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial ideals.
