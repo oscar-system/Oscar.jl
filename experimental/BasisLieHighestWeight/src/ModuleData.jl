@@ -2,77 +2,79 @@ abstract type ModuleData end
 
 # To be implemented by subtypes:
 # Mandatory:
-#   dim(M::MyModuleData) -> ZZRingElem
-#   character(M::MyModuleData) -> Dict{WeightLatticeElem,ZZRingElem}
+#   base_lie_algebra(V::MyModuleData) -> LieAlgebra
+#   highest_weight(V::MyModuleData) -> WeightLatticeElem
+#   dim(V::MyModuleData) -> ZZRingElem
+#   character(V::MyModuleData) -> Dict{WeightLatticeElem,ZZRingElem}
 
 
 mutable struct SimpleModuleData <: ModuleData
-    L::LieAlgebra
+    base_lie_algebra::LieAlgebra
     highest_weight::WeightLatticeElem
 
     # The following fields are not set by default, just for caching
     dim::ZZRingElem
-    character::Dict{WeightLatticeElem,<:IntegerUnion}
+    character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function SimpleModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem)
-        new(L, highest_weight)
+    function SimpleModuleData(base_lie_algebra::LieAlgebra, highest_weight::WeightLatticeElem)
+        new(base_lie_algebra, highest_weight)
     end
 end
 
-function L(M::SimpleModuleData)
-    return M.L
+function base_lie_algebra(V::SimpleModuleData)
+    return V.base_lie_algebra
 end
 
-function highest_weight(M::SimpleModuleData)
-    return M.highest_weight
+function highest_weight(V::SimpleModuleData)
+    return V.highest_weight
 end
 
-function dim(M::SimpleModuleData)
-    if !isdefined(M, :dim)
-        M.dim = dim_of_simple_module(ZZRingElem, base_lie_algebra(M), highest_weight(M))
+function dim(V::SimpleModuleData)
+    if !isdefined(V, :dim)
+        V.dim = dim_of_simple_module(ZZRingElem, base_lie_algebra(V), highest_weight(V))
     end
-    return M.dim
+    return V.dim
 end
 
-function character(M::SimpleModuleData)
-    if !isdefined(M, :character)
-        M.character = LieAlgebraModule.character(ZZRingElem, M.L, M.highest_weight)
+function character(V::SimpleModuleData)
+    if !isdefined(V, :character)
+        V.character = character(ZZRingElem, V.base_lie_algebra, V.highest_weight)
     end
-    return M.character
+    return V.character
 end
 
 mutable struct DemazureModuleData <: ModuleData
-    L::LieAlgebra
+    base_lie_algebra::LieAlgebra
     highest_weight::WeightLatticeElem
     weyl_group_elem::WeylGroupElem
 
     # The following fields are not set by default, just for caching
     dim::ZZRingElem
-    character::Dict{WeightLatticeElem,<:IntegerUnion}
+    character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function DemazureModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
-        new(L, highest_weight, weyl_group_elem)
+    function DemazureModuleData(base_lie_algebra::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
+        new(base_lie_algebra, highest_weight, weyl_group_elem)
     end
 end
 
-function L(M::SimDemazuModuleData)
-    return M.L
+function base_lie_algebra(V::SimDemazuModuleData)
+    return V.base_lie_algebra
 end
 
-function highest_weight(M::DemazureModuleData)
-    return M.highest_weight
+function highest_weight(V::DemazureModuleData)
+    return V.highest_weight
 end
 
-function character(M::DemazureModuleData)
-    if !isdefined(M, :character)
-        M.character = demazure_character(ZZRingElem, M.L, M.highest_weight, M.weyl_group_elem)
+function character(V::DemazureModuleData)
+    if !isdefined(V, :character)
+        V.character = demazure_character(ZZRingElem, V.base_lie_algebra, V.highest_weight, V.weyl_group_elem)
     end
-    return M.character
+    return V.character
 end
 
-function dim(M::DemazureModuleData)
-    if !isdefined(M, :dim)
-        M.dim = sum(values(character(M)); init=zero(ZZ))
+function dim(V::DemazureModuleData)
+    if !isdefined(V, :dim)
+        V.dim = sum(values(character(V)); init=zero(ZZ))
     end
-    return M.dim
+    return V.dim
 end

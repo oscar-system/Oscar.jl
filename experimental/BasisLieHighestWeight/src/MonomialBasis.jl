@@ -1,6 +1,5 @@
 @attributes mutable struct MonomialBasis
-  lie_algebra::AbstractLieAlgebra{QQFieldElem}
-  highest_weight::WeightLatticeElem
+  modul::ModuleData
   birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
   dimension::Int
@@ -8,15 +7,13 @@
   monomials_parent::ZZMPolyRing
 
   function MonomialBasis(
-    lie_algebra::AbstractLieAlgebra{QQFieldElem},
-    highest_weight::WeightLatticeElem,
+    modul::ModuleData,
     birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   )
     return new(
-      lie_algebra,
-      highest_weight,
+      modul,
       birational_seq,
       monomial_ordering,
       length(monomials),
@@ -26,9 +23,9 @@
   end
 end
 
-base_lie_algebra(basis::MonomialBasis) = basis.lie_algebra
+base_lie_algebra(basis::MonomialBasis) = base_lie_algebra(basis.modul)
 
-highest_weight(basis::MonomialBasis) = basis.highest_weight
+highest_weight(basis::MonomialBasis) = highest_weight(basis.modul)
 
 dim(basis::MonomialBasis) = basis.dimension
 length(basis::MonomialBasis) = dim(basis)

@@ -130,15 +130,6 @@ function basis_lie_highest_weight(
   return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
 end
 
-function basis_lie_highest_weight_demazure(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::WeylGroupElem; monomial_ordering::Symbol=:degrevlex
-)
-  L = lie_algebra(QQ, type, rank)
-  M = DemazureModuleData(L, highest_weight, weyl_group_elem)
-  operators = operators_asc_height(L) #TODO: write different operators function
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering) 
-end
-
 function basis_lie_highest_weight(
   type::Symbol,
   rank::Int,
@@ -574,4 +565,13 @@ function basis_coordinate_ring_kodaira_ffl(
   return basis_coordinate_ring_kodaira_compute(
     L, highest_weight, degree, operators, monomial_ordering
   )
+end
+
+function basis_lie_highest_weight_demazure(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::WeylGroupElem; monomial_ordering::Symbol=:degrevlex
+)
+  L = lie_algebra(QQ, type, rank)
+  M = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = operators_asc_height(L) #TODO: write different operators function
+  return basis_lie_highest_weight_compute(M, operators, monomial_ordering) 
 end
