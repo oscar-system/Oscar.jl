@@ -44,14 +44,12 @@ blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothin
 ## Attributes
 
 ```@docs
-underlying_morphism(phi::ToricBlowupMorphism)
 index_of_exceptional_ray(phi::ToricBlowupMorphism)
 minimal_supercone_coordinates_of_exceptional_ray(phi::ToricBlowupMorphism)
 exceptional_prime_divisor(phi::ToricBlowupMorphism)
 center(phi::ToricBlowupMorphism)
 ```
-Based on `underlying_morphism`, also the following attributes of toric
-morphisms are supported for toric blowups:
+Also the following attributes of toric morphisms are supported for toric blowups:
 - `lattice_homomorphism(phi::ToricBlowupMorphism)`,
 - `morphism_on_torusinvariant_weil_divisor_group(phi::ToricBlowupMorphism)`,
 - `morphism_on_torusinvariant_cartier_divisor_group(phi::ToricBlowupMorphism)`,

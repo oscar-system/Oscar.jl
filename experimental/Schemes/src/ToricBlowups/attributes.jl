@@ -1,24 +1,20 @@
 export exceptional_prime_divisor
 
-@doc raw"""
-    underlying_morphism(phi::ToricBlowupMorphism) -> ToricMorphism
-
-Return the underlying toric morphism of a toric blowup. Access to other
-attributes such as `domain`, `codomain`, `covering_morphism` are
-executed via `underlying_morphism`.
-
-# Examples
-```jldoctest
-julia> X = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> phi = blow_up(X, [0, 1, 1])
-Toric blowup morphism
-
-julia> Oscar.underlying_morphism(phi)
-Toric morphism
-```
-"""
+# Return the underlying toric morphism of a toric blowup. Access to other
+# attributes such as `domain`, `codomain`, `covering_morphism` are
+# executed via `underlying_morphism`.
+# Example:
+# ```jldoctest
+# julia> X = projective_space(NormalToricVariety, 3)
+# Normal toric variety
+#
+# julia> phi = blow_up(X, [0, 1, 1])
+# Toric blowup morphism
+#
+# julia> Oscar.underlying_morphism(phi)
+# Toric morphism
+# ```
+# """
 underlying_morphism(phi::ToricBlowupMorphism) = phi.toric_morphism
 
 @doc raw"""
