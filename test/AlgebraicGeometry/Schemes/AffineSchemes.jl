@@ -266,20 +266,28 @@ end
   P = OO(IA2)
   x, y = gens(P)
 
-  X = subscheme(IA2, x^2 + y^2)
+  X, inc_X = sub(IA2, x^2 + y^2)
 
   U = hypersurface_complement(IA2, x)
+  inc_U = inclusion_morphism(U, IA2)
 
   V = hypersurface_complement(X, x)
+  inc_V = inclusion_morphism(V, X)
 
   kk, pr = quo(ZZ, 5)
   IA2_red, phi1 = base_change(pr, IA2)
-  X_red, phi2 = base_change(pr, X)
-  U_red, phi3 = base_change(pr, U)
-  V_red, phi4 = base_change(pr, V)
+  red_X, phi2, _ = base_change(pr, inc_X; codomain_map=phi1)
+  X_red = domain(red_X)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(X_red)
+  red_U, phi3, _ = base_change(pr, inc_U; codomain_map=phi1)
+  U_red = domain(red_U)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(U_red)
+  red_V, phi4, _ = base_change(pr, inc_V; codomain_map=red_X)
+  V_red = domain(red_V)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(V_red)
 
   m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
-  m2 = compose(phi4, inclusion_morphism(V, IA2));
+  m2 = compose(red_V, inclusion_morphism(V, IA2));
   @test m1 == m2
 
   # Testing morphisms
