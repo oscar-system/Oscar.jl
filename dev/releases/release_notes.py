@@ -29,9 +29,18 @@ def usage(name: str) -> None:
 
 def is_existing_tag(tag: str) -> bool:
     print(tag)
-    res = subprocess.run(f"""gh release list --json=name -q='.[]
-                                | select(.name | contains("{tag}"))'""",
-                                shell=True, capture_output=True)
+    res = subprocess.run(
+        [
+            "gh",
+            "release",
+            "list",
+            "--json=name",
+            "-q",
+            f""".[] | select(.name | contains("{tag.strip()}"))"""
+        ],
+        shell=False,
+        capture_output=True
+    )
     return res.stdout.decode() != ""
 
 
@@ -105,8 +114,17 @@ prioritylist = [
 
 def get_tag_date(tag: str) -> str:
     if is_existing_tag(tag):
-        res = subprocess.run(f"""gh release view {tag} --json=createdAt""", shell=True,
-                             capture_output=True)
+        res = subprocess.run(
+            [
+                "gh",
+                "release",
+                "view",
+                tag,
+                "--json=createdAt"
+            ],
+            shell=False,
+            capture_output=True
+        )
         res = json.loads(res.stdout.decode())
     else:
         error("tag does not exist!")
@@ -288,8 +306,19 @@ def main(new_version: str) -> None:
 if __name__ == "__main__":
     # the argument is the new version
     if len(sys.argv) == 1:
-        itag = subprocess.run("gh release list | grep 'Latest'", shell=True, capture_output=True)
-        itag = itag.stdout.decode().split()[0][1:]
+        itag = subprocess.run(
+            [
+                "gh",
+                "release",
+                "list",
+                "--json=name,isLatest",
+                "-q",
+                ".[] | select(.isLatest == true)"
+            ],
+            shell=False,
+            capture_output=True
+        )
+        itag = json.loads(itag.stdout.decode())["name"][1:]
         itag = itag.split('.')
         itag[-1] = str(int(itag[-1])+1)
         itag = ".".join(itag)
