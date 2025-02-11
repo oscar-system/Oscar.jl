@@ -9,7 +9,7 @@ abstract type ModuleData end
 
 
 mutable struct SimpleModuleData <: ModuleData
-    base_lie_algebra::LieAlgebra
+    L::LieAlgebra
     highest_weight::WeightLatticeElem
 
     # The following fields are not set by default, just for caching
