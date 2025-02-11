@@ -122,6 +122,7 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
+  println(s.obj)
   return decode_type(s.obj)
 end
 
@@ -216,10 +217,10 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     # this branching needs to be better understood,
     # seems like params(tp) wont be a TypeParams if
     # the type is not some container type
-    if !(params(tp) isa TypeParams)
-      save_typed_object(s, params(tp), :params)
-    else
+    if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
+    else
+      save_typed_object(s, params(tp), :params)
     end
   end
 end
@@ -230,20 +231,25 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
+                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{<:Pair}}})
+  for param in params(tp)
+    save_type_params(s, param.second, Symbol(param.first))
+  end
+end
+
+function save_type_params(s::SerializerState,
                           tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params(tp)
-        param_tp = type_params(param.second)
-        #if isnothing(params(param_tp))
-        #  save_object(s, encode_type(type(param_tp)), Symbol(param.first))
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeParams)
           save_typed_object(s, param.second, Symbol(param.first))
         else
-          save_type_params(s, param_tp, Symbol(param.first))
+          #param_tp = type_params(param.second)
+          save_type_params(s, param.second, Symbol(param.first))
         end
       end
     end

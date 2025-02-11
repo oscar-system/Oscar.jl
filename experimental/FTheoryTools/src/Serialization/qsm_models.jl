@@ -101,6 +101,12 @@ end
 # Do not forget to zip the new data and update https://pkgdocs.julialang.org/v1/artifacts/.
 
 @register_serialization_type QSMModel
+type_params(qsm::QSMModel) = TypeParams(
+  QSMModel,
+  :hs_model => type_params(qsm.hs_model),
+  :genus_ci => type_params(qsm.genus_ci),
+  :degree_of_Kbar_of_tv_restricted_to_ci => type_params(qsm.degree_of_Kbar_of_tv_restricted_to_ci)
+)
 
 function save_object(s::SerializerState, qsm::QSMModel)
   save_data_dict(s) do
@@ -110,7 +116,8 @@ function save_object(s::SerializerState, qsm::QSMModel)
     save_object(s, qsm.triang_quick, :triang_quick)
     save_object(s, qsm.max_lattice_pts_in_facet, :max_lattice_pts_in_facet)
     save_object(s, qsm.estimated_number_of_triangulations, :estimated_number_of_triangulations)
-    save_typed_object(s, qsm.hs_model, :hs_model)
+    save_object(s, qsm.estimated_number_of_triangulations, :estimated_number_of_triangulations)
+    save_object(s, qsm.hs_model, :hs_model)
 
     save_object(s, qsm.Kbar3, :Kbar3)
     save_object(s, qsm.h11, :h11)
@@ -118,8 +125,8 @@ function save_object(s::SerializerState, qsm::QSMModel)
     save_object(s, qsm.h13, :h13)
     save_object(s, qsm.h22, :h22)
 
-    save_typed_object(s, qsm.genus_ci, :genus_ci)
-    save_typed_object(s, qsm.degree_of_Kbar_of_tv_restricted_to_ci, :degree_of_Kbar_of_tv_restricted_to_ci)
+    save_object(s, qsm.genus_ci, :genus_ci)
+    save_object(s, qsm.degree_of_Kbar_of_tv_restricted_to_ci, :degree_of_Kbar_of_tv_restricted_to_ci)
     save_object(s, qsm.intersection_number_among_ci_cj, :intersection_number_among_ci_cj)
     save_object(s, qsm.index_facet_interior_divisors, :index_facet_interior_divisors)
     save_object(s, qsm.intersection_number_among_nontrivial_ci_cj, :intersection_number_among_nontrivial_ci_cj)
@@ -136,13 +143,13 @@ function save_object(s::SerializerState, qsm::QSMModel)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{QSMModel})
+function load_object(s::DeserializerState, ::Type{QSMModel}, params::Dict)
   vertices = load_object(s, Vector{Vector{QQFieldElem}}, :vertices)
   poly_index = load_object(s, Int, :poly_inx)
   triang_quick = load_object(s, Bool, :triang_quick)
   max_lattice_pts_in_facet = load_object(s, Int, :max_lattice_pts_in_facet)
   estimated_number_of_triangulations = load_object(s, Int, :estimated_number_of_triangulations)
-  hs_model = load_typed_object(s, :hs_model)
+  hs_model = load_object(s, HypersurfaceModel, params[:hs_model], :hs_model)
 
   Kbar3 = load_object(s, Int, :Kbar3)
   h11 = load_object(s, Int, :h11)
@@ -150,11 +157,11 @@ function load_object(s::DeserializerState, ::Type{QSMModel})
   h13 = load_object(s, Int, :h13)
   h22 = load_object(s, Int, :h22)
 
-  genus_ci = load_typed_object(s, :genus_ci)
-  degree_of_Kbar_of_tv_restricted_to_ci = load_typed_object(s, :degree_of_Kbar_of_tv_restricted_to_ci)
-  intersection_number_among_ci_cj = load_object(s, Matrix, Int, :intersection_number_among_ci_cj)
+  genus_ci = load_object(s, Dict{MPolyDecRingElem, Int}, params[:genus_ci], :genus_ci)
+  degree_of_Kbar_of_tv_restricted_to_ci = load_object(s, Dict{MPolyDecRingElem, Int}, params[:degree_of_Kbar_of_tv_restricted_to_ci], :degree_of_Kbar_of_tv_restricted_to_ci)
+  intersection_number_among_ci_cj = load_object(s, Matrix{Int}, :intersection_number_among_ci_cj)
   index_facet_interior_divisors = load_object(s, Vector{Int}, :index_facet_interior_divisors)
-  intersection_number_among_nontrivial_ci_cj = load_object(s, Matrix, Int, :intersection_number_among_nontrivial_ci_cj)
+  intersection_number_among_nontrivial_ci_cj = load_object(s, Matrix{Int}, :intersection_number_among_nontrivial_ci_cj)
 
   dual_graph = load_object(s, Graph{Undirected}, :dual_graph)
   components_of_dual_graph = load_object(s, Vector{String}, :components_of_dual_graph)

@@ -1,21 +1,17 @@
-@register_serialization_type HypersurfaceModel uses_params
+@register_serialization_type HypersurfaceModel
 
 ############################################################################
 # This function saves the types of the data that define a hypersurface model
 ############################################################################
 
-function save_type_params(s::SerializerState, h::HypersurfaceModel)
-  save_data_dict(s) do
-    save_object(s, encode_type(HypersurfaceModel), :name)
-    save_data_dict(s, :params) do
-      save_typed_object(s, base_space(h), :base_space)
-      save_typed_object(s, ambient_space(h), :ambient_space)
-      save_typed_object(s, fiber_ambient_space(h), :fiber_ambient_space)
-      save_typed_object(s, parent(hypersurface_equation(h)), :hypersurface_equation_ring)
-      save_typed_object(s, parent(hypersurface_equation_parametrization(h)), :hypersurface_equation_parametrization_ring)
-    end
-  end
-end
+type_params(h::HypersurfaceModel) = TypeParams(
+  HypersurfaceModel,
+  :base_space => base_space(h),
+  :ambient_space => ambient_space(h),
+  :fiber_ambient_space => fiber_ambient_space(h),
+  :hypersurface_equation_ring =>parent(hypersurface_equation(h)), 
+  :hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(h))
+)
 
 ##########################################
 # This function saves a hypersurface model
