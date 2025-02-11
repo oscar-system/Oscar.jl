@@ -31,6 +31,7 @@ DeclareConstructor( "DeserializeInOscar", [ IsObject, IsObject, IsObject ] );
 
 ############################################################################
 
-# Use GAP operations for the serialization of GAP objects.
-# (The methods will be Julia functions.)
+# In Oscar 1.3.0, `Oscar_jl` was introduced to replace `Oscar` as the
+# global GAP variable for the Oscar module. We keep the old name for
+# compatibility.
 DeclareSynonym( "Oscar", Oscar_jl );
