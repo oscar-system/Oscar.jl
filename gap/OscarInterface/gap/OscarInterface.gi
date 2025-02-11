@@ -131,14 +131,14 @@ Perform( Oscar._GAP_serializations,
          function( entry )
            InstallMethod( SerializeInOscar,
              [ JuliaToGAP( IsString, entry[1] ), "IsObject" ],
-             Julia.GAP.WrapJuliaFunc( entry[2] ) );
+             GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
 Perform( Oscar._GAP_deserializations,
          function( entry )
            InstallMethod( DeserializeInOscar,
              [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject" ],
-             Julia.GAP.WrapJuliaFunc( entry[2] ) );
+             GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
 ############################################################################
