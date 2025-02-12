@@ -1,4 +1,5 @@
 function indecomposition end
+function factor_set end
 
 include("Cohomology.jl")
 include("Types.jl")
@@ -1126,7 +1127,7 @@ module of the automorphism group over the character field.
 If `mA` is given, it needs to map the automorphism group over the
 character field into the the automorphisms of the base ring.
 """
-function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, mA::Union{Map, Nothing} = nothing)
+function Oscar.factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, mA::Union{Map, Nothing} = nothing)
   K = base_ring(C)
   if mA === nothing
     k, mkK = _character_field(C)
@@ -1981,7 +1982,6 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
 end
 
 export extension_of_scalars
-export factor_set
 export ghom
 export irreducible_modules
 export is_decomposable
