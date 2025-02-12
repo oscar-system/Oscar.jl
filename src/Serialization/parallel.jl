@@ -209,6 +209,46 @@ function parallel_any(
   end
 end
 
+# This is a parallel_any for tasks which are grouped in pools. The method 
+# succeeds if there is any such pool for which all tasks succeed. 
+function parallel_any(
+    task_list::Vector{Vector{T}};
+    workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
+    kill_workers::Bool=false
+  ) where {T <: ParallelTask} # T is the type of the task to be deployed.
+  n = length(task_list)
+  w = length(workers)
+  is_zero(w) && !isempty(task_list) && error("zero workers available for non-trivial task; aborting")
+  fut_vec = _deploy_work(task_list, workers)
+  @show length(fut_vec)
+  @show length.(fut_vec)
+  task_successes = [Dict{Int, Tuple{Bool, Any}}() for _ in 1:length(task_list)]
+  pool_successes = Union{Int, Nothing}[nothing for _ in 1:length(task_list)]
+  while true
+    all_failed = true
+    for (i, pool) in enumerate(fut_vec)
+      pool_successes[i] === nothing || continue
+      task_success = task_successes[i]
+      @show task_success
+      for (k, (fut, wid)) in enumerate(pool)
+        haskey(task_success, k) && continue # result is known
+        !isready(fut) && continue
+        @show "worker $i, $k is done"
+        task_success[k] = fetch(fut)
+      end
+      if length(task_success) == length(fut_vec)
+        if all(success for (_, (success, _)) in task_success)
+          pool_successes[i] = true
+          return true, i, [task_success[i][2] for i in 1:length(pool)]
+        else
+          pool_successes[i] = false
+        end
+      end
+    end
+    all_failed && return false, 0, nothing
+  end
+end
+
 # Internal method to send tasks for computation to a pool of workers. 
 # Returns a `Vector` of `Tuple`s `(fut, wid)` of the `Future`s and the 
 # id of the worker where the task has been sent to.
@@ -228,6 +268,33 @@ function _deploy_work(
     assigned_workers[task] = wid
     fut = remotecall(_compute, wid, task)
     push!(fut_vec, (fut, wid))
+  end
+  return fut_vec
+end
+
+function _deploy_work(
+    task_list::Vector{Vector{TaskType}},
+    workers::Vector{Int}
+  ) where {TaskType}
+  n_workers = length(workers)
+  individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(32), i) for i in workers)
+  assigned_workers = IdDict{TaskType, Int}()
+  fut_vec = Vector{Vector{Tuple{Future, Int}}}()
+  worker_id = 0
+  for (i, pool) in enumerate(task_list)
+    fut_pool = Vector{Tuple{Future, Int}}()
+    for (k, task) in enumerate(pool)
+      worker_id += 1
+      @show worker_id
+      wid = workers[mod(worker_id, n_workers) + 1]
+      channel = individual_channels[wid]
+      put_type_params(channel, task)
+      #remotecall(take!, wid, channel)
+      assigned_workers[task] = wid
+      fut = remotecall(_compute, wid, task)
+      push!(fut_pool, (fut, wid))
+    end
+    push!(fut_vec, fut_pool)
   end
   return fut_vec
 end
