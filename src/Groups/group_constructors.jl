@@ -40,6 +40,16 @@ function symmetric_group(n::Int)
   return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
 end
 
+# for functions like perm, cperm or macros like @perm provide a cached
+# version of symmetric_group to reduce the overhead for these functions.
+const SymmetricGroupID = AbstractAlgebra.CacheDictType{Int, PermGroup}()
+
+function _symmetric_group_cached(n::Int)
+  Base.get!(SymmetricGroupID, n) do
+    symmetric_group(n)
+  end
+end
+
 """
     is_natural_symmetric_group(G::GAPGroup)
 
