@@ -1,3 +1,5 @@
+function indecomposition end
+
 include("Cohomology.jl")
 include("Types.jl")
 include("GaloisCohomology.jl")
@@ -1498,7 +1500,7 @@ of pairs:
  - a direct indecomposable summand
  - a homomorphism (embedding) of the underlying free modules
 """
-function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+function Oscar.indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   G = Gap(C)
   z = GAP.Globals.MTX.Indecomposition(G)
   k = base_ring(C)
@@ -1981,7 +1983,6 @@ end
 export extension_of_scalars
 export factor_set
 export ghom
-export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
