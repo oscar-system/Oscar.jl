@@ -81,17 +81,13 @@ function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
 end
 
 @doc raw"""
-    (W::WeylGroup)(sylls::Vector{Pair{<:Integer, <:Integer}}) -> WeylGroupElem
+    (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion} -> WeylGroupElem
 
 Construct a Weyl group element from the given syllables.
 
 The syllables must be a list of pairs, where each entry is the index of a simple reflection and its exponent.
 """
-function (W::WeylGroup)(sylls::Vector{Pair{T, T}}; normalize::Bool=true) where T <: Integer
-  res = zeros(Int, length(sylls))
-  
-  for (idx, pair) in enumerate(sylls)
-    res[idx] = pair.first
+function (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion}
   end
 
   return WeylGroupElem(W, res; normalize)
@@ -590,11 +586,11 @@ function letters(x::WeylGroupElem)
 end
 
 @doc raw"""
-    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:Integer}}
+    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:IntegerUnion}}
 
 Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
 
-This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:Integer}})`.
+This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:IntegerUnion}})`.
 
 # Examples
 
@@ -607,8 +603,8 @@ Weyl group
 julia> x = longest_element(W)
 s1 * s2 * s1
 
-julia> s = syllables(w)
-3-element Vector{Pair{UInt8, <:Integer}}:
+julia> s = syllables(x)
+3-element Vector{Pair{UInt8, ZZRingElem}}:
  0x01 => 1
  0x02 => 1
  0x01 => 1
@@ -618,7 +614,7 @@ true
 ```
 """
 function syllables(x::WeylGroupElem)
-  return Pair{UInt8, <:Integer}[i => 1 for i in x.word]
+  return Pair{UInt8, ZZRingElem}[i => 1 for i in x.word]
 end
 
 @doc raw"""
