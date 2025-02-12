@@ -187,9 +187,13 @@
   end
 
   b3_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3]
+  b3_s0 = [1=>1, 2=>1, 1=>1, 3=>1, 2=>1, 1=>1, 3=>1, 2=>1, 3=>1]
   b4_w0 = UInt8[1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 4, 3, 4]
+  b4_s0 = [1=>1, 2=>1, 1=>1, 3=>1, 2=>1, 1=>1, 4=>1, 3=>1, 2=>1, 1=>1, 4=>1, 3=>1, 2=>1, 4=>1, 3=>1, 4=>1]
   f4_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4]
+  f4_s0 = [1=>1, 2=>1, 1=>1, 3=>1, 2=>1, 1=>1, 3=>1, 2=>1, 3=>1, 4=>1, 3=>1, 2=>1, 1=>1, 3=>1, 2=>1, 3=>1, 4=>1, 3=>1, 2=>1, 1=>1, 3=>1, 2=>1, 3=>1, 4=>1]
   g2_w0 = UInt8[1, 2, 1, 2, 1, 2]
+  g2_s0 = [1=>1, 2=>1, 1=>1, 2=>1, 1=>1, 2=>1]
 
   @testset "longest_element(W::WeylGroup)" begin
     # A1
@@ -203,30 +207,40 @@
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == UInt8[1, 2, 1]
+    @test letters(w0) == UInt8[1, 2, 1]
+    @test syllables(w0) == [1 => 1, 2 => 1, 1 => 1]
 
     # B2
     W = weyl_group(:B, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == UInt8[1, 2, 1, 2]
+    @test letters(w0) == UInt8[1, 2, 1, 2]
+    @test syllables(w0) == [0x01 => 1, 0x02 => 1, 0x01 => 1, 0x02 => 1]
 
     # B3
     W = weyl_group(:B, 3)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == b3_w0
+    @test letters(w0) == b3_w0
+    @test syllables(w0) == b3_s0
 
     # F4
     W = weyl_group(:F, 4)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == f4_w0
+    @test letters(w0) == f4_w0
+    @test syllables(w0) == f4_s0
 
     # G2
     W = weyl_group(:G, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == g2_w0
+    @test letters(w0) == g2_w0
+    @test syllables(w0) == g2_s0
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -351,6 +365,10 @@
     @test parent(x) isa WeylGroup
 
     x = W([1, 3, 5, 4, 2])
+    @test parent(x) === x.parent
+    @test parent(x) isa WeylGroup
+
+    x = W([3 => 1, 5 => 1])
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
   end
