@@ -80,6 +80,23 @@ function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
   return WeylGroupElem(W, word; normalize)
 end
 
+@doc raw"""
+    (W::WeylGroup)(sylls::Vector{Pair{<:Integer, <:Integer}}) -> WeylGroupElem
+
+Construct a Weyl group element from the given syllables.
+
+The syllables must be a list of pairs, where each entry is the index of a simple reflection and its exponent.
+"""
+function (W::WeylGroup)(sylls::Vector{Pair{T, T}}; normalize::Bool=true) where T <: Integer
+  res = zeros(Int, length(sylls))
+  
+  for (idx, pair) in enumerate(sylls)
+    res[idx] = pair.first
+  end
+
+  return WeylGroupElem(W, res; normalize)
+end
+
 function Base.IteratorSize(::Type{WeylGroup})
   return Base.SizeUnknown()
 end
