@@ -11,7 +11,7 @@
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   )
-  @req dim(V) = length(monomials)
+  @req dim(V) == length(monomials) "dimesion mismatch"
     return new(
       V,
       birational_seq,

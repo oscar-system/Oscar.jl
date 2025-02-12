@@ -125,9 +125,9 @@ function basis_lie_highest_weight(
   type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_asc_height(L)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -138,9 +138,9 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_index(L, birational_sequence)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -151,9 +151,9 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_simple_roots(L, birational_sequence)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -203,9 +203,9 @@ function basis_lie_highest_weight_lusztig(
 )
   monomial_ordering = :wdegrevlex
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_lusztig(L, reduced_expression)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -274,9 +274,9 @@ function basis_lie_highest_weight_string(
 )
   monomial_ordering = :neglex
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -314,11 +314,11 @@ over Lie algebra of type A3
 function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -387,9 +387,9 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
-  M = SimpleModuleData(L, highest_weight)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -568,10 +568,11 @@ function basis_coordinate_ring_kodaira_ffl(
 end
 
 function basis_lie_highest_weight_demazure(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::WeylGroupElem; monomial_ordering::Symbol=:degrevlex
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
-  M = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  w = WeylGroupElem(weyl_group(type, rank), weyl_group_elem)
+  V = DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), w)
   operators = operators_asc_height(L) #TODO: write different operators function
-  return basis_lie_highest_weight_compute(M, operators, monomial_ordering) 
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering) 
 end

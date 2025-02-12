@@ -57,7 +57,7 @@ mutable struct DemazureModuleData <: ModuleData
     end
 end
 
-function base_lie_algebra(V::DemazuModuleData)
+function base_lie_algebra(V::DemazureModuleData)
     return V.L
 end
 
