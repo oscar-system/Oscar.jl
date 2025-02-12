@@ -88,6 +88,14 @@ Construct a Weyl group element from the given syllables.
 The syllables must be a list of pairs, where each entry is the index of a simple reflection and its exponent.
 """
 function (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion}
+  n = ngens(W)
+  res = Vector{T}()
+  
+  for pair in sylls
+    @req 0 < pair.first && pair.first <= n "generator number is at most $n"
+    if pair.second != 0
+      push!(res, pair.first)
+    end
   end
 
   return WeylGroupElem(W, res; normalize)
