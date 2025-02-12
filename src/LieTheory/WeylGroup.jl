@@ -514,9 +514,94 @@ end
 Return `x` as a list of indices of simple reflections, in reduced form.
 
 This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2)
+Weyl group
+  of root system of rank 2
+    of type A2
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> wd = word(x)
+3-element Vector{UInt8}:
+ 0x01
+ 0x02
+ 0x01
+
+julia> W(wd) == x
+true
+```
 """
 function word(x::WeylGroupElem)
   return x.word
+end
+
+@doc raw"""
+    letters(x::WeylGroupElem) -> Vector{UInt8}
+
+Return `x` as a list of indices of simple reflections, in reduced form.
+
+This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2)
+Weyl group
+  of root system of rank 2
+    of type A2
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> l = letters(x)
+3-element Vector{UInt8}:
+ 0x01
+ 0x02
+ 0x01
+
+julia> W(l) == x
+true
+```
+"""
+function letters(x::WeylGroupElem)
+  return x.word
+end
+
+@doc raw"""
+    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:Integer}}
+
+Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
+
+This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:Integer}})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2)
+Weyl group
+  of root system of rank 2
+    of type A2
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> s = syllables(w)
+3-element Vector{Pair{UInt8, <:Integer}}:
+ 0x01 => 1
+ 0x02 => 1
+ 0x01 => 1
+
+julia> W(s) == x
+true
+```
+"""
+function syllables(x::WeylGroupElem)
+  return Pair{UInt8, <:Integer}[i => 1 for i in x.word]
 end
 
 @doc raw"""
