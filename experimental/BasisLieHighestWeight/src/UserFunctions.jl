@@ -571,7 +571,7 @@ function basis_lie_highest_weight_demazure(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
-  w = WeylGroupElem(weyl_group(type, rank), weyl_group_elem)
+  w = WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem)
   V = DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), w)
   operators = operators_asc_height(L) #TODO: write different operators function
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering) 

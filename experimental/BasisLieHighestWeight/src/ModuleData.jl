@@ -78,3 +78,7 @@ function dim(V::DemazureModuleData)
     end
     return V.dim
 end
+
+function weyl_group_elem(V::DemazureModuleData)
+    return V.weyl_group_elem
+end
