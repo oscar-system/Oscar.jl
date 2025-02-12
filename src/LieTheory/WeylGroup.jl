@@ -75,6 +75,17 @@ Construct a Weyl group element from the given word.
 The word must be a list of integers, where each integer is the index of a simple reflection.
 
 If the word is known to be in short lex normal form, the normalization can be skipped by setting `normalize=false`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);  wrd = [1, 2, 1];
+
+julia> x = W(wrd)
+s1 * s2 * s1
+
+julia> word(x) == wrd
+true
+```
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
   return WeylGroupElem(W, word; normalize)
@@ -86,6 +97,19 @@ end
 Construct a Weyl group element from the given syllables.
 
 The syllables must be a list of pairs, where each entry is the index of a simple reflection and its exponent.
+
+If the syllables describe a word in short lex normal form, the normalization can be skipped by setting `normalize=false`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);  pairs = [1 => 1, 2 => 1];
+
+julia> x = W(pairs)
+s1 * s2
+
+julia> syllables(x) == pairs
+true
+```
 """
 function (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion}
   n = ngens(W)
