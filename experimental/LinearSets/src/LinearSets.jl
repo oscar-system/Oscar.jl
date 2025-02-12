@@ -2,11 +2,16 @@ module LinearSets
 
 using Oscar
 
+# should use something other than defining_polynomial when v is not over the prime field..
+function (k::FqField)(v::AbstractAlgebra.Generic.FreeModuleElem)
+  return k(parent(defining_polynomial(k))( Array(v.v)[1:degree(k)] ))
+end
 
-# Need collection of normalized vectors
-# needs tweaking if order(base_ring(V)) is not prime....
+# Gives collection of normalized vectors corresponding to 1-dimensional subspaces
+# TODO needs tweaking if order(base_ring(V)) is not prime....
 function _points(V::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
-    p = order(base_ring(V))
+    k = base_ring(V)
+    p = order(k)
     @req is_prime(p) "Currently only works for V over a prime field"
 
     B = basis(V)
@@ -14,6 +19,7 @@ function _points(V::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
 
     # TODO : should convert these to linear combinations of B instead of raw conversion.
     # But this creates overhead, maybe only do this if B is nonstandard...
+    # TODO : is it faster to concatenate with the prefix [0...1], rather then compute p^s?
     [V(reverse(digits(p^s + j, base = Int(p), pad = n))) for s in 0:(n-1) for j in 0:(p^s - 1)]
 end
 
@@ -23,9 +29,10 @@ function _vector_space(E::FinField, phi::Map)
     @req is_prime(order(k)) "Currently only works for V over a prime field"
     n = degree(E)
     V = vector_space(k,n)
-    rho = map_from_func(a -> V(absolute_coordinates(a)), E, V)
+    rho = (a -> V(absolute_coordinates(a)))
+    rhoI = (v -> E(v))
 
-    return V, rho
+    return V, MapFromFunc(E, V, rho, rhoI)
 end
 
 # need to store:
@@ -34,12 +41,12 @@ end
 #     3. set S = Points((Fq)^n) as elements of E
 # TODO decide: Second argument- subfield k, or an embedding k -> E ?
 # NOTE at the moment, we only support F = prime field...
-function linear_set_field_attributes!(E::FinField, phi::Map)
-    k = domain(phi)
-    V, rho = _vector_space(E, phi)
-    n = divexact(absolute_degree(K), absolute_degree(k))
-    S = _points(V)
-end
+# function linear_set_field_attributes!(E::FinField, phi::Map)
+#     k = domain(phi)
+#     V, rho = _vector_space(E, phi)
+#     n = divexact(absolute_degree(K), absolute_degree(k))
+#     S = _points(V)
+# end
 
 
 # nu = first(x for x in E if (x != 0 && !is_square(-x) && is_square(-x-1)))
