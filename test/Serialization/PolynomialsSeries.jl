@@ -36,7 +36,6 @@ cases = [
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
 
-
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
     @testset "Empty Ideal" begin
@@ -70,7 +69,7 @@ cases = [
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == p
         end
-
+        
         @testset "Load with params" begin
           test_save_load_roundtrip(path, p; params=R) do loaded
             @test loaded == z^2 + case[2] * z + case[3]
