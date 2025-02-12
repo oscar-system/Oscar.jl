@@ -40,11 +40,11 @@ We can convert elements of `K` to elements of `F` as follows.
 julia> K, z = abelian_closure(QQ)
 (Abelian closure of Q, Generator of abelian closure of Q)
 
-julia> F = QQBarField()
+julia> F = algebraic_closure(QQ)
 Field of algebraic numbers
 
 julia> x = z(5)
-z(5)
+zeta(5)
 
 julia> y = F(x)
 Root 0.309017 + 0.951057*im of x^4 + x^3 + x^2 + x + 1
@@ -57,7 +57,7 @@ Real elements of `K` can be compared with `<` and `>`.
 
 ```jldoctest naturalembedding
 julia> a = x + x^4
--z(5)^3 - z(5)^2 - 1
+-zeta(5)^3 - zeta(5)^2 - 1
 
 julia> a > 0
 true
