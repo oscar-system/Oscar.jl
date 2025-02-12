@@ -10,6 +10,12 @@
   end
 end
 
+relations(obj::PBWAlgRing) = matrix(
+  base_ring(obj),
+  [obj.relations[i, j] for i = 1:nrows(obj.relations), j = 1:ncols(obj.relations)])
+
+ordering(obj::PBWAlgRing) = monomial_ordering(base_ring(obj), obj.sring.ord)
+
 struct PBWAlgOppositeMap{T, S}
   source::PBWAlgRing{T, S}  # target is _opposite(source)
 end
@@ -83,6 +89,10 @@ end
 @enable_all_show_via_expressify PBWAlgElem
 
 function show(io::IO, a::PBWAlgRing)
+  if has_attribute(a, :is_weyl_algebra)
+    show_weyl_algebra(io, a)
+    return
+  end
   @show_name(io, a)
   @show_special(io, a)
   x = symbols(a)
