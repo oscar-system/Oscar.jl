@@ -85,7 +85,7 @@ function __init__()
     ])
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
-  GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+  GAP.Globals.BindGlobal(GapObj("Oscar_jl"), Oscar)
 
   # We need some GAP packages (currently with unspecified versions).
   for pkg in [
