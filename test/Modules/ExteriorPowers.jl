@@ -60,11 +60,11 @@ end
   dual_basis = Oscar.koszul_duals(gens(Fwedge1))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge1))]
   Fwedge5, _ = Oscar.exterior_power(F, 5)
-  @test all(x->x==Fwedge5[1], tmp)
+  @test all(==(Fwedge5[1]), tmp)
 
   dual_basis = Oscar.koszul_duals(gens(Fwedge2))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge2))]
-  @test all(x->x==Fwedge5[1], tmp)
+  @test all(==(Fwedge5[1]), tmp)
 end
 
 @testset "induced maps on exterior powers" begin
@@ -130,8 +130,8 @@ end
   u = (F[1], F[4], F[3])
 
   @test "$(mm(v))" == "e[1]^e[3]^e[4]"
-  #@test "$(F3)" == "⋀^3(Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ)"
-  @test "$(F3)" == "3rd exterior power of Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ"
+  #@test "$(F3)" == "⋀^3(Free module of rank 5 over multivariate polynomial ring in 5 variables over QQ)"
+  @test "$(F3)" == "3rd exterior power of Free module of rank 5 over multivariate polynomial ring in 5 variables over QQ"
 
   eu = sum(f*e for (f, e) in zip(gens(R), gens(F)))
   K = koszul_complex(eu)

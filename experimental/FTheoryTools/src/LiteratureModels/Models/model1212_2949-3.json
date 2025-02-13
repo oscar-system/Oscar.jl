@@ -34,8 +34,8 @@
     },
     "model_descriptors": {
         "type": "tate",
-        "description": "SO(4*k+2) Tate model",
-        "gauge_algebra": ["so(4*k+2)"]
+        "description": "SO(4*#k+2) Tate model",
+        "gauge_algebra": ["so(4*#k+2)"]
     },
     "model_parameters": ["k"],
     "model_data": {
@@ -98,7 +98,7 @@
             ]
         ]
     },
-    "related_models": [
+    "associated_models": [
         "model1212_2949-1.json",
         "model1212_2949-2.json",
         "model1212_2949-4.json",

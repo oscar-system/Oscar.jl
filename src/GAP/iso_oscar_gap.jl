@@ -64,7 +64,7 @@ function _make_prime_field_functions(FO, FG)
    e = GAPWrap.One(FG)
 
    f = function(x)
-     y = GAP.julia_to_gap(_ffe_to_int(x))::GapInt
+     y = GapObj(_ffe_to_int(x))::GapInt
      return y*e
    end
 
@@ -212,8 +212,7 @@ end
 
 
 function _iso_oscar_gap_field_rationals_functions(FO::QQField, FG::GapObj)
-#TODO   return (GAP.Obj, QQFieldElem)
-   return (x -> GAP.Obj(x), x -> QQFieldElem(x))
+   return (GAP.Obj, QQFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQField)
@@ -225,8 +224,7 @@ function _iso_oscar_gap(FO::QQField)
 end
 
 function _iso_oscar_gap_ring_integers_functions(FO::ZZRing, FG::GapObj)
-#TODO  return (GAP.Obj, ZZRingElem)
-   return (x -> GAP.Obj(x), x -> ZZRingElem(x))
+   return (GAP.Obj, ZZRingElem)
 end
 
 function _iso_oscar_gap(FO::ZZRing)
@@ -241,7 +239,8 @@ end
 # in Oscar and GAP, respectively.
 # (Cyclotomic fields are easier to handle than general number fields.)
 function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::GapObj)
-   N = conductor(FO)
+   flag, N = Hecke.is_cyclotomic_type(FO)
+   @req flag "FO was not constructed as a cyclotomic field"
    cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 
@@ -393,7 +392,7 @@ end
 
 # Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
 function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GapObj)
-   return (GAP.julia_to_gap, QQAbElem)
+   return (GapObj, QQAbFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQAbField)
@@ -404,7 +403,7 @@ function _iso_oscar_gap(FO::QQAbField)
 end
 
 """
-    Oscar.iso_oscar_gap(R) -> Map{T, GapObj}
+    Oscar.iso_oscar_gap(R::T) -> Map{T, GapObj}
 
 Return an isomorphism `f` with domain `R`
 and `codomain` a GAP object `S`.
@@ -483,7 +482,7 @@ true
     structure is not fully supported in GAP will likely cause overhead
     at runtime.
 """
-@attr Map function iso_oscar_gap(F)
+@attr Map{T, GapObj} function iso_oscar_gap(F::T) where T
    return _iso_oscar_gap(F)
 end
 
@@ -593,7 +592,7 @@ function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem{S}) where 
    @assert base_ring(a) === domain(f)
    rows = Vector{GapObj}(undef, nrows(a))
    for i in 1:nrows(a)
-      rows[i] = GapObj([f(a[i, j]) for j in 1:ncols(a)])
+      rows[i] = GapObj([f(a[i, j])::GAP.Obj for j in 1:ncols(a)])
    end
    return GAPWrap.ImmutableMatrix(codomain(f), GapObj(rows), true)
 end

@@ -234,36 +234,30 @@ not a free module, the user needs to specify a `base_ring_module` of ``M``.
 If ``M`` arises as a localization of some ``R``-module ``M'``, then 
 this connection is cached here. 
 """
-function base_ring_module(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
-  if !has_attribute(F, :base_ring_module) 
-    L = base_ring(F)
-    R = base_ring(L)
-    Fb = FreeMod(R, ngens(F))
-    set_attribute!(F, :base_ring_module, Fb)
-  end
-  return get_attribute(F, :base_ring_module)::base_ring_module_type(F)
+@attr base_ring_module_type(F) function base_ring_module(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
+  L = base_ring(F)
+  R = base_ring(L)
+  Fb = FreeMod(R, ngens(F))
+  return Fb
 end
 
-base_ring_module_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = FreeMod{base_ring_elem_type(T)}
+base_ring_module_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = FreeMod{elem_type(base_ring_type(T))}
 base_ring_module_type(F::FreeMod{T}) where {T<:AbsLocalizedRingElem} = base_ring_module_type(typeof(F))
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the canonical map F♭ ≅ Rʳ → Sʳ ≅ F.
-function base_ring_module_map(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
-  if !has_attribute(F, :base_ring_module_map) 
+@attr morphism_type(base_ring_module_type(F), typeof(F)) function base_ring_module_map(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
     Fb = base_ring_module(F)
     f = hom(Fb, F, gens(F))
-    set_attribute!(F, :base_ring_module_map, f)
-  end
-  return get_attribute(F, :base_ring_module_map)::morphism_type(base_ring_module_type(F), typeof(F))
+    return f
 end
 
 # For a SubquoModule M over a localized ring S = R[U⁻¹] this returns the SubquoModule N over R
 # which contains all generators and relations for the saturation that have already 
 # been cached. 
 function pre_saturated_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
-  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{base_ring_elem_type(T)}
-  if !has_attribute(M, :pre_saturated_module)
+  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{elem_type(base_ring_type(T))}
+  return get_attribute!(M, :pre_saturated_module) do
     (A, D) = clear_denominators(generator_matrix(M))
     (B, E) = clear_denominators(relations_matrix(M))
     S = base_ring(M)
@@ -273,9 +267,8 @@ function pre_saturated_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem
     Mb = SubquoModule(Fb, A, B)
     set_attribute!(M, :pre_saturation_data_gens, change_base_ring(S, D))
     set_attribute!(M, :pre_saturation_data_rels, change_base_ring(S, E))
-    set_attribute!(M, :pre_saturated_module, Mb)
-  end
-  return get_attribute(M, :pre_saturated_module)::SubquoModule{base_ring_elem_type(T)}
+    return Mb
+  end::SubquoModule{elem_type(base_ring_type(T))}
 end
 
 # For a SubquoModule M over a localized ring S = R[U⁻¹] and its current 
@@ -637,7 +630,7 @@ end
 
 function base_ring_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   has_attribute(M, :base_ring_module) || error("there is no associated module over the base ring")
-  get_attribute(M, :base_ring_module)::SubquoModule{base_ring_elem_type(T)}
+  get_attribute(M, :base_ring_module)::SubquoModule{elem_type(base_ring_type(T))}
 end
 
 function set_base_ring_module(F::FreeMod{LRET}, N::FreeMod{BRET}) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}
@@ -682,7 +675,7 @@ function iszero(v::SubquoModuleElem{<:AbsLocalizedRingElem})
   Mb = pre_saturated_module(M)
   w = repres(v)
   b = as_matrix(repres(v))
-  all(x->iszero(x), b) && return true
+  all(is_zero, b) && return true
 
   (u, d) = clear_denominators(w)
   iszero(Mb(u)) && return true
@@ -730,7 +723,7 @@ function iszero(
   Mb = pre_saturated_module(M)
   w = repres(v)
   b = as_matrix(repres(v))
-  all(x->iszero(x), b) && return true
+  all(is_zero, b) && return true
 
   (u, d) = clear_denominators(w)
   iszero(Mb(u)) && return true

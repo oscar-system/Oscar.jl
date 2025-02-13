@@ -62,7 +62,9 @@ end
                              base_space::FTheorySpace,
                              ambient_space::FTheorySpace,
                              fiber_ambient_space::AbsCoveredScheme)
-    return new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+    result = new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+    result.defining_classes = Dict{String, ToricDivisorClass}()
+    return result
   end
 end
 
@@ -87,6 +89,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -100,6 +103,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -126,6 +130,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -139,6 +144,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -219,4 +225,28 @@ struct QSMModel
   degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph::Dict{String, Int64}
   genus_of_components_of_simplified_dual_graph::Dict{String, Int64}
   
+end
+
+
+################################################
+# 4: The julia type for G4-fluxes
+################################################
+
+@attributes mutable struct G4Flux
+  model::AbstractFTheoryModel
+  class::CohomologyClass
+  G4Flux(model::AbstractFTheoryModel, class::CohomologyClass) = new(model, class)
+end
+
+
+
+################################################
+# 5 The julia type for a family of G4-fluxes
+################################################
+
+@attributes mutable struct FamilyOfG4Fluxes
+  model::AbstractFTheoryModel
+  mat_int::QQMatrix
+  mat_rat::QQMatrix
+  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix) = new(model, mat_int, mat_rat)
 end

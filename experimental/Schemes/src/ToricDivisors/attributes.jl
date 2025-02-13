@@ -53,24 +53,22 @@ function forget_toric_structure(td::ToricDivisor)
 end
 
 # For method delegation.
-function underlying_divisor(td::ToricDivisor; check::Bool=false, algorithm::Symbol=:direct)
-  return get_attribute!(td, :underlying_divisor) do
-    X = scheme(td)
-    @assert !iszero(coefficients(td)) "divisor must be non-trivial"
-    if algorithm == :direct
-      a = coefficients(td)::Vector{ZZRingElem}
-      pos = [(c > 0 ? c : zero(ZZ)) for c in a]
-      neg = [(c < 0 ? -c : zero(ZZ)) for c in a]
-      is_zero(pos) && return -WeilDivisor(_ideal_sheaf_via_polymake(X, neg))
-      is_zero(neg) && return WeilDivisor(_ideal_sheaf_via_polymake(X, pos))
-      pos_div = WeilDivisor(_ideal_sheaf_via_polymake(X, pos))
-      neg_div = WeilDivisor(_ideal_sheaf_via_polymake(X, neg))
-      return pos_div - neg_div
-    else
-      g = _torusinvariant_weil_divisors(X; algorithm)
-      generating_divisors = _torusinvariant_weil_divisors(X; check, algorithm)
-      return sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
-    end
-  end::WeilDivisor
+@attr WeilDivisor function underlying_divisor(td::ToricDivisor; check::Bool=false, algorithm::Symbol=:direct)
+  X = scheme(td)
+  iszero(coefficients(td)) && return WeilDivisor(X, ZZ)
+  if algorithm == :direct
+    a = coefficients(td)::Vector{ZZRingElem}
+    pos = [(c > 0 ? c : zero(ZZ)) for c in a]
+    neg = [(c < 0 ? -c : zero(ZZ)) for c in a]
+    is_zero(pos) && return -WeilDivisor(_ideal_sheaf_via_polymake(X, neg))
+    is_zero(neg) && return WeilDivisor(_ideal_sheaf_via_polymake(X, pos))
+    pos_div = WeilDivisor(_ideal_sheaf_via_polymake(X, pos))
+    neg_div = WeilDivisor(_ideal_sheaf_via_polymake(X, neg))
+    return pos_div - neg_div
+  else
+    g = _torusinvariant_weil_divisors(X; algorithm)
+    generating_divisors = _torusinvariant_weil_divisors(X; check, algorithm)
+    return sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
+  end
 end
 

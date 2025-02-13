@@ -1,5 +1,5 @@
 @testset "AffineSchemeOpenSubscheme1" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   f = x^2 + y^2 + z^2
   A = spec(R)
   X = spec(quo(R, ideal(R, [x*f, y*f]))[1])
@@ -16,7 +16,7 @@
 end
 
 @testset "AffineSchemeOpenSubscheme2" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   X = spec(R)
   N = subscheme(X, [x,y])
   U = complement(X, N)
@@ -32,12 +32,12 @@ end
   set_name!(U, "U")
   @test name(U) == "U"
 
-  S, (u, v) = polynomial_ring(QQ, ["u", "v"])
+  S, (u, v) = polynomial_ring(QQ, [:u, :v])
   Z = spec(S)
   g = maximal_extension(Y, Z, [x//z, y])
   g = restrict(g, domain(g), AffineSchemeOpenSubscheme(Z, [v]))
 
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   X = hypersurface_complement(spec(R),x)
   F = fraction_field(R)
   f = x//y
@@ -48,7 +48,7 @@ end
 end
 
 @testset "AffineSchemeOpenSubscheme3" begin
-  R, (x,y,u,v) = QQ["x", "y", "u","v"]
+  R, (x,y,u,v) = QQ[:x, :y, :u, :v]
   A = spec(R)
   O = subscheme(A, [x,y,u,v])
   U = complement(A, O)
@@ -78,7 +78,7 @@ end
   h = det(M)
   X = subscheme(A, h)
   XU = intersect(X, U)
-  S, (a,b) = QQ["a", "b"]
+  S, (a,b) = QQ[:a, :b]
   B = spec(S)
   maximal_extension(X, x//u)
   maximal_extension(A, x//u)
@@ -87,8 +87,8 @@ end
 end
 
 @testset "AffineSchemeOpenSubscheme4" begin
-  R, (x,y) = QQ["x", "y"]
-  S, (t) = polynomial_ring(QQ, ["t"])
+  R, (x,y) = QQ[:x, :y]
+  S, (t) = polynomial_ring(QQ, [:t])
   t = t[1]
 
   A = spec(R)
@@ -110,7 +110,7 @@ end
 end
 
 @testset "restriction_maps" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   X = spec(R, ideal(R, x*y))
   U = AffineSchemeOpenSubscheme(X, [x^7, y^8])
   f = OO(U)([7*x//x^2, 5*y//y^2])
@@ -139,7 +139,7 @@ end
   @test Oscar.is_identity_map(compose(resUV, resVU))
 end
 @testset "pullbacks" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   X = spec(R, ideal(R, [x^2-y*z]))
   U = AffineSchemeOpenSubscheme(X, [x, y])
   V = AffineSchemeOpenSubscheme(X, [(x+y)^2, x^2 - y^2, (x-y)^2])
@@ -157,7 +157,7 @@ end
   @test U ==preimage(f, V)
 
 
-  S, (u, v) = QQ["u", "v"]
+  S, (u, v) = QQ[:u, :v]
   B = spec(S)
   p = morphism(X, B, [x, y])
   U = AffineSchemeOpenSubscheme(X, [x, y])
@@ -172,7 +172,7 @@ end
 end
 
 @testset "AffineSchemeOpenSubschemeRings" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2-y*z])
   X = spec(R, I)
   U = AffineSchemeOpenSubscheme(X, [x, y])
@@ -185,7 +185,7 @@ end
 end
 
 @testset "restriction map" begin
-  R, (x, y) = QQ["x", "y", "z"]
+  R, (x, y) = QQ[:x, :y, :z]
   X = spec(R)
   U = AffineSchemeOpenSubscheme(X,[x])
   restriction_map(U, hypersurface_complement(X,x))
@@ -193,7 +193,7 @@ end
 
 
 @testset "is_subscheme" begin
-  R, (x, y) = QQ["x", "y", "z"]
+  R, (x, y) = QQ[:x, :y, :z]
   # AffineScheme{..., MPolyRing}
   A2 = spec(R)
   # AffineScheme{..., MPolyQuoRing}
@@ -265,7 +265,7 @@ end
 end
 
 @testset "is_open_embedding" begin
-  R, (x, y) = QQ["x", "y", "z"]
+  R, (x, y) = QQ[:x, :y, :z]
   # AffineScheme{..., MPolyRing}
   A2 = spec(R)
   # AffineScheme{..., MPolyQuoRing}
@@ -339,7 +339,7 @@ end
 end
 
 @testset "is_closed_embedding" begin
-  R, (x, y) = QQ["x", "y", "z"]
+  R, (x, y) = QQ[:x, :y, :z]
   # AffineScheme{..., MPolyRing}
   A2 = spec(R)
   # AffineScheme{..., MPolyQuoRing}
@@ -413,19 +413,19 @@ end
 end
 
 @testset "Issue 2129" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   I = ideal(R, x)
   Q, _ = quo(R, I)
   X = spec(Q)
   U = AffineSchemeOpenSubscheme(X, [y])
   W = OO(U)
 
-  P, (u,v) = W["u", "v"]
+  P, (u,v) = W[:u, :v]
   PQ, _ = quo(P, ideal(P, [u]))
 
   @test parent(evaluate(v, gens(PQ))) === PQ
 
-  PP, (uu, vv) = P["uu", "vv"]
+  PP, (uu, vv) = P[:uu, :vv]
   @test parent(one(W) * uu) === PP
 end
 

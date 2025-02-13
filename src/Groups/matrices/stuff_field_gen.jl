@@ -8,16 +8,16 @@
 
 # changes the base ring of a polynomial ring into fqPolyRepFieldElem
 function _change_type(f::PolyRingElem{T}) where T <: FinFieldElem
-   e,p = is_power(order(base_ring(f)))
+   e,p = is_perfect_power_with_data(order(base_ring(f)))
    F = GF(Int(p),Int(e))
-   t = polynomial_ring(F,"t"; cached=false)[2]
+   t = polynomial_ring(F,:t; cached=false)[2]
    return sum([t^i*F(lift(coeff(f,i))) for i in 0:degree(f)])
 end
 
 function _change_type(f::PolyRingElem{<: FqFieldElem})
-   e,p = is_power(order(base_ring(f)))
+   e,p = is_perfect_power_with_data(order(base_ring(f)))
    F = GF(Int(p),Int(e))
-   t = polynomial_ring(F,"t"; cached=false)[2]
+   t = polynomial_ring(F,:t; cached=false)[2]
    return sum([t^i*F(lift(ZZ, coeff(f,i))) for i in 0:degree(f)])
 end
 

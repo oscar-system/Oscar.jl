@@ -59,11 +59,11 @@ end
   E1, E2, E3 = weil_divisor.(components(E))
   set_attribute!(Phi, :is_isomorphism, true)
   pbE1 = pushforward(Phi)(E1)
-  @test any(x->x==pbE1, H)
+  @test any(==(pbE1), H)
   pbE2 = pushforward(Phi)(E2)
-  @test any(x->x==pbE2, H)
+  @test any(==(pbE2), H)
   pbE3 = pushforward(Phi)(E3)
-  @test any(x->x==pbE3, H)
+  @test any(==(pbE3), H)
 
   # Test the different versions of realization and their compatibility
   realizations = []

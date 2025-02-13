@@ -161,6 +161,7 @@ and the codomain is some new group constructed by the function.
 is_isomorphic(G::GAPGroup, H::GAPGroup)
 is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
 isomorphism(G::GAPGroup, H::GAPGroup)
+isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```
 
 ```@docs

@@ -1,5 +1,5 @@
 @testset "Space Germ constructors 1" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = spec(R, I*J, units_of(R))
@@ -53,7 +53,7 @@ end
 end
 
 @testset "Space Germ constructors AffineScheme-Ideal" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   J = ideal(R, [x-y])
   U0 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
   U1 = Oscar.MPolyComplementOfKPointIdeal(R,[1,2,2])
@@ -70,8 +70,8 @@ end
 end
 
 @testset "Space Germ constructors 2" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-  S, (u,v,w) = QQ["u", "v", "w"]
+  R, (x,y,z) = QQ[:x, :y, :z]
+  S, (u,v,w) = QQ[:u, :v, :w]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = spec(R, I*J, units_of(R))
@@ -90,7 +90,7 @@ end
 end
 
 @testset "Space Germ constructors 3" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   Q,_= quo(R,ideal(R,[z-y]))
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
@@ -107,8 +107,8 @@ end
 end
 
 @testset "germ_at_point constructors 1" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-  S, (u,v,w) = QQ["u", "v", "w"]
+  R, (x,y,z) = QQ[:x, :y, :z]
+  S, (u,v,w) = QQ[:u, :v, :w]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = spec(R, I*J, units_of(R))
@@ -127,7 +127,7 @@ end
 end
 
 @testset "germ_at_point constructors 2" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   K = ideal(R, [x,y])
@@ -147,7 +147,7 @@ end
 end
 
 @testset "space germ utilities" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x, y])
   Q1,_ = quo(R,I)
@@ -166,7 +166,7 @@ end
 end
 
 @testset "SpaceGerm from AffineScheme" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   K = ideal(R, [x,y])

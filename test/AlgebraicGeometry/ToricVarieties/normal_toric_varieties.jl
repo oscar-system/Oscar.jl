@@ -34,4 +34,50 @@
     ntv5 = normal_toric_variety(polarize(polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))))
     @test ngens(stanley_reisner_ideal(ntv5)) == 1648
   end
+
+  p2 = projective_space(NormalToricVariety, 2)
+  f2 = hirzebruch_surface(NormalToricVariety, 2)
+
+  @testset "Equality of normal toric varieties" begin
+    @test (p2 === f2) == false
+    @test p2 === p2
+    @test p2 != f2
+
+    X = projective_space(NormalToricVariety, 2)
+    X = domain(blow_up(X, [3, 4]))
+    X = domain(blow_up(X, [-2, -3]))
+    Y = weighted_projective_space(NormalToricVariety, [1, 2, 3])
+    Y = domain(blow_up(Y, [-1, -1]))
+    Y = domain(blow_up(Y, [3, 4]))
+    @test X == Y
+
+    Z = projective_space(NormalToricVariety, 2)
+    X = domain(blow_up(Z, [1, 1]))
+    Y = domain(blow_up(Z, [1, 2]))
+    @test X != Y
+
+    H = hirzebruch_surface(NormalToricVariety, 0)
+    P1 = projective_space(NormalToricVariety, 1)
+    ray_generators = [[1, 1], [1, 2]]
+    max_cones = incidence_matrix([[1, 2]])
+    X = normal_toric_variety(max_cones, ray_generators)
+    @test length(Set([H, P1 * P1, X])) == 2
+
+    @testset "Speed test hash (at most 0.5 seconds)" begin
+      success = false
+      ntv5 = normal_toric_variety(polarize(polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))))
+      hash(ntv5)
+      for i in 1:5
+        stats = @timed hash(ntv5)
+        duration = stats.time - stats.gctime
+        if duration < 0.5
+          success = true
+          break
+        else
+          @warn "Hash took $duration > 0.5 seconds (i=$i)"
+        end
+      end
+      @test success == true
+    end
+  end
 end

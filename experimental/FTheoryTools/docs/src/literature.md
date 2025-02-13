@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Literature constructions
@@ -45,7 +46,7 @@ paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
-related_literature_models(m::AbstractFTheoryModel)
+birational_literature_models(m::AbstractFTheoryModel)
 ```
 Such meta data can be modified with setters. For instance, there is a function
 `set_description(m::AbstractFTheoryModel, description::String)`, which takes the
@@ -62,6 +63,10 @@ resolution_zero_sections(m::AbstractFTheoryModel)
 weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+zero_section(m::AbstractFTheoryModel)
+zero_section_class(m::AbstractFTheoryModel)
+zero_section_index(m::AbstractFTheoryModel)
+torsion_sections(m::AbstractFTheoryModel)
 ```
 
 One can check if a model has a particular set of information. This is achieved with the
@@ -80,6 +85,7 @@ following methods:
 * `has_journal_model_equation_number(m::AbstractFTheoryModel)`,
 * `has_journal_model_page(m::AbstractFTheoryModel)`,
 * `has_journal_model_section(m::AbstractFTheoryModel)`,
+* `has_journal_name(m::AbstractFTheoryModel)`,
 * `has_journal_pages(m::AbstractFTheoryModel)`,
 * `has_journal_report_numbers(m::AbstractFTheoryModel)`,
 * `has_journal_volume(m::AbstractFTheoryModel)`,
@@ -91,7 +97,7 @@ following methods:
 * `has_paper_buzzwords(m::AbstractFTheoryModel)`,
 * `has_paper_description(m::AbstractFTheoryModel)`,
 * `has_paper_title(m::AbstractFTheoryModel)`,
-* `has_related_literature_models(m::AbstractFTheoryModel)`,
+* `has_birational_literature_models(m::AbstractFTheoryModel)`,
 * `has_resolutions(m::AbstractFTheoryModel)`,
 * `has_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_resolution_zero_sections(m::AbstractFTheoryModel)`,
@@ -99,6 +105,8 @@ following methods:
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
 * `has_zero_section(m::AbstractFTheoryModel)`,
+* `has_zero_section_class(m::AbstractFTheoryModel)`,
+* `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 
@@ -172,7 +180,7 @@ graph. In the case at hand, this is rather simple.
 
 The Ci-curves turn into the irreducible components of the nodel curve. Certainly, we only need
 to focus on the non-trivial Ci-curves. A non-trivial Ci-curve can split into multiple irreducible
-components. This is taken into acccount when the nodes/vertices of the dual graph are constructed.
+components. This is taken into account when the nodes/vertices of the dual graph are constructed.
 
 The topological intersection numbers among the Ci-curves (or rather, their irreducible components)
 tells us how many nodal singularities link the Ci-curves (or rather, their irreducible components)

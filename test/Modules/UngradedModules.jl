@@ -22,7 +22,7 @@ end
 
 @testset "Modules: Constructors" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   F = FreeMod(R,3)
   v = [x, x^2*y+z^3, R(-1)]
   @test v == Vector(F(v))
@@ -59,7 +59,7 @@ end
 
 @testset "Modules: Simplify elements of subquotients" begin
   Oscar.set_seed!(235)
-    R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+    R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
     F1 = free_module(R, 3)
     F2 = free_module(R, 1)
     G = free_module(R, 2)
@@ -74,7 +74,7 @@ end
 
 @testset "Intersection of modules" begin
   Oscar.set_seed!(235)
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 
   A1 = R[x y;
         2*x^2 3*y^2]
@@ -128,11 +128,29 @@ end
   @test iszero(I)
 end
 
+@testset "module quotients" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+  F = free_module(R, 1);
+  V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+  N, _ = sub(F, V);
+  @test iszero(annihilator(N))
+  
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+  F = graded_free_module(R, 1);
+  B = R[x^2; y^3; z^4];
+  AM = R[x;];
+  M = SubquoModule(F, AM, B)
+  AN = R[y;];
+  N = SubquoModule(F, AN, B)
+  L = quotient(M, N)
+  @test ngens(L) == 3
+end
+
 @testset "Presentation" begin
   Oscar.set_seed!(235)
 
   # over Integers
-  R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(ZZ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[42*x*y 7*x^2; 6*x 9*y^2]]
   relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x x*y], R[3*x*y 7*x*y; 42 7]]
   true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; x*y^4-x^3*y+y^4-x^2*y -x*y^3+x^3; -y^4+x^2*y x*y^3-x^3; x^2*y^3+x*y^3+y^3 -x^2*y^2-x*y^2], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[x^5-x*y^4+x^3*y+x*y^3 x^11-x^2*y-x*y; -x^5*y^7+x*y^11+2*x^5*y^6-x^3*y^8-3*x*y^10+2*x^5*y^5+2*x^3*y^7-3*x^5*y^4+2*x^3*y^6+5*x*y^8+2*x^5*y^3-3*x^3*y^5-5*x*y^7+2*x^3*y^4+2*x*y^6 -x^11*y^7+2*x^11*y^6+2*x^11*y^5-3*x^11*y^4+2*x^11*y^3+x^2*y^8-2*x^2*y^7+x*y^8-2*x^2*y^6-2*x*y^7+3*x^2*y^5-2*x*y^6-2*x^2*y^4+3*x*y^5-2*x*y^4], R[-13*y R(0); -377 -2639*x; -39 -273*x; -13*y-39 -273*x; -13 -91*x; y^2-42*x -294*x^2+21*x*y; 9*y^2-x+26*y+78 -7*x^2+189*x*y+546*x; -y^2+3*x 21*x^2-21*x*y]]
@@ -157,7 +175,7 @@ end
   @test is_graded(FIm)
 
   # over Rationals
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
   relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x+y x+y; x*y x*y], R[x+y x+y; y x; x y]]
   true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; -x^2*y^4+x^4*y x^2*y^3-x^4], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[-x^4+y^4-x^2-y^2 -x^10+x+R(1)], R[R(0) -x^2+y^2; -2*x^2 -x^9*y+x+1; -2*x*y^2 -x^8*y^3+y^2+x; -2*x*y^2+2*y^2 -x^8*y^3+x^7*y^3+y^2-1]]
@@ -175,7 +193,7 @@ end
     @test is_bijective(p)
   end
 
-	R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+	R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubquoModule(A, B)
@@ -268,19 +286,27 @@ end
   hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
   @test chain_range(hom_hom_resolution) == chain_range(free_res)
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   F = free_module(R, 2)
   C, isom = present_as_cokernel(F, :cache_morphism)
   @test ambient_free_module(C) == F
   @test relations(C) == [zero(F)]
   @test domain(isom) == F
   @test codomain(isom) == C
+
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  A, p = quo(R, ideal(R, x^5))
+  M1 = identity_matrix(A, 2)
+  M2 = A[-x-y 2*x^2+x; z^4 0; 0 z^4; 8*x^3*y - 4*x^3 - 4*x^2*y + 2*x^2 + 2*x*y - x - y x; x^4 0]
+  M = SubquoModule(M1, M2)
+  fr = free_resolution(M, length = 9)
+  @test all(iszero, homology(fr)[2:end])
 end
 
 @testset "Prune With Map" begin
   Oscar.set_seed!(235)
   # ungraded
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   M = SubquoModule(identity_matrix(R, 3), R[1 x x])
   N, phi = prune_with_map(M)
   @test rank(ambient_free_module(N)) == 2
@@ -292,7 +318,7 @@ end
   @test (phi).(gens(N)) == [gens(M)[1], gens(M)[3]]
 
   # graded
-  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
   F = graded_free_module(R, [2, 1])
   M = SubquoModule(F, identity_matrix(R, 2), R[1 x])
   N, phi = prune_with_map(M)
@@ -306,7 +332,7 @@ end
   # These tests are only meant to check that the ext and tor function don't throw any error
   # These tests don't check the correctness of ext and tor
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   A = R[x; y]
   B = R[x^2; x*y; y^2; z^4]
   M = SubquoModule(A, B)
@@ -353,7 +379,7 @@ end
 
 @testset "Gröbner bases" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   F = FreeMod(R, 1)
 
   J = SubquoModule(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
@@ -362,14 +388,14 @@ end
   J = SubquoModule(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
   @test leading_module(J) == SubquoModule(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
 
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   F = FreeMod(R, 2)
   lp = lex(gens(base_ring(F)))*lex(gens(F))
 
   M = SubquoModule(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
   @test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
-  R, x = polynomial_ring(QQ, ["x_"*string(i) for i=1:4])
+  R, x = polynomial_ring(QQ, :x => 1:4)
   F = FreeMod(R, 1)
   lp = lex(gens(base_ring(F)))*lex(gens(F))
 
@@ -377,14 +403,14 @@ end
   @test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
   @test haskey(J.groebner_basis, lp)
 
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   F = FreeMod(R, 1)
   lp = lex(gens(base_ring(F)))*lex(gens(F))
   I = SubquoModule(F, [(x-1)*F[1], (y^2-1)*F[1]])
   f = (x*y^2+y)*F[1]
   @test Oscar.reduce(f, I) == (y+1)*F[1]
 
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   F = FreeMod(R, 2)
 
   A = R[x+1 y*z+x^2; (y+2*z) z^3]
@@ -396,7 +422,7 @@ end
   @test P == Q
   v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
   @test represents_element(v,M)
-  R, (x,y,z) = polynomial_ring(AcbField(64), ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(AcbField(64), [:x, :y, :z])
   F = FreeMod(R, 2)
 
   A = R[x+1 y*z+x^2; (y+2*z) z^3]
@@ -410,7 +436,7 @@ end
   Oscar.set_seed!(235)
 
   # over Integers
-  R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(ZZ, [:x, :y, :z])
   matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)]]
   kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)]]
   for (A,Ker) in zip(matrices, kernels)
@@ -428,7 +454,7 @@ end
   end
 
   # over Rationals
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)],
         R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
         13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
@@ -453,7 +479,7 @@ end
 
 @testset "iszero(SubquoModule)" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   A = R[x^2+2*x*y y^2*x-2*x^2*y;-y x*y]
   B = R[x^2 y^2*x;-y x*y]
   @test iszero(SubquoModule(A,B))
@@ -467,7 +493,7 @@ end
 
 @testset "simplify subquotient" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   A1 = R[x*y R(0)]
   B1 = R[R(0) R(1)]
   M1 = SubquoModule(A1,B1)
@@ -543,7 +569,7 @@ end
 
 @testset "quotient modules" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   F3 = FreeMod(R,3)
   M1 = SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y; 2*x^2 3*y^2*x 4],R[x^4*y^5 x*y y^4])
@@ -585,7 +611,7 @@ end
 
 @testset "submodules" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   F2 = FreeMod(R,2)
   M1 = SubquoModule(F2,R[x^2*y+x*y x*y^2-x; x+x*y^2 y^3],R[x^2 y^3-x])
@@ -621,7 +647,7 @@ end
 
 @testset "Hom module" begin
   Oscar.set_seed!(235)
-  R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
+  R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, [:x0, :x1, :x2, :x3, :x4, :x5])
   f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
   g1 = transpose(R[x0*x1 x2*x3 x4*x5])
   M = cokernel(f1)
@@ -653,7 +679,7 @@ end
       @test SQ == free_module_SQ(ambient_free_module(SQ))
     end
   end
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   A1 = R[x^2+1 x*y; x^2+y^3 x*y]
   B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
   M1 = SubquoModule(A1, B1)
@@ -665,7 +691,7 @@ end
     @test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
   end
 
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   A1 = R[x^2+1 x*y; x^2+y^3 x*y]
   B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
   M1 = SubquoModule(A1, B1)
@@ -715,7 +741,7 @@ end
 
 @testset "tensoring morphisms" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
 
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
@@ -759,7 +785,7 @@ end
 
 @testset "direct product" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
 
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
@@ -861,7 +887,7 @@ end
 @testset "Coordinates (lift)" begin
   Oscar.set_seed!(235)
   Z3, a = finite_field(3,1,"a")
-  R, (x,y) = polynomial_ring(Z3, ["x", "y"])
+  R, (x,y) = polynomial_ring(Z3, [:x, :y])
   coeffs = [Z3(i) for i=0:1]
 
   A = R[x*y x^2+y^2; y^2 x*y;x^2+1 1]
@@ -884,7 +910,7 @@ end
 
 @testset "module homomorphisms" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   F3 = FreeMod(R,3)
   F4 = FreeMod(R,4)
@@ -1051,7 +1077,7 @@ end
 
 @testset "lift of homomorphisms" begin
   K = GF(3)
-  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(K, ["x0", "x1", "x2", "x3", "x4"]);
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(K, [:x0, :x1, :x2, :x3, :x4]);
   m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0, x1*x3+(-x1+x4+x0)*x0, x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0, x2*x3+(x1-x2+x3+x4-x0)*x0, x2*x4+(x1+x2-x3-x4-x0)*x0, x3^2+(x3+x4-x0)*x0,x3*x4+(-x3-x4+x0)*x0, x4^2+(x1+x3-x4-x0)*x0]);
   A, _ = quo(S, m);
   FA = free_resolution(A, algorithm = :mres, length = 2)
@@ -1074,7 +1100,7 @@ end
 
 @testset "preimage" begin
   Oscar.set_seed!(235)
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   for _=1:10
     A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
@@ -1092,7 +1118,7 @@ end
     H = element_to_homomorphism(H)
 
     u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-    image_of_u = sub_object(M,map(x -> H(x),u))
+    image_of_u = sub_object(M, map(H, u))
     preimage_test_module = image_of_u + sub_object(M,[M[1]])
     _,emb = preimage(H,preimage_test_module,:with_morphism)
     @test issubset(sub_object(N,u), image(emb)[1])
@@ -1101,7 +1127,7 @@ end
 
 @testset "change of base rings" begin
   Oscar.set_seed!(235)
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   U = Oscar.MPolyPowersOfElement(x)
   S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
@@ -1118,14 +1144,14 @@ end
   MS, mapM = change_base_ring(S, M)
   @test iszero(mapM(M[1]))
 
-  f = MapFromFunc(R, S, x->S(x))
+  f = MapFromFunc(R, S, S)
   MS, mapM = change_base_ring(f, M)
   @test iszero(mapM(M[1]))
 end
 
 @testset "duals" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   F1 = FreeMod(R, 1)
   F2 = FreeMod(R, 2)
   F2v, ev = Oscar.dual(F2, codomain=F1)
@@ -1166,7 +1192,7 @@ end
 
 @testset "free resolution in case of no relations" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   Z = abelian_group(0)
   F = free_module(R, 3)
   G = free_module(R, 2)
@@ -1180,7 +1206,7 @@ end
 
 @testset "length of free resolution" begin
   Oscar.set_seed!(235)
-  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), ["x0", "x1", "x2", "x3", "x4"]);
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), [:x0, :x1, :x2, :x3, :x4]);
   m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0,
             x1*x3+(-x1+x4+x0)*x0,
             x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0,
@@ -1194,7 +1220,7 @@ end
 
 @testset "vector_space_dimension and vector_space_basis" begin
   Oscar.set_seed!(235)
-  R,(x,y,z,w) = QQ["x","y","z","w"]
+  R,(x,y,z,w) = QQ[:x, :y, :z, :w]
   U=complement_of_point_ideal(R,[0,0,0,0])
   RL, loc_map = localization(R,U)
   Floc = free_module(RL,2)
@@ -1267,3 +1293,41 @@ end
   F = graded_free_module(Pn, 1)
   dualFIC = hom(FI.C, F)
 end
+
+@testset "issue 4203" begin
+  R, (x,y) = polynomial_ring(GF(2), ["x","y"]);
+  
+  g = [x+1, y+1]
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  A, _ = quo(R, ideal(R, [x^2+1, y^2+1]));
+  
+  g = A.([x+1, y+1])
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  F = free_module(A,2);
+  M,_ = sub(F, [F([A(x+1),A(y+1)])]);
+  FF = free_module(A, ngens(M)); 
+  phi = hom(FF, M, gens(M)); 
+  K, = kernel(phi); 
+  @test ambient_representatives_generators(K) == [(x*y + x + y + 1)*FF[1]]
+  @test_throws ErrorException standard_basis(K)
+  s1 = syzygy_generators(ambient_representatives_generators(M))
+  G = parent(first(s1))
+  s2 = syzygy_generators(ambient_representatives_generators(M); parent=G)
+  @test s1 == s2
+  s3 = syzygy_generators(ambient_representatives_generators(M))
+  @test s3 != s2
+  @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
+end
+

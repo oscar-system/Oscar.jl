@@ -51,15 +51,19 @@ end
   X = covered_scheme(IPX)
   h = (x+y+z+w)^3
   u = (x-y+4*w)
-  C = Oscar.cartier_divisor(IPX, h)
-  D = Oscar.cartier_divisor(IPX, u)
+  C = cartier_divisor(IPX, h)
+  D = cartier_divisor(IPX, u)
   @test 2*C == C+C
   @test iszero(D-D)
   @test 3*(C + D) == 3*C + 3*D
+  Z = Oscar.cartier_divisor(IPX, S(1))
+  @test iszero(Z)
+  C2 = cartier_divisor(IPX, h^2)
+  @test iszero(2*C - C2)
 end
 
 @testset "conversion of Cartier to Weil divisors" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
+  IP2 = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))

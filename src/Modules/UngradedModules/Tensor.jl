@@ -43,7 +43,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
       z = zzz
       zz = zzzz
     end
-    indices = Vector{Int}([findfirst(x->x == y, t) for y = z])
+    indices = Vector{Int}([findfirst(==(y), t) for y = z])
     return FreeModElem(sparse_row(F.R, indices, zz), F)
   end
   function pure(T::Tuple)
@@ -84,7 +84,7 @@ If `task = :map`, additionally return the map which sends a tuple $(m_1,\dots, m
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -140,10 +140,10 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   
   function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
-    coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coordinates(x) for x = tuple_elems))])
+    coeffs_tuples = vec([x for x in Base.Iterators.ProductIterator(coordinates.(tuple_elems))])
     res = zero(s)
     for coeffs_tuple in coeffs_tuples
-      indices = map(x -> x[1], coeffs_tuple)
+      indices = map(first, coeffs_tuple)
       coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
       res += coeff_for_pure*tuples_pure_tensors_dict[indices]
     end

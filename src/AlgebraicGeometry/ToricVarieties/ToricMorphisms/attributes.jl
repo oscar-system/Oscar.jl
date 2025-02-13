@@ -33,22 +33,22 @@ codomain(tm::ToricMorphism) = tm.codomain
 
 
 @doc raw"""
-    grid_morphism(tm::ToricMorphism)
+    lattice_homomorphism(tm::ToricMorphism)
 
-Return the underlying grid morphism of the toric morphism `tm`.
+Return the underlying homomorphism of lattices of one parameter subgroups of the toric morphism `tm` as in Definition 3.3.1 of [CLS11](@cite).
 
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal toric variety
 
-julia> grid_morphism(toric_identity_morphism(F4))
+julia> lattice_homomorphism(toric_identity_morphism(F4))
 Map
   from Z^2
   to Z^2
 ```
 """
-grid_morphism(tm::ToricMorphism) = tm.grid_morphism
+lattice_homomorphism(tm::ToricMorphism) = tm.lattice_homomorphism
 
 
 @doc raw"""
@@ -72,11 +72,11 @@ Map
     d = domain(tm)
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
-    images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
+    images = matrix(ZZ, rays(d)) * matrix(lattice_homomorphism(tm))
     mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
-      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
+      j = findfirst(j -> v in maximal_cones(cod)[j], 1:n_maximal_cones(cod))
       m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
     end
@@ -174,7 +174,7 @@ end
 
 For a given toric morphism `tm`, we can compute the corresponding
 morphism of covered schemes. The following demonstrates this for the
-blow-down morphism of a blow-up of the projective space.
+blow-up morphism of a blow-up of the projective space.
 
 # Examples
 ```jldoctest
@@ -211,7 +211,7 @@ Covering
 ```
 """
 @attr CoveringMorphism function covering_morphism(f::ToricMorphism)
-  # TODO: If f is a blowdown morphism, we can simplify 
+  # TODO: If f is a blowup morphism, we can simplify 
   # the matchings of cones below.
   X = domain(f)
   Y = codomain(f)
@@ -219,7 +219,7 @@ Covering
   # Find the image cones
   codomain_cones = maximal_cones(Y)
   domain_cones = maximal_cones(X)
-  A = matrix(grid_morphism(f))
+  A = matrix(lattice_homomorphism(f))
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
 
   # construct the corresponding morphism of rings
@@ -252,7 +252,7 @@ Covering
     sol = vcat(sol_list...)
 
     @assert sol*hb_U_mat == hb_V_img
-    @assert all(x->x>=0, sol)
+    @assert all(>=(0), sol)
 
     # assemble the monomials where the variables of OO(V) are mapped
     imgs = [prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for i in 1:nrows(sol)]

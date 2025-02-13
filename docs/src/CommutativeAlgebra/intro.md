@@ -41,6 +41,12 @@ General textbooks offering details on theory and algorithms include:
 - [DP13](@cite)
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on commutative algebra in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/CommutativeAlgebra/).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:

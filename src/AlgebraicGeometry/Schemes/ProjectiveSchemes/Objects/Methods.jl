@@ -192,7 +192,7 @@ not an instance of `Map`.
 
 # Examples
 ```jldoctest
-julia> A, _ = QQ["u", "v"];
+julia> A, _ = QQ[:u, :v];
 
 julia> P = projective_space(A, ["x0", "x1", "x2"])
 Projective space of dimension 2
@@ -433,5 +433,8 @@ function Base.union(comp::Vector{<:AbsProjectiveScheme})
   return result
 end
 
+function Base.hash(X::AbsProjectiveScheme, u::UInt)
+  return u
+end
 
 

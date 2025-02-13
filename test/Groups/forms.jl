@@ -1,5 +1,5 @@
 @testset "Definition forms" begin
-   T,t = polynomial_ring(GF(3),"t")
+   T,t = polynomial_ring(GF(3),:t)
    F,z = finite_field(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
@@ -58,7 +58,7 @@
    @test_throws ArgumentError corresponding_quadratic_form(Q)
    @test_throws ArgumentError corresponding_bilinear_form(f)
 
-   R,x = polynomial_ring(F,"x")
+   R,x = polynomial_ring(F,:x)
    p = x^2*z
    Q = quadratic_form(p)
    @test is_quadratic(Q)
@@ -66,7 +66,7 @@
    @test is_symmetric(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
-   T,t = polynomial_ring(GF(2),"t")
+   T,t = polynomial_ring(GF(2),:t)
    F,z = finite_field(t^2+t+1,"z")
    R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
@@ -176,7 +176,7 @@ end
    @test !is_true
    @test z===nothing
 
-   T,t = polynomial_ring(GF(3),"t")
+   T,t = polynomial_ring(GF(3),:t)
    F,a = finite_field(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
@@ -645,4 +645,10 @@ end
   H = hyperbolic_plane_lattice()
   G = orthogonal_group(H)
   @test order(G) == 4
+  
+  L = integer_lattice(gram=ZZ[4 1 1; 1 -2 0; 1 0 -2;])
+  v = QQ[1 0 0;]
+  G = stabilizer_in_orthogonal_group(L, v)
+  @test order(G)==2
+  @test all(v*matrix(g)==v for g in gens(G))
 end

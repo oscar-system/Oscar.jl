@@ -89,7 +89,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
 #prepare and then do dimension reduction (see reductionToZero)
     ureturn = Singular.deepcopy(u)
    
-    x_minus_u = filter((x) -> !(x in u), X)
+    x_minus_u = filter(!in(u), X)
     #switch lexicographic ordering to K[x\u, u]
     switch_morphism, switch_morphism_inverse, T = switchLexOrdering(copy_I, x_minus_u, u)
     copy_I = switch_morphism(copy_I)
@@ -98,7 +98,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
 #change ring to K(u)[x\u]
     n = Singular.ngens(G)
     X = Singular.gens(R)
-    x_minus_u = filter((x) -> !(x in u), X)
+    x_minus_u = filter(!in(u), X)
 
     T = G.base_ring
     K, u = Singular.FunctionField(Singular.QQ, string.(u))

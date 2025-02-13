@@ -412,7 +412,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> !(k in set), matroid_groundset(M)) for set in coindependent_sets]
+    span_sets = [filter(!in(set), matroid_groundset(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 
@@ -885,6 +885,8 @@ end
 
 @doc raw"""
     tutte_polynomial(M::Matroid)
+    tutte_polynomial(M::Matroid; parent::ZZMPolyRing)
+    tutte_polynomial(parent::ZZMPolyRing, M::Matroid)
 
 Return the Tutte polynomial of `M`. This is polynomial in the variables x and y with integral coefficients.
 See Section 15.3 in [Oxl11](@cite).
@@ -896,15 +898,20 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 
 ```
 """
-function tutte_polynomial(M::Matroid)
-    R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-    poly = pm_object(M).TUTTE_POLYNOMIAL
-    exp = Polymake.monomials_as_matrix(poly)
-    return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
+function tutte_polynomial(M::Matroid;
+           parent::ZZMPolyRing = polynomial_ring(ZZ, [:x, :y]; cached = false)[1])
+  @assert ngens(parent) >= 2
+  poly = pm_object(M).TUTTE_POLYNOMIAL
+  exp = Polymake.monomials_as_matrix(poly)
+  return parent(Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
 end
+
+tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
 
 @doc raw"""
     characteristic_polynomial(M::Matroid)
+    characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the characteristic polynomial of `M`. This is polynomial in the variable q with integral coefficients.
 It is computed as an evaluation of the Tutte polynmomial.
@@ -917,13 +924,17 @@ q^3 - 7*q^2 + 14*q - 8
 
 ```
 """
-function characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    return (-1)^rank(M)*tutte_polynomial(M)(1-q,0)
+function characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)
 end
+
+characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)
 
 @doc raw"""
     reduced_characteristic_polynomial(M::Matroid)
+    reduced_characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    reduced_characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the reduced characteristic polynomial of `M`. This is the quotient of the characteristic polynomial by (q-1).
 See Section 15.2 in [Oxl11](@cite).
@@ -935,17 +946,19 @@ q^2 - 6*q + 8
 
 ```
 """
-function reduced_characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    p = characteristic_polynomial(M)
-    c = Vector{Int}(undef,degree(p))
-    s = 0
-    for i in 1:degree(p)
-        s-= coeff(p,i-1)
-        c[i] = s
-    end
-    return R(c)
+function reduced_characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  p = characteristic_polynomial(M, parent = parent)
+  c = Vector{ZZRingElem}(undef, degree(p))
+  s = ZZ(0)
+  for i in 1:degree(p)
+    s -= coeff(p, i - 1)
+    c[i] = s
+  end
+  return parent(c)
 end
+
+reduced_characteristic_polynomial(R::ZZPolyRing, M::Matroid) = reduced_characteristic_polynomial(M, parent = R)
 
 # This function compares two sets A and B in reverse lexicographic order.
 # It assumes that both sets are of the same length and ordered.
@@ -976,7 +989,7 @@ function revlex_bases_matrix(r::Int64,n::Int64)
     return M
 end
 
-_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in collect(s)]
+_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in s]
 _revlex_basis_from_vector(v::AbstractVector{<:Integer}) = join(isone(x) ? '*' : '0' for x in v)
 
 @doc raw"""
@@ -1028,6 +1041,58 @@ function min_revlex_basis_encoding(M::Matroid)
     st = Polymake.SwitchTable(all_elem)
     min_rvlx = first(Polymake.lex_minimize_vector(st, convert(Polymake.PolymakeType, v)))
     return _revlex_basis_from_vector(min_rvlx)
+end
+
+@doc raw"""
+    matroid_hex(M::Matroid)
+
+Stores a matroid as a string of hex characters. The first part of the string is "r" followed by the rank of the matroid. This is followed by "n" and the number of elements. The rest of the string is the revlex basis encoding. The encoding is done by converting the basis encoding to a vector of bits and then to a string of characters. The bits are padded to a multiple of 4 and then converted to hex characters.
+
+# Examples
+To get the hex encoding of the fano matroid write:
+```jldoctest
+julia> matroid_hex(fano_matroid())
+"r3n7_3f7eefd6f"
+
+```
+"""
+function matroid_hex(M::Matroid)
+  rvlx = min_revlex_basis_encoding(M)
+  r,n = rank(M), length(M) 
+  v = zeros(Int, 4*ceil(Int, length(rvlx)/4))
+  v[length(v)-length(rvlx)+1:end] = _revlex_basis_to_vector(rvlx)
+
+  v = reshape(v,4,:)
+  v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
+
+  return "r$(r)n$(n)_" * join(v)
+end
+
+@doc raw"""
+    matroid_from_matroid_hex(str::AbstractString)
+
+Returns a matroid from a string of hex characters.
+
+# Examples
+To retrieve the fano matroid from its hex encoding write:
+
+```jldoctest
+julia> matroid_from_matroid_hex("r3n7_3f7eefd6f")
+Matroid of rank 3 on 7 elements
+
+```
+"""
+function matroid_from_matroid_hex(str::AbstractString)
+  @req occursin(r"^r\d+n\d+_[0-9a-f]+$", str) "Invalid hex encoding"
+
+  sep = split(str, "_")
+  (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+
+  v = [digits(parse(Int, x, base=16), base=2, pad=4) |> reverse for x in sep[2]]
+  v = foldl(append!, v)
+  v = v[(length(v)-binomial(n, r)+1):end]
+
+  return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v), r, n)
 end
 
 @doc raw"""

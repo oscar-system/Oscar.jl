@@ -5,7 +5,9 @@ A tropical linear space is a balanced polyhedral complex supported on a finite i
 - Chapter 4.4 in [MS15](@cite)
 - Chapter 10 in [Jos21](@cite)
 
-Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
+#### Note:
+- Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
+- The type `TropicalLinearSpace` can be thought of as subtype of `TropicalVariety` in the sense that it should have all properties and features of the latter.
 
 
 ## Constructors

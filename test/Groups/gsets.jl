@@ -3,14 +3,19 @@
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
   Omega = gset(G)
-  @test repr(Omega, context = :supercompact => true) == "G-set"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "G-set"
   @test isa(Omega, GSet)
-  @test length(Omega) == 6
-  @test length(orbits(Omega)) == 1
+  @test (@inferred length(Omega)) == 6
+  @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, 1)[1]) == 120
+  @test order(stabilizer(Omega, Set([1, 2]))[1]) == 48
+  @test order(stabilizer(Omega, [1, 2])[1]) == 24
+  @test order(stabilizer(Omega, (1, 2))[1]) == 24
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
   @test isa(Omega, GSet)
@@ -19,10 +24,22 @@
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, Set([1, 3]))[1]) == 48
+  @test order(stabilizer(Omega, Set([Set([1, 2]), Set([1, 3])]))[1]) == 12
+  @test order(stabilizer(Omega, [Set([1, 2]), Set([1, 3])])[1]) == 6
+  @test order(stabilizer(Omega, (Set([1, 2]), Set([1, 3])))[1]) == 6
+  @test_throws MethodError stabilizer(Omega, [1, 2])
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 30
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, [1, 3])[1]) == 24
+  @test order(stabilizer(Omega, Set([[1, 2], [1, 3]]))[1]) == 12
+  @test order(stabilizer(Omega, [[1, 2], [1, 3]])[1]) == 6
+  @test order(stabilizer(Omega, ([1, 2], [1, 3]))[1]) == 6
+  @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
@@ -31,27 +48,47 @@
   Omega = gset(G, [(1, 2)])  # action on ordered pairs (repres. by tuples)
   @test isa(Omega, GSet)
   @test length(Omega) == 30
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
+  # larger examples
+  G = symmetric_group(100)
+  Omega = gset(G)
+  S1, _ = stabilizer(Omega, [1, 2, 3, 4, 5])
+  @test order(S1) == factorial(big(95))
+  S2, _ = stabilizer(Omega, (1, 2, 3, 4, 5))
+  @test S2 == S1
+  S3, _ = stabilizer(Omega, Set([1, 2, 3, 4, 5]))
+  @test order(S3) == order(S1) * factorial(big(5))
+
   # constructions by explicit action functions
-  Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
+  G = symmetric_group(6)
+  omega = [0,1,0,1,0,1]
+  Omega = gset(G, permuted, [omega, [1,2,3,4,5,6]])
   @test isa(Omega, GSet)
   @test length(Omega) == 740
+  @test order(stabilizer(Omega, omega)[1]) * length(orbit(Omega, omega)) == order(G)
+  @test order(stabilizer(Omega, Set([omega, [1,0,0,1,0,1]]))[1]) == 8
+  @test order(stabilizer(Omega, [omega, [1,0,0,1,0,1]])[1]) == 4
+  @test order(stabilizer(Omega, (omega, [1,0,0,1,0,1]))[1]) == 4
+  @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test_throws ArgumentError gset(G, permuted, omega)
 
-  R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
+  R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
   f = x[1]*x[2] + x[2]*x[3]
   G = symmetric_group(3)
   Omega = gset(G, on_indeterminates, [f])
   @test isa(Omega, GSet)
   @test length(Omega) == 3
   @test length(orbits(Omega)) == 1
+  @test order(stabilizer(Omega)[1]) * length(orbit(Omega, f)) == order(G)
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
@@ -66,7 +103,7 @@
   G = symmetric_group(6)
   Omega = gset(G, [Set([1, 2])])
   @test representative(Omega) in Omega
-  @test acting_domain(Omega) == G
+  @test acting_group(Omega) == G
 
   # wrapped elements of G-sets
   G = symmetric_group(4)
@@ -141,6 +178,14 @@
   rep = is_conjugate_with_data(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
   @test ! rep[1]
 
+  # stabilizer
+  G = symmetric_group(6)
+  Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
+  @test_throws ArgumentError stabilizer(Omega, [0,0,0,0,0,0])
+  omega = representative(Omega)
+  @test stabilizer(Omega) == stabilizer(Omega, omega)
+  @test stabilizer(Omega) !== stabilizer(Omega, omega)
+  @test stabilizer(Omega) === stabilizer(Omega)
 end
 
 @testset "natural action of permutation groups" begin
@@ -210,18 +255,21 @@ end
   # natural constructions (determined by the types of the seeds)
   G = general_linear_group(2, 3)
   V = free_module(base_ring(G), degree(G))
+  v = gen(V, 1)
   Omega = gset(G)
   @test isa(Omega, GSet)
   @test length(Omega) == 9
+  @test order(stabilizer(Omega, v)[1]) * length(orbit(Omega, v)) == order(G)
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == collect(V)  # ordering is kept
 
-  Omega = orbit(G, gen(V, 1))
+  Omega = orbit(G, v)
   @test isa(Omega, GSet)
   @test length(Omega) == 8
+  @test order(stabilizer(Omega, v)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
@@ -230,6 +278,7 @@ end
   Omega = gset(G, [Set(gens(V))])  # action on unordered pairs of vectors
   @test isa(Omega, GSet)
   @test length(Omega) == 24
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
@@ -238,6 +287,7 @@ end
   Omega = gset(G, [gens(V)])  # action on ordered pairs of vectors
   @test isa(Omega, GSet)
   @test length(Omega) == 48
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test is_regular(Omega)
@@ -285,8 +335,7 @@ end
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
-#     for k in 0:n   # k = 0 is a problem in GAP 4.12.0
-      for k in 1:n
+      for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
         for (U, stab) in res
@@ -315,16 +364,28 @@ end
   f = x^2 + y
   orb = orbit(G, f)
   @test length(orb) == 3
+
+  F = QQBarField()
+  e = one(F)
+  s, c = sincospi(2 * e / 3)
+  mat_rot = matrix([c -s; s c])
+  G = matrix_group(mat_rot)
+  p = F.([1, 0])
+  orb = orbit(G, *, p)
+  @test length(orb) == 3
+
+
 end
 
 @testset "G-sets by right transversals" begin
   G = symmetric_group(5)
   H = sylow_subgroup(G, 2)[1]
   Omega = right_cosets(G, H)
-  @test repr(Omega, context = :supercompact => true) == "Right cosets of groups"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Right cosets of groups"
   @test isa(Omega, GSet)
   @test acting_group(Omega) == G
   @test length(Omega) == index(G, H)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test Omega[end] == Omega[length(Omega)]
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
@@ -382,10 +443,11 @@ end
   G = symmetric_group(5)
   H = sylow_subgroup(G, 2)[1]
   Omega = left_cosets(G, H)
-  @test repr(Omega, context = :supercompact => true) == "Left cosets of groups"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Left cosets of groups"
   @test isa(Omega, GSet)
   @test acting_group(Omega) == G
   @test length(Omega) == index(G, H)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test Omega[end] == Omega[length(Omega)]
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
@@ -439,6 +501,13 @@ end
   @test Oscar.action_function(Omega)(x, rep[2]) == y
 end
 
+@testset "G-sets of PcGroups" begin
+  G = small_group(24, 12)
+  Omega = orbit(G, gen(G, 1))
+  S, mp = stabilizer(Omega)
+  @test length(Omega) == index(G, S)
+end
+
 @testset "G-sets of FinGenAbGroups" begin
   # Define an action on class functions.
   function galois_conjugate(chi::Oscar.GAPGroupClassFunction,
@@ -455,12 +524,12 @@ end
     return galois_conjugate(chi, QQAbAutomorphism(Int(lift(mu(g)))))
   end
 
-  orb = orbit(u, f, t[3])
+  orb = @inferred orbit(u, f, t[3])
   @test length(collect(orb)) == 3
 
-  Omega = gset(u, f, t)
-  orbs = orbits(Omega)
-  @test length(orbs) == 5
+  Omega = @inferred gset(u, f, t)
+  orbs = @inferred orbits(Omega)
+  @test (@inferred length(orbs)) == 5
   @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
   @test all(o -> conductor(sum(collect(o))) == 1, orbs)
   o = orbs[findfirst(o -> length(o) == 3, orbs)]

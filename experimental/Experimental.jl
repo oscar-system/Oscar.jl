@@ -9,13 +9,14 @@ const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
   "ComplexReflectionGroups",  # Because LieAlgebra implements coroot
+  "AlgebraicShifting",       # Needs code from Lie Algebras (`isomorphism(PermGroup, ::WeylGroup)` specifically)
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",
-  "FTheoryTools",            # must be loaded after Schemes
+  "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
 ]
-exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
 
 # force trigger recompile when folder changes
@@ -51,7 +52,7 @@ end
 # Note that there are functions in the docs of experimental that are not
 # exported. These then also do not get the warning attached.
 using Markdown
-warnexp = Markdown.parse(raw"""
+const warnexp = Markdown.parse(raw"""
 !!! warning "Experimental"
     This function is part of the experimental code in Oscar. Please read
     [here](https://docs.oscar-system.org/v1/Experimental/intro/) for more

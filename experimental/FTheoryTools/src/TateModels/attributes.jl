@@ -109,6 +109,10 @@ tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 
 Return the Tate polynomial of the global Tate model.
 
+For convenience and uniformity with (general) hypersurface
+models, we also support the method `hypersurface_equation`
+to access the Tate polynomial.
+
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -117,6 +121,9 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> tate_polynomial(t)
 w^3*a43*x*z^4 - w^2*a32*y*z^3 + w*a21*x^2*z^2 - a1*x*y*z + x^3 - y^2
+
+julia> tate_polynomial(t) == hypersurface_equation(t)
+true
 ```
 """
 function tate_polynomial(t::GlobalTateModel)
@@ -132,6 +139,8 @@ function tate_polynomial(t::GlobalTateModel)
   end
   return t.tate_polynomial
 end
+
+hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 
 
 @doc raw"""
@@ -153,7 +162,7 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> tate_ideal_sheaf(t)
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal with 1 generator
    2: Ideal with 1 generator
@@ -357,7 +366,7 @@ end
     singular_loci(t::GlobalTateModel)
 
 Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)``` at each locus and the refined Tate fiber type.
+vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
 
 For the time being, we either explicitly or implicitly focus on toric varieties
 as base spaces. Explicitly, in case the user provides such a variety as base space,
@@ -388,7 +397,7 @@ we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, whi
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
 
 ```jldoctest
-julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; -1 -1 -1 -1 -2 1];
 
@@ -412,8 +421,10 @@ Global Tate model over a not fully specified base
 julia> length(singular_loci(t))
 2
 
-julia> singular_loci(t)[2]
-(Ideal (w), (1, 2, 3), "III")
+julia> sort([k[2:3] for k in singular_loci(t)])
+2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
+ ((0, 0, 1), "I_1")
+ ((1, 2, 3), "III")
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)

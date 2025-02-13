@@ -474,11 +474,7 @@ struct GAPGroupMarksVector <: GroupMarksVector
   values::GapObj
 end
 
-GapObj(chi::GAPGroupMarksVector) = chi.values
-
-# The following is needed for recursive `GapObj` calls with arrays
-# of marks vectors.
-GAP.julia_to_gap(chi::GAPGroupMarksVector) = GapObj(chi)
+GAP.@install GapObj(chi::GAPGroupMarksVector) = chi.values
 
 parent(chi::GAPGroupMarksVector) = chi.table
 
@@ -676,7 +672,7 @@ julia> chi = tom[5]
 marks_vector(table of marks of A5, ZZRingElem[12, 0, 0, 0, 2])
 
 julia> println(values(restrict(chi, tbl)))
-QQAbElem{AbsSimpleNumFieldElem}[12, 0, 0, 2, 2]
+QQAbFieldElem{AbsSimpleNumFieldElem}[12, 0, 0, 2, 2]
 ```
 """
 function restrict(chi::GAPGroupMarksVector, tbl::GAPGroupCharacterTable)

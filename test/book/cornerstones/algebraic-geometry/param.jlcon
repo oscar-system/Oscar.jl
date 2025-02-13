@@ -33,11 +33,11 @@ Projective curve
 defined by ideal with 3 generators
 
 julia> betti(free_resolution(defining_ideal(D)))
-       0  1
------------
-2    : 3  2
------------
-total: 3  2
+degree: 0  1
+------------
+     2: 3  2
+------------
+ total: 3  2
 
 julia> Oscar.rat_normal_curve_anticanonical_map(D)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
