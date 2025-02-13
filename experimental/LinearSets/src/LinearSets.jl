@@ -2,13 +2,14 @@ module LinearSets
 
 using Oscar
 
-# should use something other than defining_polynomial when v is not over the prime field..
 function (k::FqField)(v::AbstractAlgebra.Generic.FreeModuleElem)
+  @req parent(v[1]) == base_field(k) "Elements of v must be in the base field of k"
   return k(parent(defining_polynomial(k))( Array(v.v)[1:degree(k)] ))
 end
 
 # Gives collection of normalized vectors corresponding to 1-dimensional subspaces
 # TODO needs tweaking if order(base_ring(V)) is not prime....
+# TODO better to do this as an iterator?
 function _points(V::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
     k = base_ring(V)
     p = order(k)
@@ -20,6 +21,7 @@ function _points(V::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
     # TODO : should convert these to linear combinations of B instead of raw conversion.
     # But this creates overhead, maybe only do this if B is nonstandard...
     # TODO : is it faster to concatenate with the prefix [0...1], rather then compute p^s?
+
     [V(reverse(digits(p^s + j, base = Int(p), pad = n))) for s in 0:(n-1) for j in 0:(p^s - 1)]
 end
 
