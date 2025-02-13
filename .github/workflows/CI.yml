@@ -215,3 +215,31 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+# adapted from gap-system/gap
+  slack-notification:
+    name: Send Slack notification on status change
+    needs:
+      - extra-long-test
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        id: get-branch
+        run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Determine whether CI status changed
+        uses: gap-actions/should-i-notify-action@v1
+        id: should_notify
+        with:
+          branch: ${{ steps.get-branch.outputs.branch }}
+          needs_context: ${{ toJson(needs) }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          notify_on_changed_status: true
+      - name: Send slack notification
+        uses: act10ns/slack@v2
+        if: ${{ steps.should_notify.outputs.should_send_message == 'yes' }}
+        with:
+          status: ${{ steps.should_notify.outputs.current_status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
