@@ -63,12 +63,14 @@ import ..Oscar:
   is_isomorphism,
   is_nilpotent,
   is_perfect,
+  is_semisimple,
   is_simple,
   is_solvable,
   is_welldefined,
   isomorphism,
   kernel,
   lower_central_series,
+  map_word,
   matrix,
   normalizer,
   number_of_generators,
@@ -106,7 +108,6 @@ include("Combinatorics.jl")
 include("Util.jl")
 
 include("CoxeterGroup.jl")
-include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
@@ -125,6 +126,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("SSLieAlgebraModule.jl")
 
 include("serialization.jl")
 

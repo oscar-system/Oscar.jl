@@ -2023,7 +2023,8 @@ If `init == nothing` and `genimgs` is empty, an error occurs.
 Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
 
-See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)](@ref).
 
 # Examples
 ```jldoctest
@@ -2106,7 +2107,8 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
-See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)](@ref).
 
 # Examples
 ```jldoctest

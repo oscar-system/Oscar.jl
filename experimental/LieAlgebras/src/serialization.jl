@@ -5,7 +5,7 @@
 ###############################################################################
 
 const lie_algebra_serialization_attributes = [
-  :is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable
+  :is_abelian, :is_nilpotent, :is_perfect, :is_semisimple, :is_simple, :is_solvable
 ]
 
 @register_serialization_type AbstractLieAlgebra uses_id lie_algebra_serialization_attributes

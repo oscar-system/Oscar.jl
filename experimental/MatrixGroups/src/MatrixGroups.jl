@@ -6,12 +6,7 @@ import Oscar:GAPWrap
 
 export _wrap_for_gap
 
-################################################################################
-# Initialize GAP function, i.e. GAP reads the file matrix.g
-#
-function __init__()
-    GAP.Globals.Read(GapObj(joinpath(@__DIR__, "matrix.g")))
-end
+# The corresponding gap functions are defined in the file gap/OscarInterface/gap/ExperimentalMatrixGroups.g
 
 ################################################################################
 """

@@ -1064,6 +1064,7 @@ export linear_symmetries
 export linear_system
 export link_subcomplex
 export load
+export generic_enriques_surface
 export load_lp
 export load_mps
 export localization
@@ -1697,6 +1698,7 @@ export volume
 export volume_form
 export volume_map
 export walls
+export walls_defined_by_rational_curves
 export wdeglex
 export wdegrevlex
 export weak_composition

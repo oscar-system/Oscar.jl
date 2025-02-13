@@ -2,10 +2,10 @@
 # 1: Weierstrass models over concrete base space
 #############################################################
 
-base = sample_toric_variety()
+my_base = sample_toric_variety()
 sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)
-sec_g = generic_section(anticanonical_bundle(base)^6)
-w = weierstrass_model(base; completeness_check = false)
+sec_g = generic_section(anticanonical_bundle(my_base)^6)
+w = weierstrass_model(my_base; completeness_check = false)
 
 @testset "Attributes of Weierstrass models over concrete base spaces" begin
   @test parent(weierstrass_section_f(w)) == cox_ring(base_space(w))
@@ -23,7 +23,7 @@ w = weierstrass_model(base; completeness_check = false)
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
-  @test_throws ArgumentError weierstrass_model(base, sec_f, sec_g; completeness_check = false)
+  @test_throws ArgumentError weierstrass_model(my_base, sec_f, sec_g; completeness_check = false)
 end
 
 Kbar = anticanonical_bundle(base_space(w))

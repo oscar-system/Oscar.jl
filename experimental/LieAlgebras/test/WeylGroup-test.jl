@@ -135,4 +135,99 @@
       end
     end
   end
+
+  @testset "WeylGroup parabolic subgroup test for $(Wname)" for (
+    Wname, W, vec, check_proj
+  ) in [
+    ("A1", weyl_group(:A, 1), [1], true),
+    ("A5", weyl_group(:A, 5), [1, 5, 3], false),
+    ("B2", weyl_group(:B, 2), [2, 1], false),
+    ("F4", weyl_group(:F, 4), [2, 3], false),
+    ("A5+E8+D4", weyl_group((:A, 5), (:E, 8), (:D, 4)), [6:13; 1:5], true),
+    (
+      "A3 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1; -1 2 0; -1 0 2])),
+      [2, 3], false,
+    ),
+    (
+      "B4 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1 0; -1 2 0 -1; -2 0 2 0; 0 -1 0 2])),
+      [2, 4], false,
+    ),
+    (
+      "complicated case 1",
+      begin
+        cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
+        for _ in 1:50
+          i, j = rand(1:nrows(cm), 2)
+          if i != j
+            swap_rows!(cm, i, j)
+            swap_cols!(cm, i, j)
+          end
+        end
+        weyl_group(cm)
+      end,
+      unique(rand(1:14, 5)), false,
+    ),
+    (
+      "complicated case 2",
+      begin
+        cm = cartan_matrix((:F, 4), (:B, 2), (:E, 7), (:G, 2))
+        for _ in 1:50
+          i, j = rand(1:nrows(cm), 2)
+          if i != j
+            swap_rows!(cm, i, j)
+            swap_cols!(cm, i, j)
+          end
+        end
+        weyl_group(root_system(cm))
+      end,
+      unique(rand(1:15, 6)), false,
+    ),
+  ]
+    for k in 1:4
+      if k == 1
+        # On the first run, test the standard parabolics and projections
+        if check_proj
+          para, emb, proj = parabolic_subgroup_with_projection(W, vec)
+        else
+          para, emb = parabolic_subgroup(W, vec)
+        end
+        genimgs = [gen(W, i) for i in vec] # Desired images of gens(para) in W
+      else
+        # On subsequent runs, conjugate by random elements
+        r = rand(W)
+        para, emb = parabolic_subgroup(W, vec, r)
+        genimgs = [conj(W[i], r) for i in vec]
+      end
+      # Test that emb maps gens(para) to genimgs
+      for i in 1:length(vec)
+        @test emb(gen(para, i)) == genimgs[i]
+      end
+      # Test that emb is a homomorphism
+      for _ in 1:5
+        p1 = rand(para)
+        p2 = rand(para)
+        @test emb(p1) * emb(p2) == emb(p1 * p2)
+      end
+      # Test proj
+      if k == 1 && check_proj
+        # Test that proj maps gens(para) to gens(W)[vec]
+        for i in 1:length(vec)
+          @test proj(gen(W, vec[i])) == gen(para, i)
+        end
+        # Test that proj is a homomorphism
+        for _ in 1:5
+          w1 = rand(W)
+          w2 = rand(W)
+          @test proj(w1) * proj(w2) == proj(w1 * w2)
+        end
+        # Test that proj is the left-inverse of emb
+        for _ in 1:5
+          p = rand(para)
+          @test proj(emb(p)) == p
+        end
+      end
+    end
+  end
 end

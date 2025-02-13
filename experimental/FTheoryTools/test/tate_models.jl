@@ -2,13 +2,13 @@
 # 1: Global Tate models over concrete base space
 #############################################################
 
-base = sample_toric_variety()
+my_base = sample_toric_variety()
 sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)))
-sec_a2 = generic_section(anticanonical_bundle(base)^2)
-sec_a3 = generic_section(anticanonical_bundle(base)^3)
-sec_a4 = generic_section(anticanonical_bundle(base)^4)
-sec_a6 = generic_section(anticanonical_bundle(base)^6)
-t = global_tate_model(base; completeness_check = false)
+sec_a2 = generic_section(anticanonical_bundle(my_base)^2)
+sec_a3 = generic_section(anticanonical_bundle(my_base)^3)
+sec_a4 = generic_section(anticanonical_bundle(my_base)^4)
+sec_a6 = generic_section(anticanonical_bundle(my_base)^6)
+t = global_tate_model(my_base; completeness_check = false)
 
 @testset "Attributes of global Tate models over concrete base space" begin
   @test parent(tate_section_a1(t)) == cox_ring(base_space(t))
@@ -28,8 +28,8 @@ t = global_tate_model(base; completeness_check = false)
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
-  @test_throws ArgumentError global_tate_model(base, [sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
-  @test_throws ArgumentError global_tate_model(base, [sec_a1, sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
+  @test_throws ArgumentError global_tate_model(my_base, [sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
+  @test_throws ArgumentError global_tate_model(my_base, [sec_a1, sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
 end
 
 B3 = projective_space(NormalToricVariety, 3)

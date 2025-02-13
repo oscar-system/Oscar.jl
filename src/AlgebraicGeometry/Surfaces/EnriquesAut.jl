@@ -25,6 +25,16 @@ S_Y(2) \subseteq S_X \subseteq L_{1,25}
 
 where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``. 
 ```
+
+An easy way to construct examples is to call [`generic_enriques_surface`](@ref).
+Here the generic 1-nodal Enriques surface:
+```jldoctest
+julia> generic_enriques_surface(1)
+Enriques Borcherds context
+  with det(SX) = 1024
+  with root invariant [(:A, 1)]
+
+```
 """
 mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
@@ -63,19 +73,19 @@ mutable struct EnriquesBorcherdsCtx
   -`SY` `SX` and `L26` must be an ascending chain of lattices in the same quadratic space. 
   - `weyl` -- a Weyl vector of `L26` given with respect to the basis of the lattice `L26`. 
   """
-  function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
+  function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix; check::Bool=true)
     # X K3 ---> Y Enriques
     ECtx = new(L26, SX, SY)
     ECtx.gramSY = change_base_ring(ZZ, gram_matrix(SY))
     ECtx.gramSX = change_base_ring(ZZ, gram_matrix(SX))
 
     @vprintln :EnriquesAuto 2 "computing Borcherds context"
-    dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
+    dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false, check)
     dataY.membership_test = (x -> true)
-    ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
+    ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check)
     # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
     Sm = orthogonal_submodule(SX, SY)
-    phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+    phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY;check=false)
     # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
     H_Sm = cover(domain(phi))
     sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
@@ -150,6 +160,15 @@ mutable struct EnriquesBorcherdsCtx
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", Y::EnriquesBorcherdsCtx)
+  io = pretty(io)
+  println(io, "Enriques Borcherds context")
+  println(io, Indent(), "with det(SX) = $(det(Y.SX))")
+  print(io, "with root invariant ")
+  print(io, root_invariant(Y), Dedent())
+end
+
+    
 function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
   io = pretty(io)
   print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX))")
@@ -186,7 +205,7 @@ end
 @doc raw"""
     enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat; ample::Union{ZZMatrix,Nothing}=nothing)
     
-Return generators for the automorphism group of an Enriques surface.
+Compute the automorphism group of an Enriques surface, its nef cone and its smooth rational curves.
   
 Let ``\pi: X \to Y`` be the universal cover of an Enriques surface and ``\epsilon`` the Enriques involution. Let ``S_Y`` be the numerical lattice of ``Y``. 
 This function computes the image of the natural map 
@@ -225,11 +244,8 @@ function root_invariant(Y::EnriquesBorcherdsCtx)
   phi, inc_Dminus, inc_Dplus = glue_map(Y.SX, Sm, Y.SY)
   # H_Sm = pi_Sm(SX)
   H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
-  V = rescale(ambient_space(Sm),1//2)
-  R =  lattice(V, 2*matrix(QQ,length(sv2),dim(V),transpose(reduce(hcat,sv2)));isbasis=false)
-  Rtilde = primitive_closure(R, lattice(V,basis_matrix(Sm)))
-  return R, root_lattice_recognition(R), root_lattice_recognition(Rtilde)
+  R = rescale(2*H_Sm, 1//2)
+  return root_lattice_recognition(R)[1]
 end
 
 @doc raw"""
@@ -295,14 +311,11 @@ function membership_test_set(data::EnriquesBorcherdsCtx, f::FqMatrix)
   return f_of_Dplus in data.imgs_mod2
 end
 
-
-
 # in principle it would be enough to just store
 # tau and parent wall
 # then tau can be recomputed via the spanning tree
 # that would reduce storage by a factor of about 10
 # ... but increase computation time
-
 @doc raw""" 
     EnriquesChamber 
 
@@ -421,7 +434,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::EnriquesChamber)
   println(io, LowercaseOff(), "EnriquesChamber")
   print(io, Indent())
   show(io, MIME("text/plain"), change_base_ring(GF(2), D.tau))
-  print(io,Dedent())
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, D::EnriquesChamber)
@@ -474,6 +487,15 @@ function walls(D::EnriquesChamber)
 end
 
 @doc raw"""
+    walls_defined_by_rational_curves(D::EnriquesChamber)
+    
+Return the subset of walls of ``D`` defined by classes of smooth rational curves on ``Y``.
+"""
+function walls_defined_by_rational_curves(D::EnriquesChamber)
+  return [r for r in walls(D) if GF(2).(r) in D.data.roots_mod2] 
+end
+
+@doc raw"""
     hom(D1::EnriquesChamber, D2::EnriquesChamber)
     
 Return the set of elements of ``G_Y^0`` mapping ``D_1`` to ``D_2`` where 
@@ -521,6 +543,18 @@ end
 aut(D::EnriquesChamber) = hom(D, D)
 
 @doc raw"""
+    generic_enriques_surface(n::Int)  -> EnriquesBorcherdsCtx
+ 
+Return a ``(\tau,\overline{\tau})-generic`` Enriques surface of number ``n`` as in Table 1.1 of [BS22](@cite).
+"""
+function generic_enriques_surface(n::Int)
+  @req 1<=n<=184 "n must be a number between 1 and 184"
+  @req n!=88 && n!=146  "Entries 88 and 146 cannot be constructed. See Remark 1.16 of [BS22](@cite)"
+  SY, SX, L26, w, u = load(joinpath(oscardir, "data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
+  Y = EnriquesBorcherdsCtx(SY, SX, L26, w; check=false)
+end
+
+@doc raw"""
     borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
     
 Compute ``\mathrm{Aut}_{s}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
@@ -535,10 +569,93 @@ Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``.
 - `max_nchambers` -- abort the computation after `max_nchambers` chambers have been computed; return the generators, chambers and curves computed so far. They may not generate the full automorhism group, and not cover all orbits of chambers or rational curves. 
 
 # Output:
-1. A list of matrices `g` which generate the image of ``\mathrm{Aut}_{s}(Y) \to O(S_Y)`` 
+1. A matrix group, the image of ``\mathrm{Aut}_{s}(Y) \to O(S_Y)`` 
 2. A complete list of representatives of the ``G:=G_Y^0``-congruence classes of ``S_Y|S_X``-chambers.
 3. A list of ``(-2)``-vectors representing smooth rational curves on ``Y`` 
    such that any rational curve of ``Y`` is in the same ``\mathrm{Aut}(Y)``-orbit as at least one class in the list. 
+
+# Examples 
+Let ``Y`` be an Enriques surface with finite automorphism group of type ``I``. Assume that it is very general so that the covering K3 surface ``X`` has picard rank ``19`` and no extra non-symplectic automorphisms.
+In the terminology of [BS22](@cite) it is an ``(E_8+A_1,E_8+A_1)``-generic Enriques surface, namely the one of Number 172 in Table 1.1. Following Section 7.4 of loc. cit. we compute some invariants. 
+
+The group ``\mathrm{Aut}(Y)`` is a dihedral group of order ``8`` and its image ``\mathrm{Aut}^*(Y)`` in ``O(S_Y)`` is a group of order ``4``. It is this group we compute.
+```jldoctest EnriquesAut
+julia> Y = generic_enriques_surface(172)
+Enriques Borcherds context
+  with det(SX) = 4
+  with root invariant [(:A, 1), (:E, 8)]
+
+julia> autY, chambersY, rational_curves_reprY =  borcherds_method(Y);
+
+julia> order(autY)
+4
+```
+The nef-cone of ``Y`` is is the union of the ``\mathrm{Aut}(Y)``-orbits of the chambers in `chambersY`. 
+Since the automorphism group of this particular Enriques surface ``Y`` is finite, 
+the nef-cone is a finite rational polyhedral cone. 
+In our case there is a single chamber ``D`` and it fixed by ``\mathrm{Aut}(Y)``. 
+Hence ``D`` is the nef cone of ``Y``. It has ``12`` walls 
+and each of them is defined by a smooth rational curve.
+```jldoctest EnriquesAut
+julia> D = only(chambersY);
+
+julia> length(aut(D))
+4
+
+julia> length(walls_defined_by_rational_curves(D))
+12
+
+julia> length(walls(D))
+12
+```
+
+The surface has ``12`` rational curves and ``9`` elliptic fibrations.
+```jldoctest EnriquesAut
+julia> rational_curvesY = gset(autY, (x,g) -> x*matrix(g), rational_curves_reprY);
+
+julia> length(rational_curvesY)
+12
+
+julia> length(isotropic_rays(D))
+9
+```
+
+The ``\mathrm{Aut}(Y)``-orbits of the rational curves split as ``2+2+2+2+4``.
+```jldoctest EnriquesAut
+julia> [length(i) for i in orbits(rational_curvesY)]
+5-element Vector{Int64}:
+ 2
+ 2
+ 4
+ 2
+ 2
+```
+
+The elliptic fibrations split into ``4`` orbits, as we shall see by two different methods:
+```jldoctest EnriquesAut
+julia> elliptic_classes = gset(autY,(x,g)->x*matrix(g), isotropic_rays(D));
+
+julia> [length(i) for i in orbits(elliptic_classes)]
+4-element Vector{Int64}:
+ 2
+ 1
+ 2
+ 4
+
+julia> isomorphism_classes_elliptic_fibrations(Y)
+4-element Vector{Tuple{Int64, Tuple{Vector{Tuple{Symbol, Int64}}, Vector{Tuple{Symbol, Int64}}}, TorQuadModuleElem}}:
+ (2, ([(:E, 8)], []), [0 1 0 0 0 0 0 0 0 0])
+ (135, ([(:A, 1)], [(:A, 7)]), [1 0 1 0 0 0 0 0 0 0])
+ (270, ([(:D, 8)], []), [0 1 1 0 0 0 0 0 0 0])
+ (120, ([(:E, 7)], [(:A, 1)]), [1 1 0 1 0 0 0 0 0 0])
+```
+
+Finally, we check the mass formula in this rather trivial case.
+```jldoctest EnriquesAut
+julia> mass(Y) == sum(1//length(aut(D)) for D in chambersY)
+true
+
+```
 """
 function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   S = Y.SY
@@ -645,7 +762,7 @@ function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :EnriquesAuto 1 "mass $(massY)\n"
   @vprint :EnriquesAuto 1 "mass explored $(mass_explored)\n"
   @assert massY == mass_explored
-  return collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
+  return matrix_group(collect(automorphisms)), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
 
 @doc raw"""
