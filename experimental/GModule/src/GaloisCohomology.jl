@@ -1,6 +1,6 @@
 module GaloisCohomology_Mod
 using Oscar
-import Oscar: gmodule
+import Oscar: gmodule, indecomposition, factor_set
 import Oscar: GrpCoh
 import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent, 
                      Group
