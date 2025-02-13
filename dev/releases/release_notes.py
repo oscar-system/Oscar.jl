@@ -11,15 +11,13 @@
 # A version ending in .0 is consider MAJOR, any other MINOR
 # Don't use this with versions like 4.13.0-beta1
 
-import gzip
 import json
 import os
 import subprocess
 import sys
+import textwrap
 from datetime import datetime
-from typing import Any, Dict, List, TextIO
-
-import requests
+from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
@@ -28,10 +26,20 @@ def usage(name: str) -> None:
 
 
 def is_existing_tag(tag: str) -> bool:
+    print(tag)
     res = subprocess.run(
-        ["git", "show-ref", "--quiet", "--verify", "refs/tags/" + tag], check=False
+        [
+            "gh",
+            "release",
+            "list",
+            "--json=name",
+            "-q",
+            f""".[] | select(.name | contains("{tag.strip()}"))"""
+        ],
+        shell=False,
+        capture_output=True
     )
-    return res.returncode == 0
+    return res.stdout.decode() != ""
 
 
 def find_previous_version(version: str) -> str:
@@ -105,14 +113,20 @@ prioritylist = [
 def get_tag_date(tag: str) -> str:
     if is_existing_tag(tag):
         res = subprocess.run(
-            ["git", "for-each-ref", "--format=%(creatordate:short)", "refs/tags/" + tag],
-            check=True,
-            capture_output=True,
-            text=True,
+            [
+                "gh",
+                "release",
+                "view",
+                tag,
+                "--json=createdAt"
+            ],
+            shell=False,
+            capture_output=True
         )
+        res = json.loads(res.stdout.decode())
     else:
         error("tag does not exist!")
-    return res.stdout.strip()
+    return res['createdAt'][0:10]
 
 
 def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
@@ -141,7 +155,8 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
+    rstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}"
+    return textwrap.fill(rstring, 100)+'\n'
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
@@ -153,9 +168,8 @@ def changes_overview(
 ) -> None:
     """Writes files with information for release notes."""
 
-    month = datetime.now().month
-    year = datetime.now().year
-    day = datetime.now().day
+    date = datetime.now().strftime("%Y-%m-%d")
+    release_url = f"https://github.com/oscar-system/Oscar.jl/releases/tag/v{new_version}"
 
     # Could also introduce some consistency checks here for wrong combinations of labels
     newfile = './new.md'
@@ -174,7 +188,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [{new_version}] - {year}-{month}-{day}
+## [{new_version}]({release_url}) - {date}
 
 The following gives an overview of the changes compared to the previous release. This list is not
 complete, many more internal or minor changes were made, but we tried to only list those changes
@@ -209,7 +223,7 @@ which we think might affect some users directly.
             relnotes_file.write("\n")
 
         # Report PRs that have to be updated before inclusion into release notes.
-        relnotes_file.write("### " + "release notes: to be added" + "\n\n")
+        relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
         relnotes_file.write(
             "If there are any PRs listed below, check their title and labels.\n"
         )
@@ -226,7 +240,7 @@ which we think might affect some users directly.
         relnotes_file.write("\n")
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
-        relnotes_file.write("### Uncategorized PR" + "\n\n")
+        relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
         relnotes_file.write(
             "If there are any PRs listed below, either apply the same steps\n"
         )
@@ -289,7 +303,25 @@ def main(new_version: str) -> None:
 
 if __name__ == "__main__":
     # the argument is the new version
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 1:
+        itag = subprocess.run(
+            [
+                "gh",
+                "release",
+                "list",
+                "--json=name,isLatest",
+                "-q",
+                ".[] | select(.isLatest == true)"
+            ],
+            shell=False,
+            capture_output=True
+        )
+        itag = json.loads(itag.stdout.decode())["name"][1:]
+        itag = itag.split('.')
+        itag[-1] = str(int(itag[-1])+1)
+        itag = ".".join(itag)
+        main(itag)
+    elif len(sys.argv) != 2:
         usage(sys.argv[0])
-
-    main(sys.argv[1])
+    else:
+        main(sys.argv[1])
