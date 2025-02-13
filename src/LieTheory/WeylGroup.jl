@@ -78,13 +78,10 @@ If the word is known to be in short lex normal form, the normalization can be sk
 
 # Examples
 ```jldoctest
-julia> W = weyl_group(:A, 2);  wrd = [1, 2, 1];
+julia> W = weyl_group(:A, 2);
 
-julia> x = W(wrd)
+julia> x = W([1, 2, 1])
 s1 * s2 * s1
-
-julia> word(x) == wrd
-true
 ```
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
@@ -102,26 +99,14 @@ If the syllables describe a word in short lex normal form, the normalization can
 
 # Examples
 ```jldoctest
-julia> W = weyl_group(:A, 2);  pairs = [1 => 1, 2 => 1];
+julia> W = weyl_group(:A, 2);
 
-julia> x = W(pairs)
+julia> x = W([1 => 1, 2 => 1])
 s1 * s2
-
-julia> syllables(x) == pairs
-true
 ```
 """
 function (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion}
-  n = ngens(W)
-  res = Vector{T}()
-  
-  for pair in sylls
-    @req 0 < pair.first && pair.first <= n "generator number is at most $n"
-    if pair.second != 0
-      push!(res, pair.first)
-    end
-  end
-
+  res = T[pair.first for pair in sylls if isodd(pair.second)]
   return WeylGroupElem(W, res; normalize)
 end
 
@@ -563,22 +548,16 @@ This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer
 # Examples
 
 ```jldoctest
-julia> W = weyl_group(:A, 2)
-Weyl group
-  of root system of rank 2
-    of type A2
+julia> W = weyl_group(:A, 2);
 
 julia> x = longest_element(W)
 s1 * s2 * s1
 
-julia> wd = word(x)
+julia> word(x)
 3-element Vector{UInt8}:
  0x01
  0x02
  0x01
-
-julia> W(wd) == x
-true
 ```
 """
 function word(x::WeylGroupElem)
@@ -595,26 +574,20 @@ This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer
 # Examples
 
 ```jldoctest
-julia> W = weyl_group(:A, 2)
-Weyl group
-  of root system of rank 2
-    of type A2
+julia> W = weyl_group(:A, 2);
 
 julia> x = longest_element(W)
 s1 * s2 * s1
 
-julia> l = letters(x)
-3-element Vector{UInt8}:
- 0x01
- 0x02
- 0x01
-
-julia> W(l) == x
-true
+julia> letters(x)
+3-element Vector{Int64}:
+ 1
+ 2
+ 1
 ```
 """
 function letters(x::WeylGroupElem)
-  return x.word
+  return Int.(x.word)
 end
 
 @doc raw"""
@@ -627,26 +600,20 @@ This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UIn
 # Examples
 
 ```jldoctest
-julia> W = weyl_group(:A, 2)
-Weyl group
-  of root system of rank 2
-    of type A2
+julia> W = weyl_group(:A, 2);
 
 julia> x = longest_element(W)
 s1 * s2 * s1
 
-julia> s = syllables(x)
-3-element Vector{Pair{UInt8, ZZRingElem}}:
- 0x01 => 1
- 0x02 => 1
- 0x01 => 1
-
-julia> W(s) == x
-true
+julia> syllables(x)
+3-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 1
+ 2 => 1
+ 1 => 1
 ```
 """
 function syllables(x::WeylGroupElem)
-  return Pair{UInt8, ZZRingElem}[i => 1 for i in x.word]
+  return Pair{Int,ZZRingElem}[i => 1 for i in x.word]
 end
 
 @doc raw"""
