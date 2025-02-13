@@ -4,7 +4,7 @@ using Oscar
 import Oscar: action
 import Oscar: induce
 import Oscar: word
-import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum, GAPGroup
+import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum, GAPGroup, regular_gmodule, is_G_hom
 import AbstractAlgebra: Group, Module, FPModule
 import Base: parent
 

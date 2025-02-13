@@ -1,5 +1,7 @@
 function indecomposition end
 function factor_set end
+function regular_gmodule end
+function is_G_hom end
 
 include("Cohomology.jl")
 include("Types.jl")
@@ -833,7 +835,7 @@ Return `(R[G], f, g)`, where
 - `g` is a bijective map between the elements of `G` and the
   indices of the corresponding module generators.
 """
-function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
+function Oscar.regular_gmodule(G::Oscar.GAPGroup, R::Ring)
   M = free_module(R, Int(order(G)))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -842,7 +844,7 @@ function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
              y->ge[Int(y)])
 end
 
-function regular_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
+function Oscar.regular_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
   M = free_abelian_group(order(Int, G))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -1546,7 +1548,7 @@ function ghom(C::GModule, D::GModule)
   return gmodule(H, C.G, [hom(H, H, [preimage(mH, action(C, inv(g))*mH(h)*action(D, g)) for h = gens(H)]) for g = gens(C.G)]), mH
 end
 
-function is_G_hom(C::GModule, D::GModule, H::Map)
+function Oscar.is_G_hom(C::GModule, D::GModule, H::Map)
   return all([H(action(C, g, h)) == action(D, g, H(h)) for g = gens(C.G) for h = gens(C.M)])
 end
 
@@ -1556,7 +1558,7 @@ A = abelian_group([3, 3])
 C = gmodule(G, [hom(A, A, [A[1], A[1]+A[2]])])
 is_consistent(C)
 
-zg, ac = regular_gmodule(G, ZZ)
+zg, ac = Oscar.regular_gmodule(G, ZZ)
 zg = gmodule(FinGenAbGroup, zg)
 H, mH = Oscar.GModuleFromGap.ghom(zg, C)
 inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)])) for c = gens(C.M)])
@@ -1985,11 +1987,9 @@ export extension_of_scalars
 export ghom
 export irreducible_modules
 export is_decomposable
-export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
-export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
