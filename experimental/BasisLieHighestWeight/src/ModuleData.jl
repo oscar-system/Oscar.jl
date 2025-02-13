@@ -19,6 +19,10 @@ mutable struct SimpleModuleData <: ModuleData
     function SimpleModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem)
         new(L, highest_weight)
     end
+
+    function SimpleModuleData(L::LieAlgebra, highest_weight::Vector{Int})
+        new(L, WeightLatticeElem(root_system(L), highest_weight))
+    end
 end
 
 function base_lie_algebra(V::SimpleModuleData)
@@ -54,6 +58,10 @@ mutable struct DemazureModuleData <: ModuleData
 
     function DemazureModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
         new(L, highest_weight, weyl_group_elem)
+    end
+
+    function DemazureModuleData(L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int})
+        new(L, highest_weight, WeightLatticeElem(root_system(L), highest_weight), WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem))
     end
 end
 
