@@ -43,12 +43,12 @@ end
 #     3. set S = Points((Fq)^n) as elements of E
 # TODO decide: Second argument- subfield k, or an embedding k -> E ?
 # NOTE at the moment, we only support F = prime field...
-# function linear_set_field_attributes!(E::FinField, phi::Map)
-#     k = domain(phi)
-#     V, rho = _vector_space(E, phi)
-#     n = divexact(absolute_degree(K), absolute_degree(k))
-#     S = _points(V)
-# end
+function linear_set_field_attributes!(E::FinField, phi::Map)
+    k = domain(phi)
+    V, rho = _vector_space(E, phi)
+    n = divexact(absolute_degree(K), absolute_degree(k))
+    S = _points(V)
+end
 
 
 # nu = first(x for x in E if (x != 0 && !is_square(-x) && is_square(-x-1)))
