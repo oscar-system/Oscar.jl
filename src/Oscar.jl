@@ -110,7 +110,7 @@ function __init__()
   # Load the OscarInterface package in the end.
   # It needs some other GAP packages,
   # and is not needed by packages that can be loaded before Oscar.
-  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "pkg", "OscarInterface")))
   GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
   # Switch off GAP's info messages,
   # also those that are triggered from GAP packages.
@@ -240,7 +240,7 @@ include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
 
-include("../gap/OscarInterface/julia/alnuth.jl")
+include("../gap/pkg/OscarInterface/julia/alnuth.jl")
 
 
 include("Modules/Modules.jl")
