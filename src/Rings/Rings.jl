@@ -13,6 +13,8 @@ include("oscar_singular.jl")
 
 include("special_ideals.jl")
 
+include("PBWAlgebra.jl")
+
 include("MPolyMap/Types.jl")
 include("MPolyMap/MPolyAnyMap.jl")
 include("MPolyMap/MPolyRing.jl")
@@ -35,7 +37,6 @@ include("AlgClosureFp.jl")
 include("Laurent.jl")
 include("binomial_ideals.jl")
 
-include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")
 include("FreeAssociativeAlgebraIdeal.jl")
 include("hilbert.jl")

@@ -1,5 +1,5 @@
 ### Types for maps from polynomial rings
-const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
+const _DomainTypes = Union{MPolyRing, MPolyQuoRing, PBWAlgRing}
 
 @attributes mutable struct MPolyAnyMap{
     D <: _DomainTypes,
@@ -45,6 +45,11 @@ end
 _cmp_reps(a) = ==(a)
 
 function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D, C, U, V}
+  return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
+end
+
+function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D <: PBWAlgRing, C, U, V}
+  @req has_attribute(d, :is_weyl_algebra) "Can't handle PBW Algebras in the domain expect for Weyl Algebra"
   return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
 end
 
