@@ -495,7 +495,7 @@ end
 
 #######################################################
 @doc raw"""
-    radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
+    radical(I::MPolyIdeal{T}; preprocessing::Bool = true) where {T <: MPolyRingElem}
 
 Return the radical of `I`.
 
@@ -505,7 +505,7 @@ Return the radical of `I`.
   * If the `base_ring` of `I` is a number field, then we first expand the minimal polynomials to reduce to a computation over the rationals.
   * For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See [KL91](@cite), [Kem02](@cite), and [PSS11](@cite).
 
-When `eliminate_variables` is set to `true`, a preprocessing heuristic is applied in order to find variables which can be eliminated using `I`.
+When `preprocessing` is set to `true`, several preprocessing heuristics are applied. See the source code for more detailed information and options.
 
 # Examples
 ```jldoctest
