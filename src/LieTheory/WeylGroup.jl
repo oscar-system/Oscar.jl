@@ -89,7 +89,7 @@ function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
 end
 
 @doc raw"""
-    (W::WeylGroup)(sylls::AbstractVector{Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true) -> WeylGroupElem
+    (W::WeylGroup)(sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true) -> WeylGroupElem
 
 Construct a Weyl group element from the given syllables.
 
@@ -106,7 +106,7 @@ s1 * s2
 ```
 """
 function (W::WeylGroup)(
-  sylls::AbstractVector{Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true
+  sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true
 )
   res = [pair.first for pair in sylls if isodd(pair.second)]
   return WeylGroupElem(W, res; normalize)
