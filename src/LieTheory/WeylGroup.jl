@@ -89,7 +89,7 @@ function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
 end
 
 @doc raw"""
-    (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion} -> WeylGroupElem
+    (W::WeylGroup)(sylls::AbstractVector{Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true) -> WeylGroupElem
 
 Construct a Weyl group element from the given syllables.
 
@@ -105,8 +105,10 @@ julia> x = W([1 => 1, 2 => 1])
 s1 * s2
 ```
 """
-function (W::WeylGroup)(sylls::AbstractVector{Pair{T, S}}; normalize::Bool=true) where {T <: Integer, S <: IntegerUnion}
-  res = T[pair.first for pair in sylls if isodd(pair.second)]
+function (W::WeylGroup)(
+  sylls::AbstractVector{Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true
+)
+  res = [pair.first for pair in sylls if isodd(pair.second)]
   return WeylGroupElem(W, res; normalize)
 end
 
