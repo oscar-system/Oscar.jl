@@ -1614,7 +1614,7 @@ SL(2,5)
 julia> T = character_table(G);
 
 julia> R = gmodule(T[9])
-G-module for G acting on vector space of dimension 6 over abelian closure of Q
+G-module for G acting on vector space of dimension 6 over abelian closure of QQ
 
 julia> S = gmodule(CyclotomicField, R)
 G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5

@@ -38,6 +38,8 @@ import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots, @req
 
+import Oscar: pretty, Lowercase
+
 using Hecke
 import Hecke: conductor, data
 
@@ -350,19 +352,15 @@ end
 ################################################################################
 
 function Base.show(io::IO, a::QQAbField{AbsNonSimpleNumField})
-  print(io, "(Sparse) abelian closure of Q")
+  print(pretty(io), "Sparse abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbField{AbsSimpleNumField})
-  print(io, "Abelian closure of Q")
+  print(pretty(io), "Abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbFieldGen)
-  if isa(a.K, QQAbField{AbsSimpleNumField})
-    print(io, "Generator of abelian closure of Q")
-  else
-    print(io, "Generator of sparse abelian closure of Q")
-  end
+  print(pretty(io), "Generator of ", Lowercase(), a.K)
 end
 
 """
