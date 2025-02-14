@@ -573,22 +573,33 @@ Base.getindex(::QQField, a::QQAbFieldElem...) = number_field(QQ, [x for x in a])
 
 ################################################################################
 #
-#  Arithmetic
+#   Unary operators
 #
 ################################################################################
+
+function -(a::QQAbFieldElem)
+  return QQAbFieldElem(-data(a), a.c)
+end
+
+###############################################################################
+#
+#   Binary operators
+#
+###############################################################################
 
 function +(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   return QQAbFieldElem(data(a) + data(b), a.c)
 end
 
+function -(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  return QQAbFieldElem(data(a) - data(b), a.c)
+end
+
 function *(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   return QQAbFieldElem(data(a) * data(b), a.c)
-end
-
-function -(a::QQAbFieldElem)
-  return QQAbFieldElem(-data(a), a.c)
 end
 
 function ^(a::QQAbFieldElem, n::Integer)
@@ -599,10 +610,11 @@ function ^(a::QQAbFieldElem, n::ZZRingElem)
   return a^Int(n)
 end
 
-function -(a::QQAbFieldElem, b::QQAbFieldElem)
-  a, b = make_compatible(a, b)
-  return QQAbFieldElem(a.data-b.data, a.c)
-end
+################################################################################
+#
+#   Exact division
+#
+################################################################################
 
 function //(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
@@ -668,61 +680,24 @@ end
 #
 ################################################################################
 
-*(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
+for T in (ZZRingElem, QQFieldElem, Integer, Rational)
+  @eval begin
+    +(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)+b, a.c)
+    +(a::$T, b::QQAbFieldElem) = b+a
 
-*(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
+    -(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)-b, a.c)
+    -(a::$T, b::QQAbFieldElem) = QQAbFieldElem(a-data(b), b.c)
 
-*(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
+    *(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)*b, a.c)
+    *(a::$T, b::QQAbFieldElem) = b*a
 
-*(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
+    //(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)//b, a.c)
+    //(a::$T, b::QQAbFieldElem) = QQAbFieldElem(a//data(b), b.c)
 
-*(a::QQAbFieldElem, b::ZZRingElem) = b*a
-
-*(a::QQAbFieldElem, b::QQFieldElem) = b*a
-
-*(a::QQAbFieldElem, b::Integer) = b*a
-
-*(a::QQAbFieldElem, b::Rational) = b*a
-
-+(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
-
-+(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
-
-+(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
-
-+(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
-
-+(a::QQAbFieldElem, b::ZZRingElem) = b + a
-
-+(a::QQAbFieldElem, b::QQFieldElem) = b + a
-
-+(a::QQAbFieldElem, b::Integer) = b + a
-
-+(a::QQAbFieldElem, b::Rational) = b + a
-
--(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(-(data(a), b), a.c)
-
-//(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(data(a)//b, a.c)
+    divexact(a::QQAbFieldElem, b::$T; check::Bool = true) = QQAbFieldElem(data(a)/b, a.c)
+    divexact(a::$T, b::QQAbFieldElem; check::Bool = true) = QQAbFieldElem(a/data(b), b.c)
+  end
+end
 
 ################################################################################
 #
