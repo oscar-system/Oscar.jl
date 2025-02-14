@@ -1961,6 +1961,28 @@ function relators(G::FPGroup)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
 end
 
+@doc raw"""
+    relators(G::PcGroup)
+
+Return a vector of elements in a free group of rank `ngens(G)`
+that describes the defining relators of the underlying polycyclic presentation
+of `G`.
+
+# Examples
+```jldoctest
+julia> g = dihedral_group(8)
+Pc group of order 8
+
+julia> relators(g)
+6-element Vector{FPGroupElem}:
+ g1^2
+ g2^-1*g1^-1*g2*g1*g3^-1
+ g3^-1*g1^-1*g3*g1
+ g2^2*g3^-1
+ g3^-1*g2^-1*g3*g2
+ g3^2
+```
+"""
 function relators(G::PcGroup)
   gapG = GapObj(G)
   Ggens = GAPWrap.GeneratorsOfGroup(gapG)
