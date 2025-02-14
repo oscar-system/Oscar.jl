@@ -12,7 +12,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
 
 # Examples
 ```jldoctest
-julia> S, _ = QQ["x", "y", "z"];
+julia> S, _ = QQ[:x, :y, :z];
 
 julia> Sgr, _ = grade(S);
 

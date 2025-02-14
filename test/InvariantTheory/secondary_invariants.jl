@@ -117,7 +117,7 @@
     end
   end
 
-  R, x = polynomial_ring(QQ, "x" => 1:3)
+  R, x = polynomial_ring(QQ, :x => 1:3)
   C = Oscar.PowerProductCache(R, x)
   @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) ==
     Set(collect(monomials_of_degree(R, 3)))

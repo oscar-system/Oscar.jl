@@ -1,8 +1,8 @@
-R, x = polynomial_ring(QQ, "x")
+R, x = polynomial_ring(QQ, :x)
 q = x^2 + 3//4
 K, a = number_field(q)
 Z7 = residue_ring(ZZ, 7)[1]
-Z7t, t = polynomial_ring(GF(7), "t")
+Z7t, t = polynomial_ring(GF(7), :t)
 Fin, d = finite_field(t^2 + t + 3)
 Frac = fraction_field(R)
 

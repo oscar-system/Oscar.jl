@@ -116,7 +116,7 @@ A family of spaces of dimension d = 5
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()
-    auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+    auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
     auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
     a1 = a10
     a2 = a21 * w

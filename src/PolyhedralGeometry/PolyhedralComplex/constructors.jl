@@ -40,7 +40,7 @@ points and the rows represent the polyhedra.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
 [1, 2, 3]
 [1, 3, 4]
@@ -61,7 +61,7 @@ Polyhedral complex with rays and lineality:
 ```jldoctest
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 

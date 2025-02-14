@@ -1,4 +1,4 @@
-coord_ring, _ = QQ["f", "g", "Kbar", "u"]
+coord_ring, _ = QQ[:f, :g, :Kbar, :u]
 grading = [4 6 1 0; 0 0 0 1]
 d = 3
 f = family_of_spaces(coord_ring, grading, d)

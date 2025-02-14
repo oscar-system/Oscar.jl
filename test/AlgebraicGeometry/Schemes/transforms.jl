@@ -36,7 +36,7 @@ end
 
 @testset "associated_points" begin
   # set up standard P2
-  S, _ = graded_polynomial_ring(QQ,["x","y","z"])
+  S, _ = graded_polynomial_ring(QQ,[:x,:y,:z])
   P2 = proj(S)
   X = covered_scheme(P2)
 
@@ -72,10 +72,10 @@ end
   dimsL2 = [dim(a) for a in L2]
   @test length(L1) == 3
   @test length(L2) == 2
-  onesinL1 = findall(x->x==1,dimsL1)
-  zerosinL1 = findall(x->x==0,dimsL1)
-  onesinL2 = findall(x->x==1,dimsL2)
-  zerosinL2 = findall(x->x==0,dimsL2)
+  onesinL1 = findall(is_one, dimsL1)
+  zerosinL1 = findall(is_zero, dimsL1)
+  onesinL2 = findall(is_one, dimsL2)
+  zerosinL2 = findall(is_zero, dimsL2)
   @test length(onesinL1) == 1
   @test length(zerosinL1) == 2
   @test length(zerosinL2) == 1

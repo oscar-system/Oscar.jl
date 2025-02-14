@@ -16,7 +16,7 @@ h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness
   @test dim(base_space(h)) == dim(B3)
   @test fiber_ambient_space(h) == ambient_space_of_fiber
   @test is_smooth(fiber_ambient_space(h)) == false
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["x", "y", "z"]
+  @test symbols(cox_ring(fiber_ambient_space(h))) == [:x, :y, :z]
   @test toric_variety(calabi_yau_hypersurface(h)) == ambient_space(h)
   @test is_base_space_fully_specified(h) == true
 end
@@ -37,6 +37,30 @@ end
       @test fiber_ambient_space(h) == fiber_ambient_space(loaded)
       @test is_base_space_fully_specified(h) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(h) == is_partially_resolved(loaded)
+      @test explicit_model_sections(h) == explicit_model_sections(loaded)
+      @test defining_classes(h) == defining_classes(loaded)
+    end
+  end
+end
+
+Kbar = anticanonical_divisor(B3)
+foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+
+@testset "Saving and loading hypersurface literature model and some of their attributes" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, foah1_B3) do loaded
+      @test hypersurface_equation(foah1_B3) == hypersurface_equation(loaded)
+      @test base_space(foah1_B3) == base_space(loaded)
+      @test is_base_space_fully_specified(foah1_B3) == is_base_space_fully_specified(loaded)
+      @test ambient_space(foah1_B3) == ambient_space(loaded)
+      @test fiber_ambient_space(foah1_B3) == fiber_ambient_space(loaded)
+      @test explicit_model_sections(foah1_B3) == explicit_model_sections(loaded)
+      @test defining_classes(foah1_B3) == defining_classes(loaded)
+      for (key, value) in foah1_B3.__attrs
+        if value isa String || value isa Vector{String} || value isa Bool
+          @test foah1_B3.__attrs[key] == loaded.__attrs[key]
+        end
+      end
     end
   end
 end
@@ -78,7 +102,7 @@ end
   @test dim(base_space(h3)) == 2
   @test is_smooth(fiber_ambient_space(h3)) == false
   @test is_simplicial(fiber_ambient_space(h3)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h3)))] == ["u", "w", "v"]
+  @test symbols(cox_ring(fiber_ambient_space(h3))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h3) == true
   @test is_partially_resolved(h3) == false
 end
@@ -97,7 +121,7 @@ D3 = [0,0]
 d = 3
 ambient_space_of_fiber_2 = weighted_projective_space(NormalToricVariety, [2,3,1])
 set_coordinate_names(ambient_space_of_fiber_2, ["x", "y", "z"])
-auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ["a1", "a21", "a32", "a43", "a65", "w", "x", "y", "z"]
+auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ[:a1, :a21, :a32, :a43, :a65, :w, :x, :y, :z]
 p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
 h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, [D1, D2, D3], p)
 
@@ -107,7 +131,7 @@ h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
   @test fiber_ambient_space(h4) == ambient_space_of_fiber_2
   @test is_smooth(fiber_ambient_space(h4)) == false
   @test is_simplicial(fiber_ambient_space(h4)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h4)))] == ["x", "y", "z"]
+  @test symbols(cox_ring(fiber_ambient_space(h4))) == [:x, :y, :z]
   @test is_base_space_fully_specified(h4) == false
   @test is_partially_resolved(h4) == false
 end
@@ -124,7 +148,7 @@ h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
   @test dim(base_space(h5)) == 2
   @test is_smooth(fiber_ambient_space(h5)) == false
   @test is_simplicial(fiber_ambient_space(h5)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h5)))] == ["u", "w", "v"]
+  @test symbols(cox_ring(fiber_ambient_space(h5))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h5) == false
   @test is_partially_resolved(h5) == false
 end

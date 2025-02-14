@@ -83,7 +83,7 @@ Pc group of order 60
 ```
 """
 function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T
-  G = _small_group(n, m)
+  G = small_group(n, m)
   return T(G)
 end
 

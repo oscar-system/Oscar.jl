@@ -316,6 +316,8 @@ Vector{Int}(e::Edge) = [src(e), dst(e)]
 
 Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
 
+Base.in(i::Int, a::Edge) = (i==src(a) || i==dst(a))
+
 rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
   rem_edge!(g, src(e), dst(e))
 
@@ -342,7 +344,7 @@ function reverse(e::Edge)
 end
 
 
-struct EdgeIterator
+mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
     l::Int64
 end
@@ -350,7 +352,7 @@ Base.length(eitr::EdgeIterator) = eitr.l
 Base.eltype(::Type{EdgeIterator}) = Edge
 
 function Base.iterate(eitr::EdgeIterator, index = 1)
-    if index > eitr.l
+    if eitr.l == 0 || Polymake.isdone(eitr.pm_itr)
         return nothing
     else
         e = Polymake.get_element(eitr.pm_itr)
@@ -358,6 +360,7 @@ function Base.iterate(eitr::EdgeIterator, index = 1)
         t = Polymake.last(e)
         edge = Edge(s+1, t+1)
         Polymake.increment(eitr.pm_itr)
+        eitr.l -= 1
         return (edge, index+1)
     end
 end
@@ -510,8 +513,9 @@ end
 @doc raw"""
     degree(g::Graph{T} [, v::Int64]) where {T <: Union{Directed, Undirected}}
 
-Return the degree of the vertex `v` in the graph `g`.
-If `v` is missing, return the list of degrees of all vertices.
+Return the degree of the vertex `v` in the graph `g`. If `v` is
+missing, return the list of degrees of all vertices. If the graph is
+directed, only neighbors reachable via outgoing edges are counted.
 
 # Examples
 ```jldoctest
@@ -640,9 +644,9 @@ function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    signed_incidence_matrix(g::Graph{Directed})
+    signed_incidence_matrix(g::Graph)
 
-Return a signed incidence matrix representing a directed graph `g`.
+Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targest will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
 
 # Examples
 ```jldoctest
@@ -657,9 +661,22 @@ julia> signed_incidence_matrix(g)
   0   1  -1   0   0
   0   0   1  -1   0
   0   0   0   1  -1
+
+julia> g = Graph{Undirected}(5);
+
+julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); add_edge!(g,5,1);
+
+julia> signed_incidence_matrix(g)
+5×5 Matrix{Int64}:
+  1   0   0   1   0
+ -1   1   0   0   0
+  0  -1   1   0   0
+  0   0  -1   0   1
+  0   0   0  -1  -1
+
 ```
 """
-signed_incidence_matrix(g::Graph{Directed}) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
+signed_incidence_matrix(g::Graph) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
 ################################################################################
 ################################################################################
@@ -751,6 +768,31 @@ function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=f
     result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
     return Polymake.to_one_based_indexing(result)
 end
+
+@doc raw"""
+    connectivity(g::Graph{Undirected})
+
+Return the connectivity of the undirected graph `g`.
+
+# Examples
+```jldoctest
+julia> g = complete_graph(3);
+
+julia> connectivity(g)
+2
+
+julia> rem_edge!(g, 2, 3);
+
+julia> connectivity(g)
+1
+
+julia> rem_edge!(g, 1, 3);
+
+julia> connectivity(g)
+0
+```
+"""
+connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)::Int
 
 @doc raw"""
     is_connected(g::Graph{Undirected})
@@ -1028,6 +1070,24 @@ function dual_graph(p::Polyhedron)
   return og
 end
 
+@doc raw"""
+    dual_graph(SOP::SubdivisionOfPoints)
+
+Return the dual graph of a `SubdivisionOfPoints`, nodes correspond to the maximal cells,
+and there is an edge if two maximal cells share a common face of codimension one.
+
+# Examples
+Construct the dual graph of a triangulation of the square; it has a single edge.
+```jldoctest
+julia> S = subdivision_of_points(vertices(cube(2)), [0,0,0,1])
+Subdivision of points in ambient dimension 2
+
+julia> dual_graph(S)
+Undirected graph with 2 nodes and the following edges:
+(2, 1)
+```
+"""
+dual_graph(SOP::SubdivisionOfPoints) = Graph{Undirected}(pm_object(SOP).POLYHEDRAL_COMPLEX.DUAL_GRAPH.ADJACENCY)
 
 
 @doc raw"""
@@ -1077,15 +1137,11 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
-Visualize a graph.
+Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 """
-function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
-    Polymake.visual(BigGraph)
-end
-
+visualize
 
 
 # Some standard polytopes from graphs
@@ -1153,8 +1209,7 @@ end
 function graph_from_edges(::Type{T},
                           edges::Vector{Edge},
                           n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
-
-  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]; init=[0]))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
   g = Graph{T}(max(n_needed, n_vertices))
@@ -1283,4 +1338,21 @@ function laplacian_matrix(g::Graph)
   D = diagonal_matrix(degree(g))
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
+end
+
+@doc raw"""
+    is_bipartite(g::Graph{Undirected})
+
+Returns true if the undirected graph `g` is bipartite.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1,2],[2,3],[3,4]]);
+
+julia> is_bipartite(g)
+true
+```
+"""
+function is_bipartite(g::Graph{Undirected})
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end

@@ -45,7 +45,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   function my_decomp(u::FreeModElem)
     @req parent(u) === result "element does not belong to the correct module"
-    k = findfirst(x -> x == u, gens(result))
+    k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = ordered_multi_index(k, p, n)
     e = gens(F)
@@ -173,8 +173,8 @@ function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   success, M, p = _is_exterior_power(F)
   n = rank(M)
   success || error("element must be an exterior product")
-  k = [findfirst(x->x==u, gens(F)) for u in v]
-  any(x->x===nothing, k) && error("elements must be generators of the module")
+  k = [findfirst(==(u), gens(F)) for u in v]
+  any(isnothing, k) && error("elements must be generators of the module")
   ind = [ordered_multi_index(r, p, n) for r in k]
   comp = [ordered_multi_index([i for i in 1:n if !(i in indices(I))], n) for I in ind]
   lin_ind = linear_index.(comp)

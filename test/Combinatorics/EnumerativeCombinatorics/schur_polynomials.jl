@@ -46,7 +46,7 @@
   schur_polynomial(S, partition([2,2]), 3) == x[1]^2*x[2]^2 + x[1]^2*x[3]^2 + x[2]^2*x[3]^2 + x[1]^2*x[2]*x[3] + x[1]*x[2]^2*x[3] + x[1]*x[2]*x[3]^2
 
   # From issue #3850
-  R, _ = polynomial_ring(ZZ, ["x1", "x2", "x3"])
+  R, _ = polynomial_ring(ZZ, [:x1, :x2, :x3])
   f = Oscar.schur_polynomial_cbf(R, partition([49, 2]))
   g = Oscar.schur_polynomial_combinat(R, partition([49, 2]))
   @test f == g

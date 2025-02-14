@@ -22,7 +22,7 @@ to make the `I` field lexicographically smaller than the `J` to ensure
 that comparisons and hashing respect the symmetry.
 
 If `semigraphoid` is set to `true`, the constructor also removes elements
-in the intersection of `I` and `K` from `I` (and symetrically removes the
+in the intersection of `I` and `K` from `I` (and symmetrically removes the
 intersection of `J` and `K` from `J`).
 
 As all three fields are sets, each of them may be deduplicated and sorted
@@ -30,7 +30,7 @@ to ensure consistent comparison and hashing.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> ci_stmt(["A"], ["B"], ["X"])
 [A _||_ B | X]
 
@@ -78,7 +78,7 @@ are extracted, `ci_stmt` is called.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> CI"AB|X"
 [A _||_ B | X]
 
@@ -124,7 +124,7 @@ distribution.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> ci_statements(["A", "B", "X", "Y"])
 24-element Vector{CIStmt}:
  [A _||_ Y | {}]
@@ -183,7 +183,7 @@ above `K` but is always fixed to `K`. Semigaussoids are also known as
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> make_elementary(CI"12,34|56")
 16-element Vector{CIStmt}:
  [1 _||_ 3 | {5, 6}]

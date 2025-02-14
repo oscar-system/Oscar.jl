@@ -9,13 +9,13 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   b_rays = matrix(ZZ, rays(base))
   b_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
   b_grades = reduce(vcat, [elem.coeff for elem in cox_ring(base).d])
-  b_var_names = [string(k) for k in gens(cox_ring(base))]
+  b_var_names = symbols(cox_ring(base))
   
   # Extract information about the fiber ambient space
   f_rays = matrix(ZZ, rays(fiber_amb_space))
   f_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_amb_space)))
   f_grades = reduce(vcat, [elem.coeff for elem in cox_ring(fiber_amb_space).d])
-  f_var_names = [string(k) for k in gens(cox_ring(fiber_amb_space))]
+  f_var_names = symbols(cox_ring(fiber_amb_space))
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
   fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
@@ -149,7 +149,7 @@ _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_prima
 
 _string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
 
-function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyRingElem}
+function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rand_seed::Union{Int64, Nothing} = nothing)
   f_ord = ords[1]
   g_ord = ords[2]
   d_ord = ords[3]
@@ -169,50 +169,121 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     kod_type = "II^*"
   elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
     kod_type = "Non-minimal"
-  else
+  elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
+    # For type I_0^* singularities, we have to rely on the old method for now,
+    # which is not always dependable
+
+    f = weierstrass_section_f(w)
+    g = weierstrass_section_g(w)
+    d = discriminant(w)
+
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
-    S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
-    ring_map = hom(R, S, gens(S)[2:end])
+    S, (_psi,), _old_gens = polynomial_ring(QQ, [:_psi], symbols(R); cached = false)
+    ring_map = hom(R, S, _old_gens)
     poly_f = ring_map(f)
     poly_g = ring_map(g)
-    poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
+
+    f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+    g_quotient = divrem(div(poly_g, locus^3), locus)[2]
     
-    # Compute monodromy polynomial and check factorization for remaining cases
+    monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
+    kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+  else
+    # If the base is arbitrary, we tune the model over projective space of the
+    # appropriate dimension. This allows us to use the same algorithm for all
+    # cases. The choice of projective space here is an attempt to minimize the
+    # chances of accidental gauge enhancement
+    if !is_base_space_fully_specified(w)
+      # Build the new concrete base, and get the anticanonical and hyperplane
+      # bundles. We choose the hyperplane bundle for all gauge loci over the
+      # concrete base as an additional measure to avoid accidental gauge
+      # enhancement
+      concrete_base = projective_space(NormalToricVariety, dim(base_space(w)))
+      KBar = anticanonical_bundle(concrete_base)
+      hyperplane_bundle = toric_line_bundle(torusinvariant_prime_divisors(concrete_base)[1])
+
+      # Get the grading matrix and the coordinates of the arbitrary base
+      grading = weights(base_space(w))
+      base_coords_symbols = symbols(coordinate_ring(base_space(w)))
+      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base coordinates"
+
+      # Choose explicit sections for all parameters of the model,
+      # and then put the model over the concrete base using these data
+      concrete_data = merge(Dict(string(base_coords_symbols[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
+      w = put_over_concrete_base(w, concrete_data)
+
+      # We also need to determine the gauge locus over the new base
+      # by using the explicit forms of all of the sections chosen above
+      list_of_sections = [concrete_data[string(base_coords_symbols[i])] for i in eachindex(base_coords_symbols)]
+      id = ideal([evaluate(p, list_of_sections) for p in gens(id)])
+    end
+
+    f = weierstrass_section_f(w)
+    g = weierstrass_section_g(w)
+    d = discriminant(w)
+
+    # For now, we explicitly require that the gauge ideal is principal
+    @req (ngens(id) == 1) "Gauge ideal is not principal"
+
+    # Over concrete bases, we randomly reduce the polynomials defining the gauge
+    # divisor to only two variables so that the is_radical check is faster. This
+    # could give an incorrect result (radical or not), so we actually try this
+    # five times and see if we get agreement among all of the results
+    num_gens = ngens(parent(f))
+    gauge2s, f2s, g2s, d2s = [], [], [], []
+    if rand_seed != nothing
+      Random.seed!(rand_seed)
+    end
+    for _ in 1:5
+      coord_inds = randperm(num_gens)[1:end-2]
+      rand_ints = rand(-100:100, num_gens - 2)
+
+      push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
+      push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))
+      push!(g2s, evaluate(forget_decoration(g), coord_inds, rand_ints))
+      push!(d2s, evaluate(forget_decoration(d), coord_inds, rand_ints))
+    end
+
+    # Check monodromy conditions for remaining cases.
+    # Default to split when there is disagreement among the five attempts,
+    # because this approach seems to skew toward accidentally identifying
+    # a singularity as non-split
     if f_ord == 0 && g_ord == 0
-      g_quotient = divrem(9 * poly_g, locus)[2]
-      f_quotient = divrem(2 * poly_f, locus)[2]
-      quotient_val = div(g_quotient, f_quotient)
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([9 * g2s[i], gauge2s[i]]), ideal([2 * f2s[i], gauge2s[i]])))
+      end
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
+      kod_type = if all(is_radical, quotients) "Non-split I_$d_ord" else "Split I_$d_ord" end
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^2])) + ideal([gauge2s[i]]))
+      end
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
-    elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      f_quotient = divrem(div(poly_f, locus^2), locus)[2]
-      g_quotient = divrem(div(poly_g, locus^3), locus)[2]
-      
-      monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+      kod_type = if all(is_radical, quotients) "Non-split IV" else "Split IV" end
     elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
-      d_quotient = div(poly_d, locus^d_ord)
-      f_quotient = div(2 * poly_f, locus^2)
-      g_quotient = div(9 * poly_g, locus^3)
-      num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
-      den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
-      quotient_val = div(num_quotient, den_quotient)
+      quotients = []
+      if d_ord % 2 == 0
+        for i in eachindex(gauge2s)
+          push!(quotients, quotient(ideal([4 // 81 * (d2s[i] * f2s[i]^2) / gauge2s[i]^(d_ord + 4), gauge2s[i]]), ideal([g2s[i]^2 / gauge2s[i]^6, gauge2s[i]])))
+        end
+      else
+        for i in eachindex(gauge2s)
+          push!(quotients, quotient(ideal([2 // 729 * (d2s[i] * f2s[i]^3) / gauge2s[i]^(d_ord + 6), gauge2s[i]]), ideal([g2s[i]^3 / gauge2s[i]^9, gauge2s[i]])))
+        end
+      end
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
+      kod_type = if all(is_radical, quotients) "Non-split I^*_$(d_ord - 6)" else "Split I^*_$(d_ord - 6)" end
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^4])) + ideal([gauge2s[i]]))
+      end
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
+      kod_type = if all(is_radical, quotients) "Non-split IV^*" else "Split IV^*" end
     else
       kod_type = "Unrecognized"
     end
@@ -244,7 +315,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
   lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
   
   # Create new base ring for the blown up ideal and a map between the rings
-  S, S_gens = polynomial_ring(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
+  S, S_gens = polynomial_ring(QQ, [Symbol("e_", index); [Symbol("b_", index, "_", i) for i in 1:center_size]; symbols(R)], cached = false)
   (_e, new_coords...) = S_gens[1:center_size + 1]
   ring_map = hom(R, S, S_gens[center_size + 2:end])
   
@@ -378,38 +449,116 @@ end
 eval_poly(n::Number, R) = R(n)
 
 # Example
-# julia> Qx, (x1, x2) = QQ["x1", "x2"];
+# julia> Qx, (x1, x2) = QQ[:x1, :x2];
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
 
 
 
-##########################################
-### 10 strict_transform helpers
-##########################################
+###########################################################################
+# 10: Convenience functions for blowups
+# 10: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
+# 10: They are not in use (as of Feb 1, 2025 and PR 4523)
+# 10: Gauge in the future if they are truly needed!
+###########################################################################
 
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf; coordinate_name = "e") = strict_transform(bd, II)
+@doc raw"""
+    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
 
-function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal; coordinate_name = "e")
-  center_ideal = ideal_in_cox_ring(center(bd))
-  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
-    return strict_transform(bd, II)
+Blow up the toric variety along a toric ideal sheaf.
+
+!!! warning
+    This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
+    Sometimes, the type of the domain will be a toric variety (meaning that `domain(f) isa NormalToricVariety` is true) if the algorithm can successfully detect this.
+    In the future, the detection algorithm may be improved so that this is successful more often.
+
+!!! warning
+    This is an internal method. It is NOT exported.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> x1, x2, x3, x4 = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> II = ideal_sheaf(P3, ideal([x1*x2]))
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1*x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (x_1_3)
+  4: Ideal (x_1_4*x_2_4)
+
+julia> f = Oscar._martins_desired_blowup(P3, II);
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(v, I)
+  if !isnothing(coords)
+    return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name) # Apply toric method
+  else
+    return blow_up(I) # Reroute to scheme theory
   end
-  S = cox_ring(domain(bd))
-  _e = eval_poly(coordinate_name, S)
-  images = MPolyRingElem[]
-  for v in gens(S)
-    v == _e && continue
-    if string(v) in [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
-      push!(images, v * _e)
-    else
-      push!(images, v)
-    end
-  end
-  ring_map = hom(cox_ring(codomain(bd)), S, images)
-  total_transform = ring_map(ideal_in_cox_ring(II))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  return ideal_sheaf(domain(bd), strict_transform)
+end
+
+
+@doc raw"""
+    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+
+Blow up the toric variety by subdividing the cone in the list
+of *all* cones of the fan of `v` which corresponds to the
+provided ideal `I`. Note that this cone need not be maximal.
+
+By default, we pick "e" as the name of the homogeneous coordinate for
+the exceptional prime divisor. As third optional argument one can supply
+a custom variable name.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> I = ideal([x2,x3])
+Ideal generated by
+  x2
+  x3
+
+julia> bP3 = domain(Oscar._martins_desired_blowup(P3, I))
+Normal toric variety
+
+julia> cox_ring(bP3)
+Multivariate polynomial ring in 5 variables over QQ graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [0 1]
+  x4 -> [1 0]
+  e -> [1 -1]
+
+julia> I2 = ideal([x2 * x3])
+Ideal generated by
+  x2*x3
+
+julia> b2P3 = Oscar._martins_desired_blowup(P3, I2);
+
+julia> codomain(b2P3) == P3
+true
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  return _martins_desired_blowup(v, ideal_sheaf(v, I))
 end

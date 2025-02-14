@@ -121,7 +121,7 @@ set in `save_typed_object` resulting in a "data branch" and "type branch".
 The usage of these functions can be used inside `save_object` / `load_object`
 and `save_type_params` / `load_type_params`. However using `save_typed_object` inside
 a `save_object` implementation will lead to a verbose format and should at some
-point be moved to `save_type_params`. Their implemention can be found in the
+point be moved to `save_type_params`. Their implementation can be found in the
 `main.jl` file.
 
 #### `save_object` / `load_object`
@@ -283,11 +283,21 @@ of a `FieldElem` will use the `save_type_params` / `load_type_params` from
 `RingElem` since in both cases the only parameter needed for such types
 is their parent.
 
+### Import helper
+
+When implementing the serialization of a new type in a module that is not
+`Oscar` (e.g. in a submodule of `Oscar`) it is necessary to import the
+a lot of helper functions (see the examples above).
+To ease this process, the `@import_all_serialization_functions` macro can be used.
+```@docs
+Oscar.@import_all_serialization_functions
+```
+
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
 `serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writting to a file. Currently
+default serializer `JSONSerializer` is used for writing to a file. Currently
 the only other serializer is the `IPCSerializer` which at the moment is
 quite similar to the `JSONSerializer` except that it does not store the refs of
 any types that are registered with the `uses_id` flag. When using the `IPCSerializer`

@@ -29,7 +29,7 @@ See [`inclusion_morphism(::AbsAffineScheme, ::AbsAffineScheme)`](@ref) for a way
 ### Affine n-space
 
 ```@docs
-affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
+affine_space(kk::BRT, n::Int; variable_name=:x) where {BRT<:Ring}
 affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
 ```
 

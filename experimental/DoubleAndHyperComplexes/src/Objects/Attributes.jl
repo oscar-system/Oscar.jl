@@ -4,13 +4,10 @@
 
 ### asking for the entries of the complex
 function getindex(HC::HyperComplex, i::Tuple)
-  haskey(HC.chains, i) && return HC.chains[i]
-
-  can_compute(HC.chain_factory, HC, i) || error("index out of bounds")
-
-  result = HC.chain_factory(HC, i)
-  HC.chains[i] = result
-  return result
+  return get!(HC.chains, i) do
+    can_compute(HC.chain_factory, HC, i) || error("index out of bounds")
+    return HC.chain_factory(HC, i)
+  end
 end
 
 function has_index(HC::HyperComplex, i::Tuple)
@@ -23,18 +20,16 @@ end
 
 ### accessing the maps
 function emanating_maps(HC::HyperComplex{ChainType, MorphismType}, i::Tuple) where {ChainType, MorphismType}
-  haskey(HC.morphisms, i) && return HC.morphisms[i]
-  md = Dict{Int, MorphismType}()
-  HC.morphisms[i] = md
-  return md
+  return get!(HC.morphisms, i) do
+    return Dict{Int, MorphismType}()
+  end
 end
 
 function map(HC::HyperComplex, p::Int, i::Tuple)
   phi = emanating_maps(HC, i)
-  haskey(phi, p) && return phi[p]
-  result = HC.map_factory(HC, p, i)
-  phi[p] = result
-  return result
+  return get!(phi, p) do
+    return HC.map_factory(HC, p, i)
+  end
 end
 
 function has_map(HC::HyperComplex, p::Int, i::Tuple)
@@ -252,16 +247,14 @@ end
 ### User facing functionality
 function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   # load from cache if applicable
-  haskey(D.chains, (i, j)) && return D.chains[(i, j)]
+  return get!(D.chains, (i, j)) do
 
-  # legitimize request
-  can_compute_index(D, i, j) || error("index out of bounds")
-
-  # produce entry otherwise
-  new_chain = D.chain_factory(D, i, j)
-  D.chains[(i, j)] = new_chain
-
-  return new_chain
+    # legitimize request
+    can_compute_index(D, i, j) || error("index out of bounds")
+  
+    # produce entry otherwise
+    return D.chain_factory(D, i, j)
+  end
 end
 
 function has_index(D::DoubleComplexOfMorphisms, i::Int, j::Int)
@@ -274,11 +267,10 @@ function can_compute_index(D::DoubleComplexOfMorphisms, i::Int, j::Int)
 end
 
 function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  haskey(vertical_map_cache(D), (i, j)) && return vertical_map_cache(D)[(i, j)]
-  can_compute_vertical_map(D, i, j) || error("index out of bounds")
-  new_map = D.vertical_map_factory(D, i, j)
-  vertical_map_cache(D)[(i, j)] = new_map
-  return new_map
+  return get!(vertical_map_cache(D), (i, j)) do
+    can_compute_vertical_map(D, i, j) || error("index out of bounds")
+    return D.vertical_map_factory(D, i, j)
+  end
 end
 
 function has_vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
@@ -291,11 +283,10 @@ function can_compute_vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
 end
 
 function horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  haskey(horizontal_map_cache(D), (i, j)) && return horizontal_map_cache(D)[(i, j)]
-  new_map = D.horizontal_map_factory(D, i, j)
-  can_compute_horizontal_map(D, i, j) || error("index out of bounds")
-  horizontal_map_cache(D)[(i, j)] = new_map
-  return new_map
+  return get!(horizontal_map_cache(D), (i, j)) do
+    can_compute_horizontal_map(D, i, j) || error("index out of bounds")
+    return D.horizontal_map_factory(D, i, j)
+  end
 end
 
 function has_horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)

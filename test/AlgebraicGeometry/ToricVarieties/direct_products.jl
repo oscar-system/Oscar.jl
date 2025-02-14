@@ -1,6 +1,6 @@
 @testset "Direct products" begin
     
-  F5 = normal_toric_variety(IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]]), [[1, 0], [0, 1], [-1, 5], [0, -1]])
+  F5 = normal_toric_variety(incidence_matrix([[1, 2], [2, 3], [3, 4], [4, 1]]), [[1, 0], [0, 1], [-1, 5], [0, -1]])
     P2 = normal_toric_variety(normal_fan(Oscar.simplex(2)))
     variety = F5 * P2
     

@@ -65,19 +65,40 @@ function visualize(
   };
   kwargs...,
 )
-  _prepare_visualization(P)
-  pmo = pm_object(P)
+  pmo = _prepare_visualization(P)
   Polymake.visual(pmo; kwargs...)
 end
 
+@doc raw"""
+    visualize(P::Vector; kwargs...)
+
+Visualize a vector of polyhedral objects `P`, i.e., all polyhedral objects in `P` in one visualization.  See [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for which polyhedral objects and keyword arguments are possible.
+
+# Examples
+```julia
+julia> p = simplex(3)
+Polytope in ambient dimension 3
+
+julia> P = [p,p+[3,0,0],p+[0,3,0],p+[0,0,3]]
+4-element Vector{Polyhedron{QQFieldElem}}:
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+
+julia> visualize(P)
+
+```
+"""
 function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
-  for p in P
-    @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
-    _prepare_visualization(p)
-  end
+  P = map(
+    p -> begin
+      @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
+      _prepare_visualization(p)
+    end, P)
   vis = [
     Polymake.visual(
-      Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...
+      Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
     ) for i in 1:length(P)
   ]
   if isdefined(Main, :IJulia) && Main.IJulia.inited
@@ -112,6 +133,7 @@ function _prepare_visualization(
   if !Polymake.exists(pm_object(P), "RAY_LABELS")
     pm_object(P).RAY_LABELS = string.(1:(Oscar.pm_object(P).N_RAYS))
   end
+  return pm_object(P)
 end
 
 function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem}})
@@ -123,8 +145,17 @@ function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
     pm_object(P).POINT_LABELS = string.(1:(Oscar.pm_object(P).N_POINTS))
   end
+  return pm_object(P)
 end
 
-function _prepare_visualization(P::Union{Graph,SimplicialComplex})
-  return nothing
+function _prepare_visualization(sc::SimplicialComplex)
+  return pm_object(sc)
+end
+
+function _prepare_visualization(
+  g::Graph{T}
+) where {T<:Union{Polymake.Directed,Polymake.Undirected}}
+  bg = Polymake.graph.Graph{T}(; ADJACENCY=pm_object(g))
+  bg.NODE_LABELS = string.(1:n_vertices(g))
+  return bg
 end

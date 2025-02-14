@@ -11,6 +11,7 @@
   F = FPGroup(G)
   @test testrels(F)             # full f.p. group
   @test testrels(center(F)[1])  # subgroup of full f.p. group
+  @test testrels(free_group(2)) # free group (empty relations)
   @test testrels(PermGroup(G))  # nothing of the above
 end
 
@@ -37,7 +38,7 @@ end
   @test length(z) == 5
 
   z = irreducible_modules(ZZ, G)
-  @test length(z) == 5
+  @test length(z) == 3
 
   l = irreducible_modules(AbsSimpleNumField, small_group(48, 17), minimal_degree = true)
   ds = degree.(base_ring.(l))
@@ -76,9 +77,63 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
 
-  G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
+  G = codomain(isomorphism(FPGroup, G, on_gens=true))
   q, mq = maximal_abelian_quotient(PcGroup, G)
   @test length(Oscar.RepPc.brueckner(mq)) == 6
+end
+
+@testset "Experimental.gmodule natural G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  M = natural_gmodule(G, GF(2))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+
+  # for matrix groups
+  G = SL(2, 3)
+  M = natural_gmodule(G)
+  cf = composition_factors_with_multiplicity(M)
+  @test length(cf) == 1 && cf[1][2] == 1
+end
+
+@testset "Experimental.gmodule regular G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  R = GF(2)
+  M, f, g = regular_gmodule(G, R)
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+  @test [x[2] for x in cf] == [2, 2]
+  N = natural_gmodule(G, R)
+  F = f(N)
+  V = M.M
+  @test all(i -> F(gen(V, Int(g(gen(G, i))))).matrix == matrix(N.ac[i]), 1:ngens(G))
+
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+
+  # for pc groups
+  G = dihedral_group(8)
+  M, f, g = regular_gmodule(G, GF(3))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 1, 1, 1, 2]
+  @test all(x -> dim(x[1]) == x[2], cf)
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+end
+
+@testset "Experimental.gmodule extension for matrix group" begin
+  G = SL(2,3)
+  F = GF(3)
+  m = free_module(F, 2)
+  M = GModule(m, G, [hom(m, m, matrix(a)) for a in gens(G)])
+  H2 = Oscar.GrpCoh.cohomology_group(M, 2)
+  x = collect(H2[1])[1]
+  c = H2[2](x)
+  e = extension(FPGroup, c)
+  GG = e[1]
+  @test order(GG) == 216
+  @test GG isa FPGroup
 end
 
 @testset "Experimental.gmodule SL(2,5)" begin
@@ -134,7 +189,7 @@ end
   X = cyclic_group(4)
   M, _ = sub(X, [X[1]^2])
   C, c = extension_with_abelian_kernel(X, M)
-  @test is_isomorphic(extension(c)[1], X)
+  @test is_isomorphic(extension(FPGroup, c)[1], X)
 end
 
 @testset "Experimental Schur" begin
@@ -148,12 +203,12 @@ end
   M = trivial_gmodule(G, Z2)
   h, mh = cohomology_group(M, 2)
   @test Set(is_stem_extension(Oscar.GrpExt(mh(x))) for x = h) == Set([0,1]) 
-  @test Set(is_stem_extension(extension(mh(x))[2]) for x = h) == Set([0,1]) 
+  @test Set(is_stem_extension(extension(mh(x))) for x = h) == Set([0,1])
 
 
 end
 @testset "Experimental LocalH2" begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   k, a = number_field(x^6+108, cached = false)
 
   G, mG = automorphism_group(k)
@@ -165,8 +220,8 @@ end
 
   l2 = prime_decomposition(maximal_order(k), 2)
   k2, _ = Hecke.completion(k, l2[1][1], 120)
-  z = Hecke.local_fundamental_class_serre(k2, prime_field(k2))
-  C, mG, mU = Oscar.GrpCoh.gmodule(k2, prime_field(k2))
+  z = Hecke.local_fundamental_class_serre(k2, absolute_base_field(k2))
+  C, mG, mU = Oscar.GrpCoh.gmodule(k2, absolute_base_field(k2))
   G = domain(mG)
 
   pe = gen(k2)

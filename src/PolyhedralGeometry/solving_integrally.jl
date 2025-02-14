@@ -49,11 +49,11 @@ Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 1]);
 
-julia> b = zero_matrix(FlintZZ, 1,1); b[1,1]=7;
+julia> b = zero_matrix(ZZ, 1,1); b[1,1]=7;
 
 julia> C = ZZMatrix([1 0; 0 1]);
 
-julia> d = zero_matrix(FlintZZ,2,1); d[1,1]=2; d[2,1]=3;
+julia> d = zero_matrix(ZZ,2,1); d[1,1]=2; d[2,1]=3;
 
 julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C, d)), dims=1)
 3×2 Matrix{BigInt}:
@@ -101,7 +101,7 @@ Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 1]);
 
-julia> b = zero_matrix(FlintZZ, 1,1); b[1,1]=3;
+julia> b = zero_matrix(ZZ, 1,1); b[1,1]=3;
 
 julia> C = ZZMatrix([1 0; 0 1]);
 
@@ -131,9 +131,9 @@ julia> for x in it
 """
 solve_mixed(
   as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false
-) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1); permit_unbounded)
+) where {T} = solve_mixed(T, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded)
 solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false) =
-  solve_mixed(ZZMatrix, A, b, C, zero_matrix(FlintZZ, nrows(C), 1); permit_unbounded)
+  solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded)
 
 @doc raw"""
     solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
@@ -151,7 +151,7 @@ Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 0; 0 1; -1 0; 0 -1]);
 
-julia> b = zero_matrix(FlintZZ, 4,1); b[1,1]=1; b[2,1]=1; b[3,1]=0; b[4,1]=0;
+julia> b = zero_matrix(ZZ, 4,1); b[1,1]=1; b[2,1]=1; b[3,1]=0; b[4,1]=0;
 
 julia> sortslices(Matrix{BigInt}(solve_ineq(A, b)), dims=1)
 4×2 Matrix{BigInt}:
@@ -173,8 +173,8 @@ SubObjectIterator{PointVector{ZZRingElem}}
 solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) where {T} =
   solve_mixed(
     T,
-    zero_matrix(FlintZZ, 0, ncols(A)),
-    zero_matrix(FlintZZ, 0, 1),
+    zero_matrix(ZZ, 0, ncols(A)),
+    zero_matrix(ZZ, 0, 1),
     -A,
     -b;
     permit_unbounded,
@@ -198,7 +198,7 @@ Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 1]);
 
-julia> b = zero_matrix(FlintZZ, 1,1); b[1,1]=3;
+julia> b = zero_matrix(ZZ, 1,1); b[1,1]=3;
 
 julia> sortslices(Matrix{BigInt}(solve_non_negative(A, b)), dims=1)
 4×2 Matrix{BigInt}:
@@ -219,6 +219,6 @@ SubObjectIterator{PointVector{ZZRingElem}}
 """
 solve_non_negative(
   as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false
-) where {T} = solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)); permit_unbounded)
+) where {T} = solve_mixed(T, A, b, identity_matrix(ZZ, ncols(A)); permit_unbounded)
 solve_non_negative(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) =
   solve_non_negative(ZZMatrix, A, b; permit_unbounded)

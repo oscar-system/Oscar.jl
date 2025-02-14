@@ -357,7 +357,7 @@ end
 ### This implements the speedup from the CoCoA strategy, 
 # see Exercise 4 in Section 5.3
 function _divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
-  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b[1:j-1] - a[1:j-1]) && all(k->(k>=0), b[j+1:end] - a[j+1:end])
+  divides(a::Vector{Int}, b::Vector{Int}) = all(>=(0), b[1:j-1] - a[1:j-1]) && all(>=(0), b[j+1:end] - a[j+1:end])
   kept = [e for e in a if e[j] == 0]
   for i in 1:k
     next_slice = [e for e in a if e[j] == i]
@@ -378,7 +378,7 @@ function _divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
   return result
 end
 
-_divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
+_divides(a::Vector{Int}, b::Vector{Int}) = all(a .>= b)
 
 function _gcd(a::Vector{Int}, b::Vector{Int})
   return [a[k] > b[k] ? b[k] : a[k] for k in 1:length(a)]

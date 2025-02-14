@@ -30,7 +30,7 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
 
   function my_decomp(u::SubquoModuleElem)
     @req parent(u) === result "element does not belong to the correct module"
-    k = findfirst(x -> x == u, gens(result))
+    k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = ordered_multi_index(k, p, n)
     e = gens(M)

@@ -21,6 +21,7 @@ has_gens(::GAPGroup)
 number_of_generators(G::GAPGroup)
 gen(::GAPGroup, i::Int)
 small_generating_set(G::GAPGroup)
+minimal_size_generating_set(G::GAPGroup)
 Base.rand(G::GAPGroup)
 rand_pseudo(G::GAPGroup)
 ```

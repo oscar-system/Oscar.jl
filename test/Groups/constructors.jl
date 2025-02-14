@@ -78,9 +78,16 @@ end
 
   @test_throws ArgumentError cyclic_generator(symmetric_group(3))
 
+  @test isa(elementary_abelian_group(27), PcGroup)
+  @test isa(elementary_abelian_group(PermGroup, 27), PermGroup)
+  @test isa(elementary_abelian_group(FinGenAbGroup, 27), FinGenAbGroup)
+  @test_throws ArgumentError elementary_abelian_group(6)
+  @test_throws ArgumentError elementary_abelian_group(PermGroup, 6)
+
   for p in [1, next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     g = cyclic_group(p)
     @test is_cyclic(g)
+    @test is_elementary_abelian(g)
     @test order(cyclic_generator(g)) == order(g)
     @test !is_dihedral_group(g)
     @test is_finite(g)
@@ -93,6 +100,14 @@ end
     @test !is_cyclic(g)
     #@test is_dihedral_group(g)
     @test is_finite(g)
+    @test order(g) == n
+
+    n = p^2
+    g = elementary_abelian_group(n)
+    @test is_abelian(g)
+    @test is_finite(g)
+    @test !is_cyclic(g)
+    @test exponent(g) == p
     @test order(g) == n
   end
 

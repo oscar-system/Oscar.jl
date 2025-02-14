@@ -175,7 +175,7 @@ end
     #Invariant ring of reductive group G (in representation R), no other input.
     function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
         n = length(weights(R))
-        super_ring, _ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
+        super_ring, _ = graded_polynomial_ring(field(group(R)), :X=>1:n)
         return TorGroupInvarRing(R, super_ring)
     end
 
@@ -319,7 +319,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     index_0 = 0
     for point in C
         if is_zero(point)
-            index_0 = findfirst(item -> item == point, C)
+            index_0 = findfirst(==(point), C)
         end
         c = true
         for i in 1:n
@@ -347,7 +347,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                     u = m*gen(R,i)
                     v = w + W[i]
                     if v in C
-                        index = findfirst(item -> item == v, C)
+                        index = findfirst(==(v), C)
                         c = true
                         for elem in S[index]
                             if is_divisible_by(u, elem)
@@ -361,7 +361,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                         end
                     end
                 end
-                deleteat!(U[j], findall(item -> item == m, U[j]))
+                deleteat!(U[j], findall(==(m), U[j]))
             else
                 count += 1
             end
@@ -410,7 +410,7 @@ function affine_algebra(R::TorGroupInvarRing)
     for i in 1:s
         weights_[i] = total_degree(V[i])
     end
-    S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
+    S,_ = graded_polynomial_ring(field(group(representation(R))), :t=>1:s; weights = weights_)
     R_ = polynomial_ring(R)
     StoR = hom(S,R_,V)
     I = kernel(StoR)

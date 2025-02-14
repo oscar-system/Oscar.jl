@@ -39,6 +39,7 @@ In OSCAR, every permutation group has a degree `n`, that corresponds to the size
 
 ```@docs
 degree(x::PermGroup)
+smaller_degree_permutation_representation(G::PermGroup)
 ```
 
 

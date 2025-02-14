@@ -179,7 +179,7 @@ function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::In
 end
 
 # Iterator type: partitions of n into k parts with values in v and every value
-# occuring according to the multiplicities in mu
+# occurring according to the multiplicities in mu
 struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
   n::T
   k::Int
@@ -317,6 +317,35 @@ struct SemiStandardTableauxFixedBoxNum{T<:IntegerUnion}
   function SemiStandardTableauxFixedBoxNum(box_num::T, max_val::T) where {T <: IntegerUnion}
     @req box_num >= 0 "Number of boxes must be non-negative"
     return new{T}(box_num, max_val)
+  end
+end
+
+# Iterator type: all semistandard tableaux with a given shape and weight
+struct SemiStandardTableauxFixedShapeAndWeight{T<:IntegerUnion}
+  shape::Partition{T}
+  weight::Vector{T}
+
+  function SemiStandardTableauxFixedShapeAndWeight(shape::Partition{T}, weight::Vector{T}) where {T <: IntegerUnion}
+    @req sum(shape) == sum(weight) "Sum of shape and weight must agree"
+    i = findlast(!iszero, weight) # Trim trailing zeros; they upset the iterator
+    if isnothing(i)
+      i = 0
+    end
+    return new{T}(shape, weight[1:i])
+  end
+end
+
+# Internal type: state of the iterator
+mutable struct SemiStandardTableauxFixedShapeAndWeightState{T<:IntegerUnion}
+  n::Int
+  increaseN::Bool
+  tab::YoungTableau{T}
+  boxes_filled::Vector{Int}
+  n_used_weight::Vector{Int}
+  row_pointer::Matrix{Int}
+
+  function SemiStandardTableauxFixedShapeAndWeightState{T}() where {T <: IntegerUnion}
+    return new{T}()
   end
 end
 

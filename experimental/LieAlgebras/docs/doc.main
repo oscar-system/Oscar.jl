@@ -6,6 +6,6 @@
       "lie_algebra_homs.md",
       "modules.md",
       "module_homs.md",
-      "cartan_matrix.md",
+      "weyl_groups_experimental.md",
    ],
 ]

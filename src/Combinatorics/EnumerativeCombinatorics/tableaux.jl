@@ -48,7 +48,7 @@ young_tableau
 
 function young_tableau(::Type{T}, v::Vector{Vector{TT}}; check::Bool = true) where {T <: IntegerUnion, TT <: IntegerUnion}
   if check
-    @req _defines_partition(map(length, v)) "The input does not define a Young tableau"
+    @req _defines_partition(map(length, v)) "The input does not define a Young tableau: lengths of rows must be weakly decreasing"
   end
   return YoungTableau{T}(v)
 end
@@ -222,20 +222,24 @@ Return the shape of the tableau `tab`, i.e. the partition given by the lengths
 of the rows of the tableau.
 """
 function shape(tab::YoungTableau{T}) where T
-  return partition(T[ length(tab[i]) for i = 1:length(tab) ], check = false)
+  # Line below DOES NOT CHECK that the lengths of the rows are weakly decreasing
+  return partition(T[ length(tab[i]) for i = 1:length(tab) ]; check = false)
 end
 
 @doc raw"""
     weight(tab::YoungTableau)
 
-Return the weight of the tableau `tab` as an array whose `i`-th element gives
-the number of times the integer `i` appears in the tableau.
+Return the weight sequence of the tableau `tab` as an array whose `i`-th element
+gives the number of times the integer `i` appears in the tableau.
 """
 function weight(tab::YoungTableau)
+  @req  is_semistandard(tab)  "Tableau must be (semi-)standard"
+  
   if isempty(tab)
     return Int[]
   end
 
+  # Computation of max must be changed if we want to permit non-semi-standard YT
   max = 0
   for i = 1:length(tab)
     if max < tab[i][end]
@@ -356,7 +360,7 @@ end
 shape(S::SemiStandardTableaux) = S.shape
 maximal_value(S::SemiStandardTableaux) = S.max_val
 
-Base.eltype(S::SemiStandardTableaux{T}) where T = YoungTableau{T}
+Base.eltype(::Type{SemiStandardTableaux{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::SemiStandardTableaux)
   print(io, "Iterator over semistandard Young tableaux of shape $(shape(S))")
@@ -454,7 +458,7 @@ end
 box_num(S::SemiStandardTableauxFixedBoxNum) = S.box_num
 maximal_value(S::SemiStandardTableauxFixedBoxNum) = S.max_val
 
-Base.eltype(S::SemiStandardTableauxFixedBoxNum{T}) where T = YoungTableau{T}
+Base.eltype(::Type{SemiStandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::SemiStandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over semistandard Young tableaux with ",
@@ -492,109 +496,198 @@ end
 Return an iterator over all semistandard Young tableaux with shape `s` and given
 weight. This requires that `sum(s) = sum(weight)`.
 """
-function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
-  # TODO: This function first fills an array and then returns an iterator over
-  # this array. This was a stopgap, to have a stable API for version 1.0.
-  # The output should be a dedicated iterator type which constructs the tableaux
-  # on demand (if possible).
-  n_max = sum(s)
-  @req n_max == sum(weight) "sum(s) == sum(weight) required"
-
-  tabs = Vector{YoungTableau{T}}()
-  if isempty(s)
-    push!(tabs, young_tableau(Vector{T}[], check = false))
-    return (t for t in tabs)
-  end
-  ls = length(s)
-
-  tab = young_tableau([ T[0 for j = 1:s[i]] for i = 1:length(s)], check = false)
-  sub_s = zeros(Int, length(s))
-
-  #tracker_row = zeros(Integer, n_max)
-
-  function rec_sst!(n::Int)
-
-    #fill the remaining boxes if possible, else set them to 0
-    if n == length(weight)
-      for i = 1:ls
-        for j = sub_s[i] + 1:s[i]
-          tab[i][j] = T(n)
-          if i != 1 && tab[i - 1][j] == n
-            for k = 1:i
-              for l = sub_s[k] + 1:s[k]
-                tab[i][j] = T(0)
-              end
-            end
-            return
-          end
-        end
-      end
-      push!(tabs, young_tableau([copy(row) for row in tab], check = false))
-
-      return
-
-      #skip to next step if weight[n] == 0
-    elseif weight[n] == 0
-      rec_sst!(n + 1)
-      return
-    end
-
-    #here starts the main part of the function
-    tracker_row = zeros(Int, weight[n])
-    i = 1
-    while sub_s[i] == s[i]
-      i += 1
-    end
-    j = sub_s[i] + 1
-
-    m = 0
-    while m >= 0
-      if m == weight[n]   # jump to next recursive step
-        rec_sst!(n + 1)
-        tab[tracker_row[m]][sub_s[tracker_row[m]]] = T(0)
-        i = tracker_row[m] + 1
-        if i <= ls
-          j = sub_s[i] + 1
-        end
-        m -= 1
-        sub_s[i - 1] -= 1
-
-      elseif i > ls
-        if m == 0
-          return
-        else
-          tab[tracker_row[m]][sub_s[tracker_row[m]]] = T(0)
-          i = tracker_row[m] + 1
-          if i <= ls
-            j = sub_s[i] + 1
-          end
-          m -= 1
-          sub_s[i - 1] -= 1
-        end
-
-      elseif j <= s[i] && (i == 1 || (j <= sub_s[i - 1] && n > tab[i - 1][j]))  #add an entry
-        m += 1
-        tab[i][j] = T(n)
-        sub_s[i] += 1
-        tracker_row[m] = i
-        j += 1
-
-      else #move pointerhead
-        i += 1
-        if i <= ls
-          j = sub_s[i] + 1
-        end
-      end
-    end #while
-
-  end #rec_sst!()
-
-  rec_sst!(1)
-  return (t for t in tabs)
+function semistandard_tableaux(s::Partition{T}, weight::Vector{T}) where {T <: IntegerUnion}
+  return SemiStandardTableauxFixedShapeAndWeight(s, weight)
 end
 
-function semistandard_tableaux(s::Partition{T}, weight::Partition{T}) where T <: Integer
-  return semistandard_tableaux(Vector{T}(s), Vector{T}(weight))
+function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where {T <: IntegerUnion}
+  return SemiStandardTableauxFixedShapeAndWeight(partition(s), weight)
+end
+
+shape(S::SemiStandardTableauxFixedShapeAndWeight) = S.shape
+weight(S::SemiStandardTableauxFixedShapeAndWeight) = S.weight
+
+Base.eltype(::Type{SemiStandardTableauxFixedShapeAndWeight{T}}) where T = YoungTableau{T}
+
+function Base.show(io::IO, S::SemiStandardTableauxFixedShapeAndWeight)
+  print(pretty(io), "Iterator over semistandard Young tableaux of shape ",
+        shape(S), " and weight ", weight(S))
+end
+
+Base.IteratorSize(::Type{<: SemiStandardTableauxFixedShapeAndWeight}) = Base.SizeUnknown()
+
+@inline function iterate(S::SemiStandardTableauxFixedShapeAndWeight{T}, state::Union{SemiStandardTableauxFixedShapeAndWeightState, Nothing} = nothing) where T
+  s = shape(S)
+  weight = Oscar.weight(S)
+
+  if isnothing(state)
+    state = SemiStandardTableauxFixedShapeAndWeightState{T}()
+    if isempty(s)
+      state.n = 0
+      return young_tableau(Vector{T}[], check = false), state
+    end
+
+    state.n = 1
+    state.increaseN = true
+    state.tab = young_tableau([T[0 for j = 1:s[i]] for i = 1:length(s)], check = false)
+    state.boxes_filled = zeros(Int, length(s))
+    state.n_used_weight = zeros(Int, length(weight))
+    state.row_pointer = zeros(Int, length(weight), maximum(weight))
+  end
+
+  # the integer that we currently try to write into the tableau
+  n = state.n
+
+  is_zero(n) && return nothing
+
+  # whether we should increase or decrease n in the next iteration of the while loop
+  increaseN = state.increaseN
+  # the tableau filled in-place
+  tab = state.tab
+  # boxes_filled[i] is the number of boxes we successfully filled in row i
+  boxes_filled = state.boxes_filled
+
+  while n > 0
+    if is_zero(weight[n])
+      if increaseN
+        n += 1
+      else
+        n -= 1
+      end
+      continue
+    end
+
+    # n is the last possible entry, so we try to fill the remaining boxes with n
+    if n == length(weight)
+      goodTableau = _is_good_tableau!(n, S, state)
+      n -= 1
+      increaseN = false
+      if goodTableau
+        # we discovered a tableau
+        state.n = n
+        state.increaseN = increaseN
+        return young_tableau([copy(row) for row in tab], check = false), state
+      end
+      # we did not discover a tableau and have to go back to the step n - 1
+      continue
+    end
+
+    # fill n into the boxes (modifies state in-place)
+    state.n = n
+    _fill_boxes!(n, S, state)
+    n = state.n
+    increaseN = state.increaseN
+  end
+
+  return nothing
+end
+
+function _fill_boxes!(n::Int, S::SemiStandardTableauxFixedShapeAndWeight{T}, state::SemiStandardTableauxFixedShapeAndWeightState{T}) where T
+  s = shape(S)
+  weight = Oscar.weight(S)
+
+  # the tableau filled in-place
+  tab = state.tab
+  # boxes_filled[i] is the number of boxes we successfully filled in row i
+  boxes_filled = state.boxes_filled
+  # n_used_weight[i] is the number of entries equal to i
+  n_used_weight = state.n_used_weight
+  # row_pointer[k, l] is the row i where we put the lth entry k
+  row_pointer = state.row_pointer
+
+  m = n_used_weight[n]
+  @assert m == 0 || m == weight[n] "Internal error; this should not happen"
+  if m == 0
+    # we did not fill a box with the entry n yet, so we start looking for
+    # possible boxes in the "top left" corner
+    i = 1
+    while boxes_filled[i] == s[i]
+      i += 1
+    end
+    j = boxes_filled[i] + 1
+  elseif m == weight[n]
+    # We already used the entry n as many times as possible, so we came back
+    # here from an earlier iteration of the loop
+    # We "forget" the last box filled with n and start filling one row below it
+    i = row_pointer[n, m] + 1
+    if i <= length(s)
+      j = boxes_filled[i] + 1
+    end
+    m -= 1
+    boxes_filled[i - 1] -= 1
+  end
+
+  while true
+    if m == weight[n]
+      # we filled n in as many boxes as possible, so we go to the step n + 1
+      n_used_weight[n] = m
+      state.n = n + 1
+      state.increaseN = true
+      return nothing
+    end
+
+    if i > length(s)
+      # We arrived at the bottom of the tableau
+      if m == 0
+        # We did not fill any box with n yet, so the filling so far is already
+        # illegal
+        # Go back to step n - 1
+        n_used_weight[n] = m
+        state.n = n - 1
+        state.increaseN = false
+        return nothing
+      else
+        # The last box we filled with n must have been wrong, so we put i in
+        # the next row after that and "forget" the box
+        i = row_pointer[n, m] + 1
+        if i <= length(s)
+          j = boxes_filled[i] + 1
+        end
+        m -= 1
+        boxes_filled[i - 1] -= 1
+        continue
+      end
+    end
+
+    if j <= s[i] && (i == 1 || (j <= boxes_filled[i - 1] && n > tab[i - 1][j]))
+      # We can fill a box with n
+      m += 1
+      tab[i][j] = T(n)
+      boxes_filled[i] += 1
+      row_pointer[n, m] = i
+      j += 1
+    else
+      # We cannot fill any box in row i with n, so we increase i
+      i += 1
+      if i <= length(s)
+        j = boxes_filled[i] + 1
+      end
+    end
+  end
+  return nothing
+end
+
+# Check whether we get a semistandard tableau by filling n in the remaining boxes
+# of state.tab
+function _is_good_tableau!(n::Int, S::SemiStandardTableauxFixedShapeAndWeight{T}, state::SemiStandardTableauxFixedShapeAndWeightState{T}) where T
+  s = shape(S)
+  weight = Oscar.weight(S)
+
+  # the tableau filled in-place
+  tab = state.tab
+  # boxes_filled[i] is the number of boxes we successfully filled in row i
+  boxes_filled = state.boxes_filled
+
+  for i = 1:length(s)
+    for j = boxes_filled[i] + 1:s[i]
+      tab[i][j] = T(n)
+      if i != 1 && tab[i - 1][j] >= n
+        # this filling does not give a semistandard tableau
+        return false
+      end
+    end
+  end
+  return true
 end
 
 ################################################################################
@@ -678,7 +771,7 @@ end
 
 shape(S::StandardTableaux) = S.shape
 
-Base.eltype(S::StandardTableaux{T}) where T = YoungTableau{T}
+Base.eltype(::Type{StandardTableaux{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::StandardTableaux)
   print(io, "Iterator over standard Young tableaux of shape $(shape(S))")
@@ -785,7 +878,7 @@ end
 
 box_num(S::StandardTableauxFixedBoxNum) = S.box_num
 
-Base.eltype(S::StandardTableauxFixedBoxNum{T}) where T = YoungTableau{T}
+Base.eltype(::Type{StandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::StandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over standard Young tableaux with ",

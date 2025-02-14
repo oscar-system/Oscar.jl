@@ -82,7 +82,7 @@ This is done by computing the kernel of the parametrization.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)

@@ -133,6 +133,7 @@ conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
 identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
+is_atlas_character_table
 is_duplicate_table
 maxes
 names_of_fusion_sources
@@ -209,7 +210,8 @@ arithmetic operations:
   where the group of `chi` is a subgroup of the group of `tbl`.
 
 ```@docs
-scalar_product
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 coordinates(chi::GAPGroupClassFunction)
 multiplicities_eigenvalues
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)

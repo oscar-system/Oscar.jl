@@ -401,17 +401,6 @@ function Base.:(^)(a::TropicalSemiringElem, n::Integer)
 end
 
 
-
-################################################################################
-#
-#  Unsafe operations
-#
-################################################################################
-
-Oscar.mul!(x::TropicalSemiringElem, y::TropicalSemiringElem, z::TropicalSemiringElem) = y * z
-Oscar.addeq!(y::TropicalSemiringElem, z::TropicalSemiringElem) = y + z
-
-
 ################################################################################
 #
 #  helpers for polymake conversion

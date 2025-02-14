@@ -33,7 +33,7 @@ function simplify(C::Covering)
     iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
     #new_gluings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
-    new_gluings[(Xsimp, Ysimp)] = LazyGluing(Xsimp, Ysimp, _compute_restriction, _compute_domains,
+    new_gluings[(Xsimp, Ysimp)] = LazyGluing(Xsimp, Ysimp,
                                                RestrictionDataIsomorphism(G, jX, jY)
                                               )
   end
@@ -336,8 +336,9 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       pre_glue_double_to_simple = induced_map_to_fiber_product(
            compose(f_res_UU, compose(double_to_simple_U, inc_U)),
            compose(g_res_VV, compose(double_to_simple_V, inc_V)),
-           f[U], g[V],
-           fiber_product=(UxV, to_U, to_V)
+           f[U], g[V];
+           fiber_product=(UxV, to_U, to_V),
+           check=false
           )
       double_to_simple = restrict(pre_glue_double_to_simple, domain(pre_glue_double_to_simple), 
                                   U_UUxV_VV; check=false
@@ -345,8 +346,9 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       pre_glue_simple_to_double = induced_map_to_fiber_product(
            compose(f_res_U, compose(simple_to_double_U, inc_UU)),
            compose(g_res_V, compose(simple_to_double_V, inc_VV)),
-           f[UU], g[VV],
-           fiber_product=(UUxVV, to_UU, to_VV)
+           f[UU], g[VV];
+           fiber_product=(UUxVV, to_UU, to_VV),
+           check=false
           )
       simple_to_double = restrict(pre_glue_simple_to_double, domain(pre_glue_simple_to_double), 
                                   UU_UxVV_V; check=false

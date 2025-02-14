@@ -57,5 +57,5 @@
         "zero_section": ["0", "1", "0"],
         "generating_sections": [["0", "1", "-b"]]
     },
-    "associated_models": ["model1208_2695-2.json"]
+    "birational_models": ["model1208_2695-2.json"]
 }

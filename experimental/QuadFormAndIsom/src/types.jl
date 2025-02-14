@@ -2,19 +2,19 @@
     QuadSpaceWithIsom
 
 A container type for pairs $(V, f)$ consisting of a rational quadratic space
-$V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix` representing
-the action on the standard basis of $V$.
+$V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix`
+representing the action on the standard basis of $V$.
 
 We store the order of $f$ too, which can finite or infinite.
 
-To construct an object of type `QuadSpaceWithIsom`, see the set of functions
+To construct an object of type *QuadSpaceWithIsom*, see the set of functions
 called [`quadratic_space_with_isometry`](@ref)
 
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 4);
 
-julia> quadratic_space_with_isometry(V, neg=true)
+julia> quadratic_space_with_isometry(V; neg=true)
 Quadratic space of dimension 4
   with isometry of finite order 2
   given by
@@ -60,21 +60,21 @@ end
     ZZLatWithIsom
 
 A container type for pairs $(L, f)$ consisting of an integer lattice $L$ of
-type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing the action
-on the basis matrix of $L$.
+type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing
+the action on the basis matrix of $L$.
 
 We store the ambient space $V$ of $L$ together with an isometry $f_a$
-inducing $f$ on $L$ seen as a pair $(V, f_a)$ of type `QuadSpaceWithIsom`.
+inducing $f$ on $L$ seen as a pair $(V, f_a)$ of type [`QuadSpaceWithIsom`](@ref).
 We moreover store the order $n$ of $f$, which can be finite or infinite.
 
-To construct an object of type `ZZLatWithIsom`, see the following examples:
+To construct an object of type *ZZLatWithIsom*, see the following examples:
 
 # Examples
 
 One first way to construct such object, is by entering directly the lattice with
 an isometry. The isometry can be a honnest isometry of the lattice, or it can
 be an isometry of the ambient space preserving the lattice. Depending on this
-choice, one should enter the appropriate boolean value `ambient_representation`.
+choice, one should enter the appropriate boolean value *ambient_representation*.
 This direct construction is done through the constructors
 [`integer_lattice_with_isometry`](@ref).
 
@@ -88,7 +88,7 @@ julia> f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
                              -1 -1 -1  0  0 -1;
                               0  0  1  1  0  1]);
 
-julia> Lf = integer_lattice_with_isometry(L, f, ambient_representation = false)
+julia> Lf = integer_lattice_with_isometry(L, f; ambient_representation=false)
 Integer lattice of rank 6 and degree 6
   with isometry of finite order 8
   given by
@@ -109,7 +109,7 @@ Integer lattice of rank 1 and degree 6
   given by
   [1]
 
-julia> integer_lattice_with_isometry(I, neg=true)
+julia> integer_lattice_with_isometry(I; neg=true)
 Integer lattice of rank 1 and degree 6
   with isometry of finite order 2
   given by
@@ -117,10 +117,11 @@ Integer lattice of rank 1 and degree 6
 ```
 
 Another way to construct such objects is to see them as sub-objects of their
-ambient space, of type `QuadSpaceWithIsom`. Through the constructors `lattice`
-and `lattice_in_same_ambient_space`, one can then construct lattices with
-isometry for free, in a given space, as long as the module they define is
-preserved by the fixed isometry of the ambient space.
+ambient space, of type [`QuadSpaceWithIsom`](@ref). Through the constructors
+[`lattice(::QuadSpaceWithIsom)`](@ref) and
+[`lattice_in_same_ambient_space(::ZZLatWithIsom, ::MatElem)`](@ref), one can then
+construct lattices with isometry for free, in a given space, as long as the module
+they define is preserved by the fixed isometry of the ambient space.
 
 # Examples
 ```jldoctest

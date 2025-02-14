@@ -39,6 +39,9 @@ on_tuples
 on_sets
 permuted
 on_indeterminates
+on_lines
+on_echelon_form_mats
+on_subgroups
 ```
 
 
@@ -61,7 +64,7 @@ action_function(Omega::GSetByElements)
 action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 is_conjugate(Omega::GSet, omega1, omega2)
 is_conjugate_with_data(Omega::GSet, omega1, omega2)
-orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
+orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 ```
@@ -70,5 +73,6 @@ orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 ## Stabilizers
 
 ```@docs
-stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
+stabilizer(Omega::GSet)
 ```

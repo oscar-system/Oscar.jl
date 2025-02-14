@@ -69,7 +69,7 @@ function reps(K, G::Oscar.PcGroup)
           X = l[1]
           Xp = X^p
           #Brueckner: C*Xp == Y for some scalar C
-          ii = findfirst(x->!iszero(x), Xp)
+          ii = findfirst(!is_zero, Xp)
           @assert !iszero(Y[ii])
           C = divexact(Y[ii], Xp[ii])
           @assert C*Xp == Y
@@ -176,7 +176,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   else #TODO: repsn, reps offer choice
 #    I = irreducible_modules(ZZ, Q)
     I = reps(abelian_closure(QQ)[1], Q)
-    #Brueckner, p35: irreducible here is not neccessary, so the 
+    #Brueckner, p35: irreducible here is not necessary, so the
     #  expensive find minimal field step can be omitted.
     I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
   end
@@ -450,7 +450,7 @@ In particular Satz 15 c should be implemented.
 =#
 
 #= EXAMPLE
-F = free_group("a", "b"); a,b = gens(F);
+F = @free_group(:a, :b)
 G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^
 -1*b^2])
 f1 = Oscar.RepPc.solvable_quotient(G)

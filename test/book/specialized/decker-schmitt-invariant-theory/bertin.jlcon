@@ -20,11 +20,11 @@ julia> secondary_invariants(RG)
 julia> M, MtoR, StoR = module_syzygies(RG);
 
 julia> M
-Subquotient of Submodule with 5 generators
-1 -> e[1]
-2 -> e[2]
-3 -> e[3]
-4 -> e[4]
-5 -> e[5]
-by Submodule with 1 generator
-1 -> t2*e[2] + (t2 + t3)*e[3] + t1*e[4]
+Subquotient of submodule with 5 generators
+  1: e[1]
+  2: e[2]
+  3: e[3]
+  4: e[4]
+  5: e[5]
+by submodule with 1 generator
+  1: t2*e[2] + (t2 + t3)*e[3] + t1*e[4]

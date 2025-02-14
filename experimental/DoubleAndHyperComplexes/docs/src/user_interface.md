@@ -1,6 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
+
 # Double complexes -- the user's interface
 We briefly review the mathematical notion of a double complex. 
 Let ``\mathcal A`` be an Abelian category. A double complex 

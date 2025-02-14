@@ -100,7 +100,7 @@ Translate the expression in the tropical world.
 ```jldoctest
 julia> T = tropical_semiring(min);
 
-julia> Tx, x = polynomial_ring(T, "x" => 1:3);
+julia> Tx, x = polynomial_ring(T, :x => 1:3);
 
 julia> @tropical min(1, x[1], x[2], 2*x[3])
 x[3]^2 + x[1] + x[2] + (1)
@@ -174,7 +174,7 @@ return the tropicalization of `f` as a polynomial over the tropical semiring.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = polynomial_ring(QQ,["x", "y"])
+julia> R, (x,y) = polynomial_ring(QQ,[:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> nu = tropical_semiring_map(QQ,7)
@@ -218,7 +218,7 @@ Return the dual subdivision on `exponents(f)` with weights `coefficients(f)` (mi
 
 # Examples
 ```jldoctest
-julia> _, (x,y) = polynomial_ring(tropical_semiring(),["x", "y"]);
+julia> _, (x,y) = polynomial_ring(tropical_semiring(),[:x, :y]);
 
 julia> f = 1+x+y+x^2;
 
@@ -256,7 +256,7 @@ Return the dual subdivision on `exponents(f)` with weights `nu.(coefficients(f))
 
 # Examples
 ```jldoctest
-julia> _, (x,y) = QQ["x", "y"];
+julia> _, (x,y) = QQ[:x, :y];
 
 julia> nu = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
@@ -306,7 +306,7 @@ end
 # julia> K = PadicField(7, 2)
 # Field of 7-adic numbers
 
-# julia> Kxy, (x,y) = K["x", "y"]
+# julia> Kxy, (x,y) = K[:x, :y]
 # (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{PadicFieldElem}[x, y])
 
 # julia> f = 7*x+y+49

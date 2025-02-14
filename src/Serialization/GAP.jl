@@ -143,7 +143,12 @@ install_GAP_deserialization(
             GapObj(nameprefix)
           end
           init = load_node(s, :names) do names
-            GapObj(names; recursive = true)
+            if length(names) == 0
+              GapObj([])
+            else
+              # problem with `Union{}[]`
+              GapObj(names; recursive = true)
+            end
           end
           G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)::GapObj
         else

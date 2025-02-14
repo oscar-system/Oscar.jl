@@ -113,14 +113,14 @@ function bases_matrix_coordinates(Bs::Vector{Vector{Int}}, B::Vector{Int})
     
     for b in coord_bases
         row_b = setdiff(B,b)[1]
-        row_b = count(a->(a<row_b), B) + 1
+        row_b = count(<(row_b), B) + 1
         # count(f, v) does what?
         # - iterate through the elements a in v
         # - compute f(a) 
         # - if that is true, increment the counting variable by 1
         # - otherwise, continue
         # - return the value of the internal counter.
-        # Similar with all(a->(a<row_b), B), for instance.
+        # Similar with all(a<(row_b), B), for instance.
         #row_b = length([a for a in B if a < row_b]) + 1
         
         col_b = setdiff(b,B)[1]
@@ -142,7 +142,7 @@ function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
                               F::AbstractAlgebra.Ring)
     
     MC = bases_matrix_coordinates(Bs, B)
-    R, x = polynomial_ring(F, :"x"=>MC)
+    R, x = polynomial_ring(F, :x=>MC; cached=false)
     xdict = Dict{Vector{Int}, MPolyRingElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
@@ -303,7 +303,7 @@ function realization_bases_coordinates(Bs::Vector{Vector{Int}}, A::Vector{Int})
         end
         
         row_b = setdiff(B,b)[1]
-        row_b = count(a->(a<row_b), B) + 1
+        row_b = count(<(row_b), B) + 1
         
         col_b = setdiff(b,B)[1]
         col_b = col_b - length([a for a in A if a <= col_b])
@@ -330,7 +330,7 @@ function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
     MC = realization_bases_coordinates(Bs, A)
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
-    R, x = polynomial_ring(F, :"x"=>MR)
+    R, x = polynomial_ring(F, :x=>MR; cached=false)
     xdict = Dict{Vector{Int}, MPolyRingElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end

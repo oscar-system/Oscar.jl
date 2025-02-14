@@ -83,29 +83,25 @@
     f = sum([x; 1])^2 + x[1]^4 * x[2] * 3
     newt = newton_polytope(f)
     @test dim(newt) == 2
-    @test point_matrix(vertices(newt)) == matrix(QQ, [4 1; 2 0; 0 2; 0 0])
+    @test issetequal(vertices(newt), point_vector.(Ref(QQ), [[4, 1], [2, 0], [0, 2], [0, 0]]))
   end
 
   @testset "Construct from QQFieldElem" begin
     A = zeros(Oscar.QQ, 3, 2)
     A[1, 1] = 1
     A[3, 2] = 4
-    @test point_matrix(vertices(convex_hull(A))) == matrix(QQ, [1 0; 0 0; 0 4])
+    @test issetequal(vertices(convex_hull(A)), point_vector.(Ref(QQ), [[1, 0], [0, 0], [0, 4]]))
 
-    lhs, rhs = halfspace_matrix_pair(facets(polyhedron(A, [1, 2, -3])))
-    @test lhs == matrix(QQ, [1 0; 0 4])
-    @test rhs == [1, -3]
+    @test issetequal(facets(polyhedron(A, [1, 2, -3])), [affine_halfspace(QQ, [1, 0], 1), affine_halfspace(QQ, [0, 4], -3)])
   end
 
   @testset "Construct from ZZRingElem" begin
     A = zeros(Oscar.ZZ, 3, 2)
     A[1, 1] = 1
     A[3, 2] = 4
-    @test point_matrix(vertices(convex_hull(A))) == matrix(QQ, [1 0; 0 0; 0 4])
+    @test issetequal(vertices(convex_hull(A)), point_vector.(Ref(QQ), [[1, 0], [0, 0], [0, 4]]))
 
-    lhs, rhs = halfspace_matrix_pair(facets(polyhedron(A, [1, 2, -3])))
-    @test lhs == matrix(QQ, [1 0; 0 4])
-    @test rhs == [1, -3]
+    @test issetequal(facets(polyhedron(A, [1, 2, -3])), [affine_halfspace(QQ, [1, 0], 1), affine_halfspace(QQ, [0, 4], -3)])
   end
 
   @testset "SubObjectIterator/Matrix compatibility" begin
@@ -199,8 +195,8 @@
     @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
     @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
 
-    @test_throws ArgumentError IncidenceMatrix(lineality_space(Pos_poly))
-    IM = IncidenceMatrix([[1]])
+    @test_throws ArgumentError incidence_matrix(lineality_space(Pos_poly))
+    IM = incidence_matrix([[1]])
     lincone = positive_hull([1 0 0], [0 1 0])
 
     @test positive_hull(rays_modulo_lineality(lincone)...) == lincone

@@ -1,5 +1,5 @@
 @testset "singular locus and is_smooth" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = spec(R, I*J, units_of(R))
@@ -26,7 +26,7 @@
 end
 
 @testset "singular_locus_reduced" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [(x^2 + y^2 + z^2)*(x-y)^2])
   X = spec(R, I, units_of(R))
   Y, _ = singular_locus(X)
@@ -40,7 +40,7 @@ end
 end
 
 @testset "is_equidimensional, is_reduced etc" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2 - y^2 + z^2])
   I2 = ideal(R, [(x^2 - y^2 + z^2)^2])
   J = ideal(R, [x-1, y-2])
@@ -73,7 +73,7 @@ end
 end
 
 @testset "derivative in localized ring" begin
-  R, (x,y) = QQ["x","y"]
+  R, (x,y) = QQ[:x, :y]
   U = complement_of_point_ideal(R,[0,0])
   X = spec(R, U)
   L = OO(X)

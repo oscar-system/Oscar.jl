@@ -1,6 +1,6 @@
-###################################################
-#### PARAMETRIZATION IN PROBABLITY COORDINATES ####
-###################################################
+####################################################
+#### PARAMETRIZATION IN PROBABILITY COORDINATES ####
+####################################################
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
@@ -216,7 +216,7 @@ Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 5 entries:
 """
 function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
   polys = unique(collect(values(parametrization)))
-  polys = polys[findall(x -> x!=0, polys)]
+  polys = polys[findall(!is_zero, polys)]
 
   equivalent_keys = []
   for value in polys
@@ -269,7 +269,7 @@ end
 @doc raw"""
     specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
-Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
+Reparametrize between a model specification in terms of probability and Fourier coordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
 
 # Examples
 ```jldoctest
@@ -325,7 +325,7 @@ end
 @doc raw"""
     inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
-Reparametrize between a model specification in terms of Fourier and probability cooordinates.
+Reparametrize between a model specification in terms of Fourier and probability coordinates.
 
 # Examples
 ```jldoctest

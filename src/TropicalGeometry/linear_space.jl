@@ -53,7 +53,7 @@ end
 
 
 function shift_pluecker_indices_for_polymake(plueckerIndices::Vector{Vector{Int}})
-    # substract 1 fromt all entries of plueckerIndices
+    # subtract 1 from all entries of plueckerIndices
     return (x -> x .-1).(plueckerIndices)
 end
 

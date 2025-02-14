@@ -8,12 +8,12 @@
 Load a graph stored in JSON format, given the filename as input.
 """
 function load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
-  polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  polymake_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   return Graph{T}(polymake_object)
 end
 
 function load_from_polymake(::Type{PhylogeneticTree{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Float64, Int, QQFieldElem}}
-  polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  polymake_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   return PhylogeneticTree{T}(polymake_object)
 end
 
@@ -35,7 +35,7 @@ const polymake2OscarTypes = Dict{String, Type}([
 function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   T<:Union{Cone{<:scalar_types}, Polyhedron{<:scalar_types}, PolyhedralFan{<:scalar_types}, 
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex}}
-  inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  inner_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   if T <: PolyhedralObject{Float64}
     return T(inner_object, AbstractAlgebra.Floats{Float64}())
   end
@@ -54,7 +54,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     return load_from_polymake(oscar_type, jsondict)
   else 
     # We just try to default to something from Polymake.jl
-    deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+    deserialized = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
     if !isa(deserialized, Polymake.BigObject)
       @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
       return deserialized
@@ -95,6 +95,9 @@ _pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Rational}, coeff::Field) = colle
 
 _pmdata_for_oscar(v::Polymake.SparseVector, coeff::Field) = _pmdata_for_oscar(Polymake.common.dense(v), coeff)
 
+_pmdata_for_oscar(nm::Polymake.NodeMap, coeff::Field) = _pmdata_for_oscar(Polymake.Array(nm), coeff)
+_pmdata_for_oscar(bd::Polymake.BasicDecoration, coeff::Field) = (_pmdata_for_oscar(Polymake.decoration_face(bd), coeff), _pmdata_for_oscar(Polymake.decoration_rank(bd), coeff))
+
 _pmdata_for_oscar(s::Polymake.Integer, coeff::Field) = ZZ(s)
 _pmdata_for_oscar(s::Polymake.Rational, coeff::Field) = QQ(s)
 _pmdata_for_oscar(s::Polymake.OscarNumber, coeff::Field) = coeff(s)
@@ -106,6 +109,8 @@ _pmdata_for_oscar(s::Polymake.TropicalNumber{A}, coeff::Field) where A = tropica
 _pmdata_for_oscar(s::Polymake.CxxWrap.StdString, coeff::Field) = String(s)
 
 _pmdata_for_oscar(a::Polymake.Array, coeff::Field) = [_pmdata_for_oscar(e, coeff) for e in a]
+_pmdata_for_oscar(a::Polymake.Array{T}, coeff::Field) where T <: Union{Polymake.Matrix, Polymake.Vector} = Tuple(_pmdata_for_oscar.(a, Ref(coeff)))
+
 _pmdata_for_oscar(s::Polymake.Set, coeff::Field) = Set(_pmdata_for_oscar(e, coeff) for e in s)
 
 
@@ -145,6 +150,7 @@ function _polyhedral_object_as_dict(x::Oscar.PolyhedralObjectUnion)
 end
 
 function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_key::String="")
+  delay_loading = Tuple{String,Any}[]
   for (k, v) in dict
     key_str = parent_key == "" ? k : parent_key * "." * k
     first(k) == '_' && continue
@@ -152,8 +158,21 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
     if v isa Dict
       _load_bigobject_from_dict!(obj, v, key_str)
     else
-      Polymake.take(obj, key_str, convert(Polymake.PolymakeType, v))
+      pmv = convert(Polymake.PolymakeType, v)
+      bot = Polymake.bigobject_type(obj)
+      # NodeMaps need extra treatment since the constructor doesn't accept polymake c++ arrays
+      # and we can't create a nodemap from scratch without the graph
+      # so we convert it to a pure perl array and delay loading until the end of this level
+      if pmv isa Polymake.Array && Polymake.bigobject_prop_type(bot, key_str) in ["NodeMap", "EdgeMap"]
+        pmv = Polymake.as_perl_array_of_array(pmv)
+        push!(delay_loading, (key_str, pmv))
+      else
+        Polymake.take(obj, key_str, pmv)
+      end
     end
+  end
+  for (k, v) in delay_loading
+    Polymake.take(obj, k, v)
   end
   if haskey(dict, "_description")
     Polymake.setdescription!(obj, dict["_description"])

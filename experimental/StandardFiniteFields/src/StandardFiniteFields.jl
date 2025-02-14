@@ -296,7 +296,7 @@ function standard_monomial(n::IntegerUnion)
 end
 # just returns degrees of monomials in tower basis
 # TODO : pass in factorization? Do we need this with memoization?
-function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
+function standard_monomial_degrees(n::IntegerUnion)
   if n == 1
     return [1]
   end
@@ -308,7 +308,7 @@ function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   for i in 1:a-1
     append!(res, new)
   end
-  return res
+  return res::Vector{Int}
 end
 # map of monomials for degree n -> monomials of degree m by positions
 function standard_monomial_map(n::IntegerUnion, m::IntegerUnion)
@@ -348,8 +348,7 @@ function _extension_with_tower_basis(
   end
   push!(lcoeffs, one(K))
   pmat = identity_matrix(K, Int(deg))
-  vname = "x" * string(deg)
-  L, X = Native.finite_field(polynomial(K, lcoeffs), vname)
+  L, X = Native.finite_field(polynomial(K, lcoeffs), Symbol(:x, deg))
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 
@@ -439,8 +438,7 @@ function _extension_with_tower_basis(
   # Now p is the minimal polynomial over F
   # pmat gives the primitive powers in the tower basis for the new extension
 
-  vname = "x" * string(d)
-  L, X = Native.finite_field(polynomial(F, poly), vname)
+  L, X = Native.finite_field(polynomial(F, poly), Symbol(:x, d))
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 
@@ -484,7 +482,7 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
     d = divexact(nK, n1)
     b = element_from_steinitz_number(
       K,
-      p^(findfirst(x -> x == d, standard_monomial_degrees(nK)) - 1),
+      p^(findfirst(==(d), standard_monomial_degrees(nK)) - 1),
     )
 
     return _extension_with_tower_basis(K, m, c, b)

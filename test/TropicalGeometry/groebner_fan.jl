@@ -14,7 +14,7 @@
     end
 
     @testset "nonregular Groebner fan" begin
-        R,(a,b,c,d) = polynomial_ring(QQ,["a","b","c","d"])
+        R,(a,b,c,d) = polynomial_ring(QQ,[:a,:b,:c,:d])
         I = ideal([a*c*d + a^2*c - a*b,
                    a*d^2 - c,
                    a*d^4 + a*c])

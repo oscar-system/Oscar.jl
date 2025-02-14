@@ -19,14 +19,14 @@ julia> D = graded_cokernel(transpose(MM*NN));
 julia> FD = free_resolution(D, algorithm = :mres);
 
 julia> betti_table(FD)
-        0   1  2
-----------------
-0    : 10  10  -
-1    :  -   -  1
-2    :  -   -  -
-3    :  -   -  1
-----------------
-total: 10  10  2
+degree:  0   1  2
+-----------------
+     0: 10  10  -
+     1:  -   -  1
+     2:  -   -  -
+     3:  -   -  1
+-----------------
+ total: 10  10  2
 
 julia> P = cokernel(transpose(matrix(map(FD, 2))));
 
@@ -37,16 +37,16 @@ julia> QI, _ = quo(S, I);
 julia> FQI = free_resolution(QI, algorithm = :mres);
 
 julia> betti_table(FQI)
-       0   1   2   3  4
------------------------
-0    : 1   -   -   -  -
-1    : -   -   -   -  -
-2    : -   -   -   -  -
-3    : -   -   -   -  -
-4    : -   5   -   -  -
-5    : -   7  26  20  5
------------------------
-total: 1  12  26  20  5
+degree: 0   1   2   3  4
+------------------------
+     0: 1   -   -   -  -
+     1: -   -   -   -  -
+     2: -   -   -   -  -
+     3: -   -   -   -  -
+     4: -   5   -   -  -
+     5: -   7  26  20  5
+------------------------
+ total: 1  12  26  20  5
 
 julia> dim(I)
 3

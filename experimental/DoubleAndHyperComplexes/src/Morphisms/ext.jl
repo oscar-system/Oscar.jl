@@ -219,7 +219,7 @@ function (fac::InterpretationMorphismFactory)(self::AbsHyperComplexMorphism, I::
     pr = projections_dom[k]
     for (l, L) in enumerate(indices_cod)
       KL = Tuple(vcat(-collect(K), collect(L)))
-      kl = findfirst(x->x==KL, indices_tot)
+      kl = findfirst(==(KL), indices_tot)
       kl === nothing && error("index not found")
       v_loc = (projections_tot[kl])(fac.v)
       phi_loc = element_to_homomorphism(v_loc)

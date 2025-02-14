@@ -23,6 +23,7 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.2",
   function upgrade_0_12_2(s::UpgradeState, dict::Dict)
+    s.nested_level += 1
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
@@ -133,7 +134,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       merge!(s.id_to_dict, local_refs)
     end
 
-    if !isempty(s.id_to_dict)
+    s.nested_level -= 1
+    if !isempty(s.id_to_dict) && s.nested_level == 0
       upgraded_dict[:refs] = s.id_to_dict
     end
 

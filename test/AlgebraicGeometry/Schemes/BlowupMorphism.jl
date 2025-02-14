@@ -1,5 +1,5 @@
 @testset "basics about blowups" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   f = x^2 + y^3 + z^5
   X = spec(R, ideal(R, f))
   I = ideal(OO(X), [x, y, z])
@@ -18,7 +18,7 @@
 end
 
 @testset "strict transforms of cartier divisors" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
+  IP2 = projective_space(QQ, [:x, :y, :z])
   S = ambient_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, [x, y])
@@ -37,7 +37,7 @@ end
 end
 
 @testset "isomorphism on complement of center" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(S)
   II = IdealSheaf(P, [x, y])
@@ -51,8 +51,6 @@ end
   @test compose(f, h) == identity_map(U)
   V = codomain(f)
   @test compose(h, f) == identity_map(V)
-  g = Oscar.isomorphism_on_open_subset(p)
-  @test is_isomorphism(g)
   KY = function_field(Y)
   KX = function_field(X)
   y, z = gens(ambient_coordinate_ring(first(affine_charts(Y))))
@@ -64,7 +62,6 @@ end
   C = domain(inc_C)
   C_up, inc_C_up, p_res = strict_transform(p, inc_C)
 
-  @test is_isomorphism(Oscar.isomorphism_on_open_subset(p_res))
 
   KC_up = function_field(C_up)
   KC = function_field(C)
@@ -93,29 +90,21 @@ end
   xx0 = KX0(x)
   yy0 = KX0(y)
   zz0 = KX0(z)
-  # Need to call this once so that the attribute is set
-  Oscar.isomorphism_on_open_subset(pr1)
   X1, inc1, pr1_res = strict_transform(pr1, inc)
   xx1 = pullback(pr1_res)(xx0)
-  @test xx0 == pushforward(pr1_res, xx1)
   yy1 = pullback(pr1_res)(yy0)
-  @test yy0 == pushforward(pr1_res, yy1)
   zz1 = pullback(pr1_res)(zz0)
-  @test zz0 == pushforward(pr1_res, zz1)
 
   I_sing = radical(pushforward(inc1, Oscar.ideal_sheaf_of_singular_locus(X1)))
 
   pr2 = blow_up(I_sing)
   @test scheme(I_sing) === domain(pr1)
   @test codomain(pr2) === domain(pr1)
-  Oscar.isomorphism_on_open_subset(pr2)
   Y2 = domain(pr2)
   X2, inc2, pr2_res = strict_transform(pr2, inc1)
 
   pr_res = Oscar.composite_map(pr2_res, pr1_res)
   pr = Oscar.compose(pr2, pr1)
-  @test pushforward(pr, pullback(pr, yy)^2) == yy^2
-  @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
 
   pr_inc = compose(compose(inc2, pr2), pr1)
   @test Oscar.underlying_morphism(pr1) isa CoveredSchemeMorphism

@@ -1,5 +1,6 @@
 # standard packages
 using Pkg
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
@@ -55,7 +56,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -75,6 +76,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
@@ -196,8 +198,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element,
-  QQBar
+  primitive_element
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)

@@ -1,6 +1,6 @@
 @testset "Session Functionality" begin
   mktempdir() do path
-    R, x = polynomial_ring(QQ, "x")
+    R, x = polynomial_ring(QQ, :x)
 
     test_save_load_roundtrip(path, R) do loaded
       @test loaded == R

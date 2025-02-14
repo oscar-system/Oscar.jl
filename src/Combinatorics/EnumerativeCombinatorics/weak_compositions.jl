@@ -26,13 +26,18 @@ Int8[6, 0, 2, 3]
 """
 function weak_composition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUnion}
   if check
-    @req all(x -> x >= 0, parts) "The integers must be non-negative"
+    @req all(>=(0), parts) "The integers must be non-negative"
   end
   return WeakComposition{T}(parts)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", C::WeakComposition)
-  print(io, data(C))
+  c = data(C)
+  if isempty(c)
+    print(io, "Empty weak composition")
+    return
+  end
+  print(io, c)
 end
 
 ################################################################################
@@ -102,7 +107,7 @@ end
 base(W::WeakCompositions) = W.n
 parts(W::WeakCompositions) = W.k
 
-Base.eltype(W::WeakCompositions{T}) where T = WeakComposition{T}
+Base.eltype(::Type{WeakCompositions{T}}) where T = WeakComposition{T}
 
 @doc raw"""
     number_of_weak_compositions(n::IntegerUnion, k::IntegerUnion)

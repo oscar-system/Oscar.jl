@@ -63,7 +63,7 @@ julia> pushfirst!(im, hom(FF, FF, matrix(C, [0 1; 1 0])));
 julia> phi = gmodule(G, im);
 
 julia> character(phi)
-class_function(character table of G, QQAbFieldElem{AbsSimpleNumFieldElem}[2, 0, -1, 2, 0])
+class_function(character table of G, [2, 0, -1, 2, 0])
 
 julia> schur_index(ans)
 1

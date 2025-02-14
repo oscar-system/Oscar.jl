@@ -142,7 +142,7 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
   np = length(p_invars)
 
   w = append!([total_degree(f) for f in p_invars], [total_degree(f) for f in is_invars])
-  S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w; cached=false)
+  S, t = graded_polynomial_ring(K, :t => 1:(np + length(is_invars)), w; cached=false)
 
   if isempty(is_invars)
     I = ideal(S, elem_type(S)[])

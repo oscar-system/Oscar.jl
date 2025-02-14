@@ -19,7 +19,7 @@ julia> rays(maximal_cones(v)[1])
  [-1, 1]
 
 julia> bu = blow_up(v, [0,1])
-Toric blowdown morphism
+Toric blowup morphism
 
 julia> v2 = domain(bu)
 Normal toric variety

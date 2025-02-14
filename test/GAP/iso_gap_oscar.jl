@@ -235,7 +235,7 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end
 
@@ -255,6 +255,6 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end

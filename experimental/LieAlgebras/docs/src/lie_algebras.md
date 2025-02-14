@@ -58,6 +58,7 @@ The usual arithmetics, e.g. `+`, `-`, and `*`, are defined for `LieAlgebraElem`s
 is_abelian(L::LieAlgebra)
 is_nilpotent(L::LieAlgebra)
 is_perfect(L::LieAlgebra)
+is_semisimple(L::LieAlgebra)
 is_simple(L::LieAlgebra)
 is_solvable(L::LieAlgebra)
 ```

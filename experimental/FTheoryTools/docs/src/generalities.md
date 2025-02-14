@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Functionality for all F-theory models
@@ -53,12 +54,17 @@ More information is available [here](http://www.thofma.com/Hecke.jl/dev/features
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
+model_sections(m::AbstractFTheoryModel)
+tunable_sections(m::AbstractFTheoryModel)
 explicit_model_sections(m::AbstractFTheoryModel)
 defining_section_parametrization(m::AbstractFTheoryModel)
 classes_of_model_sections(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
 global_gauge_quotients(m::AbstractFTheoryModel)
+chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 
@@ -66,7 +72,9 @@ global_gauge_quotients(m::AbstractFTheoryModel)
 
 ```@docs
 is_base_space_fully_specified(m::AbstractFTheoryModel)
+is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
 is_partially_resolved(m::AbstractFTheoryModel)
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 

@@ -45,7 +45,7 @@ julia> I, s = singular_locus(Ycov)
 julia> covering_morphism(s)
 Covering morphism
   from covering with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   to covering with 3 patches
     1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
@@ -72,21 +72,7 @@ domain(f::CoveredSchemeMorphism) = f.X
 codomain(f::CoveredSchemeMorphism) = f.Y
 covering_morphism(f::CoveredSchemeMorphism) = f.f
 
-@doc raw"""
-    isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
-
-For a birational morphism ``f : X → Y`` of `AbsCoveredScheme`s this
-returns an isomorphism of affine schemes ``fᵣₑₛ : U → V`` which is
-the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and
-``V ⊂ Y``.
-"""
-function isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
-  if !has_attribute(f, :iso_on_open_subset)
-    is_birational(f) # Should compute and store the attribute
-  end
-  return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
-end
-
 @attr AbsCoveredSchemeMorphism function inverse(f::AbsCoveredSchemeMorphism)
   error("method not implemented")
 end
+

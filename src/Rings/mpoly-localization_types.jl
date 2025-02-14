@@ -25,7 +25,7 @@ abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> powers_of_element(x)
 Multiplicative subset
@@ -85,7 +85,7 @@ The complement of a prime ideal ``P ⊂ 𝕜[x₁,…,xₙ]`` in a multivariate 
 with elements of type `RingElemType` over a base ring ``𝕜`` of type `BaseRingType`.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_prime_ideal(ideal([x]))
 Complement
@@ -143,8 +143,11 @@ end
 
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 
+!!! note 
+The coefficient ring is required to be a field.
+
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_point_ideal(R,[1,2])
 Complement
@@ -178,6 +181,7 @@ mutable struct MPolyComplementOfKPointIdeal{
     length(a) == ngens(R) || error("the number of variables in the ring does not coincide with the number of coordinates")
     n = length(a)
     kk = coefficient_ring(R)
+    @req kk isa Field "This localization is only available over fields"
     b = kk.(a) # fails if the input is not compatible
     S = new{typeof(kk), elem_type(kk), RingType, elem_type(R)}(R, b)
     return S
@@ -201,7 +205,7 @@ A finite product `T⋅U = { a⋅b : a ∈ T, b∈ U}` of arbitrary other
 multiplicative sets in a multivariate polynomial ring.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_point_ideal(R,[1,2]);
 
@@ -426,7 +430,7 @@ Ideals in localizations of polynomial rings.
       map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
-          x->W(x),
+          W,
           y->(isone(denominator(y)) ? numerator(y) : divexact(numerator(y), denominator(y))),
         )
     ) where {LocRingElemType<:AbsLocalizedRingElem}

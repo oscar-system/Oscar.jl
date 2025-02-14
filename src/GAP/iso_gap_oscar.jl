@@ -209,7 +209,7 @@ end
 
 function _iso_gap_oscar_univariate_polynomial_ring(RG::GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
-   RO, x = polynomial_ring(codomain(coeffs_iso), "x", cached = false)
+   RO, x = polynomial_ring(codomain(coeffs_iso), :x, cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(RG, RO, f, finv)

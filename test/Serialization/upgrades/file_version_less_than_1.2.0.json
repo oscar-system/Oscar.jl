@@ -1,0 +1,158 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.1.0-DEV-bd8e18b45854187743733b0ba1b9c56c27f7f73a"
+    ]
+  },
+  "_type": {
+    "name": "Dict",
+    "params": {
+      "key_type": "String",
+      "revlex_basis_encoding": "String",
+      "Aut_bases_timed": "Float64",
+      "Aut_bases_lp": {
+        "name": "Vector",
+        "params": {
+          "name": "FreeAssAlgElem",
+          "params": "235311eb-8527-4a86-84b4-f146ec0a12ba"
+        }
+      },
+      "Aut_bases": {
+        "name": "Vector",
+        "params": {
+          "name": "FreeAssAlgElem",
+          "params": "235311eb-8527-4a86-84b4-f146ec0a12ba"
+        }
+      },
+      "Aut_bases_lp_timed": "Float64",
+      "Aut_bases_lp_prot": {
+        "name": "Vector",
+        "params": "UInt8"
+      },
+      "Aut_bases_lp_degree_bound": "Base.Int"
+    }
+  },
+  "data": {
+    "revlex_basis_encoding": "*",
+    "Aut_bases_timed": "0.073384228",
+    "Aut_bases_lp": [
+      [
+        [
+          [
+            "1"
+          ],
+          "1"
+        ],
+        [
+          [],
+          "-1"
+        ]
+      ]
+    ],
+    "Aut_bases": [
+      [
+        [
+          [
+            "1",
+            "1"
+          ],
+          "1"
+        ],
+        [
+          [
+            "1"
+          ],
+          "-1"
+        ]
+      ],
+      [
+        [
+          [
+            "1"
+          ],
+          "1"
+        ],
+        [
+          [],
+          "-1"
+        ]
+      ],
+      [
+        [
+          [
+            "1"
+          ],
+          "1"
+        ],
+        [
+          [],
+          "-1"
+        ]
+      ]
+    ],
+    "Aut_bases_lp_timed": "0.030181131",
+    "Aut_bases_lp_prot": [
+      "49",
+      "40",
+      "50",
+      "41",
+      "115",
+      "50",
+      "45",
+      "10",
+      "112",
+      "114",
+      "111",
+      "100",
+      "117",
+      "99",
+      "116",
+      "32",
+      "99",
+      "114",
+      "105",
+      "116",
+      "101",
+      "114",
+      "105",
+      "111",
+      "110",
+      "58",
+      "48",
+      "32",
+      "99",
+      "104",
+      "97",
+      "105",
+      "110",
+      "32",
+      "99",
+      "114",
+      "105",
+      "116",
+      "101",
+      "114",
+      "105",
+      "111",
+      "110",
+      "58",
+      "48",
+      "10"
+    ],
+    "Aut_bases_lp_degree_bound": "3"
+  },
+  "_refs": {
+    "235311eb-8527-4a86-84b4-f146ec0a12ba": {
+      "_type": "FreeAssAlgebra",
+      "data": {
+        "base_ring": {
+          "_type": "QQField"
+        },
+        "symbols": [
+          "u[1,1]"
+        ]
+      }
+    }
+  }
+}

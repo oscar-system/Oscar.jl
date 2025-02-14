@@ -43,7 +43,7 @@ is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
 """
-is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_power(order(Int, x))[2]==Int(characteristic(x.parent.ring))
+is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_perfect_power_with_data(order(Int, x))[2]==Int(characteristic(x.parent.ring))
 
 
 

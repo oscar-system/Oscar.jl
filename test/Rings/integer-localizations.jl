@@ -145,17 +145,17 @@ inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extensions of the localization function
 function localization(S::FmpzComplementOfPrimeIdeal) 
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(base_ring(L), L, x->L(x))
+  return L, MapFromFunc(base_ring(L), L, L)
 end
 
 function localization(S::FmpzComplementOfZeroIdeal)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(base_ring(L), L, x->L(x))
+  return L, MapFromFunc(base_ring(L), L, L)
 end
 
 function localization(S::FmpzPowersOfElement)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(base_ring(L), L, x->L(x))
+  return L, MapFromFunc(base_ring(L), L, L)
 end
 
 

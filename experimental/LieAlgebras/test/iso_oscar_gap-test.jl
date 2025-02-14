@@ -1,11 +1,10 @@
 import Oscar: GAPWrap
 
-function test_iso_oscar_gap(LO::LieAlgebra; num_random_tests::Int=10)
+function test_iso_oscar_gap(LO::LieAlgebra; num_random_tests::Int=25)
   iso = Oscar.iso_oscar_gap(LO)
   @test domain(iso) === LO
   LG = codomain(iso)
   @test GAPWrap.IsLieAlgebra(LG)
-  # @test codomain(Oscar.iso_gap_oscar(LG)) === LO
 
   @test iso === Oscar.iso_oscar_gap(LO) # test caching
 
@@ -55,6 +54,7 @@ end
         lie_algebra(RO, sl2_struct_consts(RO), ["e", "f", "h"]),
         lie_algebra(RO, :A, 3),
         lie_algebra(RO, :B, 2),
+        (L0 = lie_algebra(RO, :B, 5); root_system(L0); L0),
       ]
 
       @testset for LO in lie_algebras
@@ -68,6 +68,7 @@ end
         special_linear_lie_algebra(RO, 3),
         special_orthogonal_lie_algebra(RO, 4),
         symplectic_lie_algebra(RO, 6),
+        (LO = special_linear_lie_algebra(RO, 4); root_system(LO); LO),
       ]
 
       @testset for LO in lie_algebras

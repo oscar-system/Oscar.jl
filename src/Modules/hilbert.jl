@@ -45,7 +45,7 @@ end
 
 
 @doc raw"""
-    multi_hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+    multi_hilbert_series(M::SubquoModule; parent::Ring)
 
 Compute a pair of pairs `(N ,D), (H ,iso)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
 series of the subquotient `M`, and `H` is the SNF of the grading group together with the identifying isomorphism `iso`.
@@ -61,7 +61,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [4,3,2]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -81,7 +81,11 @@ julia> den
 
 ```
 """
-function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(
+    SubM::SubquoModule{T}; 
+    parent::Ring = multi_hilbert_series_parent(base_ring(SubM)),
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req is_positively_graded(R) "ring must be positively graded"
@@ -99,7 +103,7 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached=false)
     map_into_S = hom(R, S, gens(S))
     SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG (issue #2657) !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
@@ -107,24 +111,28 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring
   end
 
   # Now we may assume that the grading group is free Abelian.
-  m = ngens(G)  
+  m = ngens(G)
   n = ngens(R)
-  HSRing = _hilbert_series_ring(parent, m)
+  @req ngens(parent) >= m "Parent ring does not contain sufficiently many variables"
   # Get the weights as Int values: W[k] contains the weight(s) of x[k]
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
-  denom = _hilbert_series_denominator(HSRing, W)
-  numer = HSNum_module(SubM, HSRing, backend)
+  denom = _hilbert_series_denominator(parent, W)
+  numer = HSNum_module(SubM, parent, backend)
   return (numer, denom), (G, identity_map(G))
 end
 
-function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(
+    F::FreeMod{T};
+    parent::Ring = multi_hilbert_series_parent(base_ring(F)),
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
   return multi_hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
 
 
 @doc raw"""
-    hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+    hilbert_series(M::SubquoModule; parent::Ring)
 
 Compute a pair `(N,D)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
 series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
@@ -136,7 +144,7 @@ series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` ar
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, _ = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> Z = abelian_group(0);
 
@@ -160,19 +168,37 @@ julia> den
 
 ```
 """
-function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function hilbert_series(
+    SubM::SubquoModule{T};
+    parent::Ring = hilbert_series_parent(base_ring(SubM)),
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
-  if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t)
-  end
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
 end
 
-function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function hilbert_series(
+    F::FreeMod{T}; 
+    parent::Ring = hilbert_series_parent(base_ring(F)), 
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
-  if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t)
-  end
   return hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
+end
+
+function hilbert_series_parent(S::MPolyDecRing)
+  if !isdefined(S, :hilbert_series_parent)
+    S.hilbert_series_parent = laurent_polynomial_ring(ZZ, :t; cached=false)[1]
+  end
+  return S.hilbert_series_parent
+end
+
+function multi_hilbert_series_parent(S::MPolyDecRing)
+  if !isdefined(S, :multi_hilbert_series_parent)
+    G = grading_group(S)
+    m = ngens(G)
+    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : (:t => 1:m)); cached=false)[1]
+  end
+  return S.multi_hilbert_series_parent
 end

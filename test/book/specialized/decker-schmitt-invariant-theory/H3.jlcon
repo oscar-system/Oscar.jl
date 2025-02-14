@@ -45,24 +45,24 @@ julia> length(MP)
 
 julia> [[ kernel(reduce(hcat, [ K[coeff(p, x); coeff(p, y); coeff(p, z)] for p in gens(Q) ])) for Q in MP ]]
 1-element Vector{Vector{AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
- [[a+1 0 1], [-a 0 1], [-1 0 1], [0 a+1 1], [0 -a 1], [0 -1 1], [-a 1 0], [a+1 1 0], [-1 1 0]]
+ [[a+1 1 0], [-a 1 0], [-1 1 0], [a+1 0 1], [-a 0 1], [-1 0 1], [0 -a 1], [0 a+1 1], [0 -1 1]]
 
-julia> T, t = polynomial_ring(QQ, "t")
-(Univariate polynomial ring in t over QQ, t)
+julia> S, s = QQ["t"]; T = fraction_field(S); t = T(s);
 
 julia> RR, (X, Y, Z) = graded_polynomial_ring(T, [ "X", "Y", "Z"]);
 
 julia> F = X^3+Y^3+Z^3;
 
-julia> G = t*F+hessian(F);
+julia> G = t*F+hessian(F)
+t*X^3 + 216*X*Y*Z + t*Y^3 + t*Z^3
 
 julia> L = syzygy_generators([hessian(G), F, hessian(F)]);
 
 julia> collect(coefficients(L[1]))
-3-element Vector{QQPolyRingElem}:
- 1
- 279936*t
- -t^3 - 93312
+3-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQPolyRingElem}}:
+ t^3 + 93312
+ -279936*t
+ -1
 
 julia> C, iC = center(H3);
 

@@ -1,3 +1,8 @@
+```@meta
+CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Quadratic forms and isometries
 
 This project is a complement to the code about *hermitian lattices* available

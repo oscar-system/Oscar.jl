@@ -386,7 +386,7 @@ end
 function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
   ans = one(T[1])
   for t in SimplePPs
-    k = findfirst(entry -> (entry > 0), t.expv)
+    k = findfirst(>(0), t.expv)
     ans = ans * (1 - T[k]^t[k]) # ???? ans -= ans*T[k]^t[k]
   end
   return ans
@@ -401,7 +401,7 @@ function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{RingElemType})
   ReducedSimplePPs::Vector{PP} = []
   for j in 1:length(SimplePPs)
     @inbounds e = SimplePPs[j].expv
-    k = findfirst((entry -> (entry > 0)), e) # ispositive
+    k = findfirst(>(0), e) # ispositive
     if  t[k] == 0
       push!(ReducedSimplePPs,SimplePPs[j])
       continue
@@ -526,7 +526,7 @@ function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   BSPivot = rev_lex_max(NonSimplePPs)
   #VERY SLOW?!?    BSPivot = rev_lex_max(vcat(SimplePPs,NonSimplePPs)) # VERY SLOW on Hilbert-test-rnd6.jl
   @vprintln :hilbert 2 "BSPivot = $(BSPivot)";
-  NonSPP = filter((t -> (t != BSPivot)), NonSimplePPs)
+  NonSPP = filter(!=(BSPivot), NonSimplePPs)
   SPP = SimplePPs#filter((t -> (t != BSPivot)), SimplePPs)
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman)
   ReducedPPs = interreduce([colon(t,BSPivot)  for t in vcat(SPP,NonSPP)])
@@ -556,7 +556,7 @@ function HSNum_most_freq_indets(gens::Vector{PP})
     end
   end
   MaxFreq = maximum(freq)
-  MostFreq = findall((x -> x==MaxFreq), freq)
+  MostFreq = findall(==(MaxFreq), freq)
   return MostFreq, MaxFreq
 end
 
@@ -590,7 +590,7 @@ function HSNum_choose_pivot_simple_power_median(MostFreq::Vector{Int64}, gens::V
   # variant of simple-power-pivot from Bigatti JPAA, 1997
   PivotIndet = rand(MostFreq)
   exps = [t[PivotIndet]  for t in gens]
-  exps = filter((e -> e>0), exps)
+  exps = filter(>(0), exps)
   sort!(exps)
   exp = exps[div(1+length(exps),2)]  # "median"
   nvars = length(gens[1])
@@ -791,7 +791,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   #     end
   @vprintln :hilbert  1 "HSNum_loop:  pivot = $(PivotPP)"
   PivotIsSimple = is_simple_power_pp(PivotPP)
-  PivotIndex = findfirst((e -> e>0), PivotPP.expv) # used only if PivotIsSimple == true
+  PivotIndex = findfirst(>(0), PivotPP.expv) # used only if PivotIsSimple == true
   USE_SAFE_VERSION_SUM=false
   if  USE_SAFE_VERSION_SUM
     # Safe but slow version: just add new gen, then interreduce
@@ -934,9 +934,9 @@ end
 #  # Transpose while converting:
 #  ncols = length(W);
 #  nrows = length(W[1]);
-#  A = zero_matrix(FlintZZ, nrows,ncols);
+#  A = zero_matrix(ZZ, nrows,ncols);
 #  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
-#  b = zero_matrix(FlintZZ, nrows,1);
+#  b = zero_matrix(ZZ, nrows,1);
 #  try
 #    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
 #  catch e
@@ -1014,26 +1014,26 @@ a factor list of laurent polynomials.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y","z"])
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> I = ideal(R, [x^3+y^2*z,  y^3+x*z^2,  z^3+x^2*y]);
 
 julia> RmodI,_ = quo(R,I);
 
-julia> HSRing1,_ = polynomial_ring(ZZ, "t");
+julia> HSRing1,_ = polynomial_ring(ZZ, :t);
 
 julia> Oscar.HSNum_abbott(RmodI, HSRing1)
 -t^9 + 3*t^6 - 3*t^3 + 1
 
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y","z"], [1 2 3; 3 2 1])
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z], [1 2 3; 3 2 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
 
 julia> RmodI,_ = quo(R,I);
 
-julia> HSRing2,_ = polynomial_ring(ZZ, ["t[1]", "t[2]"]);
+julia> HSRing2,_ = polynomial_ring(ZZ, :t => 1:2);
 
 julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 -t[1]^28*t[2]^28 + t[1]^24*t[2]^24 + t[1]^22*t[2]^10 - t[1]^18*t[2]^6 + t[1]^10*t[2]^22 - t[1]^6*t[2]^18 - t[1]^4*t[2]^4 + 1

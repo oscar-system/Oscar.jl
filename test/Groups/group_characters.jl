@@ -828,6 +828,10 @@ end
   @test tr == t[end]
   @test tr == trivial_character(g)
   @test !is_faithful(tr)
+  @test 2 * tr == tr + tr
+  @test ZZ(2) * tr == tr + tr
+  @test tr^2 == tr
+  @test tr^ZZ(2) == tr
   re = regular_character(g)
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
@@ -858,6 +862,8 @@ end
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
+  @test all(chi -> chi * chi == tensor_product(chi, chi), t)
+
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
@@ -875,7 +881,7 @@ end
   @test coordinates(Int, chi) isa Vector{Int}
 
   orders = orders_class_representatives(t)
-  pos = findfirst(x -> x == 4, orders)
+  pos = findfirst(==(4), orders)
   chi = filter(x -> x[1] == 2, collect(t))[1]
   ev = multiplicities_eigenvalues(chi, pos)
   @test ev == [0, 1, 0, 1]
@@ -1050,6 +1056,7 @@ end
   tbl = character_table("A5")
   @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
   @test characteristic(character_field(tbl[1])[1]) == 0
+  @test degree(character_field(collect(tbl))[1]) == 2
 
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
@@ -1106,6 +1113,7 @@ end
   @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
   @test order_field_of_definition(Int, modtbl[1]) isa Int
   @test_throws ArgumentError order_field_of_definition(ordtbl[1])
+  @test degree(character_field(collect(modtbl))[1]) == 2
 end
 
 @testset "Schur index" begin
@@ -1231,6 +1239,8 @@ end
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
+
+    @test all(chi -> chi * chi == tensor_product(chi, chi), tbl1)
 
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1

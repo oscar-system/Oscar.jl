@@ -34,7 +34,7 @@ function betti_number(v::NormalToricVarietyType, i::Int)
     end
     
     # extract vector of currently-known Betti numbers (or create it if necessary)
-    betti_numbers = get_attribute!(() -> fill(ZZRingElem(-1), d+1), v, :betti_number)::Vector{ZZRingElem}
+    betti_numbers = get_attribute!(() -> [ZZ(-1) for _ in 1:(d+1)], v, :betti_number)::Vector{ZZRingElem}
     
     # compute the Betti number if needed
     k = i >> 1 # i is even, so divide by two and use that as index

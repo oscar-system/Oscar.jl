@@ -88,7 +88,7 @@ DocTestFilters = r"Galois context\(.*\]\)"
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
 julia> Qt, t = rational_function_field(QQ, "t");
 
-julia> Qtx, x = Qt["x"];
+julia> Qtx, x = Qt[:x];
 
 julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
@@ -132,7 +132,7 @@ Oscar.GaloisGrp.resolvent(C::Oscar.GaloisGrp.GaloisCtx, G::PermGroup, U::PermGro
 
 To illustrate:
 ```jldoctest galois1; setup = :(using Oscar, Random ; Random.seed!(1))
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> f = (x^2-2)*(x^2-3);
 
@@ -233,7 +233,7 @@ to bound the degree as well as the coefficient size.
 ```jldoctest
 julia> Qt,t = rational_function_field(QQ, "t");
 
-julia> Qtx, x = Qt["x"];
+julia> Qtx, x = Qt[:x];
 
 julia> F, a = function_field(x^3+t+2);
 

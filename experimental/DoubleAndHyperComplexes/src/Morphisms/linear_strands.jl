@@ -124,7 +124,7 @@ function (fac::LinearStrandComplementChainFactory)(self::AbsHyperComplex, i::Tup
   min_ind = [k for k in 1:rank(F_full) if degree(F_full[k]) == offset]
   comp = [k for k in 1:rank(F_full) if !(k in min_ind)]
   F = graded_free_module(S, elem_type(G)[degree(F_full[k]) for k in comp])
-  map = hom(F_full, F, elem_type(F)[(k in comp ? F[findfirst(i->i==k, comp)] : zero(F)) for k in 1:rank(F_full)])
+  map = hom(F_full, F, elem_type(F)[(k in comp ? F[findfirst(==(k), comp)] : zero(F)) for k in 1:rank(F_full)])
   fac.maps_from_original[i] = map
   return F
 end
