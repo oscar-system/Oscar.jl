@@ -165,7 +165,7 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   C = CartierDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
 # do we want to introduce is_empty for divisors?
-    dim(ideal_sheaf(ex_div_list[i])) === -inf  && continue     # kick out empty ones
+    dim(ideal_sheaf(ex_div_list[i])) === -inf && continue      # kick out empty ones
                                                                # caution: dim(CartierDivisor) is not computed,
                                                                #          but inferred
                                                                #          ==> need to pass to ideal_sheaf first

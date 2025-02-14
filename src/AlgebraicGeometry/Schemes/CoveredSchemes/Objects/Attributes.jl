@@ -185,6 +185,7 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
     # from comparing the different charts
     set_attribute!(X, :is_equidimensional, false)
   end
+  return d
 end
 
 @attr Any function singular_locus_reduced(X::AbsCoveredScheme)
