@@ -483,7 +483,6 @@ end
 function eliminate(I::MPolyIdeal, o::MonomialOrdering, l::Int)
   R = base_ring(I)
   R_gens = sort(gens(R); lt = (x, y) -> cmp(o, x, y) > 0)[1:l]
-  println(R_gens)
   @req is_elimination_ordering(o, R_gens) "Given ordering is not an elimination ordering"
   gb = get(I.gb, o, nothing)
   isnothing(gb) && return eliminate(I, R_gens)
