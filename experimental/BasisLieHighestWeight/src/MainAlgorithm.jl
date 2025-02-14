@@ -34,7 +34,7 @@ function basis_lie_highest_weight_compute(
 
   R = root_system(base_lie_algebra(V))
   
-  birational_seq = birational_sequence(operators)
+  birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
   monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, operators)

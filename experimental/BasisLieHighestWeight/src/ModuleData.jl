@@ -17,12 +17,12 @@ mutable struct SimpleModuleData <: ModuleData
     character::Dict{WeightLatticeElem, ZZRingElem}
 
     function SimpleModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem)
-        new(L, highest_weight)
+        return new(L, highest_weight)
     end
 end
 
 function SimpleModuleData(L::LieAlgebra, highest_weight::Vector{Int})
-    SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
+    return SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
 end
 
 function base_lie_algebra(V::SimpleModuleData)
@@ -57,12 +57,12 @@ mutable struct DemazureModuleData <: ModuleData
     character::Dict{WeightLatticeElem, ZZRingElem}
 
     function DemazureModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
-        new(L, highest_weight, weyl_group_elem)
+        return new(L, highest_weight, weyl_group_elem)
     end
 end
 
 function DemazureModuleData(L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int})
-    DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem))
+    return DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem))
 end
 
 function base_lie_algebra(V::DemazureModuleData)

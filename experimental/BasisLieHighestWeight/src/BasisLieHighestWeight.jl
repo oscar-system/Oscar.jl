@@ -14,6 +14,7 @@ import Oscar: character
 import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
+import Oscar: root_system
 
 import Base: length
 
@@ -49,6 +50,7 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_highest_weight_demazure
 
 end
 
@@ -67,3 +69,4 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_highest_weight_demazure
