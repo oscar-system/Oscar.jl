@@ -1,38 +1,15 @@
-@register_serialization_type GlobalTateModel uses_params
+@register_serialization_type GlobalTateModel
 
 ###########################################################################
 # This function saves the types of the data that define a global Tate model
 ###########################################################################
 
-function save_type_params(s::SerializerState, gtm::GlobalTateModel)
-  save_data_dict(s) do
-    save_object(s, encode_type(GlobalTateModel), :name)
-    base, ambient, tp_ring = base_space(gtm), ambient_space(gtm), parent(tate_polynomial(gtm))
-    save_data_dict(s, :params) do
-      for (obj, key) in [(base, :base_space), (ambient, :ambient_space), (tp_ring, :tate_polynomial_ring)]
-        if serialize_with_id(obj)
-          save_object(s, save_as_ref(s, obj), key)
-        else
-          save_typed_object(s, obj, key)
-        end
-      end
-    end
-  end
-end
-
-
-###########################################################################
-# This function loads the types of the data that define a global Tate model
-###########################################################################
-
-function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel})
-  return (
-    load_typed_object(s, :base_space),
-    load_typed_object(s, :ambient_space),
-    load_typed_object(s, :tate_polynomial_ring)
-  )
-end
-
+type_params(gtm::GlobalTateModel) = TypeParams(
+  GlobalTateModel,
+  :base_space => base_space(gtm),
+  :ambient_space => ambient_space(gtm),
+  :tp_ring => parent(tate_polynomial(gtm))
+)
 
 #########################################
 # This function saves a global Tate model
@@ -134,8 +111,10 @@ end
 # This function loads a global Tate model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing})
-  base_space, amb_space, tp_ring = params
+function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Dict)
+  base_space = params[:base_space]
+  amb_space = params[:ambient_space]
+  tp_ring = params[:tp_ring]
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   defining_section_parametrization = haskey(s, :defining_section_parametrization) ? load_typed_object(s, :defining_section_parametrization) : Dict{String, MPolyRingElem}()
