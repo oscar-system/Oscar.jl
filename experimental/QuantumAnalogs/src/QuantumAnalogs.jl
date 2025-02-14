@@ -19,7 +19,7 @@ export quantum_integer, quantum_factorial, quantum_binomial
     quantum_integer(n::IntegerUnion, q::RingElem)
     quantum_integer(n::IntegerUnion, q::Integer)
     quantum_integer(n::IntegerUnion)
-    
+
 Let ``n ∈ ℤ`` and let ``ℚ(𝐪)`` be the fraction field of the polynomial ring ``ℤ[𝐪]`` in
 one variable ``𝐪``. The **quantum integer** ``[n]_𝐪 ∈ ℚ(𝐪)`` of ``n`` is defined as
 ```math
@@ -51,7 +51,7 @@ so the quantum integers are "deformations" of the usual integers.
 
 # Functions
 * `quantum_integer(n::IntegerUnion,q::RingElem)` returns ``[n]_q`` as an element of ``R``,
-  where ``R`` is the parent ring of ``q``. 
+  where ``R`` is the parent ring of ``q``.
 * `quantum_integer(n::IntegerUnion,q::Integer)` returns ``[n]_q``. Here, if ``n >= 0`` or
   ``q = ± 1``, then ``q`` is considered as an element of ``ℤ``, otherwise it is taken as an
   element of ``ℚ``.
@@ -82,23 +82,20 @@ i
 2. [KC02](@cite)
 """
 function quantum_integer(n::IntegerUnion, q::RingElem)
-
   R = parent(q)
-  if isone(q)
-    return R(n)
-  else
-    z = zero(R)
-    if n >= 0
-      for i = 0:n-1
-        z += q^i
-      end
-    else
-      for i = 0:-n-1
-        z -= q^(n+i)
-      end
+  isone(q) && return R(n)
+
+  z = zero(R)
+  if n >= 0
+    for i = 0:n-1
+      z += q^i
     end
-    return z
+  else
+    for i = 0:-n-1
+      z -= q^(n+i)
+    end
   end
+  return z
 end
 
 function quantum_integer(n::IntegerUnion, q::Integer)
@@ -153,19 +150,16 @@ i - 1
 ```
 """
 function quantum_factorial(n::IntegerUnion, q::RingElem)
-
   @req n >= 0 "n >= 0 required"
 
   R = parent(q)
-  if isone(q)
-    return R(factorial(n))
-  else
-    z = one(R)
-    for i = 1:n
-      z *= quantum_integer(i,q)
-    end
-    return z
+  isone(q) && return R(factorial(n))
+
+  z = one(R)
+  for i = 1:n
+    z *= quantum_integer(i,q)
   end
+  return z
 end
 
 function quantum_factorial(n::IntegerUnion, q::Integer)
@@ -255,30 +249,20 @@ julia> quantum_binomial(17,10,i)
 1. [Con00](@cite)
 """
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
-
   @req k >= 0 "k >= 0 required"
 
   R = parent(q)
-  if isone(q)
-    return R(binomial(n,k))
-  elseif k == 0
-    return one(R)
-  elseif k == 1
-    return quantum_integer(n,q)
-  elseif n >= 0
-    if n < k
-      return zero(R)
-    else
-      z = zero(R)
-      for i = 0:n-k
-        z += q^i * quantum_binomial(i+k-1,k-1,q)
-      end
-      return z
-    end
-  elseif n<0
-    return (-1)^k * q^(div(-k*(k-1),2) + k*n) * quantum_binomial(k-n-1,k,q)
-  end
+  isone(q) && return R(binomial(n,k))
+  k == 0 && return one(R)
+  k == 1 && return quantum_integer(n,q)
+  n < 0 && return (-1)^k * q^(div(-k*(k-1),2) + k*n) * quantum_binomial(k-n-1,k,q)
+  n < k && return zero(R)
 
+  z = zero(R)
+  for i = 0:n-k
+    z += q^i * quantum_binomial(i+k-1,k-1,q)
+  end
+  return z
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
