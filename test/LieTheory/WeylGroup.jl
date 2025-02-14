@@ -202,31 +202,43 @@
     W = weyl_group(:A, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
-    @test word(w0) == UInt8[1, 2, 1]
+    a2_w0_word = UInt8[1, 2, 1]
+    @test word(w0) == a2_w0_word
+    @test letters(w0) == Int.(a2_w0_word)
+    @test syllables(w0) == [Int(i) => 1 for i in a2_w0_word]
 
     # B2
     W = weyl_group(:B, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
-    @test word(w0) == UInt8[1, 2, 1, 2]
+    b2_w0_word = UInt8[1, 2, 1, 2]
+    @test word(w0) == b2_w0_word
+    @test letters(w0) == Int.(b2_w0_word)
+    @test syllables(w0) == [Int(i) => 1 for i in b2_w0_word]
 
     # B3
     W = weyl_group(:B, 3)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == b3_w0
+    @test letters(w0) == Int.(b3_w0)
+    @test syllables(w0) == [Int(i) => 1 for i in b3_w0]
 
     # F4
     W = weyl_group(:F, 4)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == f4_w0
+    @test letters(w0) == Int.(f4_w0)
+    @test syllables(w0) == [Int(i) => 1 for i in f4_w0]
 
     # G2
     W = weyl_group(:G, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
     @test word(w0) == g2_w0
+    @test letters(w0) == Int.(g2_w0)
+    @test syllables(w0) == [Int(i) => 1 for i in g2_w0]
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -351,6 +363,10 @@
     @test parent(x) isa WeylGroup
 
     x = W([1, 3, 5, 4, 2])
+    @test parent(x) === x.parent
+    @test parent(x) isa WeylGroup
+
+    x = W([3 => 1, 5 => 1])
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
   end
