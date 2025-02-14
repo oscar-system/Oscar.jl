@@ -223,7 +223,19 @@ end
         @test a - b == a - K(b)
         @test b - a == K(b) - a
         if !iszero(b)
-          @test //(a * b, b) == a
+          @test (a * b) // b == a
+          @test (a // b) * b == a
+
+          @test (a * b) / b == a
+          @test (a / b) * b == a
+        end
+
+        if !iszero(a)
+          @test (b * a) // a == b
+          @test (b // a) * a == b
+
+          @test (b * a) / a == b
+          @test (b / a) * a == b
         end
       end
     end
