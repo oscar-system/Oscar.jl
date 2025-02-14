@@ -188,9 +188,8 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> defining_classes(t)
-Dict{String, ToricDivisorClass} with 2 entries:
+Dict{String, ToricDivisorClass} with 1 entry:
   "w"    => Divisor class on a normal toric variety
-  "Kbar" => Divisor class on a normal toric variety
 ```
 """
 function defining_classes(m::AbstractFTheoryModel)
