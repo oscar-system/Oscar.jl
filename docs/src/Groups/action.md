@@ -67,6 +67,17 @@ is_conjugate_with_data(Omega::GSet, omega1, omega2)
 orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+is_transitive(Omega::GSetByElements)
+is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+all_blocks(G::PermGroup)
+maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 ```
 
 

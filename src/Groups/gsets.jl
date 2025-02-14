@@ -931,6 +931,23 @@ maximal_blocks(G::GSet) = error("not implemented")
 minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
+
+"""
+    is_transitive(Omega::GSetByElements)
+
+Determine whether the group associated with `Omega` acts transitively.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Permutation group of degree 6 and order 16
+
+julia> Omega = gset(G);
+
+julia> is_transitive(Omega)
+false
+```
+"""
 function is_transitive(Omega::GSetByElements)
     length(Omega.seeds) == 1 && return true
     return length(orbits(Omega)) == 1
