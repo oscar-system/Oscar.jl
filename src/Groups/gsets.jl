@@ -987,7 +987,7 @@ is_regular(Omega::GSet) = is_transitive(Omega) && length(Omega) == order(acting_
     is_semiregular(Omega::GSet)
 
 Return whether the group `G` acting on `Omega` in fact acts
-semiregular, i.e., the stabilizer of each point is the identity.
+semiregularly, i.e., the stabilizer of each point is the identity.
 
 # Examples
 ```jldoctest
