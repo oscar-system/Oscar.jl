@@ -474,6 +474,17 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   return operators
 end
 
+function operators_demazure(V::DemazureModuleData)
+  # Computes the operators for the Demazure module V.
+  op = RootSpaceElem[]
+  for negroot in negative_roots(root_system(base_lie_algebra(V)))
+    if is_positive_root(negroot * V.weyl_group_elem)
+      push!(op, -negroot)      
+    end
+  end
+  return op
+end
+
 function sub_weights(w::WeightLatticeElem)
   # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise
   @req is_dominant(w) "The input must be a dominant weight"

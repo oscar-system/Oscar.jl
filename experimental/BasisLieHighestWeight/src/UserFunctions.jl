@@ -572,7 +572,6 @@ function basis_lie_highest_weight_demazure(
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
-  V = DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), w)
-  operators = operators_asc_height(L) #TODO: write different operators function
+  operators = operators_demazure(V)
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering) 
 end
