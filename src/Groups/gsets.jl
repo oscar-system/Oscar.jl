@@ -935,7 +935,7 @@ all_blocks(G::GSet) = error("not implemented")
 """
     is_transitive(Omega::GSet)
 
-Determine whether the group associated with `Omega` acts transitively.
+Return whether the group action associated with `Omega` is transitive.
 In other word, this tests if `Omega` consists of precisely one orbit.
 
 # Examples
@@ -961,7 +961,7 @@ end
     is_regular(Omega::GSet)
 
 Return whether the group action associated with `Omega`
-is regular (i.e., transitive and semiregular).
+is regular, i.e., is transitive and semiregular.
 
 # Examples
 ```jldoctest
@@ -986,8 +986,8 @@ is_regular(Omega::GSet) = is_transitive(Omega) && length(Omega) == order(acting_
 """
     is_semiregular(Omega::GSet)
 
-Return whether the group `G` acting on `Omega` in fact acts
-semiregularly, i.e., the stabilizer of each point is the identity.
+Return whether the group action associated with `Omega`
+is semiregular, i.e., the stabilizer of each point is the identity.
 
 # Examples
 ```jldoctest
