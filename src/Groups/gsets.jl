@@ -936,6 +936,7 @@ all_blocks(G::GSet) = error("not implemented")
     is_transitive(Omega::GSet)
 
 Determine whether the group associated with `Omega` acts transitively.
+In other word, this tests if `Omega` consists of precisely one orbit.
 
 # Examples
 ```jldoctest
