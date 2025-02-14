@@ -52,18 +52,3 @@ function Base.getindex(x::MPolyDecRingOrQuoElem, I::AbstractUnitRange)
   D = grading_group(R)
   return getindex(x, [D([n]) for n in I])
 end
-
-###############################################################################
-#
-# pretty printing
-#
-
-# generate a list of symbols [x₁,…,xₙ] using LaTeX / unicode for IJulia / REPL
-
-function _parse_symbol(symbol::String, I::AbstractUnitRange)
-  return ["$symbol[$i]" for i in I]
-end
-
-function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
-  return [symbol*"[$n, $i]" for i in I]
-end

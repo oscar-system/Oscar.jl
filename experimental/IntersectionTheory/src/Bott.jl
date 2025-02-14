@@ -206,7 +206,7 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
-    R, _ = graded_polynomial_ring(QQ, :c => 1:r, collect(1:r))
+    R, _ = graded_polynomial_ring(QQ, :c => 1:r; weights = 1:r)
     set_attribute!(R, :abstract_variety_dim => F.parent.dim)
     set_attribute!(F, :R => R)
   end
@@ -357,4 +357,4 @@ end
 function lines_on_hypersurface(n::Int; bott::Bool = true)
   n >= 2 || error("n must be at least 2")
   return linear_subspaces_on_hypersurface(1, 2*n-3)
-end  
+end
