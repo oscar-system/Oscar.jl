@@ -1,27 +1,28 @@
 struct BirationalSequence
   operator_roots::Vector{RootSpaceElem}
   operator_weights::Vector{WeightLatticeElem}
+  root_system::RootSystem
 
   function BirationalSequence(
-    operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}
+    operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}, root_system::RootSystem
   )
     @req length(operator_roots) == length(operator_weights) "Different lengths"
-    return new(operator_roots, operator_weights)
+    return new(operator_roots, operator_weights, root_system)
   end
 end
 
 function birational_sequence(
-  operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}
+  operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}, root_system::RootSystem
 )
-  return BirationalSequence(operator_roots, operator_weights)
+  return BirationalSequence(operator_roots, operator_weights, root_system)
 end
 
-function birational_sequence(operator_roots::Vector{RootSpaceElem})
-  return birational_sequence(operator_roots, WeightLatticeElem.(operator_roots))
+function birational_sequence(operator_roots::Vector{RootSpaceElem}, root_system::RootSystem)
+  return birational_sequence(operator_roots, WeightLatticeElem.(operator_roots), root_system)
 end
 
-function birational_sequence(operator_weights::Vector{WeightLatticeElem})
-  return birational_sequence(RootSpaceElem.(operator_weights), operator_weights)
+function birational_sequence(operator_weights::Vector{WeightLatticeElem}, root_system::RootSystem)
+  return birational_sequence(RootSpaceElem.(operator_weights), operator_weights, root_system)
 end
 
 function Base.show(io::IO, birational_seq::BirationalSequence)
@@ -48,4 +49,8 @@ end
 
 function operator_as_weight(birational_seq::BirationalSequence, i::Int)
   return birational_seq.operator_weights[i]
+end
+
+function root_system(birational_seq::BirationalSequence)
+  return birational_seq.root_system
 end
