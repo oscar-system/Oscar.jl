@@ -70,7 +70,7 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where params
+function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
       loaded_v::Vector{params} = load_array_node(s) do _
@@ -82,19 +82,20 @@ function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where para
         push!(loaded_v, load_object(s, params, i))
       end
     end
-    return loaded_v
+    return T(loaded_v)
   end
 end
 
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
-  load_array_node(s) do _
+  v = load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
     else
       load_object(s, T, params)
     end
   end
+  return Vector{T}(v)
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
