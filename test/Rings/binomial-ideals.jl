@@ -16,6 +16,12 @@
     J1 = ideal(Qxy, x^2+y^2+z^2)
     @test !Oscar.is_binomial(J1)
   end
+
+  @testset "Lattice Ideals" begin
+    Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
+    I = ideal(elem_type(Qxy)[x*y - 1, z*t^2-t^3, z^2-y^2])
+    groebner_basis(I; algorithm=:g4ti2)
+  end
   
   @testset "Cellular decomposition" begin
   

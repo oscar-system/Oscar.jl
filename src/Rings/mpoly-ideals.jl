@@ -480,6 +480,18 @@ function eliminate(I::MPolyIdeal, l::AbstractVector{Int})
   R = base_ring(I)
   return eliminate(I, [gen(R, i) for i=l])
 end
+function eliminate(I::MPolyIdeal, o::MonomialOrdering, l::Int)
+  R = base_ring(I)
+  R_gens = sort(gens(R); lt = (x, y) -> cmp(o, x, y) > 0)[1:l]
+  println(R_gens)
+  @req is_elimination_ordering(o, R_gens) "Given ordering is not an elimination ordering"
+  gb = get(I.gb, o, nothing)
+  isnothing(gb) && return eliminate(I, R_gens)
+  
+  n = findfirst(x -> cmp(o, R_gens[end], leading_monomial(x; ordering=o)) < 0, gens(gb))
+  isnothing(n) || n == 1 && return I
+  ideal(IdealGens(gens(gb)[1:n - 1], o; isGB=true))
+end
 
 ### todo: wenn schon GB bzgl. richtiger eliminationsordnung bekannt ...
 ### Frage: return MPolyIdeal(base_ring(I), s) ???
