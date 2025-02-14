@@ -1,13 +1,20 @@
+function upgrade_NamedTuple(d::Dict)
+  println(json(d, 2))
+  for (i, entry) in enumerate(d[:data])
+    println(entry)
+    if entry isa Dict
+      func = Symbol(string("upgrade_", entry[:_type][:name]))
+      upgraded_entry = @eval $func($dict)
+    end
+  end
+end
+
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.3.0",
   function upgrade_1_3_0(s::UpgradeState, dict::Dict)
-    upgraded_dict = dict
-    if haskey(dict, :_type) && dict[:_type] == "FqField"
-      if dict[:data] isa Dict
-        if !(haskey(dict[:data], :def_pol))
-          upgraded_dict[:data][:def_pol] = copy(dict[:data])
-        end
-      end
+    if haskey(dict, :_type) 
+      func = Symbol(string("upgrade_", dict[:_type][:name]))
+      upgraded_dict = @eval $func($dict)
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_3_0(s, dict[:data])
     end
