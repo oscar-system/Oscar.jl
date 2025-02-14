@@ -44,7 +44,7 @@ w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
       @test ambient_space(w3) == ambient_space(loaded)
       @test is_base_space_fully_specified(w3) == is_base_space_fully_specified(loaded)
       @test explicit_model_sections(w3) == explicit_model_sections(loaded)
-      @test defining_section_parametrization(w3) == defining_section_parametrization(loaded)
+      @test tunable_section_parametrization(w3) == tunable_section_parametrization(loaded)
       @test defining_classes(w3) == defining_classes(loaded)
       for (key, value) in w3.__attrs
         if value isa String || value isa Vector{String} || value isa Bool
@@ -68,7 +68,7 @@ w3_copy = weierstrass_model(sample_toric_variety(); completeness_check = false)
       @test is_base_space_fully_specified(w3_copy) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(w3_copy) == is_partially_resolved(loaded)
       @test explicit_model_sections(w3_copy) == explicit_model_sections(loaded)
-      @test defining_section_parametrization(w3_copy) == defining_section_parametrization(loaded)
+      @test tunable_section_parametrization(w3_copy) == tunable_section_parametrization(loaded)
       @test defining_classes(w3_copy) == defining_classes(loaded)
     end
   end

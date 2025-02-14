@@ -68,7 +68,7 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
+FIXME: Return the model sections in explicit form, that
 is as polynomials of the base space coordinates.
 
 ```jldoctest
@@ -97,9 +97,9 @@ end
 
 
 @doc raw"""
-    defining_section_parametrization(m::AbstractFTheoryModel)
+    tunable_section_parametrization(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
+FIXME: Return the model sections in explicit form, that
 is as polynomials of the base space coordinates.
 
 ```jldoctest
@@ -108,7 +108,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> defining_section_parametrization(t)
+julia> tunable_section_parametrization(t)
 Dict{String, MPolyRingElem} with 4 entries:
   "a6" => 0
   "a3" => w^2*a32
@@ -116,16 +116,16 @@ Dict{String, MPolyRingElem} with 4 entries:
   "a4" => w^3*a43
 ```
 """
-function defining_section_parametrization(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :defining_section_parametrization) "defining_section_parametrization not supported for this F-theory model"
-  return m.defining_section_parametrization
+function tunable_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :tunable_section_parametrization) "tunable_section_parametrization not supported for this F-theory model"
+  return m.tunable_section_parametrization
 end
 
 
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Return the divisor classes of all model sections.
+FIXME: Return the divisor classes of all model sections.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -173,7 +173,7 @@ end
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Return the defining divisor classes of the model in question.
+FIXME: Return the defining divisor classes of the model in question.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1318,7 +1318,7 @@ end
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that can be tuned.
+FIXME: Return a vector containing all sections that can be tuned.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1330,13 +1330,13 @@ julia> length(tunable_sections(m))
 9
 ```
 """
-@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(tunable_section_parametrization(m))))
 
 
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that were used in the definition of the model.
+FIXME: Return a vector containing all sections that were used in the definition of the model.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1348,7 +1348,7 @@ julia> length(model_sections(m))
 9
 ```
 """
-model_sections(m::AbstractFTheoryModel) = tunable_sections(m)
+model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
 
 
 

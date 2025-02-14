@@ -71,7 +71,7 @@ end
 
 @attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
-  defining_section_parametrization::Dict{String, <: MPolyRingElem}
+  tunable_section_parametrization::Dict{String, <: MPolyRingElem}
   weierstrass_ideal_sheaf::AbsIdealSheaf
   weierstrass_polynomial::MPolyRingElem
   base_space::FTheorySpace
@@ -80,11 +80,11 @@ end
   defining_classes::Dict{String, ToricDivisorClass}
 
   function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
-                            defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                            tunable_section_parametrization::Dict{String, <: MPolyRingElem},
                             weierstrass_ideal_sheaf::AbsIdealSheaf,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
-    result = new(explicit_model_sections, defining_section_parametrization)
+    result = new(explicit_model_sections, tunable_section_parametrization)
     result.weierstrass_ideal_sheaf = weierstrass_ideal_sheaf
     result.base_space = base_space
     result.ambient_space = ambient_space
@@ -94,11 +94,11 @@ end
   end
 
   function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
-                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                          tunable_section_parametrization::Dict{String, <: MPolyRingElem},
                           weierstrass_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    result = new(explicit_model_sections, defining_section_parametrization)
+    result = new(explicit_model_sections, tunable_section_parametrization)
     result.weierstrass_polynomial = weierstrass_polynomial
     result.base_space = base_space
     result.ambient_space = ambient_space
@@ -112,7 +112,7 @@ end
 
 @attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
-  defining_section_parametrization::Dict{String, <: MPolyRingElem}
+  tunable_section_parametrization::Dict{String, <: MPolyRingElem}
   tate_ideal_sheaf::AbsIdealSheaf
   tate_polynomial::MPolyRingElem
   base_space::FTheorySpace
@@ -121,11 +121,11 @@ end
   defining_classes::Dict{String, ToricDivisorClass}
 
   function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
-                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                          tunable_section_parametrization::Dict{String, <: MPolyRingElem},
                           tate_ideal_sheaf::AbsIdealSheaf,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    result = new(explicit_model_sections, defining_section_parametrization)
+    result = new(explicit_model_sections, tunable_section_parametrization)
     result.tate_ideal_sheaf = tate_ideal_sheaf
     result.base_space = base_space
     result.ambient_space = ambient_space
@@ -135,11 +135,11 @@ end
   end
 
   function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
-                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                          tunable_section_parametrization::Dict{String, <: MPolyRingElem},
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    result = new(explicit_model_sections, defining_section_parametrization)
+    result = new(explicit_model_sections, tunable_section_parametrization)
     result.tate_polynomial = tate_polynomial
     result.base_space = base_space
     result.ambient_space = ambient_space

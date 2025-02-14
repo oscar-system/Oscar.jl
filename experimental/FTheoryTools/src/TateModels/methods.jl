@@ -161,13 +161,13 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return t
-  secs_names = collect(keys(explicit_model_sections(t)))
+  secs_names = tunable_sections(t)
   tuned_secs_names = collect(keys(input_sections))
-  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(t))
-  def_secs_param = deepcopy(defining_section_parametrization(t))
+  def_secs_param = deepcopy(tunable_section_parametrization(t))
   tate_sections = ["a1", "a2", "a3", "a4", "a6"]
 
   # 1. Tune model sections different from Tate sections
