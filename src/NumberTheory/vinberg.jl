@@ -285,22 +285,25 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
   Qv = zero_matrix(ZZ, ncols(Q), 1)
   tmp2 = zero_matrix(ZZ, 1, 1)
+  _Q = map_entries(QQ, Q)
+  _v0 = map_entries(QQ, v0)
   for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
-    possible_Vec = short_vectors_affine(Q, v0, QQ(n), k)
+    possible_Vec = short_vectors_affine(_Q, _v0, QQ(n), QQ(k))
     for v in possible_Vec
-      if !isone(reduce(gcd, v))
+      vZZ = numerator(v)
+      if !isone(reduce(gcd, vZZ))
         # v must be primitive.
         continue 
       end
-      mul!(Qv, Q, transpose(v))
+      mul!(Qv, Q, transpose(vZZ))
       #Qv = Q*transpose(v)
       if !(divisibilities isa Nothing)
         # filter for divisibilities
         reduce(gcd, Qv) in divisibilities[k] || continue
       end
       if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots)
-        push!(roots, v)
+        push!(roots, vZZ)
       end
     end
   end
