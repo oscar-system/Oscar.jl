@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Sheaves on covered schemes · Oscar.jl</title><meta name="title" content="Sheaves on covered schemes · Oscar.jl"/><meta property="og:title" content="Sheaves on covered schemes · Oscar.jl"/><meta property="twitter:title" content="Sheaves on covered schemes · Oscar.jl"/><meta name="description" content="Documentation for Oscar.jl."/><meta property="og:description" content="Documentation for Oscar.jl."/><meta property="twitter:description" content="Documentation for Oscar.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Saving and loading files</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><input class="collapse-toggle" id="menuitem-3-14" type="checkbox"/><label class="tocitem" for="menuitem-3-14"><span class="docs-label">Abelian Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/abelian/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/maps/">Morphisms</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/structural/">Structural Computations</a></li></ul></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li><li><a class="tocitem" href="../../../Groups/recog/">Group recognition</a></li><li><a class="tocitem" href="../../../Groups/tom/">Tables of Marks</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/manual/misc/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/class_fields/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li><li><a class="tocitem" href="../../../Nemo/algebraic/">Algebraic numbers</a></li><li><a class="tocitem" href="../../../Fields/algebraic_closure_fp/">Algebraic closure of finite prime fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/misc/sparse/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/discriminant_group/">Discriminant Groups</a></li><li><a class="tocitem" href="../../../NumberTheory/vinberg/">Vinberg&#39;s algorithm</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-4" type="checkbox"/><label class="tocitem" for="menuitem-7-4"><span class="docs-label">Elliptic Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/basics/">Basics</a></li><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/finite_fields/">Elliptic curves over finite fields</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../NumberTheory/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li><li><input class="collapse-toggle" id="menuitem-8-7" type="checkbox"/><label class="tocitem" for="menuitem-8-7"><span class="docs-label">Optimization</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Optimization/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Optimization/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules/">Ideals and Quotient Rings as Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li></ul></li><li><a class="tocitem" href="../../../CommutativeAlgebra/homological_algebra/">Homological Algebra</a></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-10" type="checkbox"/><label class="tocitem" for="menuitem-9-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/tori/">Invariants of Tori</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox" checked/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox" checked/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../RationalPointsAffine/">Rational Points on Affine Schemes</a></li><li><a class="tocitem" href="../CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../CoveringsAndGluings/">Coverings</a></li><li><a class="tocitem" href="../CoveredSchemeMorphisms/">Morphisms of covered schemes</a></li><li><a class="tocitem" href="../ProjectiveSchemes/">Projective schemes</a></li><li><a class="tocitem" href="../MorphismsOfProjectiveSchemes/">Morphisms of projective schemes</a></li><li><a class="tocitem" href="../RationalPointsProjective/">Rational Points on Projective Schemes</a></li><li class="is-active"><a class="tocitem" href>Sheaves on covered schemes</a><ul class="internal"><li><a class="tocitem" href="#Presheaves"><span>Presheaves</span></a></li><li><a class="tocitem" href="#Structure-sheaves"><span>Structure sheaves</span></a></li><li><a class="tocitem" href="#Ideal-sheaves"><span>Ideal sheaves</span></a></li><li><a class="tocitem" href="#Coherent-sheaves-of-modules"><span>Coherent sheaves of modules</span></a></li></ul></li><li><a class="tocitem" href="../Cycles/">Cycles and divisors</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Algebraic Sets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicSets/AffineAlgebraicSet/">Affine Algebraic Sets</a></li><li><a class="tocitem" href="../../AlgebraicSets/ProjectiveAlgebraicSet/">Projective Algebraic Sets</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Algebraic Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicVarieties/AffineVariety/">Affine Varieties</a></li><li><a class="tocitem" href="../../AlgebraicVarieties/ProjectiveVariety/">Projective Varieties</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Curves/AffinePlaneCurves/">Affine plane curves</a></li><li><a class="tocitem" href="../../Curves/ProjectiveCurves/">Projective Curves</a></li><li><a class="tocitem" href="../../Curves/ProjectivePlaneCurves/">Projective Plane Curves</a></li><li><a class="tocitem" href="../../Curves/ParametrizationPlaneCurves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Surfaces/K3Surfaces/">Automorphism Groups of  K3 surfaces</a></li><li><a class="tocitem" href="../../Surfaces/EnriquesSurfaces/">Borcherds&#39; method for Enriques surfaces</a></li><li><a class="tocitem" href="../../Surfaces/EllipticSurface/">Elliptic Surfaces</a></li><li><a class="tocitem" href="../../Surfaces/AdjunctionProcess/">Adjunction Process for Surfaces</a></li><li><a class="tocitem" href="../../Surfaces/ParametrizationSurfaces/">Rational Parametrization of Rational Surfaces</a></li><li><a class="tocitem" href="../../Surfaces/SurfacesP4/">Nongeneral Type Surfaces in <span>$\mathbb P^4$</span></a></li><li><a class="tocitem" href="../../Surfaces/duValSing/">Classifier/identifier specifically for du Val singularities</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Sheaf Cohomology</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../SheafCohomology/sheaf_cohomology/">Sheaves on Projective Space</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-8" type="checkbox"/><label class="tocitem" for="menuitem-11-8"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricSchemes/">Toric Schemes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricIdealSheaves/">Toric Ideal Sheaves (Experimental)</a></li><li><a class="tocitem" href="../../ToricVarieties/BlowupMorphisms/">Toric Blowups (Experimental)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-9" type="checkbox"/><label class="tocitem" for="menuitem-11-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Miscellaneous/miscellaneous/">Some Special Ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-10" type="checkbox"/><label class="tocitem" for="menuitem-11-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../FrameWorks/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring/">Tropical semirings, matrices, and polynomials</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring_map/">Tropical semiring maps</a></li><li><a class="tocitem" href="../../../TropicalGeometry/variety/">Tropical varieties</a></li><li><a class="tocitem" href="../../../TropicalGeometry/hypersurface/">Tropical hypersurfaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/curve/">Tropical curves</a></li><li><a class="tocitem" href="../../../TropicalGeometry/linear_space/">Tropical linear spaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/groebner_theory/">Groebner theory</a></li><li><a class="tocitem" href="../../../TropicalGeometry/tropicalization/">Tropicalization of polynomial ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-13-2" type="checkbox"/><label class="tocitem" for="menuitem-13-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Lie Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LieTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../LieTheory/cartan_matrix/">Cartan matrices</a></li><li><a class="tocitem" href="../../../LieTheory/root_systems/">Root systems</a></li><li><a class="tocitem" href="../../../LieTheory/weight_lattices/">Weight lattices</a></li><li><a class="tocitem" href="../../../LieTheory/weyl_groups/">Weyl groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-15" type="checkbox"/><label class="tocitem" for="menuitem-15"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li><li><a class="tocitem" href="../../../Combinatorics/phylogenetic_trees/">Phylogenetic Trees</a></li><li><input class="collapse-toggle" id="menuitem-15-5" type="checkbox"/><label class="tocitem" for="menuitem-15-5"><span class="docs-label">Enumerative combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/partitions/">Partitions</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/tableaux/">Tableaux</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/schur_polynomials/">Schur polynomials</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/compositions/">Compositions</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-16" type="checkbox"/><label class="tocitem" for="menuitem-16"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-19" type="checkbox"/><label class="tocitem" for="menuitem-19"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/printing_details/">Printing in OSCAR</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/caching/">Caching parent objects in OSCAR</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/gap_integration/">GAP Integration</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/release/">Release management</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/changelog/">Updating <code>CHANGELOG.md</code></a></li><li><input class="collapse-toggle" id="menuitem-19-12" type="checkbox"/><label class="tocitem" for="menuitem-19-12"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-20" type="checkbox"/><label class="tocitem" for="menuitem-20"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/intro/">Adding new projects to experimental</a></li><li><input class="collapse-toggle" id="menuitem-20-2" type="checkbox"/><label class="tocitem" for="menuitem-20-2"><span class="docs-label">Algebraic Statistics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/graphical_models/">Graphical Models</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/gaussian_graphical_models/">Gaussian Graphical Models</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/ci/">Conditional independence statements</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/markov/">Discrete random variables</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicStatistics/phylogenetics/">Algebraic Phylogenetics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-3" type="checkbox"/><label class="tocitem" for="menuitem-20-3"><span class="docs-label">Double complexes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/DoubleAndHyperComplexes/user_interface/">Double complexes – the user&#39;s interface</a></li><li><a class="tocitem" href="../../../Experimental/DoubleAndHyperComplexes/advice_for_the_programmer/">Advice for the programmer</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-4" type="checkbox"/><label class="tocitem" for="menuitem-20-4"><span class="docs-label">Gröbner walk</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/GroebnerWalk/introduction/">Usage</a></li><li><a class="tocitem" href="../../../Experimental/GroebnerWalk/special-ideals/">Special ideals used for benchmarking</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-5" type="checkbox"/><label class="tocitem" for="menuitem-20-5"><span class="docs-label">Linear Quotients</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/LinearQuotients/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/LinearQuotients/linear_quotients/">Construction and basic functionality</a></li><li><a class="tocitem" href="../../../Experimental/LinearQuotients/cox_rings/">Cox rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-6" type="checkbox"/><label class="tocitem" for="menuitem-20-6"><span class="docs-label">Matroid Realization Spaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/MatroidRealizationSpaces/introduction/">Matroid Realization Spaces</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-7" type="checkbox"/><label class="tocitem" for="menuitem-20-7"><span class="docs-label">Orthogonal discriminants</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/access/">Access to precomputed OD data</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/compute/">Criteria for computing orthogonal discriminants</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/misc/">Miscellaneous functions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-8" type="checkbox"/><label class="tocitem" for="menuitem-20-8"><span class="docs-label">Quadratic forms and isometries</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/introduction/">Quadratic forms and isometries</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/spacewithisom/">Quadratic spaces with isometry</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/latwithisom/">Lattices with isometry</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/enumeration/">Enumeration of isometries</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/primembed/">Nikulin&#39;s theory on primitive embeddings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-9" type="checkbox"/><label class="tocitem" for="menuitem-20-9"><span class="docs-label">Standard Finite Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/StandardFiniteFields/introduction/">-</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-10" type="checkbox"/><label class="tocitem" for="menuitem-20-10"><span class="docs-label">Lie Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/LieAlgebras/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/lie_algebras/">Lie algebras</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/ideals_and_subalgebras/">Ideals and Lie subalgebras</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/lie_algebra_homs/">Lie algebra homomorphisms</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/modules/">Lie algebra modules</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/module_homs/">Lie algebra module homomorphisms</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/weyl_groups_experimental/">Weyl groups (experimental features)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-11" type="checkbox"/><label class="tocitem" for="menuitem-20-11"><span class="docs-label">Bases for highest weight modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/BasisLieHighestWeight/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/BasisLieHighestWeight/user_functions/">Functions for a monomial basis of highest weight modules</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-12" type="checkbox"/><label class="tocitem" for="menuitem-20-12"><span class="docs-label">Algebraic Shifting</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/AlgebraicShifting/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicShifting/exterior_shifting/">Exterior Shifting</a></li><li><a class="tocitem" href="../../../Experimental/AlgebraicShifting/partial_shift_graph/">Partial Shift Graph</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-13" type="checkbox"/><label class="tocitem" for="menuitem-20-13"><span class="docs-label">Partitioned Permutations</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/PartitionedPermutations/introduction/">Partitioned Permutations</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-14" type="checkbox"/><label class="tocitem" for="menuitem-20-14"><span class="docs-label">F-Theory Tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/FTheoryTools/introduction/">Welcome to FTheoryTools</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/generalities/">Functionality for all F-theory models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/weierstrass/">Weierstrass models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/tate/">Global Tate models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/hypersurface/">Hypersurface models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/literature/">Literature constructions</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/g4/">G4-Fluxes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-15" type="checkbox"/><label class="tocitem" for="menuitem-20-15"><span class="docs-label">Intersection Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/AbstractVarieties/">Abstract Varieties</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/AbstractBundles/">Abstract Bundles</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/AbstractVarietyMaps/">Abstract Variety Maps</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/BlowUps/">Blow-Ups</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/schubert/">Schubert Calculus</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/BottFormulas/">Bott&#39;s Formula</a></li><li><a class="tocitem" href="../../../Experimental/IntersectionTheory/examples/">Illustrating Examples From Enumerative Geometry</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Algebraic Geometry</a></li><li><a class="is-disabled">Schemes</a></li><li class="is-active"><a href>Sheaves on covered schemes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Sheaves on covered schemes</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/AlgebraicGeometry/Schemes/Sheaves.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Sheaves-on-covered-schemes"><a class="docs-heading-anchor" href="#Sheaves-on-covered-schemes">Sheaves on covered schemes</a><a id="Sheaves-on-covered-schemes-1"></a><a class="docs-heading-anchor-permalink" href="#Sheaves-on-covered-schemes" title="Permalink"></a></h1><p>Oscar supports modeling sheaves by means of a covering by affine charts.</p><h2 id="Presheaves"><a class="docs-heading-anchor" href="#Presheaves">Presheaves</a><a id="Presheaves-1"></a><a class="docs-heading-anchor-permalink" href="#Presheaves" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AbsPreSheaf" href="#AbsPreSheaf"><code>AbsPreSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}</code></pre><p>Abstract type for a sheaf ℱ on a space X.</p><ul><li><p><code>SpaceType</code> is a parameter for the type of the space <span>$X$</span> on which <span>$ℱ$</span> is defined.</p></li><li><p><code>OpenType</code> is a type (most probably abstract!) for the open sets <span>$U ⊂ X$</span> which are admissible as input for <span>$ℱ(U)$</span>.</p></li><li><p><code>OutputType</code> is a type (most probably abstract!) for the values that <span>$ℱ$</span> takes on admissible open sets <span>$U$</span>.</p></li><li><p><code>RestrictionType</code> is a parameter for the type of the restriction maps <span>$ℱ(V) → ℱ(U)$</span> for <span>$U ⊂ V ⊂ X$</span> open.</p></li></ul><p>For any instance <code>F</code> of <code>AbsPreSheaf</code> on a topological space <code>X</code> the following methods are implemented:</p><ul><li><p><code>F(U)</code> for <em>admissible</em> open subsets <span>$U ⊂ X$</span>: This returns the value <span>$ℱ(U)$</span> of the sheaf <code>F</code> on <code>U</code>. Note that due to technical limitations, not every type of open subset might be admissible.</p></li><li><p><code>restriction_map(F, U, V)</code> for <em>admissible</em> open subsets <span>$V ⊂ U ⊂ X$</span>: This returns the restriction map <span>$ρ : ℱ(U) → ℱ(V)$</span>. Alternatively, one may also call <code>F(U, V)</code> to get this map.</p></li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L4-L22">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PreSheafOnScheme" href="#PreSheafOnScheme"><code>PreSheafOnScheme</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PreSheafOnScheme</code></pre><p>A basic minimal implementation of the interface for <code>AbsPreSheaf</code>; to be used internally.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L29-L33">source</a></section></article><h2 id="Structure-sheaves"><a class="docs-heading-anchor" href="#Structure-sheaves">Structure sheaves</a><a id="Structure-sheaves-1"></a><a class="docs-heading-anchor-permalink" href="#Structure-sheaves" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="StructureSheafOfRings" href="#StructureSheafOfRings"><code>StructureSheafOfRings</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">StructureSheafOfRings &lt;: AbsPreSheaf</code></pre><p>On an <code>AbsCoveredScheme</code> <span>$X$</span> this returns the sheaf <span>$𝒪$</span> of rings of regular functions on <span>$X$</span>.</p><p>Note that due to technical reasons, the admissible open subsets are restricted to the following:</p><ul><li><code>U::AbsAffineScheme</code> among the <code>basic_patches</code> of the <code>default_covering</code> of <code>X</code>;</li><li><code>U::PrincipalOpenSubset</code> with <code>ambient_scheme(U)</code> in the <code>basic_patches</code> of the <code>default_covering</code> of <code>X</code>;</li><li><code>W::AffineSchemeOpenSubscheme</code> with <code>ambient_scheme(W)</code> in the <code>basic_patches</code> of the <code>default_covering</code> of <code>X</code>.</li></ul><p>One can call the restriction maps of <span>$𝒪$</span> across charts, implicitly using the identifications given by the gluings in the <code>default_covering</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; OOX = OO(X)
+Structure sheaf of rings of regular functions
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+
+julia&gt; typeof(OOX)
+StructureSheafOfRings{CoveredScheme{FqField}, Union{AbsAffineScheme, AffineSchemeOpenSubscheme}, Ring, Map}
+
+julia&gt; U, V, W = affine_charts(X)
+3-element Vector{AffineScheme{FqField, FqMPolyRing}}:
+ Affine 2-space
+ Affine 2-space
+ Affine 2-space
+
+julia&gt; glue = default_covering(X)[U, V]
+Gluing
+  of affine 2-space
+  and affine 2-space
+along the open subsets
+  [(y//x), (z//x)]   AA^2 \ scheme((y//x))
+  [(x//y), (z//y)]   AA^2 \ scheme((x//y))
+given by the pullback function
+  (x//y) -&gt; 1/(y//x)
+  (z//y) -&gt; (z//x)/(y//x)
+
+julia&gt; UV, VU = gluing_domains(glue)
+(AA^2 \ scheme((y//x)), AA^2 \ scheme((x//y)))
+
+julia&gt; y, z = gens(OOX(U))
+2-element Vector{FqMPolyRingElem}:
+ (y//x)
+ (z//x)
+
+julia&gt; pb = OOX(U, VU)
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over GF(7)
+  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x//y))
+defined by
+  (y//x) -&gt; 1/(x//y)
+  (z//x) -&gt; (z//y)/(x//y)
+
+julia&gt; pb(y^2)
+1/(x//y)^2
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L62-L143">source</a></section></article><h2 id="Ideal-sheaves"><a class="docs-heading-anchor" href="#Ideal-sheaves">Ideal sheaves</a><a id="Ideal-sheaves-1"></a><a class="docs-heading-anchor-permalink" href="#Ideal-sheaves" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="AbsIdealSheaf" href="#AbsIdealSheaf"><code>AbsIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">AbsIdealSheaf &lt;: AbsPreSheaf</code></pre><p>A sheaf of ideals <span>$I$</span> on an <code>AbsCoveredScheme</code> <span>$X$</span>.</p><p>For an affine open subset <span>$U ⊂ X$</span> call <span>$I(U)$</span> to obtain an ideal  in <code>OO(U)</code> representing <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; S = homogeneous_coordinate_ring(IP2)
+Multivariate polynomial ring in 3 variables over GF(7) graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1]
+
+julia&gt; II = ideal_sheaf(IP2, ideal(S, [S[1] + S[2]]))
+Sheaf of ideals
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: Ideal ((y//x) + 1)
+  2: Ideal ((x//y) + 1)
+  3: Ideal ((x//z) + (y//z))
+
+julia&gt; U, V, W = affine_charts(X)
+3-element Vector{AffineScheme{FqField, FqMPolyRing}}:
+ Affine 2-space
+ Affine 2-space
+ Affine 2-space
+
+julia&gt; II(U)
+Ideal generated by
+  (y//x) + 1
+
+julia&gt; II(V)
+Ideal generated by
+  (x//y) + 1
+
+julia&gt; glue = default_covering(X)[U, V];
+
+julia&gt; UV, VU = gluing_domains(glue);
+
+julia&gt; II(U, VU) # transition functions are ring homomorphisms for ideal sheaves!
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over GF(7)
+  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x//y))
+defined by
+  (y//x) -&gt; 1/(x//y)
+  (z//x) -&gt; (z//y)/(x//y)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L180-L251">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="IdealSheaf" href="#IdealSheaf"><code>IdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">IdealSheaf &lt;: AbsIdealSheaf</code></pre><p>A sheaf of ideals <span>$ℐ$</span> on an <code>AbsCoveredScheme</code> <span>$X$</span> which is specified  by a collection of concrete ideals on some open covering of <span>$X$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L260-L265">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PrimeIdealSheafFromChart" href="#PrimeIdealSheafFromChart"><code>PrimeIdealSheafFromChart</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PrimeIdealSheafFromChart</code></pre><p>Type for sheaves of prime ideals <span>$P$</span> on a covered scheme <span>$X$</span> constructed from a prime ideal of the coordinate ring of a chart. Essentially this is a scheme theoretic point.</p><p>For <span>$U$</span> an affine chart of <span>$X$</span>, the ideal <span>$P(U)$</span> is computed using the gluings.  The implementation is lazy.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, V, W = affine_charts(X);
+
+julia&gt; glue = default_covering(X)[U, V];
+
+julia&gt; y, z = gens(OO(U))
+2-element Vector{FqMPolyRingElem}:
+ (y//x)
+ (z//x)
+
+julia&gt; P = ideal(OO(U), [y - z])
+Ideal generated by
+  (y//x) + 6*(z//x)
+
+julia&gt; PP = Oscar.PrimeIdealSheafFromChart(X, U, P)
+Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((y//x) + 6*(z//x)) on Affine 2-space
+
+julia&gt; PP(W)
+Ideal generated by
+  (y//z) + 6
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L309-L360">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SumIdealSheaf" href="#SumIdealSheaf"><code>SumIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SumIdealSheaf</code></pre><p>Sum of two or more ideal sheaves.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, V, W = affine_charts(X);
+
+julia&gt; y, z = gens(OO(U));
+
+julia&gt; P1 = ideal(OO(U), [y - z]);
+
+julia&gt; PP1 = Oscar.PrimeIdealSheafFromChart(X, U, P1);
+
+julia&gt; P2 = ideal(OO(V), [OO(V)[1]]);
+
+julia&gt; PP2 = Oscar.PrimeIdealSheafFromChart(X, V, P2)
+Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((x//y)) on Affine 2-space
+
+julia&gt; II = PP1 + PP2
+Sum of
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 6*(z//x)) on affine 2-space
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) on affine 2-space
+
+julia&gt; typeof(II)
+Oscar.SumIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
+
+julia&gt; II(W)
+Ideal generated by
+  (y//z) + 6
+  (x//z)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L392-L444">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="ProductIdealSheaf" href="#ProductIdealSheaf"><code>ProductIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ProductIdealSheaf</code></pre><p>Product of two or more ideal sheaves.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, V, W = affine_charts(X);
+
+julia&gt; y, z = gens(OO(U));
+
+julia&gt; P1 = ideal(OO(U), [y - z]);
+
+julia&gt; PP1 = Oscar.PrimeIdealSheafFromChart(X, U, P1);
+
+julia&gt; P2 = ideal(OO(V), [OO(V)[1]]);
+
+julia&gt; PP2 = Oscar.PrimeIdealSheafFromChart(X, V, P2)
+Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((x//y)) on Affine 2-space
+
+julia&gt; II = PP1 * PP2
+Product of
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 6*(z//x)) on affine 2-space
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) on affine 2-space
+
+julia&gt; typeof(II)
+Oscar.ProductIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
+
+julia&gt; II(W)
+Ideal generated by
+  (x//z)*(y//z) + 6*(x//z)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L471-L522">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SimplifiedIdealSheaf" href="#SimplifiedIdealSheaf"><code>SimplifiedIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SimplifiedIdealSheaf</code></pre><p>For a given <code>AbsIdealSheaf</code> <code>II</code> on an <code>AbsCoveredScheme</code> <code>X</code> this uses a  heuristic to replace the generating set of <code>II(U)</code> by a hopefully smaller  one on every affine chart of <code>X</code>.</p><p><strong>Examples</strong></p><pre><code class="language-jldoctes hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; X = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, V, W = affine_charts(X);
+
+julia&gt; y, z = gens(OO(U));
+
+julia&gt; P1 = ideal(OO(U), [y - z]);
+
+julia&gt; PP1 = Oscar.PrimeIdealSheafFromChart(X, U, P1);
+
+julia&gt; P2 = ideal(OO(V), [OO(V)[1], OO(V)[2]]);
+
+julia&gt; PP2 = Oscar.PrimeIdealSheafFromChart(X, V, P2)
+Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((x//y), (z//y)) on Affine 2-space
+
+julia&gt; II = PP1 + PP2
+Sum of 
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 
+  6*(z//x)) on affine 2-space
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y), (
+  z//y)) on affine 2-space
+
+julia&gt; JJ = simplify(II)
+Sheaf of ideals
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: Ideal (1)
+  2: Ideal (1)
+  3: Ideal (1)
+
+julia&gt; typeof(JJ)
+Oscar.SimplifiedIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
+
+julia&gt; II(W)
+Ideal generated by
+  (y//z) + 6
+  1
+
+julia&gt; JJ(W)
+Ideal generated by
+  1
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L549-L620">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PullbackIdealSheaf" href="#PullbackIdealSheaf"><code>PullbackIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PullbackIdealSheaf</code></pre><p>Given an morphism <code>f : X -&gt; Y</code> of <code>AbsCoveredScheme</code>s and an ideal sheaf  <code>II</code> on <code>Y</code>, this computes the pullback <code>f^* II</code> on <code>X</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; Y = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, _ = affine_charts(Y);
+
+julia&gt; y, z = gens(OO(U));
+
+julia&gt; P1 = ideal(OO(U), [y, z]);
+
+julia&gt; PP1 = Oscar.PrimeIdealSheafFromChart(Y, U, P1);
+
+julia&gt; bl = blow_up(PP1);
+
+julia&gt; X = domain(bl);
+
+julia&gt; JJ = pullback(bl, PP1)
+Sheaf of ideals
+  on scheme over GF(7) covered with 4 patches
+    1: [(s1//s0), (y//x)]   scheme(0)
+    2: [(s0//s1), (z//x)]   scheme(0)
+    3: [(x//y), (z//y)]     affine 2-space
+    4: [(x//z), (y//z)]     affine 2-space
+with restrictions
+  1: Ideal ((y//x), (s1//s0)*(y//x))
+  2: Ideal ((s0//s1)*(z//x), (z//x))
+  3: Ideal (1)
+  4: Ideal (1)
+
+julia&gt; typeof(JJ)
+Oscar.PullbackIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L645-L700">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="RadicalOfIdealSheaf" href="#RadicalOfIdealSheaf"><code>RadicalOfIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">RadicalOfIdealSheaf</code></pre><p>Given an <code>AbsIdealSheaf</code> <code>II</code> on an <code>AbsCoveredScheme</code> <code>X</code>, this computes  the sheaf associated to the radicals of the ideals on the charts.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(GF(7), [:x, :y, :z])
+Projective space of dimension 2
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y, z]
+
+julia&gt; Y = covered_scheme(IP2)
+Scheme
+  over prime field of characteristic 7
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia&gt; U, _ = affine_charts(Y);
+
+julia&gt; y, z = gens(OO(U));
+
+julia&gt; P1 = ideal(OO(U), [y, z]);
+
+julia&gt; PP1 = Oscar.PrimeIdealSheafFromChart(Y, U, P1);
+
+julia&gt; PP1_squared = PP1^2;
+
+julia&gt; JJ = radical(PP1_squared);
+
+julia&gt; typeof(JJ)
+Oscar.RadicalOfIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
+
+julia&gt; PP1_squared(U)
+Ideal generated by
+  (y//x)^2
+  (y//x)*(z//x)
+  (z//x)^2
+
+julia&gt; JJ(U)
+Ideal generated by
+  (y//x)
+  (y//x)*(z//x)
+  (z//x)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L729-L783">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="ToricIdealSheafFromCoxRingIdeal" href="#ToricIdealSheafFromCoxRingIdeal"><code>ToricIdealSheafFromCoxRingIdeal</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ToricIdealSheafFromCoxRingIdeal</code></pre><p>This is the ideal sheaf associated to a <code>NormalToricVariety</code> <code>X</code>  with <code>cox_ring</code> <code>S</code> and an ideal <code>I</code> of <code>S</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -&gt; [1]
+  x2 -&gt; [1]
+  x3 -&gt; [1]
+
+julia&gt; x, y, z = gens(S);
+
+julia&gt; I = ideal(S, x^2 - y*z);
+
+julia&gt; II = ideal_sheaf(IP2, I)
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1^2 - x_2_1)
+  2: Ideal (x_1_2*x_2_2 - 1)
+  3: Ideal (x_1_3^2 - x_2_3)
+
+julia&gt; typeof(II)
+Oscar.ToricIdealSheafFromCoxRingIdeal{NormalToricVariety, AbsAffineScheme, Ideal, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L808-L841">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SingularLocusIdealSheaf" href="#SingularLocusIdealSheaf"><code>SingularLocusIdealSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SingularLocusIdealSheaf</code></pre><p>This is the (radical) ideal sheaf for the singular locus of an  <code>AbsCoveredScheme</code> <code>X</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -&gt; [1]
+  x2 -&gt; [1]
+  x3 -&gt; [1]
+
+julia&gt; x, y, z = gens(S);
+
+julia&gt; I = ideal(S, x^3 - y*z^2);
+
+julia&gt; II = ideal_sheaf(IP2, I);
+
+julia&gt; X, inc_X = sub(II);
+
+julia&gt; JJ = Oscar.ideal_sheaf_of_singular_locus(X)
+Sheaf of ideals
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: Ideal (1)
+  2: Ideal (1)
+  3: Ideal (x_1_3, x_2_3)
+
+julia&gt; typeof(JJ)
+Oscar.SingularLocusIdealSheaf{CoveredScheme{QQField}, AbsAffineScheme, Ideal, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/Types.jl#L869-L909">source</a></section></article><h2 id="Coherent-sheaves-of-modules"><a class="docs-heading-anchor" href="#Coherent-sheaves-of-modules">Coherent sheaves of modules</a><a id="Coherent-sheaves-of-modules-1"></a><a class="docs-heading-anchor-permalink" href="#Coherent-sheaves-of-modules" title="Permalink"></a></h2><p>These are some types for coherent sheaves.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="SheafOfModules" href="#SheafOfModules"><code>SheafOfModules</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">SheafOfModules &lt;: AbsPreSheaf</code></pre><p>A sheaf of modules <span>$ℳ$</span> on an <code>AbsCoveredScheme</code> <span>$X$</span>.</p><p>Note that due to technical reasons, the admissible open subsets are restricted to the following:</p><ul><li><code>U::AbsAffineScheme</code> among the <code>basic_patches</code> of the <code>default_covering</code> of <code>X</code>;</li><li><code>U::PrincipalOpenSubset</code> with <code>ambient_scheme(U)</code> in the <code>basic_patches</code> of the <code>default_covering</code> of <code>X</code>.</li></ul><p>One can call the restriction maps of <span>$ℳ$</span> across charts implicitly using the identifications given by the gluings in the <code>default_covering</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L157-L169">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="HomSheaf" href="#HomSheaf"><code>HomSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">HomSheaf</code></pre><p>For two <code>AbsCoherentSheaf</code>s <code>F</code> and <code>G</code> on an <code>AbsCoveredScheme</code> <code>X</code>  this computes the sheaf associated to <code>U -&gt; Hom(F(U), G(U))</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia&gt; Y = covered_scheme(IP1);
+
+julia&gt; Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia&gt; F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia&gt; T = Oscar.HomSheaf(Omega, F)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+  2: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+
+julia&gt; typeof(T)
+Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L453-L499">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PushforwardSheaf" href="#PushforwardSheaf"><code>PushforwardSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PushforwardSheaf</code></pre><p>For a <code>CoveredClosedEmbedding</code> <code>i : X -&gt; Y</code> and an <code>AbsCoherentSheaf</code> <code>F</code> on <code>X</code> this computes the coherent sheaf <code>i_* F</code> on <code>Y</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -&gt; [1]
+  x2 -&gt; [1]
+  x3 -&gt; [1]
+
+julia&gt; x, y, z = gens(S);
+
+julia&gt; I = ideal(S, x^3 - y*z^2);
+
+julia&gt; II = ideal_sheaf(IP2, I);
+
+julia&gt; X, inc_X = sub(II);
+
+julia&gt; F = cotangent_sheaf(X)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 1 generator
+    1: 3*x_1_1^2*dx_1_1 - dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 1 generator
+    1: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 1 generator
+    1: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+
+julia&gt; inc_F = Oscar.PushforwardSheaf(inc_X, F)
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 5 generators
+    1: (x_1_1^3 - x_2_1)*dx_1_1
+    2: (x_1_1^3 - x_2_1)*dx_2_1
+    3: 3*x_1_1^2*dx_1_1 - dx_2_1
+    4: (x_1_1^3 - x_2_1)*dx_1_1
+    5: (x_1_1^3 - x_2_1)*dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 5 generators
+    1: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    2: (x_1_2^2*x_2_2 - 1)*dx_2_2
+    3: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+    4: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    5: (x_1_2^2*x_2_2 - 1)*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 5 generators
+    1: (x_1_3^3 - x_2_3^2)*dx_1_3
+    2: (x_1_3^3 - x_2_3^2)*dx_2_3
+    3: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+    4: (x_1_3^3 - x_2_3^2)*dx_1_3
+    5: (x_1_3^3 - x_2_3^2)*dx_2_3
+
+julia&gt; typeof(inc_F)
+PushforwardSheaf{NormalToricVariety, AbsAffineScheme, ModuleFP, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L715-L799">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PullbackSheaf" href="#PullbackSheaf"><code>PullbackSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PullbackSheaf</code></pre><p>For a morphism <code>f : X -&gt; Y</code> of <code>AbsCoveredScheme</code>s and a coherent  sheaf <code>F</code> on <code>Y</code> this computes the pullback <code>f^* F</code> on <code>X</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -&gt; [1]
+  x2 -&gt; [1]
+  x3 -&gt; [1]
+
+julia&gt; x, y, z = gens(S);
+
+julia&gt; I = ideal(S, x^3 - y*z^2);
+
+julia&gt; II = ideal_sheaf(IP2, I);
+
+julia&gt; X, inc_X = sub(II);
+
+julia&gt; F = cotangent_sheaf(codomain(inc_X))
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia&gt; inc_F = Oscar.PullbackSheaf(inc_X, F)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia&gt; typeof(inc_F)
+PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L884-L949">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DirectSumSheaf" href="#DirectSumSheaf"><code>DirectSumSheaf</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">DirectSumSheaf</code></pre><p>Given two or more <code>AbsCoherentSheaf</code>s <code>F</code> and <code>G</code> on an <code>AbsCoveredScheme</code> <code>X</code>,  this holds the sheaf associated to the direct sum of <code>F</code> and <code>G</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia&gt; Y = covered_scheme(IP1);
+
+julia&gt; Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia&gt; F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia&gt; W = Oscar.DirectSumSheaf(Y, [Omega, F])
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+  2: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+
+julia&gt; typeof(W)
+DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L538-L584">source</a></section></article><p>We provide some common constructors.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="twisting_sheaf-Tuple{AbsProjectiveScheme{&lt;:Field}, Int64}" href="#twisting_sheaf-Tuple{AbsProjectiveScheme{&lt;:Field}, Int64}"><code>twisting_sheaf</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">twisting_sheaf(IP::AbsProjectiveScheme{&lt;:Field}, d::Int)</code></pre><p>For a <code>ProjectiveScheme</code> <span>$ℙ$</span> return the <span>$d$</span>-th twisting sheaf <span>$𝒪(d)$</span> as a <code>CoherentSheaf</code> on <span>$ℙ$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates [s0, s1, s2, s3]
+
+julia&gt; twisting_sheaf(P, 4)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   affine 3-space
+    2: [(s0//s1), (s2//s1), (s3//s1)]   affine 3-space
+    3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
+    4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L246-L272">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tautological_bundle-Tuple{AbsProjectiveScheme{&lt;:Field}}" href="#tautological_bundle-Tuple{AbsProjectiveScheme{&lt;:Field}}"><code>tautological_bundle</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">tautological_bundle(IP::AbsProjectiveScheme{&lt;:Field})</code></pre><p>For a <code>ProjectiveScheme</code> <span>$ℙ$</span> return the sheaf <span>$𝒪(-1)$</span> as a <code>CoherentSheaf</code> on <span>$ℙ$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates [s0, s1, s2, s3]
+
+julia&gt; tautological_bundle(P)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   affine 3-space
+    2: [(s0//s1), (s2//s1), (s3//s1)]   affine 3-space
+    3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
+    4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L308-L333">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="cotangent_sheaf-Tuple{AbsCoveredScheme}" href="#cotangent_sheaf-Tuple{AbsCoveredScheme}"><code>cotangent_sheaf</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">cotangent_sheaf(X::AbsCoveredScheme)</code></pre><p>For an <code>AbsCoveredScheme</code> <span>$X$</span>, return the sheaf <span>$Ω¹(X)$</span> of Kaehler-differentials on <span>$X$</span> as a <code>CoherentSheaf</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; IP1 = projective_space(QQ, 1);
+
+julia&gt; X = covered_scheme(IP1)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 1-space
+    2: affine 1-space
+  in the coordinate(s)
+    1: [(s1//s0)]
+    2: [(s0//s1)]
+
+julia&gt; Omega = cotangent_sheaf(X);
+
+julia&gt; U, V = affine_charts(X);
+
+julia&gt; UV, VU = gluing_domains(default_covering(X)[U, V]);
+
+julia&gt; dx = Omega(U)[1]
+d(s1//s0)
+
+julia&gt; Omega(V)
+Free module of rank 1 over multivariate polynomial ring in 1 variable over QQ
+
+julia&gt; Omega(U, VU)(dx)
+-1/(s0//s1)^2*d(s0//s1)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L338-L375">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="free_module-Tuple{StructureSheafOfRings, Int64}" href="#free_module-Tuple{StructureSheafOfRings, Int64}"><code>free_module</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">free_module(R::StructureSheafOfRings, n::Int)</code></pre><p>Return the sheaf of free <span>$𝒪$</span>-modules <span>$𝒪ⁿ$</span> for a structure sheaf of rings <span>$𝒪 = R$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L641-L646">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="dual-Tuple{Oscar.SheafOfModules}" href="#dual-Tuple{Oscar.SheafOfModules}"><code>dual</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">dual(M::SheafOfModules)</code></pre><p>For a <code>SheafOfModules</code> <span>$ℳ$</span> on an <code>AbsCoveredScheme</code> <span>$X$</span>, return the <span>$𝒪_X$</span>-dual <span>$ℋ om_{𝒪_X}(ℳ , 𝒪_X)$</span> of <span>$ℳ$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L676-L681">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tangent_sheaf-Tuple{AbsCoveredScheme}" href="#tangent_sheaf-Tuple{AbsCoveredScheme}"><code>tangent_sheaf</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">tangent_sheaf(X::AbsCoveredScheme)</code></pre><p>Return the tangent sheaf <span>$T_X$</span> of <code>X</code>, constructed as <span>$ℋ om_{𝒪_X}(Ω¹_X, 𝒪_X)$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L688-L692">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="projectivization-Tuple{Oscar.AbsCoherentSheaf}" href="#projectivization-Tuple{Oscar.AbsCoherentSheaf}"><code>projectivization</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">projectivization(E::AbsCoherentSheaf;
+    var_names::Vector{String}=Vector{String}(),
+    check::Bool=true
+  )</code></pre><p>For a locally free sheaf <span>$E$</span> on an <code>AbsCoveredScheme</code> <span>$X$</span> this produces the associated projectivization <span>$ℙ (E) → X$</span> as a <code>CoveredProjectiveScheme</code>.</p><p>A list of names for the variables of the relative homogeneous coordinate rings can be provided with <code>var_names</code>.</p><p>!!! note: The sheaf <span>$E$</span> needs to be locally free so that a <code>trivializing_covering</code> can be computed. The check for this can be turned off by setting <code>check=false</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/806e6fd5a4298ce7d1296880ce7bd96178a6ff53/src/AlgebraicGeometry/Schemes/Sheaves/CoherentSheaves.jl#L1282-L1296">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../RationalPointsProjective/">« Rational Points on Projective Schemes</a><a class="docs-footer-nextpage" href="../Cycles/">Cycles and divisors »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Wednesday 12 February 2025 14:22">Wednesday 12 February 2025</span>. Using Julia version 1.10.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
