@@ -26,7 +26,7 @@ abstract type AbstractFTheoryModel end
   # chow_ring
   # is_cy
   # generic_fiber
-  # modell_weil_group
+  # mordell_weil_group
   # weil_chatelet_group
   # gauge_group
   # fiber_diagram (cod. 1,2,3)
@@ -50,6 +50,7 @@ end
 
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
+  tunable_section_parametrization::Dict{String, <: MPolyRingElem}
   hypersurface_equation_parametrization::MPolyRingElem
   hypersurface_equation::MPolyRingElem
   base_space::FTheorySpace
@@ -64,6 +65,7 @@ end
                              fiber_ambient_space::AbsCoveredScheme)
     result = new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
     result.defining_classes = Dict{String, ToricDivisorClass}()
+    result.tunable_section_parametrization = Dict{String, ToricDivisorClass}()
     return result
   end
 end

@@ -36,6 +36,11 @@
 #                                                                    that works in the same way as the keyword argument "defining_classes". THIS
 #                                                                    SHOULD NOT BE DOCUMENTED BECAUSE WE DO NOT WANT THE USERS TO USE THIS
 #                                                                    TERMINOLOGY.
+#                                                                    SECOND NOTE: The .json files for the literature models use "model_sections" to
+#                                                                    refer to every named section introduced in the model. This does not include
+#                                                                    parametrized sections, so this is essentially a synonym for "tunable_sections"
+#                                                                    that is used only in the .json files and, as a result, the literature model
+#                                                                    constructors. This should be fixed in future
 #                                           explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
 #                                                                    involved in the definition of the model. The set of keys should match the list
 #                                                                    model_sections. In the case of the example above, this would include keys "a1",
