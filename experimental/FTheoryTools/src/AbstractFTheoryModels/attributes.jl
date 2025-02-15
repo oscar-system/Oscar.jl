@@ -189,7 +189,7 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> defining_classes(t)
 Dict{String, ToricDivisorClass} with 1 entry:
-  "w"    => Divisor class on a normal toric variety
+  "w" => Divisor class on a normal toric variety
 ```
 """
 function defining_classes(m::AbstractFTheoryModel)
@@ -1326,7 +1326,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> length(tunable_sections(m))
-9
+5
 ```
 """
 @attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(tunable_section_parametrization(m))))

@@ -31,17 +31,16 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(w)))
  x2
  x3
 
-julia> my_choice = Dict("f" => x1^12, "b" => x2, "c2" => x1^6)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice = Dict("b" => x2, "c2" => x1^6)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => x1^6
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w = tune(w, my_choice)
 Weierstrass model over a concrete base
 
-julia> weierstrass_section_f(tuned_w) == my_choice["f"]
-true
+julia> explicit_model_sections(tuned_w)["c2"]
+x1^6
 
 julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -49,10 +48,9 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
  x2
  x3
 
-julia> my_choice2 = Dict("f" => x1^12, "b" => x2, "c2" => zero(parent(x1)))
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice2 = Dict("b" => x2, "c2" => zero(parent(x1)))
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => 0
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w2 = tune(tuned_w, my_choice2)
@@ -67,10 +65,9 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w2)))
  x2
  x3
 
-julia> my_choice3 = Dict("f" => x1^12, "b" => x2, "c2" => x1^6)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice3 = Dict("b" => x2, "c2" => x1^6)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => x1^6
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w3 = tune(tuned_w2, my_choice3)

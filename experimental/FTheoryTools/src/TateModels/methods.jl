@@ -106,10 +106,9 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
  x3
  x4
 
-julia> my_choice = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice = Dict("a1" => x1^4, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => x1^8
   "a1" => x1^4
 
 julia> tuned_t = tune(t, my_choice)
@@ -125,16 +124,15 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t)))
  x3
  x4
 
-julia> my_choice2 = Dict("a1" => x1^4, "a2" => zero(parent(x1)), "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice2 = Dict("a1" => zero(parent(x1)), "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => 0
-  "a1" => x1^4
+  "a1" => 0
 
 julia> tuned_t2 = tune(tuned_t, my_choice2)
 Global Tate model over a concrete base
 
-julia> is_zero(explicit_model_sections(tuned_t2)["a2"])
+julia> is_zero(explicit_model_sections(tuned_t2)["a1"])
 true
 
 julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
@@ -144,16 +142,15 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
  x3
  x4
 
-julia> my_choice3 = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice3 = Dict("a1" => x1^4, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => x1^8
   "a1" => x1^4
 
 julia> tuned_t3 = tune(tuned_t2, my_choice3)
 Global Tate model over a concrete base
 
-julia> is_zero(explicit_model_sections(tuned_t3)["a2"])
+julia> is_zero(explicit_model_sections(tuned_t3)["a1"])
 false
 ```
 """
