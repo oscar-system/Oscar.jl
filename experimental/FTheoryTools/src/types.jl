@@ -50,13 +50,13 @@ end
 
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
-  tunable_section_parametrization::Dict{String, <: MPolyRingElem}
   hypersurface_equation_parametrization::MPolyRingElem
   hypersurface_equation::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
   defining_classes::Dict{String, ToricDivisorClass}
+  tunable_section_parametrization::Dict{String, <: MPolyRingElem}
   function HypersurfaceModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                              hypersurface_equation_parametrization::MPolyRingElem,
                              hypersurface_equation::MPolyRingElem,
@@ -65,7 +65,7 @@ end
                              fiber_ambient_space::AbsCoveredScheme)
     result = new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
     result.defining_classes = Dict{String, ToricDivisorClass}()
-    result.tunable_section_parametrization = Dict{String, ToricDivisorClass}()
+    result.tunable_section_parametrization = Dict{String, MPolyRingElem}()
     return result
   end
 end
