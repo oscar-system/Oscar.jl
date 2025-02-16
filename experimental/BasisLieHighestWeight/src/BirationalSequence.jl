@@ -4,10 +4,12 @@ struct BirationalSequence
   root_system::RootSystem
 
   function BirationalSequence(
-    operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}, root_system::RootSystem
+    operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}, root_sys::RootSystem
   )
     @req length(operator_roots) == length(operator_weights) "Different lengths"
-    return new(operator_roots, operator_weights, root_system)
+    @req all(rootspace_elem -> root_system(rootspace_elem) == root_sys, operator_roots) "Different root systems"
+    @req all(weight_elem -> root_system(weight_elem) == root_sys, operator_weights) "Different root systems"
+    return new(operator_roots, operator_weights, root_sys)
   end
 end
 
