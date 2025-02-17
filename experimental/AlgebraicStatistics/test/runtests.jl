@@ -1,5 +1,4 @@
 @testset "GaussianGraphicalModels" begin
-
   S = gaussian_ring(3)
   s = gens(S)
   G = graph_from_edges(Directed, [[1,2],[2,3]])
@@ -39,6 +38,8 @@ end
     # group of the model
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
+
+    @test vanishing_ideal(QQ, model) == vanishing_ideal(QQ, model; algorithm=:m4ti2)
   end
 
   @testset "Jukes Cantor" begin
