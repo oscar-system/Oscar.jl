@@ -314,12 +314,8 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   Base.issingletontype(T) && return T()
   if !isnothing(override_params)
-    if override_params isa Dict
-      error("Unsupported override type")
-    else
-      T, _ = load_type_params(s, T, type_key)
-      params = override_params
-    end
+    T, _ = load_type_params(s, T, type_key)
+    params = override_params
   else
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
