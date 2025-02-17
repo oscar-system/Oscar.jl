@@ -14,7 +14,6 @@ end
 # * specialized (inverse) fourier transform, two functions still as comments (Christiane)
 
 @testset "Graphical Models tests" begin
-
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
 
   @testset "cavender_farris_neyman_model" begin

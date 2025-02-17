@@ -6,7 +6,7 @@ struct PhylogeneticModel
   graph::Graph{Directed}
   n_states::Int
   prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any}
+  root_distr::Vector{Any} #this need to become more precise
   trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
 end
 
@@ -36,7 +36,7 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   gr = graph(pm)
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
-  root_dist = join(Oscar.root_distribution(pm), ", " )
+  root_dist = join(Oscar.root_distribution(pm), ", ")
   c_edg = 2
   p_edg = inneighbors(gr, c_edg)[1]
   findall(x-> x==2, dst.(edges(gr)))
@@ -50,14 +50,11 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   fp = transpose(fourier_parameters(pm)[Edge(p_edg, c_edg)])
   fp = replace(string(fp), "QQMPolyRingElem" => "")
   print(io, replace(replace(replace(string(fp), "["*idx => "[i"), ";" => ";\n "), "]]" => "]]."))
-
 end
-
 
 #########################################################################
 #### ATTRIBUTES OF PhylogeneticModel AND GroupBasedPhylogeneticModel ####
 #########################################################################
-
 @doc raw"""
     phylogenetic_model(pm::GroupBasedPhylogeneticModel)
 
@@ -77,7 +74,7 @@ Phylogenetic model on a tree with 3 leaves and 3 edges
   b[i] b[i] b[i] a[i]]. 
 ```
 """
-phylogenetic_model(pm::GroupBasedPhylogeneticModel) =  pm.phylo_model
+phylogenetic_model(pm::GroupBasedPhylogeneticModel) = pm.phylo_model
 
 @doc raw"""
     graph(pm::PhylogeneticModel)
@@ -251,15 +248,14 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b 
-    b a]) for (a,b,e) in zip(list_a, list_b, edgs)
-  )
-  
+    b a]) for (a,b,e) in zip(list_a, list_b, edgs))
+
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
-    G = collect(abelian_group(2))
-    group = [G[1],G[2]]
+  G = collect(abelian_group(2))
+  group = [G[1],G[2]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
@@ -294,9 +290,8 @@ function jukes_cantor_model(graph::Graph{Directed})
     a b b b
     b a b b
     b b a b
-    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs)
-  )
-  
+    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs))
+
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
@@ -338,8 +333,7 @@ function kimura2_model(graph::Graph{Directed})
     a b c b
     b a b c
     c b a b
-    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edgs)
-  )
+    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edgs))
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
@@ -381,8 +375,7 @@ function kimura3_model(graph::Graph{Directed})
     a b c d
     b a d c
     c d a b
-    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edgs)
-  )
+    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edgs))
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:4); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
@@ -395,11 +388,9 @@ function kimura3_model(graph::Graph{Directed})
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
 end
 
-
 ##############################
 #### GENERAL MARKOV MODEL ####
 ##############################
-
 @doc raw"""
     general_markov_model(graph::Graph{Directed})
 
@@ -475,4 +466,63 @@ function affine_phylogenetic_model!(pm::GroupBasedPhylogeneticModel)
   end
   return GroupBasedPhylogeneticModel(affine_pm, S, fourier_param, group_of_model(pm))
 end
-    
+
+#######################################################
+####  PHYLOGENETIC MODEL FROM TRANSITION MATRICES #####
+#######################################################
+
+function phylogenetic_model_from_matrices(matrices::Dict{Edge, MatElem{T}};
+                                          root_distr::Vector=[]) where T <: MPolyRingElem
+  phylogenetic_model_input_check(matrices; root_distr=root_distr)
+  edgs = collect(keys(matrices))
+  ns = ncols(matrices[edgs[1]])
+  F = coefficient_ring(base_ring(matrices[edgs[1]]))
+  vars_mat = vec(unique([string(x) for x in hcat(hcat(collect(values(matrices))...)...)]))
+  if length(root_distr) == 0
+    R, root_distr, = polynomial_ring(F, :π => 1:ns, vars_mat) # this :π should be changed, to :pi?
+  elseif isa(root_distr[1], Number)
+    R, = polynomial_ring(F, vars_mat)
+  else
+    R, = polynomial_ring(F, [string(x) for x in root_distr], vars_mat)
+  end
+
+  PhylogeneticModel(graph_from_edges(Directed,edgs), ns, R, root_distr, matrices)
+end
+
+function phylogenetic_model_input_check(matrices::Dict{Edge, MatElem{T}};
+                                        root_distr::Vector=[]) where T <: MPolyRingElem
+  edgs = collect(keys(matrices))
+  ns = unique([ncols(matrices[edgs[i]]) for i in 1:length(edgs)])
+
+  @req !all(is_square.(collect(values(matrices)))) "Not all matrices are square"
+  @req length(ns) != 1 "Matrices of different size"
+  @req length(unique(typeof.(collect(values(matrices))))) > 1 "Matrices of different type"
+  @req length(unique(base_ring.(collect(values(matrices))))) > 1 "Matrices defined in different polynomial rings"
+  @req !isempty(root_distr) && length(root_distr) != ns[1] "Different number of states on transition matrices and and distribution at the root"
+  @req length(unique(typeof.(root_distr))) > 1 "Entries of root distribution of different type"
+  if !isempty(root_distr)
+    r = root_distr[1]; m = matrices[edgs[1]][1,1]
+    if !isa(r, Number)
+      F_m = coefficient_ring(m)
+      F_r = coefficient_ring(r)
+      @req F_m != F_r "Transition matrices and distribution at the root defined in different fields"
+    end
+  end
+end
+
+function group_based_phylogenetic_model_from_matrices(matrices::Dict{Edge, MatElem{T}}, G::FinGenAbGroup;
+                                                      root_distr::Vector=[], fourier_param_name::String = "x") where T <: MPolyRingElem
+  # fourier_param_name should probably be changed to a VarName?
+  # phylogenetic_model_input_check(matrices; root_distr=root_distr)
+  is_group_based_model(matrices, G)
+  edgs = collect(keys(matrices))
+  ns = ncols(matrices[edgs[i]]) 
+  if length(root_distr) == 0
+    pm = phylogenetic_model_from_matrices(matrices; root_distr=repeat([1 / ns], ns))
+  else
+    pm = phylogenetic_model_from_matrices(matrices; root_distr=root_distr)
+  end
+  (S, fourier_param) = fourier_params_from_matrices(matrices, G)
+  GroupBasedPhylogeneticModel(pm, S, fourier_param, collect(G))
+end
+
