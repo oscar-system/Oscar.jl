@@ -15,7 +15,7 @@ instructions](https://www.oscar-system.org/install/) for installing OSCAR.
 
 If you have questions about OSCAR, please have a look at our [Frequently Asked
 Questions](@ref) and feel free to contact us under the channels mentioned on
-[our community page](https://www.oscar-system.org/community/). Our main
+[our contact page](https://www.oscar-system.org/contact-and-support/). Our main
 communication channels are [Slack](https://oscar-system.org/slack)
 and [Github](https://github.com/oscar-system/Oscar.jl).
 
