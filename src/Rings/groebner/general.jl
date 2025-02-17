@@ -55,7 +55,7 @@ The keyword `algorithm` can be set to
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
-- `:g4ti2` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
+- `:markov` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -143,8 +143,9 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
-  elseif algorithm == :g4ti2
-    @req all(i -> length(i) == 2, gens(I)) "Ideal needs to be a lattice ideal for 4ti2 algorithm"
+  elseif algorithm == :markov
+    @req all(i -> length(i) == 2, gens(I)) "Ideal needs to be a lattice ideal to use markov algorithm"
+    @req all(i -> allequal(coefficients(i)), gens(I)) "Ideal needs to be a lattice ideal to use markov algorithm"
     I.gb[ordering] = _groebner4ti2(I, ordering)
   end
   return I.gb[ordering]
