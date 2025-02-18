@@ -541,10 +541,11 @@ function (F::QQBarField)(a::QQAbFieldElem)
   cfs = Oscar.coefficients(a.data)
   r = root_of_unity(F, N)
   pow = one(F)
+  tmp = zero(F)
   res = cfs[1] * pow
   for i in 2:length(cfs)
-    pow = pow * r
-    res = res + cfs[i] * pow
+    pow = mul!(pow, r)
+    res = addmul!(res, cfs[i], pow, tmp)
   end
   return res
 end
@@ -559,8 +560,8 @@ Nemo.QQBarFieldElem(a::QQAbFieldElem) = algebraic_closure(QQ)(a)
 #  conversions in question.
 #
 
-Core.Float64(a::QQAbFieldElem) = Float64(algebraic_closure(QQ)(a))
-Base.ComplexF64(a::QQAbFieldElem) = ComplexF64(algebraic_closure(QQ)(a))
+Core.Float64(a::QQAbFieldElem) = Float64(QQBarFieldElem(a))
+Base.ComplexF64(a::QQAbFieldElem) = ComplexF64(QQBarFieldElem(a))
 
 ################################################################################
 #
@@ -1120,18 +1121,19 @@ Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
 Base.isreal(elm::QQAbFieldElem) = conj(elm) == elm
 
 # compare real `QQAbFieldElem`s
-function _isless_via_qqbar(a, b)
+function Base.isless(a::QQAbFieldElem, b::QQAbFieldElem)
   F = QQBarField()
   return Base.isless(F(a), F(b))
 end
 
-Base.isless(a::QQAbFieldElem, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
-Base.isless(a::QQAbFieldElem, b::ZZRingElem) = _isless_via_qqbar(a, b)
-Base.isless(a::QQAbFieldElem, b::QQFieldElem) = _isless_via_qqbar(a, b)
-Base.isless(a::QQAbFieldElem, b::Int) = _isless_via_qqbar(a, b)
-Base.isless(a::QQFieldElem, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
-Base.isless(a::ZZRingElem, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
-Base.isless(a::Int, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
+_isless_via_qqbar(a, b) = Base.isless(QQBarFieldElem(a), QQBarFieldElem(b))
+
+for T in (QQFieldElem, ZZRingElem, Int, Integer, Rational)
+  @eval begin
+    Base.isless(a::QQAbFieldElem, b::$T) = _isless_via_qqbar(a, b)
+    Base.isless(a::$T, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
+  end
+end
 
 AbstractAlgebra.is_positive(a::QQAbFieldElem) = _isless_via_qqbar(0, a)
 AbstractAlgebra.is_negative(a::QQAbFieldElem) = _isless_via_qqbar(a, 0)

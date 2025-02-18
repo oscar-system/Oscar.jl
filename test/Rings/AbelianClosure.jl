@@ -140,10 +140,14 @@ end
     n = zero(K)
     @test a > n && F(a) > F(n)
     @test a > 0
+    @test a > BigInt(0)
+    @test a > 0 // 1
     @test a > ZZ(0)
     @test a > QQ(0)
     @test b < n && F(b) < F(n)
     @test b < 0
+    @test b < BigInt(0)
+    @test b < 0 // 1
     @test b < ZZ(0)
     @test b < QQ(0)
     @test b < a && F(b) < F(a)

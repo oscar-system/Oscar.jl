@@ -28,9 +28,9 @@ atlas_description
 
 ## Natural embedding
 
-Oscar assumes a natural embedding of the field
-`K = abelian_closure(QQ)` into the algebraic closure `F` of `QQ`,
-which is given by mapping the `n`-th root of unity returned by `gen(K)(n)`
+Oscar assumes a natural embedding of the field `K` produced by
+`K, z = abelian_closure(QQ)` into `F = algebraic_closure(QQ)`,
+which is given by mapping the `n`-th root of unity returned by `z(n)`
 to `root_of_unity(F, n)`.
 Both roots of unity correspond to the complex number $\exp(2 \pi i / n)$.
 
