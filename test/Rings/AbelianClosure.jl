@@ -113,9 +113,9 @@ end
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
-  @testset "Conversion" begin
+  @testset "Conversion to ZZRingElem and QQFieldElem" begin
     K, z = abelian_closure(QQ)
-    x  = z(5)
+    x = z(5)
     y = ZZ(x^5)
     @test y isa ZZRingElem
     @test y == 1
@@ -124,6 +124,46 @@ end
     @test y == 1
     @test_throws ErrorException ZZ(x)
     @test_throws ErrorException QQ(x)
+  end
+
+  @testset "Conversion to QQBarFieldElem" begin
+    K, z = abelian_closure(QQ)
+    F = QQBarField()
+    x = z(5)
+    y = F(x)
+    @test F(x) == QQBarFieldElem(x)
+    @test F(x^2) == y^2
+    @test y == root_of_unity(F, 5)
+    @test is_one(y^5)
+    a = x + x^4
+    b = x^2 + x^3
+    n = zero(K)
+    @test a > n && F(a) > F(n)
+    @test a > 0
+    @test a > BigInt(0)
+    @test a > 0 // 1
+    @test a > ZZ(0)
+    @test a > QQ(0)
+    @test b < n && F(b) < F(n)
+    @test b < 0
+    @test b < BigInt(0)
+    @test b < 0 // 1
+    @test b < ZZ(0)
+    @test b < QQ(0)
+    @test b < a && F(b) < F(a)
+    @test is_positive(a)
+    @test is_negative(b)
+    @test_throws DomainError x < n
+    @test_throws DomainError y < F(n)
+  end
+
+  @testset "Conversion to Float64 and ComplexF64" begin
+    K, z = abelian_closure(QQ)
+    x = z(5)
+    a = x + x^4
+    @test Float64(a) > 0
+    @test_throws InexactError Float64(x)
+    @test is_one(ComplexF64(one(K)))
   end
 
   @testset "Promote rule" begin

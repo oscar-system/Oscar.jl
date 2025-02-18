@@ -526,6 +526,42 @@ end
 (R::QQField)(a::QQAbFieldElem) = R(a.data)
 (R::ZZRing)(a::QQAbFieldElem) = R(a.data)
 
+################################################################################
+#
+#  Conversion to `QQBarFieldElem`
+#
+#  We assume the natural embedding of cyclotomic fields into `QQBarField()`
+#  that is given by the (documented) fact that
+#  `root_of_unity(F::QQBarField, n::Int)` is $\exp(2 \pi i / n)$.
+#
+################################################################################
+
+function (F::QQBarField)(a::QQAbFieldElem)
+  N = a.c
+  cfs = Oscar.coefficients(a.data)
+  r = root_of_unity(F, N)
+  pow = one(F)
+  tmp = zero(F)
+  res = cfs[1] * pow
+  for i in 2:length(cfs)
+    pow = mul!(pow, r)
+    res = addmul!(res, cfs[i], pow, tmp)
+  end
+  return res
+end
+
+Nemo.QQBarFieldElem(a::QQAbFieldElem) = algebraic_closure(QQ)(a)
+
+################################################################################
+#
+#  Conversion to `Float64`, `ComplexF64`
+#
+#  We first convert to a `QQBarFieldElem` and then use that it supports the
+#  conversions in question.
+#
+
+Core.Float64(a::QQAbFieldElem) = Float64(QQBarFieldElem(a))
+Base.ComplexF64(a::QQAbFieldElem) = ComplexF64(QQBarFieldElem(a))
 
 ################################################################################
 #
@@ -1058,6 +1094,24 @@ end
 Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
 
 Base.isreal(elm::QQAbFieldElem) = conj(elm) == elm
+
+# compare real `QQAbFieldElem`s
+function Base.isless(a::QQAbFieldElem, b::QQAbFieldElem)
+  F = QQBarField()
+  return Base.isless(F(a), F(b))
+end
+
+_isless_via_qqbar(a, b) = Base.isless(QQBarFieldElem(a), QQBarFieldElem(b))
+
+for T in (QQFieldElem, ZZRingElem, Int, Integer, Rational)
+  @eval begin
+    Base.isless(a::QQAbFieldElem, b::$T) = _isless_via_qqbar(a, b)
+    Base.isless(a::$T, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
+  end
+end
+
+AbstractAlgebra.is_positive(a::QQAbFieldElem) = _isless_via_qqbar(0, a)
+AbstractAlgebra.is_negative(a::QQAbFieldElem) = _isless_via_qqbar(a, 0)
 
 ###############################################################################
 #
