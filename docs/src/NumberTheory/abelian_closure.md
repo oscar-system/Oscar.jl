@@ -87,6 +87,12 @@ Generator of abelian closure of Q
 
 julia> ζ(5) + ζ(3)
 ζ(15)^5 + ζ(15)^3
+
+julia> set_variable!(K, "zeta")  # reset to the default value
+"ζ"
+
+julia> z(4)
+zeta(4)
 ```
 
 ## Reduction to characteristic ``p``
