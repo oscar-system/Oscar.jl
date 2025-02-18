@@ -66,7 +66,7 @@ true
 ## Printing
 
 The n-th primitive root of the abelian closure of will by default be printed as
-`z(n)`. The printing can be manipulated using the following functions:
+`zeta(n)`. The printing can be manipulated using the following functions:
 
 ```@docs
 gen(::QQAbField, ::String)
@@ -76,11 +76,11 @@ get_variable(::QQAbField)
 
 ### Examples
 
-```@jldoctest
+```jldoctest
 julia> K, z = abelian_closure(QQ);
 
 julia> z(4)
-z(4)
+zeta(4)
 
 julia> ζ = gen(K, "ζ")
 Generator of abelian closure of Q
