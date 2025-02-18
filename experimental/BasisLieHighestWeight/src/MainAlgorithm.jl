@@ -252,7 +252,7 @@ function compute_monomials(
     # check if we found enough monomials
 
     if length(monomials) < dim(V)
-      push!(no_minkowski, highest_weight)
+      push!(no_minkowski, highest_weight(V))
       monomials = add_by_hand(
         V, birational_seq, ZZx, monomial_ordering, monomials
       )
