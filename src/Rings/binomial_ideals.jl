@@ -1138,7 +1138,8 @@ function _groebner4ti2(I::MPolyIdeal, o::MonomialOrdering)
   #this creates the file julia4ti2.gro with the markov basis
   mat = _parse_matrix("$name.gro")
 
-  return IdealGens(gens(binomial_exponents_to_ideal(R, mat)), o; isGB = true)
+  return IdealGens(gens(binomial_exponents_to_ideal(R, mat)), o;
+                   isGB = true)
 end
 
 function _parse_matrix(filename::String)
