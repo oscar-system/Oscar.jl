@@ -51,7 +51,7 @@ function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=true)
     is_finite(W) && set_order(G, order(W))
 
     iso = function (w::WeylGroupElem)
-      return G([i => 1 for i in word(w)])
+      return G(syllables(w)) # TODO: change to letters once G supports that input
     end
 
     isoinv = function (g::FPGroupElem)
