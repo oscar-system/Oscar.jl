@@ -122,7 +122,6 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
-  println(s.obj)
   return decode_type(s.obj)
 end
 
@@ -376,6 +375,7 @@ end
 function register_attr_list(@nospecialize(T::Type),
                             attrs::Union{Vector{Symbol}, Nothing})
   if !isnothing(attrs)
+    !serialize_with_id(T) && error("Only types that are stored as references can store attributes")
     Oscar.type_attr_map[encode_type(T)] = attrs
   end
 end

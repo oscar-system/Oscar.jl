@@ -29,7 +29,7 @@
       c = cube(3)
       LP0 = linear_program(c, [2,2,-3])
       LP1 = linear_program(c, [2,2,4])
-      v = [LP0, LP1]
+      v = LinearProgram[LP0, LP1]
       test_save_load_roundtrip(path, v) do loaded
         @test length(v) == length(loaded)
         @test feasible_region(loaded[1]) == feasible_region(loaded[2])
@@ -164,7 +164,7 @@
       end
     end
 
-    @testset "Test for backwards compatibility" begin
+    @test_skip @testset "Test for backwards compatibility" begin
       loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
       @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
     end

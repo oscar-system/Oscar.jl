@@ -122,14 +122,12 @@ type_params(R::MPolyDecRing) = TypeParams(
 )
 
 function save_object(s::SerializerState, R::MPolyDecRing)
-  save_data_dict(s) do
-    save_object(s, _grading(R), :grading)
-  end
+  save_object(s, _grading(R))
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRing}, d::Dict)
   ring = d[:ring]
-  grading = load_object(s, Vector{elem_type(d[:grading_group])}, d[:grading_group], :grading)
+  grading = load_object(s, Vector{elem_type(d[:grading_group])}, d[:grading_group])
   return grade(ring, grading)[1]
 end
 
@@ -285,7 +283,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:IdealGens}, base_ring::MPolyRing)
   ord = load_object(s, MonomialOrdering, base_ring, :ordering)
-  generators = load_object(s, Vector{MPolyRingElem}, base_ring, :gens)
+  generators = load_object(s, Vector{elem_type(base_ring)}, base_ring, :gens)
   is_gb = load_object(s, Bool, :is_gb)
   is_reduced = load_object(s, Bool, :is_reduced)
   keep_ordering = load_object(s, Bool, :keep_ordering)

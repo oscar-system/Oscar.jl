@@ -143,21 +143,19 @@ function type_params(K::FqField)
 end
 
 function save_object(s::SerializerState, K::FqField)
-  save_data_dict(s) do
-    if absolute_degree(K) == 1
-      save_object(s, order(K), :order)
-    else
-      save_object(s, defining_polynomial(K), :def_pol)
-    end
+  if absolute_degree(K) == 1
+    save_object(s, order(K))
+  else
+    save_object(s, defining_polynomial(K))
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRing)
-  finite_field(load_object(s, PolyRingElem, params, :def_pol), cached=false)[1]
+  finite_field(load_object(s, PolyRingElem, params), cached=false)[1]
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
-  finite_field(load_object(s, ZZRingElem, ZZRing(), :order))[1]
+  finite_field(load_object(s, ZZRingElem, ZZRing()))[1]
 end
 
 # elements

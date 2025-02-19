@@ -1,4 +1,4 @@
-@register_serialization_type HypersurfaceModel
+@register_serialization_type HypersurfaceModel uses_id []
 
 ############################################################################
 # This function saves the types of the data that define a hypersurface model
@@ -36,7 +36,6 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
         attrs_dict[key] = value
       end
     end
-
 
     # Save resolutions, if they are known.
     if has_resolutions(h)
