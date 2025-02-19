@@ -931,13 +931,80 @@ maximal_blocks(G::GSet) = error("not implemented")
 minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
+
+"""
+    is_transitive(Omega::GSet)
+
+Return whether the group action associated with `Omega` is transitive.
+In other word, this tests if `Omega` consists of precisely one orbit.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Permutation group of degree 6 and order 16
+
+julia> Omega = gset(G);
+
+julia> is_transitive(Omega)
+false
+```
+"""
+function is_transitive(Omega::GSet)
+    return length(orbits(Omega)) == 1
+end
 function is_transitive(Omega::GSetByElements)
     length(Omega.seeds) == 1 && return true
     return length(orbits(Omega)) == 1
 end
 
+"""
+    is_regular(Omega::GSet)
+
+Return whether the group action associated with `Omega`
+is regular, i.e., is transitive and semiregular.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
+Permutation group of degree 6
+
+julia> OmegaG = gset(G);
+
+julia> OmegaH = gset(H);
+
+julia> is_regular(OmegaH)
+true
+
+julia> is_regular(OmegaG)
+false
+```
+"""
 is_regular(Omega::GSet) = is_transitive(Omega) && length(Omega) == order(acting_group(Omega))
 
+"""
+    is_semiregular(Omega::GSet)
+
+Return whether the group action associated with `Omega`
+is semiregular, i.e., the stabilizer of each point is the identity.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
+Permutation group of degree 6
+
+julia> OmegaH = gset(H);
+
+julia> is_semiregular(H)
+true
+
+julia> is_regular(H)
+false
+```
+"""
 function is_semiregular(Omega::GSet)
     ord = order(acting_group(Omega))
     return all(orb -> length(orb) == ord, orbits(Omega))
