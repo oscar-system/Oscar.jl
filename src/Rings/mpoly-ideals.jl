@@ -1886,6 +1886,7 @@ codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I
 
 
 # Some fixes which were necessary for the above
+dim(R::MPolyRing{<:FieldElem}) = nvars(R) # Needed, because `dim` for number fields implements something different from Krull dimension!
 dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
 dim(R::ZZRing) = 1
 
