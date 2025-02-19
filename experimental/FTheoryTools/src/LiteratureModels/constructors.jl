@@ -21,25 +21,26 @@
 #                                                                    class of the corresponding model section in this basis. In the case of the
 #                                                                    example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
 #                                   tunable_section_parametrization: This should be a dictionary that defines how the "default" parameters of
-#                                                                    the given model type are defined in terms of the sections of the defining
-#                                                                    classes. In the case of the example above, tunable_section_parametrization
+#                                                                    the given model type are defined in terms of the tunable sections.
+#                                                                    In the case of the example above, tunable_section_parametrization
 #                                                                    would be Dict("a2" => a21 * w, "a3" => a32 * w^2, "a4" => a43 * w^3, 
 #                                                                    "a6" => a65 * w^5)
 #                                                    model_sections: This should be a list of all named sections involved in the definition of the
 #                                                                    model, including the tunable_sections and all sections parametrized by them.
-#                                                                    It should match the set of keys of explicit_model_sections.  In the case of
-#                                                                    the example above, this list would include "a1", "a2", "a3", "a4", "a6", "w",
-#                                                                    "a21", "a32", "a43", and "a65".
+#                                                                    It should match the set of keys of explicit_model_sections and
+#                                                                    classes_of_model_sections. In the case of the example above, this list would
+#                                                                    include "a1", "a2", "a3", "a4", "a6", "w", "a21", "a32", "a43", and "a65".
 #                                                                    NOTE: Previously, "model_sections" was used to refer to what is now called
 #                                                                    "defining_classes". For backward compatibility, there is a keyword argument
 #                                                                    "model_classes" that can be given as input to the literature model constructor
 #                                                                    that works in the same way as the keyword argument "defining_classes". THIS
 #                                                                    SHOULD NOT BE DOCUMENTED BECAUSE WE DO NOT WANT THE USERS TO USE THIS
-#                                                                    TERMINOLOGY.
-#                                                                    SECOND NOTE: The .json files for the literature models use "model_sections" to
-#                                                                    refer to every named section introduced in the model. This does not include
-#                                                                    parametrized sections, so this is essentially a synonym for "tunable_sections"
-#                                                                    that is used only in the .json files and, as a result, the literature model
+#                                                                    TERMINOLOGY!
+#                                                                    SECOND NOTE (FIXME): The .json files for the literature models use
+#                                                                    "model_sections" to refer to every named section introduced in the model. This
+#                                                                    does *not* include parametrized sections, which don't appear explicitly in the 
+#                                                                    model definition, so this is essentially a synonym for "tunable_sections" that
+#                                                                    is used only in the .json files and, as a result, the literature model
 #                                                                    constructors. This should be fixed in future
 #                                           explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
 #                                                                    involved in the definition of the model. The set of keys should match the list
