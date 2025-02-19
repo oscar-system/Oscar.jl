@@ -38,7 +38,7 @@ We can convert elements of `K` to elements of `F` as follows.
 
 ```jldoctest naturalembedding
 julia> K, z = abelian_closure(QQ)
-(Abelian closure of Q, Generator of abelian closure of Q)
+(Abelian closure of rational field, Generator of abelian closure of rational field)
 
 julia> F = algebraic_closure(QQ)
 Field of algebraic numbers
