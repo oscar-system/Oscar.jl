@@ -1010,8 +1010,29 @@ function is_semiregular(Omega::GSet)
     return all(orb -> length(orb) == ord, orbits(Omega))
 end
 
-is_primitive(G::GSet) = error("not implemented")
+"""
+    is_primitive(Omega::GSet)
 
+Return whether the group action associated with `Omega` is primitive, that is,
+the action is transitive and admits no nontrivial block systems.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); Omega = gset(G);
+
+julia> is_primitive(Omega)
+true
+
+julia> H, _ = sub(G, [cperm([2, 3, 4])]);
+
+julia> is_primitive(gset(H))
+false
+```
+"""
+function is_primitive(Omega::GSet)
+  acthom = action_homomorphism(Omega)
+  return is_transitive(Omega) && is_primitive(image(acthom)[1])
+end
 
 """
     blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
