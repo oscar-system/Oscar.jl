@@ -20,9 +20,9 @@
 #                                                                    in terms of Kbar and the defining classes. Each column should give the divisor
 #                                                                    class of the corresponding model section in this basis. In the case of the
 #                                                                    example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
-#                                   tunable_section_parametrization: This should be a dictionary that defines how the "default" parameters of
+#                                   model_section_parametrization: This should be a dictionary that defines how the "default" parameters of
 #                                                                    the given model type are defined in terms of the tunable sections.
-#                                                                    In the case of the example above, tunable_section_parametrization
+#                                                                    In the case of the example above, model_section_parametrization
 #                                                                    would be Dict("a2" => a21 * w, "a3" => a32 * w^2, "a4" => a43 * w^3, 
 #                                                                    "a6" => a65 * w^5)
 #                                                    model_sections: This should be a list of all named sections involved in the definition of the
@@ -446,26 +446,26 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model_sections["a4"] = map(a4)
     model_sections["a6"] = map(a6)
 
-    # Find tunable_section_parametrization
-    tunable_section_parametrization = Dict{String, MPolyRingElem}()
+    # Find model_section_parametrization
+    model_section_parametrization = Dict{String, MPolyRingElem}()
     if !("a1" in sec_names) || (a1 != eval_poly("a1", parent(a1)))
-      tunable_section_parametrization["a1"] = a1
+      model_section_parametrization["a1"] = a1
     end
     if !("a2" in sec_names) || (a2 != eval_poly("a2", parent(a2)))
-      tunable_section_parametrization["a2"] = a2
+      model_section_parametrization["a2"] = a2
     end
     if !("a3" in sec_names) || (a3 != eval_poly("a3", parent(a3)))
-      tunable_section_parametrization["a3"] = a3
+      model_section_parametrization["a3"] = a3
     end
     if !("a4" in sec_names) || (a4 != eval_poly("a4", parent(a4)))
-      tunable_section_parametrization["a4"] = a4
+      model_section_parametrization["a4"] = a4
     end
     if !("a6" in sec_names) || (a6 != eval_poly("a6", parent(a6)))
-      tunable_section_parametrization["a6"] = a6
+      model_section_parametrization["a6"] = a6
     end
 
     # Create the model
-    model = global_tate_model(base_space, model_sections, tunable_section_parametrization; completeness_check = completeness_check)
+    model = global_tate_model(base_space, model_sections, model_section_parametrization; completeness_check = completeness_check)
 
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
@@ -477,17 +477,17 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model_sections["f"] = map(f)
     model_sections["g"] = map(g)
 
-    # Find tunable_section_parametrization
-    tunable_section_parametrization = Dict{String, MPolyRingElem}()
+    # Find model_section_parametrization
+    model_section_parametrization = Dict{String, MPolyRingElem}()
     if !("f" in sec_names) || (f != eval_poly("f", parent(f)))
-      tunable_section_parametrization["f"] = f
+      model_section_parametrization["f"] = f
     end
     if !("g" in sec_names) || (g != eval_poly("g", parent(g)))
-      tunable_section_parametrization["g"] = g
+      model_section_parametrization["g"] = g
     end
 
     # Create the model
-    model = weierstrass_model(base_space, model_sections, tunable_section_parametrization; completeness_check = completeness_check)
+    model = weierstrass_model(base_space, model_sections, model_section_parametrization; completeness_check = completeness_check)
 
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 

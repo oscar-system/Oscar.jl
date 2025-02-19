@@ -187,27 +187,27 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
       f = tate_polynomial(m)
       new_tate_polynomial = strict_transform(bd, f)
-      model = GlobalTateModel(explicit_model_sections(m), tunable_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
+      model = GlobalTateModel(explicit_model_sections(m), model_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism
         new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
       else
         new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
       end
-      model = GlobalTateModel(explicit_model_sections(m), tunable_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
+      model = GlobalTateModel(explicit_model_sections(m), model_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
       f = weierstrass_polynomial(m)
       new_weierstrass_polynomial = strict_transform(bd, f)
-      model = WeierstrassModel(explicit_model_sections(m), tunable_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
+      model = WeierstrassModel(explicit_model_sections(m), model_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism
         new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
       else
         new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
       end
-      model = WeierstrassModel(explicit_model_sections(m), tunable_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
+      model = WeierstrassModel(explicit_model_sections(m), model_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
 
@@ -343,7 +343,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
   
   # Work out the Weierstrass/Tate sections
   new_model_secs = Dict{String, MPolyRingElem}()
-  if is_empty(tunable_section_parametrization(m))
+  if is_empty(model_section_parametrization(m))
     
     # No parametrization, so simply take generic sections
     
@@ -364,7 +364,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     # Parametrization for Weierstrass/Tate sections found
 
     # Have all parametrizing sections been provided by the user?
-    polys = collect(values(tunable_section_parametrization(m)))
+    polys = collect(values(model_section_parametrization(m)))
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
@@ -377,7 +377,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     end
 
     # Create ring map to evaluate Weierstrass/Tate sections
-    parametrization = tunable_section_parametrization(m)
+    parametrization = model_section_parametrization(m)
     domain = parent(collect(values(parametrization))[1])
     codomain = cox_ring(concrete_data["base"])
     images = [haskey(new_model_secs, string(k)) ? new_model_secs[string(k)] : zero(codomain) for k in gens(domain)]
@@ -464,9 +464,9 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
   # Compute the new model
   if m isa WeierstrassModel
-    return weierstrass_model(concrete_data["base"], new_model_secs, tunable_section_parametrization(m); completeness_check)
+    return weierstrass_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
   else
-    return global_tate_model(concrete_data["base"], new_model_secs, tunable_section_parametrization(m); completeness_check)
+    return global_tate_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
   end
 end
 

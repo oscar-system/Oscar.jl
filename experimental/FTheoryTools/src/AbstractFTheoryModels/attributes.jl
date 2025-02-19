@@ -98,7 +98,7 @@ end
 
 
 @doc raw"""
-    tunable_section_parametrization(m::AbstractFTheoryModel)
+    model_section_parametrization(m::AbstractFTheoryModel)
 
 Return a dictionary that defines how the "default" parameters of
 the given model type are defined in terms of the tunable sections
@@ -110,7 +110,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> tunable_section_parametrization(t)
+julia> model_section_parametrization(t)
 Dict{String, MPolyRingElem} with 4 entries:
   "a6" => 0
   "a3" => w^2*a32
@@ -118,9 +118,9 @@ Dict{String, MPolyRingElem} with 4 entries:
   "a4" => w^3*a43
 ```
 """
-function tunable_section_parametrization(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :tunable_section_parametrization) "tunable_section_parametrization not supported for this F-theory model"
-  return m.tunable_section_parametrization
+function model_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :model_section_parametrization) "model_section_parametrization not supported for this F-theory model"
+  return m.model_section_parametrization
 end
 
 
@@ -1341,7 +1341,7 @@ julia> tunable_sections(m)
  "a32"
 ```
 """
-@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(tunable_section_parametrization(m))))
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
 
 
 @doc raw"""
@@ -1349,7 +1349,7 @@ julia> tunable_sections(m)
 
 Return a vector containing all sections that were used in the definition of the model.
 This includes the sections returned by `tunable_sections` and all sections parametrized by
-them (the keys of the dictionary returned by `tunable_section_parametrization`). These are
+them (the keys of the dictionary returned by `model_section_parametrization`). These are
 the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
 
 ```jldoctest

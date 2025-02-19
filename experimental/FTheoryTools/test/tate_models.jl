@@ -73,7 +73,7 @@ t2_copy = global_tate_model(sample_toric_variety(); completeness_check = false)
       @test is_base_space_fully_specified(t2_copy) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(t2_copy) == is_partially_resolved(loaded)
       @test explicit_model_sections(t2_copy) == explicit_model_sections(loaded)
-      @test tunable_section_parametrization(t2_copy) == tunable_section_parametrization(loaded)
+      @test model_section_parametrization(t2_copy) == model_section_parametrization(loaded)
       @test defining_classes(t2_copy) == defining_classes(loaded)
     end
   end

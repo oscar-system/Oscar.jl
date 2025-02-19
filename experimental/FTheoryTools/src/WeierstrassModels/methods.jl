@@ -87,7 +87,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(w))
-  def_secs_param = deepcopy(tunable_section_parametrization(w))
+  def_secs_param = deepcopy(model_section_parametrization(w))
   weierstrass_sections = ["f", "g"]
 
   # 1. Tune model sections different from Weierstrass sections

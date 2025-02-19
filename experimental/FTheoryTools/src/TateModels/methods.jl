@@ -164,7 +164,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(t))
-  def_secs_param = deepcopy(tunable_section_parametrization(t))
+  def_secs_param = deepcopy(model_section_parametrization(t))
   tate_sections = ["a1", "a2", "a3", "a4", "a6"]
 
   # 1. Tune model sections different from Tate sections
