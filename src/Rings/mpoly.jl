@@ -512,11 +512,12 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
-  a = gen(Qa)
   SQa, (Sa,) = Singular.FunctionField(Singular.QQ, _variables_for_singular(symbols(Qa)))
   Sminpoly = SQa(coeff(minpoly, 0))
+  var = Sa
   for i in 1:degree(minpoly)
-    Sminpoly += SQa(coeff(minpoly, i))*Sa^i
+      Sminpoly = muladd(SQa(coeff(minpoly, i)), var, Sminpoly)
+      var *= Sa
   end
   SK, _ = Singular.AlgebraicExtensionField(SQa, Sminpoly)
   return SK
@@ -529,8 +530,10 @@ function singular_coeff_ring(F::fqPolyRepField)
   SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
                                                     _variables_for_singular(symbols(Fa)))
   Sminpoly = SFa(coeff(minpoly, 0))
+  var = Sa
   for i in 1:degree(minpoly)
-    Sminpoly += SFa(coeff(minpoly, i))*Sa^i
+      Sminpoly = muladd(SFa(coeff(minpoly, i)), var, Sminpoly)
+      var *= Sa
   end
   SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
   return SF
@@ -550,8 +553,10 @@ function singular_coeff_ring(F::FqField)
     SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
                                         _variables_for_singular(symbols(Fa)))
     Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
+    var = Sa
     for i in 1:degree(minpoly)
-      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
+        Sminpoly = muladd(SFa(lift(ZZ, coeff(minpoly, i))), var, Sminpoly)
+        var *= Sa
     end
     SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
     return SF
@@ -579,8 +584,10 @@ function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
   F = parent(a)
   SFa = gen(SF)
   res = SF(lift(ZZ, coeff(a, 0)))
+  var = SFa
   for i in 1:degree(F)-1
-    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+    res = muladd(SF(lift(ZZ, coeff(a, i))), var, res)
+    var *= SFa
   end
   return res
 end
@@ -617,8 +624,10 @@ function (SF::Singular.N_AlgExtField)(a::fqPolyRepFieldElem)
   F = parent(a)
   SFa = gen(SF)
   res = SF(coeff(a, 0))
+  var = SFa
   for i in 1:degree(F)-1
-    res += SF(coeff(a, i))*SFa^i
+    res = muladd(SF(coeff(a, i)), var, res)
+    var *= SFa
   end
   return res
 end
