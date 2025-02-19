@@ -1,5 +1,5 @@
 function coxeter_matrix(W::WeylGroup)
-  return cartan_to_coxeter_matrix(cartan_matrix(root_system(W)))
+  return cartan_to_coxeter_matrix(cartan_matrix(W))
 end
 
 @doc raw"""
@@ -346,7 +346,7 @@ true
 function parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupElem=one(W))
   @req allunique(vec) "Elements of vector are not pairwise distinct"
   @req all(i -> 1 <= i <= number_of_generators(W), vec) "Invalid indices"
-  cm = cartan_matrix(root_system(W))[vec, vec]
+  cm = cartan_matrix(W)[vec, vec]
   para = weyl_group(cm)
   genimgs = [conj(W[i], w) for i in vec]
   emb = function (u::WeylGroupElem)
@@ -393,7 +393,7 @@ function parabolic_subgroup_with_projection(
   if check
     # Check that every generator in gens(W)[vec] commutes with every other generator.
     # In other words, vec describes a union of irreducible components of the Coxeter diagram.
-    cm = cartan_matrix(root_system(W))
+    cm = cartan_matrix(W)
     for i in setdiff(1:number_of_generators(W), vec)
       for j in vec
         @req is_zero_entry(cm, i, j) begin
