@@ -68,8 +68,9 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return the model sections in explicit form, that is as polynomials
+of the base space coordinates. The set of keys of the returned
+dictionary matches the output of `model_sections`. 
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -97,10 +98,11 @@ end
 
 
 @doc raw"""
-    defining_section_parametrization(m::AbstractFTheoryModel)
+    model_section_parametrization(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return a dictionary that defines how the "default" parameters of
+the given model type are defined in terms of the tunable sections
+(those returned by `tunable_sections`).
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -108,7 +110,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> defining_section_parametrization(t)
+julia> model_section_parametrization(t)
 Dict{String, MPolyRingElem} with 4 entries:
   "a6" => 0
   "a3" => w^2*a32
@@ -116,16 +118,18 @@ Dict{String, MPolyRingElem} with 4 entries:
   "a4" => w^3*a43
 ```
 """
-function defining_section_parametrization(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :defining_section_parametrization) "defining_section_parametrization not supported for this F-theory model"
-  return m.defining_section_parametrization
+function model_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :model_section_parametrization) "model_section_parametrization not supported for this F-theory model"
+  return m.model_section_parametrization
 end
 
 
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Return the divisor classes of all model sections.
+Return the divisor classes of all model sections. The set
+of keys of the returned dictionary matches the output
+of `model_sections`.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -174,6 +178,8 @@ end
     defining_classes(m::AbstractFTheoryModel)
 
 Return the defining divisor classes of the model in question.
+This is the minimum set of information required to specify a
+family of models. 
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -188,9 +194,8 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> defining_classes(t)
-Dict{String, ToricDivisorClass} with 2 entries:
-  "w"    => Divisor class on a normal toric variety
-  "Kbar" => Divisor class on a normal toric variety
+Dict{String, ToricDivisorClass} with 1 entry:
+  "w" => Divisor class on a normal toric variety
 ```
 """
 function defining_classes(m::AbstractFTheoryModel)
@@ -1319,6 +1324,7 @@ end
     tunable_sections(m::AbstractFTheoryModel)
 
 Return a vector containing all sections that can be tuned.
+This is a list of the names of all parameters appearing in the model.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1326,17 +1332,25 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> length(tunable_sections(m))
-9
+julia> tunable_sections(m)
+5-element Vector{String}:
+ "a21"
+ "w"
+ "a1"
+ "a43"
+ "a32"
 ```
 """
-@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
 
 
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
 Return a vector containing all sections that were used in the definition of the model.
+This includes the sections returned by `tunable_sections` and all sections parametrized by
+them (the keys of the dictionary returned by `model_section_parametrization`). These are
+the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1344,11 +1358,20 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> length(model_sections(m))
-9
+julia> model_sections(m)
+9-element Vector{String}:
+ "a6"
+ "a21"
+ "a3"
+ "w"
+ "a2"
+ "a1"
+ "a4"
+ "a43"
+ "a32"
 ```
 """
-model_sections(m::AbstractFTheoryModel) = tunable_sections(m)
+model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
 
 
 

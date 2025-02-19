@@ -50,7 +50,7 @@
         "model_sections": ["s1", "s2", "s3", "s6", "s9"],
         "f": "1//48*( - 16*s2^2*s9^2 + 8*s2*s6^2*s9 - s6^4 + 48*s1*s3*s9^2)",
         "g": "1//864*( - 64*s2^3*s9^3 + 48*s2^2*s6^2*s9^2 - 12*s2*s6^4*s9 + 288*s1*s3*s2*s9^3 + s6^6 - 72*s1*s3*s6^2*s9^2)",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [ 3,  2,  1, 1, 0],
             [-1,  0,  1, 0, 0],
             [-1, -1, -1, 0, 1]
