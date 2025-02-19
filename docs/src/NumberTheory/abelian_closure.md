@@ -92,7 +92,7 @@ julia> ζ(5) + ζ(3)
 julia> z(4)
 "ζ"
 
-julia> set_variable!(K, "zeta");  # try to reset to the default value
+julia> set_variable!(K, "zeta");
 
 julia> z(4)
 zeta(4)
