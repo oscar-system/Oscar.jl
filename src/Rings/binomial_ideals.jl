@@ -1108,7 +1108,7 @@ function markov4ti2(L::ZZMatrix)
   _prep_4ti2(L, "$name.lat")
   #now we have the file julia4ti2.lat in the current working directory
   #can run 4ti2 with this input file to get a markov basis
-  success(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`)
+  success(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`) || error("Error running 4ti2 markov")
   
 #        run(`$(lib4ti2_jll.markov) -q $name`)
   #this creates the file julia4ti2.mar with the markov basis
@@ -1133,7 +1133,7 @@ function _groebner4ti2(I::MPolyIdeal, o::MonomialOrdering)
   _prep_4ti2(canonical_matrix(o), "$name.cost")
   #now we have the file julia4ti2.lat in the current working directory
   #can run 4ti2 with this input file to get a groebner basis
-  success(`$(lib4ti2_jll.exe4ti2gmp()) groebner -q $name`)
+  success(`$(lib4ti2_jll.exe4ti2gmp()) groebner -q $name`) || error("Error running 4ti2 groebner")
   
   #this creates the file julia4ti2.gro with the markov basis
   mat = _parse_matrix("$name.gro")
