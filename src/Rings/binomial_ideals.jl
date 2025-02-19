@@ -10,7 +10,6 @@ function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
 
-
 @doc raw"""
     is_binomial(I::MPolyIdeal)
 
