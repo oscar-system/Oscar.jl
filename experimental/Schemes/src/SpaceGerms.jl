@@ -562,7 +562,7 @@ function CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Uni
   mingens = minimal_generating_set(modulus(L))
   length(mingens) == dim(R) - dim(L) || error("not a complete intersection")
   w = mingens
-  Y = CompleteIntersectionGerm(AffineSchemeL,w)
+  Y = CompleteIntersectionGerm(spec(L),w)
   set_attribute!(Y,:representative,X)
   return Y
 end
