@@ -19,7 +19,7 @@
 
   @testset "Lattice Ideals" begin
     Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
-    I = ideal(elem_type(Qxy)[x * y - t, t^2 -z , y * x - t * z^2])
+    I = ideal(elem_type(Qxy)[x * y - t, t^2 - z, y * x - t * z^2])
     gb = groebner_basis(I; algorithm=:markov)
     @test gens(gb) == [-z + t^2, z^2 - 1, x * y - t]
 
