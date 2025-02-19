@@ -83,7 +83,7 @@ julia> z(4)
 z(4)
 
 julia> ζ = gen(K, "ζ")
-Generator of abelian closure of Q
+Generator of abelian closure of QQ
 
 julia> ζ(5) + ζ(3)
 ζ(15)^5 + ζ(15)^3
