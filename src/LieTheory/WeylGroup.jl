@@ -265,7 +265,7 @@ end
 @doc raw"""
     cartan_matrix(W::WeylGroup) -> RootSystem
 
-Return the cartan matrix of `W`.
+Return the Cartan matrix of `W`.
 """
 function cartan_matrix(W::WeylGroup)
   return cartan_matrix(root_system(W))
