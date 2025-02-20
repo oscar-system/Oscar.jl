@@ -72,7 +72,6 @@ import ..Oscar:
   isomorphism,
   kernel,
   lower_central_series,
-  map_word,
   matrix,
   normalizer,
   number_of_generators,
