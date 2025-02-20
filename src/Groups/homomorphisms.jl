@@ -1203,11 +1203,11 @@ function (::Type{T})(G::FinGenAbGroup) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
 
-fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = FPGroup(G)
-sub_fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubFPGroup(G)
-pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PcGroup(G)
-sub_pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubPcGroup(G)
-permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PermGroup(G)
+fp_group(G::Group) = FPGroup(G)
+sub_fp_group(G::Group) = SubFPGroup(G)
+pc_group(G::Group) = PcGroup(G)
+sub_pc_group(G::Group) = SubPcGroup(G)
+permutation_group(G::Group) = PermGroup(G)
 
 # Now for MultTableGroup
 

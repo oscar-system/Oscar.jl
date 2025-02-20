@@ -210,9 +210,6 @@ function PermGroup(W::WeylGroup)
   return codomain(isomorphism(PermGroup, W))
 end
 
-fp_group(W::WeylGroup) = FPGroup(W)
-permutation_group(W::WeylGroup) = PermGroup(W)
-
 @doc raw"""
     isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
 
