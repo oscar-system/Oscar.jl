@@ -65,7 +65,32 @@
     ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
     (
-      "complicated case 1",
+      "A_3^(1)",
+      begin
+        cm = cartan_matrix(:A, 4)
+        cm[1, 4] = -1
+        cm[4, 1] = -1
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(A_3^(1)), once functionality for affine type is added
+    (
+      "F_4^(1)",
+      begin
+        cm = cartan_matrix(:A, 5)
+        cm[2:5, 2:5] = cartan_matrix(:F, 4)
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(F_4^(1)), once functionality for affine type is added
+    ("A_2^(2)", weyl_group(ZZ[2 -4; -1 2])), # TODO: replace with cartan_matrix(A_2^(2)), once functionality for affine type is added
+    (
+      "D_4^(2)",
+      begin
+        cm = cartan_matrix(:B, 4)
+        cm[1, 2] = -2
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(D_4^(2)), once functionality for affine type is added
+    ("complicated case 1",
       begin
         cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
         for _ in 1:50
@@ -93,9 +118,8 @@
       end,
     ),
   ]
-    # TODO: make this work
-    # ConformanceTests.test_Group_interface(W)
-    # ConformanceTests.test_GroupElem_interface(rand(W, 2)...)
+    ConformanceTests.test_Group_interface(W)
+    ConformanceTests.test_GroupElem_interface(rand(W, 2)...)
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
