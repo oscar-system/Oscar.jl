@@ -1,8 +1,3 @@
-if !isdefined(Main, :test_Field_interface)
-  import Oscar.AbstractAlgebra
-  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-end
-
 @testset "fraction fields of varieties" begin
   P = projective_space(QQ, 2)
   S = homogeneous_coordinate_ring(P)
