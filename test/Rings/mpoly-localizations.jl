@@ -182,11 +182,6 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-function test_elem(W::Oscar.MPolyLocRing) 
-  f = rand(rng, W, 0:3, 0:4, 0:3)
-  return f
-end
-
 @testset "Ring interface for localized polynomial rings" begin
 # kk = QQ
 # R, v = kk[:x, :y]

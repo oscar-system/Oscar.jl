@@ -1,19 +1,6 @@
-const rng = Oscar.get_seeded_rng()
-
 if !isdefined(Main, :test_Field_interface)
   import Oscar.AbstractAlgebra
   include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-end
-
-function test_elem(K::VarietyFunctionField)
-  F = representative_field(K)
-  P = base_ring(F)::MPolyRing
-  num = rand(P, 0:5, 0:5, 0:5)
-  den = zero(P)
-  while is_zero(den)
-    den = rand(P, 1:5, 1:5, 1:5)
-  end
-  return K(num, den)
 end
 
 @testset "fraction fields of varieties" begin

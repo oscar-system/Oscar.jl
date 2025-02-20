@@ -279,6 +279,12 @@ function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
   return a
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(Q::PBWAlgQuo{QQFieldElem})
+  R = base_ring(Q)
+  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
+end
+
 #############################################
 ##### Exterior algebras
 #############################################
