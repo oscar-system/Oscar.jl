@@ -185,32 +185,6 @@ function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
 end
 
 @doc raw"""
-    FPGroup(W::WeylGroup) -> FPGroup
-    fp_group(W::WeylGroup) -> FPGroup
-
-Construct a group of type `FPGroup` that is isomorphic to `W`.
-
-If one needs the isomorphism then [`isomorphism(::Type{FPGroup}, W::WeylGroup)`](@ref)
-can be used instead.
-"""
-function FPGroup(W::WeylGroup)
-  return codomain(isomorphism(FPGroup, W))
-end
-
-@doc raw"""
-    PermGroup(W::WeylGroup) -> PermGroup
-    permutation_group(W::WeylGroup) -> PermGroup
-
-Construct a group of type `PermGroup` that is isomorphic to `W`.
-
-If one needs the isomorphism then [`isomorphism(::Type{PermGroup}, W::WeylGroup)`](@ref)
-can be used instead.
-"""
-function PermGroup(W::WeylGroup)
-  return codomain(isomorphism(PermGroup, W))
-end
-
-@doc raw"""
     isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
 
 Return an isomorphism from `W` to a group `H` of type `FPGroup`.

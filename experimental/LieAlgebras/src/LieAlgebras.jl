@@ -20,8 +20,6 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
-  FPGroup,
-  PermGroup,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
