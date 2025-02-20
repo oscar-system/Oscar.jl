@@ -1192,7 +1192,7 @@ end
 
 Return a group of the requested type that is isomorphic to `G`.
 If one needs the isomorphism then
-[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}](@ref)
+[`isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}`](@ref)
 can be used instead.
 """
 function (::Type{S})(G::T) where {S <: Union{FinGenAbGroup, GAPGroup}, T <: GAPGroup}

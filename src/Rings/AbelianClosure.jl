@@ -38,6 +38,8 @@ import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots, @req
 
+import Oscar: pretty, Lowercase
+
 using Hecke
 import Hecke: conductor, data
 
@@ -350,19 +352,15 @@ end
 ################################################################################
 
 function Base.show(io::IO, a::QQAbField{AbsNonSimpleNumField})
-  print(io, "(Sparse) abelian closure of Q")
+  print(pretty(io), "Sparse abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbField{AbsSimpleNumField})
-  print(io, "Abelian closure of Q")
+  print(pretty(io), "Abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbFieldGen)
-  if isa(a.K, QQAbField{AbsSimpleNumField})
-    print(io, "Generator of abelian closure of Q")
-  else
-    print(io, "Generator of sparse abelian closure of Q")
-  end
+  print(pretty(io), "Generator of ", Lowercase(), a.K)
 end
 
 """
@@ -526,6 +524,42 @@ end
 (R::QQField)(a::QQAbFieldElem) = R(a.data)
 (R::ZZRing)(a::QQAbFieldElem) = R(a.data)
 
+################################################################################
+#
+#  Conversion to `QQBarFieldElem`
+#
+#  We assume the natural embedding of cyclotomic fields into `QQBarField()`
+#  that is given by the (documented) fact that
+#  `root_of_unity(F::QQBarField, n::Int)` is $\exp(2 \pi i / n)$.
+#
+################################################################################
+
+function (F::QQBarField)(a::QQAbFieldElem)
+  N = a.c
+  cfs = Oscar.coefficients(a.data)
+  r = root_of_unity(F, N)
+  pow = one(F)
+  tmp = zero(F)
+  res = cfs[1] * pow
+  for i in 2:length(cfs)
+    pow = mul!(pow, r)
+    res = addmul!(res, cfs[i], pow, tmp)
+  end
+  return res
+end
+
+Nemo.QQBarFieldElem(a::QQAbFieldElem) = algebraic_closure(QQ)(a)
+
+################################################################################
+#
+#  Conversion to `Float64`, `ComplexF64`
+#
+#  We first convert to a `QQBarFieldElem` and then use that it supports the
+#  conversions in question.
+#
+
+Core.Float64(a::QQAbFieldElem) = Float64(QQBarFieldElem(a))
+Base.ComplexF64(a::QQAbFieldElem) = ComplexF64(QQBarFieldElem(a))
 
 ################################################################################
 #
@@ -573,22 +607,33 @@ Base.getindex(::QQField, a::QQAbFieldElem...) = number_field(QQ, [x for x in a])
 
 ################################################################################
 #
-#  Arithmetic
+#   Unary operators
 #
 ################################################################################
+
+function -(a::QQAbFieldElem)
+  return QQAbFieldElem(-data(a), a.c)
+end
+
+###############################################################################
+#
+#   Binary operators
+#
+###############################################################################
 
 function +(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   return QQAbFieldElem(data(a) + data(b), a.c)
 end
 
+function -(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  return QQAbFieldElem(data(a) - data(b), a.c)
+end
+
 function *(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   return QQAbFieldElem(data(a) * data(b), a.c)
-end
-
-function -(a::QQAbFieldElem)
-  return QQAbFieldElem(-data(a), a.c)
 end
 
 function ^(a::QQAbFieldElem, n::Integer)
@@ -599,10 +644,11 @@ function ^(a::QQAbFieldElem, n::ZZRingElem)
   return a^Int(n)
 end
 
-function -(a::QQAbFieldElem, b::QQAbFieldElem)
-  a, b = make_compatible(a, b)
-  return QQAbFieldElem(a.data-b.data, a.c)
-end
+################################################################################
+#
+#   Exact division
+#
+################################################################################
 
 function //(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
@@ -668,61 +714,24 @@ end
 #
 ################################################################################
 
-*(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
+for T in (ZZRingElem, QQFieldElem, Integer, Rational)
+  @eval begin
+    +(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)+b, a.c)
+    +(a::$T, b::QQAbFieldElem) = b+a
 
-*(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
+    -(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)-b, a.c)
+    -(a::$T, b::QQAbFieldElem) = QQAbFieldElem(a-data(b), b.c)
 
-*(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
+    *(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)*b, a.c)
+    *(a::$T, b::QQAbFieldElem) = b*a
 
-*(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
+    //(a::QQAbFieldElem, b::$T) = QQAbFieldElem(data(a)//b, a.c)
+    //(a::$T, b::QQAbFieldElem) = QQAbFieldElem(a//data(b), b.c)
 
-*(a::QQAbFieldElem, b::ZZRingElem) = b*a
-
-*(a::QQAbFieldElem, b::QQFieldElem) = b*a
-
-*(a::QQAbFieldElem, b::Integer) = b*a
-
-*(a::QQAbFieldElem, b::Rational) = b*a
-
-+(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
-
-+(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
-
-+(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
-
-+(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
-
-+(a::QQAbFieldElem, b::ZZRingElem) = b + a
-
-+(a::QQAbFieldElem, b::QQFieldElem) = b + a
-
-+(a::QQAbFieldElem, b::Integer) = b + a
-
-+(a::QQAbFieldElem, b::Rational) = b + a
-
--(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
-
--(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(-(data(a), b), a.c)
-
--(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(-(data(a), b), a.c)
-
-//(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(data(a)//b, a.c)
-
-//(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(data(a)//b, a.c)
+    divexact(a::QQAbFieldElem, b::$T; check::Bool = true) = QQAbFieldElem(data(a)/b, a.c)
+    divexact(a::$T, b::QQAbFieldElem; check::Bool = true) = QQAbFieldElem(a/data(b), b.c)
+  end
+end
 
 ################################################################################
 #
@@ -1083,6 +1092,24 @@ end
 Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
 
 Base.isreal(elm::QQAbFieldElem) = conj(elm) == elm
+
+# compare real `QQAbFieldElem`s
+function Base.isless(a::QQAbFieldElem, b::QQAbFieldElem)
+  F = QQBarField()
+  return Base.isless(F(a), F(b))
+end
+
+_isless_via_qqbar(a, b) = Base.isless(QQBarFieldElem(a), QQBarFieldElem(b))
+
+for T in (QQFieldElem, ZZRingElem, Int, Integer, Rational)
+  @eval begin
+    Base.isless(a::QQAbFieldElem, b::$T) = _isless_via_qqbar(a, b)
+    Base.isless(a::$T, b::QQAbFieldElem) = _isless_via_qqbar(a, b)
+  end
+end
+
+AbstractAlgebra.is_positive(a::QQAbFieldElem) = _isless_via_qqbar(0, a)
+AbstractAlgebra.is_negative(a::QQAbFieldElem) = _isless_via_qqbar(a, 0)
 
 ###############################################################################
 #

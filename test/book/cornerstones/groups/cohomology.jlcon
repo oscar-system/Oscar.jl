@@ -1,8 +1,8 @@
 julia> irreducible_modules(symmetric_group(3))
 3-element Vector{GModule}:
- G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of Q
- G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of Q
- G-module for Sym(3) acting on vector space of dimension 2 over abelian closure of Q
+ G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of QQ
+ G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of QQ
+ G-module for Sym(3) acting on vector space of dimension 2 over abelian closure of QQ
 
 julia> G = symmetric_group(3);
 

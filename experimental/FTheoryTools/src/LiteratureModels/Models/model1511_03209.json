@@ -44,7 +44,7 @@
         "a3": "a3",
         "a4": "a4",
         "a6": "a6",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [1, 2, 3, 4, 6]
         ],
         "zero_section_class": "z",
