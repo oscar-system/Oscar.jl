@@ -1441,7 +1441,6 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
-export mordell_weil_torsion
 export representative
 export representative_field
 export representative_patch
