@@ -1191,15 +1191,14 @@ end
     permutation_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return a group of the requested type that is isomorphic to `G`.
+An exception is thrown if no such group exists.
+A MethodError is thrown if this particular pair of types is not implemented (yet).
+
 If one needs the isomorphism then
 [`isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}`](@ref)
 can be used instead.
 """
-function (::Type{S})(G::T) where {S <: Union{FinGenAbGroup, GAPGroup}, T <: GAPGroup}
-   return codomain(isomorphism(S, G))
-end
-
-function (::Type{T})(G::FinGenAbGroup) where T <: GAPGroup
+function (::Type{T})(G::Group) where T <: Group
    return codomain(isomorphism(T, G))
 end
 
