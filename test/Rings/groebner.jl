@@ -297,3 +297,23 @@ end
   groebner_basis_modular(J, ordering=wdegrevlex(R,[2,1]), certify=true)
   @test gens(J.gb[wdegrevlex([x, y], [2, 1])]) == QQMPolyRingElem[x+y^2]
 end
+
+@testset "known groebner bases" begin
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  # A priori we expect nothing to be known
+  @test !Oscar.is_known(is_one, I)
+  @test !Oscar.is_known(dim, I)
+  @test !Oscar.is_known(groebner_basis, I)
+  # ...except things which are really easy to check.
+  @test Oscar.is_known(is_zero, I)
+  # The following triggers a groebner basis computation
+  is_one(I)
+  # and then stuff is known.
+  @test Oscar.is_known(is_one, I)
+  # Is any groebner basis known?
+  @test Oscar.is_known(groebner_basis, I)
+  # Is a groebner basis for lex known?
+  @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
+end
+

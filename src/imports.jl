@@ -88,6 +88,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_known,
   is_terse,
   is_trivial,
   is_unicode_allowed,
