@@ -107,6 +107,8 @@ jobs:
         if: matrix.julia-version == '1.6' && runner.os == 'Linux'
         run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
+        # skip tests for push and pull_request events for short group on julia 1.12-nightly and nightly (see https://github.com/oscar-system/Oscar.jl/issues/4604)
+        if: (github.event_name != 'push' && github.event_name != 'pull_request') || (matrix.julia-version != '1.12-nightly' && matrix.julia-version != 'nightly') || matrix.group != 'short'
         uses: julia-actions/julia-runtest@latest
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
