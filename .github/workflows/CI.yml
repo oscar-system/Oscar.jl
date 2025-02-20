@@ -26,7 +26,7 @@ concurrency:
 jobs:
   test:
     runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", RPTU]
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -107,6 +107,8 @@ jobs:
         if: matrix.julia-version == '1.6' && runner.os == 'Linux'
         run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
+        # skip tests for push and pull_request events for short group on julia 1.12-nightly and nightly (see https://github.com/oscar-system/Oscar.jl/issues/4604)
+        if: (github.event_name != 'push' && github.event_name != 'pull_request') || (matrix.julia-version != '1.12-nightly' && matrix.julia-version != 'nightly') || matrix.group != 'short'
         uses: julia-actions/julia-runtest@latest
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
@@ -147,7 +149,7 @@ jobs:
 
   doctest:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -157,12 +159,12 @@ jobs:
           - '1.12-nightly'
           - 'nightly'
         os:
-          - [Linux, RPTU, normal-memory]
+          - 'ubuntu-latest'
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
-            os: [Linux, RPTU, normal-memory]
+            os: 'ubuntu-latest'
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
@@ -215,3 +217,31 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+# adapted from gap-system/gap
+  slack-notification:
+    name: Send Slack notification on status change
+    needs:
+      - extra-long-test
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        id: get-branch
+        run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Determine whether CI status changed
+        uses: gap-actions/should-i-notify-action@v1
+        id: should_notify
+        with:
+          branch: ${{ steps.get-branch.outputs.branch }}
+          needs_context: ${{ toJson(needs) }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          notify_on_changed_status: true
+      - name: Send slack notification
+        uses: act10ns/slack@v2
+        if: ${{ steps.should_notify.outputs.should_send_message == 'yes' }}
+        with:
+          status: ${{ steps.should_notify.outputs.current_status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

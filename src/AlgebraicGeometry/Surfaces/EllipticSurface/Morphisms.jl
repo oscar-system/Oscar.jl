@@ -416,7 +416,7 @@ function _pushforward_section(
 end
 
 @doc raw"""
-    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
+    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}; algorithm=:default)) -> AbstractSpaceMor
     
 Return the pushforward ``f_*: V_1 \to V_2`` where ``V_i`` is the ambient quadratic space of the `algebraic_lattice`.
 

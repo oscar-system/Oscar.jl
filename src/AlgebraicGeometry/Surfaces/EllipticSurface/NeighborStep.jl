@@ -518,7 +518,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   # In case of variables in the wrong order, switch and transform the result.
   if x == R[2] && y == R[1]
     switch = hom(R, R, reverse(gens(R)))
-    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
+    g_trans, trans, inv_trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
     new_trans = MapFromFunc(F, F, f->begin
                                 switch_num = switch(numerator(f))
                                 switch_den = switch(denominator(f))
@@ -528,7 +528,16 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
                                 switch(num)//switch(den)
                             end
                            )
-    return switch(g_trans), new_trans
+    new_inv_trans = MapFromFunc(F, F, f->begin
+                                switch_num = switch(numerator(f))
+                                switch_den = switch(denominator(f))
+                                interm_res = inv_trans(F(switch_num))//inv_trans(F(switch_den))
+                                num = numerator(interm_res)
+                                den = denominator(interm_res)
+                                switch(num)//switch(den)
+                            end
+                           )
+    return switch(g_trans), new_trans, new_inv_trans
   end
 
   g = inv(coeff(g,[0,2]))*g # normalise g
@@ -566,15 +575,20 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   E = coeff(gx, 0)
   #E, D, C, B, A = coeff_gx
   if length(P)==3
+    @show "case 1"
     @req all(h->degree(h)<=3, coefficients(G)) "infinity (0:1:0) is not a point of this hypersurface"
     # y^2 = B*x^3+C*x^2+C*x+D
     x1 = F(inv(B)*x)
     y1 = F(inv(B)*y)
     trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+    x2 = F(B*x)
+    y2 = F(B*y)
+    inv_trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x2, y2])//evaluate(denominator(f), [x2, y2]))
     f_trans = B^2*trans(F(g))
     result = numerator(B^2*f_trans)
-    return result, trans
+    return result, trans, inv_trans
   elseif !iszero(E)
+    @show "case 2"
     b = py
     a4, a3, a2, a1, a0 = A,B,C,D,E
     A = b
@@ -587,14 +601,15 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     x1 = x1+px
 
     # TODO: The following are needed for the inverse. To be added eventually.
-    # x2 = (y-(A+B*x+C*x^2))//(D*x^2)
-    # y2 = x2//x
-    # x2 = evaluate(x2, [x-px, y])
-    # y2 = evaluate(y2, [x-px, y])
+    x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+    y2 = x2//x
+    x2 = evaluate(x2, [x-px, y])
+    y2 = evaluate(y2, [x-px, y])
 
-    # @assert x == evaluate(x1, [x2, y2])
-    # @assert y == evaluate(y1, [x2, y2])
+    @assert x == evaluate(x1, [x2, y2])
+    @assert y == evaluate(y1, [x2, y2])
   else
+    @show "case 3"
     # TODO compute the inverse transformation (x2,y2)
     x1 = 1//x
     y1 = y//x^2
@@ -603,12 +618,15 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     x1 = evaluate(x1, [-x//c, y//c])
     y1 = evaluate(y1, [-x//c, y//c])
     x1 = x1+px
+    x2 = x1 # A hack to allow for a coherent return format
+    y2 = y1 
     #@assert x == evaluate(x1, [x2, y2])
     #@assert y == evaluate(y1, [x2, y2])
   end
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
   # TODO: eventually add the inverse.
   trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  inv_trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x2, y2])//evaluate(denominator(f), [x2, y2]))
   f_trans = trans(F(g))
   fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
   isone(length(fac)) || error("transform to weierstrass form did not succeed")
@@ -617,7 +635,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   result = first(fac)
   result = inv(first(coefficients(coeff(result, gens(parent(result)), [3, 0]))))*result
 
-  return result, trans
+  return result, trans, inv_trans
 end
 
 function _is_in_weierstrass_form(f::MPolyRingElem)
