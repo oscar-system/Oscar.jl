@@ -711,6 +711,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   if file_version < VERSION_NUMBER
+    @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)

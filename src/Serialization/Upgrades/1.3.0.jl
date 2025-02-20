@@ -19,7 +19,6 @@ function upgrade_ring(d::Dict)
   return upgraded_dict
 end
 
-
 function upgrade_Dict(d::Dict)
   return d
 end
@@ -59,7 +58,6 @@ function upgrade_QSMModel(d::Dict)
   upgraded_dict[:data][:genus_ci] = d[:data][:genus_ci][:data]
   upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = d[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:data]
 
-  println(json(upgraded_dict[:_type], 2))
   return upgraded_dict
 end
 
@@ -89,7 +87,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       if type_name in ["PolyRing", "FreeAssociativeAlgebra", "MPolyRing"]
         upgraded_dict = upgrade_ring(dict)
       elseif type_name in [
-        "PolyRingElem", "MPolyRingElem", "NormalToricVariety", "FinGenAbGroup"]
+        "PolyRingElem", "MPolyRingElem", "NormalToricVariety", "FinGenAbGroup",
+        "MPolyIdeal"
+        ]
         # do nothing
         upgraded_dict = dict
       else
