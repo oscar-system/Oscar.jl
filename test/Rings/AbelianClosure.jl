@@ -7,7 +7,7 @@ end
 @testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation" begin

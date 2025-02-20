@@ -8,8 +8,8 @@ end
 
 @testset "GAPGroups_interface_conformance $G of type $(typeof(G))" for G in L
 
-   test_Group_interface(G)
-   test_GroupElem_interface(rand(G, 2)...)
+   ConformanceTests.test_Group_interface(G)
+   ConformanceTests.test_GroupElem_interface(rand(G, 2)...)
 
    # TODO: move most of the following to AbstractAlgebra.jl/test/Groups-conformance-tests.jl
 

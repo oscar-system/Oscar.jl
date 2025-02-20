@@ -35,7 +35,7 @@ end
   rel = @pbw_relations(e*f == f*e-h, e*h == h*e+2*e, f*h == h*f-2*f)
   R, (a, h, f, e) = pbw_algebra(r, rel, invlex(r))
   Q, _ = quo(R, two_sided_ideal(R, [h]))
-  test_NCRing_interface(Q; reps = 1)
+  ConformanceTests.test_NCRing_interface(Q; reps = 1)
 end
 
 @testset "PBWAlgebraQuo.conversion" begin

@@ -23,8 +23,8 @@ end
   Ccov = covered_scheme(C)
   KK = VarietyFunctionField(Ccov)
 
-  test_Field_interface(KK)
-  #test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
+  ConformanceTests.test_Field_interface(KK)
+  #ConformanceTests.test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
 end
 
 @testset "fraction fields of varieties" begin

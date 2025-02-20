@@ -7,7 +7,7 @@ end
 @testset "AlgClosureFp" begin
   @testset "Interface for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(GF(3,1))
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
