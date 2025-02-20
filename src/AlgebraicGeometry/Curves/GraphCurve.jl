@@ -44,7 +44,7 @@ function graph_curve(G::Graph; check::Bool=true)
         push!(vertexIdeals,ideal(minors(vcat(cycleMatrix_v,rowOfVariables),3)))
     end
     graphCurveIdeal = reduce(intersect,vertexIdeals)
-    graphCurve = projective_curve(graphCurveIdeal)
+    graphCurve = projective_curve(graphCurveIdeal; is_radical=true)
 
     return graphCurve
 end
