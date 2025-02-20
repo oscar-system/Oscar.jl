@@ -387,8 +387,8 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
+Base.:*(x::MatrixGroupElem, y::MatElem) = matrix(x)*y
+Base.:*(x::MatElem, y::MatrixGroupElem) = x*matrix(y)
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(x)^n)
 
