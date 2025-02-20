@@ -1372,6 +1372,7 @@ export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
+export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
 export quantum_automorphism_group
@@ -1440,6 +1441,7 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
+export mordell_weil_torsion
 export representative
 export representative_field
 export representative_patch
@@ -1461,6 +1463,8 @@ export reverse_direction!
 export revlex_basis_encoding
 export reynolds_operator
 export right_acting_group
+export translation_morphism
+export isomorphism_from_generic_fibers
 export right_coset
 export right_coset_action
 export right_cosets
