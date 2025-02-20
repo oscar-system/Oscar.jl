@@ -926,3 +926,117 @@ function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
   (wt, _), state = it
   return deepcopy(wt), state
 end
+
+###############################################################################
+# Misc other things
+
+@doc raw"""
+    geometric_representation(W::WeylGroup) -> MatrixGroup{ZZRingElem}, Map{WeylGroup, MatrixGroup{ZZRingElem}}
+
+Return the geometric representation `G` of the Weyl group `W`,
+together with the isomorphism `hom` from `W` to `G`.
+
+This representation is defined by `coefficients(a) * hom(x) == coefficients(a * x)`
+for all `x` in `W` and `a` a simple root of `root_system(W)`. By linear extension,
+this also holds for all elements `a` in the root space of `root_system(W)`.
+
+See [Hum90; Sect. 5.3](@cite) for more details.
+
+# Examples
+```jldoctest
+julia> R = root_system(:B, 3); W = weyl_group(R);
+
+julia> r = positive_root(R, 8)
+a_1 + a_2 + 2*a_3
+
+julia> x = W([1, 2, 1, 3])
+s1 * s2 * s1 * s3
+
+julia> G, hom = geometric_representation(W)
+(Matrix group of degree 3 over ZZ, Map: W -> G)
+
+julia> coefficients(r) * hom(x)
+[1   1   0]
+
+julia> coefficients(r * x)
+[1   1   0]
+```
+"""
+@attr Tuple{
+  MatrixGroup{ZZRingElem,ZZMatrix},MapFromFunc{WeylGroup,MatrixGroup{ZZRingElem,ZZMatrix}}
+} function geometric_representation(W::WeylGroup)
+  gcm = cartan_matrix(W)
+  n = ngens(W)
+  imgs = ZZMatrix[]
+  for j in 1:n
+    g = identity_matrix(ZZ, n)
+    for i in 1:n
+      # a_i * s_j = a_i - gcm_{j,i} * a_j
+      # efficient version of: g[i, j] -= gcm[j, i]
+      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+    end
+    push!(imgs, g)
+  end
+
+  G = matrix_group(imgs)
+
+  iso = function (w::WeylGroupElem)
+    map_word(w, gens(G); init=one(G))
+  end
+
+  return G, MapFromFunc(W, G, iso)
+end
+
+@doc raw"""
+    dual_geometric_representation(W::WeylGroup) -> MatrixGroup{ZZRingElem}, Map{WeylGroup, MatrixGroup{ZZRingElem}}
+
+Return the dual geometric representation `G` of the Weyl group `W`,
+together with the isomorphism `hom` from `W` to `G`.
+
+This representation is defined by `coefficients(w) * hom(x) == coefficients(w * x)`
+for all `x` in `W` and `w` a fundamental weight of `root_system(W)`. By linear extension,
+this also holds for all elements `w` in `weight_lattice(root_system(W))`.
+
+# Examples
+```jldoctest
+julia> R = root_system(:B, 3); W = weyl_group(R);
+
+julia> w = WeightLatticeElem(R, [1, 4, -3])
+w_1 + 4*w_2 - 3*w_3
+
+julia> x = W([1, 2, 1, 3])
+s1 * s2 * s1 * s3
+
+julia> G, hom = dual_geometric_representation(W)
+(Matrix group of degree 3 over ZZ, Map: W -> G)
+
+julia> coefficients(w) * hom(x)
+[-4   6   -7]
+
+julia> coefficients(w * x)
+[-4   6   -7]
+```
+"""
+@attr Tuple{
+  MatrixGroup{ZZRingElem,ZZMatrix},MapFromFunc{WeylGroup,MatrixGroup{ZZRingElem,ZZMatrix}}
+} function dual_geometric_representation(W::WeylGroup)
+  gcm = cartan_matrix(W)
+  n = ngens(W)
+  imgs = ZZMatrix[]
+  for i in 1:n
+    g = identity_matrix(ZZ, n)
+    for j in 1:n
+      # efficient version of: g[i, j] -= gcm[j, i]
+      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+    end
+    push!(imgs, g)
+  end
+
+  G = matrix_group(imgs)
+
+  iso = function (w::WeylGroupElem)
+    map_word(w, gens(G); init=one(G))
+  end
+
+  return G, MapFromFunc(W, G, iso)
+end

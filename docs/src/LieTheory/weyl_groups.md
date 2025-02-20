@@ -88,6 +88,11 @@ reduced_expressions(::WeylGroupElem)
 *(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
 ```
 
+```@docs
+geometric_representation(::WeylGroup)
+dual_geometric_representation(::WeylGroup)
+```
+
 
 ### Orbits
 

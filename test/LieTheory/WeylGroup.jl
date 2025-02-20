@@ -577,4 +577,23 @@
       @test allunique(orb)
     end
   end
+
+  @testset "(dual_)geometric_representation" begin
+    for W in [weyl_group(:B, 3), weyl_group(:E, 6), weyl_group(:G, 2)]
+      R = root_system(W)
+      G, hom = geometric_representation(W)
+      for _ in 1:5
+        x = rand(W)
+        a = RootSpaceElem(R, rand(-10:10, rank(R)))
+        @test coefficients(a) * hom(x) == coefficients(a * x)
+      end
+
+      G, hom = dual_geometric_representation(W)
+      for _ in 1:5
+        x = rand(W)
+        w = WeightLatticeElem(R, rand(-10:10, rank(R)))
+        @test coefficients(w) * hom(x) == coefficients(w * x)
+      end
+    end
+  end
 end
