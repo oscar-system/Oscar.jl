@@ -55,7 +55,7 @@ function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
     return oscar_serialization_version[]
   end
-  if is_dev
+  if is_dev && false
     commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
@@ -63,7 +63,7 @@ function get_oscar_serialization_version()
     )
   else
     result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", v"1.3.0"]#VERSION_NUMBER]
     )
   end
   return oscar_serialization_version[] = result
@@ -710,7 +710,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER
+  if file_version < VERSION_NUMBER || string(file_version) == "1.3.0-DEV-4e6f6922cf7f55a050a1c5fd50ab6f8f4ba6f72c"
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)

@@ -300,7 +300,7 @@ end
 @register_serialization_type SMatSpace uses_id
 @register_serialization_type SMat
 
-function save_object(s::SerializerState, obj::MatSpace)
+function save_object(s::SerializerState, obj::MatSpace{T}) where T
   save_data_dict(s) do
     save_object(s, ncols(obj), :ncols)
     save_object(s, nrows(obj), :nrows)
