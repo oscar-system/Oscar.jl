@@ -1,4 +1,15 @@
-@register_serialization_type GlobalTateModel
+@register_serialization_type GlobalTateModel uses_id [
+  # Intersections,
+  :inter_dict,
+  # special intersections,
+  :s_inter_dict,
+  # ambient space divisors intersecting non-trivially with the hypersurface
+  :_ambient_space_divisor_pairs_to_be_considered,
+  # ambient space base divisors intersecting non-trivially with the hypersurface,
+  :_ambient_space_base_divisor_pairs_to_be_considered,
+  # ambient space models for g4-fluxes
+  :ambient_space_models_of_g4_fluxes_indices
+]
 
 ###########################################################################
 # This function saves the types of the data that define a global Tate model
@@ -43,31 +54,6 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
       exceptional_divisors = [k[2] for k in res]
       attrs_dict[:resolution_loci] = resolution_loci
       attrs_dict[:exceptional_divisors] = exceptional_divisors
-    end
-
-    # Have intersection numbers been computed?
-    if has_attribute(gtm, :inter_dict)
-      attrs_dict[:inter_dict] = get_attribute(gtm, :inter_dict)
-    end
-
-    # Have special intersections been remembered?
-    if has_attribute(gtm, :s_inter_dict)
-      attrs_dict[:s_inter_dict] = get_attribute(gtm, :s_inter_dict)
-    end
-    
-    # Do we know which pairs of ambient space divisors intersect non-trivially with the hypersurface?
-    if has_attribute(gtm, :_ambient_space_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_divisor_pairs_to_be_considered] = _ambient_space_divisor_pairs_to_be_considered(gtm)
-    end
-
-    # Do we know which pairs of ambient space base divisors intersect non-trivially with the hypersurface?
-    if has_attribute(gtm, :_ambient_space_base_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_base_divisor_pairs_to_be_considered] = _ambient_space_base_divisor_pairs_to_be_considered(gtm)
-    end
-
-    # Do we know ambient space models for g4-fluxes?
-    if has_attribute(gtm, :ambient_space_models_of_g4_fluxes_indices)
-      attrs_dict[:g4_flux_tuple_list] = get_attribute(gtm, :ambient_space_models_of_g4_fluxes_indices)
     end
 
     # Do we know the well-quantized G4-fluxes

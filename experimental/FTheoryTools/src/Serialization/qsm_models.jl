@@ -103,7 +103,7 @@ end
 @register_serialization_type QSMModel
 type_params(qsm::QSMModel) = TypeParams(
   QSMModel,
-  :hs_model => type_params(qsm.hs_model),
+  :hs_model => qsm.hs_model,
   :genus_ci => type_params(qsm.genus_ci),
   :degree_of_Kbar_of_tv_restricted_to_ci => type_params(qsm.degree_of_Kbar_of_tv_restricted_to_ci)
 )
@@ -117,8 +117,6 @@ function save_object(s::SerializerState, qsm::QSMModel)
     save_object(s, qsm.max_lattice_pts_in_facet, :max_lattice_pts_in_facet)
     save_object(s, qsm.estimated_number_of_triangulations, :estimated_number_of_triangulations)
     save_object(s, qsm.estimated_number_of_triangulations, :estimated_number_of_triangulations)
-    save_object(s, qsm.hs_model, :hs_model)
-
     save_object(s, qsm.Kbar3, :Kbar3)
     save_object(s, qsm.h11, :h11)
     save_object(s, qsm.h12, :h12)
@@ -149,7 +147,6 @@ function load_object(s::DeserializerState, ::Type{QSMModel}, params::Dict)
   triang_quick = load_object(s, Bool, :triang_quick)
   max_lattice_pts_in_facet = load_object(s, Int, :max_lattice_pts_in_facet)
   estimated_number_of_triangulations = load_object(s, Int, :estimated_number_of_triangulations)
-  hs_model = load_object(s, HypersurfaceModel, params[:hs_model], :hs_model)
 
   Kbar3 = load_object(s, Int, :Kbar3)
   h11 = load_object(s, Int, :h11)
@@ -192,7 +189,7 @@ function load_object(s::DeserializerState, ::Type{QSMModel}, params::Dict)
                   triang_quick,
                   max_lattice_pts_in_facet,
                   estimated_number_of_triangulations,
-                  hs_model,
+                  params[:hs_model],
                   Kbar3,
                   h11,
                   h12,

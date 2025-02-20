@@ -375,7 +375,7 @@ end
 function register_attr_list(@nospecialize(T::Type),
                             attrs::Union{Vector{Symbol}, Nothing})
   if !isnothing(attrs)
-    !serialize_with_id(T) && error("Only types that are stored as references can store attributes")
+    serialize_with_id(T) || error("Only types that are stored as references can store attributes")
     Oscar.type_attr_map[encode_type(T)] = attrs
   end
 end
@@ -389,8 +389,6 @@ import Distributed.AbstractSerializer
 # when the type hasn't been registered
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
-serialize_with_params(::Type) = false
-
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool,
                                      uses_params::Bool, attrs::Any)
@@ -411,12 +409,11 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
-      # add list of possible attributes to save for a given type to a global dict
-      Oscar.register_attr_list($ex, $attrs)
-      
       Oscar.serialize_with_id(obj::T) where T <: $ex = $uses_id
       Oscar.serialize_with_id(T::Type{<:$ex}) = $uses_id
-      Oscar.serialize_with_params(T::Type{<:$ex}) = $uses_params
+
+      # add list of possible attributes to save for a given type to a global dict
+      Oscar.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
@@ -516,7 +513,6 @@ macro import_all_serialization_functions()
       save_data_dict,
       save_data_json,
       serialize_with_id,
-      serialize_with_params,
       set_key,
       with_attrs
   end
