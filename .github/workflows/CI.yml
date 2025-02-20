@@ -26,7 +26,7 @@ concurrency:
 jobs:
   test:
     runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", RPTU]
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -147,7 +147,7 @@ jobs:
 
   doctest:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
