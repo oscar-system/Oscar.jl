@@ -65,6 +65,21 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
         )
         upgraded_dict[:data] = d[:data][:grading][:data]
+      elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => dict[:data][:def_pol][:_type][:params]
+        )
+        upgraded_dict[:data] = Dict(
+          :var => dict[:data][:var],
+          :def_pol => dict[:data][:def_pol][:data]
+        )
+      elseif type_name == "EmbeddedNumField"
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => dict[:data][:embedding]
+        )
+        upgraded_dict[:data] = []
       elseif type_name == "FqField"
         if dict[:data] isa Dict
           upgraded_dict[:_type] = Dict(
@@ -72,6 +87,30 @@ push!(upgrade_scripts_set, UpgradeScript(
             :params => dict[:data][:def_pol][:_type][:params]
           )
           upgraded_dict[:data] = dict[:data][:def_pol][:data]
+        end
+      elseif type_name == "Dict"
+        d = Dict()
+        for (k, v) in dict[:_type][:params]
+          if k == :key_type
+            d[k] = v
+          else
+            d[k] = upgrade_1_3_0(s, Dict(
+              :_type => dict[:_type][:params][k],
+              :data => dict[:data][k]
+            ))
+          end
+        end
+        upgraded_dict = Dict(
+          :_type => Dict(:name => "Dict", :params=>Dict()),
+          :data => Dict()
+        )
+        for (k, v) in d
+          if k == :key_type
+            upgraded_dict[:_type][:params][k] = v
+          else
+            upgraded_dict[:_type][:params][k] = v[:_type]
+            upgraded_dict[:data][k] = v[:data]
+          end
         end
       elseif type_name == "Tuple"
         upgraded_subtypes = Dict[]
@@ -94,10 +133,37 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_dict[:data] = dict[:data][:basis][:data]
       elseif type_name in [
         "PolyRingElem", "MPolyRingElem", "NormalToricVariety", "FinGenAbGroup",
-        "MPolyIdeal", "Dict", "MatElem"
+        "MPolyIdeal", "MatElem", "String"
         ]
         # do nothing
         upgraded_dict = dict
+      elseif type_name == "Polyhedron"
+        if !(dict[:_type][:params] == "QQField")
+          upgraded_subdict = upgrade_1_3_0(s, dict[:data])
+          upgraded_subdict[:_type][:params][:key_type] = "Symbol"
+          upgraded_dict[:_type] = Dict(
+            :name => type_name,
+            :params => upgraded_subdict[:_type]
+          )
+          upgraded_dict[:data] = upgraded_subdict[:data]
+        else
+          upgraded_dict = dict
+        end
+      elseif type_name == "Hecke.RelSimpleNumFieldEmbedding"
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => Dict(
+            :num_field => dict[:data][:num_field],
+            :base_field_emb => dict[:data][:base_field_emb]
+          )
+        )
+        upgraded_dict[:data] = dict[:data][:data][:data]
+      elseif type_name == "Hecke.AbsSimpleNumFieldEmbedding"
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => dict[:data][:num_field]
+        )
+        upgraded_dict[:data] = dict[:data][:data][:data]
       else
         error("$type_name doesn't have upgrade")
       end        

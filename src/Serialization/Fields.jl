@@ -425,46 +425,40 @@ end
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
   base_K = base_field(K)
-  save_data_dict(s) do
-    if is_simple(K)
-      a = gen(K)
-      gen_emb_approx = E(a)
-      if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
-        error("Internal error in internal serialization.")
-      end
-      save_object(s, gen_emb_approx, :gen_approx)
-    else
-      a = gens(K)
-      data = E.(a)
-      if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, base_field(K)) == restrict(e, base_field(K)))
-        error("Internal error in internal serialization.")
-      end
-      save_object(s, tuple(data...), :gen_approx)
+  if is_simple(K)
+    a = gen(K)
+    gen_emb_approx = E(a)
+    if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
+      error("Internal error in internal serialization.")
     end
+    save_object(s, gen_emb_approx)
+  else
+    a = gens(K)
+    data = E.(a)
+    if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, base_field(K)) == restrict(e, base_field(K)))
+      error("Internal error in internal serialization.")
+    end
+    save_object(s, tuple(data...))
   end
 end
 
 function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, K::Field)
-  approx = load_node(s, :gen_approx) do _
-    if !is_simple(K)
-      data = load_object(s, Vector{AcbFieldElem}, AcbField())
-    else
-      data = load_object(s, AcbFieldElem, AcbField())
-    end
-    return complex_embedding(K, data)
+  if !is_simple(K)
+    data = load_object(s, Vector{AcbFieldElem}, AcbField())
+  else
+    data = load_object(s, AcbFieldElem, AcbField())
   end
+  return complex_embedding(K, data)
 end
 
 function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, params::Dict)
   K = params[:num_field]
-  load_node(s, :gen_approx) do _
-    if !is_simple(K)
-      data = load_object(s, Vector{AcbFieldElem}, AcbField())
-    else
-      data = load_object(s, AcbFieldElem, AcbField())
-    end
-    return complex_embedding(K, params[:base_field_emb], data)
+  if !is_simple(K)
+    data = load_object(s, Vector{AcbFieldElem}, AcbField())
+  else
+    data = load_object(s, AcbFieldElem, AcbField())
   end
+  return complex_embedding(K, params[:base_field_emb], data)
 end
 
 @register_serialization_type EmbeddedNumField uses_id
