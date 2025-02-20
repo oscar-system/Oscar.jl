@@ -1,34 +1,56 @@
-########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
+########################################################## DESCRIPTION OF TERMINOLOGY ##############################################################
 # The definitions here SHOULD apply throughout FTheoryTools!
-#                                                defining_classes: This should be a dictionary that specifies the divisor classes
-#                                                                  of any parameters used to tune the model beyond the fully generic
-#                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
-#                                                                  may be tuned by setting
-#                                                                      a1 = a10
-#                                                                      a2 = a21 * w
-#                                                                      a3 = a32 * w^2
-#                                                                      a4 = a43 * w^3
-#                                                                      a6 = a65 * w^5
-#                                                                  in which case defining_classes would be Dict("w" => w) with w being a
-#                                                                  divisor class
-#                                                  model_sections: This is a list of the names of all parameters appearing in the model, each
-#                                                                  of which is a section of a line bundle. This should include the sections
-#                                                                  whose classes are a part of defining_classes (usually using the same
-#                                                                  symbol, by abuse of notation). In the case of the example above,
-#                                                                  model_sections would be ["w", "a1", "a21", "a32", "a43", "a65"].
-# classes_of_model_sections_in_basis_of_Kbar_and_defining_classes: This should be a matrix giving the classes of all parameters (model sections)
-#                                                                  in terms of Kbar and the defining classes. Each column should give the divisor
-#                                                                  class of the corresponding model section in this basis. In the case of the
-#                                                                  example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
-#                                defining_section_parametrization: This should be a dictionary that defines how the "default" parameters of
-#                                                                  the given model type are defined in terms of the sections of the defining
-#                                                                  classes. In the case of the example above, defining_section_parametrization
-#                                                                  would be Dict("a1" => a10, "a2" => a21 * w, "a3" => a32 * w^2,
-#                                                                      "a4" => a43 * w^3, "a6" => a65 * w^5)
-#                                         explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
-#                                                                  in the model. In the case of the example above, this would include keys "a1",
-#                                                                  "a2", "a3", "a4", "a6", "w", "a10", "a21", "a32", "a43", and "a65".
-#################################################################################################################################################
+#                                                  defining_classes: This should be a dictionary that specifies the divisor classes
+#                                                                    of any parameters used to tune the model beyond the fully generic
+#                                                                    Weierstrass/Tate/etc polynomial. This should contain only as many divisor 
+#                                                                    classes as necessary to disambiguate all divisor classes of parameters
+#                                                                    in the model. For example, a Tate SU(5) model may be tuned by setting
+#                                                                        a2 = a21 * w
+#                                                                        a3 = a32 * w^2
+#                                                                        a4 = a43 * w^3
+#                                                                        a6 = a65 * w^5
+#                                                                    in which case defining_classes would be Dict("w" => w) with w being a
+#                                                                    divisor class
+#                                                  tunable_sections: This is a list of the names of all parameters appearing in the model, each
+#                                                                    of which is a section of a line bundle. This should include the sections
+#                                                                    whose classes are a part of defining_classes (usually using the same
+#                                                                    symbol, by abuse of notation). In the case of the example above,
+#                                                                    tunable_sections would be ["w", "a1", "a21", "a32", "a43", "a65"].
+# classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes: This should be a matrix giving the classes of all parameters (model sections)
+#                                                                    in terms of Kbar and the defining classes. Each column should give the divisor
+#                                                                    class of the corresponding model section in this basis. In the case of the
+#                                                                    example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
+#                                   model_section_parametrization: This should be a dictionary that defines how the "default" parameters of
+#                                                                    the given model type are defined in terms of the tunable sections.
+#                                                                    In the case of the example above, model_section_parametrization
+#                                                                    would be Dict("a2" => a21 * w, "a3" => a32 * w^2, "a4" => a43 * w^3, 
+#                                                                    "a6" => a65 * w^5)
+#                                                    model_sections: This should be a list of all named sections involved in the definition of the
+#                                                                    model, including the tunable_sections and all sections parametrized by them.
+#                                                                    It should match the set of keys of explicit_model_sections and
+#                                                                    classes_of_model_sections. In the case of the example above, this list would
+#                                                                    include "a1", "a2", "a3", "a4", "a6", "w", "a21", "a32", "a43", and "a65".
+#                                                                    NOTE: Previously, "model_sections" was used to refer to what is now called
+#                                                                    "defining_classes". For backward compatibility, there is a keyword argument
+#                                                                    "model_classes" that can be given as input to the literature model constructor
+#                                                                    that works in the same way as the keyword argument "defining_classes". THIS
+#                                                                    SHOULD NOT BE DOCUMENTED BECAUSE WE DO NOT WANT THE USERS TO USE THIS
+#                                                                    TERMINOLOGY!
+#                                                                    SECOND NOTE (FIXME): The .json files for the literature models use
+#                                                                    "model_sections" to refer to every named section introduced in the model. This
+#                                                                    does *not* include parametrized sections, which don't appear explicitly in the 
+#                                                                    model definition, so this is essentially a synonym for "tunable_sections" that
+#                                                                    is used only in the .json files and, as a result, the literature model
+#                                                                    constructors. This should be fixed in future
+#                                           explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
+#                                                                    involved in the definition of the model. The set of keys should match the list
+#                                                                    model_sections. In the case of the example above, this would include keys "a1",
+#                                                                    "a2", "a3", "a4", "a6", "w", "a21", "a32", "a43", and "a65".
+#                                         classes_of_model_sections: This should be a dictionary that gives the divisor classes of every section
+#                                                                    involved in the definition of the model. The set of keys should match the list
+#                                                                    model_sections. In the case of the example above, this would include keys "a1",
+#                                                                    "a2", "a3", "a4", "a6", "w", "a21", "a32", "a43", and "a65".
+####################################################################################################################################################
 
 #######################################################
 # 1. User interface for literature models
@@ -372,23 +394,23 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # Make list and dict of the defining divisor classes
   defng_cls = string.(model_dict["model_data"]["defining_classes"])
-  defng_cls_as_divisor_classes = [anticanonical_divisor_class(base_space)]
-  defining_classes_of_model = Dict("Kbar" => anticanonical_divisor_class(base_space))
+  Kbar_and_defng_cls_as_divisor_classes = [anticanonical_divisor_class(base_space)]
+  defining_classes_of_model = Dict()
   for k in 1:length(defng_cls)
     class_candidate = defining_classes[defng_cls[k]]
     if class_candidate isa ToricDivisor || class_candidate isa ToricLineBundle
       class_candidate = toric_divisor_class(class_candidate)
     end
-    push!(defng_cls_as_divisor_classes, class_candidate)
+    push!(Kbar_and_defng_cls_as_divisor_classes, class_candidate)
     defining_classes_of_model[defng_cls[k]] = class_candidate
   end
 
   # Find divisor classes of all sections.
   @req haskey(model_dict["model_data"], "model_sections") "Database does not specify model sections for given model"
   sec_names = string.(model_dict["model_data"]["model_sections"])
-  cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
+  cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
-  cl_of_secs = Dict(sec_names[k] => sum(cfs[l, k] * defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(sec_names))
+  cl_of_secs = Dict(sec_names[k] => sum(cfs[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(sec_names))
 
   # Next, generate random values for all involved sections.
   model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
@@ -424,26 +446,26 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model_sections["a4"] = map(a4)
     model_sections["a6"] = map(a6)
 
-    # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyRingElem}()
+    # Find model_section_parametrization
+    model_section_parametrization = Dict{String, MPolyRingElem}()
     if !("a1" in sec_names) || (a1 != eval_poly("a1", parent(a1)))
-      defining_section_parametrization["a1"] = a1
+      model_section_parametrization["a1"] = a1
     end
     if !("a2" in sec_names) || (a2 != eval_poly("a2", parent(a2)))
-      defining_section_parametrization["a2"] = a2
+      model_section_parametrization["a2"] = a2
     end
     if !("a3" in sec_names) || (a3 != eval_poly("a3", parent(a3)))
-      defining_section_parametrization["a3"] = a3
+      model_section_parametrization["a3"] = a3
     end
     if !("a4" in sec_names) || (a4 != eval_poly("a4", parent(a4)))
-      defining_section_parametrization["a4"] = a4
+      model_section_parametrization["a4"] = a4
     end
     if !("a6" in sec_names) || (a6 != eval_poly("a6", parent(a6)))
-      defining_section_parametrization["a6"] = a6
+      model_section_parametrization["a6"] = a6
     end
 
     # Create the model
-    model = global_tate_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
+    model = global_tate_model(base_space, model_sections, model_section_parametrization; completeness_check = completeness_check)
 
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
@@ -455,17 +477,17 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model_sections["f"] = map(f)
     model_sections["g"] = map(g)
 
-    # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyRingElem}()
+    # Find model_section_parametrization
+    model_section_parametrization = Dict{String, MPolyRingElem}()
     if !("f" in sec_names) || (f != eval_poly("f", parent(f)))
-      defining_section_parametrization["f"] = f
+      model_section_parametrization["f"] = f
     end
     if !("g" in sec_names) || (g != eval_poly("g", parent(g)))
-      defining_section_parametrization["g"] = g
+      model_section_parametrization["g"] = g
     end
 
     # Create the model
-    model = weierstrass_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
+    model = weierstrass_model(base_space, model_sections, model_section_parametrization; completeness_check = completeness_check)
 
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 
@@ -480,7 +502,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     fiber_twist_matrix = transpose(matrix(ZZ, (hcat(model_dict["model_data"]["fiber_twist_matrix"]...))))
     @req ncols(fiber_twist_matrix) == length(fiber_amb_coordinates) "Number of fiber coordinate names does not match number of provided fiber gradings"
     @req ncols(fiber_twist_matrix) == n_rays(fas) "Number of rays does not match number of provided fiber gradings"
-    fiber_twist_divisor_classes = [sum([fiber_twist_matrix[l, k] * defng_cls_as_divisor_classes[l] for l in 1:nrows(fiber_twist_matrix)]) for k in 1:ncols(fiber_twist_matrix)]
+    fiber_twist_divisor_classes = [sum([fiber_twist_matrix[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(fiber_twist_matrix)]) for k in 1:ncols(fiber_twist_matrix)]
 
     # Compute the hypersurface equation and its parametrization
     auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(sec_names, fiber_amb_coordinates), cached=false)
@@ -520,8 +542,8 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
-  @req haskey(model_dict["model_data"], "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_model_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model construction, so cannot proceed"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
+  @req haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model construction, so cannot proceed"
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
