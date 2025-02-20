@@ -230,6 +230,7 @@ end
 Return the order of `W`.
 
 If `W` is infinite, an `InfiniteOrderError` exception will be thrown.
+Use [`is_finite(::WeylGroup)`](@ref) to check this prior to calling this function if in doubt.
 """
 function order(::Type{T}, W::WeylGroup) where {T}
   if !is_finite(W)
@@ -431,16 +432,54 @@ function Base.parent(x::WeylGroupElem)
 end
 
 @doc raw"""
+    is_finite_order(x::WeylGroupElem) -> Bool
+
+Return whether `x` is of finite order, i.e. there is a natural number `n` such that `is_one(x^n)`.
+"""
+function is_finite_order(x::WeylGroupElem)
+  is_finite(parent(x)) && return true
+  length(x) <= 1 && return true
+  _, hom = geometric_representation(parent(x))
+  return is_finite_order(hom(x))
+end
+
+@doc raw"""
+    order(x::WeylGroupElem) -> ZZRingELem
+    order(::Type{T}, x::WeylGroupElem) where {T} -> T
+
+Return the order of `x`, i.e. the smallest natural number `n` such that `is_one(x^n)`.
+
+If `x` is of infinite order, an `InfiniteOrderError` exception will be thrown.
+Use [`is_finite_order(::WeylGroupElem)`](@ref) to check this prior to calling this function if in doubt.
+"""
+function order(::Type{T}, x::WeylGroupElem) where {T}
+  is_one(x) && return T(1)
+  length(x) == 1 && return T(2)
+  _, hom = geometric_representation(parent(x))
+  try
+    return order(T, hom(x))
+  catch e
+    if e isa InfiniteOrderError
+      throw(InfiniteOrderError(x))
+    end
+    rethrow()
+  end
+end
+
+@doc raw"""
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
-Return a random element of the Weyl group. The elements are not uniformly distributed.
-
-!!! warning
-    Currently only finite Weyl groups are supported.
+Return a pseudo-random element of the Weyl group. The elements are not uniformly distributed.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
-  return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+  if is_finite(W)
+    return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+  else
+    m = 2^rand(1:10)
+    n = rand(0:m)
+    return W(rand(1:ngens(W), n))
+  end
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
