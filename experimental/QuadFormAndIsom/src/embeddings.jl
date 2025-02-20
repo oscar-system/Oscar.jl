@@ -377,8 +377,11 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
     reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(_fN); side=:left)]
   else
     KNhat, _ = discrep\(kernel(_actN)[1])
-    fNKN = _fN*KNhat
-    CN, _ = discrep\stabN
+    _CN, _ = centralizer(_actN(stabN)[1], _imN(_fHN))
+    @vprintln :ZZLatWithIsom 1 "Centralizer fitting isometries computed"
+    _CN, _ = _actN\_CN
+    CN, _ = discrep\_CN
+    @hassert :ZZLatWithIsom 1 is_normal_subgroup(KNhat, CN)
     m = gset(CN, (a, g) -> inv(g)*a*g, fNKN)
     orb_and_rep = Tuple{typeof(_fN), typeof(m)}[]
 
@@ -745,7 +748,11 @@ function _primitive_extensions_generic(
           for b in reporb
             L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b; same_ambient)
 
-            (!isnothing(q) && genus(L) == G) || (is_even(L) == even) || continue
+            if !isnothing(q) && genus(L) != G
+              continue
+            elseif is_even(L) != even
+              continue
+            end
 
             exist_only && return true, results
 
