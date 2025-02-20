@@ -263,6 +263,15 @@ function order(::Type{T}, W::WeylGroup) where {T}
 end
 
 @doc raw"""
+    cartan_matrix(W::WeylGroup) -> RootSystem
+
+Return the Cartan matrix of `W`.
+"""
+function cartan_matrix(W::WeylGroup)
+  return cartan_matrix(root_system(W))
+end
+
+@doc raw"""
     root_system(W::WeylGroup) -> RootSystem
 
 Return the underlying root system of `W`.
@@ -704,7 +713,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       if iter.up_to_commutation &&
         i > 1 &&
         s < next[i - 1] &&
-        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i - 1]))
+        is_zero_entry(cartan_matrix(parent(iter.el)), s, Int(next[i - 1]))
         s += 1
         continue
       end
