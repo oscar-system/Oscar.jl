@@ -601,7 +601,7 @@ end
   error("no method implemented to check for being an isomorphism")
 end
   
-is_known(typeof(is_isomorphism), phi::AbsCoveredSchemeMorphism) = has_attribute(phi, :is_isomorphism)
+is_known(::typeof(is_isomorphism), phi::AbsCoveredSchemeMorphism) = has_attribute(phi, :is_isomorphism)
 
 ### Pullback of algebraic cycles along an isomorphism. 
 function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
