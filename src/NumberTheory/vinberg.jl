@@ -285,6 +285,17 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
   Qv = zero_matrix(ZZ, ncols(Q), 1)
   tmp2 = zero_matrix(ZZ, 1, 1)
+
+  # The code for `short_vectors_affine` will, by default, turn `Q` and `v0`
+  # into `QQMatrix`. This is due to the use of the function `_convert_type`
+  # in Hecke, which requires this (in this context, since `v0` might not be a
+  # vector in the lattice with Gram matrix `Q`, but only a vector of its
+  # rational span). Since we call several times the function
+  # `short_vectors_affine`, once per iteration, we do this conversion into
+  # `QQMatrix` prior iterating on the list `iteration`.
+
+  # The output of `short_vectors_affine` are `QQMatrix` with integer entries:
+  # we thus recover honest `ZZMatrix` by taking `numerator(v)`.
   _Q = map_entries(QQ, Q)
   _v0 = map_entries(QQ, v0)
   for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
