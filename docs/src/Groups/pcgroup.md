@@ -26,7 +26,7 @@ of the group element.
 
 The group $G$ has a presentation with generators $g_1, g_2, \ldots, g_n$
 and defining relations of the following form,
-where we define $I$ as the set of indices $i$ with $r_i$ a positive integer.
+where we define $I$ as the set of indices $i$ for which $r_i$ is a positive integer.
 
 ```math
    \begin{array}{lcll}
@@ -50,7 +50,7 @@ For infinite groups, we need additionally
    \end{array}
 ```
 
-Here we ssume that the right hand sides are words in normal form.
+Here we assume that the right hand sides are words in normal form.
 
 This presentation describes a confluent rewriting system,
 thus it admits the computation of the normal form for each group element.
