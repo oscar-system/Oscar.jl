@@ -425,7 +425,7 @@ end
 function _change_base_ring(phi::Any, R::MPolyRing)
   K = coefficient_ring(R)
   kk = parent(phi(zero(K)))
-  P, _ = polynomial_ring(kk, symbols(R))
+  P, _ = polynomial_ring(kk, symbols(R); cached=false)
   Phi = hom(R, P, phi, gens(P); check=false)
   return P, Phi
 end
