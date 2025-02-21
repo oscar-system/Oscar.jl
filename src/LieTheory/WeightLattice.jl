@@ -488,3 +488,5 @@ function reflect!(w::WeightLatticeElem, beta::RootSpaceElem)
   end
   return w
 end
+
+ConformanceTests.equality(a::WeightLatticeElem, b::WeightLatticeElem) = a == b

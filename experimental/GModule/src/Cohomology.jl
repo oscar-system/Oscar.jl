@@ -1904,7 +1904,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   B = pc_group(C)
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
 
-  Julia_to_gap = function(a::FinGenAbGroupElem)
+  function Julia_to_gap(a::FinGenAbGroupElem)
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
@@ -1915,7 +1915,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
   end
 
-  gap_to_julia = function(a::GapObj)
+  function Gap_to_julia(a::GapObj)
     e = GAPWrap.ExtRepOfObj(a)
     z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
@@ -1931,7 +1931,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   return B, MapFromFunc(
     codomain(mM), B,
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
-    x->image(mM, gap_to_julia(GapObj(x))))
+    x->image(mM, Gap_to_julia(GapObj(x))))
 end
 
 # `refine` is irrelevant because `M` is elementary abelian.

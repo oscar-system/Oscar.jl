@@ -45,7 +45,7 @@ function save_object(s::SerializerState, w::WeierstrassModel)
   save_data_dict(s) do
     for (data, key) in [
         (explicit_model_sections(w), :explicit_model_sections),
-        (defining_section_parametrization(w), :defining_section_parametrization),
+        (model_section_parametrization(w), :model_section_parametrization),
         (defining_classes(w), :defining_classes)
         ]
       !isempty(data) && save_typed_object(s, data, key)
@@ -136,9 +136,9 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
   base_space, amb_space, wp_ring = params
   pw = load_object(s, MPolyDecRingElem, wp_ring, :weierstrass_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
-  defining_section_parametrization = haskey(s, :defining_section_parametrization) ? load_typed_object(s, :defining_section_parametrization) : Dict{String, MPolyRingElem}()
+  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
-  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base_space, amb_space)
+  model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, base_space, amb_space)
   model.defining_classes = defining_classes
   @req cox_ring(ambient_space(model)) == parent(weierstrass_polynomial(model)) "Weierstrass polynomial not in Cox ring of toric ambient space"
 

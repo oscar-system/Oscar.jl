@@ -1961,6 +1961,28 @@ function relators(G::FPGroup)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
 end
 
+@doc raw"""
+    relators(G::PcGroup)
+
+Return a vector of elements in a free group of rank `ngens(G)`
+that describes the defining relators of the underlying polycyclic presentation
+of `G`.
+
+# Examples
+```jldoctest
+julia> g = dihedral_group(8)
+Pc group of order 8
+
+julia> relators(g)
+6-element Vector{FPGroupElem}:
+ g1^2
+ g2^-1*g1^-1*g2*g1*g3^-1
+ g3^-1*g1^-1*g3*g1
+ g2^2*g3^-1
+ g3^-1*g2^-1*g3*g2
+ g3^2
+```
+"""
 function relators(G::PcGroup)
   gapG = GapObj(G)
   Ggens = GAPWrap.GeneratorsOfGroup(gapG)
@@ -2023,7 +2045,8 @@ If `init == nothing` and `genimgs` is empty, an error occurs.
 Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
 
-See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)](@ref).
 
 # Examples
 ```jldoctest
@@ -2106,7 +2129,8 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
-See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)](@ref).
 
 # Examples
 ```jldoctest
