@@ -38,8 +38,9 @@ function graph_curve(G::Graph; check::Bool=true)
     cycleMatrix = matrix(R,cycleMatrix) # converting to matrix over R for vcat below
 
     vertexIdeals = MPolyIdeal[]
+    E = collect(edges(G))
     for v in 1:n_vertices(G)
-        edgesContainingV = findall(edge->(v in edge),collect(edges(G)))
+        edgesContainingV = findall(edge->(v in edge),E)
         cycleMatrix_v = cycleMatrix[edgesContainingV,:]
         push!(vertexIdeals,ideal(minors(vcat(cycleMatrix_v,rowOfVariables),3)))
     end
