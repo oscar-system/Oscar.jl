@@ -31,8 +31,8 @@ function graph_curve(G::Graph; check::Bool=true)
     @req all(isequal(3),degree(G)) "G is not trivalent"
     @req connectivity(G)==3 "G is not three-connected"
 
-    R,_ = graded_polynomial_ring(QQ,Int(nv(G)//2+1))
-    rowOfVariables = matrix(R,[gens(R)])
+    R,x = graded_polynomial_ring(QQ, div(nv(G),2)+1))
+    rowOfVariables = matrix(R,[x])
 
     cycleMatrix = kernel(matrix(QQ,signed_incidence_matrix(G)); side=:right)
     cycleMatrix = matrix(R,cycleMatrix) # converting to matrix over R for vcat below
