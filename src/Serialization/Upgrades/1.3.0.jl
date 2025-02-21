@@ -74,10 +74,22 @@ push!(upgrade_scripts_set, UpgradeScript(
           :var => dict[:data][:var],
           :def_pol => dict[:data][:def_pol][:data]
         )
+      elseif type_name in ["AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField"]
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => dict[:data][:def_pols][:_type][:params]
+        )
+        upgraded_dict[:data] = Dict(
+          :vars => dict[:data][:vars],
+          :def_pols => dict[:data][:def_pols][:data]
+        )
+
       elseif type_name == "EmbeddedNumField"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
-          :params => dict[:data][:embedding]
+          :params => Dict(
+            :embedding => dict[:data][:embedding],
+            :num_field => dict[:data][:num_field]
         )
         upgraded_dict[:data] = []
       elseif type_name == "FqField"
@@ -112,6 +124,16 @@ push!(upgrade_scripts_set, UpgradeScript(
             upgraded_dict[:data][k] = v[:data]
           end
         end
+      elseif type_name in ["Vector", "Set"]
+        subtype = dict[:_type][:params]
+        upgraded_entries = []
+        for entry in dict[:data]
+          push!(upgraded_entries, upgrade_1_3_0(s, Dict(
+            :_type => subtype,
+            :data => entry
+          )))
+        end
+        upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
       elseif type_name == "Tuple"
         upgraded_subtypes = Dict[]
         for (i, subtype) in enumerate(dict[:_type][:params])
@@ -133,7 +155,8 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_dict[:data] = dict[:data][:basis][:data]
       elseif type_name in [
         "PolyRingElem", "MPolyRingElem", "NormalToricVariety", "FinGenAbGroup",
-        "MPolyIdeal", "MatElem", "String"
+        "MPolyIdeal", "MatElem", "String", "Base.Int", "Bool", "Graph{Undirected}",
+        "Graph{Directed}", "Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}"
         ]
         # do nothing
         upgraded_dict = dict
@@ -146,10 +169,15 @@ push!(upgrade_scripts_set, UpgradeScript(
             :params => upgraded_subdict[:_type]
           )
           upgraded_dict[:data] = upgraded_subdict[:data]
+
+          upgraded_dict[:_type][:params][:params][:_polymake_type] = dict[:_type][:params][:params][:_type]
+          upgraded_dict[:data][:_polymake_type] = dict[:data][:_type]
         else
           upgraded_dict = dict
         end
-      elseif type_name == "Hecke.RelSimpleNumFieldEmbedding"
+      elseif type_name in [
+        "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
+        ]
         upgraded_dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
@@ -158,7 +186,9 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
         )
         upgraded_dict[:data] = dict[:data][:data][:data]
-      elseif type_name == "Hecke.AbsSimpleNumFieldEmbedding"
+      elseif type_name in  [
+        "Hecke.AbsSimpleNumFieldEmbedding", "Hecke.AbsNonSimpleNumFieldEmbedding"
+        ]
         upgraded_dict[:_type] = Dict(
           :name => type_name,
           :params => dict[:data][:num_field]
@@ -166,7 +196,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_dict[:data] = dict[:data][:data][:data]
       else
         error("$type_name doesn't have upgrade")
-      end        
+      end
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_3_0(s, dict[:data])
     end
@@ -178,7 +208,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:_refs] = upgraded_refs
     end
-
     return upgraded_dict
   end
 ))

@@ -710,7 +710,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER || string(file_version) == "1.3.0-DEV-4e6f6922cf7f55a050a1c5fd50ab6f8f4ba6f72c"
+  if file_version < VERSION_NUMBER
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)
@@ -719,6 +719,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     s = deserializer_open(IOBuffer(jsondict_str),
                                 serializer,
                           with_attrs)
+    write("/tmp/blah.json", jsondict_str)
   end
 
   try
