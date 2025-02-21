@@ -1092,6 +1092,7 @@ export marks_vector
 export mat_elem_type
 export mathieu_group
 export matrix_group
+export matrix_group_type
 export matrix_kernel
 export matrix_ordering
 export matroid_base_polytope
