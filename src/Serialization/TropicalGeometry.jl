@@ -29,14 +29,12 @@ end
 type_params(t::T) where T <: TropicalHypersurface = TypeParams(T, parent(tropical_polynomial(t)))
 
 function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
-  save_data_dict(s) do
-    save_object(s, tropical_polynomial(t), :tropical_polynomial)
-  end
+  save_object(s, tropical_polynomial(t))
 end
 
 function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface},
                      params::MPolyRing)
-  polynomial = load_object(s, MPolyRingElem, params, :tropical_polynomial)
+  polynomial = load_object(s, MPolyRingElem, params)
   return tropical_hypersurface(polynomial)
 end
 

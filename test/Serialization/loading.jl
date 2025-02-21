@@ -1,5 +1,5 @@
 @testset "loading" begin
-  @test_skip @testset "loading file format paper example" begin
+  @testset "loading file format paper example" begin
     F = GF(7, 2)
     o = gen(F)
     Fyz, (y, z) = F[:x, :y]
@@ -13,7 +13,7 @@
     LP0 = linear_program(c, [2,2,-3])
     LP1 = linear_program(c, [2,2,4])
     v = [LP0, LP1]
-    loaded = load(joinpath(@__DIR__,"vlp.json"))
+    loaded = load(joinpath(@__DIR__,"vlp.mrdi"))
     @test length(v) == length(loaded)
     @test feasible_region(loaded[1]) == feasible_region(loaded[2])
     @test feasible_region(loaded[1]) == feasible_region(LP0)

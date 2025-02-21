@@ -55,7 +55,7 @@ function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
     return oscar_serialization_version[]
   end
-  if is_dev 
+  if is_dev && false
     commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
@@ -230,7 +230,7 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
-                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{<:Pair}}})
+                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
   for param in params(tp)
     save_type_params(s, param.second, Symbol(param.first))
   end

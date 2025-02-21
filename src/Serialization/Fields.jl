@@ -7,6 +7,7 @@
 @register_serialization_type QQField
 # exclude from ring union definition
 type_params(::QQField) = TypeParams(QQField, nothing)
+type_params(::QQFieldElem) = TypeParams(QQFieldElem, nothing)
 type_params(::fpField) = TypeParams(fpField, nothing)
 type_params(::FpField) = TypeParams(FpField, nothing)
 type_params(::QQBarField) = TypeParams(QQBarField, nothing)
