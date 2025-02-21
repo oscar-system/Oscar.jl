@@ -1,13 +1,7 @@
-function test_elem(K::QQAbField)
-  ns = rand(1:8, 3)
-  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
-  return sum(zs)
-end
-
 @testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation" begin

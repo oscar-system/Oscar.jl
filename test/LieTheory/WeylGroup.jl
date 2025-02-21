@@ -94,8 +94,8 @@
     ),
   ]
     # TODO: make this work
-    # test_Group_interface(W)
-    # test_GroupElem_interface(rand(W, 2)...)
+    # ConformanceTests.test_Group_interface(W)
+    # ConformanceTests.test_GroupElem_interface(rand(W, 2)...)
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin

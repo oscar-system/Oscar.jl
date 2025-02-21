@@ -1,13 +1,7 @@
-function test_elem(K::AlgClosure{T}) where T <: FinField
-  d = rand(1:8)
-  F = ext_of_degree(K, d)
-  return K(rand(F))
-end
-
 @testset "AlgClosureFp" begin
   @testset "Interface for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(GF(3,1))
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
@@ -91,9 +85,9 @@ end
     a = one(K)
     @test isone(inv(a))
     for i in 1:10
-      a = test_elem(K)
-      b = test_elem(K)
-      c = test_elem(K)
+      a = ConformanceTests.generate_element(K)
+      b = ConformanceTests.generate_element(K)
+      c = ConformanceTests.generate_element(K)
       @test iszero(a - a)
       @test iszero(a + (-a))
       @test a * (b + c) == a*b + a*c
@@ -116,7 +110,7 @@ end
   @testset "Ad hoc operations for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     for i in 1:10
-      a = test_elem(K)
+      a = ConformanceTests.generate_element(K)
       for T in [Int, BigInt, ZZRingElem]
         b = rand(-10:10)
         @test a * b == a * K(b)

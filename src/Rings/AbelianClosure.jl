@@ -1307,6 +1307,18 @@ end
 
 #TODO: add reduction to alg. closure as soon as this is available!
 
+###############################################################################
+#
+#   Conformance test element generation
+#
+###############################################################################
+
+function ConformanceTests.generate_element(K::QQAbField)
+  ns = rand(1:8, 3)
+  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
+  return sum(zs)
+end
+
 end # module AbelianClosure
 
 import .AbelianClosure:
