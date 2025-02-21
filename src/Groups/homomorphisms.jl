@@ -1143,7 +1143,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=true) where T <: Union{FPGro
       end
 
       # group to module
-      gap_to_julia = function(a::GapObj)
+      function Gap_to_julia(a::GapObj)
         e = GAPWrap.ExtRepOfObj(a)
         z = zeros(ZZRingElem, ngens(M)*degree(k))
         for i=1:2:length(e)
@@ -1162,7 +1162,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=true) where T <: Union{FPGro
         return MapFromFunc(
           M, B,
           y -> PcGroupElem(B, GAPWrap.ObjByExtRep(FB, Julia_to_gap(y))),
-          x -> gap_to_julia(GapObj(x)))
+          x -> Gap_to_julia(GapObj(x)))
       else
         # We need an indirection: First create the word in the free group,
         # then wrap it into an element of the f.p. group.
@@ -1171,7 +1171,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=true) where T <: Union{FPGro
         return MapFromFunc(
           M, B,
           y -> FPGroupElem(B, GAPWrap.ElementOfFpGroup(FB, GAPWrap.ObjByExtRep(FR, Julia_to_gap(y)))),
-          x -> gap_to_julia(GapObj(x)))
+          x -> Gap_to_julia(GapObj(x)))
       end
    end::MapFromFunc{S, T}
 end
