@@ -593,13 +593,15 @@ end
 # But they can be set by the user so that certain checks of other methods 
 # are satisfied; i.e. the user has to take responsibility and confirm that 
 # they know what they're doing through these channels. 
-@attr Any function is_proper(phi::AbsCoveredSchemeMorphism)
+@attr Bool function is_proper(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check properness")
 end
 
-@attr Any function is_isomorphism(phi::AbsCoveredSchemeMorphism)
+@attr Bool function is_isomorphism(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check for being an isomorphism")
 end
+  
+is_known(::typeof(is_isomorphism), phi::AbsCoveredSchemeMorphism) = has_attribute(phi, :is_isomorphism)
 
 ### Pullback of algebraic cycles along an isomorphism. 
 function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
@@ -1073,6 +1075,7 @@ function _pushforward_prime_divisor(
   return PrimeIdealSheafFromChart(codomain(phi), cod_chart, JJ)
 end
 
+
 function compose(
     f::MorphismFromRationalFunctions,
     g::MorphismFromRationalFunctions
@@ -1088,7 +1091,13 @@ function compose(
   imgs_V = [b[V] for b in imgs]
   U = domain_chart(f)
   imgs_U = [evaluate(numerator(h), coordinate_images(f))//evaluate(denominator(h), coordinate_images(f)) for h in imgs_V]
-  return morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
+  fg =  morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
+  if is_known(is_isomorphism, f) && is_known(is_isomorphism, g)
+    if is_isomorphism(f) && is_isomorphism(g)
+      set_attribute!(fg, :is_isomorphism=>true)
+    end 
+  end
+  return fg 
 end
 
 #=
