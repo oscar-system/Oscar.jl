@@ -87,9 +87,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name == "EmbeddedNumField"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
-          :params => Dict(
-            :embedding => dict[:data][:embedding],
-            :num_field => dict[:data][:num_field]
+          :params => dict[:data][:embedding]
         )
         upgraded_dict[:data] = []
       elseif type_name == "FqField"
