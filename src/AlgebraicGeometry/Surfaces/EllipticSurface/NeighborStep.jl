@@ -510,11 +510,6 @@ to Weierstrass form. This returns a pair `(f, trans)` where `trans` is an endomo
 on the curve defined by `g`, i.e. `g(P) == 0`.
 """
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
-  return _transform_to_weierstrass_with_inverse(g, x, y, P)[1:2]
-end 
-
-# some cases not implemented yet, with dummy return values 
-function _transform_to_weierstrass_with_inverse(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   F = fraction_field(R)
   @assert ngens(R) == 2 "input polynomial must be bivariate"
@@ -580,7 +575,7 @@ function _transform_to_weierstrass_with_inverse(g::MPolyRingElem, x::MPolyRingEl
   E = coeff(gx, 0)
   #E, D, C, B, A = coeff_gx
   if length(P)==3
-    @vprint :EllipticSurface 2 "case 1"
+    @show "case 1"
     @req all(h->degree(h)<=3, coefficients(G)) "infinity (0:1:0) is not a point of this hypersurface"
     # y^2 = B*x^3+C*x^2+C*x+D
     x1 = F(inv(B)*x)
@@ -593,7 +588,7 @@ function _transform_to_weierstrass_with_inverse(g::MPolyRingElem, x::MPolyRingEl
     result = numerator(B^2*f_trans)
     return result, trans, inv_trans
   elseif !iszero(E)
-    @vprint :EllipticSurface 2 "case 2"
+    @show "case 2"
     b = py
     a4, a3, a2, a1, a0 = A,B,C,D,E
     A = b
@@ -614,7 +609,7 @@ function _transform_to_weierstrass_with_inverse(g::MPolyRingElem, x::MPolyRingEl
     @assert x == evaluate(x1, [x2, y2])
     @assert y == evaluate(y1, [x2, y2])
   else
-    @vprint :EllipticSurface 2 "case 3"
+    @show "case 3"
     # TODO compute the inverse transformation (x2,y2)
     x1 = 1//x
     y1 = y//x^2
