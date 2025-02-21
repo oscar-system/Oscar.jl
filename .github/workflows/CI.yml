@@ -134,7 +134,8 @@ jobs:
           - '1.10'
           - 'pre'
           - 'nightly'
-        group: 'book'
+        group:
+          - 'book'
     steps:
       - uses: actions/checkout@v4
         with:
