@@ -1565,6 +1565,9 @@ Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
 
+Sorting some vector `v` of monomials with respect to `ord` can be done with
+`sort(v; lt=((m1, m2) -> cmp(o, m1, m2) < 0))`.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
