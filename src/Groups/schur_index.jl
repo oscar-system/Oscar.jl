@@ -1,6 +1,3 @@
-
-add_verbosity_scope(:SchurIndices)
-
 # AbstractAlgebra.set_verbosity_level(:SchurIndices, 1)
 
 """
@@ -12,9 +9,7 @@ that has Schur index `d`.
 
 `p` must be a prime integer, and `d` must divide `p-1`.
 
-This example is described in the paper
-  T. Yamada, Schur indices over the 2-adic field,
-  Pacific Journal of Mathematics 74, no. 1, 1978.
+This example is described in [Yam78](@cite).
 
 # Examples
 ```jldoctest
@@ -109,7 +104,7 @@ function _Riese_Schmid_type(G::GAPGroup)
   is_abelian(X) && return no_type
   (order(X) == 2*order(Z)) || return no_type
   (mod(twopart, div(order(P), order(X))) == 0) || return no_type
-  return("QD", r)
+  return ("QD", r)
 end
 
 
@@ -305,9 +300,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
 
   # A prime power q > 2 can divide `m` only if there is a prime `p`
   # such that q divides p-1 and G contains an element of order p q.
-  for pair in factor(u)
-    l = pair[1]
-    e = pair[2]
+  for (l, e) in factor(u)
     q = l^e
     if q > 2
       test = true
@@ -524,4 +517,4 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
   end
   @vprintln :SchurIndices 1 "step 4, return $result"
   return result
-end;
+end
