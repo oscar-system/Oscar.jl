@@ -1067,6 +1067,7 @@ export load
 export generic_enriques_surface
 export load_lp
 export load_mps
+export local_schur_indices
 export localization
 export localized_ring
 export longest_element
