@@ -1381,7 +1381,7 @@ end
                    <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyPowersOfElement}})
   A = domain(f)
-  R = base_ring(f)
+  R = base_ring(A)
   g = hom(R, codomain(f), f.(gens(A)); check=false)
   K = kernel(g)
   return ideal(A, elem_type(A)[h for h in A.(gens(K)) if !is_zero(h)])
