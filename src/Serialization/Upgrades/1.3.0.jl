@@ -157,21 +157,26 @@ push!(upgrade_scripts_set, UpgradeScript(
         "Graph{Directed}", "Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}"
         ]
         # do nothing
-        upgraded_dict = dict
       elseif type_name == "Polyhedron"
         if !(dict[:_type][:params] == "QQField")
           upgraded_subdict = upgrade_1_3_0(s, dict[:data])
           upgraded_subdict[:_type][:params][:key_type] = "Symbol"
+          field = nothing
+          for (k, v) in dict[:_refs]
+            if v[:_type] == "EmbeddedNumField"
+              field = k
+            end
+          end
           upgraded_dict[:_type] = Dict(
             :name => type_name,
-            :params => upgraded_subdict[:_type]
+            :params => Dict(
+              :field => field,
+              :pm_params => upgraded_subdict[:_type]
+            )
           )
           upgraded_dict[:data] = upgraded_subdict[:data]
-
-          upgraded_dict[:_type][:params][:params][:_polymake_type] = dict[:_type][:params][:params][:_type]
+          upgraded_dict[:_type][:params][:pm_params][:params][:_polymake_type] = dict[:_type][:params][:pm_params][:params][:_type]
           upgraded_dict[:data][:_polymake_type] = dict[:data][:_type]
-        else
-          upgraded_dict = dict
         end
       elseif type_name in [
         "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
