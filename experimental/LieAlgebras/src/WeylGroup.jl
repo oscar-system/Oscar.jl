@@ -184,56 +184,6 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
 end
 
 @doc raw"""
-    map_word(w::WeylGroupElem, genimgs::Vector; genimgs_inv::Vector = genimgs, init = nothing)
-
-If `init` is `nothing` and `word(w) = [`$i_1$`, ..., `$i_n$`]`,
-then return the product $R_1 R_2 \cdots R_n$ with $R_j =$ `genimgs[`$i_j$`]`.
-Otherwise return the product $xR_1 R_2 \cdots R_n$ where $x =$ `init`.
-
-The length of `genimgs` must be equal to the rank of the parent of `w`.
-If `w` is the trivial element, then `init` is returned if it is different
-from `nothing`, and otherwise `one(genimgs[1])` is returned if `genimgs` is non-empty.
-If `w` is trivial, `init` is nothing and `genimgs` is empty, an error occurs.
-
-See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
-[`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
-Note that `map_word(::WeylGroupElem)` accepts the `genimgs_inv` keyword argument
-for consistency with other `map_word` methods, but ignores it because the
-generators of a Weyl group are always self-inverse.
-
-# Examples
-```jldoctest
-julia> W = weyl_group(:B, 3); imgs = [2, 3, 5];
-
-julia> map_word(one(W), imgs)
-1
-
-julia> map_word(W([1]), imgs)
-2
-
-julia> map_word(W([1]), imgs; init=7)
-14
-
-julia> map_word(W([1,2,1]), imgs)
-12
-
-julia> map_word(W([2,1,2]), imgs) # W([2,1,2]) == W([1,2,1])
-12
-
-julia> map_word(W([3, 2, 1, 3, 2, 3]), imgs)
-2250
-```
-"""
-function map_word(
-  w::WeylGroupElem, genimgs::Vector; genimgs_inv::Vector=genimgs, init=nothing
-)
-  @req length(genimgs) == number_of_generators(parent(w)) begin
-    "Length of vector of images does not equal rank of Weyl group"
-  end
-  return map_word(Int.(word(w)), genimgs; init=init)
-end
-
-@doc raw"""
     parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupElem=one(W)) -> WeylGroup, Map{WeylGroup, WeylGroup}
 
 Return a Weyl group `P` and an embedding $f:P\to W$ such that $f(P)$ is

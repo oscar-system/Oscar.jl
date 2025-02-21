@@ -539,6 +539,7 @@ export double_dual
 export dst
 export dual
 export dual_continued_fraction_hirzebruch_jung
+export dual_geometric_representation
 export dual_graph
 export dual_matroid
 export dual_subdivision
@@ -650,6 +651,7 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export geometric_representation
 export get_conjugate
 export get_power
 export get_relative_order
@@ -1093,6 +1095,7 @@ export marks_vector
 export mat_elem_type
 export mathieu_group
 export matrix_group
+export matrix_group_type
 export matrix_kernel
 export matrix_ordering
 export matroid_base_polytope

@@ -2270,7 +2270,7 @@ function natural_character(G::PermGroup)
 end
 
 @doc raw"""
-    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
+    natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
@@ -2293,7 +2293,7 @@ function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQField
 end
 
 @doc raw"""
-    natural_character(G::MatrixGroup{FinFieldElem})
+    natural_character(G::MatrixGroup{<:FinFieldElem})
 
 Return the character that maps each $p$-regular element of `G`,
 where $p$ is the characteristic of the base field of `G`,
