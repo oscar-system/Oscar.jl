@@ -318,8 +318,8 @@ end
 
 (F::Field)(x::Polymake.Rational) = F(QQ(x))
 function (F::Field)(x::Polymake.OscarNumber)
-  println(Oscar.global_serializer_state.obj_to_id[F])
-  println(Oscar.global_serializer_state.obj_to_id[parent(Polymake.unwrap(x))])
+  #println(Oscar.global_serializer_state.obj_to_id[F])
+  #println(Oscar.global_serializer_state.obj_to_id[parent(Polymake.unwrap(x))])
   F(Polymake.unwrap(x))
 end
 
