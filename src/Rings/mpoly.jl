@@ -1236,6 +1236,7 @@ end
 
 @doc raw"""
     divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
+
 Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
 for each polynomial in b, and a polynomial ri such that
 a[i] = sum_i b[i]*qi + ri.
@@ -1261,7 +1262,7 @@ function _is_integral_domain(R::MPolyRing)
 end
 
 @doc raw"""
-    total_degree(f::MPolyRingElem, w::Vector{Int})
+    weighted_degree(f::MPolyRingElem, w::Vector{Int})
 
 Given a multivariate polynomial `f` and a weight vector `w`
 return the total degree of `f` with respect to the weights `w`.
