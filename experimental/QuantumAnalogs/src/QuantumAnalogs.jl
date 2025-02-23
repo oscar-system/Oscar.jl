@@ -16,8 +16,7 @@ export quantum_integer, quantum_factorial, quantum_binomial
 # Quantum integers
 ################################################################################
 @doc raw"""
-    quantum_integer(n::IntegerUnion, q::RingElem)
-    quantum_integer(n::IntegerUnion, q::Integer)
+    quantum_integer(n::IntegerUnion, q::RingElement)
     quantum_integer(n::IntegerUnion)
 
 Let ``n ∈ ℤ`` and let ``ℚ(q)`` be the fraction field of the polynomial ring ``ℤ[q]`` in
@@ -69,6 +68,10 @@ julia> quantum_integer(3,2)
 7
 
 julia> quantum_integer(-3,2)
+ERROR: DomainError with -3:
+Cannot raise an integer x to a negative power -3.
+
+julia> quantum_integer(-3,2//1)
 -7//8
 
 julia> K,i = cyclotomic_field(4, "i");
@@ -81,7 +84,7 @@ i
 1. [Con00](@cite)
 2. [KC02](@cite)
 """
-function quantum_integer(n::IntegerUnion, q::RingElem)
+function quantum_integer(n::IntegerUnion, q::RingElement)
   R = parent(q)
   isone(q) && return R(n)
 
@@ -98,16 +101,6 @@ function quantum_integer(n::IntegerUnion, q::RingElem)
   return z
 end
 
-function quantum_integer(n::IntegerUnion, q::Integer)
-  # this method is not type stable, but that is acceptable as it is only
-  # intended for convenience during interactive use
-  if n >= 0 || q == 1 || q == -1
-    return quantum_integer(n,ZZ(q))
-  else
-    return quantum_integer(n,QQ(q))
-  end
-end
-
 function quantum_integer(n::IntegerUnion)
   R,q = laurent_polynomial_ring(ZZ, "q")
   return quantum_integer(n,q)
@@ -118,8 +111,7 @@ end
 # Quantum factorials
 ################################################################################
 @doc raw"""
-    quantum_factorial(n::IntegerUnion, q::RingElem)
-    quantum_factorial(n::IntegerUnion, q::Integer)
+    quantum_factorial(n::IntegerUnion, q::RingElement)
     quantum_factorial(n::IntegerUnion)
 
 For a non-negative integer ``n`` and an element ``q`` of a ring ``R`` the **quantum
@@ -151,7 +143,7 @@ julia> quantum_factorial(3, i)
 i - 1
 ```
 """
-function quantum_factorial(n::IntegerUnion, q::RingElem)
+function quantum_factorial(n::IntegerUnion, q::RingElement)
   @req n >= 0 "n >= 0 required"
 
   R = parent(q)
@@ -162,10 +154,6 @@ function quantum_factorial(n::IntegerUnion, q::RingElem)
     z *= quantum_integer(i,q)
   end
   return z
-end
-
-function quantum_factorial(n::IntegerUnion, q::Integer)
-  return quantum_factorial(n,ZZ(q))
 end
 
 function quantum_factorial(n::IntegerUnion)
@@ -179,8 +167,7 @@ end
 ################################################################################
 
 @doc raw"""
-    quantum_binomial(n::IntegerUnion, q::RingElem)
-    quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
+    quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
     quantum_binomial(n::IntegerUnion, k::IntegerUnion)
 
 Let ``k`` be a non-negative integer and let ``n ∈ ℤ``. The **quantum binomial**
@@ -250,7 +237,7 @@ julia> quantum_binomial(17,10,i)
 # References
 1. [Con00](@cite)
 """
-function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
+function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
   @req k >= 0 "k >= 0 required"
 
   R = parent(q)
@@ -265,16 +252,6 @@ function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
     z += q^i * quantum_binomial(i+k-1,k-1,q)
   end
   return z
-end
-
-function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
-  # this method is not type stable, but that is acceptable as it is only
-  # intended for convenience during interactive use
-  if n > 0
-    return quantum_binomial(n,k,ZZ(q))
-  else
-    return quantum_binomial(n,k,QQ(q))
-  end
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion)
