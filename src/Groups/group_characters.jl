@@ -2498,6 +2498,9 @@ The result is an instance of `Vector{T}`.
 ```jldoctest
 julia> g = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> chi = natural_character(g);
 

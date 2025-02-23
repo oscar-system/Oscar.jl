@@ -30,6 +30,9 @@ it has an empty vector of defining relators.
 ```jldoctest fpgroupxpl
 julia> F = free_group(2)
 Free group of rank 2
+with 2 generators
+  f1
+  f2
 
 julia> gens(F)
 2-element Vector{FPGroupElem}:

@@ -436,6 +436,11 @@ Gram matrix quadratic form:
 
 julia> OT = orthogonal_group(T)
 Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+with 2 generators
+  Isometry of finite quadratic module: Z/15 -> Q/2Z defined by
+    [4]
+  Isometry of finite quadratic module: Z/15 -> Q/2Z defined by
+    [11]
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -478,6 +483,11 @@ julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
 Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+with 2 generators
+  Isometry of finite quadratic module: Z/15 -> Q/2Z defined by
+    [4]
+  Isometry of finite quadratic module: Z/15 -> Q/2Z defined by
+    [11]
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
