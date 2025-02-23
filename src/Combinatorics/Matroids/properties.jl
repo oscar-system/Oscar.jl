@@ -546,7 +546,7 @@ end
 @doc raw"""
     is_binary(M::Matroid)
 
-Checksif the matroid `M` is binary, that is representable over the finite field `F_2`.
+Check whether the matroid `M` is binary, that is representable over the finite field `F_2`.
 See Section 6.5 in [Oxl11](@cite).
 
 # Examples
@@ -1015,7 +1015,7 @@ end
 @doc raw"""
     min_revlex_basis_encoding(M::Matroid)
 
-Computesthe minimal revlex basis encoding among isomorphic matroids.
+Compute the minimal revlex basis encoding among isomorphic matroids.
 
 # Examples
 To get the minimal revlex basis encoding of the fano matroid write:

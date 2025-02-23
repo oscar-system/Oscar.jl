@@ -121,7 +121,7 @@ end
 @doc raw"""
     is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
 
-Check if a ring element is a non-zero divisor
+Check if a ring element is a non-zero-divisor
 in the coordinate ring of an affine scheme.
 
 # Examples
