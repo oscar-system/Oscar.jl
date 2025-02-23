@@ -61,16 +61,14 @@ i
 function quantum_integer(n::IntegerUnion, q::RingElement)
   R = parent(q)
   isone(q) && return R(n)
+  n < 0 && return -q^n * quantum_integer(-n, q)
 
   z = zero(R)
-  if n >= 0
-    for i = 0:n-1
-      z += q^i
-    end
-  else
-    for i = 0:-n-1
-      z -= q^(n+i)
-    end
+  qi = one(R)
+  for i = 0:n-1
+    # at this point qi = q^i
+    z = add!(z, qi)
+    qi = mul!(qi, q)
   end
   return z
 end
