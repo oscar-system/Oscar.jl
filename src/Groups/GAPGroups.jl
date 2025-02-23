@@ -459,28 +459,20 @@ function Base.show(io::IO, G::PermGroup)
 
   # Treat groups specially which know that they are nat. symmetric/alternating.
   io = pretty(io)
-  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
-     number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Sym(", degree(G), ")")
-  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
-     number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Alt(", degree(G), ")")
-  else
-    print(io, "Permutation group")
-    if !is_terse(io)
-      print(io, " of degree ", degree(G))
-      if has_order(G)
-        if is_finite(G)
-          print(io, " and order ", order(G))
-        else
-          print(io, " and infinite order")
-        end
-      elseif GAP.Globals.HasStabChainMutable(GapObj(G))
-        # HACK: to show order in a few more cases where it is trivial to get
-        # but really, GAP should be using this anyway?
-        s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
-        print(io, " and order ", ZZRingElem(s))
+  print(io, "Permutation group")
+  if !is_terse(io)
+    print(io, " of degree ", degree(G))
+    if has_order(G)
+      if is_finite(G)
+        print(io, " and order ", order(G))
+      else
+        print(io, " and infinite order")
       end
+    elseif GAP.Globals.HasStabChainMutable(GapObj(G))
+      # HACK: to show order in a few more cases where it is trivial to get
+      # but really, GAP should be using this anyway?
+      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
+      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
