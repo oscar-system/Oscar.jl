@@ -620,6 +620,9 @@ Return whether generators for the group `G` are known.
 ```jldoctest
 julia> F = free_group(2)
 Free group of rank 2
+with 2 generators
+  f1
+  f2
 
 julia> has_gens(F)
 true
@@ -986,6 +989,9 @@ if `order` is positive, the classes of subgroups of this order.
 ```jldoctest
 julia> G = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1114,9 +1120,13 @@ julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
 Permutation group of degree 4 and order 3
+with 1 generator
+  (1,2,3)
 
 julia> conjugate_group(H, gen(G, 1))
 Permutation group of degree 4 and order 3
+with 1 generator
+  (2,3,4)
 
 ```
 """
@@ -1147,15 +1157,21 @@ julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (3,4)
 
 julia> is_conjugate(G, H, K)
 true
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate(G, H, K)
 false
@@ -1179,15 +1195,21 @@ julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (3,4)
 
 julia> is_conjugate_with_data(G, H, K)
 (true, (1,3)(2,4))
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_with_data(G, H, K)
 (false, nothing)
@@ -1221,15 +1243,22 @@ julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
 Alt(4)
+with 2 generators
+  (1,2,3)
+  (2,3,4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)
 
 julia> is_conjugate_subgroup(G, U, V)
 false
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_subgroup(G, U, V)
 true
@@ -1251,15 +1280,22 @@ julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
 Alt(4)
+with 2 generators
+  (1,2,3)
+  (2,3,4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)
 
 julia> is_conjugate_subgroup_with_data(G, U, V)
 (false, ())
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
 Permutation group of degree 4
+with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_subgroup_with_data(G, U, V)
 (true, ())
@@ -1297,6 +1333,8 @@ julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
 Permutation group of degree 4 and order 3
+with 1 generator
+  (1,2,3)
 
 julia> short_right_transversal(G, H, G([2, 1, 3, 4]))
 PermGroupElem[]
@@ -1585,6 +1623,10 @@ julia> complement_classes(G, derived_subgroup(G)[1])
 
 julia> G = dihedral_group(8)
 Pc group of order 8
+with 3 generators
+  f1
+  f2
+  f3
 
 julia> complement_classes(G, center(G)[1])
 GAPGroupConjClass{PcGroup, SubPcGroup}[]
@@ -1896,6 +1938,9 @@ Return whether `G` is a finitely generated group.
 ```jldoctest
 julia> F = free_group(2)
 Free group of rank 2
+with 2 generators
+  f1
+  f2
 
 julia> is_finitely_generated(F)
 true
@@ -2003,6 +2048,10 @@ of `G`.
 ```jldoctest
 julia> g = dihedral_group(8)
 Pc group of order 8
+with 3 generators
+  f1
+  f2
+  f3
 
 julia> relators(g)
 6-element Vector{FPGroupElem}:
@@ -2167,6 +2216,9 @@ See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
 ```jldoctest
 julia> G = dihedral_group(10)
 Pc group of order 10
+with 2 generators
+  f1
+  f2
 
 julia> x, y = gens(G);  g = x * y^4
 f1*f2^4
