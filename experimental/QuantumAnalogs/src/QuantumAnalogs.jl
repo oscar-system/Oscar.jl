@@ -184,48 +184,48 @@ end
     quantum_binomial(n::IntegerUnion, k::IntegerUnion)
 
 Let ``k`` be a non-negative integer and let ``n ∈ ℤ``. The **quantum binomial**
-``\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 \in ℚ(𝐪)`` is defined as
+``\binom{n}{k}_𝐪 \in ℚ(𝐪)`` is defined as
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 ≔ \frac{[n]_𝐪!}{[k]_𝐪! [n-k]_𝐪!} = \frac{[n]_𝐪 [n-1]_𝐪⋅ … ⋅ [n-k+1]_𝐪}{[k]_𝐪!}
+\binom{n}{k}_𝐪 ≔ \frac{[n]_𝐪!}{[k]_𝐪! [n-k]_𝐪!} = \frac{[n]_𝐪 [n-1]_𝐪⋅ … ⋅ [n-k+1]_𝐪}{[k]_𝐪!}
 ```
 Note that the first expression is only defined for ``n ≥ k`` since the quantum factorials
 are only defined for non-negative integers, but the second expression is well-defined for
 all ``n ∈ ℤ`` and is used for the definition. In [Con00](@cite) it is shown that
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 = \sum_{i=0}^{n-k} q^i \begin{bmatrix} i+k-1 \\ k-1 \end{bmatrix}_𝐪 \quad \text{if } n ≥ k > 0 \;.
+\binom{n}{k}_𝐪 = \sum_{i=0}^{n-k} q^i \binom{i+k-1}{k-1}_𝐪 \quad \text{if } n ≥ k > 0 \;.
 ```
 Since
 ```math
-\begin{bmatrix} n \\ 0 \end{bmatrix}_𝐪 = 1 \quad \text{for all } n ∈ ℤ
+\binom{n}{0}_𝐪 = 1 \quad \text{for all } n ∈ ℤ
 ```
 and
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 = 0 \quad \text{if } 0 ≤ n < k \;,
+\binom{n}{k}_𝐪 = 0 \quad \text{if } 0 ≤ n < k \;,
 ```
 it follows inductively that
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 ∈ ℤ[𝐪] \quad \text{if } n ≥ 0 \;.
+\binom{n}{k}_𝐪 ∈ ℤ[𝐪] \quad \text{if } n ≥ 0 \;.
 ```
 For all ``n ∈ ℤ`` we have the relation
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 = (-1)^k 𝐪^{-k(k-1)/2+kn} \begin{bmatrix} k-n-1 \\ k \end{bmatrix}_𝐪 \;,
+\binom{n}{k}_𝐪 = (-1)^k 𝐪^{-k(k-1)/2+kn} \binom{k-n-1}{k}_𝐪 \;,
 ```
 which shows that
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 ∈ ℤ[𝐪^{-1}] \quad \text{if } n < 0 \;.
+\binom{n}{k}_𝐪 ∈ ℤ[𝐪^{-1}] \quad \text{if } n < 0 \;.
 ```
 In particular,
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_𝐪 ∈ ℤ[𝐪,𝐪^{-1}] \quad \text{for all } n ∈ ℤ \;.
+\binom{n}{k}_𝐪 ∈ ℤ[𝐪,𝐪^{-1}] \quad \text{for all } n ∈ ℤ \;.
 ```
-Now, for an element ``q`` of a ring ``R`` we define ``\begin{bmatrix} n \\ k
-\end{bmatrix}_q`` as the specialization of ``\begin{bmatrix} n \\ k
-\end{bmatrix}_{\mathbf{q}}`` in ``q``, where ``q`` is assumed to be invertible in ``R`` if
+Now, for an element ``q`` of a ring ``R`` we define ``\binom{n}{k}_q`` as the
+specialization of ``\binom{n}{k}_{\mathbf{q}}`` in ``q``, where ``q`` is
+assumed to be invertible in ``R`` if
 ``n < 0``.
 
 Note that for ``q=1`` we obtain
 ```math
-\begin{bmatrix} n \\ k \end{bmatrix}_1 = {n \choose k} \;,
+\binom{n}{k}_1 = \binom{n}{k} \;,
 ```
 hence the quantum binomial coefficient is a "deformation" of the usual binomial coefficient.
 
