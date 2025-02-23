@@ -20,29 +20,29 @@ export quantum_integer, quantum_factorial, quantum_binomial
     quantum_integer(n::IntegerUnion, q::Integer)
     quantum_integer(n::IntegerUnion)
 
-Let ``n ∈ ℤ`` and let ``ℚ(𝐪)`` be the fraction field of the polynomial ring ``ℤ[𝐪]`` in
-one variable ``𝐪``. The **quantum integer** ``[n]_𝐪 ∈ ℚ(𝐪)`` of ``n`` is defined as
+Let ``n ∈ ℤ`` and let ``ℚ(q)`` be the fraction field of the polynomial ring ``ℤ[q]`` in
+one variable ``q``. The **quantum integer** ``[n]_q ∈ ℚ(q)`` of ``n`` is defined as
 ```math
-[n]_𝐪 ≔ \frac{𝐪^n-1}{𝐪-1} \;.
+[n]_q ≔ \frac{q^n-1}{q-1} \;.
 ```
 We have
 ```math
-[n]_𝐪 = \sum_{i=0}^{n-1} 𝐪^i ∈ ℤ[𝐪] \quad \text{if } n ≥ 0
+[n]_q = \sum_{i=0}^{n-1} q^i ∈ ℤ[q] \quad \text{if } n ≥ 0
 ```
 and
 ```math
-[n]_𝐪 = -𝐪^{n} [-n]_𝐪 \quad \text{for any } n ∈ ℤ \;,
+[n]_q = -q^{n} [-n]_q \quad \text{for any } n ∈ ℤ \;,
 ```
 hence
 ```math
-[n]_𝐪 = - \sum_{i=0}^{-n-1} 𝐪^{n+i} ∈ ℤ[𝐪^{-1}] \quad \text{ if } n < 0 \;.
+[n]_q = - \sum_{i=0}^{-n-1} q^{n+i} ∈ ℤ[q^{-1}] \quad \text{ if } n < 0 \;.
 ```
 This shows in particular that actually
 ```math
-[n]_𝐪 ∈ ℤ[𝐪,𝐪^{-1}] ⊂ ℚ(𝐪) \quad \text{ for any } n ∈ ℤ \;.
+[n]_q ∈ ℤ[q,q^{-1}] ⊂ ℚ(q) \quad \text{ for any } n ∈ ℤ \;.
 ```
 Now, for an element ``q`` of a ring ``R`` we define ``[n]_q ∈ R`` as the specialization of
-``[n]_𝐪`` in ``q`` using the two equations above—assuming that ``q`` is invertible in ``R``
+``[n]_q`` in ``q`` using the two equations above—assuming that ``q`` is invertible in ``R``
 if ``n<0``. Note that for ``q=1`` we obtain
 ```math
 [n]_1 = n \quad \text{for any } n ∈ ℤ \;,
@@ -55,7 +55,7 @@ so the quantum integers are "deformations" of the usual integers.
 * `quantum_integer(n::IntegerUnion,q::Integer)` returns ``[n]_q``. Here, if ``n >= 0`` or
   ``q = ± 1``, then ``q`` is considered as an element of ``ℤ``, otherwise it is taken as an
   element of ``ℚ``.
-* `quantum_integer(n::IntegerUnion)` returns ``[n]_𝐪`` as an element of ``ℤ[𝐪^{-1}]``.
+* `quantum_integer(n::IntegerUnion)` returns ``[n]_q`` as an element of ``ℤ[q^{-1}]``.
 
 # Examples
 ```jldoctest
@@ -184,39 +184,39 @@ end
     quantum_binomial(n::IntegerUnion, k::IntegerUnion)
 
 Let ``k`` be a non-negative integer and let ``n ∈ ℤ``. The **quantum binomial**
-``\binom{n}{k}_𝐪 \in ℚ(𝐪)`` is defined as
+``\binom{n}{k}_q \in ℚ(q)`` is defined as
 ```math
-\binom{n}{k}_𝐪 ≔ \frac{[n]_𝐪!}{[k]_𝐪! [n-k]_𝐪!} = \frac{[n]_𝐪 [n-1]_𝐪⋅ … ⋅ [n-k+1]_𝐪}{[k]_𝐪!}
+\binom{n}{k}_q ≔ \frac{[n]_q!}{[k]_q! [n-k]_q!} = \frac{[n]_q [n-1]_q⋅ … ⋅ [n-k+1]_q}{[k]_q!}
 ```
 Note that the first expression is only defined for ``n ≥ k`` since the quantum factorials
 are only defined for non-negative integers, but the second expression is well-defined for
 all ``n ∈ ℤ`` and is used for the definition. In [Con00](@cite) it is shown that
 ```math
-\binom{n}{k}_𝐪 = \sum_{i=0}^{n-k} q^i \binom{i+k-1}{k-1}_𝐪 \quad \text{if } n ≥ k > 0 \;.
+\binom{n}{k}_q = \sum_{i=0}^{n-k} q^i \binom{i+k-1}{k-1}_q \quad \text{if } n ≥ k > 0 \;.
 ```
 Since
 ```math
-\binom{n}{0}_𝐪 = 1 \quad \text{for all } n ∈ ℤ
+\binom{n}{0}_q = 1 \quad \text{for all } n ∈ ℤ
 ```
 and
 ```math
-\binom{n}{k}_𝐪 = 0 \quad \text{if } 0 ≤ n < k \;,
+\binom{n}{k}_q = 0 \quad \text{if } 0 ≤ n < k \;,
 ```
 it follows inductively that
 ```math
-\binom{n}{k}_𝐪 ∈ ℤ[𝐪] \quad \text{if } n ≥ 0 \;.
+\binom{n}{k}_q ∈ ℤ[q] \quad \text{if } n ≥ 0 \;.
 ```
 For all ``n ∈ ℤ`` we have the relation
 ```math
-\binom{n}{k}_𝐪 = (-1)^k 𝐪^{-k(k-1)/2+kn} \binom{k-n-1}{k}_𝐪 \;,
+\binom{n}{k}_q = (-1)^k q^{-k(k-1)/2+kn} \binom{k-n-1}{k}_q \;,
 ```
 which shows that
 ```math
-\binom{n}{k}_𝐪 ∈ ℤ[𝐪^{-1}] \quad \text{if } n < 0 \;.
+\binom{n}{k}_q ∈ ℤ[q^{-1}] \quad \text{if } n < 0 \;.
 ```
 In particular,
 ```math
-\binom{n}{k}_𝐪 ∈ ℤ[𝐪,𝐪^{-1}] \quad \text{for all } n ∈ ℤ \;.
+\binom{n}{k}_q ∈ ℤ[q,q^{-1}] \quad \text{for all } n ∈ ℤ \;.
 ```
 Now, for an element ``q`` of a ring ``R`` we define ``\binom{n}{k}_q`` as the
 specialization of ``\binom{n}{k}_{\mathbf{q}}`` in ``q``, where ``q`` is
