@@ -99,6 +99,8 @@ function quantum_integer(n::IntegerUnion, q::RingElem)
 end
 
 function quantum_integer(n::IntegerUnion, q::Integer)
+  # this method is not type stable, but that is acceptable as it is only
+  # intended for convenience during interactive use
   if n >= 0 || q == 1 || q == -1
     return quantum_integer(n,ZZ(q))
   else
@@ -187,7 +189,7 @@ Let ``k`` be a non-negative integer and let ``n ∈ ℤ``. The **quantum binomia
 \begin{bmatrix} n \\ k \end{bmatrix}_𝐪 ≔ \frac{[n]_𝐪!}{[k]_𝐪! [n-k]_𝐪!} = \frac{[n]_𝐪 [n-1]_𝐪⋅ … ⋅ [n-k+1]_𝐪}{[k]_𝐪!}
 ```
 Note that the first expression is only defined for ``n ≥ k`` since the quantum factorials
-are only defined for non-negative integers—but the second  expression is well-defined for
+are only defined for non-negative integers, but the second expression is well-defined for
 all ``n ∈ ℤ`` and is used for the definition. In [Con00](@cite) it is shown that
 ```math
 \begin{bmatrix} n \\ k \end{bmatrix}_𝐪 = \sum_{i=0}^{n-k} q^i \begin{bmatrix} i+k-1 \\ k-1 \end{bmatrix}_𝐪 \quad \text{if } n ≥ k > 0 \;.
@@ -266,6 +268,8 @@ function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
+  # this method is not type stable, but that is acceptable as it is only
+  # intended for convenience during interactive use
   if n > 0
     return quantum_binomial(n,k,ZZ(q))
   else
