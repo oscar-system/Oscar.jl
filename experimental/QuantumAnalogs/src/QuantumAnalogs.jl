@@ -19,42 +19,20 @@ export quantum_integer, quantum_factorial, quantum_binomial
     quantum_integer(n::IntegerUnion, q::RingElement)
     quantum_integer(n::IntegerUnion)
 
-Let ``n ∈ ℤ`` and let ``ℚ(q)`` be the fraction field of the polynomial ring ``ℤ[q]`` in
-one variable ``q``. The **quantum integer** ``[n]_q ∈ ℚ(q)`` of ``n`` is defined as
-```math
-[n]_q ≔ \frac{q^n-1}{q-1} \;.
-```
-We have
-```math
-[n]_q = \sum_{i=0}^{n-1} q^i ∈ ℤ[q] \quad \text{if } n ≥ 0
-```
-and
-```math
-[n]_q = -q^{n} [-n]_q \quad \text{for any } n ∈ ℤ \;,
-```
-hence
-```math
-[n]_q = - \sum_{i=0}^{-n-1} q^{n+i} ∈ ℤ[q^{-1}] \quad \text{ if } n < 0 \;.
-```
-This shows in particular that actually
-```math
-[n]_q ∈ ℤ[q,q^{-1}] ⊂ ℚ(q) \quad \text{ for any } n ∈ ℤ \;.
-```
-Now, for an element ``q`` of a ring ``R`` we define ``[n]_q ∈ R`` as the specialization of
-``[n]_q`` in ``q`` using the two equations above—assuming that ``q`` is invertible in ``R``
-if ``n<0``. Note that for ``q=1`` we obtain
-```math
-[n]_1 = n \quad \text{for any } n ∈ ℤ \;,
-```
-so the quantum integers are "deformations" of the usual integers.
+Return the quantum integer $[n]_q$ which is defined as $\frac{q^n-1}{q-1}$
+when ``q-1`` is invertible.
 
-# Functions
-* `quantum_integer(n::IntegerUnion,q::RingElem)` returns ``[n]_q`` as an element of ``R``,
-  where ``R`` is the parent ring of ``q``.
-* `quantum_integer(n::IntegerUnion,q::Integer)` returns ``[n]_q``. Here, if ``n >= 0`` or
-  ``q = ± 1``, then ``q`` is considered as an element of ``ℤ``, otherwise it is taken as an
-  element of ``ℚ``.
-* `quantum_integer(n::IntegerUnion)` returns ``[n]_q`` as an element of ``ℤ[q^{-1}]``.
+For general ring elements `q`, we use the following identities to compute
+$[n]_q$: if `n` is non-negative, then $[n]_q = \sum_{i=0}^{n-1} q^i$. To
+handle negative values `n` we use the identity $[n]_q = -q^{n} [-n]_q$. Thus for
+negative `n` we require `q` to be invertible.
+
+Note that for ``q=1`` we obtain $[n]_1 = n$ so the quantum integers are
+"deformations" of the usual integers. For details about these objects see
+[Con00](@cite) or [KC02](@cite).
+
+If `q` is omitted then it defaults to the generator of a Laurent polynomial
+ring over the integers.
 
 # Examples
 ```jldoctest
@@ -79,10 +57,6 @@ julia> K,i = cyclotomic_field(4, "i");
 julia> quantum_integer(3, i)
 i
 ```
-
-# References
-1. [Con00](@cite)
-2. [KC02](@cite)
 """
 function quantum_integer(n::IntegerUnion, q::RingElement)
   R = parent(q)
