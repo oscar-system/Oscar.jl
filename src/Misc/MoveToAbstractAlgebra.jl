@@ -55,3 +55,7 @@ function Base.copy(f::MPolyRingElem)
   end
   return finish(g)
 end
+
+function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
+  return divexact(numerator(a)(b), denominator(a)(b))
+end
