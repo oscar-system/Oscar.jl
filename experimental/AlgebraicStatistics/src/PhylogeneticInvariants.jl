@@ -86,7 +86,7 @@ function vanishing_ideal(F::Field, pm::PhyloModelUnion, param::MPolyAnyMap;
       # F = GF(32003) #1206.6940
       invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
 
-    elseif algorithm == :markov # symbols cannot start with numbers
+    elseif algorithm == :markov
       # symbols cannot start with numbers
       o = lex(elim_ring)
       groebner_basis(I; ordering=o, algorithm=:markov)
