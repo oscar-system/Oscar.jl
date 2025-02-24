@@ -1283,7 +1283,7 @@ end
 @doc raw"""
     coeff(r::DualRootSpaceElem, i::Int) -> QQFieldElem
 
-Returns the coefficient of the `i`-th simple coroot in `r`.
+Return the coefficient of the `i`-th simple coroot in `r`.
 
 This can be also accessed via `r[i]`.
 """

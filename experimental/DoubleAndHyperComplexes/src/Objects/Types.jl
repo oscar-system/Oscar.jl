@@ -199,7 +199,7 @@ horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 1, t)
 @doc raw"""
     has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Checks whether the double complex `dc` has the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
+Check whether the double complex `dc` has the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
 the sign depending on the `horizontal_direction` of `dc`.
 
 If this returns `false` this might just mean that the map has not been computed, yet. 
@@ -228,7 +228,7 @@ vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 2, t)
 @doc raw"""
     has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Checks whether the double complex `dc` has the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
+Check whether the double complex `dc` has the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
 the sign depending on the `vertical_direction` of `dc`.
 
 If this returns `false` this might just mean that the map has not been computed, yet. 

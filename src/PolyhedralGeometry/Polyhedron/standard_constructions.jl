@@ -2068,7 +2068,7 @@ end
 @doc raw"""
     rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
-Computes the convex hull of `n` points sampled uniformly at random from the integer 
+Compute the convex hull of `n` points sampled uniformly at random from the integer 
 points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 
 # Optional Argument
@@ -2107,7 +2107,7 @@ end
 @doc raw"""
     rand_cyclic_polytope(d::Int, n::Int; seed::Int=nothing)
 
-Computes a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
+Compute a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
 generating a Gale diagram whose cocircuits have alternating signs.
 
 # Optional Argument

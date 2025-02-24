@@ -106,7 +106,7 @@ end
 @doc raw"""
     center(phi::ToricBlowupMorphism) -> AbsIdealSheaf
 
-Returns an ideal sheaf $\mathcal{I}$ such that the cosupport of
+Return an ideal sheaf $\mathcal{I}$ such that the cosupport of
 $\mathcal{I}$ is the image of the exceptional prime divisor.
 
 # Examples

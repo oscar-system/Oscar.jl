@@ -148,7 +148,7 @@ function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
 end
 
 """
-Checks if the action maps satisfy the same relations
+Check if the action maps satisfy the same relations
 as the generators of `G`.
 """
 function is_consistent(M::GModule)
@@ -971,7 +971,7 @@ end
 
 
 """
-Computes an isomorphic fp-group and a confluent system of
+Compute an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
 
 Return the new group, the isomorphism and the confluent relations.
@@ -1746,7 +1746,7 @@ end
 
 
 """
-Computes H^3 via dimension-shifting:
+Compute H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1
 thus

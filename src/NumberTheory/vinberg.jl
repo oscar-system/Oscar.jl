@@ -72,7 +72,7 @@ end
 @doc raw"""
     _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem}) -> Vector{Tuple{Int, ZZRingElem}}
 
-Returns all possible tuples $(n, l)$ with `n` a natural number and `l` contained in `root_lengths`,
+Return all possible tuples $(n, l)$ with `n` a natural number and `l` contained in `root_lengths`,
 sorted by increase of the value $\frac{n^2}{l}$, stopping by `upper_bound`.
 """
 function _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem})
