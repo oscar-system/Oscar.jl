@@ -199,7 +199,7 @@ end
 @doc raw"""
     total_degree(I::SLPoly)
 
-Determines an upper bound for the total degree of `I`.
+Determine an upper bound for the total degree of `I`.
 """
 function total_degree(I::SLPoly)
   n = ngens(parent(I))
@@ -1125,7 +1125,7 @@ end
 """
     minpoly(C::GaloisCtx, I, extra::Int = 5)
 
-Computes the minimal polynomial of `I` evaluated at the roots
+Compute the minimal polynomial of `I` evaluated at the roots
 stored in `C`.
 """
 function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
@@ -1374,14 +1374,14 @@ end
 @doc raw"""
     starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
-Finds a _starting group_, that is a group `G` as a subgroup of the
+Find a _starting group_, that is a group `G` as a subgroup of the
 symmetric group acting on the roots in the explicit ordering in the
 galois context.
 
 If the field is imprimitive, the group is derived from the subfields, otherwise
 the factorisation of the 2-sum polynomial is used.
 
-Returns a triple: 
+Return a triple: 
  - the group
  - a filter for all groups that can occur
  - a permutation representing the operation of the Frobenius automorphism
@@ -1911,7 +1911,7 @@ end
 @doc raw"""
     galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
 
-Computes the Galois group of the splitting field of the defining polynomial of `K`.
+Compute the Galois group of the splitting field of the defining polynomial of `K`.
 Currently the polynomial needs to be monic.
 
 The group is returned as an explicit permutation group permuting the roots as contained
@@ -2216,7 +2216,7 @@ end
 
 
 @doc raw"""
-Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
+Find a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 `I` evaluated at the (roots in ) `r` does not have repetitions.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
@@ -2372,7 +2372,7 @@ end
 """
     galois_quotient(C::GaloisCtx, Q::PermGroup)
 
-Finds all(?) subfields of the splitting field s.th. the galois
+Find all(?) subfields of the splitting field s.th. the galois
 group will be permutation isomorphic to Q.
 """
 function galois_quotient(C::GaloisCtx, Q::PermGroup)
@@ -2394,7 +2394,7 @@ end
 @doc raw"""
     galois_quotient(C::GaloisCtx, d::Int)
 
-Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
+Find all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
@@ -2433,7 +2433,7 @@ end
 """
     galois_quotient(C::GaloisCtx, d::Int, n::Int)
 
-Finds all subfields of the splitting field with galois group the n-th
+Find all subfields of the splitting field with galois group the n-th
 transitive group in degree d
 """
 galois_quotient(C::GaloisCtx, d::Int, n::Int) = 
@@ -2446,7 +2446,7 @@ Equivalent to
 
     galois_quotient(galois_group(f)[2], p[1], p[2])
 
-Finds all subfields of the splitting field of f with galois group
+Find all subfields of the splitting field of f with galois group
 the p[2]-th transitive group of degree p[1]
 """
 function galois_quotient(f::PolyRingElem, p::Vector{Int})
@@ -2795,7 +2795,7 @@ end
 @doc raw"""
     galois_group(f::PolyRingElem{<:FieldElem})
 
-Computes the automorphism group of a splitting field of `f` as an explicit
+Compute the automorphism group of a splitting field of `f` as an explicit
 group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """

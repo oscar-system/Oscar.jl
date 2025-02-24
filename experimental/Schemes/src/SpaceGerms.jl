@@ -442,7 +442,7 @@ end
     HypersurfaceGerm(X::AbsAffineScheme, I:Ideal)
     HypersurfaceGerm(A::LocalRing)
 
-Checks that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
+Check that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
 point `p` and returns the hypersurface germ `(X,p)` from `X` in the affirmative case, where `p`
 may be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -525,7 +525,7 @@ end
     CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
     CompleteIntersectionGerm(X::AbsAffineScheme, I:Ideal)
 
-Checks that `X` represents a complete intersection germ at the given point `p` and returns
+Check that `X` represents a complete intersection germ at the given point `p` and returns
 the complete intersection germ `(X,p)` from `X` in the affirmative case, where `p` may
 be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or

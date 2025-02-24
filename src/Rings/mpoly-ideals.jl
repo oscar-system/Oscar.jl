@@ -2281,7 +2281,7 @@ _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
 @doc raw"""
     flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
-Returns the generators of the defining ideal for the complete flag variety 
+Return the generators of the defining ideal for the complete flag variety 
 $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
 =$`dimensions`, with $d_j\leq n-1$,  denotes the rank.  That is, the vanishing
 set of this ideal corresponds to the space of $k$-step flags of linear

@@ -368,7 +368,7 @@ end
 @doc raw"""
     realize(Phi::MorphismFromRationalFunctions)
 
-Computes a full realization of `Phi` as a `CoveredSchemeMorphism`. Note 
+Compute a full realization of `Phi` as a `CoveredSchemeMorphism`. Note 
 that this computation is very expensive and usage of this method should 
 be avoided.
 """
