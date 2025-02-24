@@ -23,9 +23,11 @@ julia> K = symmetric_group(2)
 Sym(2)
 
 julia> G = direct_product(H,K)
-Direct product of
- Sym(3)
- Sym(2)
+Sym(3) x Sym(2)
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -168,16 +170,16 @@ julia> K = symmetric_group(2)
 Sym(2)
 
 julia> G = direct_product(H, K)
-Direct product of
- Sym(3)
- Sym(2)
+Sym(3) x Sym(2)
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
   from Sym(3)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  to Sym(3) x Sym(2)
 
 julia> h = perm(H, [2,3,1])
 (1,2,3)
@@ -188,9 +190,7 @@ julia> inj1(h)
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
   from Sym(2)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  to Sym(3) x Sym(2)
 
 julia> k = perm(K, [2,1])
 (1,2)
@@ -234,22 +234,20 @@ julia> K = symmetric_group(2)
 Sym(2)
 
 julia> G = direct_product(H, K)
-Direct product of
- Sym(3)
- Sym(2)
+Sym(3) x Sym(2)
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
+  from Sym(3) x Sym(2)
   to Sym(3)
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
+  from Sym(3) x Sym(2)
   to Sym(2)
 
 julia> g = perm([2,3,1,5,4])
@@ -298,13 +296,18 @@ function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
 end
 
 function Base.show(io::IO, G::DirectProductGroup)
-  if G.isfull
-    print(io, "Direct product of")
-    for x in G.L
-      print(io, "\n ", x)
-    end
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if all(x -> !isnothing(AbstractAlgebra.PrettyPrinting.get_name(x)), G.L)
+    join(io, G.L, " x ")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(G))))
+    print(io, "Direct product of", Indent())
+    for x in G.L
+      print(io, "\n", x)
+    end
+    print(io, Dedent())
   end
 end
 
@@ -351,6 +354,52 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 
 Return the semidirect product of `N` and `H`, of type `SemidirectProductGroup{S,T}`,
 where `f` is a group homomorphism from `H` to the automorphism group of `N`.
+
+# Examples
+```jldoctest
+julia> Q = quaternion_group(8)
+Pc group of order 8
+with 3 generators
+  x
+  y
+  y2
+
+julia> C = cyclic_group(2)
+Pc group of order 2
+with 1 generator
+  f1
+
+julia> A = automorphism_group(Q)
+Automorphism group of
+  Pc group of order 8
+with 4 generators
+  Pcgs([ x, y, y2 ]) -> [ x*y, y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ y, x*y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ x*y2, y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ x, y*y2, y2 ]
+
+julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
+[ x, y ] -> [ x*y2, y*y2 ]
+
+julia> f = hom(C,A,[C[1]],[au])
+Group homomorphism
+  from pc group of order 2
+  to automorphism group of
+    Pc group of order 8
+
+julia> G = semidirect_product(Q,f,C)
+Semidirect product
+  pc group of order 8 : pc group of order 2
+with 4 generators
+  f1
+  f2
+  f3
+  f4
+
+julia> derived_subgroup(G)
+(Subgroup of semidirect product
+  pc group of order 8 : pc group of order 2, Hom: subgroup of semidirect product -> semidirect product)
+```
 """
 function semidirect_product(
   N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T
@@ -437,17 +486,18 @@ function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
-  if x.isfull
-    print(
-      io,
-      "SemidirectProduct( ",
-      String(GAPWrap.StringViewObj(GapObj(x.N))),
-      " , ",
-      String(GAPWrap.StringViewObj(GapObj(x.H))),
-      " )",
-    )
-  else
-    print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+  io = pretty(io)
+  if !x.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  #print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+  print(io, "Semidirect product")
+  if !get(io, :supercompact, false)
+    println(io, " ", Indent())
+    #print(io, A.G)
+    print(io, Lowercase(), x.N)
+    print(io, is_unicode_allowed() ? " ⋊ " : " : ")
+    print(io, Lowercase(), x.H)
   end
 end
 
@@ -479,12 +529,18 @@ W(g_1,...,g_n, h).
 ```jldoctest
 julia> G = cyclic_group(3)
 Pc group of order 3
+with 1 generator
+  f1
 
 julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  FIXME
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -542,15 +598,23 @@ Return `G`, where `W` is the wreath product of `G` and `H`.
 ```jldoctest
 julia> G = cyclic_group(3)
 Pc group of order 3
+with 1 generator
+  f1
 
 julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  FIXME
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> normal_subgroup(W)
 Pc group of order 3
+with 1 generator
+  f1
 ```
 """
 normal_subgroup(W::WreathProductGroup) = W.G
@@ -564,12 +628,18 @@ Return `H`, where `W` is the wreath product of `G` and `H`.
 ```jldoctest
 julia> G = cyclic_group(3)
 Pc group of order 3
+with 1 generator
+  f1
 
 julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  FIXME
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> acting_subgroup(W)
 Sym(2)
@@ -632,7 +702,17 @@ function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::WreathProductGroup)
+  #print(io, String(GAPWrap.StringViewObj(x.X)))
+  if get(io, :supercompact, false)
+    print(io, "Wreath product group")
+  else
+    io = pretty(io)
+    println(io, "Wreath product of", Indent())
+    #print(io, A.G)
+    print(io, "FIXME")
+  end
+end
 
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)

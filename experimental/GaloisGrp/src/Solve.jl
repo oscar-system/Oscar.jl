@@ -295,8 +295,8 @@ julia> G, C = galois_group(x^3-3*x+17)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Sym(3)
- Alt(3)
+ Permutation group of degree 3 and order 6
+ Permutation group of degree 3 and order 3
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)

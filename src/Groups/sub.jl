@@ -174,8 +174,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Permutation group of degree 5 and order 120
+ Permutation group of degree 5 and order 60
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -202,7 +202,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Alt(4)
+ Permutation group of degree 4 and order 12
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
@@ -245,7 +245,7 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 ```jldoctest
 julia> characteristic_subgroups(symmetric_group(3))
 3-element Vector{PermGroup}:
- Sym(3)
+ Permutation group of degree 3 and order 6
  Permutation group of degree 3 and order 3
  Permutation group of degree 3 and order 1
 
@@ -320,7 +320,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Alt(4)
+ Permutation group of degree 4 and order 12
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -403,11 +403,11 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Alt(4)
+ Permutation group of degree 4 and order 12
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Alt(4)
+ Permutation group of degree 4 and order 12
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
@@ -448,8 +448,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Permutation group of degree 4 and order 24
+ Permutation group of degree 4 and order 12
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(GapObj(G)))
@@ -980,6 +980,9 @@ Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
+with 2 generators
+  f1
+  f2
 
 julia> schur_multiplier(abelian_group([2, 12]))
 Z/2
@@ -1089,7 +1092,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Alt(5), Hom: Alt(5) -> Sym(5))
+(Permutation group of degree 5 and order 60, Hom: permutation group -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1106,15 +1109,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Permutation group of degree 4 and order 24
+ Permutation group of degree 4 and order 12
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Permutation group of degree 5 and order 120
+ Permutation group of degree 5 and order 60
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:

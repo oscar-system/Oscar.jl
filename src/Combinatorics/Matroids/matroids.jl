@@ -18,7 +18,7 @@ pm_object(M::Matroid) = M.pm_matroid
 function Base.show(io::IO, M::Matroid)
     r = rank(M)
     n = length(M.groundset)
-    print(io, "Matroid of rank $(r) on $(n) elements")
+    print(io, "Matroid of rank $(r) on ", ItemQuantity(n, "element"))
 end
 
 # function that generates the dictionary which maps the groundset to integers
@@ -1011,6 +1011,10 @@ Matroid of rank 2 on 4 elements
 
 julia> automorphism_group(M)
 Permutation group of degree 4
+with 3 generators
+  (3,4)
+  (1,2)
+  (2,3)
 ```
 """
 function automorphism_group(M::Matroid) 

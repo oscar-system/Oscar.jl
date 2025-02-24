@@ -740,9 +740,9 @@ julia> direct_sum_components(fano_matroid())
 
 julia> direct_sum_components(uniform_matroid(3, 3))
 3-element Vector{Matroid}:
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
 ```
 """
 function direct_sum_components(M::Matroid)

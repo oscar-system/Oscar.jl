@@ -941,6 +941,9 @@ julia> x = cperm([1,2,3], [4,5]);  y = cperm([1,4]);
 
 julia> permutation_group(5, [x, y])
 Permutation group of degree 5
+with 2 generators
+  (1,2,3)(4,5)
+  (1,4)
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
@@ -957,6 +960,9 @@ given by permutations in cycle notation.
 ```jldoctest
 julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
 Permutation group of degree 7
+with 2 generators
+  (1,2)
+  (1,2,3)(4,5)
 
 julia> degree(g)
 7

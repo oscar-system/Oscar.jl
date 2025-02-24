@@ -196,6 +196,10 @@ Sym(5)
 
 julia> H = sylow_subgroup(G, 2)[1]
 Permutation group of degree 5 and order 8
+with 3 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
 
 julia> C = right_coset(H, gen(G, 1))
 Right coset of permutation group of degree 5 and order 8
