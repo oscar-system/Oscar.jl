@@ -44,7 +44,8 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
   save_data_dict(s) do
     for (data, key) in [
         (explicit_model_sections(h), :explicit_model_sections),
-        (defining_classes(h), :defining_classes)
+        (defining_classes(h), :defining_classes),
+        (model_section_parametrization(h), :model_section_parametrization)
         ]
       !isempty(data) && save_typed_object(s, data, key)
     end
@@ -138,8 +139,10 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
+  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, amb_space, fiber_ambient_space)
   model.defining_classes = defining_classes
+  model.model_section_parametrization = model_section_parametrization
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
 
   # Set "generic" attributes
