@@ -125,8 +125,6 @@ jobs:
           - '1.10'
           - 'pre'
           - 'nightly'
-        group:
-          - 'book'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -146,8 +144,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "set test subgroup"
-        if: ${{ matrix.group }} != ''
-        run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
+        run: echo "OSCAR_TEST_SUBSET=book" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
