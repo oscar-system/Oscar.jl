@@ -133,8 +133,8 @@ end
    # all_perfect_groups with multiple order specifications
    @test all_perfect_groups(order => 1:5:200, order => 25:50) == all_perfect_groups(order => intersect(1:5:200, 25:50))
 
-   # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
-   #@test perfect_group(1376256, 1) isa PermGroup
+   # lazy artifact loading
+   @test perfect_group(1376256, 1) isa PermGroup
 end
 
 @testset "Small groups" begin
