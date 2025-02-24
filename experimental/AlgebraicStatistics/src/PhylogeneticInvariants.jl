@@ -25,7 +25,7 @@ end
 
 ################################################################################
 # Parametrizations
-function parameterization(F::Field, pm::PhylogeneticModel; var_name::VarName="p")
+function parametrization(F::Field, pm::PhylogeneticModel; var_name::VarName="p")
   p = probability_map(pm);
   p = compute_equivalent_classes(p)
   parametrization = p.parametrization
@@ -38,11 +38,11 @@ function parameterization(F::Field, pm::PhylogeneticModel; var_name::VarName="p"
   hom(ring(R), S, reduce(vcat, [change_coefficient_ring(F, parametrization[k]) for k in indices]))
 end
 
-parameterization(pm::PhylogeneticModel; var_name::VarName="p") = parameterization(QQ, pm; var_name=var_name)
+parameterization(pm::PhylogeneticModel; var_name::VarName="p") = parametrization(QQ, pm; var_name=var_name)
 
-function parameterization(F::Field, pm::GroupBasedPhylogeneticModel, coordinates::Symbol=:fourier)
+function parametrization(F::Field, pm::GroupBasedPhylogeneticModel, coordinates::Symbol=:fourier)
   if coordinates == :probabilities
-    return parameterization(F, phylogenetic_model(pm); var_name="p")
+    return parametrization(F, phylogenetic_model(pm); var_name="p")
 
   elseif coordinates == :fourier
     q = fourier_map(pm);
@@ -56,7 +56,7 @@ function parameterization(F::Field, pm::GroupBasedPhylogeneticModel, coordinates
 
     return hom(ring(R), S, reduce(vcat, [change_coefficient_ring(F, parametrization[k]) for k in indices]))
   else
-    error("Couldn't recognize coordinates type to be used in parameterization")
+    error("Couldn't recognize coordinates type to be used in parametrization")
   end
 end
 
@@ -86,16 +86,11 @@ function vanishing_ideal(F::Field, pm::PhyloModelUnion, param::MPolyAnyMap;
       # F = GF(32003) #1206.6940
       invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
 
-    elseif algorithm == :m4ti2 # symbols cannot start with numbers
-      @req is_binomial(I) "Ideal must be a binomial ideal to use 4ti2 algorithm"
-      # we can probably avoid constructing the ideal in the future for this case
-      lat_gens = map(e -> e[2] - e[1],
-                     collect.(map(i -> exponents(i; ordering=lex(elim_ring)),
-                                  gens(I))))
-      markov_basis = markov4ti2(matrix(ZZ, lat_gens))
-      invariants = eliminate(binomial_exponents_to_ideal(elim_ring, markov_basis),
-                             elim_gens[1:ngens(R)])
-      # elseif algorithm == :MultigradedImplicitization
+    elseif algorithm == :markov # symbols cannot start with numbers
+      # symbols cannot start with numbers
+      o = lex(elim_ring)
+      groebner_basis(I; ordering=o, algorithm=:markov)
+      invariants = eliminate(I, o, ngens(R))
     end
     project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
     invariants = project_S(invariants)
@@ -104,15 +99,15 @@ function vanishing_ideal(F::Field, pm::PhyloModelUnion, param::MPolyAnyMap;
 end
 
 vanishing_ideal(F::Field, pm::PhylogeneticModel;
-                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parameterization(F, pm); algorithm=algorithm)
+                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parametrization(F, pm); algorithm=algorithm)
 
 vanishing_ideal(pm::PhylogeneticModel;
                 algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm; algorithm=algorithm)
 
 vanishing_ideal(pm::GroupBasedPhylogeneticModel;
                 coordinates::Symbol=:fourier,
-                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm, parameterization(QQ, pm, coordinates); algorithm=algorithm)
+                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm, parametrization(QQ, pm, coordinates); algorithm=algorithm)
 
 vanishing_ideal(F::Field, pm::GroupBasedPhylogeneticModel;
                 coordinates::Symbol=:fourier,
-                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parameterization(F, pm, coordinates); algorithm=algorithm)
+                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parametrization(F, pm, coordinates); algorithm=algorithm)
