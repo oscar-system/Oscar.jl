@@ -2123,7 +2123,6 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 
 #  z = GAP.Globals.GroupByRwsNC(CN)
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
-#  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
   mQ = hom(N, Q, gens(N), gens(Q); check = false)
@@ -2140,10 +2139,10 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
-    for i=1:2:length(wm)
-      push!(wg, wm[i]+ngens(G))
-      push!(wg, wm[i+1])
+    wm = syllables(preimage(mffM, mfM(m)))
+    for (ind, exp) in wm
+      push!(wg, ind+ngens(G))
+      push!(wg, exp)
     end
     return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
   end
