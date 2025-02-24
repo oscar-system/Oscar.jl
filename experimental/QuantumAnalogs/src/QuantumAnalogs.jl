@@ -27,7 +27,7 @@ $[n]_q$: if `n` is non-negative, then $[n]_q = \sum_{i=0}^{n-1} q^i$. To
 handle negative values `n` we use the identity $[n]_q = -q^{n} [-n]_q$. Thus for
 negative `n` we require `q` to be invertible.
 
-Note that for ``q=1`` we obtain $[n]_1 = n$ so the quantum integers are
+Note that for ``q=1`` we obtain $[n]_1 = n$ hence the quantum integers are
 "deformations" of the usual integers. For details about these objects see
 [Con00](@cite) or [KC02](@cite).
 
@@ -86,20 +86,12 @@ end
     quantum_factorial(n::IntegerUnion, q::RingElement)
     quantum_factorial(n::IntegerUnion)
 
-For a non-negative integer ``n`` and an element ``q`` of a ring ``R`` the **quantum
-factorial** ``[n]_q! ∈ R`` is defined as
-```math
-[n]_q! ≔ [1]_q ⋅ … ⋅ [n]_q ∈ R \;.
-```
-Note that for ``q=1`` we obtain
-```math
-[n]_1! = n! \quad \text{ for all } n ∈ ℤ \;,
-```
-hence the quantum factorial is a "deformation" of the usual factorial.
+Return the quantum factorial $[n]_q!$ for a non-negative integer `n` and an
+element ``q`` of a ring ``R`` which is defined as $[1]_q \cdots [n]_q$.
 
-# Functions
-
-The functions `quantum_factorial` work analogously to [`quantum_integer`](@ref).
+Note that for ``q=1`` we obtain $[n]_1! = n!$ hence the quantum factorial is a
+"deformation" of the usual factorial. For details about these objects see
+[Con00](@cite) or [KC02](@cite).
 
 # Examples
 ```jldoctest
@@ -142,55 +134,20 @@ end
     quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
     quantum_binomial(n::IntegerUnion, k::IntegerUnion)
 
-Let ``k`` be a non-negative integer and let ``n ∈ ℤ``. The **quantum binomial**
-``\binom{n}{k}_q \in ℚ(q)`` is defined as
+Return the quantum binomial $\binom{n}{k}_q$ for an integer `n` and a
+non-negative integer `k` which is defined as
 ```math
-\binom{n}{k}_q ≔ \frac{[n]_q!}{[k]_q! [n-k]_q!} = \frac{[n]_q [n-1]_q⋅ … ⋅ [n-k+1]_q}{[k]_q!}
+\binom{n}{k}_q ≔ \frac{[n]_q!}{[k]_q! [n-k]_q!} = \frac{[n]_q [n-1]_q \cdots [n-k+1]_q}{[k]_q!}
 ```
+
 Note that the first expression is only defined for ``n ≥ k`` since the quantum factorials
 are only defined for non-negative integers, but the second expression is well-defined for
-all ``n ∈ ℤ`` and is used for the definition. In [Con00](@cite) it is shown that
-```math
-\binom{n}{k}_q = \sum_{i=0}^{n-k} q^i \binom{i+k-1}{k-1}_q \quad \text{if } n ≥ k > 0 \;.
-```
-Since
-```math
-\binom{n}{0}_q = 1 \quad \text{for all } n ∈ ℤ
-```
-and
-```math
-\binom{n}{k}_q = 0 \quad \text{if } 0 ≤ n < k \;,
-```
-it follows inductively that
-```math
-\binom{n}{k}_q ∈ ℤ[q] \quad \text{if } n ≥ 0 \;.
-```
-For all ``n ∈ ℤ`` we have the relation
-```math
-\binom{n}{k}_q = (-1)^k q^{-k(k-1)/2+kn} \binom{k-n-1}{k}_q \;,
-```
-which shows that
-```math
-\binom{n}{k}_q ∈ ℤ[q^{-1}] \quad \text{if } n < 0 \;.
-```
-In particular,
-```math
-\binom{n}{k}_q ∈ ℤ[q,q^{-1}] \quad \text{for all } n ∈ ℤ \;.
-```
-Now, for an element ``q`` of a ring ``R`` we define ``\binom{n}{k}_q`` as the
-specialization of ``\binom{n}{k}_{\mathbf{q}}`` in ``q``, where ``q`` is
-assumed to be invertible in ``R`` if
-``n < 0``.
+all integers `n` and is used for the implementation.
 
-Note that for ``q=1`` we obtain
-```math
-\binom{n}{k}_1 = \binom{n}{k} \;,
-```
-hence the quantum binomial coefficient is a "deformation" of the usual binomial coefficient.
-
-# Functions
-
-The functions `quantum_binomial` work analogously to [`quantum_integer`](@ref).
+Note that for ``q=1`` we obtain $\binom{n}{k}_1 = \binom{n}{k}$ hence the
+quantum binomial coefficient is a "deformation" of the usual binomial
+coefficient. For details about these objects see [Con00](@cite) or
+[KC02](@cite).
 
 # Examples
 ```jldoctest
@@ -206,8 +163,25 @@ julia> quantum_binomial(17,10,i)
 0
 ```
 
-# References
-1. [Con00](@cite)
+# Extended help
+
+In [Con00](@cite) it is shown that
+```math
+\binom{n}{k}_q = \sum_{i=0}^{n-k} q^i \binom{i+k-1}{k-1}_q
+```
+if $n ≥ k > 0$. Since $\binom{n}{0}_q = 1$ for all `n` and $\binom{n}{k}_q = 0$
+if $0 ≤ n < k$ it follows inductively that
+$\binom{n}{k}_q ∈ ℤ[q]$ if $n ≥ 0$.
+
+For all ``n ∈ ℤ`` we have the relation
+```math
+\binom{n}{k}_q = (-1)^k q^{-k(k-1)/2+kn} \binom{k-n-1}{k}_q
+```
+which shows that $\binom{n}{k}_q ∈ ℤ[q^{-1}]$ if $n < 0$. In particular,
+$\binom{n}{k}_q ∈ ℤ[q,q^{-1}]$ for all `n`.
+Now, for an element ``q`` of a ring ``R`` we define ``\binom{n}{k}_q`` as the
+specialization of ``\binom{n}{k}_q`` in ``q``, where ``q`` is
+assumed to be invertible in ``R`` if ``n < 0``.
 """
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
   @req k >= 0 "k >= 0 required"
