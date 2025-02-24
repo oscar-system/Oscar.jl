@@ -269,7 +269,7 @@ function (Omega::GSet{T, S})(obj::S) where {T, S}
     return ElementOfGSet(Omega, obj)
 end
 
-function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
+function ^(omega::ElementOfGSet, g::T) where {T<:GroupElem}
     Omega = omega.gset
     fun = action_function(Omega)
     return ElementOfGSet(Omega, fun(omega.obj, g))
