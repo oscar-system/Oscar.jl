@@ -392,6 +392,26 @@ function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
+    vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the vertex indices of a graph.
+
+# Examples
+The edge graph of the cube has eight vertices, numbered 1 to 8.
+```jldoctest
+julia> c = cube(3);
+
+julia> g = vertex_edge_graph(c);
+
+julia> vertices(g)
+1:8
+```
+"""
+function vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return 1:n_vertices(g)
+end
+
+@doc raw"""
     n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
