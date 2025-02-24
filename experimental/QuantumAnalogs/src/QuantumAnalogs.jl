@@ -10,7 +10,9 @@
 # - Two-colored quantum numbers
 ################################################################################
 
-export quantum_integer, quantum_factorial, quantum_binomial
+export quantum_integer
+export quantum_factorial
+export quantum_binomial
 
 ################################################################################
 # Quantum integers
