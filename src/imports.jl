@@ -208,3 +208,4 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+import lib4ti2_jll

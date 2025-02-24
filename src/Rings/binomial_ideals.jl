@@ -1,5 +1,3 @@
-import Oscar.Singular.lib4ti2_jll
-
 @doc raw"""
     is_binomial(f::MPolyRingElem)
 
