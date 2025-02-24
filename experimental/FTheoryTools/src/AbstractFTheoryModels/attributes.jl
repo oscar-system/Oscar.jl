@@ -1374,6 +1374,34 @@ julia> model_sections(m)
 model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
 
 
+@doc raw"""
+    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+
+Returns a dictionary giving the classes of all parameters (tunable sections)
+in terms of Kbar and the defining classes. Each value gives the divisor
+class of the corresponding section/key in this basis. This information is currently only available for literature models.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+
+julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
+Dict{String, Vector{Int64}} with 6 entries:
+  "b1" => [1, 0]
+  "b3" => [3, -5]
+  "b4" => [4, -6]
+  "b6" => [6, -11]
+  "b2" => [2, -1]
+  "ζ0" => [0, 1]
+```
+"""
+@attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+  @req has_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes) "No detailed information about tunable sections stored for this model"
+  return get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes)
+end
+
 
 ##########################################
 ### (4) Attributes specially for the QSMs

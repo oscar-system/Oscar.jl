@@ -3,8 +3,10 @@
 #############################################################
 
 B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]
 t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+D = classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(t1)
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
@@ -21,6 +23,7 @@ t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
   @test is_base_space_fully_specified(t1) == is_base_space_fully_specified(weierstrass_model(t1))
   @test is_smooth(ambient_space(t1)) == false
   @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
+  @test sum(D["a43"].*[Kbar, toric_divisor_class(w)]) == classes_of_model_sections(t1)["a43"]
 end
 
 @testset "Test meta data for literature Tate model over concrete base" begin

@@ -43,6 +43,7 @@ export chern_class
 export chern_classes
 export chosen_g4_flux_basis
 export classes_of_model_sections
+export classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes
 export components_of_dual_graph
 export components_of_simplified_dual_graph
 export coordinate_ring
