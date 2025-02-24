@@ -2155,46 +2155,6 @@ export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
-## Fill in some stubs for Hecke
-
-function _to_gap(h, x::Vector)
-  return GAP.Globals.GModuleByMats(GAP.Obj([GAP.Obj(map(h, Matrix(y))) for y in x]), codomain(h))
-end
-
-function _gap_matrix_to_julia(h, g)
-  return matrix(domain(h), [map(y -> preimage(h, y), gg) for gg in GAP.gap_to_julia(g)])
-end
-
-function _to_julia(h, C)
-  return [ matrix(domain(h), [map(y -> preimage(h, y), gg) for gg in GAP.gap_to_julia(g)]) for g in GAP.Globals.MTX.Generators(C)]
-end
-
-if isdefined(Hecke, :stub_composition_factors)
-  function Hecke.stub_composition_factors(x::Vector{T}) where {T}
-    F = base_ring(x[1])
-    h = Oscar.iso_oscar_gap(F)
-    V = _to_gap(h, x)
-    Vcf = GAP.Globals.MTX.CompositionFactors(V)
-    res = Vector{T}[]
-    for C in Vcf
-      push!(res, _to_julia(h, C))
-    end
-    return res
-  end
-end
-
-if isdefined(Hecke, :stub_basis_hom_space)
-  function Hecke.stub_basis_hom_space(x::Vector, y::Vector)
-    F = base_ring(x[1])
-    h = Oscar.iso_oscar_gap(F)
-    @assert base_ring(x[1]) == base_ring(y[1])
-    @assert length(x) == length(y)
-    hb = GAP.Globals.MTX.BasisModuleHomomorphisms(_to_gap(h, x), _to_gap(h, y))
-    hbb = [_gap_matrix_to_julia(h, g) for g in GAP.gap_to_julia(hb)]
-    return hbb
-  end
-end
-
 end #module GModuleFromGap
 
 using .GModuleFromGap
