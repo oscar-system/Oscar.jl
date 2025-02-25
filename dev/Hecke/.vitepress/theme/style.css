@@ -193,3 +193,7 @@ mjx-container > svg {
   user-select: none;
   margin: 0 0 8px;
 }
+
+.jldocstring.custom-block summary a {
+  pointer-events: none;
+}
