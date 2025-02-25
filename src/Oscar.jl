@@ -93,6 +93,7 @@ function __init__()
 
   # We need some GAP packages (currently with unspecified versions).
   for pkg in [
+     "OscarInterface", # contains all GAP code that is part of Oscar
      "atlasrep",
      "browse",   # needed for all_character_table_names doctest
      "ctbllib",  # character tables
@@ -108,7 +109,6 @@ function __init__()
      "smallgrp", # small groups library
      "transgrp", # transitive groups library
      "wedderga", # provides a function to compute Schur indices
-     "OscarInterface", # contains all GAP code that is part of Oscar
      ]
     GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
   end
