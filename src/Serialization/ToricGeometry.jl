@@ -67,12 +67,10 @@ end
 type_params(obj::CohomologyClass) = TypeParams(CohomologyClass, toric_variety(obj))
 
 function save_object(s::SerializerState, cc::CohomologyClass)
-  save_data_dict(s) do
-    save_object(s, lift(polynomial(cc)), :polynomial)
-  end
+  save_object(s, lift(polynomial(cc)))
 end
 
 function load_object(s::DeserializerState, ::Type{CohomologyClass}, tv::NormalToricVarietyType)
-  poly = load_object(s, MPolyDecRingElem, base_ring(cohomology_ring(tv)), :polynomial)
+  poly = load_object(s, MPolyDecRingElem, base_ring(cohomology_ring(tv)))
   return cohomology_class(tv, MPolyQuoRingElem(poly, cohomology_ring(tv)))
 end

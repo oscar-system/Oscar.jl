@@ -114,33 +114,57 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data] = dict[:data][:def_pol][:data]
         end
       elseif type_name == "Dict"
-        d = Dict()
-        for (k, v) in dict[:_type][:params]
-          if k == :key_type
-            d[k] = v
+        if haskey(dict[:_type][:params], :value_type)
+          if haskey(dict[:_type][:params], :value_params)
+            value_params = dict[:_type][:params][:value_params]
           else
-            d[k] = upgrade_1_3_0(s, Dict(
-              :_type => dict[:_type][:params][k],
-              :data => dict[:data][k]
-            ))
+            value_params = dict[:_type][:params][:value_type]
           end
-        end
-        upgraded_dict = Dict(
-          :_type => Dict(:name => "Dict", :params=>Dict()),
-          :data => Dict()
-        )
-        for (k, v) in d
-          if k == :key_type
-            upgraded_dict[:_type][:params][k] = v
+
+          if haskey(dict[:_type][:params], :key_params)
+            key_params = dict[:_type][:params][:key_params]
           else
-            upgraded_dict[:_type][:params][k] = v[:_type]
-            upgraded_dict[:data][k] = v[:data]
+            key_params = dict[:_type][:params][:key_type]
+          end
+
+          upgraded_dict[:_type][:params] = Dict(
+            :value_params => value_params,
+            :key_params => key_params
+          )
+
+        else
+          d = Dict()
+          for (k, v) in dict[:_type][:params]
+            if k == :key_type
+              d[k] = v
+            elseif k == :_coeff
+              
+            else
+              d[k] = upgrade_1_3_0(s, Dict(
+                :_type => dict[:_type][:params][k],
+                :data => dict[:data][k]
+              ))
+            end
+          end
+          
+          upgraded_dict = Dict(
+            :_type => Dict(:name => "Dict", :params=>Dict()),
+            :data => Dict()
+          )
+          for (k, v) in d
+            if k == :key_type
+              upgraded_dict[:_type][:params][:key_params] = v
+            else
+              upgraded_dict[:_type][:params][k] = v[:_type]
+              upgraded_dict[:data][k] = v[:data]
+            end
           end
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
         subtype = dict[:_type][:params]
         upgraded_entries = []
         for entry in dict[:data]
+          entry isa String && break
           push!(upgraded_entries, upgrade_1_3_0(s, Dict(
             :_type => subtype,
             :data => entry
@@ -180,15 +204,18 @@ push!(upgrade_scripts_set, UpgradeScript(
         "Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
         "SubdivisionOfPoints"
         ]
-        if !(dict[:_type][:params] isa Dict)
+        if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
           upgraded_subdict = upgrade_1_3_0(s, dict[:data])
-          upgraded_subdict[:_type][:params][:key_type] = "Symbol"
+          upgraded_subdict[:_type][:params][:key_params] = "Symbol"
           field = nothing
 
           for (k, v) in s.id_to_dict
             if v[:_type] == "EmbeddedNumField"
               field = k
             end
+          end
+          if isnothing(field)
+            field = Dict(:_type => "QQBarField")
           end
           upgraded_dict[:_type] = Dict(
             :name => type_name,
@@ -221,8 +248,13 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:data] = dict[:data][:data][:data]
                 
-      elseif type_name == "FPGroup"
-        if haskey(dict[:data][:X], :freeGroup)
+      elseif type_name in ["FPGroup", "SubFPGroup"]
+        if dict[:data][:X] isa String
+          upgraded_dict[:_type] = Dict(
+            :name => type_name,
+            :params => dict[:data][:X]
+          )
+        elseif haskey(dict[:data][:X], :freeGroup)
           upgraded_dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X][:freeGroup]
@@ -243,18 +275,17 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
           upgraded_dict[:data] = dict[:data][:X]
         end
-      elseif type_name == "PcGroup"
-        if haskey(dict[:data][:X], :fullGroup)
+      elseif type_name in ["PcGroup", "SubPcGroup"]
+        if dict[:data][:X] isa String
+          upgraded_dict[:_type] = Dict(
+            :name => type_name,
+            :params => dict[:data][:X]
+          )
+        elseif haskey(dict[:data][:X], :fullGroup)
           upgraded_dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X][:fullGroup]
           )
-        #elseif haskey(dict[:data][:X], :wholeGroup)
-          #upgraded_dict[:_type] = Dict(
-            #:name => type_name,
-            #:params => dict[:data][:X][:wholeGroup]
-          #)
-          #
         else
           upgraded_dict[:_type] = Dict(
             :name => type_name,
@@ -265,8 +296,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
           upgraded_dict[:data] = dict[:data][:X]
         end
-
-      elseif type_name == "GAP.GapObj"
+        
+      elseif type_name == "GAP.GapObj" || type_name == "GapObj"
         upgraded_dict[:_type] = "GapObj"
         if dict[:data] isa String
           #do nothing
@@ -321,12 +352,43 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data][:ordering][:internal_ordering][:vars] = upgraded_dict[:data][:ordering][:internal_ordering][:vars][:data]
           upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
         end
-        
+      elseif type_name == "NormalToricVariety"
+        if dict[:data] isa Dict
+          upgraded_dict[:attrs] = dict[:data][:attrs]
+          upgraded_dict[:data] = dict[:data][:pm_data]
+        end
+      elseif type_name == "CohomologyClass"
+        upgraded_dict = Dict(
+          :_type => dict[:_type],
+          :data => dict[:data][:polynomial]
+        )
+      elseif type_name in ["WeightLattice", "WeylGroup"]
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => dict[:data][:root_system]
+        )
+      elseif type_name == "MPolyQuoRing"
+        ord_data = dict[:data][:ordering]
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => Dict(
+            :base_ring => ord_data[:_type][:params],
+            :ordering => ord_data[:_type][:name]
+          )
+        )
+        ord_data[:data][:internal_ordering] = ord_data[:data][:internal_ordering][:data]
+        ord_data[:data][:internal_ordering][:vars] = ord_data[:data][:internal_ordering][:vars][:data]
+        ord_data[:data][:internal_ordering][:ordering_symbol_as_type] = ord_data[:data][:internal_ordering][:ordering_symbol_as_type][:data]
+        upgraded_dict[:data] = Dict(
+          :ordering => ord_data[:data],
+          :modulus => dict[:data][:modulus][:data]
+        )
       elseif type_name in [
         "AbsPowerSeriesRingElem", "PolyRingElem", "MPolyRingElem", "MPolyDecRingElem",
         "AbsPowerSeriesRingElem", "RelPowerSeriesRingElem",
+        "DualRootSpaceElem",
+        "RootSystem",
         "UniversalPolyRingElem",
-        "NormalToricVariety",
         "FinGenAbGroup", "AbstractAlgebra.Generic.LaurentMPolyWrap",
         "MPolyIdeal", "MatElem", "String", "Base.Int", "Bool", "Graph{Undirected}",
         "LaurentMPolyIdeal", "LaurentSeriesFieldElem",
@@ -344,6 +406,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         "MPolyAnyMap",
         "FPGroupElem",
         "QQField", "QQFieldElem",
+        "QQBarField",
+        "RootSpaceElem",
+        "SubFPGroupElem",
+        "SubPcGroupElem",
+        "Matroid",
         "SMat",
         "SimplicialComplex",
         "Symbol",
@@ -355,7 +422,10 @@ push!(upgrade_scripts_set, UpgradeScript(
         "zzModRingElem",
         "Nemo.zzModRing",
         "ZZRing",
-        "ZZRingElem"
+        "ZZRingElem",
+        "WeightLatticeElem",
+        "WeylGroupElem",
+        "ToricDivisorClass"
         ]
         # do nothing
         
