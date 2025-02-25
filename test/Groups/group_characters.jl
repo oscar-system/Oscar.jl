@@ -782,9 +782,6 @@ end
   @test modtbl === rem(ordtbl, 2)
   @test modtbl === ordtbl % 2
 
-  @test block_distribution(ordtbl, 2) == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
-  @test block_distribution(ordtbl, 2) == block_distribution(ordtbl, ZZ(2))
-  @test_throws ArgumentError block_distribution(modtbl, 2)
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
@@ -812,6 +809,23 @@ end
   @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
   @test trivial_character(ordtbl)[1] == 1
   @test trivial_character(modtbl)[1] == 1
+  @test [power_map(tbl, 3, i) for i in 1:5] == [1, 2, 1, 5, 4]
+end
+
+@testset "p-blocks" begin
+  tbl = character_table("A5")
+  p = 2
+  bl = block_distribution(tbl, p)
+  @test bl == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
+  @test bl == block_distribution(tbl, ZZ(p))
+  @test_throws ArgumentError block_distribution(mod(tbl, p), p)
+
+  G = alternating_group(5)
+  tbl = character_table(G)
+  bl = block_distribution(tbl, p)
+  defects = bl[:defect]
+  @test [order(defect_group(tbl, p, b)[1]) for b in 1:length(defects)] ==
+        [p^d for d in defects]
 end
 
 @testset "characters" begin
@@ -929,6 +943,10 @@ end
   @test ! (x in h)
   psi = chi^x
   @test all(y -> mod(order(y), p) == 0 || chi(x*y*x^-1) == psi(y), collect(h))
+
+  t = character_table("A5")
+  chi = t[4]
+  @test values(central_character(chi)) == [1, 0, 5, -3, -3]
 end
 
 @testset "Galois conjugacy of characters" begin
