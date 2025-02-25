@@ -6,6 +6,8 @@ include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
 include("PhylogeneticParametrization.jl")
 
+include("serialization.jl")
+
 #export models
 export cavender_farris_neyman_model
 export jukes_cantor_model
