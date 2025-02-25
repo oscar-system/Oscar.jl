@@ -1146,7 +1146,7 @@ with summands
   sl_2
   sl_2
   linear Lie algebra
-over field of algebraic numbers
+over algebraic closure of rational field
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
