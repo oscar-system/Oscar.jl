@@ -87,8 +87,13 @@ function __init__()
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar_jl"), Oscar)
 
+  # Add the directory `gap/` as a GAP root path, so that GAP can find the
+  # OscarInterface package and we can overload specific GAP library files.
+  GAP.Globals.ExtendRootDirectories(GapObj([abspath(joinpath(@__DIR__, "..", "gap"))]; recursive = true))
+
   # We need some GAP packages (currently with unspecified versions).
   for pkg in [
+     "OscarInterface", # contains all GAP code that is part of Oscar
      "atlasrep",
      "browse",   # needed for all_character_table_names doctest
      "ctbllib",  # character tables
@@ -107,11 +112,7 @@ function __init__()
      ]
     GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
   end
-  # Load the OscarInterface package in the end.
-  # It needs some other GAP packages,
-  # and is not needed by packages that can be loaded before Oscar.
-  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
+
   # Switch off GAP's info messages,
   # also those that are triggered from GAP packages.
   __GAP_info_messages_off()
@@ -242,7 +243,7 @@ include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
 
-include("../gap/OscarInterface/julia/alnuth.jl")
+include("../gap/pkg/OscarInterface/julia/alnuth.jl")
 
 
 include("Modules/Modules.jl")
