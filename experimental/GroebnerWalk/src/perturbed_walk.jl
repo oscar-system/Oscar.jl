@@ -55,7 +55,7 @@ perturbed_walk(
 @doc raw"""
     perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
 
-Computes a perturbed vector using a matrix `M` representing some monomial order
+Compute a perturbed vector using a matrix `M` representing some monomial order
 for one iteration of the Groebner walk according to [Tra00](@cite), Thm. 3.1.
 
 # Arguments

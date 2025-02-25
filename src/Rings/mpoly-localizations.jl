@@ -1013,6 +1013,11 @@ function rand(rng::Random.AbstractRNG, W::MPolyLocRing, v1::AbstractUnitRange{In
   return W(rand(rng, base_ring(W), v1, v2, v3), rand(rng, inverted_set(W), v1, v2, v3))
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(W::Oscar.MPolyLocRing)
+  return rand(W, 0:3, 0:4, 0:3)
+end
+
 
 ########################################################################
 # Elements of localized polynomial rings                               #

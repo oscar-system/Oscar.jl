@@ -182,11 +182,6 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-function test_elem(W::Oscar.MPolyLocRing) 
-  f = rand(rng, W, 0:3, 0:4, 0:3)
-  return f
-end
-
 @testset "Ring interface for localized polynomial rings" begin
 # kk = QQ
 # R, v = kk[:x, :y]
@@ -201,9 +196,9 @@ end
 # T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(localization(S)[1])
-# test_Ring_interface_recursive(localization(T)[1])
-# test_Ring_interface_recursive(localization(U)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 
 # should be unnecessary: https://github.com/oscar-system/Oscar.jl/pull/1459#issuecomment-1230185617
 #  AbstractAlgebra.promote_rule(::Type{fpMPolyRingElem}, ::Type{ZZRingElem}) = fpMPolyRingElem
@@ -225,9 +220,9 @@ end
   T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = Oscar.MPolyComplementOfPrimeIdeal(I)
 
-  test_Ring_interface_recursive(localization(S)[1])
-  test_Ring_interface_recursive(localization(T)[1])
-  test_Ring_interface_recursive(localization(U)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 
 # kk = ZZ
 # R, v = kk[:x, :y]
@@ -241,9 +236,9 @@ end
 # S = Oscar.MPolyPowersOfElement(R, d)
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(localization(S)[1])
-# test_Ring_interface_recursive(localization(T)[1])
-# test_Ring_interface_recursive(localization(U)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 end
 
 @testset "localization_at_orderings_1" begin

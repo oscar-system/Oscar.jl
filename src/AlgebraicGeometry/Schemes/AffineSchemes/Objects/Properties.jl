@@ -296,7 +296,7 @@ end
 @doc raw"""
     is_open_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
-Checks whether ``X`` is openly embedded in ``Y``.
+Check whether ``X`` is openly embedded in ``Y``.
 
 # Examples
 ```jldoctest
@@ -372,7 +372,7 @@ end
 @doc raw"""
     is_closed_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
-Checks whether ``X`` is closed embedded in ``Y``.
+Check whether ``X`` is closed embedded in ``Y``.
 
 # Examples
 ```jldoctest

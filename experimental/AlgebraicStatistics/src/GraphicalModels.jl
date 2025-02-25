@@ -7,17 +7,6 @@ import Base.show
 
 ###################################################################################
 #
-#       Additional functions for graphs
-#
-###################################################################################
-
-function vertices(G::Graph)
-  E = [[src(e), dst(e)] for e in edges(G)]
-  sort(unique(reduce(vcat, E)))
-end
-
-###################################################################################
-#
 #       Additional functions for matrices
 #
 ###################################################################################
@@ -77,7 +66,7 @@ include("GaussianGraphicalModels.jl")
 @doc raw"""
     vanishing_ideal(M::GraphicalModel)
 
-Computes the vanishing ideal for a graphical model `M`.
+Compute the vanishing ideal for a graphical model `M`.
 This is done by computing the kernel of the parametrization.
 
 ## Examples

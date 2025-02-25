@@ -119,7 +119,7 @@ end
 @doc raw"""
     del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
 
-Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
+Construct the del Pezzo surface with `b` blowups for `b` at most 3.
 
 # Examples
 ```jldoctest

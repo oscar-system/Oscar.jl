@@ -15,6 +15,11 @@ For many computations, it may be suitable to have a `WeylGroup` as a different k
 The conversion functions come in pairs: one only creates an isomorphic group object, the other also computes the isomorphism.
 
 ```@docs
-fp_group(::WeylGroup)
+FPGroup(::WeylGroup)
 isomorphism(::Type{FPGroup}, ::WeylGroup)
+```
+
+```@docs
+PermGroup(::WeylGroup)
+isomorphism(::Type{PermGroup}, ::WeylGroup)
 ```

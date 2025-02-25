@@ -86,7 +86,7 @@ end
 @doc raw"""
     is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering)
 
-Checks whether the leading terms of G with respect to the matrix ordering given by T agree 
+Check whether the leading terms of G with respect to the matrix ordering given by T agree 
 with the leading terms of G with respect to the current ordering.
 This means they are in the same cone of the Groebner fan. (cf. Lemma 2.2, Collart, Kalkbrener and Mall 1997)
 """
@@ -96,7 +96,7 @@ is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_ter
 @doc raw"""
     convert_bounding_vector(w::Vector{T})
 
-Scales a rational weight vector to have co-prime integer weights.
+Scale a rational weight vector to have co-prime integer weights.
 """
 convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
@@ -109,7 +109,7 @@ create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} =
 @doc raw"""
     autoreduce(G::Oscar.IdealGens)
 
-Replaces every element of G by the normal form with respect to the remaining elements of G and the current monomial ordering.
+Replace every element of G by the normal form with respect to the remaining elements of G and the current monomial ordering.
 """
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
@@ -136,7 +136,7 @@ insert_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = vcat(w', M[1:end-1, :
 @doc raw"""
     add_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix)
 
-Prepends the weight vector `w` as row to the matrix `M`.
+Prepend the weight vector `w` as row to the matrix `M`.
 
 """
 add_weight_vector(w::Vector{Int}, M::Matrix{Int}) = vcat(w', M)

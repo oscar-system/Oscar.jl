@@ -41,7 +41,7 @@ toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
 @doc raw"""
     toric_divisor(tdc::ToricDivisorClass)
 
-Constructs a toric divisor corresponding to the toric divisor class  `tdc`.
+Construct a toric divisor corresponding to the toric divisor class  `tdc`.
 
 # Examples
 ```jldoctest

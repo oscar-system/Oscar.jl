@@ -91,7 +91,7 @@ end
 @doc raw"""
     is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if the given family of $G_4$-fluxes is vertical.
+Check if the given family of $G_4$-fluxes is vertical.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -166,7 +166,7 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if a family of G4-fluxes breaks the non-abelian
+Check if a family of G4-fluxes breaks the non-abelian
 gauge group. If so, this method returns `true` and
 otherwise `false`.
 

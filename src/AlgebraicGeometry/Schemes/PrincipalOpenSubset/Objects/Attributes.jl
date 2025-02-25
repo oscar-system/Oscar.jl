@@ -18,7 +18,7 @@ function complement_equation(U::PrincipalOpenSubset)
   if !isdefined(U, :h)
     U.h = prod(OO(U).(U.f); init=one(OO(U)))
   end
-  return U.h::elem_type(OO(ambient_scheme(U)))
+  return U.h  # ::elem_type(OO(ambient_scheme(U)))
 end
 
 # An internal getter to get factors of polynomial representatives of the complement equation's numerator.

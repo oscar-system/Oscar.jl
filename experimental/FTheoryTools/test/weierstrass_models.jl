@@ -44,7 +44,7 @@ w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
       @test ambient_space(w3) == ambient_space(loaded)
       @test is_base_space_fully_specified(w3) == is_base_space_fully_specified(loaded)
       @test explicit_model_sections(w3) == explicit_model_sections(loaded)
-      @test defining_section_parametrization(w3) == defining_section_parametrization(loaded)
+      @test model_section_parametrization(w3) == model_section_parametrization(loaded)
       @test defining_classes(w3) == defining_classes(loaded)
       for (key, value) in w3.__attrs
         if value isa String || value isa Vector{String} || value isa Bool
@@ -68,25 +68,30 @@ w3_copy = weierstrass_model(sample_toric_variety(); completeness_check = false)
       @test is_base_space_fully_specified(w3_copy) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(w3_copy) == is_partially_resolved(loaded)
       @test explicit_model_sections(w3_copy) == explicit_model_sections(loaded)
-      @test defining_section_parametrization(w3_copy) == defining_section_parametrization(loaded)
+      @test model_section_parametrization(w3_copy) == model_section_parametrization(loaded)
       @test defining_classes(w3_copy) == defining_classes(loaded)
     end
   end
 end
 
-x1, x2, x3, x, y, z = gens(parent(weierstrass_polynomial(w3)))
-new_weierstrass_polynomial = x^3 - y^2 - x3^12 * x * z^4
-tuned_w3 = tune(w3, new_weierstrass_polynomial)
+# The tests associated to the below code did not actually test the tune functionality of Weierstrass models,
+# but instead the tune functionality of abstract F-theory models, inherited by Weierstrass models
+# This functionality has been removed for the time being, because it did not correspond to a proper tuning
+# These tests have been retained for the (potential) future date when we reintroduce this functionality
+#
+# x1, x2, x3, x, y, z = gens(parent(weierstrass_polynomial(w3)))
+# new_weierstrass_polynomial = x^3 - y^2 - x3^12 * x * z^4
+# tuned_w3 = tune(w3, new_weierstrass_polynomial)
 
 @testset "Tuning of a Weierstrass model over a concrete toric base" begin
   @test base_space(w2) == base_space(w)
   @test weierstrass_section_f(w2) == my_choice["f"]
   @test weierstrass_section_f(w2) != weierstrass_section_f(w)
   @test weierstrass_section_g(w2) == weierstrass_section_g(w)
-  @test hypersurface_equation(tuned_w3) == new_weierstrass_polynomial
-  @test w3 == tune(w3, weierstrass_polynomial(w3))
-  @test base_space(tuned_w3) == base_space(w3)
-  @test fiber_ambient_space(tuned_w3) == fiber_ambient_space(w3)
+  # @test hypersurface_equation(tuned_w3) == new_weierstrass_polynomial
+  # @test w3 == tune(w3, weierstrass_polynomial(w3))
+  # @test base_space(tuned_w3) == base_space(w3)
+  # @test fiber_ambient_space(tuned_w3) == fiber_ambient_space(w3)
 end
 
 other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
@@ -94,8 +99,9 @@ other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
 @testset "Error messages from tuning Weierstrass models over concrete toric base" begin
   @test_throws ArgumentError tune(w, Dict("f" => basis_of_global_sections(Kbar^2)[1]))
   @test_throws ArgumentError tune(w, Dict("f" => basis_of_global_sections(other_Kbar^4)[1]))
-  @test_throws ArgumentError tune(w3, basis_of_global_sections(other_Kbar^4)[1])
-  @test_throws ArgumentError tune(w3, x1)
+  # Removed, see above
+  # @test_throws ArgumentError tune(w3, basis_of_global_sections(other_Kbar^4)[1])
+  # @test_throws ArgumentError tune(w3, x1)
 end
 
 
@@ -118,6 +124,6 @@ end
 @testset "Error messages in Weierstrass models over generic base space" begin
   @test_throws ArgumentError weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, sec_f)
   @test_throws ArgumentError weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 0, f, g)
-  @test_throws ArgumentError tune(w3, basis_of_global_sections(other_Kbar)[1])
+  # @test_throws ArgumentError tune(w3, basis_of_global_sections(other_Kbar)[1]) # Removed, see above
   @test_throws ArgumentError tune(w4, Dict("f" => basis_of_global_sections(other_Kbar)[1]))
 end

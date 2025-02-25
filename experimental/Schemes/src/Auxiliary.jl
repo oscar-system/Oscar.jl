@@ -91,7 +91,7 @@ end
 @doc raw"""
     total_transform(f::AbsSimpleBlowupMorphism, II::IdealSheaf)
 
-Computes the total transform of an ideal sheaf along a blowup.
+Compute the total transform of an ideal sheaf along a blowup.
 
 In particular, this applies in the toric setting. However, note that
 currently (October 2023), ideal sheaves are only supported on smooth

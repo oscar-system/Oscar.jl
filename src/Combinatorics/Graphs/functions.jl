@@ -392,6 +392,26 @@ function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
+    vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the vertex indices of a graph.
+
+# Examples
+The edge graph of the cube has eight vertices, numbered 1 to 8.
+```jldoctest
+julia> c = cube(3);
+
+julia> g = vertex_edge_graph(c);
+
+julia> vertices(g)
+1:8
+```
+"""
+function vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return 1:n_vertices(g)
+end
+
+@doc raw"""
     n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
@@ -797,7 +817,7 @@ connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)::Int
 @doc raw"""
     is_connected(g::Graph{Undirected})
 
-Checks if the undirected graph `g` is connected.
+Check if the undirected graph `g` is connected.
 
 # Examples
 ```jldoctest
@@ -824,7 +844,7 @@ end
 @doc raw"""
     is_strongly_connected(g::Graph{Directed})
 
-Checks if the directed graph `g` is strongly connected.
+Check if the directed graph `g` is strongly connected.
 
 # Examples
 ```jldoctest
@@ -872,7 +892,7 @@ end
 @doc raw"""
     is_weakly_connected(g::Graph{Directed})
 
-Checks if the directed graph `g` is weakly connected.
+Check if the directed graph `g` is weakly connected.
 
 # Examples
 ```jldoctest
@@ -934,7 +954,7 @@ end
 @doc raw"""
     is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Checks if the graph `g1` is isomorphic to the graph `g2`.
+Check if the graph `g1` is isomorphic to the graph `g2`.
 
 # Examples
 ```jldoctest
@@ -1230,7 +1250,7 @@ end
     graph_from_edges(edges::Vector{Vector{Int}})
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
 
-Creates a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
+Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
 
 # Examples
@@ -1343,7 +1363,7 @@ end
 @doc raw"""
     is_bipartite(g::Graph{Undirected})
 
-Returns true if the undirected graph `g` is bipartite.
+Return true if the undirected graph `g` is bipartite.
 
 # Examples
 ```jldoctest

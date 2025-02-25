@@ -153,7 +153,7 @@ const backref_sym = Symbol("#backref")
 @doc raw"""
     upgrade(format_version::VersionNumber, dict::Dict)
 
-Finds the first version where an upgrade can be applied and then incrementally
+Find the first version where an upgrade can be applied and then incrementally
 upgrades to each intermediate version until the structure of the current version
 has been achieved.
 """

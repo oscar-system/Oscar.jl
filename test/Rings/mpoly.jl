@@ -666,3 +666,10 @@ end
   @test I2.dim !== nothing
 end
 
+@testset "dimensions over number fields" begin
+  P, t = QQ[:t]
+  kk, i = extension_field(t^2 + 1)
+  R, (x, y) = kk[:x, :y]
+  @test dim(R) == 2
+end
+

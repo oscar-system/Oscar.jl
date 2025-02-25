@@ -1,9 +1,9 @@
-function _find_blowup_coordinate_name(m::NormalToricVarietyType, coordinate_name::Union{String, Nothing} = nothing)
+function _find_blowup_coordinate_name(X::NormalToricVarietyType, coordinate_name::Union{String, Nothing} = nothing)
   if coordinate_name !== nothing
-    @req !(coordinate_name in coordinate_names(m)) "Coordinate name already exists"
+    @req !(coordinate_name in coordinate_names(X)) "Coordinate name already exists"
     return coordinate_name
   else
-    return _find_blowup_coordinate_name(coordinate_names(m))
+    return _find_blowup_coordinate_name(coordinate_names(X))
   end
 end
 
@@ -19,14 +19,13 @@ end
 
 
 @doc raw"""
-    blow_up(v::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String)
+    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+    -> ToricBlowupMorphism
 
-Blow up the toric variety by subdividing the fan of the variety with the
-provided exceptional ray. This function returns the corresponding morphism.
-
-Note that this ray must be a primitive element in the lattice Z^d, with
-d the dimension of the fan. In particular, it is currently impossible to
-blow up along a ray which corresponds to a non-Q-Cartier divisor.
+Star subdivide the fan $\Sigma$ of the toric variety $X$ along the
+primitive vector `r` in the support of $\Sigma$ (Section
+11.1 Star Subdivisions in [CLS11](@cite)).
+This function returns the corresponding morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional prime divisor. As optional argument one can supply a
@@ -35,16 +34,16 @@ custom variable name.
 # Examples
 
 ```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
+julia> X = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> f = blow_up(P3, [0, 2, 3])
+julia> phi = blow_up(X, [0, 2, 3])
 Toric blowup morphism
 
-julia> bP3 = domain(f)
+julia> Y = domain(phi)
 Normal toric variety
 
-julia> cox_ring(bP3)
+julia> cox_ring(Y)
 Multivariate polynomial ring in 5 variables over QQ graded by
   x1 -> [1 0]
   x2 -> [1 2]
@@ -53,40 +52,43 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [0 -1]
 ```
 """
-function blow_up(v::NormalToricVarietyType, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
-  coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
-  return ToricBlowupMorphism(v, exceptional_ray, coordinate_name)
+function blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+  coordinate_name = _find_blowup_coordinate_name(X, coordinate_name)
+  return ToricBlowupMorphism(X, r, coordinate_name)
 end
 
 @doc raw"""
-    blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+    blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+    -> ToricBlowupMorphism
 
-This method first constructs the ray `r` by calling `standard_coordinates`, then blows up `v` along `r` using `blow_up`.
+This method first constructs the primitive vector $r$ by calling
+`standard_coordinates`, then blows up $X$ along $r$ using `blow_up`.
 
 # Examples
 
 ```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
+julia> X = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> f = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
+julia> phi = blow_up_along_minimal_supercone_coordinates(X, [2, 3, 0])
 Toric blowup morphism
 ```
 """
-function blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
   coords = Vector{QQFieldElem}(minimal_supercone_coords)
-  ray_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(v), coords))
-  ray = primitive_generator(ray_QQ)
-  @assert ray == ray_QQ "The input vector must correspond to a primitive generator of a ray"
-  phi = blow_up(v, ray; coordinate_name=coordinate_name)
+  r_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(X), coords))
+  r = primitive_generator(r_QQ)
+  @req r == r_QQ "The argument `minimal_supercone_coords` must correspond to a primitive vector"
+  phi = blow_up(X, r; coordinate_name=coordinate_name)
   set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
   return phi
 end
 
 @doc raw"""
-    blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
+    blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
+    -> ToricBlowupMorphism
 
-Blow up the toric variety $v$ with polyhedral fan $\Sigma$ by star
+Blow up the toric variety $X$ with polyhedral fan $\Sigma$ by star
 subdivision along the barycenter of the $n$-th cone $\sigma$ in the list
 of all the cones of $\Sigma$.
 We remind that the barycenter of a nonzero cone is the primitive
@@ -103,16 +105,16 @@ a custom variable name.
 
 # Examples
 ```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
+julia> X = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> f = blow_up(P3, 5)
+julia> phi = blow_up(X, 5)
 Toric blowup morphism
 
-julia> bP3 = domain(f)
+julia> Y = domain(phi)
 Normal toric variety
 
-julia> cox_ring(bP3)
+julia> cox_ring(Y)
 Multivariate polynomial ring in 5 variables over QQ graded by
   x1 -> [1 0]
   x2 -> [0 1]
@@ -121,17 +123,17 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
   # minimal supercone coordinates
-  coords = zeros(QQ, n_rays(v))
-  for i in 1:number_of_rays(v)
-    cones(v)[n, i] && (coords[i] = QQ(1))
+  coords = zeros(QQ, n_rays(X))
+  for i in 1:number_of_rays(X)
+    cones(X)[n, i] && (coords[i] = QQ(1))
   end
-  exceptional_ray_scaled = standard_coordinates(polyhedral_fan(v), coords)
+  exceptional_ray_scaled = standard_coordinates(polyhedral_fan(X), coords)
   exceptional_ray, scaling_factor = primitive_generator_with_scaling_factor(
     exceptional_ray_scaled
   )
   coords = scaling_factor * coords
 
-  return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name)
+  return blow_up_along_minimal_supercone_coordinates(X, coords; coordinate_name=coordinate_name)
 end

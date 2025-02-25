@@ -8,6 +8,7 @@
   @test (@inferred length(Omega)) == 6
   @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
@@ -22,6 +23,7 @@
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
@@ -42,6 +44,7 @@
   @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -51,6 +54,7 @@
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -77,6 +81,7 @@
   @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test_throws ArgumentError gset(G, permuted, omega)
@@ -90,6 +95,7 @@
   @test length(orbits(Omega)) == 1
   @test order(stabilizer(Omega)[1]) * length(orbit(Omega, f)) == order(G)
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 

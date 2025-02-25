@@ -89,9 +89,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-## TODO: change dim(spec(R)) to dim(R) as soon as the fixes for dim have
-## been moved to the algebra side!!!!
-      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -103,7 +101,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -444,7 +442,7 @@ end
     HypersurfaceGerm(X::AbsAffineScheme, I:Ideal)
     HypersurfaceGerm(A::LocalRing)
 
-Checks that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
+Check that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
 point `p` and returns the hypersurface germ `(X,p)` from `X` in the affirmative case, where `p`
 may be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -527,7 +525,7 @@ end
     CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
     CompleteIntersectionGerm(X::AbsAffineScheme, I:Ideal)
 
-Checks that `X` represents a complete intersection germ at the given point `p` and returns
+Check that `X` represents a complete intersection germ at the given point `p` and returns
 the complete intersection germ `(X,p)` from `X` in the affirmative case, where `p` may
 be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -562,12 +560,9 @@ function CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Uni
   U = MPolyComplementOfKPointIdeal(R,b)
   L,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
-## TODO: Should be dim(L) and not dim(spec(L)), but dim for localized
-## quotients is only repaired on the geometric side as of now!!!
-  AffineSchemeL = spec(L)
-  length(mingens) == dim(R) - dim(AffineSchemeL) || error("not a complete intersection")
+  length(mingens) == dim(R) - dim(L) || error("not a complete intersection")
   w = mingens
-  Y = CompleteIntersectionGerm(AffineSchemeL,w)
+  Y = CompleteIntersectionGerm(spec(L),w)
   set_attribute!(Y,:representative,X)
   return Y
 end

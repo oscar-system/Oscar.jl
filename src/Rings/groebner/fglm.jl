@@ -111,7 +111,7 @@ end
 @doc raw"""
     _compute_groebner_basis_using_fglm(I::MPolyIdeal, destination_ordering::MonomialOrdering)
 
-Computes a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using the FGLM algorithm.
+Compute a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using the FGLM algorithm.
 
 **Note**: Internal function, subject to change, do not use.
 

@@ -46,7 +46,7 @@
         "a3": "b3*ζ0^3",
         "a4": "b4*ζ0^4",
         "a6": "b6*ζ0^5",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 1, 2, 3, 4, 6],
             [1, -1, -2, -3, -4, -5]
         ],

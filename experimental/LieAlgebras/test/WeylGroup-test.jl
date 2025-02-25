@@ -3,6 +3,8 @@
     return word(parent(x)(word(x))) == word(x)
   end
 
+  _isomorphic_group_on_gens = Oscar.LieAlgebras._isomorphic_group_on_gens
+
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
     # Some test cases can be removed as soon as isomorphism has support for reducible types.
@@ -58,38 +60,43 @@
       end,
     ),
   ]
-    @testset "isomorphism(FPGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
-                                                                                     [
-      false, true
-    ]
-      G = fp_group(W; set_properties)
-      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+    @testset "isomorphism(FPGroup, ::WeylGroup)" begin
+      if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
+        G = _isomorphic_group_on_gens(FPGroup, W)
         @test is_finite(G) == is_finite(W)
         is_finite(W) && @test order(G) == order(W)
       end
 
-      iso = isomorphism(FPGroup, W; set_properties)
-      @test W == domain(iso)
-      G = codomain(iso)
-      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
-        @test is_finite(G) == is_finite(W)
-        is_finite(W) && @test order(G) == order(W)
-        if ngens(W) < 10 #= for sane runtime =#
-          for _ in 1:5
-            if is_finite(W) # remove once rand(W) is implemented for infinite groups
-              w = rand(W)
-              @test w == inv(iso)(iso(w))
-              v = rand(W)
-              @test iso(v * w) == iso(v) * iso(w)
-              @test v * w == inv(iso)(iso(v) * iso(w))
-            end
-            g = rand_pseudo(G)
-            @test is_in_normal_form(inv(iso)(g))
-            @test g == iso(inv(iso)(g))
-            h = rand_pseudo(G)
-            @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
-            @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+      G = fp_group(W)
+      @test is_finite(G) == is_finite(W)
+      is_finite(W) && @test order(G) == order(W)
+
+      iso = isomorphism(FPGroup, W)
+      @test W === domain(iso)
+      @test G === codomain(iso)
+      @test iso === isomorphism(FPGroup, W) # test caching
+
+      # test mapping of gens
+      @test ngens(W) == ngens(G)
+      @test iso.(gens(W)) == gens(G)
+      @test inv(iso).(gens(G)) == gens(W)
+
+      # test general mapping
+      if ngens(W) < 10 #= for sane runtime =#
+        for _ in 1:5
+          if is_finite(W) # remove once rand(W) is implemented for infinite groups
+            w = rand(W)
+            @test w == inv(iso)(iso(w))
+            v = rand(W)
+            @test iso(v * w) == iso(v) * iso(w)
+            @test v * w == inv(iso)(iso(v) * iso(w))
           end
+          g = rand_pseudo(G)
+          @test is_in_normal_form(inv(iso)(g))
+          @test g == iso(inv(iso)(g))
+          h = rand_pseudo(G)
+          @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+          @test h * g == iso(inv(iso)(h) * inv(iso)(g))
         end
       end
     end
@@ -97,38 +104,43 @@
     if has_root_system_type(root_system(W))
       type, ordering = root_system_type_with_ordering(root_system(W))
       if length(type) == 1
-        @testset "isomorphism(PermGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
-                                                                                           [
-          false, true
-        ]
-          G = permutation_group(W; set_properties)
-          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+        @testset "isomorphism(PermGroup, ::WeylGroup)" begin
+          if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
+            G = _isomorphic_group_on_gens(PermGroup, W)
             @test is_finite(G) == is_finite(W)
             is_finite(W) && @test order(G) == order(W)
           end
 
-          iso = isomorphism(PermGroup, W; set_properties)
-          @test W == domain(iso)
-          G = codomain(iso)
-          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
-            @test is_finite(G) == is_finite(W)
-            is_finite(W) && @test order(G) == order(W)
-            if ngens(W) < 10 #= for sane runtime =#
-              for _ in 1:5
-                if is_finite(W) # remove once rand(W) is implemented for infinite groups
-                  w = rand(W)
-                  @test w == inv(iso)(iso(w))
-                  v = rand(W)
-                  @test iso(v * w) == iso(v) * iso(w)
-                  @test v * w == inv(iso)(iso(v) * iso(w))
-                end
-                g = rand_pseudo(G)
-                @test is_in_normal_form(inv(iso)(g))
-                @test g == iso(inv(iso)(g))
-                h = rand_pseudo(G)
-                @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
-                @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+          G = permutation_group(W)
+          @test is_finite(G) == is_finite(W)
+          is_finite(W) && @test order(G) == order(W)
+
+          iso = isomorphism(PermGroup, W)
+          @test W === domain(iso)
+          @test G === codomain(iso)
+          @test iso === isomorphism(PermGroup, W) # test caching
+
+          # test mapping of gens
+          @test ngens(W) == ngens(G)
+          @test iso.(gens(W)) == gens(G)
+          @test inv(iso).(gens(G)) == gens(W)
+
+          # test general mapping
+          if ngens(W) < 10 #= for sane runtime =#
+            for _ in 1:5
+              if is_finite(W) # remove once rand(W) is implemented for infinite groups
+                w = rand(W)
+                @test w == inv(iso)(iso(w))
+                v = rand(W)
+                @test iso(v * w) == iso(v) * iso(w)
+                @test v * w == inv(iso)(iso(v) * iso(w))
               end
+              g = rand_pseudo(G)
+              @test is_in_normal_form(inv(iso)(g))
+              @test g == iso(inv(iso)(g))
+              h = rand_pseudo(G)
+              @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+              @test h * g == iso(inv(iso)(h) * inv(iso)(g))
             end
           end
         end

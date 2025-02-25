@@ -61,7 +61,7 @@ end
 @doc raw"""
     difference_lead_tail(MG::MarkedGroebnerBasis)
 
-Computes $a - b$ for $a$ a leading exponent and $b$ in the tail of some $g\in MG$. 
+Compute $a - b$ for $a$ a leading exponent and $b$ in the tail of some $g\in MG$. 
 """
 function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG)
@@ -159,7 +159,7 @@ end
 @doc raw"""
     less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
 
-Checks whether  $Mv <_{\mathrm{lex}} 0$.
+Check whether  $Mv <_{\mathrm{lex}} 0$.
 """
 function less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
   if is_zero(v)
@@ -176,7 +176,7 @@ end
 @doc raw"""
     filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
 
-Computes all elements $v\in V$ with $0 <_{\texttt{target}} v$ and $v <_{\texttt{start}} 0$
+Compute all elements $v\in V$ with $0 <_{\texttt{target}} v$ and $v <_{\texttt{start}} 0$
 """
 function filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
   return unique!(filter(V) do v
@@ -187,7 +187,7 @@ end
 @doc raw"""
     matrix_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
 
-Returns true if $Mv < Mw$ lexicographically, false otherwise.
+Return true if $Mv < Mw$ lexicographically, false otherwise.
 """
 function matrix_lexicographic_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
     i = 1
@@ -201,7 +201,7 @@ end
 @doc raw"""
     facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
 
-Returns true if $u < v$with respect to the facet preorder $<$. (cf. "The generic Gröbner walk" (Fukuda et a;. 2007), pg. 10)
+Return true if $u < v$with respect to the facet preorder $<$. (cf. "The generic Gröbner walk" (Fukuda et a;. 2007), pg. 10)
 """
 function facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
     i = 1
@@ -216,7 +216,7 @@ end
 @doc raw"""
     filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
 
-Returns all elements of `V` smaller than `w` with respect to the facet preorder.
+Return all elements of `V` smaller than `w` with respect to the facet preorder.
 """
 function filter_lf(
         w::Vector{ZZRingElem}, 
@@ -236,7 +236,7 @@ end
 @doc raw"""
     is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
 
-Determines whether $u$ and $v$ are non-zero integer multiples of each other.
+Determine whether $u$ and $v$ are non-zero integer multiples of each other.
 """
 function is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
   return !iszero(v) && !iszero(u) && u./gcd(u) == v./gcd(v)

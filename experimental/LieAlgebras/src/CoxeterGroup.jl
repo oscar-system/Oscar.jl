@@ -1,5 +1,9 @@
 #function is_coxeter_matrix(M::ZZMatrix) end
 
+function coxeter_matrix(W::WeylGroup)
+  return cartan_to_coxeter_matrix(cartan_matrix(W))
+end
+
 @doc raw"""
     coxeter_from_cartan_matrix(mat::ZZMatrix; check::Bool=true) -> Bool
 

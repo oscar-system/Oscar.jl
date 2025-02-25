@@ -45,7 +45,7 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
   save_data_dict(s) do
     for (data, key) in [
         (explicit_model_sections(gtm), :explicit_model_sections),
-        (defining_section_parametrization(gtm), :defining_section_parametrization),
+        (model_section_parametrization(gtm), :model_section_parametrization),
         (defining_classes(gtm), :defining_classes)
         ]
       !isempty(data) && save_typed_object(s, data, key)
@@ -138,9 +138,9 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
   base_space, amb_space, tp_ring = params
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
-  defining_section_parametrization = haskey(s, :defining_section_parametrization) ? load_typed_object(s, :defining_section_parametrization) : Dict{String, MPolyRingElem}()
+  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
-  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base_space, amb_space)
+  model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
   model.defining_classes = defining_classes
   @req cox_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
 

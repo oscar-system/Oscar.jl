@@ -159,12 +159,9 @@ end
 @doc raw"""
     is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
 
-# Input:
-- a reduced scheme ``X``,
-- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
-
-# Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the given reduced scheme ``X`` is normal.
+By default this verifies that `X` is reduced; this expensive test
+can be avoided by setting `check` to `false`.
 
 # Examples
 ```jldoctest

@@ -1137,6 +1137,8 @@ function root_system(r::RootSpaceElem)
   return r.root_system
 end
 
+ConformanceTests.equality(a::RootSpaceElem, b::RootSpaceElem) = a == b
+
 ###############################################################################
 #
 #   Dual root space elements
@@ -1281,7 +1283,7 @@ end
 @doc raw"""
     coeff(r::DualRootSpaceElem, i::Int) -> QQFieldElem
 
-Returns the coefficient of the `i`-th simple coroot in `r`.
+Return the coefficient of the `i`-th simple coroot in `r`.
 
 This can be also accessed via `r[i]`.
 """
@@ -1460,6 +1462,8 @@ Return the root system `r` belongs to.
 function root_system(r::DualRootSpaceElem)
   return r.root_system
 end
+
+ConformanceTests.equality(a::DualRootSpaceElem, b::DualRootSpaceElem) = a == b
 
 ###############################################################################
 # more functions

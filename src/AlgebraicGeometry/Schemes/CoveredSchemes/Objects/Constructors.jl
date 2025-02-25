@@ -154,7 +154,7 @@ CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
 @doc raw"""
     covered_scheme(X::AbsAffineScheme) -> AbsCoveredScheme
 
-Returns a `CoveredScheme` ``C`` isomorphic to ``X``.
+Return a `CoveredScheme` ``C`` isomorphic to ``X``.
 
 # Examples
 ```jldoctest
