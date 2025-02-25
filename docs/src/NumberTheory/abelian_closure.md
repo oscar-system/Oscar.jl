@@ -41,7 +41,7 @@ julia> K, z = abelian_closure(QQ)
 (Abelian closure of rational field, Generator of abelian closure of rational field)
 
 julia> F = algebraic_closure(QQ)
-Field of algebraic numbers
+Algebraic closure of rational field
 
 julia> x = z(5)
 zeta(5)
