@@ -90,7 +90,7 @@ prioritylist = [
     ["package: Nemo", "Changes related to the package Nemo"],
     ["package: Polymake", "Changes related to the package Polymake"],
     ["package: Singular", "Changes related to the package Singular"],
-    ["renaming", "Items being renamed ?"],
+    ["renaming", "Items being renamed"],
     ["serialization", "Changes related to serializing data in the MRDI file format ?"],
     ["topic: algebraic geometry", "Changes related to Algebraic Geometry"],
     ["topic: combinatorics", "Changes related to Combinatorics"],
