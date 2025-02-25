@@ -304,7 +304,7 @@ If `morphisms` is `false`, return only `U` .
 
 The order of the irreducible factors is the one given by [`cartan_type_with_ordering`](@ref).
 
-See also [`inner_direct_product`](@ref).
+See also [`inner_direct_product(::AbstractVector{WeylGroup})`](@ref).
 
 # Examples
 ```jldoctest
