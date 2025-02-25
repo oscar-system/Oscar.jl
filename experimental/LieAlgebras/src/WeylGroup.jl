@@ -334,8 +334,7 @@ function irreducible_factors(W::WeylGroup; morphisms::Bool=false)
   proj = Vector{Map{WeylGroup,WeylGroup}}(undef, num_factors)
 
   start_index = 1
-  for i in eachindex(types)
-    type = types[i] # type of the i-th irreducible factor
+  for (i, type) in enumerate(types)
     rk = type[2] # rank of the i-th irreducible factor
     end_index = start_index + rk - 1
     U[i], emb[i], proj[i] = parabolic_subgroup_with_projection(
