@@ -353,6 +353,7 @@ end
 
 @doc raw"""
     inner_direct_product(L::AbstractVector{WeylGroup}; morphisms::Bool=false)
+    inner_direct_product(L::WeylGroup...; morphisms::Bool=false)
 
 If `morphisms` is `false`, then return a Weyl group `W` that is isomorphic to the
 direct product of the Weyl groups in `L`.
