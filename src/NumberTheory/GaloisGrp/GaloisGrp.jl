@@ -65,6 +65,9 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
 end
 
 Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
+
+Base.hash(a::BoundRingElem, h::UInt) = hash(a.val, hash(parent(a), h))
+
 function +(a::BoundRingElem, b::BoundRingElem) 
   check_parent(a, b) 
   c = BoundRingElem(a.p.add(a.val, b.val), a.p)
