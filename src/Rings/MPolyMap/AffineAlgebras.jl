@@ -257,7 +257,7 @@ function preimage(
   # variables, use the `eliminate` command instead.
   success, ind = _maps_variables_to_variables(f)
   if success
-    img_gens = elem_type(domain(f)) # for the projection map
+    img_gens = elem_type(domain(f))[] # for the projection map
     elim_ind = Int[]
     for (i, x) in enumerate(gens(codomain(f)))
       k = findfirst(==(i), ind)
