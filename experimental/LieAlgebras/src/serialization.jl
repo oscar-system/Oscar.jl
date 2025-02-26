@@ -89,7 +89,7 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dic
   R = d[:base_ring]
   summands = d[:summands]
 
-  L = direct_sum(R, collect(summands))
+  L = direct_sum(R, collect(LieAlgebra{elem_type(R)}, summands))
   load_root_system_data(s, L, d)
   return L
 end
