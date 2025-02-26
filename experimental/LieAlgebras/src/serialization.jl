@@ -15,7 +15,7 @@ const lie_algebra_serialization_attributes = [
 ]
 @register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
 
-function type_params(L::T) where {T<:LieAlgebra}
+function type_params(L::T) where {T<:AbstractLieAlgebra}
   TypeParams(
     T,
     :base_ring => coefficient_ring(L),
@@ -40,6 +40,14 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   return L
 end
 
+function type_params(L::T) where {T<:LinearLieAlgebra}
+  TypeParams(
+    T,
+    :base_ring => coefficient_ring(L),
+    type_params_for_root_system(L)...,
+  )
+end
+
 function save_object(s::SerializerState, L::LinearLieAlgebra)
   save_data_dict(s) do
     save_object(s, L.n, :n)
@@ -61,27 +69,27 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   return L
 end
 
+function type_params(L::T) where {T<:DirectSumLieAlgebra}
+  TypeParams(
+    T,
+    :base_ring => coefficient_ring(L),
+    :summands => Tuple(L.summands),
+    type_params_for_root_system(L)...,
+  )
+end
+
 function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   save_data_dict(s) do
-    save_data_array(s, :summands) do
-      for summand in L.summands
-        ref = save_as_ref(s, summand)
-        save_object(s, ref)
-      end
-    end
+    # summands get saved in type params
     save_root_system_data(s, L)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dict)
   R = d[:base_ring]
-  summands = Vector{LieAlgebra{elem_type(R)}}(
-    load_array_node(s, :summands) do _
-      load_ref(s)
-    end,
-  )
+  summands = d[:summands]
 
-  L = direct_sum(R, summands)
+  L = direct_sum(R, collect(summands))
   load_root_system_data(s, L, d)
   return L
 end
