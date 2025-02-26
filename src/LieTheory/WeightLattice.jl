@@ -490,7 +490,8 @@ Reflect `w` in the hyperplane orthogonal to the `s`-th simple root, and return i
 This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
+  # the scalar `w.vec[s]` needs to be implicitly copied as it otherwise gets mutated by `submul!`
+  w.vec = submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
   return w
 end
 

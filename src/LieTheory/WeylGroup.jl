@@ -782,7 +782,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
   s = rk + 1
   while true
     # search for new simple reflection to add to the word
-    while s <= rk && weight.vec[s] > 0
+    while s <= rk && is_positive_entry(weight, s)
       s += 1
     end
 
@@ -873,7 +873,7 @@ end
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
     for j in (di + 1):rank(parent(wt))
-      if !iszero(wt[j])
+      if !is_zero_entry(wt, j)
         return j
       end
     end
@@ -881,7 +881,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   end
 
   for j in (di + 1):(ai - 1)
-    if !iszero(wt[j])
+    if !is_zero_entry(wt, j)
       return j
     end
   end
@@ -892,12 +892,14 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
 
     ok = true
+    reflect!(wt, j)
     for k in ai:(j - 1)
-      if reflect(wt, j)[k] < 0
+      if is_negative_entry(wt, k)
         ok = false
         break
       end
     end
+    reflect!(wt, j)
     if ok
       return j
     end
