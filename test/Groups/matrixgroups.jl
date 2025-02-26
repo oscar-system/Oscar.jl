@@ -158,6 +158,16 @@ end
      G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
      @test G === G3
    end
+
+   @testset "membership test" begin
+     K, a = cyclotomic_field(12, "a")
+     M = K[a^3 0; 0 a^-3]
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test !(M in G)
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test order(G) == 12
+     @test !(M in G)
+   end
 end
 
 @testset "small_generating_set" begin

@@ -63,7 +63,7 @@ Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
 @doc raw"""
     Base.hash(stmt:;CIStmt, h::UInt)
 
-Computes the hash of a `CIStmt`.
+Compute the hash of a `CIStmt`.
 """
 Base.hash(stmt::CIStmt, h::UInt) =
   foldr(hash, stmt.I, stmt.J, stmt.K; init=hash(CIStmt, h))

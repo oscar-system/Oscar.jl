@@ -496,7 +496,7 @@ corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, M.groundset) + rank
 @doc raw"""
     is_clutter(sets::AbstractVector{T}) where T <: GroundsetType
 
-Checks if the collection of subsets `sets` is a clutter.
+Check if the collection of subsets `sets` is a clutter.
 A collection of subsets is a clutter if none of the sets is a proper subset of another.
 See Section 2.1 in [Oxl11](@cite).
 
@@ -523,7 +523,7 @@ end
 @doc raw"""
     is_regular(M::Matroid)
 
-Checks if the matroid `M` is regular, that is representable over every field.
+Check if the matroid `M` is regular, that is representable over every field.
 See Section 6.6 in [Oxl11](@cite).
 
 # Examples
@@ -546,7 +546,7 @@ end
 @doc raw"""
     is_binary(M::Matroid)
 
-Checks if the matroid `M` is binary, that is representable over the finite field `F_2`.
+Check whether the matroid `M` is binary, that is representable over the finite field `F_2`.
 See Section 6.5 in [Oxl11](@cite).
 
 # Examples
@@ -563,7 +563,7 @@ is_binary(M::Matroid) = pm_object(M).BINARY::Bool
 @doc raw"""
     is_ternary(M::Matroid)
 
-Checks if the matroid `M` is ternary, that is representable over the finite field `F_3`.
+Check if the matroid `M` is ternary, that is representable over the finite field `F_3`.
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
@@ -740,9 +740,9 @@ julia> direct_sum_components(fano_matroid())
 
 julia> direct_sum_components(uniform_matroid(3, 3))
 3-element Vector{Matroid}:
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
 ```
 """
 function direct_sum_components(M::Matroid)
@@ -995,7 +995,7 @@ _revlex_basis_from_vector(v::AbstractVector{<:Integer}) = join(isone(x) ? '*' : 
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
-Computes the revlex basis encoding of the matroid M.
+Compute the revlex basis encoding of the matroid M.
 
 # Examples
 To get the revlex basis encoding of the fano matroid and to produce a matrod form the encoding write:
@@ -1015,7 +1015,7 @@ end
 @doc raw"""
     min_revlex_basis_encoding(M::Matroid)
 
-Computes the minimal revlex basis encoding among isomorphic matroids.
+Compute the minimal revlex basis encoding among isomorphic matroids.
 
 # Examples
 To get the minimal revlex basis encoding of the fano matroid write:
@@ -1046,7 +1046,12 @@ end
 @doc raw"""
     matroid_hex(M::Matroid)
 
-Stores a matroid as a string of hex characters. The first part of the string is "r" followed by the rank of the matroid. This is followed by "n" and the number of elements. The rest of the string is the revlex basis encoding. The encoding is done by converting the basis encoding to a vector of bits and then to a string of characters. The bits are padded to a multiple of 4 and then converted to hex characters.
+Store a matroid as a string of hex characters. The first part of the string is
+"r" followed by the rank of the matroid. This is followed by "n" and the
+number of elements. The rest of the string is the revlex basis encoding. The
+encoding is done by converting the basis encoding to a vector of bits and then
+to a string of characters. The bits are padded to a multiple of 4 and then
+converted to hex characters.
 
 # Examples
 To get the hex encoding of the fano matroid write:
@@ -1071,7 +1076,7 @@ end
 @doc raw"""
     matroid_from_matroid_hex(str::AbstractString)
 
-Returns a matroid from a string of hex characters.
+Return a matroid from a string of hex characters.
 
 # Examples
 To retrieve the fano matroid from its hex encoding write:
@@ -1098,7 +1103,7 @@ end
 @doc raw"""
     is_isomorphic(M1::Matroid, M2::Matroid)
 
-Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
+Check if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
 
 # Examples
 To compare two matrods write:
@@ -1122,7 +1127,7 @@ end
 @doc raw"""
     is_minor(M::Matroid, N::Matroid)
 
-Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
+Check if the matroid `M` is isomorphic to a minor of the matroid `N`.
 
 # Examples
 ```jldoctest

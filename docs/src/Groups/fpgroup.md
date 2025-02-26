@@ -78,6 +78,10 @@ true
 Subgroups of finitely presented groups in Oscar have the type
 [`SubFPGroup`](@ref),
 their elements have the type [`SubFPGroupElem`](@ref).
+We distinguish between full finitely presented groups and their subgroups
+because different methods are needed for them,
+and because functions such as [`relators(G::FPGroup)`](@ref) make sense
+only for full finitely presented groups.
 
 ```jldoctest fpgroupxpl
 julia> S, emb = sylow_subgroup(G, 2)

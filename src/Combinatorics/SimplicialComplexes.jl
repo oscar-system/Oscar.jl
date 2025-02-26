@@ -425,9 +425,9 @@ end
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a sphere.
-Returns false if not a sphere.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a sphere.
+Return `false` if not a sphere.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -444,9 +444,9 @@ is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a ball.
-Returns false if not a ball.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a ball.
+Return `false` if not a ball.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -463,9 +463,9 @@ is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
 
 Check if the abstract simplicial complex `K` is a combinatorial manifold, possibly with boundary.
 Note that this is undecidable in general.
-Returns true if recognized as a manifold.
-Returns false if not a manifold.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a manifold.
+Return `false` if not a manifold.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -568,7 +568,7 @@ end
 @doc raw"""
     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
-Checks if the given simplicial complexes are isomorphic.
+Check if the given simplicial complexes are isomorphic.
 
 # Examples
 ```jldoctest
