@@ -1327,6 +1327,9 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 ```jldoctest
 julia> S = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> typeof(S)
 PermGroup
@@ -1348,6 +1351,9 @@ it can be obtained by typing either `f(x)` or `x^f`.
 ```jldoctest
 julia> S = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
 Automorphism group of
@@ -1376,6 +1382,9 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 ```jldoctest
 julia> S = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
 Automorphism group of
@@ -1404,6 +1413,9 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 ```jldoctest
 julia> S = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
@@ -1462,6 +1474,9 @@ In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it
 ```jldoctest
 julia> S = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
 Automorphism group of

@@ -29,6 +29,9 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 ```jldoctest
 julia> G = symmetric_group(5)
 Sym(5)
+with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> order(G)
 120
@@ -81,6 +84,9 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 ```jldoctest
 julia> G = alternating_group(5)
 Alt(5)
+with 2 generators
+  (1,2,3,4,5)
+  (3,4,5)
 
 julia> order(G)
 60

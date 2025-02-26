@@ -981,6 +981,9 @@ if `order` is positive, the classes of subgroups of this order.
 ```jldoctest
 julia> G = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1071,9 +1074,9 @@ julia> G = symmetric_group(5);
 
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of Sym(5) in G
  Conjugacy class of permutation group in G
- Conjugacy class of permutation group in G
- Conjugacy class of permutation group in G
+ Conjugacy class of Alt(5) in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
@@ -1231,7 +1234,7 @@ use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Permutation group of degree 4 and order 12
+Alt(4)
 with 2 generators
   (1,2,3)
   (2,3,4)
@@ -1268,7 +1271,7 @@ otherwise, return `false, one(G)`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Permutation group of degree 4 and order 12
+Alt(4)
 with 2 generators
   (1,2,3)
   (2,3,4)

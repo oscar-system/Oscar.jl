@@ -18,9 +18,14 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 ```jldoctest
 julia> H = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> G = direct_product(H,K)
 Sym(3) x Sym(2)
@@ -165,9 +170,14 @@ It is not defined for proper subgroups of direct products.
 ```jldoctest
 julia> H = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> G = direct_product(H, K)
 Sym(3) x Sym(2)
@@ -229,9 +239,14 @@ Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#
 ```jldoctest
 julia> H = symmetric_group(3)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> G = direct_product(H, K)
 Sym(3) x Sym(2)
@@ -534,6 +549,8 @@ with 1 generator
 
 julia> H = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
@@ -603,6 +620,8 @@ with 1 generator
 
 julia> H = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
@@ -633,6 +652,8 @@ with 1 generator
 
 julia> H = symmetric_group(2)
 Sym(2)
+with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
@@ -643,6 +664,8 @@ with 2 generators
 
 julia> acting_subgroup(W)
 Sym(2)
+with 1 generator
+  (1,2)
 ```
 """
 acting_subgroup(W::WreathProductGroup) = W.H

@@ -96,6 +96,9 @@ and let Oscar compute a pc presentation for it.
 ```jldoctest
 julia> g = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> iso = isomorphism(PcGroup, g);
 
