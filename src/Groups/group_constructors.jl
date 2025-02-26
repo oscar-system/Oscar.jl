@@ -40,13 +40,7 @@ julia> order(G)
 """
 function symmetric_group(n::Int)
   @req n >= 1 "n must be a positive integer"
-  G = PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
-  set_attribute!(G, :show, _show_symmetric_group)
-  return G
-end
-
-function _show_symmetric_group(io, G::PermGroup)
-  print(pretty(io), LowercaseOff(), "Sym(", degree(G), ")")
+  return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
 end
 
 # for functions like perm, cperm or macros like @perm provide a cached
@@ -95,13 +89,7 @@ julia> order(G)
 """
 function alternating_group(n::Int)
   @req n >= 1 "n must be a positive integer"
-  G = PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
-  set_attribute!(G, :show, _show_alternating_group)
-  return G
-end
-
-function _show_alternating_group(io, G::PermGroup)
-  print(pretty(io), LowercaseOff(), "Alt(", degree(G), ")")
+  return PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
 end
 
 """
