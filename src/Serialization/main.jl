@@ -260,7 +260,9 @@ function save_type_params(s::SerializerState,
                 if serialize_with_id(entry)
                   save_object(s, save_as_ref(s, entry))
                 else
-                  save_typed_object(s, entry)
+                  save_data_dict(s) do
+                    save_typed_object(s, entry)
+                  end
                 end
               end
             end
