@@ -1624,6 +1624,63 @@ function defect_group(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int)
   return _as_subgroup(G, GapObj(syl))
 end
 
+# Return the vector of those `i` such that the `i`-th conjugacy class of `tbl`
+# contains elements from a `p`-defect group of the `c`-th conjugacy class.
+# We assume that the `c`-th conjugacy class consists of `p`-regular elements.
+#
+# The `p`-defect groups of a `G`-class `C` of `p`-regular elements are defined
+# as the Sylow `p`-subgroups of the centralizers of the elements in `C`.
+#
+function _class_positions_of_defect_group_of_class(tbl::GAPGroupCharacterTable, p::IntegerUnion, c::Int)
+  orders = orders_class_representatives(tbl)
+  nccl = length(orders)
+  @assert 0 < c <= nccl && mod(orders[c], p) != 0 "`c` must be the position of a `p`-regular class"
+
+  # start with the Galois conjugates of class `c`
+  newroots = Set([c])
+  o = orders[c]
+  for i in 2:(o-1)
+    if gcd(i, o) == 1
+      push!(newroots, power_map(tbl, i, c))
+    end
+  end
+
+  # collect root classes under `pow`
+  pow = power_map(tbl, p)
+  roots = Set(Int[])
+  while length(newroots) > 0
+    union!(roots, newroots)
+    newroots = Set(Int[])
+    for i in 1:nccl
+      if (!(i in roots)) && pow[i] in roots && orders[i] != orders[pow[i]]
+        push!(newroots, i)
+      end
+    end
+  end
+
+  # take the `p`-parts
+  res = Set(Int[])
+  for i in roots
+    _, ord = remove(orders[i], p)
+    push!(res, power_map(tbl, ord, i))
+  end
+
+  return sort(collect(res))
+end
+
+# We can compute from the character table whether the defect group
+# of a block is cyclic.
+#
+function is_block_with_cyclic_defect_group(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int; blocks = block_distribution(tbl, p))
+  @assert 0 < b <= length(blocks[:defect])
+
+  blocks[:defect][b] < 2 && return true
+  orders = orders_class_representatives(tbl)
+  q = p^blocks[:defect][b]
+  c = _class_position_of_defect_class_up_to_galois_conjugacy(tbl, p, b, blocks = blocks)
+  pclasses = _class_positions_of_defect_group_of_class(tbl, p, c)
+  return q in orders[pclasses]
+end
 
 #############################################################################
 ##
@@ -1839,8 +1896,12 @@ julia> [power_map(tbl, 2, i) for i in 1:5]
  4
 ```
 """
-function power_map(tbl::GAPGroupCharacterTable, k::Int, i::Int)
-  return GAPWrap.PowerMap(GapObj(tbl), k, i)
+function power_map(tbl::GAPGroupCharacterTable, k::IntegerUnion, i::Int)
+  return GAPWrap.PowerMap(GapObj(tbl), GapObj(k), i)
+end
+
+function power_map(tbl::GAPGroupCharacterTable, k::IntegerUnion)
+  return Vector{Int}(GAPWrap.PowerMap(GapObj(tbl), GapObj(k)))
 end
 
 

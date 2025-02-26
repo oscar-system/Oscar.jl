@@ -20,13 +20,17 @@ julia> order(G)
 
 julia> schur_index(chi)
 3
+
+julia> local_schur_indices(chi)
+1-element Vector{Pair{Int64, Int64}}:
+ 7 => 3
 ```
 """
 function yamada_example(p::Int, d::Int)
   @req is_odd(p) && is_prime(p) "p must be an odd prime integer"
   @req mod(p-1, d) == 0 "d must divide p-1"
 
-  r = GAP.Globals.PrimitiveRootMod(p)
+  r = Hecke.gen_mod_pk(ZZ(p))
   F = free_group([:x, :y])
   x, y = gens(F)
   rels = [x^p, y^(d*(p-1)), x*y/(y*x^r)] # the relators in the paper are wrong
@@ -41,7 +45,7 @@ function yamada_example(p::Int, d::Int)
   return P, tbl[i]
 end 
 
-# See section 5 in the paper by Unger:
+# See section 5 in [Ung19]
 # return ("Q8", 1) or ("Q8", r) or ("QD", r) or ("", 0),
 # where the last means that the given group is *not* one of the
 # types in the Riese/Schmid paper
@@ -56,11 +60,10 @@ function _Riese_Schmid_type(G::GAPGroup)
   n == 8 && small_group_identification(G) == id_q8 && return ("Q8", 1)
 
   # check for the structure U:P where U is a normal subgroup of odd prime
-  # order r and P is a 2-group
-  facts = sort(collect(factor(n)))
-  length(facts) == 2 || return no_type
-  (facts[1][1] == 2 && facts[2][2] == 1) || return no_type
-  r = facts[2][1]
+  # order r and P is a nontrivial 2-group
+  is_even(n) || return no_type
+  _, r = remove(n, 2)
+  is_prime(r) || return no_type
   U = sylow_subgroup(G, r)[1]
   is_normalized_by(U, G) || return no_type
 
@@ -108,6 +111,30 @@ function _Riese_Schmid_type(G::GAPGroup)
 end
 
 
+#TODO: to be replaced in Hecke or so
+"""
+    prime_residues(n::T) where T <: IntegerUnion
+
+Return the `Vector{T}` of all `i` in the range `0:(abs(n)-1)`
+that are coprime to `n`.
+
+# Examples
+```jldoctest
+julia> println(prime_residues(20))
+[1, 3, 7, 9, 11, 13, 17, 19]
+
+julia> println(prime_residues(0))
+Int64[]
+
+julia> println(prime_residues(1))
+[0]
+```
+"""
+function prime_residues(n::T) where T <: IntegerUnion
+  return Vector{T}(GAP.Globals.PrimeResidues(GapObj(n)))
+end
+
+
 #############################################################################
 #
 # deal with extensions of p-adic fields by elements of abelian number fields
@@ -150,7 +177,7 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
 #T `modord(N, 1)` could return 1 (smallest pos. int. i s.t. 1 divides (N^i-1))
     stab = Int[]
     sigma_p = mod(1 + a*(p-1)*ppart, N)
-    res = ppart == 1 ? [1] : Vector{Int}(GAP.Globals.PrimeResidues(GapObj(ppart)))
+    res = ppart == 1 ? [1] : prime_residues(ppart)
     for u in res
       for i in 0:(r-1)
         sigma = mod(sigma_p^i * (1 + (u-1)*m*b), N)
@@ -186,6 +213,8 @@ The Schur index over the real field is stored at `p = -1` if applicable.
 
 `cyclic_defect` contains primes `p` such that `chi` is known to belong to
 a `p`-block of cyclic defect.
+
+The implementation follows [Ung19](@cite).
 
 # Examples
 ```jldoctest
@@ -240,10 +269,12 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
 
   # The character field contains a primitive `m`-th root of unity.
   if ind == 0
-    # Compute the conductor of the largest cyclotomic field
-    # that is contained in the character field of `chi`.
+    # Compute the conductor `N` of the smallest cyclotomic field
+    # that contains the character field of `chi`.
     gapfield = GAPWrap.Field(GapObj(chi))
     N = GAPWrap.Conductor(gapfield)
+    # Compute the conductor of the largest cyclotomic field
+    # that is contained in the character field of `chi`.
     for n in reverse(sort(divisors(N)))
 #TODO: better compute with p-parts of N and form the lcm
       if GAPWrap.E(n) in gapfield
@@ -368,14 +399,18 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
       GAPfield_p[p] = _Q_p_chi(GapObj(chi), p)
       # Run over the p-regular elements (without the identity element).
       pregs = findall(x -> mod(x, p) != 0 && x != 1, ords)
+      # we can ignore integer values in `chi`
       vals = filter(x -> isa(x, GapObj), GAP.Obj[x for x in GapObj(chi)])
       for preg in pregs
         # Run over the other characters in the block.
         if all(i -> _membership_test(irr[i][preg], GAPfield_p[p]), block)
-          # m_p(chi) divides chi[i]
-          g = GAP.Globals.Gcd(GAP.Globals.COEFFS_CYC(GapObj(chi[preg])))
+          # m_p(chi) divides `chi[preg]` in the ring of algebraic integers;
+          # the field element is represented w.r.t. an integral basis,
+          # thus it is sufficient to look at its coefficients
+          g = GAP.Globals.Gcd(GAP.Globals.COEFFS_CYC(GapObj(chi)[preg]))
           u_p[p] = (gcd(u_p[p][1], g), false)
         else
+          # we can ignore integer values
           append!(vals, filter(x -> isa(x, GapObj), [irr[i][preg] for i in block]))
         end
       end
@@ -383,9 +418,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
       # Theorem 4.6
       # If the p-block of `chi` has cyclic defect then
       # m_p(chi) = [K(chi):\Q_p(chi)].
-      if pbl[:defect][blockpos] == 1 || p in cyclic_defect
-#TODO: really determine *cyclic* defect groups (not only defect 1)
-#      (For that, we need `defect_group`.)
+      if p in cyclic_defect || is_block_with_cyclic_defect_group(tbl, p, blockpos)
         # K(\chi) describes the field over Q_p that is generated by
         # all values of `chi` and all values of
         # the restrictions of the ordinary irreducibles in the block of `chi`
@@ -453,7 +486,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
           # we look ony at \eta with [\eta^G, \chi] not divisible by q
           mod(scalar_product(chi, eta^G), q) == 0 && continue
 
-          # the field $\Q_p(\chi, \eta)$
+          # the field $\Q_p(\chi, \eta)$; again, ignore integer values
           vals = Vector{GapObj}(filter(x -> isa(x, GapObj), [x for x in GapObj(chi)]))
           append!(vals, filter(x -> isa(x, GapObj), [x for x in GapObj(eta)]))
           GAPfield_chieta = _Q_p_chi(GapObj(vals), p)

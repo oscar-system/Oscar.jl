@@ -329,6 +329,7 @@ GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap PowerMap(x::GapObj, y::Int)::GapObj
 GAP.@wrap PowerMap(x::GapObj, y::Int, z::Int)::Int
 GAP.@wrap PrimeBlocks(x::GapObj, y::Int)::GapObj
 GAP.@wrap PrimePGroup(x::GapObj)::GapInt
