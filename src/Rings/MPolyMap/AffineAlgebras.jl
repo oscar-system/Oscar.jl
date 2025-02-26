@@ -222,7 +222,43 @@ function preimage(F::MPolyAnyMap, I::Ideal)
 end
 
 function preimage(
-    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
+  return _preimage_via_singular(f, I)
+end
+
+function preimage(
+    f::MPolyAnyMap{<:MPolyRing{T}, <:MPolyRing{T}, Nothing}, 
+    I::MPolyIdeal{T}
+  ) where {T <: RingElem}
+  # If the map is the inclusion of a subring in a subset of 
+  # variables, use the `eliminate` command instead.
+  if all(_is_gen, f.img_gens) && allunique(f.img_gens)
+    @show "hello"
+    sub_vars = elem_type(codomain(f))[]
+    img_gens = elem_type(domain(f)) # for the projection map
+    for (i, x) in enumerate(gens(codomain(f)))
+      k = findfirst(==(x), f.img_gens)
+      if isnothing(k)
+        push!(img_gens, zero(domain(f)))
+      else
+        k::Int
+        push!(sub_vars, x)
+        push!(img_gens, zero(domain(f)))
+      end
+    end
+    elim_vars = [x for x in gens(codomain(f)) if !(x in f.img_gens)]
+    J = eliminate(I, elim_vars)
+    pr = hom(codomain(f), domain(f), img_gens)
+    return pr(J)
+  end
+  return _preimage_via_singular(f, I)
+end
+
+function _preimage_via_singular(
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
   ) where {T <: RingElem,
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
