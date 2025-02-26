@@ -450,11 +450,10 @@ See also: [`is_fundamental_weight(::WeightLatticeElem)`](@ref).
 """
 function is_fundamental_weight_with_index(w::WeightLatticeElem)
   ind = 0
-  coeffs = coefficients(w)
-  for i in 1:size(coeffs, 2)
-    if is_zero_entry(coeffs, 1, i)
+  for i in 1:rank(parent(w))
+    if is_zero_entry(w, i)
       continue
-    elseif is_one(coeffs[1, i])
+    elseif is_one(mat_entry_ptr(w, i))
       ind != 0 && return false, 0
       ind = i
     else
