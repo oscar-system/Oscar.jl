@@ -1,19 +1,3 @@
-function upgrade_QSMModel(d::Dict)
-  upgraded_dict = d
-  upgraded_dict[:_type] = Dict(
-    :name => d[:_type],
-    :params => Dict(
-      :hs_model => d[:data][:hs_model][:_type],
-      :genus_ci => d[:data][:genus_ci][:_type],
-      :degree_of_Kbar_of_tv_restricted_to_ci => d[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:_type]
-    ))
-  upgraded_dict[:data][:hs_model] = d[:data][:hs_model][:data]
-  upgraded_dict[:data][:genus_ci] = d[:data][:genus_ci][:data]
-  upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = d[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:data]
-
-  return upgraded_dict
-end
-
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
@@ -47,6 +31,18 @@ push!(upgrade_scripts_set, UpgradeScript(
             :symbols => dict[:data][:symbols],
           )
         end
+      elseif type_name == "QSMModel"
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :hs_model => dict[:data][:hs_model][:_type],
+            :genus_ci => dict[:data][:genus_ci][:_type],
+            :degree_of_Kbar_of_tv_restricted_to_ci => dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:_type]
+          ))
+        upgraded_dict[:data][:hs_model] = dict[:data][:hs_model][:data]
+        upgraded_dict[:data][:genus_ci] = dict[:data][:genus_ci][:data]
+        upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:data]
+
       elseif type_name == "AbstractLieAlgebra"
         println(json(dict, 2))
         upgraded_dict[:_type] = Dict(
