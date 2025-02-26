@@ -9,11 +9,19 @@ const lie_algebra_serialization_attributes = [
 ]
 
 @register_serialization_type AbstractLieAlgebra uses_id lie_algebra_serialization_attributes
+@register_serialization_type LinearLieAlgebra uses_id [
+  lie_algebra_serialization_attributes;
+  [:type, :form]
+]
+@register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
 
-type_params(L::AbstractLieAlgebra) = TypeParams(
-  AbstractLieAlgebra,
-  :base_ring => coefficient_ring(L),
-)
+function type_params(L::T) where {T<:LieAlgebra}
+  TypeParams(
+    T,
+    :base_ring => coefficient_ring(L),
+    type_params_for_root_system(L)...,
+  )
+end
 
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
   save_data_dict(s) do
@@ -28,19 +36,9 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  load_root_system_data(s, L)
+  load_root_system_data(s, L, d)
   return L
 end
-
-@register_serialization_type LinearLieAlgebra uses_id [
-  lie_algebra_serialization_attributes;
-  [:type, :form]
-]
-
-type_params(L::LinearLieAlgebra) = TypeParams(
-  LinearLieAlgebra,
-  :base_ring => coefficient_ring(L),
-)
 
 function save_object(s::SerializerState, L::LinearLieAlgebra)
   save_data_dict(s) do
@@ -59,16 +57,9 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  load_root_system_data(s, L)
+  load_root_system_data(s, L, d)
   return L
 end
-
-@register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
-
-type_params(L::DirectSumLieAlgebra) = TypeParams(
-  DirectSumLieAlgebra,
-  :base_ring => coefficient_ring(L),
-)
 
 function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   save_data_dict(s) do
@@ -91,20 +82,27 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dic
   )
 
   L = direct_sum(R, summands)
-  load_root_system_data(s, L)
+  load_root_system_data(s, L, d)
   return L
 end
 
 function save_root_system_data(s::SerializerState, L::LieAlgebra)
   if has_root_system(L)
-    save_object(s, save_as_ref(s, root_system(L)), :root_system)
     save_object(s, chevalley_basis(L), :chevalley_basis)
   end
 end
 
-function load_root_system_data(s::DeserializerState, L::LieAlgebra)
-  if haskey(s, :root_system)
-    rs = load_node(_ -> load_ref(s), s, :root_system)
+function type_params_for_root_system(L::LieAlgebra)
+  if has_root_system(L)
+    return (:root_system => root_system(L),)
+  else
+    return ()
+  end
+end
+
+function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
+  if haskey(d, :root_system)
+    rs = d[:root_system]
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
         s, NTuple{3,Vector{elem_type(L)}}, (L, L, L), :chevalley_basis
