@@ -749,7 +749,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER || file_version == v"1.3.0-DEV-ee9e219a6b211ab5baff71a98d162effd657584a" || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
+  if file_version < VERSION_NUMBER || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)
