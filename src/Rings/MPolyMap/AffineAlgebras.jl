@@ -257,17 +257,10 @@ function preimage(
   # variables, use the `eliminate` command instead.
   success, ind = _maps_variables_to_variables(f)
   if success
-    sub_vars = elem_type(codomain(f))[]
     img_gens = elem_type(domain(f)) # for the projection map
     for (i, x) in enumerate(gens(codomain(f)))
       k = findfirst(==(i), ind)
-      if isnothing(k)
-        push!(img_gens, zero(domain(f)))
-      else
-        k::Int
-        push!(sub_vars, x)
-        push!(img_gens, gen(domain(f), k))
-      end
+      push!(img_gens, isnothing(k) ? zero(domain(f)) : gen(domain(f), k::Int))
     end
     elim_vars = [x for x in gens(codomain(f)) if !(x in _images(f))]
     J = eliminate(I, elim_vars)
