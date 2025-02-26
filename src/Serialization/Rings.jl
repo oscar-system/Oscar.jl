@@ -39,7 +39,7 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 
 type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
 type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
-type_params(x::T) where T <: IdealOrdUnionType = TypeParams(T, base_ring(x))
+type_params(x::T) where T <: IdealUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
 type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
@@ -251,7 +251,7 @@ end
 @register_serialization_type MPolyIdeal
 @register_serialization_type LaurentMPolyIdeal
 
-function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
+function save_object(s::SerializerState, I::T) where T <: IdealUnionType
   # we might want to serialize generating_system(I) and I.gb
   # in the future
   save_object(s, gens(I))

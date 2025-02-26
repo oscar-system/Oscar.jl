@@ -15,8 +15,8 @@ function upgrade_QSMModel(d::Dict)
 end
 
 push!(upgrade_scripts_set, UpgradeScript(
-  v"1.3.0",
-  function upgrade_1_3_0(s::UpgradeState, dict::Dict)
+  v"1.4.0",
+  function upgrade_1_4_0(s::UpgradeState, dict::Dict)
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -47,6 +47,15 @@ push!(upgrade_scripts_set, UpgradeScript(
             :symbols => dict[:data][:symbols],
           )
         end
+      elseif type_name == "AbstractLieAlgebra"
+        println(json(dict, 2))
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :base_ring => dict[:data][:base_ring],
+            :root_system => dict[:data][:root_system]
+        ))
+        upgraded_dict[:attrs] = dict[:data][:attrs]
       elseif type_name in [
         "FracField", "LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"
         ]
@@ -140,7 +149,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             elseif k == :_coeff
               
             else
-              d[k] = upgrade_1_3_0(s, Dict(
+              d[k] = upgrade_1_4_0(s, Dict(
                 :_type => dict[:_type][:params][k],
                 :data => dict[:data][k]
               ))
@@ -165,7 +174,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_entries = []
         for entry in dict[:data]
           entry isa String && break
-          push!(upgraded_entries, upgrade_1_3_0(s, Dict(
+          push!(upgraded_entries, upgrade_1_4_0(s, Dict(
             :_type => subtype,
             :data => entry
           )))
@@ -176,7 +185,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name == "Tuple"
         upgraded_subtypes = Dict[]
         for (i, subtype) in enumerate(dict[:_type][:params])
-          push!(upgraded_subtypes, upgrade_1_3_0(s, Dict(
+          push!(upgraded_subtypes, upgrade_1_4_0(s, Dict(
             :_type => subtype,
             :data => dict[:data][i]
           )))
@@ -205,7 +214,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         "SubdivisionOfPoints"
         ]
         if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
-          upgraded_subdict = upgrade_1_3_0(s, dict[:data])
+          upgraded_subdict = upgrade_1_4_0(s, dict[:data])
           upgraded_subdict[:_type][:params][:key_params] = "Symbol"
           field = nothing
 
@@ -434,13 +443,13 @@ push!(upgrade_scripts_set, UpgradeScript(
         error("$type_name doesn't have upgrade")
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
-      upgraded_dict[:data] = upgrade_1_3_0(s, dict[:data])
+      upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
 
     if haskey(dict, :_refs)
       upgraded_refs = Dict()
       for (k, v) in dict[:_refs]
-        upgraded_refs[k] = upgrade_1_3_0(s, v)
+        upgraded_refs[k] = upgrade_1_4_0(s, v)
       end
       upgraded_dict[:_refs] = upgraded_refs
     end

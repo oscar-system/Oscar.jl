@@ -387,16 +387,6 @@ function load_object(s::DeserializerState,
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<:Dict{Int, U}},
-                     ::Nothing) where U
-  dict = T()
-  for k in keys(s.obj)
-    dict[parse(Int, string(k))] = load_object(s, S, k)
-  end
-  return dict
-end
-
-function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}}, ::Nothing) where {S <: Union{Symbol, String}, U}
   dict = T()
   for k in keys(s.obj)
