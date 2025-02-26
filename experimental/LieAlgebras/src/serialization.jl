@@ -174,48 +174,45 @@ end
 
 function type_params_for_construction_data(V::LieAlgebraModule)
   if _is_standard_module(V)
-    return (:construction_data => (:is_standard_module,),)
+    return (:_is_standard_module => true,)
   elseif ((fl, W) = _is_dual(V); fl)
-    return (:construction_data => (:is_dual, W),)
+    return (:_is_dual => W,)
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
-    return (:construction_data => (:is_direct_sum, Vs),)
+    return (:_is_direct_sum => Tuple(Vs),)
   elseif ((fl, Vs) = _is_tensor_product(V); fl)
-    return (:construction_data => (:is_tensor_product, Vs),)
+    return (:_is_tensor_product => Tuple(Vs),)
   elseif ((fl, W, k) = _is_exterior_power(V); fl)
-    return (:construction_data => (:is_exterior_power, W, k),)
+    return (:_is_exterior_power => (W, k),)
   elseif ((fl, W, k) = _is_symmetric_power(V); fl)
-    return (:construction_data => (:is_symmetric_power, W, k),)
+    return (:_is_symmetric_power => (W, k),)
   elseif ((fl, W, k) = _is_tensor_power(V); fl)
-    return (:construction_data => (:is_tensor_power, W, k),)
+    return (:_is_tensor_power => (W, k),)
   end
   return ()
 end
 
 function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::Dict)
   V = nothing
-  if haskey(d, :construction_data)
-    data = d[:construction_data]
-    if data[1] == :is_standard_module
-      V = standard_module(L)
-    elseif data[1] == :is_dual
-      _, W = data
-      V = dual(W)
-    elseif data[1] == :is_direct_sum
-      _, Vs = data
-      V = direct_sum(Vs...)
-    elseif data[1] == :is_tensor_product
-      _, Vs = data
-      V = tensor_product(Vs...)
-    elseif data[1] == :is_exterior_power
-      _, W, k = data
-      V = exterior_power(W, k)[1]
-    elseif data[1] == :is_symmetric_power
-      _, W, k = data
-      V = symmetric_power(W, k)[1]
-    elseif data[1] == :is_tensor_power
-      _, W, k = data
-      V = tensor_power(W, k)[1]
-    end
+  if haskey(d, :_is_standard_module) && d[:_is_standard_module]
+    V = standard_module(L)
+  elseif haskey(d, :_is_dual)
+    W = d[:_is_dual]
+    V = dual(W)
+  elseif haskey(d, :_is_direct_sum)
+    Vs = d[:_is_direct_sum]
+    V = direct_sum(Vs...)
+  elseif haskey(d, :_is_tensor_product)
+    Vs = d[:_is_tensor_product]
+    V = tensor_product(Vs...)
+  elseif haskey(d, :_is_exterior_power)
+    W, k = d[:_is_exterior_power]
+    V = exterior_power(W, k)[1]
+  elseif haskey(d, :_is_symmetric_power)
+    W, k = d[:_is_symmetric_power]
+    V = symmetric_power(W, k)[1]
+  elseif haskey(d, :_is_tensor_power)
+    W, k = d[:_is_tensor_power]
+    V = tensor_power(W, k)[1]
   end
   return V::Union{T,Nothing}
 end
