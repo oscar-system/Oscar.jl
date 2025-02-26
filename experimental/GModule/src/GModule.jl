@@ -1,3 +1,17 @@
+export extension_of_scalars
+export factor_set
+export ghom
+export indecomposition
+export irreducible_modules
+export is_decomposable
+export is_G_hom
+export restriction_of_scalars
+export trivial_gmodule
+export natural_gmodule
+export regular_gmodule
+export gmodule_minimal_field
+export gmodule_over
+
 include("Cohomology.jl")
 include("Types.jl")
 include("GaloisCohomology.jl")
@@ -2035,20 +2049,6 @@ end
 end #module GModuleFromGap
 
 using .GModuleFromGap
-
-export extension_of_scalars
-export factor_set
-export ghom
-export indecomposition
-export irreducible_modules
-export is_decomposable
-export is_G_hom
-export restriction_of_scalars
-export trivial_gmodule
-export natural_gmodule
-export regular_gmodule
-export gmodule_minimal_field
-export gmodule_over
 
 include("Brueckner.jl")
 
