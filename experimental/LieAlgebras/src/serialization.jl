@@ -138,6 +138,7 @@ end
 type_params(V::LieAlgebraModule) = TypeParams(
   LieAlgebraModule,
   :lie_algebra => base_lie_algebra(V),
+  type_params_for_construction_data(V)...,
 )
 
 function save_object(s::SerializerState, V::LieAlgebraModule)
@@ -145,7 +146,6 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
     save_object(s, dim(V), :dim)
     save_object(s, transformation_matrices(V), :transformation_matrices)
     save_object(s, symbols(V), :symbols)
-    save_construction_data(s, V)
   end
 end
 
@@ -157,75 +157,59 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
     s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = load_construction_data(s, T)
+  V = load_construction_data(T, d)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
   return V
 end
 
-function save_construction_data(s::SerializerState, V::LieAlgebraModule)
-  with_attrs(s) || return nothing # attribute saving disabled
-  save_data_dict(s, :construction_data) do
-    if _is_standard_module(V)
-      save_object(s, save_as_ref(s, base_lie_algebra(V)), :is_standard_module)
-    elseif ((fl, W) = _is_dual(V); fl)
-      save_object(s, save_as_ref(s, W), :is_dual)
-    elseif ((fl, Vs) = _is_direct_sum(V); fl)
-      save_object(s, Vs, :is_direct_sum)
-    elseif ((fl, Vs) = _is_tensor_product(V); fl)
-      save_object(s, Vs, :is_tensor_product)
-    elseif ((fl, W, k) = _is_exterior_power(V); fl)
-      save_object(s, (W, k), :is_exterior_power)
-    elseif ((fl, W, k) = _is_symmetric_power(V); fl)
-      save_object(s, (W, k), :is_symmetric_power)
-    elseif ((fl, W, k) = _is_tensor_power(V); fl)
-      save_object(s, (W, k), :is_tensor_power)
-    end
+function type_params_for_construction_data(V::LieAlgebraModule)
+  if _is_standard_module(V)
+    return (:construction_data => (:is_standard_module, base_lie_algebra(V)),)
+  elseif ((fl, W) = _is_dual(V); fl)
+    return (:construction_data => (:is_dual, W),)
+  elseif ((fl, Vs) = _is_direct_sum(V); fl)
+    return (:construction_data => (:is_direct_sum, Vs),)
+  elseif ((fl, Vs) = _is_tensor_product(V); fl)
+    return (:construction_data => (:is_tensor_product, Vs),)
+  elseif ((fl, W, k) = _is_exterior_power(V); fl)
+    return (:construction_data => (:is_exterior_power, W, k),)
+  elseif ((fl, W, k) = _is_symmetric_power(V); fl)
+    return (:construction_data => (:is_symmetric_power, W, k),)
+  elseif ((fl, W, k) = _is_tensor_power(V); fl)
+    return (:construction_data => (:is_tensor_power, W, k),)
   end
+  return ()
 end
 
-function load_construction_data(s::DeserializerState, T::Type{<:LieAlgebraModule})
+function load_construction_data(T::Type{<:LieAlgebraModule}, d::Dict)
   V = nothing
-  with_attrs(s) && haskey(s, :construction_data) &&
-    load_node(s, :construction_data) do _
-      if haskey(s, :is_standard_module)
-        L = load_node(s, :is_standard_module) do _
-          load_ref(s)
-        end
-        V = standard_module(L)
-      elseif haskey(s, :is_dual)
-        W = load_node(s, :is_dual) do _
-          load_ref(s)
-        end
-        V = dual(W)
-      elseif haskey(s, :is_direct_sum)
-        Vs = load_array_node(s, :is_direct_sum) do _
-          load_ref(s)
-        end
-        V = direct_sum(Vs...)
-      elseif haskey(s, :is_tensor_product)
-        Vs = load_array_node(s, :is_tensor_product) do _
-          load_ref(s)
-        end
-        V = tensor_product(Vs...)
-      elseif haskey(s, :is_exterior_power)
-        W, k = load_node(s, :is_exterior_power) do _
-          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
-        end
-        V = exterior_power(W, k)[1]
-      elseif haskey(s, :is_symmetric_power)
-        W, k = load_node(s, :is_symmetric_power) do _
-          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
-        end
-        V = symmetric_power(W, k)[1]
-      elseif haskey(s, :is_tensor_power)
-        W, k = load_node(s, :is_tensor_power) do _
-          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
-        end
-        V = tensor_power(W, k)[1]
-      end
+  if haskey(d, :construction_data)
+    data = d[:construction_data]
+    if data[1] == :is_standard_module
+      _, L = data
+      V = standard_module(L)
+    elseif data[1] == :is_dual
+      _, W = data
+      V = dual(W)
+    elseif data[1] == :is_direct_sum
+      _, Vs = data
+      V = direct_sum(Vs...)
+    elseif data[1] == :is_tensor_product
+      _, Vs = data
+      V = tensor_product(Vs...)
+    elseif data[1] == :is_exterior_power
+      _, W, k = data
+      V = exterior_power(W, k)[1]
+    elseif data[1] == :is_symmetric_power
+      _, W, k = data
+      V = symmetric_power(W, k)[1]
+    elseif data[1] == :is_tensor_power
+      _, W, k = data
+      V = tensor_power(W, k)[1]
     end
+  end
   return V::Union{T,Nothing}
 end
 
