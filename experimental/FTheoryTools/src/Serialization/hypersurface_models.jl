@@ -65,7 +65,7 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
         (defining_classes(h), :defining_classes),
         (model_section_parametrization(h), :model_section_parametrization)
         ]
-      !isempty(data) && save_typed_object(s, data, key)
+      !isempty(data) && save_typed_object(s, data, key) # TODO this needs to change to a save_object
     end
     save_object(s, hypersurface_equation(h), :hypersurface_equation)
     save_object(s, hypersurface_equation_parametrization(h), :hypersurface_equation_parametrization)
@@ -76,6 +76,7 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
       end
     end
 
+    # TODO these three paragraphs need to be removed and storing the data needs to come from the attributes framework
     # Save resolutions, if they are known.
     if has_resolutions(h)
       res = resolutions(h)
@@ -133,9 +134,12 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   R2 = params[:hypersurface_equation_parametrization_ring]
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
+
+  # TODO these lines need to be adjusted to only use load_object
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
   model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
+  
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, amb_space, fiber_ambient_space)
   model.defining_classes = defining_classes
   model.model_section_parametrization = model_section_parametrization
