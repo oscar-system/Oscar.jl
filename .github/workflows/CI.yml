@@ -56,15 +56,6 @@ jobs:
           - julia-version: '1.10'
             group: 'long'
             os: [macOS, RPTU]  # runs on self-hosted runner
-          - julia-version: '1.10'
-            group: 'book'
-            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
-          - julia-version: 'pre'
-            group: 'book'
-            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
-          - julia-version: 'nightly'
-            group: 'book'
-            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -119,6 +110,51 @@ jobs:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  book-tests:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 80
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.10'
+          - 'pre'
+          - 'nightly'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # For Codecov, we must also fetch the parent of the HEAD commit to
+          # be able to properly deal with PRs / merges
+          fetch-depth: 2
+      - name: "Set up Julia"
+        id: setup-julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+        if: runner.environment != 'self-hosted'
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=book" >> $GITHUB_ENV
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+        with:
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: "Process code coverage"
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
         continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
