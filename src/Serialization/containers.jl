@@ -320,17 +320,20 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       end
 
       isnothing(key_params) && return (S, U), value_params
-      isnothing(value_params) && return (S, U), nothing
       return (S, U), Dict(:key_params => key_params, :value_params => value_params)
     else
-      S, key_params = load_node(s, :key_params) do _
-        decode_type(s), nothing
+      S, key_params = load_node(s, :key_params) do params
+        params isa String && return decode_type(s), nothing
+        load_type_params(s, decode_type(s))
       end
       params_dict = Dict{S, Any}()
+      if !isnothing(key_params)
+        params_dict[:key_params] = key_params
+      end
       value_types = Type[]
       for (k, _) in obj
         k == :key_params && continue
-        key = S == Int ? parse(Int, string(k)) : S(k)
+        key = load_object(s, S) == Int ? parse(Int, string(k)) : S(k)
         params_dict[key] = load_node(s, k) do _
           value_type = decode_type(s)
           return load_type_params(s, value_type)
@@ -415,6 +418,12 @@ end
 
 # here to handle ambiguities
 function load_object(s::DeserializerState, T::Type{Dict{Int, Int}}, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+function load_object(s::DeserializerState, T::Type{Dict{String, Int}}, key::Union{Symbol, Int})
   load_node(s, key) do _
     load_object(s, T)
   end

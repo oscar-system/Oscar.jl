@@ -31,17 +31,28 @@ push!(upgrade_scripts_set, UpgradeScript(
             :symbols => dict[:data][:symbols],
           )
         end
+      elseif type_name == "HypersurfaceModel"
+        upgraded_dict[:attrs] = Dict()
+        for (k, v) in dict[:data][:__attrs][:_type][:params]
+          k == :key_type && continue
+          upgraded_dict[:attrs][k] = Dict(
+            :_type => v,
+            :data => dict[:data][:__attrs][:data][k]
+          )
+        end
       elseif type_name == "QSMModel"
+        hs_upgrade = upgrade_1_4_0(s, dict[:data][:hs_model])
+        genus_ci_upgrade = upgrade_1_4_0(s, dict[:data][:genus_ci])
+        degree_kbar_upgrade = upgrade_1_4_0(s, dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci])
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
-            :hs_model => dict[:data][:hs_model][:_type],
-            :genus_ci => dict[:data][:genus_ci][:_type],
-            :degree_of_Kbar_of_tv_restricted_to_ci => dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:_type]
+            :hs_model => hs_upgrade,
+            :genus_ci => genus_ci_upgrade[:_type],
+            :degree_of_Kbar_of_tv_restricted_to_ci => degree_kbar_upgrade[:_type]
           ))
-        upgraded_dict[:data][:hs_model] = dict[:data][:hs_model][:data]
-        upgraded_dict[:data][:genus_ci] = dict[:data][:genus_ci][:data]
-        upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:data]
+        upgraded_dict[:data][:genus_ci] = genus_ci_upgrade[:data]
+        upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = degree_kbar_upgrade[:data]
 
       elseif type_name == "AbstractLieAlgebra"
         println(json(dict, 2))
@@ -358,7 +369,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
         end
       elseif type_name == "NormalToricVariety"
-        if dict[:data] isa Dict
+        if haskey(dict[:data], :attrs)
           upgraded_dict[:attrs] = dict[:data][:attrs]
           upgraded_dict[:data] = dict[:data][:pm_data]
         end
@@ -442,6 +453,18 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
 
+    if haskey(upgraded_dict, :attrs)
+      upgraded_attrs = Dict()
+      for (k, v) in upgraded_dict[:attrs]
+        if v isa String
+          upgraded_attrs[k] = v
+          continue
+        end
+        upgraded_attrs[k] = upgrade_1_4_0(s, v)
+      end
+      upgraded_dict[:attrs] = upgraded_attrs
+    end
+    
     if haskey(dict, :_refs)
       upgraded_refs = Dict()
       for (k, v) in dict[:_refs]
