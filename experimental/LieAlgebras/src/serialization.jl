@@ -165,7 +165,7 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
     s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = load_construction_data(T, d)
+  V = load_construction_data(L, T, d)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
@@ -174,7 +174,7 @@ end
 
 function type_params_for_construction_data(V::LieAlgebraModule)
   if _is_standard_module(V)
-    return (:construction_data => (:is_standard_module, base_lie_algebra(V)),)
+    return (:construction_data => (:is_standard_module,),)
   elseif ((fl, W) = _is_dual(V); fl)
     return (:construction_data => (:is_dual, W),)
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
@@ -191,12 +191,11 @@ function type_params_for_construction_data(V::LieAlgebraModule)
   return ()
 end
 
-function load_construction_data(T::Type{<:LieAlgebraModule}, d::Dict)
+function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::Dict)
   V = nothing
   if haskey(d, :construction_data)
     data = d[:construction_data]
     if data[1] == :is_standard_module
-      _, L = data
       V = standard_module(L)
     elseif data[1] == :is_dual
       _, W = data
