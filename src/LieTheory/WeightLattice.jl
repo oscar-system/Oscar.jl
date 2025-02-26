@@ -218,33 +218,57 @@ function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeEle
   return wr
 end
 
-function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, w.vec, n)
   return wr
 end
 
-function mul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+function mul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, n, w.vec)
   return wr
 end
 
-function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, w.vec, n)
   return wr
 end
 
-function addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+function addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, n, w.vec)
   return wr
 end
 
 # ignore temp storage
-addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion, t) = addmul!(wr, w, n)
-addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem, t) = addmul!(wr, n, w)
+addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) = addmul!(wr, w, n)
+addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) = addmul!(wr, n, w)
+
+function submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
+  @req parent(wr) === parent(w) "parent mismatch"
+  wr.vec = submul!(wr.vec, w.vec, n)
+  return wr
+end
+
+function submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
+  @req parent(wr) === parent(w) "parent mismatch"
+  wr.vec = submul!(wr.vec, n, w.vec)
+  return wr
+end
+
+# ignore temp storage
+submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) = submul!(wr, w, n)
+submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) = submul!(wr, n, w)
+
+function mat_entry_ptr(w::WeightLatticeElem, i::Int)
+  return mat_entry_ptr(w.vec, 1, i)
+end
+
+function is_zero_entry(w::WeightLatticeElem, i::Int)
+  return is_zero_entry(w.vec, 1, i)
+end
 
 function Base.:(==)(w1::WeightLatticeElem, w2::WeightLatticeElem)
   return parent(w1) === parent(w2) && w1.vec == w2.vec

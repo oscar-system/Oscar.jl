@@ -1012,7 +1012,7 @@ julia> coefficients(r * x)
     for i in 1:n
       # a_i * s_j = a_i - gcm_{j,i} * a_j
       # efficient version of: g[i, j] -= gcm[j, i]
-      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+      sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
     end
     push!(imgs, g)
   end
@@ -1066,7 +1066,7 @@ julia> coefficients(w * x)
     g = identity_matrix(ZZ, n)
     for j in 1:n
       # efficient version of: g[i, j] -= gcm[j, i]
-      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+      sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
     end
     push!(imgs, g)
   end
