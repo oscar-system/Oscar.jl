@@ -882,6 +882,14 @@ function is_zero_entry(r::RootSpaceElem, i::Int)
   return is_zero_entry(r.vec, 1, i)
 end
 
+function is_positive_entry(r::RootSpaceElem, i::Int)
+  return is_positive_entry(r.vec, 1, i)
+end
+
+function is_negative_entry(r::RootSpaceElem, i::Int)
+  return is_negative_entry(r.vec, 1, i)
+end
+
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
 end
@@ -1286,6 +1294,14 @@ end
 
 function is_zero_entry(r::DualRootSpaceElem, i::Int)
   return is_zero_entry(r.vec, 1, i)
+end
+
+function is_positive_entry(r::DualRootSpaceElem, i::Int)
+  return is_positive_entry(r.vec, 1, i)
+end
+
+function is_negative_entry(r::DualRootSpaceElem, i::Int)
+  return is_negative_entry(r.vec, 1, i)
 end
 
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)

@@ -270,6 +270,14 @@ function is_zero_entry(w::WeightLatticeElem, i::Int)
   return is_zero_entry(w.vec, 1, i)
 end
 
+function is_positive_entry(w::WeightLatticeElem, i::Int)
+  return is_positive_entry(w.vec, 1, i)
+end
+
+function is_negative_entry(w::WeightLatticeElem, i::Int)
+  return is_negative_entry(w.vec, 1, i)
+end
+
 function Base.:(==)(w1::WeightLatticeElem, w2::WeightLatticeElem)
   return parent(w1) === parent(w2) && w1.vec == w2.vec
 end
