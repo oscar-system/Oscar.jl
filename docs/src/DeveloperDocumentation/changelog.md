@@ -23,37 +23,38 @@ are labelled. We have the following labels, along with how they are meant to be 
 
 ### Secondary Labels: Topic
 
-In addition to the release notes action labels, you can tag your PR with these following labels, and the release notes script will organize them appropriately :
+In addition to the release notes action labels, you can tag your PR with these following labels, and the release notes script will organize them appropriately:
 
-| Label | Changelog Category |
-|-------|--------------------|
-| enhancement | New features or extended functionality |
-| experimental | Only changes experimental parts of OSCAR |
-| optimization | Performance improvements or improved testing |
-| package: AbstractAlgebra | Changes related to the package AbstractAlgebra |
-| package: AlgebraicSolving | Changes related to the package AlgebraicSolving |
-| package: GAP | Changes related to the package GAP |
-| package: Hecke | Changes related to the package Hecke |
-| package: Nemo | Changes related to the package Nemo |
-| package: Polymake | Changes related to the package Polymake |
-| package: Singular | Changes related to the package Singular |
-| renaming | Items being renamed |
-| serialization | Changes related to serializing data in the MRDI file format ? |
-| topic: algebraic geometry | Changes related to Algebraic Geometry |
-| topic: combinatorics | Changes related to Combinatorics |
-| topic: FTheoryTools | Changes related to F-Theory Tools |
-| topic: groups | Changes related to Groups |
-| topic: LieTheory | Changes related to Lie Theory |
-| topic: number theory | Changes related to Number Theory |
-| topic: polyhedral geometry | Changes related to Polyhedral Geometry |
-| topic: rings | Changes related to Rings |
-| topic: schemes | Changes related to Schemes |
-| topic: toric schemes | Changes related to Toric Schemes |
-| topic: toric varieties | Changes related to Toric Varieties |
-| topic: tropical geometry | Changes related to Tropical Geometry |
-| bug: crash | Fixed bugs that could lead to crashes |
-| bug | Other fixed bugs |
-| documentation | Improvements or additions to documentation |
+| Label                         | Changelog Category |
+|-------------------------------|--------------------|
+| release notes: highlight      | Highlights |
+| renaming                      | Items being renamed |
+| topic: algebraic geometry     | Changes related to Algebraic Geometry |
+| topic: combinatorics          | Changes related to Combinatorics |
+| topic: commutative algebra    | Changes related to Commutative Algebra |
+| topic: FTheoryTools           | Changes related to F-Theory Tools |
+| topic: groups                 | Changes related to Groups |
+| topic: LieTheory              | Changes related to Lie Theory |
+| topic: number theory          | Changes related to Number Theory |
+| topic: polyhedral geometry    | Changes related to Polyhedral Geometry |
+| topic: schemes                | Changes related to Schemes |
+| topic: toric schemes          | Changes related to Toric Schemes |
+| topic: toric varieties        | Changes related to Toric Varieties |
+| topic: tropical geometry      | Changes related to Tropical Geometry |
+| serialization                 | Changes related to serializing data in the MRDI file format ? |
+| enhancement                   | New features or extended functionality |
+| experimental                  | Only changes experimental parts of OSCAR |
+| optimization                  | Performance improvements or improved testing |
+| bug: crash                    | Fixed bugs that could lead to crashes |
+| bug                           | Other fixed bugs |
+| documentation                 | Improvements or additions to documentation |
+| package: AbstractAlgebra      | Changes related to the package AbstractAlgebra |
+| package: AlgebraicSolving     | Changes related to the package AlgebraicSolving |
+| package: GAP                  | Changes related to the package GAP |
+| package: Hecke                | Changes related to the package Hecke |
+| package: Nemo                 | Changes related to the package Nemo |
+| package: Polymake             | Changes related to the package Polymake |
+| package: Singular             | Changes related to the package Singular |
 
 ## Example
 
