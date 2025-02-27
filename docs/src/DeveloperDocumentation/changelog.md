@@ -7,7 +7,7 @@ set the labels; and how to perform the actual update.
 
 ## How we use pull request labels to organize the changelog
 
-The script [release_notes.py](../../../dev/releases/release_notes.py) will generate updates to 
+The script `dev/releases/release_notes.py` will generate updates to 
 `CHANGELOG.md` automatically, based on PRs merged after the previous release, and what those PRs
 are labelled. We have the following labels, along with how they are meant to be applied
 
@@ -67,23 +67,25 @@ For example, if you have a PR titled `Bump GAP.jl to 0.13`, and labelled it `pac
 
 
 
-## Suggestions for categorizing pull requests
-
-todo ? Or is the above enough ?
-
 ## Updating the changelog
 
-There are two ways update the changelog: invoking the script directly, or calling the github action.
+There are two ways update the changelog: by invoking the script directly, or by triggering a GitHub workflow.
 
 ### Changelog Script
 
-The script is located at
-[../../../dev/releases/release_notes.py](../../../dev/releases/release_notes.py). Running it will
+The script is located at `dev/releases/release_notes.py`. Running it will
 update `CHANGELOG.md`, for review.
 
-### Github Workflow
+### GitHub Workflow
 
-There is a github CI workflow at
-https://github.com/oscar-system/Oscar.jl/actions/workflows/changelog.yml . This will run the script,
-and automatically make a PR against `master`, updating the changelog. If there is an already open
-PR by the workflow, running it again will update this PR.
+There is a GitHub workflow which runs the `release_notes.py` script and turns the
+result into a pull request. Anyone with write permission to the OSCAR repository
+can used it by visiting
+<https://github.com/oscar-system/Oscar.jl/actions/workflows/changelog.yml>, then
+selecting the "Run workflow" button. This should open a little drop down, offering to select a branch (usually this should be left at the default `master`). Click the
+green "Run worklow" button to start the process.
+
+After running a bit, this will either open a new PR against `master`, or update
+an existing PR created previously by it. This suggest the following usage pattern:
+run the workflow to create an initial PR, and inspect it. If the result is not
+satisfactory (e.g. because it contains uncategorized entries, or entries with typos, unclear language, formatting issues, etc., one can simply adjust the titles of those PRs, and then re-run the workflow. Repeat as needed.
