@@ -960,7 +960,7 @@ function rank_action(Omega::GSet)
 end
 
 """
-    transitivity(G::Omega)
+    transitivity(Omega::GSet)
 
 Return the maximum `k` such that group action associated with `Omega`
 acts `k`-transitively on `Omega`,
