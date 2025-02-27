@@ -405,3 +405,37 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+function *(c::scalar_types_extended, Sigma::PolyhedralFan)
+  # if scalar is zero, return polyhedral fan consisting only of the origin
+  if iszero(c)
+    return polyhedral_fan(
+      positive_hull(zero_matrix(coefficient_field(Sigma), 1, ambient_dim(Sigma)))
+    )
+  end
+
+  # if scalar is non-zero, multiple all rays by said scalar
+  SigmaRays = first(rays_modulo_lineality(Sigma))
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, SigmaRays .* c, SigmaLineality
+  )
+end
+*(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralFan)
+  SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality
+  )
+end
