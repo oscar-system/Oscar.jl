@@ -33,7 +33,7 @@ Min tropical variety
 ```
 """
 function positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
-    if all(isequal(2),length.(gens(I)))
+    if all(is_binomial, gens(I))
         if all(isequal(-1),[prod([sign(c) for c in coefficients(g)]) for g in gens(I)])
             # binomial ideal positive, return regular tropical variety
             return tropical_variety_binomial(I,nu)
