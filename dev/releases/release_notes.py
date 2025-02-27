@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #############################################################################
 # Usage:
-#     ./release_notes.py VERSION
+#     ./release_notes.py [VERSION]
 #
 # For example
 #     ./release_notes.py 4.13.1
@@ -15,13 +15,12 @@ import json
 import os
 import subprocess
 import sys
-import textwrap
 from datetime import datetime
 from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
-    print(f"Usage: `{name} NEWVERSION`")
+    print(f"Usage: `{name} [NEWVERSION]`")
     sys.exit(1)
 
 
@@ -80,33 +79,39 @@ def warning(s):
 # See also <https://github.com/gap-system/gap/issues/4257>.
 prioritylist = [
     ["release notes: highlight", "Highlights"],
-    ["enhancement", "New features or extended functionality"],
-    ["experimental", "Only changes experimental parts of OSCAR"],
-    ["optimization", "Performance improvements or improved testing"],
-    ["package: AbstractAlgebra", "Changes related to the package AbstractAlgebra"],
-    ["package: AlgebraicSolving", "Changes related to the package AlgebraicSolving"],
-    ["package: GAP", "Changes related to the package GAP"],
-    ["package: Hecke", "Changes related to the package Hecke"],
-    ["package: Nemo", "Changes related to the package Nemo"],
-    ["package: Polymake", "Changes related to the package Polymake"],
-    ["package: Singular", "Changes related to the package Singular"],
-    ["renaming", "Items being renamed ?"],
-    ["serialization", "Changes related to serializing data in the MRDI file format ?"],
-    ["topic: algebraic geometry", "Changes related to Algebraic Geometry"],
-    ["topic: combinatorics", "Changes related to Combinatorics"],
-    ["topic: FTheoryTools","Changes related to F-Theory Tools"],
-    ["topic: groups","Changes related to Groups"],
-    ["topic: LieTheory","Changes related to Lie Theory"],
-    ["topic: number theory","Changes related to Number Theory"],
-    ["topic: polyhedral geometry","Changes related to Polyhedral Geometry"],
-    ["topic: rings","Changes related to Rings"],
-    ["topic: schemes","Changes related to Schemes"],
-    ["topic: toric schemes","Changes related to Toric Schemes"],
-    ["topic: toric varieties","Changes related to Toric Varieties"],
-    ["topic: tropical geometry","Changes related to Tropical Geometry"],
-    ["bug: crash", "Fixed bugs that could lead to crashes"],
-    ["bug", "Other fixed bugs"],
-    ["documentation", "Improvements or additions to documentation"],
+
+    ["renaming", "Items being renamed"],
+
+    ["topic: algebraic geometry",   "Changes related to Algebraic Geometry"],
+    ["topic: combinatorics",        "Changes related to Combinatorics"],
+    ["topic: commutative algebra",  "Changes related to Commutative Algebra"],
+    ["topic: FTheoryTools",         "Changes related to F-Theory Tools"],
+    ["topic: groups",               "Changes related to Groups"],
+    ["topic: LieTheory",            "Changes related to Lie Theory"],
+    ["topic: number theory",        "Changes related to Number Theory"],
+    ["topic: polyhedral geometry",  "Changes related to Polyhedral Geometry"],
+    ["topic: schemes",              "Changes related to Schemes"],
+    ["topic: toric schemes",        "Changes related to Toric Schemes"],
+    ["topic: toric varieties",      "Changes related to Toric Varieties"],
+    ["topic: tropical geometry",    "Changes related to Tropical Geometry"],
+
+    ["serialization",               "Changes related to serializing data in the MRDI file format"],
+
+    ["enhancement",                 "New features or extended functionality"],
+    ["experimental",                "Only changes experimental parts of OSCAR"],
+    ["optimization",                "Performance improvements or improved testing"],
+    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
+    ["bug",                         "Other fixed bugs"],
+    ["documentation",               "Improvements or additions to documentation"],
+
+    ["package: AbstractAlgebra",    "Changes related to the package AbstractAlgebra"],
+    ["package: AlgebraicSolving",   "Changes related to the package AlgebraicSolving"],
+    ["package: GAP",                "Changes related to the package GAP"],
+    ["package: Hecke",              "Changes related to the package Hecke"],
+    ["package: Nemo",               "Changes related to the package Nemo"],
+    ["package: Polymake",           "Changes related to the package Polymake"],
+    ["package: Singular",           "Changes related to the package Singular"],
+
 ]
 
 
@@ -155,8 +160,7 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    rstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}"
-    return textwrap.fill(rstring, 100)+'\n'
+    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
