@@ -100,15 +100,15 @@ inside the `dev/releases` directory. Running it updates `CHANGELOG.md`, for revi
 ### GitHub Workflow
 
 There is a GitHub workflow which runs the `release_notes.py` script and turns the result
-into a pull request. Anyone with write permission to the OSCAR repository can used it by
+into a pull request. Anyone with write permission to the OSCAR repository can use it by
 visiting <https://github.com/oscar-system/Oscar.jl/actions/workflows/changelog.yml>, then
 selecting the "Run workflow" button. This should open a little drop down, offering to
 select a branch (usually this should be left at the default `master`). Click the green
 "Run worklow" button to start the process.
 
 After running a bit, this will either open a new PR against `master`, or update an
-existing PR created previously by it. This suggest the following usage pattern: run the
+existing PR created previously by it. This suggests the following usage pattern: run the
 workflow to create an initial PR, and inspect it. If the result is not satisfactory (e.g.
 because it contains uncategorized entries, or entries with typos, unclear language,
-formatting issues, etc., one can simply adjust the titles of those PRs, and then re-run
+formatting issues, etc.), one can simply adjust the titles of those PRs, and then re-run
 the workflow. Repeat as needed.
