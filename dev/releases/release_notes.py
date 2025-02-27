@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #############################################################################
 # Usage:
-#     ./release_notes.py VERSION
+#     ./release_notes.py [VERSION]
 #
 # For example
 #     ./release_notes.py 4.13.1
@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
-    print(f"Usage: `{name} NEWVERSION`")
+    print(f"Usage: `{name} [NEWVERSION]`")
     sys.exit(1)
 
 
