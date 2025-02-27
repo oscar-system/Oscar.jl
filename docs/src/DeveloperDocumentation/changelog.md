@@ -1,6 +1,6 @@
 # Updating `CHANGELOG.md`
 
-Before every release, `CHANGELOG.md` should be updated. Most of this is ideally taken care
+Before every release, `CHANGELOG.md` should be updated. Ideally most of this is taken care of
 by automation, provided PR labels were sensibly set. The following labels explain which
 labels we use; how people who create or merge PRs should set the labels; and how to
 perform the actual update.
@@ -9,7 +9,7 @@ perform the actual update.
 
 The script `dev/releases/release_notes.py` will generate updates to `CHANGELOG.md`
 automatically, based on PRs merged after the previous release, and what those PRs are
-labelled. We have the following labels, along with how they are meant to be applied
+labelled. We have the following labels, along with how they are meant to be applied.
 
 ### Primary Labels: Release Notes Behaviour
 
@@ -64,14 +64,14 @@ Everyone submitting a PR should ideally follow this checklist if they also have 
 rights for assigning labels. If they don't, they should ideally leave instructions that
 indicate which labels to set, and a PR reviewer should then perform the following steps.
 
-1. If your PR should *not* appear in the changelog, assign the `release notes: not needed` label and stop here.
+1. If your PR is *not* supposed to appear in the changelog, assign the `release notes: not needed` label and stop here.
 2. If possible, edit the title of your PR to be usable as an entry in the changelog, and assign the `release notes: use title` label.
    - Hint: Try to start the title with a verb in present tense such as "Add", "Enhance", "Remove".
-   - Hint: if function or type names appear in the title, surround them by backticks.
+   - Hint: If function or type names appear in the title, surround them by backticks.
 3. If you need a longer description than fits into the title, leave a comment with your suggestion
    for this description, and assign the `release notes: to be added` label.
-4. In either case, also assign at least one `topic: XYZ` label, and possible some of the other
-   labels describe in the previous section as you deem fit.
+4. In either case, also assign at least one `topic: XYZ` label, and possibly some of the other
+   labels described in the previous section as you deem fit.
 
 Optionally, if you think your change is exceptionally noteworthy, also assign the
 `release notes: highlight` label.
@@ -89,7 +89,7 @@ For example, if the change is a PR with title `Bump GAP.jl to 0.13`, and labels 
 
 ## Updating the changelog
 
-There are two ways update the changelog: by invoking the script directly, or by triggering
+There are two ways to update the changelog: by invoking the script directly, or by triggering
 a GitHub workflow.
 
 ### Changelog Script
