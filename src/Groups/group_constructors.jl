@@ -827,6 +827,8 @@ as an instance of `T`,
 where `n` is a power of 2 and `T` is in
 {`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
 
+This is an alias of [`dicyclic_group`](@ref).
+
 # Examples
 ```jldoctest
 julia> g = quaternion_group(8)
@@ -843,24 +845,12 @@ julia> relators(g)
  r^2*s^-2
  s^4
  r^-1*s*r*s
-
 ```
 """
 quaternion_group(n::IntegerUnion) = quaternion_group(PcGroup, n)
 
-function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
-  # FIXME: resolve naming: dicyclic vs (generalized) quaternion: only the
-  # former should be for any n divisible by 4; the latter only for powers of 2.
-  # see also debate on the GAP side (https://github.com/gap-system/gap/issues/2725)
-  @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
-end
-
-# Delegating to the GAP constructor via `_gap_filter` does not work here.
-function quaternion_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
-  @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
-end
+quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup = dicyclic_group(T, n)
+quaternion_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup} = dicyclic_group(T, n)
 
 @doc raw"""
     is_quaternion_group(G::GAPGroup)
@@ -877,4 +867,59 @@ julia> is_quaternion_group(small_group(8, 4))
 true
 ```
 """
-@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool
+@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsGeneralisedQuaternionGroup(GapObj(G))::Bool
+
+"""
+    dicyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
+
+Return the dicyclic group of order `n`, as an instance of `T`,
+where `n` is a multiple of 4 and `T` is in
+{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
+
+# Examples
+```jldoctest
+julia> g = dicyclic_group(12)
+Pc group of order 12
+
+julia> dicyclic_group(PermGroup, 12)
+Permutation group of degree 12
+
+julia> g = dicyclic_group(FPGroup, 12)
+Finitely presented group of order 12
+
+julia> relators(g)
+3-element Vector{FPGroupElem}:
+ r^2*s^-3
+ s^6
+ r^-1*s*r*s
+```
+"""
+dicyclic_group(n::IntegerUnion) = dicyclic_group(PcGroup, n)
+
+function dicyclic_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
+  @assert iszero(mod(n, 4))
+  return T(GAP.Globals.DicyclicGroup(_gap_filter(T), n)::GapObj)
+end
+
+# Delegating to the GAP constructor via `_gap_filter` does not work here.
+function dicyclic_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
+  @assert iszero(mod(n, 4))
+  return T(GAP.Globals.DicyclicGroup(GAP.Globals.IsPcGroup, n)::GapObj)
+end
+
+@doc raw"""
+    is_dicyclic_group(G::GAPGroup)
+
+Return `true` if `G` is isomorphic to a dicyclic group
+of order $4n, n > 1$, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> is_dicyclic_group(small_group(8, 3))
+false
+
+julia> is_dicyclic_group(small_group(8, 4))
+true
+```
+"""
+@gapattribute is_dicyclic_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool
