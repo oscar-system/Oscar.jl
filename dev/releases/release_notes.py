@@ -87,7 +87,7 @@ prioritylist = [
     ["topic: commutative algebra",  "Commutative Algebra"],
     ["topic: FTheoryTools",         "F-Theory Tools"],
     ["topic: groups",               "Groups"],
-    ["topic: LieTheory",            "Lie Theory"],
+    ["topic: lie theory",           "Lie Theory"],
     ["topic: number theory",        "Number Theory"],
     ["topic: polyhedral geometry",  "Polyhedral Geometry"],
     ["topic: schemes",              "Schemes"],

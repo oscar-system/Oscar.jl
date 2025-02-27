@@ -35,7 +35,7 @@ labels, and the release notes script will organize them appropriately:
 | topic: commutative algebra    | Changes related to Commutative Algebra |
 | topic: FTheoryTools           | Changes related to F-Theory Tools |
 | topic: groups                 | Changes related to Groups |
-| topic: LieTheory              | Changes related to Lie Theory |
+| topic: lie theory             | Changes related to Lie Theory |
 | topic: number theory          | Changes related to Number Theory |
 | topic: polyhedral geometry    | Changes related to Polyhedral Geometry |
 | topic: schemes                | Changes related to Schemes |
