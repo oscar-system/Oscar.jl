@@ -79,7 +79,7 @@ Optionally, if you think your change is exceptionally noteworthy, also assign th
 
 ## Example
 
-For example, if the is a PR with title `Bump GAP.jl to 0.13`, and labels `package: GAP` and
+For example, if the change is a PR with title `Bump GAP.jl to 0.13`, and labels `package: GAP` and
 `release notes: use title`, it would show up in the changelog file as
 
     ### Changes related to the package GAP
