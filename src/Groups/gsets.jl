@@ -933,6 +933,58 @@ all_blocks(G::GSet) = error("not implemented")
 
 
 """
+    rank_action(Omega::GSet)
+
+Return the rank of the transitive group action associated with `Omega`.
+This is defined as the number of orbits in the action on ordered pairs
+of points in `Omega`,
+and is equal to the number of orbits of the stabilizer of a point in `Omega`
+on `Omega`, see [Cam99; Section 1.11](@cite).
+
+An exception is thrown if the group action is not transitive on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); Omega = gset(G); rank_action(Omega)  # 4-transitive
+2
+
+julia> G = dihedral_group(PermGroup, 8); Omega = gset(G); rank_action(Omega)  # not 2-transitive
+3
+```
+"""
+function rank_action(Omega::GSet)
+  @req is_transitive(Omega) "the group is not transitive"
+  @req !isempty(Omega) "the action domain is empty"
+  H = stabilizer(Omega)[1]
+  return length(orbits(H))
+end
+
+"""
+    transitivity(Omega::GSet)
+
+Return the maximum `k` such that group action associated with `Omega`
+acts `k`-transitively on `Omega`,
+that is, every `k`-tuple of points in `Omega` can be mapped simultaneously
+to every other `k`-tuple by an element of the group.
+
+The output is `0` if the group acts intransitively on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = mathieu_group(24); Omega = gset(G); transitivity(Omega)
+5
+
+julia> G = symmetric_group(4); Omega = gset(G); transitivity(Omega)
+4
+```
+"""
+function transitivity(Omega::GSet)
+  acthom = action_homomorphism(Omega)
+  return transitivity(image(acthom)[1])
+end
+
+
+"""
     is_transitive(Omega::GSet)
 
 Return whether the group action associated with `Omega` is transitive.
