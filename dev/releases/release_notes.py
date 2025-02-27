@@ -291,7 +291,9 @@ def main(new_version: str) -> None:
 
     print("Base tag is", basetag)
 
-    startdate = get_tag_date(basetag)
+    #startdate = get_tag_date(basetag)
+    # HACK HACK HACK FIXME TODO WORKAROUND
+    startdate = "2024-10-30"
     print("Base tag was created ", startdate)
 
     print("Downloading filtered PR list")
