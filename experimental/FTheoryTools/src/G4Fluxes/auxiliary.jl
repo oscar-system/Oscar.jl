@@ -42,6 +42,7 @@ true
 ```
 """
 @attr Vector{CohomologyClass} function basis_of_h22(v::NormalToricVariety; check::Bool = true)
+
   # (0) Some initial checks
   if check
     @req is_complete(v) "Computation of basis of H22 is currently only supported for complete toric varieties"
@@ -50,11 +51,25 @@ true
   if dim(v) < 4
     return Vector{CohomologyClass}()
   end
+
   # (1) Prepare some data of the variety
   mnf = Oscar._minimal_nonfaces(v)
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
 
-  # (2) Prepare the linear relations
+  # (2) Prepare a dict that converts the "naive" generating set into our chosen basis
+  converter_dict = Dict{Tuple{Int, Int}, Any}()
+  for k in 1:n_rays(v)
+    for l in k:n_rays(v)
+      my_tuple = (k, l)
+      if (my_tuple in ignored_sets)
+        converter_dict[my_tuple] = 0
+      else
+        converter_dict[my_tuple] = nothing
+      end
+    end
+  end
+
+  # (3) Prepare the linear relations
   N_lin_rel, my_mat = rref(transpose(matrix(QQ, rays(v))))
   @req N_lin_rel == nrows(my_mat) "Cannot remove as many variables as there are linear relations - weird!"
   bad_positions = [findfirst(!iszero, row) for row in eachrow(my_mat)]
@@ -66,11 +81,68 @@ true
     lin_rels[bad_positions[k]] = my_relation
   end
 
-  # (3) Prepare a list of those variables that we keep, a.k.a. a basis of H^(1,1)
+  # (4) Apply linear relations to remaining entries in converter_dict
+  # (4) The code within the following for loop might need optimizing.
+  crg = gens(base_ring(cohomology_ring(v)))
+  for (key, value) in converter_dict
+    if value === nothing
+      image = Vector{Any}()
+
+      # Only the first entry needs replacing by the linear relations
+      if (key[1] in keys(lin_rels)) && (key[2] in keys(lin_rels)) == false
+        my_relation = lin_rels[key[1]]
+        posi = findall(k -> k != 0, my_relation)
+        coeffs = my_relation[posi]
+        for k in 1:length(posi)
+          push!(image, [coeffs[k], (posi[k], key[2])])
+        end
+      end
+
+      # Only the second entry needs replacing by the linear relations
+      if (key[2] in keys(lin_rels)) && (key[1] in keys(lin_rels)) == false
+        my_relation = lin_rels[key[2]]
+        posi = findall(k -> k != 0, my_relation)
+        coeffs = my_relation[posi]
+        for k in 1:length(posi)
+          push!(image, [coeffs[k], (key[1], posi[k])])
+        end
+      end
+
+      # Both entry needs replacing by the linear relations
+      if (key[1] in keys(lin_rels)) && key[2] in keys(lin_rels)
+        my_relation = lin_rels[key[1]]
+        posi = findall(k -> k != 0, my_relation)
+        coeffs = my_relation[posi]
+        for k in 1:length(posi)
+          push!(image, [coeffs[k], (posi[k], key[2])])
+        end
+        my_relation = lin_rels[key[2]]
+        posi = findall(k -> k != 0, my_relation)
+        coeffs = my_relation[posi]
+        old_image = copy(image)
+        image = Vector{Any}()
+        for i in 1:length(old_image)
+          for k in 1:length(posi)
+            old_coeff = old_image[i][1]
+            push!(image, [old_coeff * coeffs[k], (old_image[i][2][1], posi[k])])
+          end
+        end
+      end
+
+      # If there was a replacement, update the key in the dict
+      if length(image) > 0
+        #image_as_cohomology_class = CohomologyClass(v, cohomology_ring(v)(sum(i[1] * crg[i[2][1]] * crg[i[2][2]] for i in image)))
+        #converter_dict[key] = image_as_cohomology_class
+        converter_dict[key] = image
+      end
+    end
+  end
+
+  # (5) Prepare a list of those variables that we keep, a.k.a. a basis of H^(1,1)
   good_positions = setdiff(1:n_rays(v), bad_positions)
   n_good_positions = length(good_positions)
 
-  # (4) Make a list of all quadratic elements in the cohomology ring, which are not generators of the SR-ideal.
+  # (6) Make a list of all quadratic elements in the cohomology ring, which are not generators of the SR-ideal.
   N_filtered_quadratic_elements = 0
   dict_of_filtered_quadratic_elements = Dict{Tuple{Int64, Int64}, Int64}()
   for k in 1:n_good_positions
@@ -83,9 +155,14 @@ true
     end
   end
 
-  # (5) We only care about the SR-ideal gens of degree 2. Above, we took care of all relations,
-  # (5) for which both variables are not replaced by one of the linear relations. So, let us identify
-  # (5) all remaining relations of the SR-ideal, and apply the linear relations to them.
+  # (7) Consistency check
+  l1 = sort(collect(keys(converter_dict))[findall(k -> converter_dict[k] === nothing, collect(keys(converter_dict)))])
+  l2 = sort(collect(keys(dict_of_filtered_quadratic_elements)))
+  @req l1 == l2 "Inconsistency found"
+
+  # (8) We only care about the SR-ideal gens of degree 2. Above, we took care of all relations,
+  # (8) for which both variables are not replaced by one of the linear relations. So, let us identify
+  # (8) all remaining relations of the SR-ideal, and apply the linear relations to them.
   remaining_relations = Vector{Vector{QQFieldElem}}()
   for my_tuple in ignored_sets
 
@@ -137,8 +214,84 @@ true
     new_bad_positions = [findfirst(!iszero, row) for row in eachrow(new_mat)]
     new_good_positions = setdiff(1:N_filtered_quadratic_elements, new_bad_positions)
   end
-  
-  # (10) Return the basis elements in terms of cohomology classes
+
+  # (10) Some of the remaining variables are replaced by the final remaining variables
+  # (10) Above, we identified the remaining variables. Now we identify how the other variables
+  # (10) that appear in dict_of_filtered_quadratic_elements are replaced.
+  if length(remaining_relations) != 0
+    new_basis = collect(keys(dict_of_filtered_quadratic_elements))
+    for (key, value) in dict_of_filtered_quadratic_elements
+      if (value in new_good_positions) == false
+
+        # Find relation to repalce this basis element by
+        tuple_to_be_replaced = key
+        index_of_element_to_be_replaced = value
+        row_that_defines_relation = findfirst(k -> k == 1, new_mat[:,index_of_element_to_be_replaced])
+        applicable_relation = new_mat[row_that_defines_relation, :]
+        applicable_relation[index_of_element_to_be_replaced] = 0
+        relation_to_be_applied = (-1) * applicable_relation
+        relation_to_be_applied = [[relation_to_be_applied[ivalue], ikey] for (ikey, ivalue) in dict_of_filtered_quadratic_elements if relation_to_be_applied[ivalue] != 0]
+        if length(relation_to_be_applied) == 0
+          relation_to_be_applied = 0
+        end
+
+        # Apply this relation throughout converter_dict, so that this tuple is never used in the values
+        for (ikey, ivalue) in converter_dict
+
+          # If the entry maps to zero or is not yet specified, then nothing is to be done. Continue!
+          if ivalue == 0 || ivalue === nothing
+            continue
+          end
+
+          # Is replacement needed?
+          tuple_list = [k[2] for k in ivalue]
+          position_of_key = findfirst(k -> k == key, tuple_list)
+          if position_of_key !== nothing
+
+            # Prepare new lists for the tuples and coefficients
+            new_tuple_list = copy(tuple_list)
+            new_coeff_list = [k[1] for k in ivalue]
+
+            # Extract the coefficient of interest
+            coeff_in_question = new_coeff_list[position_of_key]
+
+            # Remove the tuple to be replaced, and its corresponding coefficient
+            deleteat!(new_tuple_list, position_of_key)
+            deleteat!(new_coeff_list, position_of_key)
+
+            # Is the list empty after the removal? If so, we map to zero
+            if length(new_tuple_list) == 0 && length(new_coeff_list) == 0
+              converter_dict[ikey] = 0
+              continue
+            end
+
+            # Apply relation for element in question
+            if relation_to_be_applied == 0
+              converter_dict[ikey] = [[new_coeff_list[a], new_tuple_list[a]] for a in 1:length(new_tuple_list)]
+            else
+              for a in 1:length(relation_to_be_applied)
+                if relation_to_be_applied[a][2] in new_tuple_list
+                  position_of_tuple = findfirst(k -> k == relation_to_be_applied[a][2], new_tuple_list)
+                  new_coeff_list[position_of_tuple] += relation_to_be_applied[a][1]
+                else
+                  push!(new_tuple_list, relation_to_be_applied[a][2])
+                  push!(new_coeff_list, relation_to_be_applied[a][1])
+                end
+              end
+              converter_dict[ikey] == [[new_coeff_list[a], new_tuple_list[a]] for a in 1:length(new_tuple_list)]
+            end
+
+          end
+        end
+
+        # Assign this value to the tuple to be replaced
+        converter_dict[key] = relation_to_be_applied
+
+      end
+    end
+  end
+
+  # (11) Return the basis elements in terms of cohomology classes
   S = cohomology_ring(v, check = check)
   c_ds = [k.f for k in gens(S)]
   final_list_of_tuples = Tuple{Int64, Int64}[]
@@ -149,6 +302,27 @@ true
   end
   basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
   set_attribute!(v, :basis_of_h22_indices, final_list_of_tuples)
+
+  # (12) Consistency check
+  l1 = sort(collect(keys(converter_dict))[findall(k -> converter_dict[k] === nothing, collect(keys(converter_dict)))])
+  @req l1 == sort(final_list_of_tuples) "Inconsistency found"
+
+  # (13) Convert all entries in converter_dict to cohomology classes and save as attribute
+  final_converter_dict = Dict{Tuple{Int, Int}, CohomologyClass}()
+  for (key, value) in converter_dict
+    if value == nothing
+      final_converter_dict[key] = CohomologyClass(v, cohomology_ring(v)(crg[key[1]] *crg[key[2]]))
+    elseif value == 0
+      final_converter_dict[key] = CohomologyClass(v, zero(cohomology_ring(v, check = check)))
+    else
+      poly = sum(t[1] * crg[t[2][1]] * crg[t[2][2]] for t in value)
+      image_as_cohomology_class = CohomologyClass(v, cohomology_ring(v)(poly))
+      final_converter_dict[key] = image_as_cohomology_class
+    end
+  end
+  set_attribute!(v, :converter_dict_h22, final_converter_dict)
+
+  # (14) Return the result - finally!
   return basis_of_h22
 end
 

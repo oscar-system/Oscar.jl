@@ -592,7 +592,7 @@ end
 
 
   # (5) The following is fragile, but hopefully is a starting point
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+$", x), string.(symbols(S)))
+  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S)))
 
 
   # (6) Work out the relevant intersection numbers to tell if a flux is vertical
@@ -622,7 +622,7 @@ end
       # Compute against exceptional divisors
       for j in 1:n_rays(base_space(m))
         for k in 1:length(exceptional_divisor_positions)
-          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
+          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, exceptional_divisor_positions[k]]...]))
           push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
         end
       end

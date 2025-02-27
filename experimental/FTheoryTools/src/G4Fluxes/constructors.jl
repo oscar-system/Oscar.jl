@@ -3,7 +3,7 @@
 ################
 
 @doc raw"""
-    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass)
+    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; convert::Bool = false)
 
 Construct a G4-flux candidate on an F-theory model. This functionality is
 currently limited to
@@ -39,6 +39,9 @@ a long time. If the geometry in question is involved and you already know that t
 is simplicial and complete, then we recommend to trigger the computation of the cohomology
 ring with `check = false`. This will avoid this time consuming test.
 
+Let us mention that you can also supply the option `convert = true`. This will turn the
+provided cohomology class into the basis chosen internally.
+
 An example is in order.
 
 # Examples
@@ -63,13 +66,51 @@ G4-flux candidate
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
+
+julia> cohomology_class(g4f2)
+Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w + 8*x8*x23 + 4*x10*x23 - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 22*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 + 7//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 88//3*x20*x21 - 7*x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 11//3*x21^2 - 77//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w + 31//3*x22^2 + 5//3*x22*x23 + 97//6*x22*x25 + 4*x23^2 - 8*x24^2 - 17//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w + 7//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 - 7//3*x29^2 + 5*e1*w
+
+julia> g4f3 = g4_flux(qsm_model, g4_class, check = false, convert = true)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> cohomology_class(g4f3)
+Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 8*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w - 1//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w
 ```
 """
-function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
+function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true, convert::Bool = false)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
-  g4_candidate = G4Flux(m, g4_class)
+
+  # If conversion to internally chosen basis desired, then modify the cohomology class
+  if convert == true
+    internal_basis = basis_of_h22(ambient_space(m), check = check)
+    converter_dict = get_attribute(ambient_space(m), :converter_dict_h22)
+    to_be_transformed_poly = lift(polynomial(g4_class))
+    M = collect(exponents(lift(to_be_transformed_poly)))
+    non_zero_exponents = Vector{Tuple{Int64, Int64}}()
+    for my_row in M
+      i1 = findfirst(x -> x != 0, my_row)
+      my_row[i1] -= 1
+      i2 = findfirst(x -> x != 0, my_row)
+      push!(non_zero_exponents, (i1, i2))
+    end
+    coeffs = collect(coefficients(lift(to_be_transformed_poly)))
+    @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
+    converted_poly = cohomology_ring(ambient_space(m), check = check)(sum(coeffs[l] * lift(polynomial(converter_dict[non_zero_exponents[l]])) for l in 1:length(coeffs)))
+    converted_class = CohomologyClass(ambient_space(m), converted_poly)
+  else
+    converted_class = g4_class
+  end
+
+  # Build the G4-flux candidate
+  g4_candidate = G4Flux(m, converted_class)
+
+  # Execute quantization checks if desired and return the created object
   if check && !is_well_quantized(g4_candidate)
     error("Given G4-flux candidate found to violate quantization condition")
   end
