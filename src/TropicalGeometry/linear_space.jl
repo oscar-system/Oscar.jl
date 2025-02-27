@@ -145,7 +145,7 @@ end
 
 
 @doc raw"""
-    tropical_linear_space(Lambda::Vector{Vector{Int}}, p::Vector, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+    tropical_linear_space(Lambda::Vector{Vector{Int}}, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
 Return a tropical linear space from a tropical Pluecker vector with indices `Lambda` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
@@ -180,7 +180,7 @@ end
 
 
 @doc raw"""
-    tropical_linear_space(k::Int, n::Int, p::Vector, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+    tropical_linear_space(k::Int, n::Int, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
 Return a tropical linear space from a tropical Pluecker vector with indices `AbstractAlgebra.combinations(1:n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
@@ -332,7 +332,7 @@ function basis_of_vanishing_of_linear_ideal(I::MPolyIdeal)
 end
 
 @doc raw"""
-    tropical_linear_space(I::MPolyIdeal, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+    tropical_linear_space(I::MPolyIdeal[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
 Return the tropicalization of the vanishing set of `I` with respect to the tropical semiring map `nu`.  Requires the generators of `I` to be linear and homogeneous.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
@@ -366,7 +366,7 @@ end
 
 
 @doc raw"""
-    tropical_linear_space(G::Graph, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+    tropical_linear_space(G::Graph[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
 Return the Bergman fan of the graphic matroid of `G` as a tropical linear space, the tropical semiring map `nu` is used to fix the convention.  If `weighted_polyhedral_complex_only` is true, will not cache any extra information.
 
