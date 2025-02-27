@@ -954,7 +954,7 @@ julia> G = dihedral_group(PermGroup, 8); Omega = gset(G); rank_action(Omega)  # 
 """
 function rank_action(Omega::GSet)
   @req is_transitive(Omega) "the group is not transitive"
-  @req length(Omega) != 0 "the action domain is empty"
+  @req !isempty(Omega) "the action domain is empty"
   H = stabilizer(Omega)[1]
   return length(orbits(H))
 end
