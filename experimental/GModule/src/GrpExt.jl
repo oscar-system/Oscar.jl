@@ -264,6 +264,10 @@ function ==(g::GrpExtElem, h::GrpExtElem)
   return g.g == h.g && g.m == h.m
 end
 
+function Base.hash(g::GrpExtElem, h::UInt)
+  return hash(g.g, hash(g.m, hash(g.P, h)))
+end
+
 function iterate(G::GrpExt)
   I = Base.Iterators.ProductIterator((_group(G), _module(G)))
   X = iterate(I)

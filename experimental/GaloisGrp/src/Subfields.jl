@@ -103,6 +103,12 @@ function ==(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   return P.can_cmp(bs, cs) && P.cmp(bs, cs) == 0
 end
 
+# very weak, but correct hash
+function Base.hash(A::SubfieldLatticeElem, h::UInt)
+  h = hash(parent(A).K, h)
+  return h
+end
+
 function Base.:*(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   S = parent(A)
   @assert parent(A).K == parent(B).K
