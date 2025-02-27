@@ -980,7 +980,7 @@ julia> G = symmetric_group(4); Omega = gset(G); transitivity(Omega)
 """
 function transitivity(Omega::GSet)
   acthom = action_homomorphism(Omega)
-  transitivity(image(acthom)[1])
+  return transitivity(image(acthom)[1])
 end
 
 
