@@ -939,7 +939,7 @@ Return the rank of the transitive group action associated with `Omega`.
 This is defined as the number of orbits in the action on ordered pairs
 of points in `Omega`,
 and is equal to the number of orbits of the stabilizer of a point in `Omega`
-on `Omega`, see [Cam99](@cite) Section 1.11.
+on `Omega`, see [Cam99; Section 1.11](@cite).
 
 An exception is thrown if the group action is not transitive on `Omega`.
 
