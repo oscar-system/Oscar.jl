@@ -80,20 +80,20 @@ def warning(s):
 prioritylist = [
     ["release notes: highlight", "Highlights"],
 
-    ["renaming", "Items being renamed"],
+    ["renaming", "Renamings"],
 
-    ["topic: algebraic geometry",   "Changes related to Algebraic Geometry"],
-    ["topic: combinatorics",        "Changes related to Combinatorics"],
-    ["topic: commutative algebra",  "Changes related to Commutative Algebra"],
-    ["topic: FTheoryTools",         "Changes related to F-Theory Tools"],
-    ["topic: groups",               "Changes related to Groups"],
-    ["topic: LieTheory",            "Changes related to Lie Theory"],
-    ["topic: number theory",        "Changes related to Number Theory"],
-    ["topic: polyhedral geometry",  "Changes related to Polyhedral Geometry"],
-    ["topic: schemes",              "Changes related to Schemes"],
-    ["topic: toric schemes",        "Changes related to Toric Schemes"],
-    ["topic: toric varieties",      "Changes related to Toric Varieties"],
-    ["topic: tropical geometry",    "Changes related to Tropical Geometry"],
+    ["topic: algebraic geometry",   "Algebraic Geometry"],
+    ["topic: combinatorics",        "Combinatorics"],
+    ["topic: commutative algebra",  "Commutative Algebra"],
+    ["topic: FTheoryTools",         "F-Theory Tools"],
+    ["topic: groups",               "Groups"],
+    ["topic: LieTheory",            "Lie Theory"],
+    ["topic: number theory",        "Number Theory"],
+    ["topic: polyhedral geometry",  "Polyhedral Geometry"],
+    ["topic: schemes",              "Schemes"],
+    ["topic: toric schemes",        "Toric Schemes"],
+    ["topic: toric varieties",      "Toric Varieties"],
+    ["topic: tropical geometry",    "Tropical Geometry"],
 
     ["serialization",               "Changes related to serializing data in the MRDI file format"],
 
