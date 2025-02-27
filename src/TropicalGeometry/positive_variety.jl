@@ -1,7 +1,9 @@
 @doc raw"""
     positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
 
-Return the positive tropical variety of `I` as a `PolyhedralComplex` as per the definition in [SW05](@cite).  Assumes that `I` is generated either by binomials or by linear polynomials and that `I` is defined either over
+Return the positive tropical variety of `I` as a `PolyhedralComplex` as per the definition in [SW05](@cite).
+
+Assumes that `I` is generated either by binomials or by linear polynomials and that `I` is defined either over
 (a) the rational numbers and that `nu` encodes the trivial valuation,
 (b) the rational function field over the rational numbers and that `nu` encodes the t-adic valuation.
 
