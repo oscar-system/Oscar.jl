@@ -3,7 +3,7 @@
 ################
 
 @doc raw"""
-    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass, convert::Bool = false)
+    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; convert::Bool = false)
 
 Construct a G4-flux candidate on an F-theory model. This functionality is
 currently limited to
