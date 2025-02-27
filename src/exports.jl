@@ -344,6 +344,7 @@ export cellular_hull
 export cellular_minimal_associated_primes
 export cellular_primary_decomposition
 export center, has_center, set_center
+export central_character
 export centralizer
 export chain_complex
 export chain_range
@@ -485,6 +486,7 @@ export decorate
 export decoration
 export default_covering
 export default_ordering
+export defect_group
 export defines_automorphism
 export defining_equation
 export defining_ideal
@@ -1070,6 +1072,7 @@ export load
 export generic_enriques_surface
 export load_lp
 export load_mps
+export local_schur_indices
 export localization
 export localized_ring
 export longest_element
@@ -1333,6 +1336,7 @@ export positive_hull
 export positive_root
 export positive_roots
 export possible_class_fusions
+export power_map
 export power_sum
 export powers_of_element
 export preimage
