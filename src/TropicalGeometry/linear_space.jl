@@ -382,6 +382,9 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(G::Graph, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    # if nu unspecified, initialize as the trivial valuation on QQ + min convention
+    isnothing(nu) && (nu=tropical_semiring_map(QQ))
+
     M = matrix(QQ,signed_incidence_matrix(G))
     TropG = tropical_linear_space(M,nu;weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     if !weighted_polyhedral_complex_only
