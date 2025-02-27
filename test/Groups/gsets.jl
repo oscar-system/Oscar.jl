@@ -260,7 +260,6 @@ end
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
 
-
 end
 
 @testset "G-sets of matrix groups over finite fields" begin

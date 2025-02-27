@@ -68,6 +68,8 @@ orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 is_transitive(Omega::GSet)
+transitivity(Omega::GSet)
+rank_action(Omega::GSet)
 is_regular(Omega::GSet)
 is_semiregular(Omega::GSet)
 ```
