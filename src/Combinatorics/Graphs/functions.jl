@@ -13,7 +13,7 @@ end
 ################################################################################
 
 @doc raw"""
-    Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
+    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
 graph should be `Directed` or `Undirected`.
@@ -21,7 +21,7 @@ graph should be `Directed` or `Undirected`.
 # Examples
 Make a directed graph with 5 vertices and print the number of nodes and edges.
 ```jldoctest
-julia> g = Graph{Directed}(5);
+julia> g = graph(Directed, 5);
 
 julia> n_vertices(g)
 5
@@ -30,9 +30,8 @@ julia> n_edges(g)
 0
 ```
 """
-function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = Polymake.Graph{T}(nverts)
-    return Graph{T}(pmg)
+function graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
+  return Graph{T}(nverts)
 end
 
 @doc raw"""
@@ -66,7 +65,7 @@ graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
 function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{T}(n)
+  g = graph(T, n)
   for i in 1:n
     for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
@@ -698,6 +697,54 @@ julia> signed_incidence_matrix(g)
 """
 signed_incidence_matrix(g::Graph) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
+# EdgeMap getters and setters for Edges
+function Base.getindex(M::Polymake.EdgeMap{TK, TV}, e::Edge) where {TK, TV}
+  return M[src(e), dst(e)]
+end
+
+function Base.setindex!(M::Polymake.EdgeMap{T, TV}, val, e::Edge) where {T, TV}
+  M[src(e), dst(e)] = val
+  return val
+end
+
+function Base.getindex(G::Graph{T}, i::Int, j::Int) where T
+  @req has_attribute(G, :edge_map) "Graph doesn't have an edge map set"
+  M = get_attribute(G, :edge_map)
+  return M[i, j]
+end
+Base.getindex(G::Graph{T}, index::NTuple{2, Int}) where T = G[index[1], index[2]]
+Base.getindex(G::Graph{T}, e::Edge) where T = G[src(e), dst(e)]
+
+function Base.setindex!(G::Graph{T}, val, i::Int, j::Int) where T
+  @req has_attribute(G, :edge_map) "Graph doesn't have an edge map set"
+  M = get_attribute(G, :edge_map)
+  M[i, j] = val
+  return val
+end
+
+function Base.setindex!(G::Graph{T}, val, index::NTuple{2, Int}) where T
+  G[index[1], index[2]] = val
+  return val
+end
+
+function Base.setindex!(G::Graph{T}, val, e::Edge) where T
+  G[src(e), dst(2)] = val
+  return val
+end
+
+function Base.getindex(G::Graph{T}, v::Int) where T
+  @req has_attribute(G, :node_map) "Graph doesn't have an edge map set"
+  M = get_attribute(G, :node_map)
+  return M[v]
+end
+
+function Base.setindex!(G::Graph{T}, val, v::Int) where T
+  @req has_attribute(G, :node_map) "Graph doesn't have an edge map set"
+  M = get_attribute(G, :node_map)
+  M[v] = val
+  return val
+end
+
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
@@ -1232,7 +1279,7 @@ function graph_from_edges(::Type{T},
   n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]; init=[0]))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
-  g = Graph{T}(max(n_needed, n_vertices))
+  g = graph(T, max(n_needed, n_vertices))
   for e in edges
     add_edge!(g, src(e), dst(e))
   end
@@ -1265,17 +1312,32 @@ Directed graph with 4 nodes and the following edges:
 ```
 """
 function graph_from_edges(::Type{T},
-                          edges::Vector{Vector{Int}},
-                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+                          edges::Vector{S},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, S <: Union{Vector{Int}, NTuple{2, Int}}}
   return graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
-function graph_from_edges(edges::Vector{Vector{Int}},
-                          n_vertices::Int=-1)
+function graph_from_edges(edges::Vector{T},
+                          n_vertices::Int=-1) where T <: Union{Vector{Int}, NTuple{2, Int}}
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
+function graph_from_edges(::Type{T},
+                          dict::Dict{Union{Int, NTuple{2, Int}}, S}, n_vertices::Int=-1) where {T, S}
+  edges = Vector{NTuple{2, Int}}(collect(filter(x -> x isa NTuple{2, Int}, keys(dict))))
+  G = graph_from_edges(T, edges, n_vertices)
+  
+  EM = Polymake.EdgeMap{T, S}(pm_object(G))
+  set_attribute!(G, :edge_map, EM)
 
+  NM = Polymake.NodeMap{T, S}(pm_object(G))
+  set_attribute!(G, :node_map, NM)
+
+  for (k, v) in dict
+    G[k] = v
+  end
+  return G
+end
 
 @doc raw"""
     adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
