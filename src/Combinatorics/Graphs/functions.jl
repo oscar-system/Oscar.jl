@@ -733,13 +733,13 @@ function Base.setindex!(G::Graph{T}, val, e::Edge) where T
 end
 
 function Base.getindex(G::Graph{T}, v::Int) where T
-  @req has_attribute(G, :node_map) "Graph doesn't have an edge map set"
+  @req has_attribute(G, :node_map) "Graph doesn't have an node map set"
   M = get_attribute(G, :node_map)
   return M[v]
 end
 
 function Base.setindex!(G::Graph{T}, val, v::Int) where T
-  @req has_attribute(G, :node_map) "Graph doesn't have an edge map set"
+  @req has_attribute(G, :node_map) "Graph doesn't have an node map set"
   M = get_attribute(G, :node_map)
   M[v] = val
   return val
