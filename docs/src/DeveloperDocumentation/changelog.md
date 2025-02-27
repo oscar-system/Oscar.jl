@@ -67,15 +67,14 @@ For example, if you have a PR titled `Bump GAP.jl to 0.13`, and labelled it `pac
     - [#4421](https://github.com/oscar-system/Oscar.jl/pull/4421) Bump GAP.jl to 0.13
 
 
-
 ## Updating the changelog
 
 There are two ways update the changelog: by invoking the script directly, or by triggering a GitHub workflow.
 
 ### Changelog Script
 
-The script is located at `dev/releases/release_notes.py`. Running it will
-update `CHANGELOG.md`, for review.
+The script is located at `dev/releases/release_notes.py`. It must be run from
+inside the `dev/releases` directory. Running it updates `CHANGELOG.md`, for review.
 
 ### GitHub Workflow
 
