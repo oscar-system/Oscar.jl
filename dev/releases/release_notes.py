@@ -15,7 +15,6 @@ import json
 import os
 import subprocess
 import sys
-import textwrap
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -161,8 +160,7 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    rstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}"
-    return textwrap.fill(rstring, 100)+'\n'
+    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
