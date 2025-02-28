@@ -163,6 +163,10 @@ import Nemo:
   ZZRing,
   ZZRingElem
 
+import Polymake:
+  EdgeMap,
+  NodeMap
+
 # By default we import everything exported by Hecke, and then also re-export
 # it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
