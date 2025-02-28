@@ -43,11 +43,11 @@ labelled. We have the following labels, along with how they are meant to be appl
 
 | Label | Meaning |
 |-------|---------|
-| release notes: added          | The release notes for this PR were manually added to the changelog, and should be ignored by the script |
-| release notes: not needed     | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
-| release notes: use title      | The release notes for this PR should be based on the title of this PR. The script will turn $TITLE from the PR to `[#xyz] $TITLE` |
-| release notes: to be added    | These PRs will be marked by the script as a prominent TODO item. Check these PRs manually, and after updating them appropriately, relabel these items to either `release notes: added` or `release notes: use title` |
-| \<no label\>                  | These PRs will be added to a separate prominent TODO category. Check these PRs manually, and after updating them appropriately, relabel these items to one of `release notes: added`, `release notes: use title`, or `release notes: not needed` |
+| `release notes: added`        | The release notes for this PR were manually added to the changelog, and should be ignored by the script |
+| `release notes: not needed`   | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
+| `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn $TITLE from the PR to `[#xyz] $TITLE` |
+| `release notes: to be added`  | These PRs will be marked by the script as a prominent TODO item. Check these PRs manually, and after updating them appropriately, relabel these items to either `release notes: added` or `release notes: use title` |
+| none of the above             | These PRs will be added to a separate prominent TODO category. Check these PRs manually, and after updating them appropriately, relabel these items to one of `release notes: added`, `release notes: use title`, or `release notes: not needed` |
 
 ### Secondary Labels: Topic
 
@@ -56,34 +56,34 @@ labels, and the release notes script will organize them appropriately:
 
 | Label                         | Changelog Category |
 |-------------------------------|--------------------|
-| release notes: highlight      | Highlights |
-| renaming                      | Items being renamed |
-| topic: algebraic geometry     | Changes related to Algebraic Geometry |
-| topic: combinatorics          | Changes related to Combinatorics |
-| topic: commutative algebra    | Changes related to Commutative Algebra |
-| topic: FTheoryTools           | Changes related to F-Theory Tools |
-| topic: groups                 | Changes related to Groups |
-| topic: lie theory             | Changes related to Lie Theory |
-| topic: number theory          | Changes related to Number Theory |
-| topic: polyhedral geometry    | Changes related to Polyhedral Geometry |
-| topic: schemes                | Changes related to Schemes |
-| topic: toric schemes          | Changes related to Toric Schemes |
-| topic: toric varieties        | Changes related to Toric Varieties |
-| topic: tropical geometry      | Changes related to Tropical Geometry |
-| serialization                 | Changes related to serializing data in the MRDI file format ? |
-| enhancement                   | New features or extended functionality |
-| experimental                  | Only changes experimental parts of OSCAR |
-| optimization                  | Performance improvements or improved testing |
-| bug: crash                    | Fixed bugs that could lead to crashes |
-| bug                           | Other fixed bugs |
-| documentation                 | Improvements or additions to documentation |
-| package: AbstractAlgebra      | Changes related to the package AbstractAlgebra |
-| package: AlgebraicSolving     | Changes related to the package AlgebraicSolving |
-| package: GAP                  | Changes related to the package GAP |
-| package: Hecke                | Changes related to the package Hecke |
-| package: Nemo                 | Changes related to the package Nemo |
-| package: Polymake             | Changes related to the package Polymake |
-| package: Singular             | Changes related to the package Singular |
+| `release notes: highlight`    | Highlights |
+| `renaming`                    | Items being renamed |
+| `topic: algebraic geometry`   | Changes related to Algebraic Geometry |
+| `topic: combinatorics`        | Changes related to Combinatorics |
+| `topic: commutative algebra`  | Changes related to Commutative Algebra |
+| `topic: FTheoryTools`         | Changes related to F-Theory Tools |
+| `topic: groups`               | Changes related to Groups |
+| `topic: lie theory`           | Changes related to Lie Theory |
+| `topic: number theory`        | Changes related to Number Theory |
+| `topic: polyhedral geometry`  | Changes related to Polyhedral Geometry |
+| `topic: schemes`              | Changes related to Schemes |
+| `topic: toric schemes`        | Changes related to Toric Schemes |
+| `topic: toric varieties`      | Changes related to Toric Varieties |
+| `topic: tropical geometry`    | Changes related to Tropical Geometry |
+| `serialization`               | Changes related to serializing data in the MRDI file format ? |
+| `enhancement`                 | New features or extended functionality |
+| `experimental`                | Only changes experimental parts of OSCAR |
+| `optimization`                | Performance improvements or improved testing |
+| `bug: crash`                  | Fixed bugs that could lead to crashes |
+| `bug`                         | Other fixed bugs |
+| `documentation`               | Improvements or additions to documentation |
+| `package: AbstractAlgebra`    | Changes related to the package AbstractAlgebra |
+| `package: AlgebraicSolving`   | Changes related to the package AlgebraicSolving |
+| `package: GAP`                | Changes related to the package GAP |
+| `package: Hecke`              | Changes related to the package Hecke |
+| `package: Nemo`               | Changes related to the package Nemo |
+| `package: Polymake`           | Changes related to the package Polymake |
+| `package: Singular`           | Changes related to the package Singular |
 
 
 ## Updating the changelog
