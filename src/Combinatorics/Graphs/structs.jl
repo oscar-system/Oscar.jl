@@ -9,5 +9,8 @@ import Oscar.Polymake:
   function Graph{T}(nverts::Int) where T  <: Union{Directed, Undirected}
     return new{T}(Polymake.Graph{T}(nverts))
   end
+  function Graph{T}(pmg::Polymake.Graph{T}) where T <: Union{Directed, Undirected}
+    return new{T}(pmg)
+  end
 end
 
