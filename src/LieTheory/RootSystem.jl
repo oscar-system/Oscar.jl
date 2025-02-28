@@ -1128,7 +1128,9 @@ Reflect `r` in the hyperplane orthogonal to the `s`-th simple root, and return i
 This is a mutating version of [`reflect(::RootSpaceElem, ::Int)`](@ref).
 """
 function reflect!(r::RootSpaceElem, s::Int)
-  sub!(mat_entry_ptr(r, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec))
+  GC.@preserve r begin
+    sub!(mat_entry_ptr(r, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec))
+  end
   return r
 end
 

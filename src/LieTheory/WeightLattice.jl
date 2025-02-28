@@ -461,7 +461,7 @@ function is_fundamental_weight_with_index(w::WeightLatticeElem)
   for i in 1:rank(parent(w))
     if is_zero_entry(w, i)
       continue
-    elseif is_one(mat_entry_ptr(w, i))
+    elseif GC.@preserve w is_one(mat_entry_ptr(w, i))
       ind != 0 && return false, 0
       ind = i
     else
