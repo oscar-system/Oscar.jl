@@ -49,7 +49,7 @@
 
   @testset "#4676" begin
     L = special_linear_lie_algebra(QQ, 2)
-    e,f,h = basis(L)
+    e, f, h = basis(L)
     sub1 = sub(L, e)
     sub2 = sub(L, f)
     sub3 = bracket(sub1, sub2)
