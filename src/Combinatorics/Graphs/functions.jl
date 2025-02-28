@@ -1325,7 +1325,7 @@ Undirected graph with 5 nodes and the following edges:
 (3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
 
 julia> G = graph_from_edges(Directed, [[1,3]], 4)
-
+Directed graph with 4 nodes and the following edges:
 (1, 3)
 ```
 """
