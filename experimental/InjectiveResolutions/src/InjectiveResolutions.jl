@@ -35,6 +35,7 @@ export _coefficients
 export _get_irreducible_ideal
 export points_in_Q
 export _f_k
+export coefficients_fixed
 
 # Data 
 export FaceQ 
@@ -645,6 +646,76 @@ function _f_k(m::Union{MPolyDecRingElem,MPolyQuoRingElem})
     return f_k(m) 
 end
 
+# this is an implementation of Algorithm 2 (fixed version of Algorithm 3.6. in HM2004)
+function coefficients_fixed(N::SubquoModule, p::FaceQ,kQ::MonoidAlgebra)
+    R_N = base_ring(N)
+    @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
+
+    k = coefficient_ring(R_N) #get the field
+    Np = mod_quotient(N,p.prime)[1]
+
+    if is_zero(Np) # if Np is zero there is nothing to compute
+        return [],zeros(R_N,1,1)
+    end
+
+    # get socle degrees of indecomposable injectives kQ{a + F - Q}
+    Bp = ZF_basis(Np,p.prime)
+
+    R = relations(N) #get all relations of N
+    # n = ngens(N)
+    n = ngens(ambient_free_module(N))
+
+    lambda = []
+    for b in Bp
+        #get coefficient vector of w.r.t. generators of M
+        b_amb = ambient_representative(b)
+        _c_b = coordinates(b_amb) #coordinates w.r.t. ambient free module
+        _c_b = coordinates(N(b_amb)) #coordinates w.r.t. generators of M 
+        c_b = [_f_k(_c_b[i]) for i =1:ngens(N)]
+
+        #get all b-relevant relations w.r.t. F
+        R_bF = []
+        C_bF = []        
+        for r in R
+            #check (deg(b) + F)\cap (deg(r) + Q) ≠ ∅
+            b_p = convex_hull(degree(Vector{Int},b))
+            r_p = convex_hull(degree(Vector{Int},r))
+            if dim(intersect(b_p + p.poly, r_p + kQ.cone)) >= 0
+               r_amb = ambient_representative(r)
+               _c_r = coordinates(r_amb)
+               c_r = [_f_k(_c_r[i]) for i = 1:ngens(N)] 
+               push!(C_bF,c_r)
+               push!(R_bF,r)
+            end
+        end
+
+        #get kernel of coefficient matrix -> K
+        if C_bF != []
+            _K = matrix(QQ,hcat(C_bF...))
+            K = kernel(_K)
+        else
+            K = identity_matrix(QQ,ngens(N))
+        end
+
+        #get kernel of coefficient vector of b -> B
+        _B = matrix(QQ,1,length(c_b),c_b)
+        B = kernel(transpose(_B))
+
+        #get \lambda_b
+        rows_K = [K[i,:] for i = 1:nrows(K)]
+        l = rank(B)
+        possible_rows = []
+        for c_K in rows_K 
+            B_K = vcat(B,matrix(QQ,1,ngens(N),c_K))
+            if rank(B_K)>l
+                push!(possible_rows,c_K)
+            end
+        end 
+        push!(lambda, possible_rows[1])
+    end
+    return Bp,map(x -> x*one(R_N),hcat(lambda...))
+end
+
 # given a fin. gen. module and a prime ideal p, compute a k[ZZF]-basis Bp of (0 :_M p) and for each generator b in Bp compute the scalar matrix lambda that defines a well-defined injective map 
 function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra)
     R_N = base_ring(N)
@@ -664,89 +735,89 @@ function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra)
     # n = ngens(N)
     n = ngens(ambient_free_module(N))
 
-        lambda = []
-        for b in Bp # for every basis vector of (0 :_M P_F) we compute a scalar vector \lambda_b 
-            # m_b = monomial_basis(R_N,degree(b))[1]
-            lambda_b = []
-            b_c = dense_row(coordinates(ambient_representative(b)),n)[1,:]
+    lambda = []
+    for b in Bp # for every basis vector of (0 :_M P_F) we compute a scalar vector \lambda_b 
+        # m_b = monomial_basis(R_N,degree(b))[1]
+        lambda_b = []
+        b_c = dense_row(coordinates(ambient_representative(b)),n)[1,:]
 
-            # check in which positions (i.e. coordinates of free presentation) b is non-zero
-            m = ngens(N)
-            s = [] #positions of non-zero terms of b
-            for i=1:n
-                # if is_zero(b_c[i]*N[i])
-                # if is_zero(b_c[i]) || all((degree(Vector{Int},b_c[i]) - degree(Vector{Int},N[i])) .>= degree(Vector{Int},one(R_N))) && is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i]) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
-                set_zero = true
-                for j = 1:m
-                    # if is_zero(coordinates(b)[j]) ## is this working???
-                    #     continue
-                    # end
-                    if is_zero(b_c[i]) || (points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},N[j])],kQ.cone) && is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[j]))[1]*N[j])) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
-                        # b_c[i] = zero(R_N)
-                    else #term b[i] is non-zero
-                        push!(s,i)
-                        set_zero = false
-                        break
+        # check in which positions (i.e. coordinates of free presentation) b is non-zero
+        m = ngens(N)
+        s = [] #positions of non-zero terms of b
+        for i=1:n
+            # if is_zero(b_c[i]*N[i])
+            # if is_zero(b_c[i]) || all((degree(Vector{Int},b_c[i]) - degree(Vector{Int},N[i])) .>= degree(Vector{Int},one(R_N))) && is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i]) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
+            set_zero = true
+            for j = 1:m
+                # if is_zero(coordinates(b)[j]) ## is this working???
+                #     continue
+                # end
+                if is_zero(b_c[i]) || (points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},N[j])],kQ.cone) && is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[j]))[1]*N[j])) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
+                    # b_c[i] = zero(R_N)
+                else #term b[i] is non-zero
+                    push!(s,i)
+                    set_zero = false
+                    break
+                end 
+            end
+            if set_zero
+                b_c[i] = zero(R_N)
+            end
+        end
+
+        # get all relations that apply in deg(b)
+        rels_b = [r for r in R if points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},r)],kQ.cone)]
+        r = [] # we are only interested in non-trivial relations, i.e. not of the form x^a*N[i] = 0
+        # also we want a reduced presentation of these relations, i.e. the coefficient of r[i] is zero if r[i] = 0  
+        for r_b in rels_b 
+            _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:] # get all coefficients of the relation
+            s_r = [] #positions of non-zero terms of r_b 
+            for i=1:n 
+                #check if entry is already non-zero, i.e. not relevant in the relation... 
+                # if !is_zero(m_b*N[i])
+                if !is_zero(_r[i]) ## maybe here something goes wrong!!!
+                    if !is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[i]))[1]*N[i]) # check if term is non-zero
+                        push!(s_r,i)
+                    else
+                        _r[i] = zero(R_N)
                     end 
                 end
-                if set_zero
-                    b_c[i] = zero(R_N)
-                end
             end
-
-            # get all relations that apply in deg(b)
-            rels_b = [r for r in R if points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},r)],kQ.cone)]
-            r = [] # we are only interested in non-trivial relations, i.e. not of the form x^a*N[i] = 0
-            # also we want a reduced presentation of these relations, i.e. the coefficient of r[i] is zero if r[i] = 0  
-            for r_b in rels_b 
-                _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:] # get all coefficients of the relation
-                s_r = [] #positions of non-zero terms of r_b 
-                for i=1:n 
-                    #check if entry is already non-zero, i.e. not relevant in the relation... 
-                    # if !is_zero(m_b*N[i])
-                    if !is_zero(_r[i]) ## maybe here something goes wrong!!!
-                        if !is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[i]))[1]*N[i]) # check if term is non-zero
-                            push!(s_r,i)
-                        else
-                            _r[i] = zero(R_N)
-                        end 
-                    end
-                end
-                if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0 and we only want relations that are relevant for b, i.e. that have a common non-zero term
-                    push!(r,(r_b,_r))
-                end
+            if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0 and we only want relations that are relevant for b, i.e. that have a common non-zero term
+                push!(r,(r_b,_r))
             end
+        end
 
-            # compute coefficients in \lambda_b
-            if r != []
-                rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2] #get the relevant relation of lowest degree    
-                last_non_zero = findlast(!is_zero,rel) #index of last non-zero term
+        # compute coefficients in \lambda_b
+        if r != []
+            rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2] #get the relevant relation of lowest degree    
+            last_non_zero = findlast(!is_zero,rel) #index of last non-zero term
 
-                sum_of_coeffs = k() #needed to compute the coefficient of last non-zero entry
-                # f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
-                for i=1:n #set all (except the last) entry to (one if the tern r[i] is non-zero) or (zero if the term is zero)  
-                    if i == last_non_zero #set the last entry such that rel*lambda_b = 0 (dot product of coefficients of rel with lambda_b)
-                        coeff = -(sum_of_coeffs//_f_k(rel[i]))
-                        push!(lambda_b,coeff)
-                    else
-                        if !is_zero(rel[i])
-                            push!(lambda_b,one(R_N))
-                            sum_of_coeffs = sum_of_coeffs + _f_k(rel[i]) #add scalar coefficient of rel[i]
-                        else
-                            push!(lambda_b,zero(R_N))
-                        end 
-                    end
-                end
-            else # no non-trivial relations in deg(b)
-                l = findfirst(!is_zero,b_c) # first non-zero term of b 
-                for i=1:n 
-                    if i == l # alternatively check if i in s
-                        push!(lambda_b,one(R_N)) # if suffices to set the first non-zero entry to one(R_N)
+            sum_of_coeffs = k() #needed to compute the coefficient of last non-zero entry
+            # f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
+            for i=1:n #set all (except the last) entry to (one if the tern r[i] is non-zero) or (zero if the term is zero)  
+                if i == last_non_zero #set the last entry such that rel*lambda_b = 0 (dot product of coefficients of rel with lambda_b)
+                    coeff = -(sum_of_coeffs//_f_k(rel[i]))
+                    push!(lambda_b,coeff)
+                else
+                    if !is_zero(rel[i])
+                        push!(lambda_b,one(R_N))
+                        sum_of_coeffs = sum_of_coeffs + _f_k(rel[i]) #add scalar coefficient of rel[i]
                     else
                         push!(lambda_b,zero(R_N))
                     end 
                 end
             end
+        else # no non-trivial relations in deg(b)
+            l = findfirst(!is_zero,b_c) # first non-zero term of b 
+            for i=1:n 
+                if i == l # alternatively check if i in s
+                    push!(lambda_b,one(R_N)) # if suffices to set the first non-zero entry to one(R_N)
+                else
+                    push!(lambda_b,zero(R_N))
+                end 
+            end
+        end
             push!(lambda,lambda_b)
         end
     # end
@@ -773,6 +844,7 @@ function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ},kQ::MonoidAlgebra, j
     # for p in filter(p -> !is_zero(p.prime),P) 
     for p in P 
         Bp,lambda_p = _coefficients(N,p,kQ) #compute k[ZZF]-basis of (0 :_M P_F) and the scalar matrix that ensures these basis-elements are mapped to something non-zero in W^i (that is not completely constructed)
+        Bp,lambda_p = coefficients_fixed(N,p,kQ)
         for b in Bp 
             push!(summands, IndecInj(p,degree(Vector{Int},b)))
         end
@@ -793,7 +865,7 @@ function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ},kQ::MonoidAlgebra, j
         end
     end
     # return summands,foldl(hcat,lambda), degLambda
-    return summands,hcat(lambda...)
+    return indec_injectives, _lambda
 end
 
 #get irreducible decomposition of ideal over monoid algebra
