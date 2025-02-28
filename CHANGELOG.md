@@ -31,7 +31,6 @@ which we think might affect some users directly.
 - [#4540](https://github.com/oscar-system/Oscar.jl/pull/4540) Support for computing automorphism groups of Enriques surfaces
 - [#4534](https://github.com/oscar-system/Oscar.jl/pull/4534) Add `stabilizer_in_orthogonal_group` to compute stabilisers of timelike vectors
 - [#4485](https://github.com/oscar-system/Oscar.jl/pull/4485) Make `saturation` for principal ideals faster by delegating to `remove`
-- [#4452](https://github.com/oscar-system/Oscar.jl/pull/4452) Add `graph_curve(::Graph)`
 - [#4393](https://github.com/oscar-system/Oscar.jl/pull/4393) Introduce `-inf` as potential output for the dimension of an ideal
 - [#4352](https://github.com/oscar-system/Oscar.jl/pull/4352) Add documentation for coherent sheaves
 - [#4345](https://github.com/oscar-system/Oscar.jl/pull/4345) Add a prototype for a moving lemma in concrete intersection theory
@@ -85,7 +84,6 @@ which we think might affect some users directly.
 
 ### Groups
 
-- [#4659](https://github.com/oscar-system/Oscar.jl/pull/4659) Implement `transitivity` and `rank_action` for $G$-sets
 - [#4608](https://github.com/oscar-system/Oscar.jl/pull/4608) Add `is_primitive` for $G$-sets
 - [#4594](https://github.com/oscar-system/Oscar.jl/pull/4594) Add $G$-set docstrings to main documentation
 - [#4582](https://github.com/oscar-system/Oscar.jl/pull/4582) Cache parents for permutations in `perm`, `cperm` and `@perm`
