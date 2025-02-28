@@ -39,7 +39,7 @@ end
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
 
-    @test vanishing_ideal(QQ, model) == vanishing_ideal(QQ, model; algorithm=:m4ti2)
+    @test vanishing_ideal(QQ, model) == vanishing_ideal(QQ, model; algorithm=:markov)
   end
 
   @testset "Jukes Cantor" begin
