@@ -2046,7 +2046,7 @@ Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
 
 See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref),
-[`map_word(::WeylGroupElem, ::Vector)](@ref).
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2130,7 +2130,7 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
 See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
-[`map_word(::WeylGroupElem, ::Vector)](@ref).
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2245,6 +2245,8 @@ end
 Return the syllables of `g` as a list of pairs `gen => exp` where
 `gen` is the index of a generator and `exp` is an exponent.
 
+See also [`letters(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
+
 # Examples
 ```jldoctest
 julia> F = @free_group(:F1, :F2);
@@ -2290,11 +2292,13 @@ function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
 end
 
 @doc raw"""
-    letters(g::FPGroupElem)
+    letters(g::Union{FPGroupElem, SubFPGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
 a group generator. Inverses of the generators are represented by negative
 numbers.
+
+See also [`syllables(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
 
 # Examples
 ```jldoctest
@@ -2328,7 +2332,7 @@ julia> letters(epi(F1^5*F2^-3))
  -2
 ```
 """
-function letters(g::FPGroupElem)
+function letters(g::Union{FPGroupElem, SubFPGroupElem})
   w = GAPWrap.UnderlyingElement(GapObj(g))
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
 end
