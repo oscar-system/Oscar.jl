@@ -238,7 +238,10 @@ which we think might affect some users directly.
                 relnotes_file.write(pr_to_md(pr))
             relnotes_file.write("\n")
 
+        # remove PRs already handled earlier
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
+        prs = [pr for pr in prs if not has_label(pr, "release notes: added")]
+        prs = [pr for pr in prs if not has_label(pr, "release notes: use title")]
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
         if len(prs) > 0:
@@ -250,12 +253,7 @@ which we think might affect some users directly.
                 'as above, or change their label to "release notes: not needed".\n\n'
             )
             for pr in prs:
-                # remove PRs already handled earlier
-                if not (
-                    has_label(pr, "release notes: added")
-                    or has_label(pr, "release notes: use title")
-                ):
-                    relnotes_file.write(pr_to_md(pr))
+                relnotes_file.write(pr_to_md(pr))
             relnotes_file.write('\n')
 
         # now read back the rest of changelog.md into newfile
