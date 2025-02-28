@@ -66,9 +66,7 @@ labels, and the release notes script will organize them appropriately:
 | `topic: lie theory`           | Changes related to Lie Theory |
 | `topic: number theory`        | Changes related to Number Theory |
 | `topic: polyhedral geometry`  | Changes related to Polyhedral Geometry |
-| `topic: schemes`              | Changes related to Schemes |
-| `topic: toric schemes`        | Changes related to Toric Schemes |
-| `topic: toric varieties`      | Changes related to Toric Varieties |
+| `topic: toric geometry `      | Changes related to Toric Geometry |
 | `topic: tropical geometry`    | Changes related to Tropical Geometry |
 | `serialization`               | Changes related to serializing data in the MRDI file format ? |
 | `enhancement`                 | New features or extended functionality |

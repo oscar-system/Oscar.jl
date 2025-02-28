@@ -90,9 +90,7 @@ prioritylist = [
     ["topic: lie theory",           "Lie Theory"],
     ["topic: number theory",        "Number Theory"],
     ["topic: polyhedral geometry",  "Polyhedral Geometry"],
-    ["topic: schemes",              "Schemes"],
-    ["topic: toric schemes",        "Toric Schemes"],
-    ["topic: toric varieties",      "Toric Varieties"],
+    ["topic: toric geomety",        "Toric Geometry"],
     ["topic: tropical geometry",    "Tropical Geometry"],
 
     ["serialization",               "Changes related to serializing data in the MRDI file format"],
