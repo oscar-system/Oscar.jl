@@ -6,6 +6,7 @@ A tropical linear space is a balanced polyhedral complex supported on a finite i
 - Chapter 10 in [Jos21](@cite)
 
 #### Note:
+- Unlike in [MS15](@cite) and [Jos21](@cite), tropical linear spaces in OSCAR are polyhedral complexes in euclidean space that are invariant under translation by the ones vector.  They are not polyhedral complexes in the tropical torus.
 - Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
 - The type `TropicalLinearSpace` can be thought of as subtype of `TropicalVariety` in the sense that it should have all properties and features of the latter.
 
