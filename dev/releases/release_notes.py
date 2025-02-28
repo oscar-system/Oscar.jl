@@ -225,42 +225,35 @@ which we think might affect some users directly.
             relnotes_file.write("\n")
 
         # Report PRs that have to be updated before inclusion into release notes.
-        relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
-        relnotes_file.write(
-            "If there are any PRs listed below, check their title and labels.\n"
-        )
-        relnotes_file.write(
-            'When done, change their label to "release notes: use title".\n\n'
-        )
-
-        for pr in prs:
-            if has_label(pr, "release notes: to be added"):
+        prs_to_be_added = [pr for pr in prs if has_label(pr, "release notes: to be added")]
+        if len(prs_to_be_added) > 0:
+            relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
+            relnotes_file.write(
+                "If there are any PRs listed below, check their title and labels.\n"
+            )
+            relnotes_file.write(
+                'When done, change their label to "release notes: use title".\n\n'
+            )
+            for pr in prs_to_be_added:
                 relnotes_file.write(pr_to_md(pr))
+            relnotes_file.write("\n")
 
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
 
-        relnotes_file.write("\n")
-
         # Report PRs that have neither "to be added" nor "added" or "use title" label
-        relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
-        relnotes_file.write(
-            "If there are any PRs listed below, either apply the same steps\n"
-        )
-        relnotes_file.write(
-            'as above, or change their label to "release notes: not needed".\n\n'
-        )
-
-        for pr in prs:
-            # we need to use both old "release notes: added" label and
-            # the newly introduced in "release notes: use title" label
-            # since both label may appear in GAP 4.12.0 changes overview
-            if not (
-                has_label(pr, "release notes: added")
-                or has_label(pr, "release notes: use title")
-            ):
+        if len(prs) > 0:
+            relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
+            relnotes_file.write(
+                "If there are any PRs listed below, either apply the same steps\n"
+            )
+            relnotes_file.write(
+                'as above, or change their label to "release notes: not needed".\n\n'
+            )
+            for pr in prs:
                 relnotes_file.write(pr_to_md(pr))
+            relnotes_file.write('\n')
+
         # now read back the rest of changelog.md into newfile
-        relnotes_file.write('\n')
         with open(finalfile, 'r') as oldchangelog:
             oldchangelog.seek(262)
             for line in oldchangelog.readlines():
