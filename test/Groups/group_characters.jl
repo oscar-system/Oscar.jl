@@ -809,7 +809,7 @@ end
   @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
   @test trivial_character(ordtbl)[1] == 1
   @test trivial_character(modtbl)[1] == 1
-  @test [power_map(tbl, 3, i) for i in 1:5] == [1, 2, 1, 5, 4]
+  @test [power_map(ordtbl, 3, i) for i in 1:5] == [1, 2, 1, 5, 4]
 end
 
 @testset "p-blocks" begin
