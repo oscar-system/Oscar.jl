@@ -1260,9 +1260,23 @@ _to_string(::Type{Polymake.Undirected}) = "Undirected"
 
 function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
   if n_edges(G) > 0
-    println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
-    for e in edges(G)
-      print(io, "($(src(e)), $(dst(e)))")
+    if has_attribute(G, :edge_map)
+      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and")
+      println(io, "edges labels:")
+      for e in edges(G)
+        println(io, "($(src(e)), $(dst(e))) -> $(G[e])")
+      end
+    else
+      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
+      for e in edges(G)
+        print(io, "($(src(e)), $(dst(e)))")
+      end
+    end
+    if has_attribute(G, :node_map)
+      println(io, "vertex labels:")  # at least one new line is needed
+      for v in 1:n_vertices(G)
+        println(io, "$v -> $(G[v])")
+      end
     end
   else
     print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and no edges")
@@ -1311,7 +1325,7 @@ Undirected graph with 5 nodes and the following edges:
 (3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
 
 julia> G = graph_from_edges(Directed, [[1,3]], 4)
-Directed graph with 4 nodes and the following edges:
+
 (1, 3)
 ```
 """
@@ -1326,21 +1340,60 @@ function graph_from_edges(edges::Vector{T},
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
-function graph_from_edges(::Type{T},
-                          dict::Dict{Union{Int, NTuple{2, Int}}, S}, n_vertices::Int=-1) where {T, S}
-  edges = Vector{NTuple{2, Int}}(collect(filter(x -> x isa NTuple{2, Int}, keys(dict))))
+@doc raw"""
+    graph_from_labelled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Dict{Int, U}=Dict{Int, U}(); n_vertices::Int=-1)
+    graph_from_labelled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Dict{Int, U}=Dict{Int, U}(); n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+
+Create a graph from edge labellings and an optional vertex labellings. There is an optional input for number of vertices, see `graph_from_edges`.
+
+# Examples
+```jldoctest
+julia> graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
+Directed graph with 3 nodes and
+edges labels:
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> graph_from_labelled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
+Undirected graph with 3 nodes and
+edges labels:
+(2, 1) -> 1
+(3, 2) -> 4
+vertex labels:
+1 -> 0
+2 -> 3
+3 -> 0
+```
+"""
+function graph_from_labelled_edges(::Type{T},
+                                   edge_labels::Dict{NTuple{2, Int}, S},
+                                   vertex_labels::Dict{Int, U}=Dict{Int, Any}();
+                                   n_vertices::Int=-1) where {T, S, U}
+  
+  edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   
-  EM = Polymake.EdgeMap{T, S}(pm_object(G))
+  EM = EdgeMap{T, S}(pm_object(G))
   set_attribute!(G, :edge_map, EM)
-
-  NM = Polymake.NodeMap{T, S}(pm_object(G))
-  set_attribute!(G, :node_map, NM)
-
-  for (k, v) in dict
+  for (k, v) in edge_labels
     G[k] = v
   end
+
+  if !isempty(vertex_labels)
+    NM = NodeMap{T, S}(pm_object(G))
+    set_attribute!(G, :node_map, NM)
+    for (k, v) in vertex_labels
+      G[k] = v
+    end
+  end
+
   return G
+end
+
+function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
+                                   vertex_labels::Dict{Int, U}=Dict{Int, Any}();
+                                   n_vertices::Int=-1) where {S, U}
+  graph_from_labelled_edges(Undirected, edge_labels, vertex_labels)
 end
 
 @doc raw"""
