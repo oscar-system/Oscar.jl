@@ -447,6 +447,8 @@ or if `i` is larger than `length(tom)`.
 ```jldoctest
 julia> representative(table_of_marks("A5"), 2)
 Permutation group of degree 5 and order 2
+with 1 generator
+  (2,3)(4,5)
 ```
 """
 function representative(tom::GAPGroupTableOfMarks, i::Int)
