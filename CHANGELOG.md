@@ -173,7 +173,6 @@ which we think might affect some users directly.
 ### Changes related to the package Singular
 
 - [#4548](https://github.com/oscar-system/Oscar.jl/pull/4548) Update Singular.jl to 0.25.0
-- [#4382](https://github.com/oscar-system/Oscar.jl/pull/4382) Update Singular.jl to 0.24.0
 
 
 ## [1.2.2] - 2024-12-13
