@@ -1920,15 +1920,13 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   return E, mE
 end
 
-
-
 Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
 
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []
   iszero(b) && error("b is zero")
   f = minpoly(b)
-  @show lf = factor(f)
+  lf = factor(f)
   if length(lf) == 1
     return []
   end
@@ -2135,7 +2133,6 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
     #k is abs. irr. but field is too large
     return k
   end
-
   return :nothing_found
 end
 
