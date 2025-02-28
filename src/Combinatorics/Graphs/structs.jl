@@ -1,5 +1,7 @@
 import Oscar: Polymake
-import Oscar.Polymake: Directed, Undirected
+import Oscar.Polymake:
+  Directed, Undirected,
+  EdgeMap, NodeMap
 
 @attributes mutable struct Graph{T <: Union{Directed, Undirected}}
   pm_graph::Polymake.Graph{T}
