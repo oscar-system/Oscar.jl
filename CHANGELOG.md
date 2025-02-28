@@ -156,11 +156,15 @@ which we think might affect some users directly.
 
 ### Changes related to the package AbstractAlgebra
 
-- [#4405](https://github.com/oscar-system/Oscar.jl/pull/4405) Update AbstractAlgebra to 0.44.0, Nemo to 0.48.0, Hecke to 0.35.0
+- [#4405](https://github.com/oscar-system/Oscar.jl/pull/4405) Update AbstractAlgebra to 0.44.0
 
 ### Changes related to the package GAP
 
 - [#4421](https://github.com/oscar-system/Oscar.jl/pull/4421) Update GAP.jl to 0.13
+
+### Changes related to the package Hecke
+
+- [#4405](https://github.com/oscar-system/Oscar.jl/pull/4405) Update Hecke to 0.35.0
 
 ### Changes related to the package Nemo
 
