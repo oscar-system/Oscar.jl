@@ -142,6 +142,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       edition = {1},
       url = {https://link.springer.com/book/9783031621260},
       issn = {1431-1550},
+      doi = {10.1007/978-3-031-62127-7},
     }
 
 ## Funding

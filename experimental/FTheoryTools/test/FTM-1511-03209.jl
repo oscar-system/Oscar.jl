@@ -15,4 +15,10 @@
   @test is_well_quantized(g1) == true
   @test is_vertical(g2) == true
   @test breaks_non_abelian_gauge_group(g3) == false
+  @test size(matrix_integral(f1)) == (629, 502)
+  @test size(matrix_rational(f1)) == (629, 127)
+  @test size(matrix_integral(f2)) == (629, 224)
+  @test size(matrix_rational(f2)) == (629, 127)
+  @test size(matrix_integral(f3)) == (629, 1)
+  @test size(matrix_rational(f3)) == (629, 127)
 end
