@@ -336,7 +336,7 @@ end
 @doc raw"""
     conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
 
-Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
+Return the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
 such that `w * x == dom`.
 """
 function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)

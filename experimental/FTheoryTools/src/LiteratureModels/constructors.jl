@@ -239,6 +239,9 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
 
     # Create the hypersurface model and set meta data attributes
     model = qsm_model.hs_model
+    cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
+    cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
+    model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = cfs
     _set_all_attributes(model, model_dict, model_parameters)
 
     # Set specialized attributes regarding the polytope
@@ -410,6 +413,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   sec_names = string.(model_dict["model_data"]["model_sections"])
   cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
+  model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = cfs
   cl_of_secs = Dict(sec_names[k] => sum(cfs[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(sec_names))
 
   # Next, generate random values for all involved sections.
@@ -545,7 +549,8 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   @req haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model construction, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  
+  model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = auxiliary_base_grading
+
   base_dim = get(model_dict["model_data"], "base_dim", 3)
 
   # Construct the model
@@ -650,6 +655,16 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_resolutions(model, [[[string.(c) for c in r[1]], string.(r[2])] for r in model_dict["model_data"]["resolutions"]])
   end
   
+  if haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes")
+    D = Dict{String, Vector{Int}}()
+    tun_sections = model_dict["model_data"]["model_sections"]
+    M = model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]
+    for i in 1:length(tun_sections)
+      D[tun_sections[i]] = M[:,i]
+    end
+    set_attribute!(model, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, D)
+  end
+
   if haskey(model_dict["model_data"], "resolution_generating_sections")
     value = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
     set_resolution_generating_sections(model, value)

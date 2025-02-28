@@ -37,7 +37,7 @@ gens_and_markings(G::MarkedGroebnerBasis) = zip(gens(G), markings(G))
 @doc raw"""
     some_gens_with_markings(G::MarkedGroebnerBasis, I::AbstractVector)
 
-Returns a subset of generators of G indexed by I as pairs of polynomials and leading terms.
+Return a subset of generators of G indexed by I as pairs of polynomials and leading terms.
 """
 function some_gens_with_markings(G::MarkedGroebnerBasis, I::AbstractVector)
   gens_view = @view gens(G)[I]  
@@ -74,7 +74,7 @@ end
 @doc raw"""
     normal_form(p::MPolyRingElem, MG::MarkedGroebnerBasis)
 
-Computes the normal form of `p` with respect to the marked reduced Gröbner basis `MG`.
+Compute the normal form of `p` with respect to the marked reduced Gröbner basis `MG`.
 """
 normal_form(p::MPolyRingElem, MG::MarkedGroebnerBasis) = _normal_form(p, gens(MG), markings(MG))
 

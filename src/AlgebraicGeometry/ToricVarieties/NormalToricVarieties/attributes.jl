@@ -75,7 +75,7 @@ end
 @doc raw"""
     is_finalized(v::NormalToricVarietyType)
 
-Checks if the Cox ring, the coordinate ring of the torus,
+Check if the Cox ring, the coordinate ring of the torus,
 the cohomology_ring, the Chow ring, the Stanley-Reisner ideal,
 the irrelevant ideal, the ideal of linear relations
 or the toric ideal has been cached. If any of these has been
@@ -226,7 +226,7 @@ end
 @doc raw"""
     cox_ring(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`, in this case by adding
+Compute the Cox ring of the normal toric variety `v`, in this case by adding
 the Cox grading to the given ring `R`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
@@ -253,7 +253,7 @@ end
 @doc raw"""
     cox_ring(v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`.
+Compute the Cox ring of the normal toric variety `v`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 For uniformity with schemes, we also support the function
 `coordinate_ring` to refer to the Cox ring.
@@ -537,7 +537,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`
+Compute the coordinate ring of the torus of the normal toric variety `v`
 in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
@@ -551,7 +551,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`.
+Compute the coordinate ring of the torus of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -580,7 +580,7 @@ end
 @doc raw"""
     character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -600,7 +600,7 @@ character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}
 @doc raw"""
     character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest

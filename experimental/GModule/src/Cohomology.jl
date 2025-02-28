@@ -148,7 +148,7 @@ function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
 end
 
 """
-Checks if the action maps satisfy the same relations
+Check if the action maps satisfy the same relations
 as the generators of `G`.
 """
 function is_consistent(M::GModule)
@@ -651,6 +651,11 @@ function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   return all(c(x) == d(x) for x = keys(c))
 end
 
+function Base.hash(c::CoChain{N, G, M}, h::UInt) where {N, G, M}
+  # this is a very bad hash, but it is correct
+  return hash(c.C, h)
+end
+
 function +(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   @assert c.C === d.C
   if isdefined(c, :D) && isdefined(d, :D)
@@ -971,7 +976,7 @@ end
 
 
 """
-Computes an isomorphic fp-group and a confluent system of
+Compute an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
 
 Return the new group, the isomorphism and the confluent relations.
@@ -1746,7 +1751,7 @@ end
 
 
 """
-Computes H^3 via dimension-shifting:
+Compute H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1
 thus
@@ -2123,7 +2128,6 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 
 #  z = GAP.Globals.GroupByRwsNC(CN)
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
-#  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
   mQ = hom(N, Q, gens(N), gens(Q); check = false)
@@ -2140,10 +2144,10 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
-    for i=1:2:length(wm)
-      push!(wg, wm[i]+ngens(G))
-      push!(wg, wm[i+1])
+    wm = syllables(preimage(mffM, mfM(m)))
+    for (ind, exp) in wm
+      push!(wg, ind+ngens(G))
+      push!(wg, exp)
     end
     return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
   end
