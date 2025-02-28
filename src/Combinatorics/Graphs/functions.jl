@@ -1383,9 +1383,7 @@ function graph_from_labelled_edges(::Type{T},
     NM = NodeMap{T, S}(pm_object(G))
     set_attribute!(G, :node_map, NM)
     for (k, v) in vertex_labels
-      if k > number_of_vertices(G)
-        throw(ArgumentError("Cannot label a vertex that is not in the graph, please set n_vertices"))
-      end
+      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
       G[k] = v
     end
   end
