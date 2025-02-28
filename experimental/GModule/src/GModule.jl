@@ -109,6 +109,12 @@ function extension_of_scalars(M::GModule, phi::Map)
   return GModule(F, group(M), [hom(F, F, map_entries(phi, matrix(x))) for x in M.ac])
 end
 
+function extension_of_scalars(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, K::AbsSimpleNumField)
+
+  d = dim(M)
+  F = free_module(K, d)
+  return GModule(F, group(M), [hom(F, F, map_entries(K, matrix(x))) for x in M.ac])
+end
 
 """
     can_be_defined_over(M::GModule, phi::Map)
@@ -396,7 +402,9 @@ i.e., `g(m) == m` for all $g\in G$ and $m\in M$.
 """
 function trivial_gmodule(G::Oscar.GAPGroup, M::Union{FinGenAbGroup, AbstractAlgebra.FPModule})
   I = hom(M, M, gens(M))
-  return Oscar.gmodule(M, G, typeof(I)[I for x = gens(G)])
+  C = Oscar.gmodule(M, G, typeof(I)[I for x = gens(G)])
+  set_attribute!(C, :is_trivial => true)
+  return C
 end
 
 function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
@@ -956,7 +964,7 @@ end
 function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   @assert codomain(f) == M.M
   S = domain(f)
-  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  Sac = [hom(S, S, elem_type(S)[preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
   D = gmodule(S, M.G, Sac)
   return D, hom(D, M, f)
 end
@@ -1752,13 +1760,13 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
       T = [induce_crt(tt[i], ZZRingElem(p), T[i], pp)[1] for i=1:length(T)]
       @assert base_ring(T[1]) == ZZ
       pp *= p
-      S = []
+      S = QQMatrix[]
       if nbits(pp) > min(reco, bt)
         if nbits(pp) > reco
           reco *= 2
         end
         for t = T
-          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
+          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true, Unbalanced = false)
           fl || break
           push!(S, s)
         end
@@ -1773,6 +1781,144 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
       end
     end
   end
+end
+
+#can't use "end" as a function name... and "End" does not fit into our scheme
+#life is hard.
+function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  return matrix_algebra(QQ, hom_base(M, M))
+end
+
+Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
+
+function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  H = []
+  f = minpoly(b)
+  lf = factor(f)
+  if length(lf) == 1
+    return []
+  end
+  for (p, k) = lf
+    x = (p^k)(b)
+    h = hom(M, M, hom(M.M, M.M, matrix(x)))
+    append!(H, split_into_homogenous(kernel(h)[1]))
+  end
+  return H
+end
+
+function Oscar.lll(M::QQMatrix)
+  m, d = integral_split(M, ZZ)
+  return lll(m)*QQ(1, d)
+end
+
+function Oscar.lll_basis(M::Hecke.AlgAssAbsOrd{MatAlgebra{QQFieldElem, QQMatrix}, ZZRing})
+  A = algebra(M)
+  b = basis(M, A)
+  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
+  m = lll(m)
+  return [M(A(m[i, :])) for i=1:nrows(m)]
+end
+
+function split_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  #Steel, p31: MaximalOrderBasisSearch
+  #            well, Step 1
+  #            need to look for more elements - but how many?
+  E = endo(M)
+  Z_M = maximal_order(E)
+  @show s = schur_index(E)
+  @show k = dim(center(E)[1])
+  @show m = div(root(div(dim(E), k), 2), s)
+  if m == 1
+    @show :is_irr
+    return [M]
+  end
+
+  S = []
+  for b = lll_basis(Z_M)
+    z = split_via_endo(b.elem_in_algebra, M)
+    if length(z) > 0
+      append!(S, z)
+    end
+  end
+  return S
+end
+
+function split_homogenous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  #Steel, p36: SplitHomogeneousByMinimalField(M)
+  #            ... up to Step 2
+  #TODO:-use this to reduce to the m=1 part - ignoring the Schur stuff
+  #      (don't know if possible: rho_F is abs. irr, but as field is too large,
+  #      the restriction of scalars has multiplicity again)
+  #     -use the Amitsur paper instead of Fieker to reduce field? (Does not need
+  #      normality, possibly)
+  #TODO:-does e in Step 2 exists for A-modules (as opposed to G-modules)? Tommy
+  #      spontaneously said yes...
+  #XXX:  Step 3 exists - but requires the field to be normal, hence sucks in general
+  #      the search for e need to be more intelligent and possibly try  more elements
+  #      to find small normal closure
+  #     -or try smaller degree to get some split? Any reduction in m helps
+  #     -use characters to see what we do not want to split: the same module
+  #      might be in a mult 8 or mult 2 component...
+  #     -also do the conic case (for ms = 2)
+  #     -for m=1, s=3: Jessica Cologna reduces to conics as well
+  #
+  #TODO:-make sure the interaction between Hecke (Tommy) and Oscar (Claus)
+  #      is efficient and uses appropriate caching...
+  #     -finally get some examples going and see where the infrastructure can be 
+  #      improved
+  #     - e.g. write & use factored_minpoly, factored_charpoly ...
+  E = endo(M)
+  Z_M = maximal_order(E)
+  @show s = schur_index(E)
+  @show k = dim(center(E)[1])
+  @show m = div(root(div(dim(E), k), 2), s)
+  if m == 1
+    @show :is_irr
+    return [M]
+  end
+
+  for i=basis(E)
+    f = minpoly(i)
+    lf = factor(f)
+    if length(lf) == 1 && degree(f) == s*m*k &&  lf[f] == 1
+      @show :bingo
+      Ka, a = number_field(f)
+      Mf = extension_of_scalars(M, Ka)
+      h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, i.matrix) - a*identity_matrix(Ka, dim(M))))
+      k = kernel(h)
+      #k is abs. irr. but field is too large
+      return k
+    end
+  end
+
+  return :nothing_found
+end
+
+function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  #Steel, p28: HomogeneousComponents(M)
+  #Careful: the list in the end contains homogenous components - but
+  #         with lots of repetition
+  #TODO: write and use CentreOfEndomorphismRing
+  #      have a sane overall strategy
+  E = endo(M)
+  C, mC = center(E)
+  H = []
+  for b = basis(C)
+    f = minpoly(b)
+    lf = factor(f)
+    if length(lf) == 1
+      if degree(f) == dim(C)
+        return [M]
+      end
+      continue
+    end
+    for (p, k) = lf
+      x = (p^k)(b)
+      h = hom(M, M, hom(M.M, M.M, matrix(mC(x))))
+      append!(H, split_into_homogenous(kernel(h)[1]))
+    end
+  end
+  return H
 end
 
 function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
@@ -1994,8 +2140,10 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
 end
 
 export extension_of_scalars
+export endo
 export factor_set
 export ghom
+export hom_base
 export indecomposition
 export irreducible_modules
 export is_decomposable
