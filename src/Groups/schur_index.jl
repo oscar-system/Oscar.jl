@@ -120,13 +120,13 @@ that are coprime to `n`.
 
 # Examples
 ```jldoctest
-julia> println(prime_residues(20))
+julia> println(Oscar.prime_residues(20))
 [1, 3, 7, 9, 11, 13, 17, 19]
 
-julia> println(prime_residues(0))
+julia> println(Oscar.prime_residues(0))
 Int64[]
 
-julia> println(prime_residues(1))
+julia> println(Oscar.prime_residues(1))
 [0]
 ```
 """
