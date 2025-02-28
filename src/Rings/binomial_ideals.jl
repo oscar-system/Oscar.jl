@@ -1,5 +1,3 @@
-import Oscar.Singular.lib4ti2_jll
-
 @doc raw"""
     is_binomial(f::MPolyRingElem)
 
@@ -9,7 +7,6 @@ Return `true` if `f` consists of at most 2 terms,
 function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
-
 
 @doc raw"""
     is_binomial(I::MPolyIdeal)
@@ -1081,16 +1078,13 @@ function binomial_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
   return _remove_redundancy(res)
 end
 
-function markov4ti2(L::ZZMatrix)
+function _prep_4ti2(L::ZZMatrix, path::String)
   #sanity checks noch einbauen!!
   nc = ncols(L)
   nr = nrows(L)
   #have to prepare an input file for 4ti2
   #create the file julia4ti2.lat
-  name = tempname()
-  mkdir(name)
-  name = joinpath(name, "julia4ti2")
-  f=open("$name.lat","w")
+  f=open(path,"w")
   write(f,"$nr ")
   write(f,"$nc \n")
 
@@ -1101,10 +1095,17 @@ function markov4ti2(L::ZZMatrix)
     write(f,"\n")
   end
   close(f)
+end
 
+function markov4ti2(L::ZZMatrix)
+  # set up temp folder and files need for 4ti2
+  name = tempname()
+  mkdir(name)
+  name = joinpath(name, "julia4ti2")
+  _prep_4ti2(L, "$name.lat")
   #now we have the file julia4ti2.lat in the current working directory
   #can run 4ti2 with this input file to get a markov basis
-  run(ignorestatus(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`))
+  success(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`) || error("Error running 4ti2 markov")
   
 #        run(`$(lib4ti2_jll.markov) -q $name`)
   #this creates the file julia4ti2.mar with the markov basis
@@ -1115,6 +1116,28 @@ function markov4ti2(L::ZZMatrix)
   return mat_to_return
 end
 
+function _groebner4ti2(I::MPolyIdeal, o::MonomialOrdering)
+  R = base_ring(I)
+  # make difference vectors
+  lat_gens = map(e -> e[2] - e[1],
+                 [collect(exponents(x; ordering=o)) for x in gens(I)])
+  L = matrix(ZZ, lat_gens)
+  # set up temp folder and files need for 4ti2
+  name = tempname()
+  mkdir(name)
+  name = joinpath(name, "julia4ti2")
+  _prep_4ti2(L, "$name.lat")
+  _prep_4ti2(canonical_matrix(o), "$name.cost")
+  #now we have the file julia4ti2.lat in the current working directory
+  #can run 4ti2 with this input file to get a groebner basis
+  success(`$(lib4ti2_jll.exe4ti2gmp()) groebner -q $name`) || error("Error running 4ti2 groebner")
+  
+  #this creates the file julia4ti2.gro with the markov basis
+  mat = _parse_matrix("$name.gro")
+
+  return IdealGens(gens(binomial_exponents_to_ideal(R, mat)), o;
+                   isGB = true)
+end
 
 function _parse_matrix(filename::String)
   f = open("$filename", "r")

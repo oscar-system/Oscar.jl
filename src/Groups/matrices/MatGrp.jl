@@ -1,4 +1,13 @@
-matrix_group(F::Ring, m::Int) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(F, m)
+matrix_group_type(::Type{T}) where T<:RingElement = MatrixGroup{T, dense_matrix_type(T)}
+
+matrix_group_type(::Type{S}) where S<:Ring = matrix_group_type(elem_type(S))
+matrix_group_type(x) = matrix_group_type(typeof(x)) # to stop this method from eternally recursing on itself, we better add ...
+matrix_group_type(::Type{T}) where T = throw(ArgumentError("Type `$T` must be subtype of `RingElement`."))
+
+const ZZMatrixGroup = matrix_group_type(ZZRing)
+const QQMatrixGroup = matrix_group_type(QQField)
+
+matrix_group(F::Ring, m::Int) = matrix_group_type(F)(F, m)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 """
@@ -387,8 +396,8 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
+Base.:*(x::MatrixGroupElem, y::MatElem) = matrix(x)*y
+Base.:*(x::MatElem, y::MatrixGroupElem) = x*matrix(y)
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(x)^n)
 

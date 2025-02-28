@@ -931,20 +931,160 @@ maximal_blocks(G::GSet) = error("not implemented")
 minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
+
+"""
+    rank_action(Omega::GSet)
+
+Return the rank of the transitive group action associated with `Omega`.
+This is defined as the number of orbits in the action on ordered pairs
+of points in `Omega`,
+and is equal to the number of orbits of the stabilizer of a point in `Omega`
+on `Omega`, see [Cam99; Section 1.11](@cite).
+
+An exception is thrown if the group action is not transitive on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); Omega = gset(G); rank_action(Omega)  # 4-transitive
+2
+
+julia> G = dihedral_group(PermGroup, 8); Omega = gset(G); rank_action(Omega)  # not 2-transitive
+3
+```
+"""
+function rank_action(Omega::GSet)
+  @req is_transitive(Omega) "the group is not transitive"
+  @req !isempty(Omega) "the action domain is empty"
+  H = stabilizer(Omega)[1]
+  return length(orbits(H))
+end
+
+"""
+    transitivity(Omega::GSet)
+
+Return the maximum `k` such that group action associated with `Omega`
+acts `k`-transitively on `Omega`,
+that is, every `k`-tuple of points in `Omega` can be mapped simultaneously
+to every other `k`-tuple by an element of the group.
+
+The output is `0` if the group acts intransitively on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = mathieu_group(24); Omega = gset(G); transitivity(Omega)
+5
+
+julia> G = symmetric_group(4); Omega = gset(G); transitivity(Omega)
+4
+```
+"""
+function transitivity(Omega::GSet)
+  acthom = action_homomorphism(Omega)
+  return transitivity(image(acthom)[1])
+end
+
+
+"""
+    is_transitive(Omega::GSet)
+
+Return whether the group action associated with `Omega` is transitive.
+In other word, this tests if `Omega` consists of precisely one orbit.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Permutation group of degree 6 and order 16
+
+julia> Omega = gset(G);
+
+julia> is_transitive(Omega)
+false
+```
+"""
+function is_transitive(Omega::GSet)
+    return length(orbits(Omega)) == 1
+end
 function is_transitive(Omega::GSetByElements)
     length(Omega.seeds) == 1 && return true
     return length(orbits(Omega)) == 1
 end
 
+"""
+    is_regular(Omega::GSet)
+
+Return whether the group action associated with `Omega`
+is regular, i.e., is transitive and semiregular.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
+Permutation group of degree 6
+
+julia> OmegaG = gset(G);
+
+julia> OmegaH = gset(H);
+
+julia> is_regular(OmegaH)
+true
+
+julia> is_regular(OmegaG)
+false
+```
+"""
 is_regular(Omega::GSet) = is_transitive(Omega) && length(Omega) == order(acting_group(Omega))
 
+"""
+    is_semiregular(Omega::GSet)
+
+Return whether the group action associated with `Omega`
+is semiregular, i.e., the stabilizer of each point is the identity.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
+Permutation group of degree 6
+
+julia> OmegaH = gset(H);
+
+julia> is_semiregular(H)
+true
+
+julia> is_regular(H)
+false
+```
+"""
 function is_semiregular(Omega::GSet)
     ord = order(acting_group(Omega))
     return all(orb -> length(orb) == ord, orbits(Omega))
 end
 
-is_primitive(G::GSet) = error("not implemented")
+"""
+    is_primitive(Omega::GSet)
 
+Return whether the group action associated with `Omega` is primitive, that is,
+the action is transitive and admits no nontrivial block systems.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); Omega = gset(G);
+
+julia> is_primitive(Omega)
+true
+
+julia> H, _ = sub(G, [cperm([2, 3, 4])]);
+
+julia> is_primitive(gset(H))
+false
+```
+"""
+function is_primitive(Omega::GSet)
+  acthom = action_homomorphism(Omega)
+  return is_transitive(Omega) && is_primitive(image(acthom)[1])
+end
 
 """
     blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
