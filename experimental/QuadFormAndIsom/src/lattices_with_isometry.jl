@@ -2026,6 +2026,8 @@ Given a lattice with isometry $(L, f)$, return the invariant lattice $L^f$ of
 $(L, f)$ together with the restriction of $f$ to $L^f$ (which is the identity
 in this case).
 
+See [`invariant_lattice(::ZZLat, ::QQMatrix)`](@ref).
+
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A, 5);
@@ -2059,6 +2061,8 @@ as matrix representation of their action on the standard basis of the ambient
 space of $L$. Otherwise, they are considered as matrix representation of their
 action on the basis matrix of $L$.
 
+See [`invariant_lattice(::ZZLat, ::Vector(MatElem))`](@ref).
+
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A, 2);
@@ -2083,6 +2087,8 @@ $(L, f)$ together with the restriction of $f$ to $L_f$.
 
 The coinvariant lattice $L_f$ of $(L, f)$ is the orthogonal complement in
 $L$ of the invariant lattice $L_f$.
+
+See [`invariant_lattice(::ZZLat, ::QQMatrix)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2131,6 +2137,8 @@ If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
 considered as matrix representation of their action on the standard basis of the
 ambient space of $L$. Otherwise, they are considered as matrix representation of
 their action on the basis matrices of $L$ and $L_G$ respectively.
+
+See [`invariant_lattice(::ZZLat, ::Vector(MatElem))`](@ref).
 
 # Examples
 ```jldoctest
@@ -2203,6 +2211,9 @@ If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
 considered as matrix representation of their action on the standard basis of the
 ambient space of $L$. Otherwise, they are considered as matrix representation of
 their action on the basis matrices of $L$ and $L_G$ respectively.
+
+See [`invariant_lattice(::ZZLat, ::MatrixGroup`](@ref) and
+[`coinvariant_lattice(::ZZLat, ::MatrixGroup`](@ref).
 
 # Examples
 ```jldoctest
@@ -2438,6 +2449,8 @@ the extension of $f$ to $L\otimes \mathbb{Q}$.
 
 If $\Phi$ is the form on $L\otimes \mathbb{Q}$, then the spinor norm is computed
 with respect to $b\Phi$.
+
+See [`spin`](@ref).
 """
 function rational_spinor_norm(Lf::ZZLatWithIsom; b::Int=-1)
   @req rank(Lf) > 0 "L must have positive rank"

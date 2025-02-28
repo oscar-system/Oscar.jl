@@ -147,6 +147,8 @@ minimal_polynomial(Vf::QuadSpaceWithIsom) = minimal_polynomial(isometry(Vf))
 Given a quadratic space with isometry $(V, f)$, return the Gram matrix
 of the underlying space $V$ with respect to its standard basis.
 
+See [`gram_matrix(::QuadSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -287,6 +289,8 @@ diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return the signature
 tuple of the underlying space $V$.
 
+See [`signature_tuple(::QuadSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -395,6 +399,8 @@ end
 
 Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$) where
 $V^a$ is the same space as $V$ with the associated quadratic form rescaled by $a$.
+
+See [`rescale(::QuadSpace, ::RationalUnion)`](@ref).
 
 # Examples
 ```jldoctest
@@ -760,6 +766,8 @@ spinor norm of $f$.
 
 If $\Phi$ is the form on $V$, then the spinor norm is computed with respect to
 $b\Phi$.
+
+See [`spin`](@ref).
 """
 function rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int=-1)
   @req dim(Vf) > 0 "V must have positive dimension"
