@@ -229,32 +229,13 @@ function preimage(
   return _preimage_via_singular(f, I)
 end
 
-@doc raw"""
-    _maps_variables_to_variables(f::MPolyAnyMap)
-
-A cheap check to see whether `f` is taking the variables of its domain into 
-pairwise different variables of its codomain. In the affirmative case 
-return `(true, ind)` where `ind` is a `Vector` of the indices so that 
-`gens(codomain(f))[ind]` equals the images of the generators. 
-Otherwise, return `(false, Int[])`.
-
-Note: For rings different from plain polynomial rings in the codomain 
-this is not a rigorous check (which would probably be very expensive), 
-but based only a quick look on the representatives!
-"""
-function _maps_variables_to_variables(f::MPolyAnyMap)
-  isdefined(f, :variable_indices) && return true, copy(f.variable_indices)
-  (all(_is_gen, _images(f)) && _allunique(_images(f))) || return false, Int[]
-  f.variable_indices = [findfirst(_cmp_reps(x), gens(codomain(f))) for x in _images(f)]
-  return true, copy(f.variable_indices)
-end
-
 function preimage(
     f::MPolyAnyMap{S, S, Nothing}, 
     I::MPolyIdeal
   ) where {S <: MPolyRing{<:RingElem}}
   # If the map is the inclusion of a subring in a subset of 
   # variables, use the `eliminate` command instead.
+  _assert_has_maps_variables_to_variables!(f)
   success, ind = _maps_variables_to_variables(f)
   if success
     img_gens = elem_type(domain(f))[] # for the projection map
