@@ -1,4 +1,167 @@
 @doc raw"""
+    exchange!(W::WeylGroup, i::Int, w::Vector{UInt8}) -> Bool
+
+Return `true`, if `w` could be transformed into an equivalent word with `i` at the first position,
+otherwise `false`.
+
+See also [`exchange!(::WeylGroup, ::Vector{UInt8}, ::UInt8)`](@ref).
+"""
+function exchange!(W::WeylGroup, i::UInt8, w::AbstractVector{UInt8})
+  root = i
+  for s in 1:length(w)
+    if w[s] == root
+      w[2:s] = w[1:(s - 1)]
+      w[1] = i
+      return true
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return false
+end
+
+@doc raw"""
+    exchange!(W::WeylGroup, w::Vector{UInt8}, i::Int) -> Bool
+
+Return `true`, if `w` could be transformed into an equivalent word with `i` at the last position,
+otherwise `false`.
+
+See also [`exchange!(::WeylGroup, ::UInt8, ::Vector{UInt8})`](@ref).
+"""
+function exchange!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  root = i
+  for s in length(w):-1:1
+    if w[s] == root
+      w[s:(end - 1)] = w[(s + 1):end]
+      w[end] = i
+      return true
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return false
+end
+
+@doc raw"""
+    braid_moves(W::WeylGroup, i::Vector{UInt8}, j::Vector{UInt8}) -> Vector{Tuple{Int,UInt8,Int,Int}}
+
+Return the braid moves required to transform the string `j` into `i` with respect to the Weyl group `W`.
+A braid move (n, len, dir) should be understood as follows:
+- `n` is the position where the braid move starts
+- `len` is the length of the braid move
+- `dir` is the direction of the braid move. If `len=2` or `len=3`, `dir` is `0` or `-1`.
+  If `len=4` or `len=6`, `dir` is `-2` or `-3` if the root at `n` is short, otherwise `dir` is `-1`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 3);
+
+julia> braid_moves(W, UInt8[1,2,1,3,2,1], UInt8[1,3,2,1,3,2])
+4-element Vector{Tuple{Int64, Int64, Int64}}:
+ (4, 2, 0)
+ (2, 3, -1)
+ (4, 3, -1)
+ (3, 2, 0)
+
+julia> W = weyl_group(:B, 2);
+
+julia> braid_moves(W, UInt8[2,1,2,1], UInt8[1,2,1,2])
+1-element Vector{Tuple{Int64, Int64, Int64}}:
+ (1, 4, -2)
+```
+"""
+function braid_moves(W::WeylGroup, i::Vector{UInt8}, j::Vector{UInt8})
+  return _braid_moves(W, i, j, 0)
+end
+
+function _braid_moves(
+  W::WeylGroup, i::AbstractVector{UInt8}, j::AbstractVector{UInt8}, offset::Int
+)
+  mvs = Tuple{Int,Int,Int}[]
+  if i == j
+    return mvs
+  end
+
+  C = cartan_matrix(W)
+  jo, jn = copy(j), copy(j)
+  @views for n in 1:length(i)
+    if i[n] == jo[n]
+      continue
+    end
+
+    cij = Int(C[Int(i[n]), Int(jo[n])])
+    cji = Int(C[Int(jo[n]), Int(i[n])])
+
+    # in all cases we need to move i[n] to the right of jj[n]
+    # so that we can later apply the appropriate braid move
+    if !exchange!(W, i[n], jn[(n + 1):end])
+      return nothing
+    end
+
+    len = 0 # length of the braid move
+    if cij == 0
+      len = 2
+    elseif cij == -1 && cji == -1
+      len = 3
+      # move jj[n] to the right of jj[n+1]
+      if !exchange!(W, jn[n], jn[(n + 2):end])
+        return nothing
+      end
+    elseif cij == -2 || cji == -2
+      len = 4
+      # move jj[n] to the right of jj[n+1]
+      if !exchange!(W, jn[n], jn[(n + 2):end])
+        return nothing
+      end
+      # move i[n] to the right of jj[n+2]
+      if !exchange!(W, i[n], jn[(n + 3):end])
+        return nothing
+      end
+    elseif cij == -3 || cji == -3
+      len = 6
+      # move jj[n] to the right of jj[n+1]
+      if !exchange!(W, jn[n], jn[(n + 2):end])
+        return nothing
+      end
+      # move i[n] to the right of jj[n+2]
+      if !exchange!(W, i[n], jn[(n + 3):end])
+        return nothing
+      end
+      # move jj[n] to the right of jj[n+1]
+      if !exchange!(W, jn[n], jn[(n + 4):end])
+        return nothing
+      end
+      # move i[n] to the right of jj[n+2]
+      if !exchange!(W, i[n], jn[(n + 5):end])
+        return nothing
+      end
+    end
+
+    # len = 2: compute how to get jj[n:end] into [jj[n], i[n], ...]
+    # len = 3: compute how to get jj[n:end] into [jj[n], i[n], jj[n], ...]
+    # len = 4: compute how to get jj[n:end] into [jj[n], i[n], jj[n], i[n], ...]
+    # len = 6: compute how to get jj[n:end] into [jj[n], i[n], jj[n], i[n], jj[n], i[n], ...]
+    mvs2 = _braid_moves(W, jn[(n + 1):end], jo[(n + 1):end], n)
+    if isnothing(mvs2)
+      return nothing
+    end
+
+    append!(mvs, mvs2)
+    push!(mvs, (n + offset, len, cij))
+    if iseven(len)
+      reverse!(jn[n:(n + len - 1)])
+    else
+      jn[n] = i[n]
+      jn[n + 1] = jn[n + 2]
+      jn[n + 2] = i[n]
+    end
+    copy!(jo[n:end], jn[n:end])
+  end
+
+  return mvs
+end
+
+@doc raw"""
     FPGroup(W::WeylGroup) -> FPGroup
     fp_group(W::WeylGroup) -> FPGroup
 

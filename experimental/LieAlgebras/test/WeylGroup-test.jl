@@ -5,6 +5,30 @@
 
   _isomorphic_group_on_gens = Oscar.LieAlgebras._isomorphic_group_on_gens
 
+  @testset "braid_moves for $fam$rk" for (fam, rk) in [
+    (:A, 1), (:A, 3), (:B, 3), (:C, 3), (:D, 4), (:F, 4), (:G, 2)
+  ]
+    W = weyl_group(fam, rk)
+    for _ in 1:10
+      w = rand(W)
+      w1 = word(w)
+      w2 = copy(w1)
+
+      i = 0
+      n = rand(1:(10*order(W)))
+      for r in reduced_expressions(w)
+        i += 1
+        copy!(w2, w1)
+        if i == n
+          break
+        end
+      end
+
+      mvs = braid_moves(W, w1, w2)
+      @test !isnothing(mvs)
+    end
+  end
+
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
     # Some test cases can be removed as soon as isomorphism has support for reducible types.

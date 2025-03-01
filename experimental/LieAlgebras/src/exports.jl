@@ -18,6 +18,7 @@ export adjoint_matrix
 export any_non_ad_nilpotent_element
 export base_lie_algebra
 export bracket
+export braid_moves
 export cartan_subalgebra
 export chevalley_basis
 export coerce_to_lie_algebra_elem
@@ -29,6 +30,7 @@ export dim_of_simple_module
 export dominant_character
 export dominant_weights
 export engel_subalgebra
+export exchange!
 export exterior_power
 export general_linear_lie_algebra
 export has_root_system
