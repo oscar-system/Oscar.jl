@@ -250,9 +250,9 @@ function _maps_variables_to_variables(f::MPolyAnyMap)
 end
 
 function preimage(
-    f::MPolyAnyMap{<:MPolyRing{T}, <:MPolyRing{T}, Nothing}, 
-    I::MPolyIdeal{T}
-  ) where {T <: RingElem}
+    f::MPolyAnyMap{S, S, Nothing},
+    I::MPolyIdeal
+  ) where {S <: MPolyRing{<:RingElem}}
   # If the map is the inclusion of a subring in a subset of 
   # variables, use the `eliminate` command instead.
   success, ind = _maps_variables_to_variables(f)
