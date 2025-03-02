@@ -147,7 +147,7 @@ Type for Weyl groups of root systems.
 
 See [`weyl_group(::RootSystem)`](@ref) for the constructor.
 """
-@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
+@attributes mutable struct WeylGroup <: Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see _positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
@@ -162,7 +162,7 @@ end
 
 Type for elements of Weyl groups.
 """
-struct WeylGroupElem <: AbstractAlgebra.GroupElem
+struct WeylGroupElem <: GroupElem
   parent::WeylGroup     # parent group
   word::Vector{UInt8}   # short revlex normal form of the word
 
