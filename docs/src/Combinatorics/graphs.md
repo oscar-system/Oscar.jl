@@ -32,11 +32,12 @@ allow for easier integration elsewhere.
 ## Construction
 
 ```@docs
-Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
+graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
 dual_graph(p::Polyhedron)
 vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
+graph_from_labelled_edges
 ```
 
 ### Modifying graphs

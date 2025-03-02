@@ -180,9 +180,31 @@
 
         GG2 = graph_from_edges(Undirected, ee, 13)
         @test is_isomorphic(G2, GG2)
-
     end
 
+      @testset "graph_from_labelled_edges" begin
+        edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
+        G1 = graph_from_edges(collect(keys(edge_labels)))
+
+        @test_throws ArgumentError G1[5, 6]
+        @test_throws ArgumentError G1[6]
+
+        G2 = graph_from_labelled_edges(edge_labels)
+        @test G2[6, 5] == G2[5, 6] == 4
+        @test_throws ArgumentError G2[6, 7]
+        @test_throws ArgumentError G2[6]
+
+        vertex_labels = Dict(9 => 10)
+        @test_throws ArgumentError graph_from_labelled_edges(Directed, edge_labels, vertex_labels)
+
+        G3 = graph_from_labelled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
+        @test_throws ArgumentError G3[10]
+        @test_throws ArgumentError G3[6, 5]
+        @test G3[7, 8] == 3
+        @test G3[9] == 10
+        @test G3[1] == 0
+    end
+  
     @testset "adjacency_matrix laplacian_matrix" begin
       G0 = Graph{Directed}(3)
       add_edge!(G0,1,2)
