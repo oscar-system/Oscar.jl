@@ -1697,7 +1697,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
       pp *= p
       S = []
       for t = T
-        fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
+        fl, s = induce_rational_reconstruction(t, pp, error_tolerant = true)
         fl || break
         push!(S, s)
       end
@@ -1758,7 +1758,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
           reco *= 2
         end
         for t = T
-          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
+          fl, s = induce_rational_reconstruction(t, pp, error_tolerant = true)
           fl || break
           push!(S, s)
         end
