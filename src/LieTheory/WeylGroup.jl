@@ -782,7 +782,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
   s = rk + 1
   while true
     # search for new simple reflection to add to the word
-    while s <= rk && weight.vec[s] > 0
+    while s <= rk && is_positive_entry(weight, s)
       s += 1
     end
 
@@ -873,7 +873,7 @@ end
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
     for j in (di + 1):rank(parent(wt))
-      if !iszero(wt[j])
+      if !is_zero_entry(wt, j)
         return j
       end
     end
@@ -881,7 +881,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   end
 
   for j in (di + 1):(ai - 1)
-    if !iszero(wt[j])
+    if !is_zero_entry(wt, j)
       return j
     end
   end
@@ -892,12 +892,14 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
 
     ok = true
+    reflect!(wt, j)
     for k in ai:(j - 1)
-      if reflect(wt, j)[k] < 0
+      if is_negative_entry(wt, k)
         ok = false
         break
       end
     end
+    reflect!(wt, j)
     if ok
       return j
     end
@@ -1009,10 +1011,12 @@ julia> coefficients(r * x)
   imgs = ZZMatrix[]
   for j in 1:n
     g = identity_matrix(ZZ, n)
-    for i in 1:n
-      # a_i * s_j = a_i - gcm_{j,i} * a_j
-      # efficient version of: g[i, j] -= gcm[j, i]
-      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+    GC.@preserve g gcm begin
+      for i in 1:n
+        # a_i * s_j = a_i - gcm_{j,i} * a_j
+        # efficient version of: g[i, j] -= gcm[j, i]
+        sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
+      end
     end
     push!(imgs, g)
   end
@@ -1064,9 +1068,11 @@ julia> coefficients(w * x)
   imgs = ZZMatrix[]
   for i in 1:n
     g = identity_matrix(ZZ, n)
-    for j in 1:n
-      # efficient version of: g[i, j] -= gcm[j, i]
-      sub!(Nemo.mat_entry_ptr(g, i, j), Nemo.mat_entry_ptr(gcm, j, i))
+    GC.@preserve g gcm begin
+      for j in 1:n
+        # efficient version of: g[i, j] -= gcm[j, i]
+        sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
+      end
     end
     push!(imgs, g)
   end
