@@ -47,11 +47,73 @@ coefficient_map(f::MPolyAnyMap) = f.coeff_map
 
 _images(f::MPolyAnyMap) = f.img_gens
 
+@doc raw"""
+    _maps_variables_to_variables(f::MPolyAnyMap)
+
+A cheap check to see whether `f` is taking the variables of its domain into 
+pairwise different variables of its codomain. In the affirmative case 
+return `(true, ind)` where `ind` is a `Vector` of the indices so that 
+`gens(codomain(f))[ind]` equals the images of the generators. 
+Otherwise, return `(false, garbage)`.
+
+Note: For rings different from plain polynomial rings in the codomain 
+this is not a rigorous check (which would probably be very expensive), 
+but based only a quick look on the representatives!
+
+Do not mutate the second return value.
+"""
+function _maps_variables_to_variables(f::MPolyAnyMap)
+  if ngens(domain(f)) == 0
+    return true, f.variable_indices
+  end
+  return !isempty(f.variable_indices), f.variable_indices
+end
+
+# This can be overwritten in order to avoid making the above check a bottleneck.
+_cmp_reps(a) = ==(a)
+
+function _assert_has_maps_variables_to_variables!(f::MPolyAnyMap)
+  if !isdefined(f, :variable_indices)
+    f.variable_indices = __maps_variables_to_variables(_images(f), codomain(f))
+  end
+end
+
+function __maps_variables_to_variables(img_gens::Vector, C)
+  # C is codomain
+
+  # this is a dirty implicit check, that the codomain is of a useful type for
+  # everything to make sense
+  # proper check would be to see if C isa MPolyRing etc
+  if !all(_is_gen, img_gens)
+    return Int[]
+  end
+
+  if !_allunique(img_gens)
+    return Int[]
+  end
+
+  l = length(img_gens)
+  r = Vector{Int}(undef, l)
+  Cgens = gens(C)
+
+  for i in 1:length(img_gens)
+    j = findfirst(_cmp_reps(img_gens[i]), Cgens)
+    if j isa Nothing
+      # image not a variable
+      return Int[]
+    end
+    r[i] = j::Int
+  end
+
+  return r
+end
+
 ################################################################################
 #
 #  String I/O
 #
 ################################################################################
+#
 function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   io = pretty(io)
   println(terse(io), f)
