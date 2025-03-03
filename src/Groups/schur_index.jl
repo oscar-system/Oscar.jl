@@ -225,8 +225,8 @@ julia> order(G)
 
 julia> local_schur_indices(chi)
 2-element Vector{Pair{Int64, Int64}}:
- -1 => 2
-  5 => 2
+ 0 => 2
+ 5 => 2
 
 julia> schur_index(chi)
 2
@@ -253,7 +253,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
     m_R = 1
   elseif ind == -1
     m_R = 2
-    push!(result, -1 => 2)
+    push!(result, 0 => 2)
   else
     m_R = 1
   end

@@ -444,7 +444,7 @@ end
 #          prime ideal of the character field have the same local index,
 #          all such primes behave the same and the local degree of the character
 #          field should be 1)
-#          However, for generalcentral simple algebras this is not true,
+#          However, for general central simple algebras this is not true,
 #          here prime ideals are independent
 function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, c.C.M.data)[2]; primes::Vector{<:Any}= [])
 
@@ -484,7 +484,7 @@ function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleN
   if length(emb) > 0
     i = Oscar.GaloisCohomology_Mod.local_index(c, emb[1], mG; index_only = true)
     if order(i) > 1
-      push!(li, -1 => order(i))
+      push!(li, 0 => order(i))
     end
   end
   return li

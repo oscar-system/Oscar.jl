@@ -37,7 +37,7 @@ end
    @test Oscar.local_schur_indices(chi) == [7 => 6]
    @test schur_index(chi) == 6
    G, chi = Oscar.yamada_example(5, 2)
-   @test Oscar.local_schur_indices(chi) == [-1 => 2, 5 => 2]
+   @test Oscar.local_schur_indices(chi) == [0 => 2, 5 => 2]
    @test schur_index(chi) == 2
 
    @test_throws ArgumentError Oscar.yamada_example(2, 2)
@@ -45,7 +45,7 @@ end
 end
 
 @testset "small examples from Feit's list" begin
-   expls = [("2.M12", 32, [-1 => 2, 2 => 2]),
+   expls = [("2.M12", 32, [0 => 2, 2 => 2]),
             ("J2", 336, [2 => 2, 3 => 2])]
    for (nam, deg, res) in expls
      G = atlas_group(nam)
