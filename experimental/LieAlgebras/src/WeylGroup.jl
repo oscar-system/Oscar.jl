@@ -43,7 +43,7 @@ function exchange!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
 end
 
 @doc raw"""
-    braid_moves(W::WeylGroup, i::Vector{UInt8}, j::Vector{UInt8}) -> Vector{Tuple{Int,UInt8,Int,Int}}
+    braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8}) -> Vector{Tuple{Int,Int,Int}}
 
 Return the braid moves required to transform the string `j` into `i` with respect to the Weyl group `W`.
 A braid move `(n, len, dir)` should be understood as follows:
@@ -70,31 +70,31 @@ julia> braid_moves(W, UInt8[2,1,2,1], UInt8[1,2,1,2])
  (1, 4, -2)
 ```
 """
-function braid_moves(W::WeylGroup, i::Vector{UInt8}, j::Vector{UInt8})
-  return _braid_moves(W, i, j, 0)
+function braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8})
+  return _braid_moves(W, w1, w2, 0)
 end
 
 function _braid_moves(
-  W::WeylGroup, i::AbstractVector{UInt8}, j::AbstractVector{UInt8}, offset::Int
+  W::WeylGroup, w1::AbstractVector{UInt8}, w2::AbstractVector{UInt8}, offset::Int
 )
   mvs = Tuple{Int,Int,Int}[]
-  if i == j
+  if w1 == w2
     return mvs
   end
 
   C = cartan_matrix(W)
-  jo, jn = copy(j), copy(j)
-  @views for n in 1:length(i)
-    if i[n] == jo[n]
+  jo, jn = copy(w2), copy(w2)
+  @views for n in 1:length(w1)
+    if w1[n] == jo[n]
       continue
     end
 
-    cij = Int(C[Int(i[n]), Int(jo[n])])
-    cji = Int(C[Int(jo[n]), Int(i[n])])
+    cij = Int(C[Int(w1[n]), Int(jo[n])])
+    cji = Int(C[Int(jo[n]), Int(w1[n])])
 
     # in all cases we need to move i[n] to the right of jj[n]
     # so that we can later apply the appropriate braid move
-    if !exchange!(W, i[n], jn[(n + 1):end])
+    if !exchange!(W, w1[n], jn[(n + 1):end])
       return nothing
     end
 
@@ -114,7 +114,7 @@ function _braid_moves(
         return nothing
       end
       # move i[n] to the right of jj[n+2]
-      if !exchange!(W, i[n], jn[(n + 3):end])
+      if !exchange!(W, w1[n], jn[(n + 3):end])
         return nothing
       end
     elseif cij == -3 || cji == -3
@@ -124,7 +124,7 @@ function _braid_moves(
         return nothing
       end
       # move i[n] to the right of jj[n+2]
-      if !exchange!(W, i[n], jn[(n + 3):end])
+      if !exchange!(W, w1[n], jn[(n + 3):end])
         return nothing
       end
       # move jj[n] to the right of jj[n+1]
@@ -132,7 +132,7 @@ function _braid_moves(
         return nothing
       end
       # move i[n] to the right of jj[n+2]
-      if !exchange!(W, i[n], jn[(n + 5):end])
+      if !exchange!(W, w1[n], jn[(n + 5):end])
         return nothing
       end
     end
@@ -151,9 +151,9 @@ function _braid_moves(
     if iseven(len)
       reverse!(jn[n:(n + len - 1)])
     else
-      jn[n] = i[n]
+      jn[n] = w1[n]
       jn[n + 1] = jn[n + 2]
-      jn[n + 2] = i[n]
+      jn[n + 2] = w1[n]
     end
     copy!(jo[n:end], jn[n:end])
   end
