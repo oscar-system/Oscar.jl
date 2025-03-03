@@ -50,11 +50,23 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :lie_algebra => dict[:data][:lie_algebra]
           )
         )
-        println(dict[:data][:construction_data])
+        const_data = dict[:data][:construction_data]
+        if haskey(const_data, :is_standard_module)
+          upgraded_dict[:_type][:params][:_is_standard_module] = Dict(:_type=>"Bool", :data => "true")
+        elseif haskey(const_data, :is_dual)
+          upgraded_dict[:_type][:params][:_is_dual] = const_data[:is_dual]
+        elseif haskey(const_data, :is_tensor_power)
+          upgraded_dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
+        elseif haskey(const_data, :is_direct_sum)
+          upgraded_dict[:_type][:params][:_is_direct_sum] = const_data[:is_direct_sum]
+        else
+          print(json(const_data, 2))
+          error("missed construction data")
+        end
       elseif type_name == "LinearLieAlgebra"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
