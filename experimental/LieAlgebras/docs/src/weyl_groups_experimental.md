@@ -11,6 +11,7 @@ This page is an addition to the documentation of [Weyl groups](@ref) with the ad
 
 ```@docs
 exchange!(::WeylGroup, ::Vector{UInt8}, ::Int)
+exchange!(W::WeylGroup, w::Vector{UInt8}, ::Int)
 braid_moves(::WeylGroup, ::Vector{UInt8}, ::Vector{UInt8})
 apply_braid_move!(::Vector{UInt8}, ::Tuple{Int, Int, Int})
 ```

@@ -1,5 +1,5 @@
 @doc raw"""
-    exchange!(W::WeylGroup, i::Int, w::Vector{UInt8}) -> Bool
+    exchange!(W::WeylGroup, i::UInt8, w::AbstractVector{UInt8}) -> Bool
 
 Return `true`, if `w` could be transformed into an equivalent word with `i` at the first position,
 otherwise `false`.
@@ -21,7 +21,7 @@ function exchange!(W::WeylGroup, i::UInt8, w::AbstractVector{UInt8})
 end
 
 @doc raw"""
-    exchange!(W::WeylGroup, w::Vector{UInt8}, i::Int) -> Bool
+    exchange!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8) -> Bool
 
 Return `true`, if `w` could be transformed into an equivalent word with `i` at the last position,
 otherwise `false`.
