@@ -74,11 +74,20 @@ end
 end
 
 
-@everywhere function component_of_kernel(deg, phi, prev_gens)
+@everywhere function component_of_kernel(deg, phi, prev_gens, jac)
 
   mon_basis = find_basis_in_degree(domain(phi), deg, prev_gens)
 
   if length(mon_basis) < 2
+    return MPolyDecRingElem[]
+  end
+
+  # find the indices of all variables involved in this component
+  supp = component_support(mon_basis)
+  
+  # check if the corresponding submatrix drops rank
+  # if it does not, then this component cannot contain any generator of the kernel
+  if rank(jac[:, supp]) == length(supp)
     return MPolyDecRingElem[]
   end
 
@@ -107,28 +116,40 @@ function jacobian_at_rand_point(phi, K::Field = GF(32003))
   fq_R = polynomial_ring(K, string.(gens(R)))[1]
 
   # randomly sample parameter values in the finite field
-  pt = [rand(KK) for i in gens(fq_R)]
+  pt = [rand(K) for _ in gens(fq_R)]
 
-  return matrix(KK, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
+  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
+end
+
+
+@everywhere function component_support(mon_basis)
+
+  supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
 end
 
 
 function components_of_kernel(d, phi)
   
-  Oscar.put_params(channels, phi)
-  A = max_grading(phi)[:, (ngens(codomain(phi))+1):end]
 
-  #
-  #A = vcat(matrix(ZZ, [[1 for i in 1:ncols(A)]]), A)
+  Oscar.put_params(channels, phi)
+
+  # Compute a maximal grading on the domain
+  A = max_grading(phi)[:, (ngens(codomain(phi))+1):end]
+  
+  # grade the domain 
   graded_dom = grade(domain(phi), A)[1]
   grA = grading_group(graded_dom)
   Oscar.put_params(channels, grA)
   Oscar.put_params(channels, graded_dom)
-      
+  
+  # grade the domain by the standard grading as well and compute the jacobian at a random point over a finite field
   total_deg_dom = grade(domain(phi), [1 for i in 1:ngens(domain(phi))])[1]
   phi = hom(graded_dom, codomain(phi), [phi(x) for x in gens(domain(phi))])
-  jac = jacobian_at_point(phi, [rand(KK) for i in codomain()])
+  jac = jacobian_at_rand_point(phi)
+  # currently throws an error which I think is due to the type of jac
+  Oscar.put_params(channels, jac)
 
+  # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
   for i in 1:d
@@ -144,7 +165,7 @@ function components_of_kernel(d, phi)
     results = pmap(component_of_kernel,
                     all_degs,
                     [phi for _ in all_degs] ,
-                    [prev_gens for _ in all_degs])
+                    [prev_gens for _ in all_degs], [jac for _ in all_degs])
     merge!(gens_dict, Dict(zip(all_degs, results)))
   end
 
