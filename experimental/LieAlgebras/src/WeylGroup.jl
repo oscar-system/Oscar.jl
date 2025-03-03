@@ -46,7 +46,7 @@ end
     braid_moves(W::WeylGroup, i::Vector{UInt8}, j::Vector{UInt8}) -> Vector{Tuple{Int,UInt8,Int,Int}}
 
 Return the braid moves required to transform the string `j` into `i` with respect to the Weyl group `W`.
-A braid move (n, len, dir) should be understood as follows:
+A braid move `(n, len, dir)` should be understood as follows:
 - `n` is the position where the braid move starts
 - `len` is the length of the braid move
 - `dir` is the direction of the braid move. If `len=2` or `len=3`, `dir` is `0` or `-1`.
@@ -159,6 +159,29 @@ function _braid_moves(
   end
 
   return mvs
+end
+
+@doc raw"""
+    apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int}) -> Vector{UInt8}
+
+Apply the braid move `mv` to the word `w` and return the result.
+If `mv` is not a valid braid move for `w`, the behaviour is arbitrary.
+See also [`braid_moves`](@ref).
+"""
+function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
+  i, len, _ = mv
+  if len == 2
+    w[i], w[i + 1] = w[i + 1], w[i]
+  elseif len == 3
+    w[i], w[i + 1], w[i + 2] = w[i + 1], w[i], w[i + 1]
+  elseif len == 4
+    w[i], w[i + 1], w[i + 2], w[i + 3] = w[i + 1], w[i], w[i + 1], w[i]
+  elseif len == 6
+    w[i], w[i + 1], w[i + 2], w[i + 3], w[i + 4], w[i + 5] = w[i + 1],
+    w[i], w[i + 1], w[i], w[i + 1],
+    w[i]
+  end
+  return w
 end
 
 @doc raw"""
