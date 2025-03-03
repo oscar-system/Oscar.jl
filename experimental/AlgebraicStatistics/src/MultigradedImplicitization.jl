@@ -100,6 +100,19 @@ function jacobian_at_point(phi, pt)
 end
 
 
+function jacobian_at_rand_point(phi, K::Field = GF(32003))
+
+  # remake codomain over finite field
+  R = codomain(phi)
+  fq_R = polynomial_ring(K, string.(gens(R)))[1]
+
+  # randomly sample parameter values in the finite field
+  pt = [rand(KK) for i in gens(fq_R)]
+
+  return matrix(KK, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
+end
+
+
 function components_of_kernel(d, phi)
   
   Oscar.put_params(channels, phi)
