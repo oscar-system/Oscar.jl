@@ -65,7 +65,10 @@ end
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
 
   @test is_quaternion_group(small_group(8, 4))
+  @test ! is_quaternion_group(small_group(12, 3))
   @test is_dicyclic_group(small_group(8, 4))
+  @test ! is_dicyclic_group(small_group(13, 1))
+
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)

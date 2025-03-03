@@ -863,7 +863,7 @@ of order $2^{k+1}, k \geq 2$, and `false` otherwise.
 julia> is_quaternion_group(small_group(8, 3))
 false
 
-julia> is_quaternion_group(small_group(8, 4))
+julia> is_quaternion_group(transitive_group(8, 5))
 true
 ```
 """
