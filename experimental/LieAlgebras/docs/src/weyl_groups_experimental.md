@@ -10,8 +10,8 @@ This page is an addition to the documentation of [Weyl groups](@ref) with the ad
 # Exchange lemma and Braid moves
 
 ```@docs
-exchange!(::WeylGroup, ::Vector{UInt8}, ::Int)
-exchange!(W::WeylGroup, w::Vector{UInt8}, ::Int)
+exchange!(::WeylGroup, ::Vector{UInt8}, ::UInt8)
+exchange!(::WeylGroup, ::UInt8, ::Vector{UInt8})
 braid_moves(::WeylGroup, ::Vector{UInt8}, ::Vector{UInt8})
 apply_braid_move!(::Vector{UInt8}, ::Tuple{Int, Int, Int})
 ```
