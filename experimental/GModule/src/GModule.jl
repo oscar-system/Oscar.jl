@@ -500,6 +500,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
   if d !== nothing && d*degree(k) == degree(base_ring(V))
     return V
   elseif d == -1
+#TODO: how could this happen?
     @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
     Vmin = gmodule_over(m, V)
     return Vmin
@@ -578,7 +579,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       ok = true
       lr = Vector{Pair{Int, Int}}[]
       for (p,d) = ld
-        if p == -1
+        if p == 0
           @assert d == 2
           if signature(m)[1] != 0
             ok = false
@@ -654,7 +655,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       LD = Dict{AbsSimpleNumFieldOrderIdeal, Int}()
       LI = Dict{AbsSimpleNumFieldEmbedding, Int}()
       for (p, d) = ld
-        if p == -1
+        if p == 0
           @assert d == 2
           if signature(k)[2] == 0
             for e = real_embeddings(k)

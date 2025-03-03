@@ -209,7 +209,7 @@ end
     local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{Int} = Int[])
 
 Return the array of pairs `p => m_p(chi)` such that `m_p(chi) > 1` holds.
-The Schur index over the real field is stored at `p = -1` if applicable.
+The Schur index over the real field is stored at `p = 0` if applicable.
 
 `cyclic_defect` contains primes `p` such that `chi` is known to belong to
 a `p`-block of cyclic defect.
