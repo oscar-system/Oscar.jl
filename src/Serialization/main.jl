@@ -237,6 +237,15 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
+                          tp::TypeParams{<:TypeParams, <:Tuple})
+  save_data_array(s) do 
+    for param in params(tp)
+      save_type_params(s, param)
+    end
+  end
+end
+
+function save_type_params(s::SerializerState,
                           tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -245,9 +254,22 @@ function save_type_params(s::SerializerState,
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeParams)
-          save_typed_object(s, param.second, Symbol(param.first))
+          if param.second isa Tuple
+            save_data_array(s, Symbol(param.first)) do
+              for entry in param.second
+                if serialize_with_id(entry)
+                  save_object(s, save_as_ref(s, entry))
+                else
+                  save_data_dict(s) do
+                    save_typed_object(s, entry)
+                  end
+                end
+              end
+            end
+          else
+            save_typed_object(s, param.second, Symbol(param.first))
+          end
         else
-          #param_tp = type_params(param.second)
           save_type_params(s, param.second, Symbol(param.first))
         end
       end
@@ -261,6 +283,17 @@ function load_type_params(s::DeserializerState, T::Type, key::Symbol)
   end
 end
 
+function load_type_array_params(s::DeserializerState)
+  load_array_node(s) do obj
+    T = decode_type(s)
+    if obj isa String
+      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+      return T
+    end
+    return load_type_params(s, T)[2]
+  end
+end
+
 function load_type_params(s::DeserializerState, T::Type)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
@@ -270,7 +303,9 @@ function load_type_params(s::DeserializerState, T::Type)
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa String || haskey(s, :params)
+      if obj isa JSON3.Array || obj isa Vector
+        params = load_type_array_params(s)
+      elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           params = U()
@@ -281,9 +316,13 @@ function load_type_params(s::DeserializerState, T::Type)
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
         for (k, _) in obj
-          params[k] = load_node(s, k) do _
+          params[k] = load_node(s, k) do obj
+            if obj isa JSON3.Array || obj isa Vector
+              return load_type_array_params(s)
+            end
+            
             U = decode_type(s)
-            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
+            if obj isa String && isnothing(tryparse(UUID, obj))
               return U
             end
             return load_type_params(s, U)[2]
@@ -710,7 +749,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER || file_version == v"1.3.0-DEV-ee9e219a6b211ab5baff71a98d162effd657584a" || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
+  if file_version < VERSION_NUMBER || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)

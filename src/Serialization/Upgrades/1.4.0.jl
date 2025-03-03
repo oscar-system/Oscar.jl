@@ -56,12 +56,43 @@ push!(upgrade_scripts_set, UpgradeScript(
 
       elseif type_name == "AbstractLieAlgebra"
         println(json(dict, 2))
+      elseif type_name == "LieAlgebraModule"
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :lie_algebra => dict[:data][:lie_algebra]
+          )
+        )
+        println(dict[:data][:construction_data])
+      elseif type_name == "LinearLieAlgebra"
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :base_ring => dict[:data][:base_ring]
+          ))
+      elseif type_name == "DirectSumLieAlgebra"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :base_ring => dict[:data][:base_ring],
+            :summands => dict[:data][:summands]
+          ))
+      elseif type_name == "AbstractLieAlgebra"
+        if haskey(dict[:data], :root_system)
+          upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :base_ring => dict[:data][:base_ring],
             :root_system => dict[:data][:root_system]
-        ))
+
+          ))
+        else
+          upgraded_dict[:_type] = Dict(
+            :name => dict[:_type],
+            :params => Dict(
+              :base_ring => dict[:data][:base_ring]
+            ))
+        end
         upgraded_dict[:attrs] = dict[:data][:attrs]
       elseif type_name in [
         "FracField", "LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"
@@ -205,6 +236,30 @@ push!(upgrade_scripts_set, UpgradeScript(
           :params => Dict(
             :basis => dict[:data][:basis][:_type],
             :ambient_space => dict[:data][:ambient_space]
+          )
+        )
+        upgraded_dict[:data] = dict[:data][:basis][:data]
+      elseif type_name == "QuadSpaceWithIsom"
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => Dict(
+            :order => dict[:data][:order][:_type],
+            :isom => dict[:data][:isom][:_type],
+            :quad_space => dict[:data][:quad_space]
+          )
+        )
+        if dict[:data][:order][:_type] == "Base.Int"
+          upgraded_dict[:data][:order] = dict[:data][:order][:data]
+        end
+        upgraded_dict[:data][:isom] = dict[:data][:isom][:data]
+        
+      elseif type_name == "ZZLatWithIsom"
+        quad_space = upgrade_1_4_0(s, dict[:data][:ambient_space])
+        upgraded_dict[:_type] = Dict(
+          :name => type_name,
+          :params => Dict(
+            :ambient_space => quad_space,
+            :basis => dict[:data][:basis][:_type],
           )
         )
         upgraded_dict[:data] = dict[:data][:basis][:data]
@@ -441,7 +496,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         "ZZRingElem",
         "WeightLatticeElem",
         "WeylGroupElem",
-        "ToricDivisorClass"
+        "ToricDivisorClass",
+        "AbstractLieAlgebraElem",
+        "DirectSumLieAlgebraElem",
+        "LieAlgebraModuleElem",
+        "LinearLieAlgebraElem"
         ]
         # do nothing
         
