@@ -141,7 +141,7 @@ function _braid_moves(
     # len = 3: compute how to get jj[n:end] into [jj[n], i[n], jj[n], ...]
     # len = 4: compute how to get jj[n:end] into [jj[n], i[n], jj[n], i[n], ...]
     # len = 6: compute how to get jj[n:end] into [jj[n], i[n], jj[n], i[n], jj[n], i[n], ...]
-    mvs2 = _braid_moves(W, jn[(n + 1):end], jo[(n + 1):end], n)
+    mvs2 = _braid_moves(W, jn[(n + 1):end], jo[(n + 1):end], n + offset)
     if isnothing(mvs2)
       return nothing
     end
