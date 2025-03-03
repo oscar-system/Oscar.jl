@@ -10,15 +10,15 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
+function FreeMod(R::AdmissibleModuleFPRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
-function FreeMod(R::Ring, names::Vector{String}; cached::Bool=false)
+function FreeMod(R::AdmissibleModuleFPRing, names::Vector{String}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
 end
 
-function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
+function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
@@ -34,7 +34,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> FR = free_module(R, 2)
 Free module of rank 2 over R
@@ -49,7 +49,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of R at complement of prime ideal (x, y, z)
+Free module of rank 2 over localization of R at complement of prime ideal (x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -65,7 +65,7 @@ x*g[1]
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL =  free_module(RQL, 2, "h")
-Free module of rank 2 over Localization of RQ at complement of prime ideal
+Free module of rank 2 over localization of RQ at complement of prime ideal
 
 julia> RQL(x)*FRQL[1]
 x*h[1]
@@ -75,6 +75,8 @@ free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false) = Fr
 free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+
+#free_module(R::NCRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - free_module(R, n)
@@ -106,8 +108,9 @@ end
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
+  io = pretty(io)
   compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
+  io = IOContext(io, :compact => true)
   if is_graded(F)
       if !compact
         print(io, "Graded free module ")
@@ -119,8 +122,8 @@ function show(io::IO, F::FreeMod)
           while i+j <= dim(F) && d == F.d[i+j]
               j += 1
           end
-          print(io_compact, base_ring(F), "^$j")
-          print(io_compact, "(", -d, ")")
+          print(io, base_ring(F), "^$j")
+          print(io, "(", -d, ")")
           if i+j <= dim(F)
               print(io, " + ")
           end
@@ -128,21 +131,21 @@ function show(io::IO, F::FreeMod)
       end
 
       if rank(F)==0
-        print(io_compact, base_ring(F), "^0")
+        print(io, base_ring(F), "^0")
       end
 
       if !compact
-          print(io," of rank $(rank(F)) over ")
-          print(io_compact, base_ring(F))
+          print(io," of rank $(rank(F)) over ", Lowercase())
+          print(io, base_ring(F))
       end
   else
       if !compact
           #Todo: Use once the printing of rings is fixed
-          #print(io_compact, "Free module ", base_ring(F), "^$(F.n) of rank $(F.n) over ")
-          print(io_compact, "Free module of rank $(F.n) over ")
-          print(io_compact, F.R)
+          #print(io, "Free module ", base_ring(F), "^$(F.n) of rank $(F.n) over ")
+          print(io, "Free module of rank $(rank(F)) over ", Lowercase())
+          print(io, F.R)
       else
-          print(io_compact, base_ring(F), "^$(F.n)")
+          print(io, base_ring(F), "^$(rank(F))")
       end
   end
 end
@@ -199,7 +202,7 @@ or else
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, [1,1,3,2]);
 
@@ -305,4 +308,68 @@ function ambient_representatives_generators(F::FreeMod)
 end
 
 rels(F::FreeMod) = elem_type(F)[]
+
+function syzygy_generators(
+    g::Vector{T};
+    parent::Union{<:FreeMod, Nothing}=nothing
+  ) where {T<:FreeModElem}
+  isempty(g) && return Vector{T}()
+  F = Oscar.parent(first(g))
+  @assert all(Oscar.parent(x) === F for x in g) "parent mismatch"
+  R = base_ring(F)
+  m = length(g)
+  G = (parent === nothing ?  FreeMod(R, m) : parent)::typeof(F)
+  @req ngens(G) == m "given parent does not have the correct number of generators"
+  phi = hom(G, F, g)
+  K, _ = kernel(phi)
+  return ambient_representatives_generators(K)
+end
+
+@doc raw"""
+    syzygy_generators(
+        a::Vector{T};
+        parent::Union{FreeMod{T}, Nothing} = nothing
+      ) where {T<:RingElem}
+
+Return generators for the syzygies on the polynomials given as elements of `a`.
+The optional keyword argument can be used to specify the parent of the output.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
+
+julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
+ (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
+ (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
+ (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
+```
+"""
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {T<:RingElem}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  F = FreeMod(R, 1)
+  return syzygy_generators(elem_type(F)[x*F[1] for x in a]; parent)
+end
+
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {CT <: Union{<:FieldElem, ZZRingElem, QQPolyRingElem}, # Can be adjusted to whatever is digested by Singular
+           T<:MPolyRingElem{CT}}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  I = ideal(R, a)
+  s = Singular.syz(singular_generators(I))
+  F = (parent === nothing ? FreeMod(R, length(a)) : parent)::FreeMod{T}
+  @req ngens(F) == length(a) "parent does not have the correct number of generators"
+  @assert rank(s) == length(a)
+  return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
+end
 

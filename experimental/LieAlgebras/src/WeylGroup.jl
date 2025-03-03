@@ -1,695 +1,292 @@
-# This file is based on an implementation from CoxeterGroups.jl by Ulrich Thiel (@ulthiel), Cameron Braunstein (@CameronBraunstein),
-# Joel Gibson (University of Sydney, @joelgibson), and Tom Schmit (@schto223)
-
-###############################################################################
-#
-#   Weyl Groups
-#
-###############################################################################
-
-@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
-  finite::Bool              # finite indicates whether the Weyl group is finite
-  refl::Matrix{UInt}        # see positive_roots_and_reflections
-  root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
-
-  function WeylGroup(finite::Bool, refl::Matrix{UInt}, root_system::RootSystem)
-    return new(finite, refl, root_system)
-  end
-end
-
-struct WeylGroupElem <: AbstractAlgebra.GroupElem
-  parent::WeylGroup     # parent group
-  word::Vector{UInt8}   # short revlex normal form of the word
-
-  function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
-    if !normalize
-      if word isa Vector{UInt8}
-        return new(W, word)
-      else
-        return new(W, UInt8.(word))
-      end
-    end
-
-    @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
-    x = new(W, sizehint!(UInt8[], length(word)))
-    for s in Iterators.reverse(word)
-      lmul!(x, s)
-    end
-
-    return x
-  end
-end
-
-const WeylIteratorNoCopyState = Tuple{WeightLatticeElem,WeylGroupElem}
-
 @doc raw"""
-    weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
+    FPGroup(W::WeylGroup) -> FPGroup
+    fp_group(W::WeylGroup) -> FPGroup
 
-Returns the Weyl group defined by a generalized Cartan matrix `cartan_matrix`.
+Construct a group of type `FPGroup` that is isomorphic to `W`.
+
+If one needs the isomorphism then [`isomorphism(::Type{FPGroup}, W::WeylGroup)`](@ref)
+can be used instead.
 """
-function weyl_group(cartan_matrix::ZZMatrix)
-  return weyl_group(root_system(cartan_matrix))
+function FPGroup(W::WeylGroup)
+  return codomain(isomorphism(FPGroup, W))
 end
 
 @doc raw"""
-    weyl_group(fam::Symbol, rk::Int) -> WeylGroup
+    PermGroup(W::WeylGroup) -> PermGroup
+    permutation_group(W::WeylGroup) -> PermGroup
 
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+Construct a group of type `PermGroup` that is isomorphic to `W`.
+
+If one needs the isomorphism then [`isomorphism(::Type{PermGroup}, W::WeylGroup)`](@ref)
+can be used instead.
+"""
+function PermGroup(W::WeylGroup)
+  return codomain(isomorphism(PermGroup, W))
+end
+
+fp_group(W::WeylGroup) = FPGroup(W)
+permutation_group(W::WeylGroup) = PermGroup(W)
+
+@doc raw"""
+    isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
+
+Return an isomorphism from `W` to a group `H` of type `FPGroup`.
+
+`H` will be the quotient of a free group with the same rank as `W`,
+where we have the natural 1-to-1 correspondence of generators, modulo the Coxeter relations of `W`.
+
+Isomorphisms are cached in `W`, subsequent calls of `isomorphism(FPGroup, W)` yield identical results.
+
+If only the image of such an isomorphism is needed, use `fp_group(W)`.
+"""
+function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=true)
+  on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
+  isos =
+    get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
+  return get!(isos, (T, on_gens)) do
+    G = _isomorphic_group_on_gens(T, W)
+
+    # help GAP a bit
+    set_is_finite(G, is_finite(W))
+    is_finite(W) && set_order(G, order(W))
+
+    iso = function (w::WeylGroupElem)
+      return G(syllables(w)) # TODO: change to letters once G supports that input
+    end
+
+    isoinv = function (g::FPGroupElem)
+      return W(abs.(letters(g)))
+    end
+
+    return MapFromFunc(W, G, iso, isoinv)
+  end::MapFromFunc{WeylGroup,T}
+end
+
+# Constructs the same object as `fp_group(W) === codomain(isomorphism(FPGroup, W))`
+# but without setting GAP attributes, creating the iso functions, and caching.
+# We use this function during testing as setting GAP attributes may skip
+# some computations and thus make the tests less meaningful.
+function _isomorphic_group_on_gens(::Type{FPGroup}, W::WeylGroup)
+  R = root_system(W)
+  F = free_group(rank(R))
+
+  gcm = cartan_matrix(R)
+  rels = [
+    (gen(F, i) * gen(F, j))^coxeter_matrix_entry_from_cartan_matrix(gcm, i, j) for
+    i in 1:rank(R) for j in i:rank(R)
+  ]
+
+  G, _ = quo(F, rels)
+  return G
+end
+
+@doc raw"""
+    isomorphism(::Type{PermGroup}, W::WeylGroup) -> Map{WeylGroup, PermGroup}
+
+Return an isomorphism from `W` to a group `H` of type `PermGroup`.
+An exception is thrown if no such isomorphism exists.
+
+The generators of `H` are in the natural 1-1 correspondence with the generators of `W`.
+
+If the type of `W` is irreducible and not $E_6$ or $E_7$, then the degree of `H` is optimal.
+See [Sau14](@cite) for the optimal permutation degrees of Weyl groups.
+
+Isomorphisms are cached in `W`, subsequent calls of `isomorphism(PermGroup, W)` yield identical results.
+
+If only the image of such an isomorphism is needed, use `permutation_group(W)`.
+"""
+function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=true)
+  on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
+  isos =
+    get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
+  return get!(isos, (T, on_gens)) do
+    G = _isomorphic_group_on_gens(T, W)
+
+    # help GAP a bit
+    set_order(G, order(W))
+
+    # Create a homomorphism mapping gens(W) to gen_G.
+    # This is a workaround until hom works for Weyl groups.
+    epi = epimorphism_from_free_group(G)
+
+    iso = function (w::WeylGroupElem)
+      map_word(w, gens(G); init=one(G))
+    end
+
+    isoinv = function (p::PermGroupElem)
+      rep_word = abs.(word(preimage(epi, p))) # `abs` may be used as all gens of W are self-inverse
+      return W(rep_word)
+    end
+
+    return MapFromFunc(W, G, iso, isoinv)
+  end::MapFromFunc{WeylGroup,T}
+end
+
+# Constructs the same object as `permutation_group(W) === codomain(isomorphism(PermGroup, W))`
+# but without setting GAP attributes, creating the iso functions, and caching.
+# We use this function during testing as setting GAP attributes may skip
+# some computations and thus make the tests less meaningful.
+function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
+  @req is_finite(W) "Weyl group is not finite"
+  R = root_system(W)
+  type, ordering = root_system_type_with_ordering(R)
+
+  if length(type) != 1
+    error("Not implemented (yet)")
+  end
+
+  # Compute generators of the permutation group to which the simple reflections are mapped.
+  # These generators correspond to the sorted ordering. They will later be reordered.
+  coxeter_type, n = only(type)
+  if coxeter_type == :A
+    Sym = symmetric_group(n + 1)
+    gen_G = [cperm(Sym, [i, i + 1]) for i in 1:n]
+  elseif coxeter_type == :B || coxeter_type == :C
+    Sym = symmetric_group(2n)
+    gen_G = vcat(
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)], cperm(Sym, [n, 2n])
+    )
+  elseif coxeter_type == :D
+    Sym = symmetric_group(2n)
+    gen_G = vcat(
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+      cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
+    )
+  elseif coxeter_type == :E
+    # Permutation representation on the root system. The permutation degree is not optimal for E_6 and E_7.
+    m = number_of_roots(R)
+    Sym = symmetric_group(m)
+    gen_G = [
+      perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n
+    ]
+  elseif coxeter_type == :F
+    Sym = symmetric_group(24)
+    #! format: off
+    gen_G = [ # Computed by hand
+      perm(Sym, [1, 2, 5, 4, 3, 7, 6, 9, 8, 10, 11, 12, 13, 14, 17, 16, 15, 19, 18, 21, 20, 22, 23, 24]),
+      perm(Sym, [3, 2, 1, 6, 5, 4, 7, 8, 10, 9, 11, 12, 15, 14, 13, 18, 17, 16, 19, 20, 22, 21, 23, 24]),
+      perm(Sym, [13, 4, 3, 2, 5, 8, 9, 6, 7, 11, 10, 12, 1, 16, 15, 14, 17, 20, 21, 18, 19, 23, 22, 24]),
+      perm(Sym, [4, 14, 6, 1, 7, 3, 5, 8, 9, 10, 12, 11, 16, 2, 18, 13, 19, 15, 17, 20, 21, 22, 24, 23]),
+    ]
+    #! format: on
+  elseif coxeter_type == :G
+    Sym = symmetric_group(5)
+    gen_G = [cperm(Sym, [1, 2], [3, 5]), cperm(Sym, [4, 5])] # gen_G[1]*gen_G[2] = cperm([1,2], [3,4,5])
+  end
+
+  # Reorder generators
+  # (Details: simple_roots(R)[ordering] is in canonical ordering.
+  # s = sortperm(ordering) is the inverse of the corresponding permutation.
+  # Hence (gen_G[s])[i] is the image of gen(W, i).)
+  gen_G = gen_G[sortperm(ordering)]
+  G, _ = sub(Sym, gen_G)
+  return G
+end
+
+@doc raw"""
+    parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupElem=one(W)) -> WeylGroup, Map{WeylGroup, WeylGroup}
+
+Return a Weyl group `P` and an embedding $f:P\to W$ such that $f(P)$ is
+the subgroup `U` of `W` generated by `[inv(w)*u*w for u in gens(W)[vec]]`.
+Further, `f` maps `gen(P, i)` to `inv(w)*gen(W, vec[i])*w`.
+The elements of `vec` must be pairwise distinct integers in
+`1:number_of_generators(W)` and `vec` must be non-empty.
 
 # Examples
 ```jldoctest
-julia> weyl_group(:A, 2)
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+julia> W = weyl_group(:B, 3)
+Weyl group
+  of root system of rank 3
+    of type B3
+
+julia> P1, f1 = parabolic_subgroup(W, [1, 2])
+(Weyl group of root system of type A2, Map: P1 -> W)
+
+julia> f1(P1[1] * P1[2]) == W[1] * W[2]
+true
+
+julia> P2, f2 = parabolic_subgroup(W, [1, 2], W[1])
+(Weyl group of root system of type A2, Map: P2 -> W)
+
+julia> f2(P2[1]) == W[1] && f2(P2[2]) == W[1] * W[2] * W[1]
+true
+
+julia> P3, f3 = parabolic_subgroup(W, [1,3,2])
+(Weyl group of root system of type B3 (non-canonical ordering), Map: P3 -> W)
+
+julia> f3(P3[2]) == W[3]
+true
 ```
 """
-function weyl_group(fam::Symbol, rk::Int)
-  return weyl_group(root_system(fam, rk))
-end
-
-@doc raw"""
-    weyl_group(type::Vector{Tuple{Symbol,Int}}) -> WeylGroup
-
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
-"""
-function weyl_group(type::Vector{Tuple{Symbol,Int}})
-  return weyl_group(root_system(type))
-end
-
-@doc raw"""
-    weyl_group(type::Tuple{Symbol,Int}...) -> WeylGroup
-
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
-"""
-function weyl_group(type::Tuple{Symbol,Int}...)
-  return weyl_group(root_system(collect(type)))
-end
-
-@doc raw"""
-    (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
-"""
-function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
-  return WeylGroupElem(W, word; normalize=normalize)
-end
-
-function Base.IteratorSize(::Type{WeylGroup})
-  return Base.SizeUnknown()
-end
-
-function Base.eltype(::Type{WeylGroup})
-  return WeylGroupElem
-end
-
-function Base.iterate(W::WeylGroup)
-  state = (weyl_vector(root_system(W)), one(W))
-  return one(W), state
-end
-
-function Base.iterate(W::WeylGroup, state::WeylIteratorNoCopyState)
-  state = _iterate_nocopy(state)
-  if isnothing(state)
-    return nothing
+function parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupElem=one(W))
+  @req allunique(vec) "Elements of vector are not pairwise distinct"
+  @req all(i -> 1 <= i <= number_of_generators(W), vec) "Invalid indices"
+  cm = cartan_matrix(W)[vec, vec]
+  para = weyl_group(cm)
+  genimgs = [conj(W[i], w) for i in vec]
+  emb = function (u::WeylGroupElem)
+    return map_word(u, genimgs)
   end
-
-  return deepcopy(state[2]), state
+  return para, MapFromFunc(para, W, emb)
 end
 
 @doc raw"""
-    isfinite(W::WeylGroup) -> Bool
+    parabolic_subgroup_with_projection(W::WeylGroup, vec::Vector{<:Integer}; check::Bool=true) -> WeylGroup, Map{WeylGroup, WeylGroup}, Map{WeylGroup, WeylGroup}
+
+Return a triple `(P, emb, proj)` that describes a factor of `W`, that is,
+a product of irreducible factors.
+Here `P, emb = `[`parabolic_subgroup`](@ref)`(W, vec)`
+and `proj` is the projection map from `W` onto `P`,
+which is a left-inverse of `emb`.
+
+If `check = true`, then it is checked whether `vec` actually describes
+a union of irreducible components of the Dynkin diagram.
+
+# Examples
+```jldoctest
+julia> W = weyl_group([(:A, 3), (:B, 3)])
+Weyl group
+  of root system of rank 6
+    of type A3 x B3
+
+julia> P1, f1, p1 = parabolic_subgroup_with_projection(W, [1,2,3])
+(Weyl group of root system of type A3, Map: P1 -> W, Map: W -> P1)
+
+julia> p1(W[1]*W[4]*W[2]*W[6]) == P1[1] * P1[2]
+true
+
+julia> P2, f2, p2 = parabolic_subgroup_with_projection(W, [4,6,5])
+(Weyl group of root system of type B3 (non-canonical ordering), Map: P2 -> W, Map: W -> P2)
+
+julia> p2(W[5]) == P2[3]
+true
+```
 """
-function is_finite(W::WeylGroup)
-  return W.finite
-end
-
-@doc raw"""
-    one(W::WeylGroup) -> WeylGroupElem
-"""
-function Base.one(W::WeylGroup)
-  return W(UInt8[]; normalize=false)
-end
-
-function Base.show(io::IO, W::WeylGroup)
-  @show_name(io, W)
-  @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
-end
-
-function coxeter_matrix(W::WeylGroup)
-  return cartan_to_coxeter_matrix(cartan_matrix(root_system(W)))
-end
-
-function elem_type(::Type{WeylGroup})
-  return WeylGroupElem
-end
-
-@doc raw"""
-    gen(W::WeylGroup, i::Int) -> WeylGroupElem
-
-Returns the `i`th simple reflection (with respect to the underlying root system) of `W`.
-"""
-function gen(W::WeylGroup, i::Integer)
-  @req 1 <= i <= ngens(W) "invalid index"
-  return W(UInt8[i]; normalize=false)
-end
-
-@doc raw"""
-    gens(W::WeylGroup) -> WeylGroupElem
-
-Returns the simple reflections (with respect to the underlying root system) of `W`.
-"""
-function gens(W::WeylGroup)
-  return [gen(W, i) for i in 1:ngens(W)]
-end
-
-@doc raw"""
-    longest_element(W::WeylGroup) -> WeylGroupElem
-
-Returns the unique longest element of `W`.
-"""
-function longest_element(W::WeylGroup)
-  @req is_finite(W) "$W is not finite"
-
-  _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
-  return w0
-end
-
-@doc raw"""
-    number_of_generators(W::WeylGroup) -> Int
-
-Returns the number of generators of the `W`, i.e. the rank of the underyling root system.
-"""
-function number_of_generators(W::WeylGroup)
-  return rank(root_system(W))
-end
-
-@doc raw"""
-    order(::Type{T}, W::WeylGroup) where {T} -> T
-
-Returns the order of `W`.
-"""
-function order(::Type{T}, W::WeylGroup) where {T}
-  if !is_finite(W)
-    throw(InfiniteOrderError(W))
-  end
-
-  ord = T(1)
-  for (fam, rk) in root_system_type(root_system(W))
-    if fam == :A
-      ord *= T(factorial(rk + 1))
-    elseif fam == :B || fam == :C
-      ord *= T(2^rk * factorial(rk))
-    elseif fam == :D
-      ord *= T(2^(rk - 1) * factorial(rk))
-    elseif fam == :E
-      if rk == 6
-        ord *= T(51840)
-      elseif rk == 7
-        ord *= T(2903040)
-      elseif rk == 8
-        ord *= T(696729600)
-      end
-    elseif fam == :F
-      ord *= T(1152)
-    else
-      ord *= T(12)
-    end
-  end
-
-  return ord
-end
-
-@doc raw"""
-    root_system(W::WeylGroup) -> RootSystem
-
-Returns the underlying root system of `W`.
-"""
-function root_system(W::WeylGroup)
-  return W.root_system
-end
-
-###############################################################################
-# Weyl group elements
-
-function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
-  @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
-
-  p = deepcopy(y)
-  for s in Iterators.reverse(word(x))
-    lmul!(p, s)
-  end
-  return p
-end
-
-function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
-  @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
-
-  w2 = deepcopy(w)
-  for s in Iterators.reverse(x.word)
-    reflect!(w2, Int(s))
-  end
-
-  return w2
-end
-
-# to be removed once GroupCore is supported
-function Base.:(^)(x::WeylGroupElem, n::Int)
-  if n == 0
-    return one(parent(x))
-  elseif n < 0
-    return inv(x)^(-n)
-  end
-
-  px = deepcopy(x)
-  for _ in 2:n
-    for s in Iterators.reverse(x.word)
-      lmul!(px, s)
-    end
-  end
-
-  return px
-end
-
-@doc raw"""
-    <(x::WeylGroupElem, y::WeylGroupElem) -> Bool
-
-Returns whether `x` is smaller than `y` with respect to the Bruhat order,
-i.e., whether some (not necessarily connected) subexpression of a reduced
-decomposition of `y`, is a reduced decomposition of `x`.
-"""
-function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
-  @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
-
-  if length(x) >= length(y)
-    return false
-  elseif isone(x)
-    return true
-  end
-
-  tx = deepcopy(x)
-  for i in 1:length(y)
-    b, j, _ = explain_lmul(tx, y[i])
-    if !b
-      deleteat!(word(tx), j)
-      if isone(tx)
-        return true
+function parabolic_subgroup_with_projection(
+  W::WeylGroup, vec::Vector{<:Integer}; check::Bool=true
+)
+  if check
+    # Check that every generator in gens(W)[vec] commutes with every other generator.
+    # In other words, vec describes a union of irreducible components of the Coxeter diagram.
+    cm = cartan_matrix(W)
+    for i in setdiff(1:number_of_generators(W), vec)
+      for j in vec
+        @req is_zero_entry(cm, i, j) begin
+          "Input vector must describe a direct factor of the Weyl group"
+        end
       end
     end
-
-    if length(tx) > length(y) - i
-      return false
-    end
   end
 
-  return false
-end
-
-function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
-  return x.parent === y.parent && x.word == y.word
-end
-
-function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
-  if haskey(dict, x)
-    return dict[x]
+  factor, emb = parabolic_subgroup(W, vec)
+  # Generators of W are mapped to the corresponding generators of factor,
+  # or to 1 if there is no corresponding generator
+  proj_gen_imgs = fill(one(factor), ngens(W))
+  for i in 1:length(vec)
+    proj_gen_imgs[vec[i]] = gen(factor, i)
   end
-
-  y = parent(x)(deepcopy_internal(word(x), dict); normalize=false)
-  dict[x] = y
-  return y
-end
-
-@doc raw"""
-    getindex(x::WeylGroupElem, i::Int) -> UInt8
-
-Returns the index of simple reflection at the `i`th position in the normal form of `x`.
-"""
-function Base.getindex(x::WeylGroupElem, i::Int)
-  return word(x)[i]
-end
-
-function Base.hash(x::WeylGroupElem, h::UInt)
-  b = 0x80f0abce1c544784 % UInt
-  h = hash(x.parent, h)
-  h = hash(x.word, h)
-
-  return xor(h, b)
-end
-
-@doc raw"""
-    inv(x::WeylGroupElem) -> WeylGroupElem
-
-Returns the inverse of `x`.
-"""
-function Base.inv(x::WeylGroupElem)
-  y = parent(x)(sizehint!(UInt8[], length(x)); normalize=false)
-  for s in word(x)
-    lmul!(y, s)
+  proj = function (w::WeylGroupElem)
+    return map_word(w, proj_gen_imgs)
   end
-  return y
-end
-
-@doc raw"""
-    isone(x::WeylGroupElem) -> Bool
-
-Returns whether `x` is the identity.
-"""
-function Base.isone(x::WeylGroupElem)
-  return isempty(word(x))
-end
-
-@doc raw"""
-    length(x::WeylGroupElem) -> Int
-
-Returns the length of `x`.
-"""
-function Base.length(x::WeylGroupElem)
-  return length(word(x))
-end
-
-@doc raw"""
-    parent(x::WeylGroupElem) -> WeylGroup
-
-Returns the Weyl group that `x` is an element of.
-"""
-function Base.parent(x::WeylGroupElem)
-  return x.parent
-end
-
-@doc raw"""
-    rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
-
-Returns a random element of the Weyl group. The elements are not uniformally distributed.
-"""
-function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
-  W = rs[]
-  return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
-end
-
-function Base.show(io::IO, x::WeylGroupElem)
-  @show_name(io, x)
-  @show_special_elem(io, x)
-  if length(x.word) == 0
-    print(io, "id")
-  else
-    print(io, join(Iterators.map(i -> "s$i", x.word), " * "))
-  end
-end
-
-@doc raw"""
-    lmul(x::WeylGroupElem, i::Integer) -> WeylGroupElem
-
-Returns the result of multiplying `x` from the left by the `i`th simple reflection.
-"""
-function lmul(x::WeylGroupElem, i::Integer)
-  return lmul!(deepcopy(x), i)
-end
-
-@doc raw"""
-    lmul!(x::WeylGroupElem, i::Integer) -> WeylGroupElem
-
-Returns the result of multiplying `x` in place from the left by the `i`th simple reflection.
-"""
-function lmul!(x::WeylGroupElem, i::Integer)
-  b, j, r = explain_lmul(x, i)
-  if b
-    insert!(word(x), j, r)
-  else
-    deleteat!(word(x), j)
-  end
-
-  return x
-end
-
-# explains what multiplication of s_i from the left will do.
-# Returns a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
-# the second entry is the position, and the third is the simple root.
-function explain_lmul(x::WeylGroupElem, i::Integer)
-  @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
-
-  insert_index = 1
-  insert_letter = UInt8(i)
-
-  root = insert_letter
-  for s in 1:length(x)
-    if x[s] == root
-      return false, s, x[s]
-    end
-
-    root = parent(x).refl[Int(x[s]), Int(root)]
-    if iszero(root)
-      # r is no longer a minimal root, meaning we found the best insertion point
-      return true, insert_index, insert_letter
-    end
-
-    # check if we have a better insertion point now. Since word[i] is a simple
-    # root, if root < word[i] it must be simple.
-    if root < x[s]
-      insert_index = s + 1
-      insert_letter = UInt8(root)
-    end
-  end
-
-  return true, insert_index, insert_letter
-end
-
-function parent_type(::Type{WeylGroupElem})
-  return WeylGroup
-end
-
-# rename to reduced decompositions ?
-function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
-  return ReducedExpressionIterator(x, up_to_commutation)
-end
-
-@doc raw"""
-    word(x::WeylGroupElem) -> Vector{UInt8}
-"""
-function word(x::WeylGroupElem)
-  return x.word
-end
-
-###############################################################################
-# ReducedExpressionIterator
-
-struct ReducedExpressionIterator
-  el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
-  #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
-  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
-end
-
-function Base.IteratorSize(::Type{ReducedExpressionIterator})
-  return Base.SizeUnknown()
-end
-
-function Base.eltype(::Type{ReducedExpressionIterator})
-  return Vector{UInt8}
-end
-
-function Base.iterate(iter::ReducedExpressionIterator)
-  w = deepcopy(word(iter.el))
-  return w, w
-end
-
-function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
-  rk = rank(root_system(parent(iter.el)))
-
-  # we need to copy word; iterate behaves differently when length is (not) known
-  next = deepcopy(word)
-  weight = reflect!(weyl_vector(root_system(parent(iter.el))), Int(next[1]))
-
-  i = 1
-  s = rk + 1
-  while true
-    # search for new simple reflection to add to the word
-    while s <= rk && weight.vec[s] > 0
-      s += 1
-    end
-
-    if s == rk + 1
-      i += 1
-      if i == length(next) + 1
-        return nothing
-      elseif i == 1
-        return next, next
-      end
-
-      # revert last reflection and continue with next one
-      s = Int(next[i])
-      reflect!(weight, s)
-      s += 1
-    else
-      if iter.up_to_commutation &&
-        i < length(word) &&
-        s < next[i + 1] &&
-        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i + 1]))
-        s += 1
-        continue
-      end
-
-      next[i] = UInt8(s)
-      reflect!(weight, s)
-      i -= 1
-      s = 1
-    end
-  end
-end
-
-###############################################################################
-# WeylIteratorNoCopy
-
-# Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
-# or analogously over all elements in the quotient W/W_P
-# The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
-# this choice is made to align with conjugate_dominant_weight_with_elem
-struct WeylIteratorNoCopy
-  weight::WeightLatticeElem # dominant weight
-  weyl_group::WeylGroup
-
-  function WeylIteratorNoCopy(wt::WeightLatticeElem)
-    return new(conjugate_dominant_weight(wt), weyl_group(root_system(wt)))
-  end
-end
-
-function Base.IteratorSize(::Type{WeylIteratorNoCopy})
-  return Base.SizeUnknown()
-end
-
-function Base.eltype(::Type{WeylIteratorNoCopy})
-  return WeylIteratorNoCopyState
-end
-
-function Base.iterate(iter::WeylIteratorNoCopy)
-  state = deepcopy(iter.weight), one(iter.weyl_group)
-  return state, state
-end
-
-# based on [Ste01], 4.C and 4.D
-function Base.iterate(iter::WeylIteratorNoCopy, state::WeylIteratorNoCopyState)
-  state = _iterate_nocopy(state)
-  if isnothing(state)
-    return nothing
-  end
-  return state, state
-end
-
-function _iterate_nocopy(state::WeylIteratorNoCopyState)
-  wt, path = state[1], word(state[2])
-  R = root_system(wt)
-
-  ai = isempty(path) ? UInt8(0) : path[end]
-  # compute next descendant index
-  di = UInt8(0)
-  while true
-    di = next_descendant_index(Int(ai), Int(di), wt)
-    if !iszero(di)
-      break
-    elseif isempty(path)
-      return nothing
-    elseif iszero(di)
-      reflect!(wt, Int(ai))
-      di = pop!(path)
-      ai = isempty(path) ? UInt8(0) : path[end]
-    end
-  end
-
-  push!(path, di)
-  reflect!(wt, Int(di))
-  return state
-end
-
-# based on [Ste01], 4.D
-function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
-  if iszero(ai)
-    for j in (di + 1):rank(root_system(wt))
-      if !iszero(wt[j])
-        return j
-      end
-    end
-    return 0
-  end
-
-  for j in (di + 1):(ai - 1)
-    if !iszero(wt[j])
-      return j
-    end
-  end
-
-  for j in (max(ai, di) + 1):rank(root_system(wt))
-    if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
-      continue
-    end
-
-    ok = true
-    for k in ai:(j - 1)
-      if reflect(wt, j)[k] < 0
-        ok = false
-        break
-      end
-    end
-    if ok
-      return j
-    end
-  end
-
-  return 0
-end
-
-###############################################################################
-# WeylOrbitIterator
-
-struct WeylOrbitIterator
-  nocopy::WeylIteratorNoCopy
-
-  function WeylOrbitIterator(wt::WeightLatticeElem)
-    return new(WeylIteratorNoCopy(wt))
-  end
-end
-
-@doc raw"""
-    weyl_orbit(wt::WeightLatticeElem)
-
-Returns an iterator over the Weyl group orbit at the weight `wt`.
-"""
-function weyl_orbit(wt::WeightLatticeElem)
-  return WeylOrbitIterator(wt)
-end
-
-@doc raw"""
-    weyl_orbit(R::RootSystem, vec::Vector{<:Integer})
-
-Shorthand for `weyl_orbit(WeightLatticeElem(R, vec))`.
-"""
-function weyl_orbit(R::RootSystem, vec::Vector{<:Integer})
-  return weyl_orbit(WeightLatticeElem(R, vec))
-end
-
-@doc raw"""
-    weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
-
-Shorthand for `weyl_orbit(root_system(R), vec)`.
-"""
-function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
-  return weyl_orbit(root_system(W), vec)
-end
-
-function Base.IteratorSize(::Type{WeylOrbitIterator})
-  return Base.IteratorSize(WeylIteratorNoCopy)
-end
-
-function Base.eltype(::Type{WeylOrbitIterator})
-  return WeightLatticeElem
-end
-
-function Base.iterate(iter::WeylOrbitIterator)
-  (wt, _), data = iterate(iter.nocopy)
-  # wt is already a copy, so here we don't need to make one
-  return wt, data
-end
-
-function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
-  it = iterate(iter.nocopy, state)
-  if isnothing(it)
-    return nothing
-  end
-
-  (wt, _), state = it
-  return deepcopy(wt), state
+  return factor, emb, MapFromFunc(W, factor, proj)
 end

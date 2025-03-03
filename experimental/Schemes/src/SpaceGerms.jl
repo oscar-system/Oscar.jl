@@ -89,9 +89,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-## TODO: change dim(spec(R)) to dim(R) as soon as the fixes for dim have
-## been moved to the algebra side!!!!
-      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -103,7 +101,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -141,7 +139,7 @@ to `p. Then the representative `Y = Spec R/I` is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -200,7 +198,7 @@ Return the point `p` of a germ `(X,p)`, where p is specified
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -246,7 +244,7 @@ to `p. Then the ambient germ `Spec U^{-1}R` is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -281,7 +279,7 @@ Return the (fixed) defining element(s) of the ideal of `X` in the ring of the am
 Caution: This command is not exported and is only provided for convenience in programming.
 # Examples:
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -318,7 +316,7 @@ exception results.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = QQ["x","y"]
+julia> R, (x, y) = QQ[:x, :y]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x-1,y-3])
@@ -444,7 +442,7 @@ end
     HypersurfaceGerm(X::AbsAffineScheme, I:Ideal)
     HypersurfaceGerm(A::LocalRing)
 
-Checks that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
+Check that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
 point `p` and returns the hypersurface germ `(X,p)` from `X` in the affirmative case, where `p`
 may be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -527,7 +525,7 @@ end
     CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
     CompleteIntersectionGerm(X::AbsAffineScheme, I:Ideal)
 
-Checks that `X` represents a complete intersection germ at the given point `p` and returns
+Check that `X` represents a complete intersection germ at the given point `p` and returns
 the complete intersection germ `(X,p)` from `X` in the affirmative case, where `p` may
 be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -562,12 +560,9 @@ function CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Uni
   U = MPolyComplementOfKPointIdeal(R,b)
   L,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
-## TODO: Should be dim(L) and not dim(spec(L)), but dim for localized
-## quotients is only repaired on the geometric side as of now!!!
-  AffineSchemeL = spec(L)
-  length(mingens) == dim(R) - dim(AffineSchemeL) || error("not a complete intersection")
+  length(mingens) == dim(R) - dim(L) || error("not a complete intersection")
   w = mingens
-  Y = CompleteIntersectionGerm(AffineSchemeL,w)
+  Y = CompleteIntersectionGerm(spec(L),w)
   set_attribute!(Y,:representative,X)
   return Y
 end
@@ -1140,7 +1135,7 @@ function milnor_number(X::CompleteIntersectionGerm)
         dims = dims + sign * dtemp         ## contribute to alternating sum
         sign = -sign
         push!(w,f)                          ## put f in 'used' list
-        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        deleteat!(v, findfirst(==(f), v)) ## remove f from 'unused' list
         found = true
         break
       end
@@ -1165,7 +1160,7 @@ function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   g = shift(f)
 
   ## compute the appropriate summand in the Le-Greuel formula
-  ## for the (lenght(w))-th contribution with specified choice
+  ## for the (length(w))-th contribution with specified choice
   I = ideal(R,w)
   push!(w,g)
   n = nvars(R)
@@ -1220,7 +1215,7 @@ function milnor_number(X::AffineScheme{<:Field,<:MPolyQuoRing})
         dims = dims + sign * dtemp         ## alternating sum
         sign = -sign
         push!(w,f)                          ## put f in 'used' list
-        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        deleteat!(v, findfirst(==(f), v)) ## remove f from 'unused' list
         found = true
         break
       end
@@ -1239,7 +1234,7 @@ function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
   all(a-> parent(a) == R,v) || error("base rings do not match")
 
   ## compute the appropriate step in the Le-Greuel formula
-  ## for the (lenght(w))-th contribution
+  ## for the (length(w))-th contribution
   I = ideal(R,v)
   bla = copy(v)
   push!(bla,f)

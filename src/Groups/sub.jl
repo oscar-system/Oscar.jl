@@ -33,8 +33,7 @@ julia> H == alternating_group(4)
 true
 ```
 """
-function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
-  @assert elem_type(G) == S
+function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = true)
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
@@ -68,7 +67,7 @@ false
 """
 function is_subset(H::GAPGroup, G::GAPGroup)
    _check_compatible(H, G, error = false) || return false
-   return all(h -> h in G, gens(H))
+   return all(in(G), gens(H))
 end
 
 """
@@ -158,15 +157,7 @@ end
 
 # convert a GAP list of subgroups into a vector of Julia groups objects
 function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
-  res = Vector{T}(undef, length(subs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
-  end
-  return res
-end
-
-function _as_subgroups(G::PcGroup, subs::GapObj)
-  res = Vector{SubPcGroup}(undef, length(subs))
+  res = Vector{sub_type(T)}(undef, length(subs))
   for i = 1:length(res)
     res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
   end
@@ -1167,7 +1158,7 @@ julia> derived_length(dihedral_group(8))
 
 If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
-together with the embeddings of $K into $G_i$.
+together with the embeddings of $K$ into $G_i$.
 """
 function intersect(G1::GAPGroup, V::GAPGroup...)
    return intersect([G1, V...])

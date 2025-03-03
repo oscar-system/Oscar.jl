@@ -59,7 +59,7 @@ end
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: FinGenAbGroup
    @req is_subgroup(H, G)[1] "H must be a subgroup of G"
-   f = count(x -> x == 0, snf(G)[1].snf) - count(x -> x == 0, snf(H)[1].snf)
+   f = count(is_zero, snf(G)[1].snf) - count(is_zero, snf(H)[1].snf)
    @req f == 0 "index is supported only for subgroups of finite index"
    return I(divexact(order(torsion_subgroup(G)[1]), order(torsion_subgroup(H)[1]), check = false))
 end
@@ -232,7 +232,7 @@ function frattini_subgroup(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    subgens = FinGenAbGroupElem[]
    for x in gens(G)
-     for (p, e) in collect(factor(order(x)))
+     for (p, e) in factor(order(x))
        x = p*x
      end
      if !is_zero(x)
@@ -248,7 +248,7 @@ function socle(G::FinGenAbGroup)
    for x in gens(G)
      n = 1
      ord = order(x)
-     for (p, e) in collect(factor(ord))
+     for (p, e) in factor(ord)
        n = p*n
      end
      x = divexact(ord, n)*x
@@ -277,7 +277,7 @@ solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 function sylow_system(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    result = FinGenAbGroup[]
-   for (p, e) in collect(factor(order(G)))
+   for (p, e) in factor(order(G))
      push!(result, sylow_subgroup(G, p)[1])
    end
    return result

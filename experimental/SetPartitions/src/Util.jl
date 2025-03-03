@@ -123,3 +123,47 @@ function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) wher
 
     return vector
 end
+
+"""
+    simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
+
+Simplify the vector representation of a `LinearPartition` in terms of distributivity.
+
+# Examples
+```jldoctest
+julia> S, d = polynomial_ring(QQ, :d)
+(Univariate polynomial ring in d over QQ, d)
+
+julia> Oscar.SetPartitions.simplify_operation([(set_partition([1, 1], [1, 1]), S(10)), (set_partition([1, 1], [1, 1]), 4*d)])
+1-element Vector{Tuple{SetPartition, QQPolyRingElem}}:
+ (SetPartition([1, 1], [1, 1]), 4*d + 10)
+```
+"""
+function simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
+
+    partitions = Dict{S, T}()
+
+    for (i1, i2) in partition_sum
+        if iszero(i2)
+            continue
+        end
+        partitions[i1] = get(partitions, i1, 0) + i2
+    end
+    
+    return [(s, t) for (s, t) in partitions if !iszero(t)]
+end
+
+"""
+    simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
+
+Simplify the dict representation of a `LinearPartition` in terms of zero coefficients.
+"""
+function simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
+    result = Dict{S, T}()
+    for (i1, i2) in pairs(p)
+        if !iszero(i2)
+            result[i1] = i2
+        end
+    end
+    return result
+end

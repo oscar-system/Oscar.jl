@@ -74,7 +74,7 @@ using Oscar: _integer_variables
       f_vector(d_hedron)
       lattice_points(d_hedron)
 
-      dict_ps = Dict{String, Any}(
+      dict_ps = Dict(
         "unprecise" => polyhedron(
           Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
         ),
@@ -87,7 +87,7 @@ using Oscar: _integer_variables
     end
 
     @testset "PolyhedralComplex" begin
-      IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+      IM = incidence_matrix([[1,2,3],[1,3,4]])
       vr = [0 0; 1 0; 1 1; 0 1]
       PC = polyhedral_complex(IM, vr)
       test_save_load_roundtrip(path, PC) do loaded
@@ -130,6 +130,12 @@ using Oscar: _integer_variables
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
+
+      serializer=Oscar.LPSerializer(joinpath(path, "original"))
+      test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
+        @test objective_function(LP) == objective_function(loaded)
+        @test feasible_region(LP) == feasible_region(loaded)
+      end
     end
 
     @testset "MixedIntegerLinearProgram" begin
@@ -150,7 +156,7 @@ using Oscar: _integer_variables
 
     @testset "SubdivisionOfPoints" begin
       moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
-      moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
+      moaeimnonreg0 = incidence_matrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
       MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
       test_save_load_roundtrip(path, MOAE) do loaded
         @test number_of_maximal_cells(MOAE) == number_of_maximal_cells(loaded)

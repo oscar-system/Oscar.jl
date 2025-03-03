@@ -1,5 +1,6 @@
 # standard packages
 using Pkg
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
@@ -55,7 +56,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -75,6 +76,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
@@ -86,6 +88,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_known,
   is_terse,
   is_trivial,
   is_unicode_allowed,
@@ -205,3 +208,4 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+import lib4ti2_jll

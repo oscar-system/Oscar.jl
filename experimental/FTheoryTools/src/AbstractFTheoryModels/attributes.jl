@@ -68,8 +68,9 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return the model sections in explicit form, that is as polynomials
+of the base space coordinates. The set of keys of the returned
+dictionary matches the output of `model_sections`. 
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -97,10 +98,11 @@ end
 
 
 @doc raw"""
-    defining_section_parametrization(m::AbstractFTheoryModel)
+    model_section_parametrization(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return a dictionary that defines how the "default" parameters of
+the given model type are defined in terms of the tunable sections
+(those returned by `tunable_sections`).
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -108,7 +110,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> defining_section_parametrization(t)
+julia> model_section_parametrization(t)
 Dict{String, MPolyRingElem} with 4 entries:
   "a6" => 0
   "a3" => w^2*a32
@@ -116,16 +118,18 @@ Dict{String, MPolyRingElem} with 4 entries:
   "a4" => w^3*a43
 ```
 """
-function defining_section_parametrization(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :defining_section_parametrization) "defining_section_parametrization not supported for this F-theory model"
-  return m.defining_section_parametrization
+function model_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :model_section_parametrization) "model_section_parametrization not supported for this F-theory model"
+  return m.model_section_parametrization
 end
 
 
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Return the divisor classes of all model sections.
+Return the divisor classes of all model sections. The set
+of keys of the returned dictionary matches the output
+of `model_sections`.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -174,6 +178,8 @@ end
     defining_classes(m::AbstractFTheoryModel)
 
 Return the defining divisor classes of the model in question.
+This is the minimum set of information required to specify a
+family of models. 
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -188,9 +194,8 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> defining_classes(t)
-Dict{String, ToricDivisorClass} with 2 entries:
-  "w"    => Divisor class on a normal toric variety
-  "Kbar" => Divisor class on a normal toric variety
+Dict{String, ToricDivisorClass} with 1 entry:
+  "w" => Divisor class on a normal toric variety
 ```
 """
 function defining_classes(m::AbstractFTheoryModel)
@@ -222,7 +227,7 @@ julia> arxiv_id(m)
 """
 function arxiv_id(m::AbstractFTheoryModel)
   @req has_arxiv_id(m) "No arxiv identifier known for this model"
-  return get_attribute(m, :arxiv_id)
+  return get_attribute(m, :arxiv_id)::String
 end
 
 
@@ -245,7 +250,7 @@ julia> arxiv_doi(m)
 """
 function arxiv_doi(m::AbstractFTheoryModel)
   @req has_arxiv_doi(m) "No arXiv DOI known for this model"
-  return get_attribute(m, :arxiv_doi)
+  return get_attribute(m, :arxiv_doi)::String
 end
 
 
@@ -268,7 +273,7 @@ julia> arxiv_link(m)
 """
 function arxiv_link(m::AbstractFTheoryModel)
   @req has_arxiv_link(m) "No arXiv link known for this model"
-  return get_attribute(m, :arxiv_link)
+  return get_attribute(m, :arxiv_link)::String
 end
 
 
@@ -291,7 +296,7 @@ julia> arxiv_model_equation_number(m)
 """
 function arxiv_model_equation_number(m::AbstractFTheoryModel)
   @req has_arxiv_model_equation_number(m) "No arXiv equation number known for this model"
-  return get_attribute(m, :arxiv_model_equation_number)
+  return get_attribute(m, :arxiv_model_equation_number)::String
 end
 
 
@@ -314,7 +319,7 @@ julia> arxiv_model_page(m)
 """
 function arxiv_model_page(m::AbstractFTheoryModel)
   @req has_arxiv_model_page(m) "No arXiv page number known for this model"
-  return get_attribute(m, :arxiv_model_page)
+  return get_attribute(m, :arxiv_model_page)::String
 end
 
 
@@ -337,7 +342,7 @@ julia> arxiv_model_section(m)
 """
 function arxiv_model_section(m::AbstractFTheoryModel)
   @req has_arxiv_model_section(m) "No arXiv section number known for this model"
-  return get_attribute(m, :arxiv_model_section)
+  return get_attribute(m, :arxiv_model_section)::String
 end
 
 
@@ -360,7 +365,7 @@ julia> arxiv_version(m)
 """
 function arxiv_version(m::AbstractFTheoryModel)
   @req has_arxiv_version(m) "No arXiv version known for this model"
-  return get_attribute(m, :arxiv_version)
+  return get_attribute(m, :arxiv_version)::String
 end
 
 
@@ -386,7 +391,7 @@ julia> birational_literature_models(m)
 """
 function birational_literature_models(m::AbstractFTheoryModel)
   @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
-  return get_attribute(m, :birational_literature_models)
+  return get_attribute(m, :birational_literature_models)::Vector{String}
 end
 
 
@@ -409,7 +414,7 @@ julia> journal_doi(m)
 """
 function journal_doi(m::AbstractFTheoryModel)
   @req has_journal_doi(m) "No journal DOI known for this model"
-  return get_attribute(m, :journal_doi)
+  return get_attribute(m, :journal_doi)::String
 end
 
 
@@ -432,7 +437,7 @@ julia> journal_link(m)
 """
 function journal_link(m::AbstractFTheoryModel)
   @req has_journal_link(m) "No journal link known for this model"
-  return get_attribute(m, :journal_link)
+  return get_attribute(m, :journal_link)::String
 end
 
 
@@ -455,7 +460,7 @@ julia> journal_model_equation_number(m)
 """
 function journal_model_equation_number(m::AbstractFTheoryModel)
   @req has_journal_model_equation_number(m) "No journal equation number known for this model"
-  return get_attribute(m, :journal_model_equation_number)
+  return get_attribute(m, :journal_model_equation_number)::String
 end
 
 
@@ -478,7 +483,7 @@ julia> journal_model_page(m)
 """
 function journal_model_page(m::AbstractFTheoryModel)
   @req has_journal_model_page(m) "No journal page number known for this model"
-  return get_attribute(m, :journal_model_page)
+  return get_attribute(m, :journal_model_page)::String
 end
 
 
@@ -501,7 +506,7 @@ julia> journal_model_section(m)
 """
 function journal_model_section(m::AbstractFTheoryModel)
   @req has_journal_model_section(m) "No journal section number known for this model"
-  return get_attribute(m, :journal_model_section)
+  return get_attribute(m, :journal_model_section)::String
 end
 
 
@@ -523,7 +528,7 @@ julia> journal_pages(m)
 """
 function journal_pages(m::AbstractFTheoryModel)
   @req has_journal_pages(m) "No journal pages known for this model"
-  return get_attribute(m, :journal_pages)
+  return get_attribute(m, :journal_pages)::String
 end
 
 
@@ -548,7 +553,7 @@ julia> journal_report_numbers(m)
 """
 function journal_report_numbers(m::AbstractFTheoryModel)
   @req has_journal_report_numbers(m) "No journal report numbers known for this model"
-  return get_attribute(m, :journal_report_numbers)
+  return get_attribute(m, :journal_report_numbers)::Vector{String}
 end
 
 
@@ -570,15 +575,15 @@ julia> journal_volume(m)
 """
 function journal_volume(m::AbstractFTheoryModel)
   @req has_journal_volume(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_volume)
+  return get_attribute(m, :journal_volume)::String
 end
 
 
 @doc raw"""
     journal_name(m::AbstractFTheoryModel)
 
-Return the `journal_volume` of the published paper in which the given model was introduced.
-If no `journal_volume` are known, an error is raised.
+Return the `journal_name` of the published paper in which the given model was introduced.
+If no `journal_name` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -586,13 +591,13 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> journal_volume(m)
-"858"
+julia> journal_name(m)
+"Nucl. Phys. B"
 ```
 """
 function journal_name(m::AbstractFTheoryModel)
 @req has_journal_name(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_name)
+  return get_attribute(m, :journal_name)::String
 end
 
 
@@ -614,7 +619,7 @@ julia> journal_year(m)
 """
 function journal_year(m::AbstractFTheoryModel)
   @req has_journal_year(m) "No journal year known for this model"
-  return get_attribute(m, :journal_year)
+  return get_attribute(m, :journal_year)::String
 end
 
 
@@ -637,7 +642,7 @@ julia> literature_identifier(m)
 """
 function literature_identifier(m::AbstractFTheoryModel)
   @req has_literature_identifier(m) "No literature identifier known for this model"
-  return get_attribute(m, :literature_identifier)
+  return get_attribute(m, :literature_identifier)::String
 end
 
 
@@ -659,7 +664,7 @@ julia> model_description(m)
 """
 function model_description(m::AbstractFTheoryModel)
   @req has_model_description(m) "No model description known for this model"
-  return get_attribute(m, :model_description)
+  return get_attribute(m, :model_description)::String
 end
 
 
@@ -682,7 +687,7 @@ Dict{String, Int64} with 1 entry:
 """
 function model_parameters(m::AbstractFTheoryModel)
   @req has_model_parameters(m) "No model parameters known for this model"
-  return get_attribute(m, :model_parameters)
+  return get_attribute(m, :model_parameters)::Dict{String, Int64}
 end
 
 
@@ -707,7 +712,7 @@ julia> paper_authors(m)
 """
 function paper_authors(m::AbstractFTheoryModel)
   @req has_paper_authors(m) "No paper authors known for this model"
-  return get_attribute(m, :paper_authors)
+  return get_attribute(m, :paper_authors)::Vector{String}
 end
 
 
@@ -733,7 +738,7 @@ julia> paper_buzzwords(m)
 """
 function paper_buzzwords(m::AbstractFTheoryModel)
   @req has_paper_buzzwords(m) "No paper buzzwords known for this model"
-  return get_attribute(m, :paper_buzzwords)
+  return get_attribute(m, :paper_buzzwords)::Vector{String}
 end
 
 
@@ -755,7 +760,7 @@ julia> paper_description(m)
 """
 function paper_description(m::AbstractFTheoryModel)
   @req has_paper_description(m) "No paper description known for this model"
-  return get_attribute(m, :paper_description)
+  return get_attribute(m, :paper_description)::String
 end
 
 
@@ -777,7 +782,7 @@ julia> paper_title(m)
 """
 function paper_title(m::AbstractFTheoryModel)
   @req has_paper_title(m) "No paper title known for this model"
-  return get_attribute(m, :paper_title)
+  return get_attribute(m, :paper_title)::String
 end
 
 
@@ -807,7 +812,7 @@ julia> associated_literature_models(m)
 """
 function associated_literature_models(m::AbstractFTheoryModel)
   @req has_associated_literature_models(m) "No associated models known for this model"
-  return get_attribute(m, :associated_literature_models)
+  return get_attribute(m, :associated_literature_models)::Vector{String}
 end
 
 
@@ -1040,6 +1045,86 @@ end
 
 
 @doc raw"""
+    zero_section_class(m::AbstractFTheoryModel)
+
+Return the zero section class of a model as a cohomology class in the toric ambient space.
+If no zero section class is known, an error is raised.
+This information is always available for
+Weierstrass and global Tate models, whose zero section classes are known.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> zero_section_class(qsm_model)
+Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
+```
+"""
+function zero_section_class(m::AbstractFTheoryModel)
+  @req has_zero_section_class(m) "No zero section class stored for this model"
+  return get_attribute(m, :zero_section_class)
+end
+
+
+@doc raw"""
+    zero_section_index(m::AbstractFTheoryModel)
+
+Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model.
+If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class.
+This information is always available for
+Weierstrass and global Tate models, whose zero section classes are known.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> zero_section_index(foah15_B3)
+5
+```
+"""
+function zero_section_index(m::AbstractFTheoryModel)
+  @req has_zero_section_class(m) "No zero section class stored for this model"
+  return get_attribute(m, :zero_section_index)::Int
+end
+
+
+@doc raw"""
+    torsion_sections(m::AbstractFTheoryModel)
+
+Return the torsion sections of the given model.
+If no torsion sections are known, an error is raised.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> length(torsion_sections(foah15_B3))
+1
+```
+"""
+function torsion_sections(m::AbstractFTheoryModel)
+  @req has_torsion_sections(m) "No torsion sections stored for this model"
+  return get_attribute(m, :torsion_sections)
+end
+
+
+@doc raw"""
     gauge_algebra(m::AbstractFTheoryModel)
 
 Return the gauge algebra of the given model.
@@ -1061,7 +1146,7 @@ with summands
   sl_2
   sl_2
   linear Lie algebra
-over field of algebraic numbers
+over algebraic closure of rational field
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
@@ -1100,125 +1185,221 @@ end
 
 
 @doc raw"""
-    chern_class_c1(m::AbstractFTheoryModel)
+    chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 
 If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
 as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the first Chern class
-$c_1$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises and error.
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+this very cohomology class $h$, otherwise it raises an error.
 
-Note that $Y_n$ is a Calabi-Yau variety precisely if $c_1$ is trivial. Thus, the restriction
-of $h$ to the hypersurface $Y_n$ must be trivial. Upon closer inspection, in the given toric
-setting, this is equivalent to $h$ being trivial.
-
-The computation of the cohomology ring verifies if the toric variety is simplicial and
-complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `false`, as in the example below.
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+smooth and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> h = chern_class_c1(qsm_model; check = false)
-Cohomology class on a normal toric variety given by 0
-
-julia> is_trivial(h)
-true
-```
-"""
-function chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "First Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
-  @req base_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric ambient space"
-
-  # Check if the answer is known
-  if has_attribute(m, :chern_class_c1)
-    return get_attribute(m, :chern_class_c1)
-  end
-
-  # Trigger potential short-cut computation of cohomology ring
-  cohomology_ring(ambient_space(m); check)
-
-  # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
-  cy = cohomology_class(cl)
-
-  # Compute and set h
-  c1_t_ambient = cohomology_class(anticanonical_divisor(ambient_space(m)))
-  set_attribute!(m, :chern_class_c1, c1_t_ambient - cy)
-  return get_attribute(m, :chern_class_c1)
-end
-
-
-@doc raw"""
-    chern_class_c2(m::AbstractFTheoryModel)
-
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the 2nd Chern class
-$c_2$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises and error.
-
-As of right now, this method is computationally quite expensive for involved toric varieties,
-such as in the example below. Therefore, think carefully if you truly want to compute this quantity.
-
-The computation of the cohomology ring verifies if the toric variety is simplicial and
-complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `false`, as in the example below.
-
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-Hypersurface model over a concrete base
-
-julia> h = chern_class_c2(qsm_model; check = false);
+julia> h = chern_class(qsm_model, 4; check = false);
 
 julia> is_trivial(h)
 false
 ```
 """
-function chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Second Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
-  @req base_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric ambient space"
+function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
 
-  # Check if the answer is known
-  if has_attribute(m, :chern_class_c2)
-    return get_attribute(m, :chern_class_c2)
+  # Consistency checks
+  @req k >= 0 "Chern class index must be non-negative"
+  @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
+
+  # Check if we can compute the Chern classes for the toric ambient space
+  if check
+    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
+
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  if !has_attribute(m, :chern_classes)
+    cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
+    cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
+    set_attribute!(m, :chern_classes, cs)
+  end
+
+  # Check if the Chern class in question is known
+  cs = get_attribute(m, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
+  if cs[k+1] !== nothing
+    return cs[k+1]::CohomologyClass
+  end
+
+  # Chern class is not known, so compute and return it...
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  set_attribute!(m, :chern_classes, cs)
+  return cs[k+1]
+end
+
+
+@doc raw"""
+    chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+a vector with the cohomology classes corresponding to all non-trivial Chern classes $c_k$ of
+$Y_n$. Otherwise, this methods raises an error.
+
+As of right now, this method is computationally expensive for involved toric ambient spaces,
+such as in the example below.
+
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+simplicial and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_classes(qsm_model; check = false);
+
+julia> is_one(polynomial(h[1]))
+true
+
+julia> is_trivial(h[2])
+true
+
+julia> is_trivial(h[3])
+false
+```
+"""
+function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
+  return [chern_class(m, k, check = check) for k in 0:dim(ambient_space(m))-1]
+end
+
+
+@doc raw"""
+    euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute the Euler characteristic. If this
+assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
+error.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = euler_characteristic(qsm_model; check = false)
+378
+
+julia> h = euler_characteristic(qsm_model; check = false)
+378
+```
+"""
+@attr Int function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
 
   # Trigger potential short-cut computation of cohomology ring
   cohomology_ring(ambient_space(m); check)
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
-  cy = cohomology_class(cl)
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
-  # Compute sum of products of cohomolgy classes of torus invariant prime divisors
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
-  c2_t_ambient = sum(c_ds[i]*c_ds[j] for i in 1:length(c_ds)-1 for j in i+1:length(c_ds))
-  c2_t_ambient = cohomology_class(ambient_space(m), c2_t_ambient)
+  # Compute the Euler characteristic
+  return Int(integrate(chern_class(m, 4; check) * cy; check))
+end
 
-  # Compute and set h
-  h = c2_t_ambient - cy * chern_class_c1(m; check = check)
-  set_attribute!(m, :chern_class_c2, h)
-  return h
+
+@doc raw"""
+    tunable_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that can be tuned.
+This is a list of the names of all parameters appearing in the model.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> tunable_sections(m)
+5-element Vector{String}:
+ "a21"
+ "w"
+ "a1"
+ "a43"
+ "a32"
+```
+"""
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
+
+
+@doc raw"""
+    model_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that were used in the definition of the model.
+This includes the sections returned by `tunable_sections` and all sections parametrized by
+them (the keys of the dictionary returned by `model_section_parametrization`). These are
+the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> model_sections(m)
+9-element Vector{String}:
+ "a6"
+ "a21"
+ "a3"
+ "w"
+ "a2"
+ "a1"
+ "a4"
+ "a43"
+ "a32"
+```
+"""
+model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+
+
+@doc raw"""
+    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+
+Returns a dictionary giving the classes of all parameters (tunable sections)
+in terms of Kbar and the defining classes. Each value gives the divisor
+class of the corresponding section/key in this basis. This information is currently only available for literature models.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+
+julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
+Dict{String, Vector{Int64}} with 6 entries:
+  "b1" => [1, 0]
+  "b3" => [3, -5]
+  "b4" => [4, -6]
+  "b6" => [6, -11]
+  "b2" => [2, -1]
+  "ζ0" => [0, 1]
+```
+"""
+@attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+  @req has_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes) "No detailed information about tunable sections stored for this model"
+  return get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes)
 end
 
 
@@ -1249,7 +1430,7 @@ julia> vertices(qsm_model)
 """
 function vertices(m::AbstractFTheoryModel)
   @req has_attribute(m, :vertices) "No vertices known for this model"
-  return get_attribute(m, :vertices)
+  return get_attribute(m, :vertices)::Vector{Vector{QQFieldElem}}
 end
 
 
@@ -1269,7 +1450,7 @@ julia> polytope_index(qsm_model)
 """
 function polytope_index(m::AbstractFTheoryModel)
   @req has_attribute(m, :poly_index) "No polytope index known for this model"
-  return get_attribute(m, :poly_index)
+  return get_attribute(m, :poly_index)::Int
 end
 
 
@@ -1280,8 +1461,8 @@ For a 3-dimensional reflexive polytope in the Kreuzer-Skarke list, the list of
 full (sometimes also called fine), regular, star triangulations can be extremely
 large. Consequently, one may wonder if the triangulations can be enumerated in a
 somewhat reasonable time (say 5 minutes on a personal computer). This method tries
-to provide an answer to this. It returns `true` if one should expect a timly response
-to the atttempt to enumerate all (full, regular, star) triangulations. Otherwise, this
+to provide an answer to this. It returns `true` if one should expect a timely response
+to the attempt to enumerate all (full, regular, star) triangulations. Otherwise, this
 method returns `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -1318,7 +1499,7 @@ julia> max_lattice_pts_in_facet(qsm_model)
 """
 function max_lattice_pts_in_facet(m::AbstractFTheoryModel)
   @req has_attribute(m, :max_lattice_pts_in_facet) "Maximal number of lattice points of facets not known for this model"
-  return get_attribute(m, :max_lattice_pts_in_facet)
+  return get_attribute(m, :max_lattice_pts_in_facet)::Int
 end
 
 
@@ -1339,7 +1520,7 @@ julia> estimated_number_of_triangulations(qsm_model)
 """
 function estimated_number_of_triangulations(m::AbstractFTheoryModel)
   @req has_attribute(m, :estimated_number_of_triangulations) "Estimated number of (full, regular, star) triangulation not known for this model"
-  return get_attribute(m, :estimated_number_of_triangulations)
+  return get_attribute(m, :estimated_number_of_triangulations)::Int
 end
 
 
@@ -1363,7 +1544,7 @@ julia> kbar3(qsm_model)
 """
 function kbar3(m::AbstractFTheoryModel)
   @req has_attribute(m, :Kbar3) "Kbar3 not known for this model"
-  return get_attribute(m, :Kbar3)
+  return get_attribute(m, :Kbar3)::Int
 end
 
 
@@ -1383,7 +1564,7 @@ julia> hodge_h11(qsm_model)
 """
 function hodge_h11(m::AbstractFTheoryModel)
   @req has_attribute(m, :h11) "Hodge number h11 of ambient space not known for this model"
-  return get_attribute(m, :h11)
+  return get_attribute(m, :h11)::Int
 end
 
 
@@ -1403,7 +1584,7 @@ julia> hodge_h12(qsm_model)
 """
 function hodge_h12(m::AbstractFTheoryModel)
   @req has_attribute(m, :h12) "Hodge number h12 of ambient space not known for this model"
-  return get_attribute(m, :h12)
+  return get_attribute(m, :h12)::Int
 end
 
 
@@ -1423,7 +1604,7 @@ julia> hodge_h13(qsm_model)
 """
 function hodge_h13(m::AbstractFTheoryModel)
   @req has_attribute(m, :h13) "Hodge number h13 of ambient space not known for this model"
-  return get_attribute(m, :h13)
+  return get_attribute(m, :h13)::Int
 end
 
 
@@ -1443,7 +1624,7 @@ julia> hodge_h22(qsm_model)
 """
 function hodge_h22(m::AbstractFTheoryModel)
   @req has_attribute(m, :h22) "Hodge number h22 of ambient space not known for this model"
-  return get_attribute(m, :h22)
+  return get_attribute(m, :h22)::Int
 end
 
 
@@ -1553,7 +1734,7 @@ julia> indices_of_trivial_ci_curves(qsm_model)
 """
 function indices_of_trivial_ci_curves(m::AbstractFTheoryModel)
   @req has_attribute(m, :index_facet_interior_divisors) "Degree of Kbar restriction to Ci curves not known for this model"
-  return get_attribute(m, :index_facet_interior_divisors)
+  return get_attribute(m, :index_facet_interior_divisors)::Vector{Int}
 end
 
 
@@ -1612,7 +1793,7 @@ This method returns a vector with labels for each node/vertex of the dual graph 
 model in question. Those labels allow to understand the geometric origin of the node/vertex.
 
 Specifically, recall that those nodes are associated to the Ci-curves, which are in turn
-given by Ci = V(xi, s). xi is a homogenous coordinate of the 3-dimensional toric base space
+given by Ci = V(xi, s). xi is a homogeneous coordinate of the 3-dimensional toric base space
 B3 of the QSM in question, and s is a generic section of the anticanonical bundle of B3.
 
 Only non-trivial Ci = V(xi, s) correspond to vertices/nodes of the dual graph.
@@ -1703,7 +1884,7 @@ end
 
 
 @doc raw"""
-    simplified dual_graph(m::AbstractFTheoryModel)
+    simplified_dual_graph(m::AbstractFTheoryModel)
 
 This method returns the simplified dual graph of the QSM model in question.
 Note that no labels are (currently) attached to the vertices/nodes or edges.

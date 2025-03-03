@@ -114,17 +114,17 @@ function _sigma_sharp(rkL, detL, q, p)
 end
 
 @doc raw"""
-    reflection(gram::QQMatrix, v::QQMatrix) -> QQMatrix
+    Oscar._reflection(gram::MatElem, v::MatElem) -> MatElem
 
 Return the matrix representation of the orthogonal reflection in the row vector `v`.
 """
-function reflection(gram::MatElem, v::MatElem)
+function _reflection(gram::MatElem, v::MatElem)
   n = ncols(gram)
   E = identity_matrix(base_ring(gram), n)
-  c = base_ring(gram)(2) * ((v * gram * transpose(v)))[1,1]^(-1)
+  c = (v * gram * transpose(v))[1,1]
   ref = zero_matrix(base_ring(gram), n, n)
   for k in 1:n
-    ref[k:k,:] = E[k:k,:] - c*(E[k:k,:] * gram * transpose(v))*v
+    ref[k:k,:] = E[k:k,:] - divexact(2*(E[k:k,:] * gram * transpose(v))[1,1], c)*v
   end
   return ref
 end
@@ -154,7 +154,7 @@ function spin(gram_diag::MatElem, isometry::MatElem, check::Bool=true)
     r = v - w
     s = r * G * transpose(r)
     if !iszero(s)
-      tau = reflection(G, r)
+      tau = _reflection(G, r)
       f = f * tau
       @assert w * f == w
       spinor_norm *= s
@@ -164,8 +164,8 @@ function spin(gram_diag::MatElem, isometry::MatElem, check::Bool=true)
       r2 = v
       s2 = r2 * G * transpose(r2)/2
       @assert !iszero(s1) && !iszero(s2)
-      tau1 = reflection(G, r1)
-      tau2 = reflection(G, r2)
+      tau1 = _reflection(G, r1)
+      tau2 = _reflection(G, r2)
       f = f * tau2 * tau1
       @assert w * f == w
       spinor_norm *= s1 * s2
@@ -219,15 +219,15 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
     bm = g - E[k:k,:]
     qm = bm * G * transpose(bm)
     if valuation(qm, p) <= gammaL[k] + 2*delta
-      tau1 = reflection(G, bm)
+      tau1 = _reflection(G, bm)
       push!(reflection_vectors, bm)
       tau2 = E
     else
       bp = g + E[k:k,:]
       qp = bp * G * transpose(bp)
       @assert valuation(qp, p) <= gammaL[k] + 2*delta
-      tau1 = reflection(G, bp)
-      tau2 = reflection(G, E[k:k,:])
+      tau1 = _reflection(G, bp)
+      tau2 = _reflection(G, E[k:k,:])
       push!(reflection_vectors,bp)
       push!(reflection_vectors,E[k:k,:])
     end
@@ -259,7 +259,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   #@assert infinity
   K, _ = Hecke.rationals_as_number_field()
   # f : QQ -> K
-  f = MapFromFunc(QQ, K, x -> K(x), x -> coeff(x, 0))
+  f = MapFromFunc(QQ, K, K, x -> coeff(x, 0))
   OK = maximal_order(K)
   primes_as_ideals = [prime_decomposition(OK, p)[1][1] for p in primes]
   stuff = [Hecke.local_multiplicative_group_modulo_squares(P) for P in primes_as_ideals]
@@ -434,7 +434,7 @@ end
 
 
 @doc raw"""
-    image_in_Oq(L::ZZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
+    image_in_Oq(L::ZZLat) -> AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.
 
@@ -466,7 +466,7 @@ julia> order(Oq)
 12
 ```
 """
-@attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_in_Oq(L::ZZLat)
   @req is_integral(L) "L must be integral"
   flag = is_even(L)
 
@@ -490,7 +490,7 @@ julia> order(Oq)
   return sub(Oq, unique!([Oq(g; check = false) for g in gens(G)]))
 end
 
-@attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_in_Oq_signed(L::ZZLat)
   @req is_integral(L) "L must be integral"
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   flag = is_even(L)

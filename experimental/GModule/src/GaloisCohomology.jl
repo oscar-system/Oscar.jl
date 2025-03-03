@@ -65,7 +65,7 @@ end
 """
     units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0) -> FinGenAbGroup, Map{Grp, AbsSimpleNumFieldOrder}
 
-Computes the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
+Compute the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
 modulo `n_quo` is computed.
 """
 function units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0)
@@ -340,7 +340,7 @@ defaulting to the full automorphism group over the prime field.
 Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
-function Oscar.decomposition_group(K::AbsSimpleNumField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))); _sub::Bool = false)
+function Oscar.decomposition_group(K::AbsSimpleNumField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), absolute_base_field(codomain(mK))); _sub::Bool = false)
   Kp = codomain(mK)
   @assert domain(mK) == K
 
@@ -516,7 +516,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   if prime(k) == 2
     #we need val(p^k) > 1/(p-1)
     #val(p) = 1 and the only critical one is p=2, where k>1 is
-    #neccessary
+    #necessary
     ex = 2
   else
     ex = 1
@@ -627,7 +627,7 @@ Sort:
 
 """
 M has to be a torsion free Z module with a C_2 action by sigma.
-Returns data for the decomposition into indecomposables.
+Return data for the decomposition into indecomposables.
 They will be of type
  - Z with trivial and non-trivial action
  - Z[C_2]
@@ -868,7 +868,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vprint :GaloisCohomology 2 " .. S-units (for all) ..\n"
   U, mU = sunit_group_fac_elem(S)
   I.mU = mU
-  z = MapFromFunc(codomain(mU), k, x->evaluate(x), y->FacElem(y))
+  z = MapFromFunc(codomain(mU), k, evaluate, FacElem)
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology -1 is_consistent(E)
@@ -998,7 +998,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. gathering the local modules ..\n"
   Hecke.pushindent()
-  C = [gmodule(x[1], prime_field(x[1])) for x = L];
+  C = [gmodule(x[1], absolute_base_field(x[1])) for x = L];
   I.D = [x[2] for x = C]
   I.L = [x[3] for x = C]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
@@ -1105,7 +1105,7 @@ end
 """
     galois_group(A::ClassField, ::QQField; idele_parent::IdeleParent = idele_class_gmodule(base_field(A)))
 
-Determines the Galois group (over `QQ`) of the extension parametrized by `A`.
+Determine the Galois group (over `QQ`) of the extension parametrized by `A`.
 `A` needs to be normal over `QQ`.
 
 # Examples
@@ -1314,7 +1314,7 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
     cn = data[7]
   else
     L, mL = completion(k, P)#, 40*ramification_index(P))
-    C, mGp, mU = gmodule(L, prime_field(L))
+    C, mGp, mU = gmodule(L, absolute_base_field(L))
 
     G = domain(mG)
     emb, _m = decomposition_group(k, mL, mG, mGp, _sub = true)
@@ -1614,7 +1614,7 @@ SL(2,5)
 julia> T = character_table(G);
 
 julia> R = gmodule(T[9])
-G-module for G acting on vector space of dimension 6 over abelian closure of Q
+G-module for G acting on vector space of dimension 6 over abelian closure of QQ
 
 julia> S = gmodule(CyclotomicField, R)
 G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
@@ -1641,7 +1641,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
     G = s
     mG = ms*mG
   else
-    mp = MapFromFunc(QQ, K, x -> K(x), y-> QQ(y))
+    mp = MapFromFunc(QQ, K, K, QQ)
   end
   B = RelativeBrauerGroup(mp)
   B.mG = mG
@@ -1673,7 +1673,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
     S, mS = sunit_group(lP)
 
     MC = Oscar.GrpCoh.MultGrp(K)
-    mMC = MapFromFunc(K, MC, x->MC(x), y->y.data)
+    mMC = MapFromFunc(K, MC, MC, y->y.data)
 
     mG = B.mG
     G = domain(mG)
@@ -1724,8 +1724,8 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
   end
 
   B.map =  MapFromFunc(B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}(),
-                       x->elem_to_cocycle(x), 
-                       y->cocycle_to_elem(y))
+                       elem_to_cocycle, 
+                       cocycle_to_elem)
   return B, B.map
 end
 
@@ -1860,7 +1860,7 @@ function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
   qr = restrict(C, mp)
-  s = Hecke.Hecke.local_fundamental_class_serre(Kp, prime_field(Kp))
+  s = Hecke.Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
 #  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
   z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])
@@ -1993,7 +1993,7 @@ end
     shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
 
 Tries to find cohomologically trivial submodules to factor out.
-Returns a cohomologically equivalent module with fewer generators and
+Return a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)

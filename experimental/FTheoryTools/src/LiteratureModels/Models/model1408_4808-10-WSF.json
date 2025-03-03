@@ -49,12 +49,12 @@
         "model_sections": ["s1", "s2", "s3", "s4", "s5", "s6", "s8"],
         "f": "1//48*(48*s2*s4*s8^2 - ( - s6^2 + 4*s3*s8)^2 - 24*s4*s5*s6*s8)",
         "g": "1//864*((2*s2*s4*s8^2 - s4*s5*s6*s8)*( - 36*s6^2 + 144*s3*s8) - ( - s6^2 + 4*s3*s8)^3 - 864*s1*s4^2*s8^3 + 216*s4^2*s5^2*s8^2)",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [ 3,  2,  1,  0,  2, 1,  1],
             [-1,  0,  1,  2, -1, 0, -1],
             [-1, -1, -1, -1,  0, 0,  1]
         ],
-        "zero_section": ["0", "0", "1"]
+        "zero_section": ["1", "1", "0"]
     },
     "associated_models": [
         "model1408_4808-1-WSF.json",

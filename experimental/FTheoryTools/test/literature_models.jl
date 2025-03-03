@@ -3,8 +3,10 @@
 #############################################################
 
 B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]
 t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+D = classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(t1)
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
@@ -21,6 +23,7 @@ t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
   @test is_base_space_fully_specified(t1) == is_base_space_fully_specified(weierstrass_model(t1))
   @test is_smooth(ambient_space(t1)) == false
   @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
+  @test sum(D["a43"].*[Kbar, toric_divisor_class(w)]) == classes_of_model_sections(t1)["a43"]
 end
 
 @testset "Test meta data for literature Tate model over concrete base" begin
@@ -37,6 +40,7 @@ end
   @test journal_model_equation_number(t1) == "3.1"
   @test journal_model_page(t1) == "9"
   @test journal_model_section(t1) == "3"
+  @test journal_name(t1) == "Nucl. Phys. B"
   @test journal_pages(t1) == "1–47"
   @test journal_volume(t1) == "858"
   @test journal_year(t1) ==  "2012"
@@ -358,11 +362,11 @@ end
 
 h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
 
-@testset "Test for literature hypersurface model over arbitary base" begin
+@testset "Test for literature hypersurface model over arbitrary base" begin
   @test parent(hypersurface_equation(h)) == coordinate_ring(ambient_space(h))
   @test dim(base_space(h)) == 2
   @test is_smooth(fiber_ambient_space(h)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["u", "v", "w"]
+  @test symbols(cox_ring(fiber_ambient_space(h))) == [:u, :v, :w]
   @test is_base_space_fully_specified(h) == false
   @test is_partially_resolved(h) == false
   @test string.(zero_section(h)) == ["0", "-b1", "a1"]
@@ -782,4 +786,20 @@ foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", t
   @test parent(explicit_model_sections(foah14_B3_weier)["s7"]) == cox_ring(base_space(foah14_B3_weier))
   @test parent(explicit_model_sections(foah15_B3_weier)["s7"]) == cox_ring(base_space(foah15_B3_weier))
   @test parent(explicit_model_sections(foah16_B3_weier)["s7"]) == cox_ring(base_space(foah16_B3_weier))
+  @test [k[2:3] for k in singular_loci(foah1_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah2_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah3_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah4_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah5_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah6_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah7_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah8_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah9_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah10_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah11_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah12_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah13_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 4), "Split I_4")]
+  @test [k[2:3] for k in singular_loci(foah14_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah15_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah16_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3")]
 end

@@ -32,21 +32,25 @@ export PBWAlgQuo, PBWAlgQuoElem
 
 
 
-###### @attributes    ### DID NOT WORK -- alternative solution found (via have_special_impl, see ExteriorAlgebra.jl)
-mutable struct PBWAlgQuo{T, S} <: NCRing
+###### @attributes    ### DID NOT WORK -- alternative solution found (via has_special_impl, see ExteriorAlgebra.jl)
+@attributes mutable struct PBWAlgQuo{T, S} <: NCRing
     I::PBWAlgIdeal{0, T, S}
     sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
+
+    function PBWAlgQuo(I::PBWAlgIdeal{0, T, S}, sring::Singular.PluralRing{S}) where {T, S}
+        return new{T, S}(I, sring)
+    end
 end
 
 
 # For backward compatibility: ctor with 1 arg:
 #    uses "default" arith impl -- namely that from basering!
 function PBWAlgQuo(I::PBWAlgIdeal{0, T, S})  where {T, S}
-    return PBWAlgQuo{T, S}(I, I.basering.sring)
+    return PBWAlgQuo(I, I.basering.sring)
 end
 
 
-function have_special_impl(Q::PBWAlgQuo)
+function has_special_impl(Q::PBWAlgQuo)
     return (Q.sring != Q.I.basering.sring)
 end
 
@@ -81,8 +85,6 @@ base_ring(Q::PBWAlgQuo) = base_ring(Q.I)
 
 base_ring_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = base_ring_type(PBWAlgIdeal{0, T, S})
 
-base_ring(a::PBWAlgQuoElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgQuoElem, dict::IdDict)
   return PBWAlgQuoElem(parent(a), deepcopy_internal(a.data, dict))
 end
@@ -93,26 +95,11 @@ end
 
 @enable_all_show_via_expressify PBWAlgQuoElem
 
-function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring data-field ???
-    ## special printing if Q is an exterior algebra
-######    if get_attribute(Q, :is_exterior_algebra) === :true
-    if have_special_impl(Q)
-        a = Q.I.basering
-        x = symbols(a)
-        n = length(x)
-        return Expr(:sequence, Expr(:text, "Exterior algebra over "),
-                               expressify(coefficient_ring(a);  context=context),
-                               Expr(:text, " in ("),
-                               Expr(:series, x...),
-                               Expr(:text, ")"))
-
-    end
-    # General case (not exterior algebra)
-    return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
-                           expressify(Q.I; context = nothing))
+function Base.show(io::IO, Q::PBWAlgQuo)
+  @show_name(io, Q)
+  @show_special(io, Q)
+  print(io, "(", base_ring(Q), ")/", modulus(Q))
 end
-
-@enable_all_show_via_expressify PBWAlgQuo
 
 ####
 
@@ -137,7 +124,7 @@ function one(Q::PBWAlgQuo)
 end
 
 function simplify(a::PBWAlgQuoElem)
-    if have_special_impl(parent(a))
+    if has_special_impl(parent(a))
         return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
     end
     I = parent(a).I
@@ -152,7 +139,7 @@ function Base.hash(a::PBWAlgQuoElem, h::UInt)
 end
 
 function is_zero(a::PBWAlgQuoElem)
-    if !have_special_impl(parent(a))  # must reduce if not exterior algebras
+    if !has_special_impl(parent(a))  # must reduce if not exterior algebras
         simplify(a)  # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
     end
     return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
@@ -169,12 +156,12 @@ function Base.:(==)(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
 end
 
 function Base.:+(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  @assert parent(a) == parent(b)
+  check_parent(a, b)
   return PBWAlgQuoElem(parent(a), a.data + b.data)
 end
 
 function Base.:-(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  @assert parent(a) == parent(b)
+  check_parent(a, b)
   return PBWAlgQuoElem(parent(a), a.data - b.data)
 end
 
@@ -183,7 +170,8 @@ function Base.:-(a::PBWAlgQuoElem)
 end
 
 function Base.:*(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  return PBWAlgQuoElem(parent(a), a.data*b.data)
+  check_parent(a, b)
+  return PBWAlgQuoElem(parent(a), a.data * b.data)
 end
 
 function Base.:^(a::PBWAlgQuoElem, b::Int)
@@ -208,14 +196,14 @@ return the new algebra together with the quotient map $A\to A/I$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
+(PBW-algebra over rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 
 julia> I = two_sided_ideal(A, [x^2, y^2, z^2])
 two_sided_ideal(x^2, y^2, z^2)
@@ -223,12 +211,12 @@ two_sided_ideal(x^2, y^2, z^2)
 julia> Q, q = quo(A, I);
 
 julia> Q
-(PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
+(PBW-algebra over rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
 
 julia> q
 Map defined by a julia-function with inverse
-  from pBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
-  to (PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
+  from PBW-algebra over rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
+  to (PBW-algebra over rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
 ```
 
 !!! note
@@ -236,15 +224,13 @@ Map defined by a julia-function with inverse
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal; SpecialImpl::Union{Nothing, Singular.PluralRing} = nothing)
-  @assert (Q == base_ring(I));
-  ### No idea how to check whether SpecialImpl is sane!
-#??? Check if I is ideal of squares of gens then produce ExtAlg???
-##??if isnothing(SpecialImpl)  SpecialImpl = I.basering.sring;  end;
-  if isnothing(SpecialImpl)
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal; special_impl::Union{Nothing, Singular.PluralRing} = nothing)
+  @assert Q == base_ring(I)
+  # we assume that special_impl is correct, if given
+  if isnothing(special_impl)
     q = PBWAlgQuo(I)
   else
-    q = PBWAlgQuo(I, SpecialImpl)
+    q = PBWAlgQuo(I, special_impl)
   end
   function im(a::PBWAlgElem)
     @assert parent(a) == Q
@@ -291,6 +277,12 @@ end
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
   @req parent(a) == Q "coercion between different PBWAlg quotients not possible"
   return a
+end
+
+### Conformance test element generation
+function ConformanceTests.generate_element(Q::PBWAlgQuo{QQFieldElem})
+  R = base_ring(Q)
+  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
 end
 
 #############################################

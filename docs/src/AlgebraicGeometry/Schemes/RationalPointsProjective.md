@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-```
-
-```@setup oscar
-using Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Rational Points on Projective Schemes
@@ -12,7 +9,7 @@ using Oscar
 AbsProjectiveRationalPoint
 ProjectiveRationalPoint
 coordinates(P::ProjectiveRationalPoint)
-ideal(P::ProjectiveRationalPoint)
+ideal(P::AbsProjectiveRationalPoint)
 scheme(P::ProjectiveRationalPoint)
 normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
 normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})

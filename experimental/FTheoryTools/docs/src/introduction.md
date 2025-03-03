@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Welcome to FTheoryTools
@@ -65,7 +66,8 @@ Still, the total number of papers in our database is at this point limited to ab
 
 ## Tutorial
 
-We provide a [tutorial for FTheoryTools in OSCAR](https://www.oscar-system.org/tutorials/).
+We encourage you to take a look at the tutorials on FTheoryTools, which can be found
+[here](https://www.oscar-system.org/tutorials/FTheoryTools/).
 
 
 ## Possible future extensions
@@ -90,4 +92,5 @@ Alternatively, you can [raise an issue on github](https://www.oscar-system.org/c
 
 ## Acknowledgements
 
-We appreciate insightful discussions with [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic). Martin Bies and Mikelis Mikelsons appreciate support by the TU-Nachwuchsring. The work of Andrew Turner is supported by DOE (HEP) Award DE-SC001352.
+We appreciate insightful discussions with [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic) and 
+[Mohab Safey El Din](https://www.lip6.fr/actualite/personnes-fiche.php?ident=P816#). Martin Bies and Mikelis Mikelsons appreciate support by the TU-Nachwuchsring. The work of Andrew Turner is supported by DOE (HEP) Award DE-SC001352.

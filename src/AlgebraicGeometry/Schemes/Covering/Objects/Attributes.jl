@@ -3,7 +3,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{Covering{T}}) where {T} = T
-base_ring_type(C::Covering) = base_ring_type(typeof(C))
 
 ### type constructors
 #covering_type(::Type{T}) where {T<:AffineScheme} = Covering{T, gluing_type(T)}
@@ -107,18 +106,22 @@ function inherit_decomposition_info!(
 
   for V in patches(orig_cov)
     # Collect the patches in `ref_cov` refining V
-    V_ref = [U for U in patches(ref_cov) if decomp_dict[U][1] === V]
-    # Collect the corresponding complement equations
-    comp_eqns = [decomp_dict[U][2] for U in V_ref]
+    V_ref = [(U, h) for (U, (UV, h)) in decomp_dict if UV === V]
+    _compl(a) = sum(length(lifted_numerator(b)) + length(lifted_denominator(b)) for b in a[2]; init=0)
+    V_ref = sort!(V_ref, by=_compl)
     # Start out from the original decomposition info
     dec_inf = copy(decomposition_info(orig_cov)[V])
-    for (i, U) in enumerate(V_ref)
+    for (i, (U, h)) in enumerate(V_ref)
       # Cast the already made decomposition info down to U
       tmp = elem_type(OO(U))[OX(V, U)(i) for i in dec_inf] # help the compiler
       # Append the equations for the previously covered patches
       for j in 1:i-1
-        W = V_ref[j]
-        surplus = OX(V, U).(decomp_dict[W][2])
+        _, hh = V_ref[j]
+        if is_empty(hh) # The patch for hh already covered everything; this one can hence be discarded.
+          push!(tmp, one(OO(U)))
+          break
+        end
+        surplus = OX(V, U).(hh)
         push!(tmp, prod(surplus; init=one(OO(U))))
       end
       set_decomposition_info!(ref_cov, U, tmp)

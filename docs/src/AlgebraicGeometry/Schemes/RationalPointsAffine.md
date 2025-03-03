@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-```
-
-```@setup oscar
-using Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Rational Points on Affine Schemes

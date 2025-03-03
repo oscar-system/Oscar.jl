@@ -1,7 +1,7 @@
 @doc raw"""
     is_cartier(td::ToricDivisor)
 
-Checks if the divisor `td` is Cartier.
+Check if the divisor `td` is Cartier.
 
 # Examples
 ```jldoctest
@@ -92,7 +92,7 @@ julia> is_effective(td2)
 true
 ```
 """
-@attr Bool is_effective(td::ToricDivisor) = all(c -> (c >= 0), coefficients(td))
+@attr Bool is_effective(td::ToricDivisor) = all(>=(0), coefficients(td))
 
 
 @doc raw"""
@@ -131,7 +131,7 @@ false
 ```
 """
 @attr Bool function is_ample(td::ToricDivisor)
-  @req is_complete(toric_variety(td)) "Definition of ample divisor requires underlying toric variety to be complete. ([Def 6.1.9 CLS11])"
+  @req is_complete(toric_variety(td)) "Ampleness test is only implemented for complete toric varieties. ([Def 6.1.9 CLS11])"
   @req is_cartier(td) "Definition of ample divisor requires divisor to be Cartier. ([Def 6.1.9 CLS11])"
   return pm_object(td).AMPLE::Bool
 end
@@ -153,7 +153,10 @@ julia> is_very_ample(td)
 false
 ```
 """
-@attr Bool is_very_ample(td::ToricDivisor) = pm_object(td).VERY_AMPLE
+@attr Bool function is_very_ample(td::ToricDivisor)
+  @req is_complete(toric_variety(td)) "Very ampleness test is only implemented for complete toric varieties. ([Def 6.1.9 CLS11])"
+  return pm_object(td).VERY_AMPLE::Bool
+end
 
 
 @doc raw"""
@@ -215,6 +218,6 @@ true
     if sum(coefficients(td)) != 1
         return false
     else
-        return all(y -> (y == 1 || y == 0), coefficients(td))
+        return all(y -> is_zero(y) || is_one(y), coefficients(td))
     end
 end

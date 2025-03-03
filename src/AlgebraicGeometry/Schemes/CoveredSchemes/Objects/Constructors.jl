@@ -12,9 +12,9 @@ Return a `CoveredScheme` ``X`` with `C` as its `default_covering`.
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 
@@ -85,7 +85,7 @@ X_i \to X``, where ``X`` is the disjoint union of the covered schemes
 
 # Examples
 ```jldoctest
-julia> R_1, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R_1, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I_1 = ideal(R_1, z*x^2 + y^3);
 
@@ -102,7 +102,7 @@ with default covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> R_2, (u, v) = polynomial_ring(rational_field(), ["u", "v"]);
+julia> R_2, (u, v) = polynomial_ring(rational_field(), [:u, :v]);
 
 julia> I_2 = ideal(R_2, u + v^2);
 
@@ -154,11 +154,11 @@ CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
 @doc raw"""
     covered_scheme(X::AbsAffineScheme) -> AbsCoveredScheme
 
-Returns a `CoveredScheme` ``C`` isomorphic to ``X``.
+Return a `CoveredScheme` ``C`` isomorphic to ``X``.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(rational_field(), "x" => 1:3);
+julia> R, x = polynomial_ring(rational_field(), :x => 1:3);
 
 julia> X = spec(R);
 

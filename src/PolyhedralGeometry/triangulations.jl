@@ -335,7 +335,7 @@ end
 @doc raw"""
     regular_triangulation(pts::AbstractCollection[PointVector]; full=false)
 
-Computes ONE regular triangulations on the points given as the rows of `pts`.
+Compute ONE regular triangulation on the points given as the rows of `pts`.
 
 A triangulation is regular if it can be induced by weights, i.e. attach a
 weight to every point, take the convex hull of these new vectors and then take
@@ -378,7 +378,7 @@ end
 @doc raw"""
     regular_triangulation(P::Polyhedron)
 
-Computes ONE regular triangulations that can be formed using the vertices of the
+Compute ONE regular triangulation that can be formed using the vertices of the
 given bounded and full-dimensional polytope `P`.
 
 A triangulation is regular if it can be induced by weights, i.e. attach a
@@ -471,7 +471,7 @@ Compute a triangulation of the square
 ```jldoctest
 julia> C = cube(2);
 
-julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
+julia> cells = incidence_matrix([[1,2,3],[2,3,4]]);
 
 julia> S = subdivision_of_points(C, cells)
 Subdivision of points in ambient dimension 2

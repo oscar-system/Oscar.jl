@@ -29,7 +29,7 @@ end
     G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
-    primes = [p for (p, e) in collect(factor(order(G1)))]
+    primes = [p for (p, e) in factor(order(G1))]
 
     # elements
     @test [order(iso(x)) for x in gens(G1)] == [order(x) for x in gens(G1)]
@@ -39,6 +39,7 @@ end
 
     # properties
     @test is_abelian(G1) == is_abelian(G2)
+    @test is_elementary_abelian(G1) == is_elementary_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
     @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)

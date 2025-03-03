@@ -28,43 +28,38 @@
     if T == QQFieldElem
       @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test length(hilbert_basis(Cone1)) == 2
-      @test hilbert_basis(Cone1) == [[1, 0], [0, 1]]
-      @test generator_matrix(hilbert_basis(Cone1)) == matrix(QQ, [1 0; 0 1])
+      @test issetequal(hilbert_basis(Cone1), point_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
+      @test generator_matrix(hilbert_basis(Cone1)) == _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
     end
     @test n_rays(Cone1) == 2
     @test rays(RayVector{T}, Cone1) isa SubObjectIterator{RayVector{T}}
     @test rays(Cone1) isa SubObjectIterator{RayVector{T}}
     @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{T}}
-    @test vector_matrix(rays(Cone1)) == matrix(f, [1 0; 0 1])
+    @test issetequal(rays(Cone1), ray_vector.(Ref(f), [[1, 0], [0, 1]]))
+    @test vector_matrix(rays(Cone1)) == _oscar_matrix_from_property(f, rays(Cone1))
     if T == QQFieldElem
-      @test matrix(QQ, rays(Cone1)) == matrix(QQ, [1 0; 0 1])
-      @test matrix(ZZ, rays(Cone6)) == matrix(ZZ, [2 3; 2 5])
-    end
-    @test length(rays(Cone1)) == 2
-    @test rays(Cone1) == [[1, 0], [0, 1]]
-    for S in [LinearHalfspace{T}, Cone{T}]
-      @test facets(S, Cone1) isa SubObjectIterator{S}
-      @test length(facets(S, Cone1)) == 2
-      if T == QQFieldElem
-        @test linear_inequality_matrix(facets(S, Cone1)) == matrix(QQ, [-1 0; 0 -1])
-        @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [-1 0; 0 -1]
-        @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
-        @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
-        if S == LinearHalfspace{T}
-          @test facets(S, Cone1) == linear_halfspace.([f], [[-1, 0], [0, -1]])
-        end
-      else
-        @test linear_inequality_matrix(facets(S, Cone1)) == matrix(f, [0 -1; -1 0])
-        @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [0 -1; -1 0]
-        @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
-        @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
-        if S == LinearHalfspace{T}
-          @test facets(S, Cone1) == linear_halfspace.([f], [[0, -1], [-1, 0]])
-        end
+      @test matrix(QQ, rays(Cone1)) == _oscar_matrix_from_property(f, rays(Cone1))
+      let r = rays(Cone6)
+        m = matrix(ZZ, r[1] == [1//3, 1//2] ? [2 3; 2 5] : [2 5; 2 3])
+        @test matrix(ZZ, rays(Cone6)) == m
       end
     end
-    @test facets(IncidenceMatrix, Cone1) ==
-      IncidenceMatrix(T == QQFieldElem ? [[2], [1]] : [[1], [2]])
+    @test length(rays(Cone1)) == 2
+    for S in [LinearHalfspace{T},
+                     Cone{T}]
+      @test facets(S, Cone1) isa SubObjectIterator{S}
+      @test length(facets(S, Cone1)) == 2
+      if S == LinearHalfspace{T}
+        @test issetequal(facets(S, Cone1), linear_halfspace.(Ref(f), [[-1, 0], [0, -1]]))
+      else
+        @test issetequal(facets(S, Cone1), positive_hull.(Ref(f), [[1 0], [0 1]]))
+      end
+      @test linear_inequality_matrix(facets(S, Cone1)) == _oscar_matrix_from_property(f, facets(S, Cone1))
+      @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == _polymake_matrix_from_property(facets(S, Cone1))
+      @test _check_im_perm_rows(ray_indices(facets(S, Cone1)), [[1], [2]])
+      @test _check_im_perm_rows(incidence_matrix(facets(S, Cone1)), [[1], [2]])
+    end
+    @test _check_im_perm_rows(facets(IncidenceMatrix, Cone1), [[1], [2]])
     @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{T}}
     @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{T}}
     @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{T}}
@@ -92,46 +87,37 @@
     end
     @test length(lineality_space(Cone2)) == 1
     @test lineality_space(Cone2) == [L[1, :]]
-    @test vector_matrix(rays(Cone4)) == matrix(f, R)
+    @test vector_matrix(rays(Cone4)) == _oscar_matrix_from_property(f, rays(Cone4))
     @test codim(Cone4) == 1
     @test codim(Cone3) == 0
     @test faces(Cone2, 2) isa SubObjectIterator{Cone{T}}
     @test length(faces(Cone2, 2)) == 2
     @test faces(Cone4, 1) isa SubObjectIterator{Cone{T}}
     @test length(faces(Cone4, 1)) == 2
-    if T == QQFieldElem
-      @test faces(Cone2, 2) == positive_hull.(T, [[0 0 1], [1 0 0]], [[0 1 0]])
-      @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
-      @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
-      @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[2], [1]])
-      @test faces(Cone4, 1) == positive_hull.(T, [[0 0 1], [1 0 0]])
-      @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
-      @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
-      @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[2], [1]])
-    else
-      @test faces(Cone2, 2) == positive_hull.([f], [[1 0 0], [0 0 1]], [[0 1 0]])
-      @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
-      @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
-      @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[1], [2]])
-      @test faces(Cone4, 1) == positive_hull.([f], [[1 0 0], [0 0 1]])
-      @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
-      @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
-      @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])
-    end
-    @test IncidenceMatrix(faces(Cone5, 1)) == IncidenceMatrix([[1], [2], [3], [4]])
+    @test issetequal(faces(Cone2, 2), positive_hull.(Ref(f), [[1 0 0], [0 0 1]], [[0 1 0]]))
+    @test _check_im_perm_rows(ray_indices(faces(Cone2, 2)), [[1], [2]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone2, 2)), [[1], [2]])
+    @test _check_im_perm_rows(faces(IncidenceMatrix, Cone2, 2), [[1], [2]])
+    @test issetequal(faces(Cone4, 1), positive_hull.(Ref(f), [[0 0 1], [1 0 0]]))
+    @test _check_im_perm_rows(ray_indices(faces(Cone4, 1)), [[1], [2]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone4, 1)), [[1], [2]])
+    @test _check_im_perm_rows(faces(IncidenceMatrix, Cone4, 1), [[1], [2]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone5, 1)), [[1], [2], [3], [4]])
     @test isnothing(faces(Cone2, 1))
 
     @test f_vector(Cone5) == [4, 4]
     @test f_vector(Cone2) == [0, 2]
     @test lineality_dim(Cone5) == 0
     @test lineality_dim(Cone2) == 1
-    @test facet_degrees(Cone5)[1] == 2
-    @test facet_degrees(Cone6)[1] == 1
-    @test ray_degrees(Cone5)[1] == 2
-    @test ray_degrees(Cone6)[1] == 1
+    @test facet_degrees(Cone5) == fill(2, 4)
+    @test facet_degrees(Cone6) == fill(1, 2)
+    @test ray_degrees(Cone5) == fill(2, 4)
+    @test ray_degrees(Cone6) == fill(1, 2)
 
     @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
+    @test length(findall(f->[1,0,0] in f, facets(Hyperplane, Cone5))) == 2
+    @test length(findall(f->[1,0,0] in f, facets(Halfspace, Cone5))) == 4
   end
 
   @testset "constructors" begin

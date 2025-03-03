@@ -17,9 +17,9 @@ variables.
 # Examples
 
 ```jldoctest
-julia> QQt, t = QQ["t"];
+julia> QQt, t = QQ[:t];
 
-julia> R, (x1, x2, x0) = QQt["x1", "x2", "x0"];
+julia> R, (x1, x2, x0) = QQt[:x1, :x2, :x0];
 
 julia> F = [x2^2 - t*x0*x1 , x2^2 - t*x0*x2, x1^2 + x2^2 - x0^2];
 
@@ -93,7 +93,7 @@ end
 
 function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   # If we hit a zero, it is inconclusive and we return the zero
-  #@req all(is_homogeneous, F) "Polynomials must be homogenous"
+  #@req all(is_homogeneous, F) "Polynomials must be homogeneous"
   R = parent(F[1])
   n = ngens(R) - 1
   K = coefficient_ring(R)

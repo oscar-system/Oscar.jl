@@ -18,6 +18,7 @@ julia> integral(s1^4)
 2
 
 ```
+
 #### How Many Conics in $\mathbb P^3$ Meet Eight General Lines in $\mathbb P^3$?
 
 ```jldoctest
@@ -43,7 +44,7 @@ julia> Z = dual(tautological_bundles(PF)[1])
 AbstractBundle of rank 1 on AbstractVariety of dim 8
 
 julia> z = chern_class(Z, 1)
-h
+z
 
 julia> integral((2*p + z)^8)
 92
@@ -65,10 +66,10 @@ h
 julia> H = gens(P5)[1]
 H
 
-julia> i = hom(P2, P5, [2*h])
+julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blowup(i)
+julia> Bl, E, j = blow_up(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))

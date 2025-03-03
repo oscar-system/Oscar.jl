@@ -50,7 +50,7 @@ where $[x_j, x_i]$ corresponds to evaluating the Lie bracket $[x_j, x_i]_\mathfr
 in $U(\mathfrak g)$ indeed form a $K$-basis for $U(\mathfrak g)$ is the content of the
 Poincar``\'{\text{e}}``-Birkhoff-Witt theorem (the names PBW-basis and PBW-algebra are derived from this fact).
 
-Note that any degree compatible global monomial ordering on $\N^n$ is admissible for $U(\mathfrak g)$.
+Note that any degree compatible global monomial ordering on $\mathbb{N}^n$ is admissible for $U(\mathfrak g)$.
 
 The constructors below return the algebras equipped with `degrevlex`.
 
@@ -70,7 +70,7 @@ Given a PBW-algebra `A` over a field `K`,
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -110,7 +110,7 @@ from the generators of `A` using basic arithmetic as shown below:
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -134,7 +134,7 @@ the elements of `cs` as coefficients, and the elements of `es` as exponents.
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -156,7 +156,7 @@ true
 An often more effective way to create elements is to use the corresponding build context as indicated below:
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 

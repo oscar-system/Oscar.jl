@@ -42,7 +42,7 @@ The default algorithm is `:projective_jacobian` if the scheme is equidimensional
 
 # Examples
 ```jldoctest
-julia> A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+julia> A, (x, y, z) = grade(QQ[:x, :y, :z][1]);
 
 julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
 
@@ -60,66 +60,64 @@ false
 """
 is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
 
-function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm::Symbol=:default)
-  get_attribute!(P, :is_smooth) do
-    if is_empty(P)
-      return true
-    end
+@attr Bool function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm::Symbol=:default)
+  if is_empty(P)
+    return true
+  end
 
-    if algorithm == :default
-      if is_equidimensional(P)
-        algorithm = :projective_jacobian
-      elseif base_ring(P) isa Field
-        algorithm = :affine_cone
-      else
-        if !(base_ring(P) isa Field)
-          throw(NotImplementedError(
-            :is_smooth,
-            "is_smooth only implemented when the scheme is equidimensional or the base ring is a field"
-          ))
-        end
+  if algorithm == :default
+    if is_equidimensional(P)
+      algorithm = :projective_jacobian
+    elseif base_ring(P) isa Field
+      algorithm = :affine_cone
+    else
+      if !(base_ring(P) isa Field)
+        throw(NotImplementedError(
+          :is_smooth,
+          "is_smooth only implemented when the scheme is equidimensional or the base ring is a field"
+        ))
       end
     end
+  end
 
-    algorithms = [
-      :projective_jacobian,
-      :covered_jacobian,
-      :affine_cone,
-    ]
-    if !(algorithm in algorithms)
-      throw(ArgumentError(
-        "the optional argument to the function is_smooth can only be one"
-         * " of the following: " * join(algorithms, ", ") * "."
+  algorithms = [
+    :projective_jacobian,
+    :covered_jacobian,
+    :affine_cone,
+  ]
+  if !(algorithm in algorithms)
+    throw(ArgumentError(
+      "the optional argument to the function is_smooth can only be one"
+        * " of the following: " * join(algorithms, ", ") * "."
+    ))
+  end
+
+  if algorithm == :covered_jacobian
+    if !(base_ring(P) isa Field)
+      throw(NotImplementedError(
+        :is_smooth,
+        "Algorithm `:covered_jacobian` only implemented when the base ring is a field"
+        # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
       ))
     end
-
-    if algorithm == :covered_jacobian
-      if !(base_ring(P) isa Field)
-        throw(NotImplementedError(
-          :is_smooth,
-          "Algorithm `:covered_jacobian` only implemented when the base ring is a field"
-          # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
-        ))
-      end
-      return _jacobian_criterion(covered_scheme(P))
-    elseif algorithm == :affine_cone
-      if !(base_ring(P) isa Field)
-        throw(NotImplementedError(
-          :is_smooth,
-          "Algorithm `:affine_cone` only implemented when the base ring is a field"
-          # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
-        ))
-      end
+    return _jacobian_criterion(covered_scheme(P))
+  elseif algorithm == :affine_cone
+    if !(base_ring(P) isa Field)
+      throw(NotImplementedError(
+        :is_smooth,
+        "Algorithm `:affine_cone` only implemented when the base ring is a field"
+        # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
+      ))
+    end
 #       TODO: Implement `is_smooth` for affine schemes. Then, this algorithm would work for arbitrary schemes. A similar algorithm can be used for quasismoothness of subschemes of toric varieties.
 #       We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
-      aff, _ = affine_cone(P)
-      sing, _ = singular_locus(aff)
-      origin = ideal(gens(ambient_coordinate_ring(sing)))
-      return isone(saturation(saturated_ideal(defining_ideal(sing)), origin))
-    elseif algorithm == :projective_jacobian
-      return _projective_jacobian_criterion(P)
-    end
-  end::Bool
+    aff, _ = affine_cone(P)
+    sing, _ = singular_locus(aff)
+    origin = ideal(gens(ambient_coordinate_ring(sing)))
+    return isone(saturation(saturated_ideal(defining_ideal(sing)), origin))
+  elseif algorithm == :projective_jacobian
+    return _projective_jacobian_criterion(P)
+  end
 end
 
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true

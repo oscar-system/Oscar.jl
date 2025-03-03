@@ -31,17 +31,16 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(w)))
  x2
  x3
 
-julia> my_choice = Dict("f" => x1^12, "b" => x2, "c2" => x1^6)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice = Dict("b" => x2, "c2" => x1^6)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => x1^6
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w = tune(w, my_choice)
 Weierstrass model over a concrete base
 
-julia> weierstrass_section_f(tuned_w) == my_choice["f"]
-true
+julia> explicit_model_sections(tuned_w)["c2"]
+x1^6
 
 julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -49,10 +48,9 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
  x2
  x3
 
-julia> my_choice2 = Dict("f" => x1^12, "b" => x2, "c2" => zero(parent(x1)))
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice2 = Dict("b" => x2, "c2" => zero(parent(x1)))
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => 0
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w2 = tune(tuned_w, my_choice2)
@@ -67,10 +65,9 @@ julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w2)))
  x2
  x3
 
-julia> my_choice3 = Dict("f" => x1^12, "b" => x2, "c2" => x1^6)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice3 = Dict("b" => x2, "c2" => x1^6)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "c2" => x1^6
-  "f"  => x1^12
   "b"  => x2
 
 julia> tuned_w3 = tune(tuned_w2, my_choice3)
@@ -84,13 +81,13 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   # Consistency checks
   @req base_space(w) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return w
-  secs_names = collect(keys(explicit_model_sections(w)))
+  secs_names = tunable_sections(w)
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(w))
-  def_secs_param = deepcopy(defining_section_parametrization(w))
+  def_secs_param = deepcopy(model_section_parametrization(w))
   weierstrass_sections = ["f", "g"]
 
   # 1. Tune model sections different from Weierstrass sections
@@ -107,7 +104,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   if !isempty(parametrization_keys) && !isempty(secs_names)
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in gens(R)]
+    vars = [string(k) for k in symbols(R)]
     images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
     map = hom(R, S, images)
     for section in weierstrass_sections
@@ -143,7 +140,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
   if !isempty(def_secs_param)
     naive_vars = string.(gens(parent(first(values(def_secs_param)))))
-    filtered_vars = filter(x -> x in keys(explicit_secs), naive_vars)
+    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
     desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
     for (key, value) in def_secs_param
       def_secs_param[key] = eval_poly(string(value), desired_ring)
