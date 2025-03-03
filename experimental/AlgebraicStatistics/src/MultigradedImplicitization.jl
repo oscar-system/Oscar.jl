@@ -99,16 +99,19 @@ end
 end
 
 
+# compute the (transpose) of the jacobian
 function jacobian(phi)
   return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
 
 
+# compute the jacobian and evalauate it at the point pt
 function jacobian_at_point(phi, pt)
   return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
 
 
+# compute the jacobian at a random point with parameters sampled from a finite field
 function jacobian_at_rand_point(phi, K::Field = GF(32003))
 
   # remake codomain over finite field
@@ -122,6 +125,7 @@ function jacobian_at_rand_point(phi, K::Field = GF(32003))
 end
 
 
+# find the indices of the variable support of all monomials in mon_basis
 @everywhere function component_support(mon_basis)
 
   supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
