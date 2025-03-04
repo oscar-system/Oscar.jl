@@ -53,17 +53,21 @@ const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
 
 function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
+    result = Dict{Symbol, Any}(
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"]#version_info]
+    )
+
     return oscar_serialization_version[]
   end
   if is_dev
     commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"]#version_info]
     )
   else
     result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"] #VERSION_NUMBER]
     )
   end
   return oscar_serialization_version[] = result
@@ -749,7 +753,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
+  if file_version < VERSION_NUMBER
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)
@@ -758,9 +762,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
-    write("/tmp/blah.json", jsondict_str)
   end
-
+  
   try
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
