@@ -434,7 +434,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name == "NormalToricVariety"
         if dict[:data] isa Dict
-          if haskey(dict, :attrs)
+          if haskey(dict[:data], :attrs)
             upgraded_dict[:attrs] = dict[:data][:attrs]
             upgraded_dict[:data] = dict[:data][:pm_data]
           end
