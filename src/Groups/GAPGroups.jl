@@ -1799,9 +1799,11 @@ julia> prime_of_pgroup(UInt16, quaternion_group(8))
 
 julia> prime_of_pgroup(symmetric_group(1))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 julia> prime_of_pgroup(symmetric_group(3))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 ```
 """
@@ -2357,6 +2359,7 @@ julia> length(one(F))
 
 julia> length(one(quo(F, [F1])[1]))
 ERROR: ArgumentError: the element does not lie in a free group
+[...]
 ```
 """
 function length(g::Union{FPGroupElem, SubFPGroupElem})
