@@ -241,7 +241,7 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
     if haskey(attrs_data, :well_quantized_and_vertical_d3_tadpole)
       set_attribute!(fgs, :d3_tadpole_constraint, attrs_dict[:well_quantized_and_vertical_d3_tadpole])
     end
-    set_attribute!(model, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
+    set_attribute!(model, :well_quantized_and_transversal_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   # Are the well-quantized, vertical G4-fluxes which do not break a non-abelian gauge group known?
@@ -254,7 +254,7 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
     if haskey(attrs_data, :well_quantized_vertical_and_no_breaking_d3_tadpole)
       set_attribute!(fgs, :d3_tadpole_constraint, attrs_dict[:well_quantized_vertical_and_no_breaking_d3_tadpole])
     end
-    set_attribute!(model, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
+    set_attribute!(model, :well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   return model
