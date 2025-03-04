@@ -24,7 +24,7 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Transversality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
@@ -101,16 +101,16 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Transversality checks:: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
 julia> passes_transversality_checks(gf, check = false)
 true
 
-julia> m1 = matrix_integral(gf2);
+julia> m1 = matrix_integral(gf);
 
-julia> m2 = matrix_rational(gf2);
+julia> m2 = matrix_rational(gf);
 
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
