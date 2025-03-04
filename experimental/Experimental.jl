@@ -6,7 +6,8 @@ const expdir = joinpath(@__DIR__, "../experimental")
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "LieAlgebras",
+  "GModule",
+  "LieAlgebras",             # needs `QQ[...]` number field constuctor from GModule
   "BasisLieHighestWeight",   # needs code from LieAlgebras
   "AlgebraicShifting",       # Needs code from Lie Algebras (`isomorphism(PermGroup, ::WeylGroup)` specifically)
   "SetPartitions",
