@@ -149,7 +149,6 @@ true
 ```
 """
 function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
-  @req !(vert == false && not_breaking == true) "Family of non-vertical G4s which do not break the non-abelian gauge group is not supported"
   if !not_breaking
     return well_quantized_and_transversal_ambient_space_models_of_g4_fluxes(m, check = check)
   else
