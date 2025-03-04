@@ -445,20 +445,26 @@ function load_object(s::DeserializerState,
       end
       return T(k => v for (k, v) in pairs)
     else
-      dict = isempty(s.obj) ? T() : Dict()
+      dict = Dict{S, Any}()
+      value_types = Type[]
       for k in keys(s.obj)
         key = S <: Integer ? parse(S, string(k)) : S(k)
         value_type, param = params[key]
+        v = load_object(s, value_type, param, k)
         dict[key] = load_object(s, value_type, param, k)
+        push!(value_types, typeof(v))
       end
-      return dict
+      return Dict{S, Union{value_types...}}(dict)
     end
   else
-    dict = isempty(s.obj) ? T() : Dict()
+    dict = Dict{S, Any}()
+    value_types = Type[]
     for k in keys(s.obj)
-      dict[S(k)] = load_object(s, U, params, k)
+      v = load_object(s, U, params, k)
+      dict[S(k)] = v
+      push!(value_types, typeof(v))
     end
-    return dict
+    return Dict{S, Union{value_types...}}(dict)
   end
 end
 
