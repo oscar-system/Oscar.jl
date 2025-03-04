@@ -68,7 +68,7 @@ end
         special_linear_lie_algebra(RO, 3),
         special_orthogonal_lie_algebra(RO, 4),
         symplectic_lie_algebra(RO, 6),
-        #(LO = special_linear_lie_algebra(RO, 4); root_system(LO); LO), # TODO: enable
+        (LO = special_linear_lie_algebra(RO, 4); root_system(LO); LO),
       ]
 
       @testset for LO in lie_algebras

@@ -37,13 +37,12 @@
       lie_algebra_module_conformance_test(L, V)
     end
 
-    # TODO: enable
-    #= @testset "λ = [2,1] of so_4(CF(4))" begin
+    @testset "λ = [2,1] of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = simple_module(L, [2, 1])
       @test dim(V) == 6
       lie_algebra_module_conformance_test(L, V)
-    end =#
+    end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
       L = lie_algebra(QQ, :A, 2)

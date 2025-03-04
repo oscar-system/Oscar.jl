@@ -791,16 +791,25 @@ function _root_system_and_chevalley_basis(
 
   # In general, `coeffs` may not be squares in the coefficient field.
   # Construct a field extension `F` where they are.
-  @assert R == QQ
-  F, _ = QQ[sqrt.(algebraic_closure(QQ).(coeffs))] # TODO: generalize for other coefficient fields
-  coeffs_F = sqrt.(F.(coeffs))
+  @assert R isa Union{QQField,NumField} # TODO: generalize for other coefficient fields
+  F = R
+  coeffs_F = coeffs
+  i = findfirst(!is_square, coeffs_F)
+  while !isnothing(i)
+    Ft, t = polynomial_ring(F; cached=false)
+    F, _ = number_field(t^2 - coeffs_F[i], cached=false)
+    coeffs_F = [F(c) for c in coeffs_F]
+    i = findfirst(!is_square, coeffs_F)
+  end
+  coeffs_F_sqrt = sqrt.(coeffs_F)
+
   # Construct a Lie algebra `L_F` over `F` with the same structure constants as `L`,
   # and construct the Chevalley basis of `L_F`. 
   L_F = change_base_ring(F, L)
   L_F_chev_basis_mat = reduce(vcat,
     [
-      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F, pos_root_vectors))...,
-      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F, neg_root_vectors))...,
+      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F_sqrt, pos_root_vectors))...,
+      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F_sqrt, neg_root_vectors))...,
       (F.(_matrix(h)) for h in scaled_cartan_elems)...,
     ]; init=zero_matrix(F, 0, dim(L_F)))
   # The structure constants of `L_F` w.r.t. the Chevalley basis lie in `R`,
