@@ -428,8 +428,10 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name == "NormalToricVariety"
         if dict[:data] isa Dict
-          upgraded_dict[:attrs] = dict[:data][:attrs]
-          upgraded_dict[:data] = dict[:data][:pm_data]
+          if haskey(dict, :attrs)
+            upgraded_dict[:attrs] = dict[:data][:attrs]
+            upgraded_dict[:data] = dict[:data][:pm_data]
+          end
         end
       elseif type_name == "CohomologyClass"
         upgraded_dict = Dict(
