@@ -28,7 +28,7 @@ julia> mat_rat[2,1] = 1;
 julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 ```
@@ -79,15 +79,15 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
     push!(properties_string, "  - Elementary quantization checks: not executed")
   end
 
-  # Check for verticality checks
-  if has_attribute(gf, :is_vertical)
-    if is_vertical(gf)
-      push!(properties_string, "  - Verticality checks: satisfied")
+  # Check for transversality checks
+  if has_attribute(gf, :passes_transversality_checks)
+    if passes_transversality_checks(gf)
+      push!(properties_string, "  - Transversality checks: satisfied")
     else
-      push!(properties_string, "  - Verticality checks: failed")
+      push!(properties_string, "  - Transversality checks: failed")
     end
   else
-    push!(properties_string, "  - Verticality checks: not executed")
+    push!(properties_string, "  - Transversality checks: not executed")
   end
 
   # Check for non-abelian gauge group breaking

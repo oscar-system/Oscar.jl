@@ -56,14 +56,14 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -73,7 +73,7 @@ Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 +
 julia> g4f3 = g4_flux(qsm_model, g4_class, check = false, convert = true)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -111,8 +111,8 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   g4_candidate = G4Flux(m, converted_class)
 
   # Execute quantization checks if desired and return the created object
-  if check && !is_well_quantized(g4_candidate)
-    error("Given G4-flux candidate found to violate quantization condition")
+  if check && !is_well_quantized(g4_candidate) && !passes_transversality_checks(g4_candidate)
+    error("Given G4-flux candidate found to violate quantization and/or transversality condition")
   end
   return g4_candidate
 end
@@ -193,15 +193,15 @@ function Base.show(io::IO, g4::G4Flux)
     push!(properties_string, "  - Elementary quantization checks: not executed")
   end
 
-  # Check for verticality checks
-  if has_attribute(g4, :is_vertical)
-    if is_vertical(g4)
-      push!(properties_string, "  - Verticality checks: satisfied")
+  # Check for transversality checks
+  if has_attribute(g4, :passes_transversality_checks)
+    if passes_transversality_checks(g4)
+      push!(properties_string, "  - Transversality checks: satisfied")
     else
-      push!(properties_string, "  - Verticality checks: failed")
+      push!(properties_string, "  - Transversality checks: failed")
     end
   else
-    push!(properties_string, "  - Verticality checks: not executed")
+    push!(properties_string, "  - Transversality checks: not executed")
   end
 
   # Check for non-abelian gauge group breaking

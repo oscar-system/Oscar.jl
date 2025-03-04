@@ -550,7 +550,7 @@ julia> length(g4_basis)
 julia> g4_basis[1]
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 

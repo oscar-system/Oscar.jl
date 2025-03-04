@@ -1,5 +1,5 @@
 @doc raw"""
-    special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
 Compute a family of G4-fluxes with specified properties for a given F-theory model `m`,
 defined as a hypersurface in a simplicial and complete toric ambient space.
@@ -8,15 +8,13 @@ defined as a hypersurface in a simplicial and complete toric ambient space.
 This method models the G4-flux family using the restriction of cohomology classes on the
 toric ambient space to the hypersurface. In the toric ambient space, these classes are vertical,
 meaning they are of the form $a \wedge b$, where $a, b \in H^(1,1)(X_\Sigma)$, with $X_\Sigma$
-denoting the toric ambient space. However, this does not imply that the classes remain vertical
-on the hypersurface, which defines the actual F-theory geometry.
+denoting the toric ambient space.
 
 The resulting family is subjected to consistency conditions to ensure it satisfies elementary
-quantization requirements. By default, the method returns ambient space G4-flux candidates that
-meet these conditions, unless explicitly specified otherwise.
+quantization requirements and transversality conditions. By default, the method returns ambient
+space G4-flux candidates that meet these conditions.
 
 ### Optional Arguments
-- `vert = true`: Refines the family to include only fluxes that are vertical on the hypersurface.
 - `not_breaking = true`: Ensures the flux family preserves the non-abelian gauge group.
 - `check = false`: Skips computational checks for whether the toric ambient space $X_\Sigma$ is complete and simplicial, which can be resource-intensive.
 
@@ -39,72 +37,20 @@ These matrices are accessible for further analysis.
 ### Examples
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> fg1 = special_flux_family(t, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: failed
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> matrix_integral(fg1)
-[1//4   -3//16]
-[   0   1//144]
-
-julia> matrix_rational(fg1)
-2 by 0 empty matrix
-
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> length(chosen_g4_flux_basis(qsm_model, check = false))
-37
-
-julia> fg2 = special_flux_family(qsm_model, check = false)
+julia> fg = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> g4 = random_flux_instance(fg2, check = false)
-G4-flux candidate
-  - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
-
-julia> is_well_quantized(g4)
-true
-```
-
-Next, let us focus on vertical and well-quantized fluxes.
-
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
-Hypersurface model over a concrete base
-
-julia> fg = special_flux_family(qsm_model, vert = true, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -113,7 +59,7 @@ julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check 
 julia> is_well_quantized(g4_tester_double)
 true
 
-julia> is_vertical(g4_tester_double)
+julia> passes_transversality_checks(g4_tester_double)
 true
 
 julia> c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120, 0, -60, 0, -720, -420, -270, -60, -2190];
@@ -121,35 +67,35 @@ julia> c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120
 julia> qsm_g4_flux = flux_instance(fg, transpose(matrix(ZZ, [c])), zero_matrix(QQ, 0, 1), check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
-julia> is_vertical(qsm_g4_flux)
+julia> passes_transversality_checks(qsm_g4_flux)
 true
 
 julia> is_well_quantized(qsm_g4_flux)
 true
 ```
 
-Finally, we demonstrate the computation of the well-quantized, vertical $G_4$-fluxes,
-which do not break the non-abelian gauge group.
+Finally, we demonstrate the computation of the well-quantized $G_4$-fluxes which pass the transversality checks,
+and which in addition do not break the non-abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> fg = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
+julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
   - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
   - Tadpole cancellation check: not executed
 
@@ -158,7 +104,7 @@ julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check 
 julia> is_well_quantized(g4_tester_double)
 true
 
-julia> is_vertical(g4_tester_double)
+julia> passes_transversality_checks(g4_tester_double)
 true
 
 julia> breaks_non_abelian_gauge_group(g4_tester_double)
@@ -169,14 +115,14 @@ julia> c = [3];
 julia> qsm_g4_flux = flux_instance(fg, matrix(ZZ, [[3]]), zero_matrix(QQ, 0, 1), check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
   - Tadpole cancellation check: not executed
 
 julia> is_well_quantized(qsm_g4_flux)
 true
 
-julia> is_vertical(qsm_g4_flux)
+julia> passes_transversality_checks(qsm_g4_flux)
 true
 
 julia> breaks_non_abelian_gauge_group(qsm_g4_flux)
@@ -202,14 +148,11 @@ julia> qsm_g4_flux == g4_flux(qsm_model, g4_class)
 true
 ```
 """
-function special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
-  @req !(vert == false && not_breaking == true) "Family of non-vertical G4s which do not break the non-abelian gauge group is not supported"
-  if !vert && !not_breaking
-    return well_quantized_ambient_space_models_of_g4_fluxes(m, check = check)
-  elseif vert && !not_breaking
-    return well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m, check = check)
+function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+  if !not_breaking
+    return well_quantized_and_transversal_ambient_space_models_of_g4_fluxes(m, check = check)
   else
-    return well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m, check = check)
+    return well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m, check = check)
   end
 end
 
@@ -336,7 +279,7 @@ end
   # (9) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
   set_attribute!(fgs, :is_well_quantized, true)
-  set_attribute!(fgs, :is_vertical, false)
+  set_attribute!(fgs, :passes_transversality_checks, false)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
@@ -347,14 +290,14 @@ end
 end
 
 
-@attr FamilyOfG4Fluxes function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+@attr FamilyOfG4Fluxes function well_quantized_and_transversal_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
-  @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
-  @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
   if check
-    @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
+    @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
   end
 
 
@@ -537,7 +480,7 @@ end
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
   set_attribute!(fgs, :is_well_quantized, true)
-  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
@@ -548,14 +491,14 @@ end
 end
 
 
-@attr FamilyOfG4Fluxes function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+@attr FamilyOfG4Fluxes function well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
-  @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
-  @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for 5-dimensional toric ambient spaces"
   if check
-    @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
+    @req is_complete(ambient_space(m)) "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for simplicial toric ambient space"
   end
 
 
@@ -763,7 +706,7 @@ end
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
   set_attribute!(fgs, :is_well_quantized, true)
-  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
