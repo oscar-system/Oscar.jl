@@ -77,7 +77,7 @@ end
 Check whether the Lie algebra element `x` is zero.
 """
 function iszero(x::LieAlgebraElem)
-  return iszero(coefficients(x))
+  return iszero(_matrix(x))
 end
 
 @inline function _matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -259,13 +259,13 @@ end
 
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return coefficients(x1) == coefficients(x2)
+  return _matrix(x1) == _matrix(x2)
 end
 
 function Base.hash(x::LieAlgebraElem, h::UInt)
   b = 0x6724cbedbd860982 % UInt
   h = hash(parent(x), h)
-  h = hash(coefficients(x), h)
+  h = hash(_matrix(x), h)
   return xor(h, b)
 end
 
@@ -471,7 +471,7 @@ function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L))
   tmp = zero(mat)
-  for (c, g) in zip(coefficients(x), adjoint_matrices(L))
+  for (c, g) in zip(_matrix(x), adjoint_matrices(L))
     mat = addmul!(mat, g, c, tmp)
   end
   return mat
@@ -607,8 +607,6 @@ function _root_system_and_chevalley_basis(
 
   @req is_invertible(killing_matrix(L)) "The Killing form is degenerate"
 
-  F = coefficient_ring(L)
-
   # compute the common eigenspaces of the adjoint action of H.
   # B is a list of subspaces of L that gets refined in each iteration.
   # to exploit existing functionality, we use the LieSubalgebra type even
@@ -645,7 +643,7 @@ function _root_system_and_chevalley_basis(
 
   # compute an R-basis of the root space, s.t. the corresponding co-roots are a basis of H
   roots_basis = empty(roots)
-  basis_mat_H = zero_matrix(F, 0, dim(L))
+  basis_mat_H = zero_matrix(coefficient_ring(L), 0, dim(L))
   for root in roots
     nrows(basis_mat_H) == dim(H) && break
     x_j = only(basis(root_spaces[root]))
@@ -839,7 +837,7 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   b = basis(L)
 
   to_R(x::LieAlgebraElem) =
-    sum(c * g for (c, g) in zip(coefficients(x), gensR); init=zero(R))
+    sum(c * g for (c, g) in zip(_matrix(x), gensR); init=zero(R))
 
   rel = strictly_upper_triangular_matrix([
     to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
@@ -848,7 +846,7 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
 
   L_to_U = MapFromFunc(
     L, U, function (x::LieAlgebraElem)
-      sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
+      sum(c * g for (c, g) in zip(_matrix(x), gensU); init=zero(U))
     end
   )
   return U, L_to_U
