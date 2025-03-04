@@ -63,7 +63,13 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
         elseif haskey(const_data, :is_direct_sum)
           upgraded_dict[:_type][:params][:_is_direct_sum] = const_data[:is_direct_sum]
-        else
+        elseif haskey(const_data, :is_symmetric_power)
+          upgraded_dict[:_type][:params][:_is_symmetric_power] = [const_data[:is_symmetric_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_symmetric_power][2])]
+        elseif haskey(const_data, :is_tensor_product)
+          upgraded_dict[:_type][:params][:_is_tensor_product] = const_data[:is_tensor_product]
+        elseif haskey(const_data, :is_exterior_power)
+          upgraded_dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
+        elseif !isempty(const_data)
           print(json(const_data, 2))
           error("missed construction data")
         end
