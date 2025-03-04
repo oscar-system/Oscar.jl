@@ -122,7 +122,6 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
-  println(s.obj)
   return decode_type(s.obj)
 end
 
@@ -303,7 +302,6 @@ function load_type_params(s::DeserializerState, T::Type)
     return T, nothing
   end
   if haskey(s, :params)
-    println(T)
     load_node(s, :params) do obj
       if obj isa JSON3.Array || obj isa Vector
         params = load_type_array_params(s)
@@ -751,7 +749,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
 
-  if file_version < VERSION_NUMBER || file_version == v"1.4.0-DEV-d9efcbce878eb3bad9c3b220edd42b723c0add75"
+  if file_version < VERSION_NUMBER
     @info "File needs upgrade"
     # we need a mutable dictionary
     jsondict = copy(s.obj)
@@ -760,9 +758,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
-    write("/tmp/blah.json", jsondict_str)
   end
-
+  
   try
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.

@@ -290,6 +290,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         ]
         if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
           upgraded_subdict = upgrade_1_4_0(s, dict[:data])
+          println(json(upgraded_subdict, 2))
           upgraded_subdict[:_type][:params][:key_params] = "Symbol"
           field = nothing
 
