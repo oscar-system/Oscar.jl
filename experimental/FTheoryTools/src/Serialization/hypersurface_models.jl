@@ -56,6 +56,8 @@
   :zero_section,
   :zero_section_class,
   :zero_section_index,
+  :well_quantized_vertical_no_break_integral,
+  :well_quantized_vertical_no_break_rational,
 
   # these attributes should be moved into some form of meta data
   :arxiv_doi,
