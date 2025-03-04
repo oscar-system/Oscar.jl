@@ -841,8 +841,8 @@ end
 # Cone -> Polyhedron
 # PolyhedralFan -> PolyhedralComplex
 # for transforming coordinate matrices.
-function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
-  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+function embed_at_height_one(M::AbstractMatrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{Polymake.convert_to_pm_type(T)}(add_vert + size(M)[1], size(M)[2] + 1)
   if add_vert
     result[1, 1] = 1
   end
