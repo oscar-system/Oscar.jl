@@ -24,7 +24,7 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: failed
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
@@ -38,7 +38,7 @@ julia> m2 = matrix_rational(gf);
 julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -89,9 +89,9 @@ end
 
 
 @doc raw"""
-    respects_poincare_symmetry(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if the given family of $G_4$-fluxes respects the Poincare symmetry.
+Check if the given family of $G_4$-fluxes passes the transversality checks.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -101,21 +101,21 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Poincare symmetry: broken
+  - Transversality checks:: broken
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> respects_poincare_symmetry(gf, check = false)
+julia> passes_transversality_checks(gf, check = false)
 false
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Poincare symmetry: not broken
+  - Transversality checks:: not broken
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> respects_poincare_symmetry(gf2, check = false)
+julia> passes_transversality_checks(gf2, check = false)
 true
 
 julia> m1 = matrix_integral(gf2);
@@ -125,20 +125,20 @@ julia> m2 = matrix_rational(gf2);
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Poincare symmetry: breaking pattern not analyzed
+  - Transversality checks: verified/not verified/not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
-julia> respects_poincare_symmetry(gf3)
+julia> passes_transversality_checks(gf3)
 true
 ```
 """
-@attr Bool function respects_poincare_symmetry(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Check for Poincare symmetry being respected is supported only for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric ambient space"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
@@ -177,7 +177,7 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: failed
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
@@ -187,7 +187,7 @@ true
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
@@ -197,7 +197,7 @@ true
 julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
   - Tadpole constraint: not analyzed
 
@@ -211,7 +211,7 @@ julia> m2 = matrix_rational(gf3);
 julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
