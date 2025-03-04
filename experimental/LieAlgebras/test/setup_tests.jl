@@ -161,14 +161,15 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
           for (alpha_i, hi) in zip(simple_roots(rs), hs),
             (alpha, x_alpha) in zip(roots(rs), [es; fs])
 
-            @test hi * x_alpha == (2 * dot(alpha, alpha_i)//dot(alpha_i, alpha_i)) * x_alpha
+            @test hi * x_alpha ==
+              Int(2 * dot(alpha, alpha_i)//dot(alpha_i, alpha_i)) * x_alpha
           end
           # c) [x_a, x_-a] = h_a is a ZZ-linear combination of hs
           # We test something stronger here, namely that the ZZ-coefficients of h_a in the hs
           # are given by the coefficients of a^v in the simple coroots (and thus in particular integral)
           for (alpha_v, e_alpha, f_alpha) in zip(positive_coroots(rs), es, fs)
             @test e_alpha * f_alpha ==
-              sum(c * h for (c, h) in zip(coefficients(alpha_v), hs); init=zero(L))
+              sum(Int(c) * h for (c, h) in zip(coefficients(alpha_v), hs); init=zero(L))
           end
           # d) If a,b are independent roots, b-ra,...,b+qa the a-string through b,
           #    then [x_a, x_b] = 0 if q = 0, while [x_a, x_b] = +- (r+1)x_{a+b} if a+b is a root

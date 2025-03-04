@@ -724,7 +724,7 @@ function _root_system_and_chevalley_basis(
   root_vectors = [
     begin
       concrete_root = sum(
-        c .* root_simple for
+        Int(c) .* root_simple for
         (c, root_simple) in zip(coefficients(abstract_root), roots_simple)
       )
       @assert concrete_root in roots
@@ -791,17 +791,12 @@ function _root_system_and_chevalley_basis(
 
   # In general, `coeffs` may not be squares in the coefficient field.
   # Construct a field extension `F` where they are.
-  @assert R isa Union{QQField,NumField} # TODO: generalize for other coefficient fields
-  F = R
-  coeffs_F = coeffs
-  i = findfirst(!is_square, coeffs_F)
-  while !isnothing(i)
-    Ft, t = polynomial_ring(F; cached=false)
-    F, _ = number_field(t^2 - coeffs_F[i], cached=false)
-    coeffs_F = [F(c) for c in coeffs_F]
-    i = findfirst(!is_square, coeffs_F)
+  if all(is_square, coeffs)
+    F = R
+    coeffs_F_sqrt = sqrt.(coeffs)
+  else
+    F, coeffs_F_sqrt = _field_ext_with_sqrts(R, coeffs)
   end
-  coeffs_F_sqrt = sqrt.(coeffs_F)
 
   # Construct a Lie algebra `L_F` over `F` with the same structure constants as `L`,
   # and construct the Chevalley basis of `L_F`. 
@@ -857,6 +852,43 @@ function _root_system_and_chevalley_basis(
   ]
 
   return rs, (xs, ys, scaled_cartan_elems)
+end
+
+# TODO: clean the following up, once we have a unified interface for field extensions
+function _field_ext_with_sqrts(F::QQField, elems::Vector{QQFieldElem})
+  i = findfirst(!is_square, elems)
+  if isnothing(i)
+    return F, sqrt.(elems)
+  end
+  Fx, x = polynomial_ring(F; cached=false)
+  F, _ = number_field(x^2 - elems[i]; cached=false)
+  return _field_ext_with_sqrts(F, [F(c) for c in elems])
+end
+
+function _field_ext_with_sqrts(F::NumField, elems::Vector{<:NumFieldElem})
+  @req all(e -> parent(e) === F, elems) "Incompatible number fields"
+  elems_F = elems
+  i = findfirst(!is_square, elems_F)
+  while !isnothing(i)
+    Fx, x = polynomial_ring(F; cached=false)
+    F, _ = number_field(x^2 - elems_F[i]; cached=false)
+    elems_F = [F(c) for c in elems_F]
+    i = findfirst(!is_square, elems_F)
+  end
+  return F, sqrt.(elems_F)
+end
+
+function _field_ext_with_sqrts(F::FqField, elems::Vector{<:FqFieldElem})
+  @req all(e -> parent(e) === F, elems) "Incompatible number fields"
+  elems_F = elems
+  i = findfirst(!is_square, elems_F)
+  while !isnothing(i)
+    Fx, x = polynomial_ring(F; cached=false)
+    F, _ = finite_field(x^2 - elems_F[i]; cached=false)
+    elems_F = [F(c) for c in elems_F]
+    i = findfirst(!is_square, elems_F)
+  end
+  return F, sqrt.(elems_F)
 end
 
 function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}

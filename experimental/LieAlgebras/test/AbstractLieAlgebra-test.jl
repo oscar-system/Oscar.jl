@@ -182,14 +182,13 @@
       )
     end
 
-    # TODO: enable
-    #=@testset "G_2(GF(137)) with non-canonical basis" begin
+    @testset "G_2(GF(137)) with non-canonical basis" begin
       F = GF(137)
       L = lie_algebra(F, G2_non_canonical_basis_struct_consts(F))
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{FqFieldElem}, AbstractLieAlgebraElem{FqFieldElem}
       )
-    end=#
+    end
   end
 
   @testset "Lie algebra from root system" begin
