@@ -821,6 +821,68 @@ end
 
 ###############################################################################
 #
+#   Structure constant table
+#
+###############################################################################
+
+function structure_constant_table(L::LieAlgebra; copy::Bool=true)
+  # copy gets ignored as the generic implementation creates a new table anyway
+
+  R = coefficient_ring(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
+
+  basis = Oscar.basis(L)
+
+  for i in 1:dim(L)
+    struct_consts[i, i] = sparse_row(R)
+  end
+  for i in 1:dim(L), j in (i + 1):dim(L)
+    struct_consts[i, j] = sparse_row(_matrix(bracket(basis[i], basis[j])))
+    struct_consts[j, i] = -struct_consts[i, j]
+  end
+
+  return struct_consts
+end
+
+function structure_constant_table(
+  L::LieAlgebra{C}, basis::Vector{<:LieAlgebraElem{C}}
+) where {C}
+  @req all(b -> parent(b) === L, basis) "Incompatible Lie algebras"
+  basis_mat = reduce(
+    vcat, _matrix.(basis); init=zero_matrix(coefficient_ring(L), 0, dim(L))
+  )
+  return _structure_constant_table(L, basis_mat)
+end
+
+function _structure_constant_table(L::LieAlgebra{C}, basis_mat::MatElem{C}) where {C}
+  @req is_invertible(basis_mat) "input is not a basis"
+  basis_mat_ctx = solve_init(basis_mat)
+
+  R = coefficient_ring(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
+  sc_standard_basis = structure_constant_table(L; copy=false)
+
+  for i in 1:dim(L)
+    struct_consts[i, i] = sparse_row(R)
+  end
+  for i in 1:dim(L), j in (i + 1):dim(L)
+    # lookup entry in `basis_mat * sc_standard_basis * transpose(basis_mat)`
+    entry = zero_matrix(R, 1, dim(L))
+    for k in 1:dim(L), l in 1:dim(L)
+      coeff = basis_mat[i, k] * basis_mat[j, l]
+      if !is_zero(coeff)
+        entry = addmul!(entry, coeff, dense_row(sc_standard_basis[k, l], dim(L)))
+      end
+    end
+    struct_consts[i, j] = sparse_row(solve(basis_mat_ctx, entry; side=:left))
+    struct_consts[j, i] = -struct_consts[i, j]
+  end
+
+  return struct_consts
+end
+
+###############################################################################
+#
 #   Universal enveloping algebra
 #
 ###############################################################################
