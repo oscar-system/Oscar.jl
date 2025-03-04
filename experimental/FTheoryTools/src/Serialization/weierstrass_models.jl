@@ -220,7 +220,7 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
     quant_tuple = (attrs_data[:well_quantized_integral], attrs_data[:well_quantized_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
     set_attribute!(fgs, :is_well_quantized, true)
-    set_attribute!(fgs, :is_vertical, false)
+    set_attribute!(fgs, :passes_transversality_checks, false)
     set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
     if haskey(attrs_data, :well_quantized_d3_tadpole)
       set_attribute!(fgs, :d3_tadpole_constraint, attrs_dict[:well_quantized_d3_tadpole])
@@ -233,12 +233,12 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
     quant_tuple = (attrs_data[:well_quantized_and_vertical_integral], attrs_data[:well_quantized_and_vertical_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
     set_attribute!(fgs, :is_well_quantized, true)
-    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
     set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
     if haskey(attrs_data, :well_quantized_and_vertical_d3_tadpole)
       set_attribute!(fgs, :d3_tadpole_constraint, attrs_dict[:well_quantized_and_vertical_d3_tadpole])
     end
-    set_attribute!(model, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
+    set_attribute!(model, :well_quantized_and_transversal_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   # Are the well-quantized, vertical G4-fluxes which do not break a non-abelian gauge group known?
@@ -246,12 +246,12 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
     quant_tuple = (attrs_data[:well_quantized_vertical_no_break_integral], attrs_data[:well_quantized_vertical_no_break_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
     set_attribute!(fgs, :is_well_quantized, true)
-    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
     set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
     if haskey(attrs_data, :well_quantized_vertical_and_no_breaking_d3_tadpole)
       set_attribute!(fgs, :d3_tadpole_constraint, attrs_dict[:well_quantized_vertical_and_no_breaking_d3_tadpole])
     end
-    set_attribute!(model, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
+    set_attribute!(model, :well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   return model
