@@ -294,7 +294,7 @@ end
 
 function save_type_params(
   s::SerializerState,
-  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{<:Pair}}}) where {T, S <: Union{Symbol, Int, String}}
+  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do

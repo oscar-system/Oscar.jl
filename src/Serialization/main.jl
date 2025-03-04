@@ -246,7 +246,7 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
+                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
