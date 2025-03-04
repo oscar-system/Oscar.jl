@@ -29,6 +29,10 @@ otherwise `false`.
 See also [`exchange!(::WeylGroup, ::UInt8, ::Vector{UInt8})`](@ref).
 """
 function exchange!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  if w[end] == i
+    return true
+  end
+  
   root = i
   for s in length(w):-1:1
     if w[s] == root
