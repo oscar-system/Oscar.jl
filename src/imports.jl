@@ -88,6 +88,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_known,
   is_terse,
   is_trivial,
   is_unicode_allowed,
@@ -207,3 +208,4 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+import lib4ti2_jll

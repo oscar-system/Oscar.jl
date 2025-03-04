@@ -35,7 +35,13 @@ end
 type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
 
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
-  return TypeParams(T, type_params(_polyhedral_object_as_dict(obj)))
+  p_dict = _polyhedral_object_as_dict(obj)
+  field = p_dict[:_coeff]
+  delete!(p_dict, :_coeff)
+  return TypeParams(
+    T,
+    :field => field,
+    :pm_params => type_params(p_dict))
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
@@ -47,8 +53,10 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
     T = typeof(obj)
     error("Unsupported type $T for serialization")
   end
+  p_dict = _polyhedral_object_as_dict(obj)
+  delete!(p_dict, :_coeff)
   save_data_dict(s) do
-    for (k, v) in _polyhedral_object_as_dict(obj)
+    for (k, v) in p_dict
       if !Base.issingletontype(typeof(v))
         save_object(s, v, k)
       end
@@ -67,18 +75,19 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
+  field = dict[:field]
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
-  field = polymake_dict[:_coeff]
 
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
+  field = dict[:field]
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
-  field = polymake_dict[:_coeff]
+
   return T(bigobject, field)
 end
 

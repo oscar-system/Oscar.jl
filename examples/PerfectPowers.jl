@@ -232,7 +232,7 @@ end
 """
     is_power_bernstein(a::ZZRingElem)
 
-Computes the maximal `k` s.th. `a = b^k` using an asymptotically optimal
+Compute the maximal `k` s.th. `a = b^k` using an asymptotically optimal
 algorithm with a runtime softly linear in the size of `a`.
 
 Much faster than `is_power` from gmp/flint for large input.

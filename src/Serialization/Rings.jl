@@ -13,11 +13,9 @@ const PolyRingUnionType = Union{UniversalPolyRing,
                             PolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
 
-const IdealOrdUnionType = Union{MPolyIdeal,
-                                LaurentMPolyIdeal,
-                                FreeAssociativeAlgebraIdeal,
-                                IdealGens,
-                                MonomialOrdering}
+const IdealUnionType = Union{MPolyIdeal,
+                             LaurentMPolyIdeal,
+                             FreeAssociativeAlgebraIdeal}
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
                                       QQRelPowerSeriesRing,
@@ -41,9 +39,10 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 
 type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
 type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
-type_params(x::T) where T <: IdealOrdUnionType = TypeParams(T, base_ring(x))
+type_params(x::T) where T <: IdealUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
+type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
 type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
@@ -252,11 +251,13 @@ end
 @register_serialization_type MPolyIdeal
 @register_serialization_type LaurentMPolyIdeal
 
-function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
+function save_object(s::SerializerState, I::T) where T <: IdealUnionType
+  # we might want to serialize generating_system(I) and I.gb
+  # in the future
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealOrdUnionType}, parent_ring::RingMatSpaceUnion)
+function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
   gens = elem_type(parent_ring)[]
   load_array_node(s) do _
     push!(gens, load_object(s, elem_type(parent_ring), parent_ring))
@@ -271,6 +272,12 @@ end
 
 @register_serialization_type IdealGens
 
+type_params(ig::IdealGens) = TypeParams(
+  IdealGens,
+  :base_ring => base_ring(ig),
+  :ordering_type => TypeParams(typeof(ordering(ig)), nothing)
+)
+
 function save_object(s::SerializerState, obj::IdealGens)
   save_data_dict(s) do
     save_object(s, ordering(obj), :ordering)
@@ -281,8 +288,17 @@ function save_object(s::SerializerState, obj::IdealGens)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:IdealGens}, base_ring::MPolyRing)
-  ord = load_object(s, MonomialOrdering, base_ring, :ordering)
+function load_object(s::DeserializerState, ::Type{<:IdealGens}, params::Dict)
+  base_ring = params[:base_ring]
+  ordering_type = params[:ordering_type]
+
+  if ordering_type <: MonomialOrdering
+    ord = load_object(s, ordering_type, base_ring, :ordering)
+  else
+    ord = load_node(s, :ordering) do _
+      MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
+    end
+  end
   generators = load_object(s, Vector{elem_type(base_ring)}, base_ring, :gens)
   is_gb = load_object(s, Bool, :is_gb)
   is_reduced = load_object(s, Bool, :is_reduced)
@@ -300,7 +316,7 @@ end
 @register_serialization_type SMatSpace uses_id
 @register_serialization_type SMat
 
-function save_object(s::SerializerState, obj::MatSpace)
+function save_object(s::SerializerState, obj::MatSpace{T}) where T
   save_data_dict(s) do
     save_object(s, ncols(obj), :ncols)
     save_object(s, nrows(obj), :nrows)
@@ -615,7 +631,7 @@ function save_object(s::SerializerState, o::MonomialOrdering)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPolyRing)
+function load_object(s::DeserializerState, ::Type{<:MonomialOrdering}, ring::MPolyRing)
   # this will need to be changed to include other orderings, see below
   ord = load_object(s, Orderings.SymbOrdering, :internal_ordering)
   result = MonomialOrdering(ring, ord)

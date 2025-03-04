@@ -669,10 +669,6 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
 end
 
-function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
-  return divexact(numerator(a)(b), denominator(a)(b))
-end
-
 function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{QQFieldElem}})
   pt = Tuple{Int, Int}[]
   for i=0:degree(f)
