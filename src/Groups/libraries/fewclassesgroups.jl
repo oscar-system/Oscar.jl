@@ -59,6 +59,7 @@ julia> number_of_groups_with_class_number(8)
 
 julia> number_of_groups_with_class_number(50)
 ERROR: ArgumentError: the number of groups with 50 classes is not available
+[...]
 ```
 """
 function number_of_groups_with_class_number(n::IntegerUnion)
@@ -88,6 +89,7 @@ julia> describe(group_with_class_number(5, 8))
 
 julia> group_with_class_number(5, 12)
 ERROR: ArgumentError: there are only 8 groups with 5 classes, not 12
+[...]
 ```
 """
 function group_with_class_number(::Type{T}, n::IntegerUnion, i::IntegerUnion) where T

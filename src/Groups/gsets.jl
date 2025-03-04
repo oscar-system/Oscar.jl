@@ -1230,6 +1230,7 @@ julia> rank_action(K, 2:4)  # 2-transitive
 
 julia> rank_action(K, 3:5)
 ERROR: ArgumentError: the group is not transitive
+[...]
 ```
 """
 function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
@@ -1262,6 +1263,7 @@ julia> transitivity(symmetric_group(6), 1:7)
 
 julia> transitivity(symmetric_group(6), 1:5)
 ERROR: ArgumentError: the group does not act
+[...]
 ```
 """
 function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
