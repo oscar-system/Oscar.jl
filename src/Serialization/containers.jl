@@ -445,7 +445,7 @@ function load_object(s::DeserializerState,
       end
       return T(k => v for (k, v) in pairs)
     else
-      dict = T()
+      dict = isempty(s.obj) ? T() : Dict()
       for k in keys(s.obj)
         key = S <: Integer ? parse(S, string(k)) : S(k)
         value_type, param = params[key]
@@ -454,7 +454,7 @@ function load_object(s::DeserializerState,
       return dict
     end
   else
-    dict = T()
+    dict = isempty(s.obj) ? T() : Dict()
     for k in keys(s.obj)
       dict[S(k)] = load_object(s, U, params, k)
     end
