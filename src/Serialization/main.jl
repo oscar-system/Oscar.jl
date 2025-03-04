@@ -53,21 +53,17 @@ const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
 
 function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
-    result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"]#version_info]
-    )
-
     return oscar_serialization_version[]
   end
   if is_dev
     commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"]#version_info]
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
     )
   else
     result = Dict{Symbol, Any}(
-      :Oscar => ["https://github.com/oscar-system/Oscar.jl", "1.4.0"] #VERSION_NUMBER]
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
     )
   end
   return oscar_serialization_version[] = result
