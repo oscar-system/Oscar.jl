@@ -111,20 +111,12 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
     end
     save_object(s, hypersurface_equation(h), :hypersurface_equation)
     save_object(s, hypersurface_equation_parametrization(h), :hypersurface_equation_parametrization)
+    
     attrs_dict = Dict{Symbol, Any}()
     for (key, value) in h.__attrs
       if value isa String || value isa Vector{String} || value isa Bool
         attrs_dict[key] = value
       end
-    end
-
-    # Save resolutions, if they are known.
-    if has_resolutions(h)
-      res = resolutions(h)
-      resolution_loci = [k[1] for k in res]
-      exceptional_divisors = [k[2] for k in res]
-      attrs_dict[:resolution_loci] = resolution_loci
-      attrs_dict[:exceptional_divisors] = exceptional_divisors
     end
 
     # Do we know the well-quantized G4-fluxes
@@ -252,14 +244,6 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   #   ambient_space_models_of_g4_fluxes = [cohomology_class(amb_space, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in tuple_list]
   #   set_attribute!(model, :ambient_space_models_of_g4_fluxes, ambient_space_models_of_g4_fluxes)
   #   set_attribute!(model, :ambient_space_models_of_g4_fluxes_indices, tuple_list)
-  # end
-
-  # Resolution loci known? If so, set them.
-  # if haskey(attrs_data, :resolution_loci)
-  #   resolution_loci = attrs_data[:resolution_loci]
-  #   exceptional_divisors = attrs_data[:exceptional_divisors]
-  #   @req length(exceptional_divisors) == length(exceptional_divisors) "Inconsistency upon loading resolutions"
-  #   set_attribute!(model, :resolutions, [[resolution_loci[i], exceptional_divisors[i]] for i in 1:length(resolution_loci)])
   # end
 
   # Are the well-quanitzed G4-fluxes known?
