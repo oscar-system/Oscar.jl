@@ -122,6 +122,7 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
+  println(s.obj)
   return decode_type(s.obj)
 end
 
@@ -302,6 +303,7 @@ function load_type_params(s::DeserializerState, T::Type)
     return T, nothing
   end
   if haskey(s, :params)
+    println(T)
     load_node(s, :params) do obj
       if obj isa JSON3.Array || obj isa Vector
         params = load_type_array_params(s)
@@ -756,7 +758,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = upgrade(file_version, jsondict)
     jsondict_str = JSON3.write(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
-                                serializer,
+                          serializer,
                           with_attrs)
     write("/tmp/blah.json", jsondict_str)
   end

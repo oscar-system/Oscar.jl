@@ -321,7 +321,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       end
 
       isnothing(key_params) && return (S, U), value_params
-      isnothing(value_params) && return (S, U), nothing
+      isnothing(key_params) && isnothing(value_params) && return (S, U), nothing
       return (S, U), Dict(:key_params => key_params, :value_params => value_params)
     else
       S, key_params = load_node(s, :key_params) do _
@@ -416,6 +416,20 @@ end
 
 # here to handle ambiguities
 function load_object(s::DeserializerState, T::Type{Dict{Int, Int}}, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+# here to handle ambiguities
+function load_object(s::DeserializerState, T::Type{Dict{String, Int}}, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+# here to handle ambiguities
+function load_object(s::DeserializerState, T::Type{Dict{Symbol, Int}}, key::Union{Symbol, Int})
   load_node(s, key) do _
     load_object(s, T)
   end

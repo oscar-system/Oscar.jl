@@ -1,19 +1,3 @@
-function upgrade_QSMModel(d::Dict)
-  upgraded_dict = d
-  upgraded_dict[:_type] = Dict(
-    :name => d[:_type],
-    :params => Dict(
-      :hs_model => d[:data][:hs_model][:_type],
-      :genus_ci => d[:data][:genus_ci][:_type],
-      :degree_of_Kbar_of_tv_restricted_to_ci => d[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:_type]
-    ))
-  upgraded_dict[:data][:hs_model] = d[:data][:hs_model][:data]
-  upgraded_dict[:data][:genus_ci] = d[:data][:genus_ci][:data]
-  upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = d[:data][:degree_of_Kbar_of_tv_restricted_to_ci][:data]
-
-  return upgraded_dict
-end
-
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
@@ -46,6 +30,26 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data] = Dict(
             :symbols => dict[:data][:symbols],
           )
+        end
+      elseif type_name == "QSMModel"
+        upgraded_hs = upgrade_1_4_0(s, dict[:data][:hs_model])
+        upgraded_genus_ci = upgrade_1_4_0(s, dict[:data][:genus_ci])
+        upgraded_degree_of_Kbar_of_tv_restricted_to_ci = upgrade_1_4_0(s, dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci])
+        upgraded_dict[:_type] = Dict(
+          :name => dict[:_type],
+          :params => Dict(
+            :hs_model => upgraded_hs,
+            :genus_ci => upgraded_genus_ci[:_type],
+            :degree_of_Kbar_of_tv_restricted_to_ci => upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:_type]
+          ))
+        upgraded_dict[:data][:genus_ci] = upgraded_genus_ci[:data]
+        upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:data]
+      elseif type_name == "HypersurfaceModel"
+        upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
+        upgraded_dict[:attrs] = Dict()
+        for k in keys(upgraded_attr_dict[:_type][:params])
+          k == :key_params && continue
+          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
@@ -516,7 +520,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         # do nothing
         
       else
-        println(json(dict, 2))
+        #println(json(dict, 2))
         error("$type_name doesn't have upgrade")
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
