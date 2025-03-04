@@ -245,7 +245,7 @@ function iso_oscar_singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{<:Po
   return OscarSingularCoefficientRingMapFractionField(F, S, g, Sx)
 end
 
-function preimage(f::OscarSingularCoefficientRingMapFractionField, a::Singular.n_transExt)
+function preimage(f::OscarSingularCoefficientRingMapFractionField{<:AbstractAlgebra.Generic.FracField{<:PolyRingElem}}, a::Singular.n_transExt)
   parent(a) !== codomain(f) && error("Element not in codomain")
   F = domain(f)
   R = base_ring(F)
@@ -253,7 +253,7 @@ function preimage(f::OscarSingularCoefficientRingMapFractionField, a::Singular.n
   return F(_map_oscar_singular_univariate(R, f.g, n), _map_oscar_singular_univariate(R, f.g, d))
 end
 
-function image(f::OscarSingularCoefficientRingMapFractionField, a)
+function image(f::OscarSingularCoefficientRingMapFractionField{<:AbstractAlgebra.Generic.FracField{<:PolyRingElem}}, a)
   parent(a) !== domain(f) && error("Element not in domain")
   F = base_ring(base_ring(domain(f))) # the F in domain(f) = F(X)
   K = codomain(f)
@@ -267,7 +267,7 @@ function image(f::OscarSingularCoefficientRingMapFractionField, a)
       K(f.g(x))
     end
   end
-  d = map_coefficients(denominator(a)) do x
+  d = map_coefficients(denominator(a); cached = false) do x
     if F isa FinField
       K(lift(ZZ, x))
     else
@@ -275,6 +275,57 @@ function image(f::OscarSingularCoefficientRingMapFractionField, a)
     end
   end
   return divexact(n(t), d(t))
+end
+
+# maps for fraction field of multivariate polynomial ring
+function iso_oscar_singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{<:MPolyRingElem{T}}) where {T <: Union{FqFieldElem, QQFieldElem}}
+  R = base_ring(F)
+  g = iso_oscar_singular_coeff_ring(base_ring(R))
+  S, = Singular.FunctionField(codomain(g),_variables_for_singular(symbols(R)))
+  Sx, = polynomial_ring(S, nvars(R), :x; cached = false)
+  return OscarSingularCoefficientRingMapFractionField(F, S, g, Sx)
+end
+
+# helper
+function _map_oscar_singular_multivariate(Rx, g, f::Singular.spoly)
+  O = base_ring(Rx)
+  Sx = parent(f)
+  @assert ngens(Sx) == ngens(Ox)
+  g = MPolyBuildCtx(Rx)
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    push_term!(g, preimage(g, c), e)
+  end
+  return finish(g)
+end
+
+function image(f::OscarSingularCoefficientRingMapFractionField{<:AbstractAlgebra.Generic.FracField{<:MPolyRingElem}}, a)
+  parent(a) !== domain(f) && error("Element not in domain")
+  x = Singular.transcendence_basis(codomain(f))
+  F = base_ring(base_ring(domain(f))) # the F in domain(f) = F(X)
+  K = codomain(f)
+  map_coeff_map = x -> begin
+    if F isa FinField
+      K(lift(ZZ, x))
+    else
+      K(f.g(x))
+    end
+  end
+  return divexact(evaluate(map_coefficients(map_coeff_map,
+                                            numerator(a); parent = f.Spoly), x
+                          ),
+                  evaluate(map_coefficients(map_coeff_map,
+                                            denominator(a); parent = f.Spoly), x
+                          )
+                 )
+end
+
+function preimage(f::OscarSingularCoefficientRingMapFractionField, a::Singular.n_transExt)
+  parent(a) !== codomain(f) && error("Element not in codomain")
+  F = domain(f)
+  R = base_ring(F)
+  n, d = Singular.n_transExt_to_spoly.([numerator(a), denominator(a)]; cached = false)
+  return divexact(map_coefficients(x -> preimage(f.g, x), n; parent = R),
+                  map_coefficients(x -> preimage(f.g, x), d; parent = R))
 end
 
 # rational function field
