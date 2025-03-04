@@ -72,15 +72,14 @@ end
 
 
 @doc raw"""
-    is_vertical(gf::G4Flux)
+    respects_poincare_symmetry(gf::G4Flux)
 
-G4-fluxes are subject to verticality conditions described first in [GH12](@cite) and in more detail in [Wei18](@cite).
-It is hard to verify that these condition are met. However,
-we can execute a number of simple consistency checks, by
-verifying that $\int_{Y}{G_4 \wedge [D_1] \wedge [zero section]} = 0$ and $\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} = 0$
-for all toric base divisors $D_1$ and $D_2$. If all of these
-simple consistency checks are met, this method will return
-`true` and otherwise `false`
+G4-fluxes are subject to conditions which guarantee that they do not break the Poincard symmetry 
+(cf. [Wei18](@cite)). It is hard to verify that these condition are met. However, we can execute
+a number of simple consistency checks, by verifying that
+$\int_{Y}{G_4 \wedge [D_1] \wedge [zero section]} = 0$ and $\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} = 0$
+for all toric base divisors $D_1$ and $D_2$. If all of these simple consistency checks are met,
+this method will return `true` and otherwise `false`
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -101,23 +100,23 @@ G4-flux candidate
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
-julia> is_vertical(g4)
+julia> respects_poincare_symmetry(g4)
 true
 
 julia> g4
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: satisfied
+  - Poincare symmetry: not broken
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
 """
-@attr Bool function is_vertical(g4::G4Flux)
+@attr Bool function respects_poincare_symmetry(g4::G4Flux)
   m = model(g4)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for  G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
-  @req has_zero_section_class(m) "For verticality checks, a model zero section class needs to be specified"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Check for Poincare symmetry being respected is supported only for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric ambient space"
+  @req has_zero_section_class(m) "Check for Poincare symmetry being respected requires zero section class"
   
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
@@ -126,7 +125,7 @@ G4-flux candidate
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
   zero_sec = zero_section_class(m)
 
-  # now execute verticality checks
+  # now execute checks to verify if Poincare symmetry is respected
   for i in 1:n
     numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy) * zero_sec; check = false)
     numb!=0 && return false

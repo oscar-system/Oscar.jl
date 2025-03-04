@@ -89,9 +89,9 @@ end
 
 
 @doc raw"""
-    is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    respects_poincare_symmetry(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if the given family of $G_4$-fluxes is vertical.
+Check if the given family of $G_4$-fluxes respects the Poincare symmetry.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -101,21 +101,21 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Poincare symmetry: broken
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf, check = false)
+julia> respects_poincare_symmetry(gf, check = false)
 false
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Poincare symmetry: not broken
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf2, check = false)
+julia> respects_poincare_symmetry(gf2, check = false)
 true
 
 julia> m1 = matrix_integral(gf2);
@@ -125,20 +125,20 @@ julia> m2 = matrix_rational(gf2);
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Poincare symmetry: breaking pattern not analyzed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf3)
+julia> respects_poincare_symmetry(gf3)
 true
 ```
 """
-@attr Bool function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function respects_poincare_symmetry(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verticality check only supported for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Verticality check currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Verticality check currently supported only for toric ambient space"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Check for Poincare symmetry being respected is supported only for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Check for Poincare symmetry being respected is supported only for toric ambient space"
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
@@ -148,14 +148,14 @@ true
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    if !is_vertical(gen_k)
+    if !respects_poincare_symmetry(gen_k)
       return false
     end
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    if !is_vertical(gen_k)
+    if !respects_poincare_symmetry(gen_k)
       return false
     end
   end
