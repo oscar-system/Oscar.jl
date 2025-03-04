@@ -14,7 +14,6 @@
 
 # character values are elements from QQAbField
 
-
 #############################################################################
 ##
 ##  Atlas irrationalities
@@ -2645,7 +2644,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples

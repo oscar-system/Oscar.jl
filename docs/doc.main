@@ -304,6 +304,7 @@
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
