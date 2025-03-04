@@ -1967,3 +1967,24 @@ function genera_of_components_of_simplified_dual_graph(m::AbstractFTheoryModel)
   @req has_attribute(m, :genus_of_components_of_simplified_dual_graph) "Genera of components of simplified dual graph not known for this model"
   return get_attribute(m, :genus_of_components_of_simplified_dual_graph)
 end
+
+
+######################################################################################
+### (5) Attributes for flux families (not exported, rather for serialization overhaul)
+######################################################################################
+
+@attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel)
+  return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel)
+  return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
+end
