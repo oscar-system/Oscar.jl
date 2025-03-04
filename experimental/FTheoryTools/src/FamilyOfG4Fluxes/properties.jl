@@ -101,21 +101,11 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Transversality checks:: broken
+  - Transversality checks:: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
 julia> passes_transversality_checks(gf, check = false)
-false
-
-julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Transversality checks:: not broken
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> passes_transversality_checks(gf2, check = false)
 true
 
 julia> m1 = matrix_integral(gf2);
@@ -125,7 +115,7 @@ julia> m2 = matrix_rational(gf2);
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Transversality checks: verified/not verified/not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -177,24 +167,14 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Transversality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
 
-julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> breaks_non_abelian_gauge_group(gf2)
-true
-
-julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
+julia> gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

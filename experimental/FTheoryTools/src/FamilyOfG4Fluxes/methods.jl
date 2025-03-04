@@ -129,7 +129,7 @@ end
 ##########################################
 
 @doc raw"""
-    random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+    random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
 Create a random $G_4$-flux on a given F-theory model.
 
@@ -138,7 +138,7 @@ Create a random $G_4$-flux on a given F-theory model.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> rf = random_flux(qsm_model, vert = true, check = false)
+julia> rf = random_flux(qsm_model, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -146,7 +146,7 @@ G4-flux candidate
   - Tadpole cancellation check: not executed
 ```
 """
-function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
-  family = special_flux_family(m, vert = vert, not_breaking = not_breaking, check = check)
+function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+  family = special_flux_family(m, not_breaking = not_breaking, check = check)
   return random_flux_instance(family, check = check)
 end

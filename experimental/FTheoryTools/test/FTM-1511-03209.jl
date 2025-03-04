@@ -3,9 +3,9 @@
   t_resolved = resolve(t, 1)
   f1 = special_flux_family(t_resolved, check = false)
   g1 = random_flux_instance(f1, check = false)
-  f2 = special_flux_family(t_resolved, vert = true, check = false)
+  f2 = special_flux_family(t_resolved, check = false)
   g2 = random_flux_instance(f2, check = false)
-  f3 = special_flux_family(t_resolved, vert = true, not_breaking = true, check = false)
+  f3 = special_flux_family(t_resolved, not_breaking = true, check = false)
   g3 = random_flux_instance(f3, check = false)
   
   @test n_rays(ambient_space(t)) == 104
