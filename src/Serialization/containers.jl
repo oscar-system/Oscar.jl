@@ -264,10 +264,11 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict
 
-function type_params(obj::T) where {U, S <: Union{Symbol, Int, String},
-                                    T <: Dict{S, U}} 
+function type_params(obj::T) where {S <: Union{Symbol, Int, String},
+                                    T <: Dict{S, Any}} 
   return TypeParams(
-    T, 
+    T,
+    :key_params => TypeParams(S, nothing),
     map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
   )
 end
@@ -299,7 +300,6 @@ function save_type_params(
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
-      save_object(s, encode_type(S), :key_params)
       isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
       for (k, param_tp) in params(tp)
         save_type_params(s, param_tp, Symbol(k))
