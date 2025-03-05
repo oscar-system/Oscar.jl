@@ -1331,3 +1331,34 @@ end
   @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
 end
 
+@testset "composition of morphisms" begin
+  R, (x, y) = QQ[:x, :y]
+  P, t = QQ[:t]
+  kk, _ = extension_field(t^2 + 1)
+  S, (u, v) = kk[:u, :v]
+  R1 = free_module(R, 1)
+  S1 = free_module(S, 1)
+  id_R1 = hom(R1, R1, [R1[1]])
+  id_S1 = hom(S1, S1, [S1[1]])
+  f = hom(R1, S1, [S1[1]], hom(R, S, [u, v]))
+  i = first(gens(kk))
+  conj = hom(kk, kk, -i)
+  conj_S1 = hom(S1, S1, [S1[1]], hom(S, S, conj, [u, v]))
+
+  a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
+  b = compose(compose(id_R1, compose(f, conj_S1)), id_S1)
+  c = compose(compose(compose(id_R1, f), conj_S1), id_S1)
+  d = compose(id_R1, compose(f, compose(conj_S1, id_S1)))
+
+  @test_throws ErrorException a == b
+  @test_throws MethodError !(conj_S1 == id_S1) # ring map vs. no ring map
+  @test conj_S1 == conj_S1 # identical ring maps are OK
+  @test_throws ErrorException a == b # non-comparable ring maps 
+  @test all(a(x) == b(x) for x in gens(R1))
+  @test all(a(x) == c(x) for x in gens(R1))
+  @test all(a(x) == d(x) for x in gens(R1))
+
+  @test all(i*conj_S1(x) == conj_S1(-i*x) for x in gens(S1))
+  @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
+  @test conj_S1 == compose(id_S1, conj_S1)
+end
