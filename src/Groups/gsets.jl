@@ -932,15 +932,35 @@ function blocks(Omega::GSet)
   L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
-  bl = map( A -> map(x -> Omega[x], A), bl)
+  bl = map(A -> map(x -> Omega[x], A), bl)
   # TODO how to compose `on_sets` with `action_function(Omega)`?
   return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
+function maximal_blocks(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  L = moved_points(G)
+  bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
+  # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
+  bl = map(A -> map(x -> Omega[x], A), bl)
+  # TODO how to compose `on_sets` with `action_function(Omega)`?
+  return gset(G, on_sets, bl; closed = true)
+end
 
-maximal_blocks(G::GSet) = error("not implemented")
-minimal_block_reps(G::GSet) = error("not implemented")
-all_blocks(G::GSet) = error("not implemented")
+function minimal_block_reps(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
+
+  return map(A -> map(x -> Omega[x], A), bl)
+end
+
+function all_blocks(Omega::GSet)
+  bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
+
+  return map(A -> map(x -> Omega[x], A), bl)
+end
+
 
 
 """
