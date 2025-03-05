@@ -85,6 +85,10 @@ labels, and the release notes script will organize them appropriately:
 
 ## Suggestions for formulations
 
+
+In general the description of each change should start with a verb in present
+tense. Here are some more concrete suggestions.
+
 | Change                        | Example |
 |-------------------------------|--------------------|
 | move from experimental to src/ | Graduate bla from experimental to officially supported |
