@@ -71,6 +71,7 @@ julia> number_of_primitive_groups(10)
 
 julia> number_of_primitive_groups(4096)
 ERROR: ArgumentError: the number of primitive permutation groups of degree 4096 is not available
+[...]
 ```
 """
 function number_of_primitive_groups(deg::Int)
@@ -92,6 +93,7 @@ Permutation group of degree 10 and order 60
 
 julia> primitive_group(10,10)
 ERROR: ArgumentError: there are only 9 primitive permutation groups of degree 10, not 10
+[...]
 ```
 """
 function primitive_group(deg::Int, i::Int)
@@ -135,11 +137,13 @@ true
 
 julia> primitive_group_identification(symmetric_group(4096))
 ERROR: ArgumentError: identification of primitive permutation groups of degree 4096 is not available
+[...]
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> primitive_group_identification(S)
 ERROR: ArgumentError: group is not primitive on its moved points
+[...]
 ```
 """
 function primitive_group_identification(G::PermGroup)

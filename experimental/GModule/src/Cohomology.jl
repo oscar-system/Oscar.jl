@@ -651,6 +651,11 @@ function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   return all(c(x) == d(x) for x = keys(c))
 end
 
+function Base.hash(c::CoChain{N, G, M}, h::UInt) where {N, G, M}
+  # this is a very bad hash, but it is correct
+  return hash(c.C, h)
+end
+
 function +(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   @assert c.C === d.C
   if isdefined(c, :D) && isdefined(d, :D)

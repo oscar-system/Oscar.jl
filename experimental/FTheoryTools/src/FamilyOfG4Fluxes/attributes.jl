@@ -22,7 +22,7 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -55,7 +55,7 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -88,7 +88,7 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -124,7 +124,7 @@ Hypersurface model over a concrete base
 julia> fgs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
@@ -133,7 +133,7 @@ julia> d3_tadpole_constraint(fgs);
 julia> fgs
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
   - Tadpole constraint: evaluated
 ```

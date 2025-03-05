@@ -2825,7 +2825,8 @@ function _evaluate_plain(
   ) where {CT <: Union{<:MPolyLocRing, <:MPolyQuoLocRing}}
   W = codomain(F)::MPolyLocRing
   S = base_ring(W)
-  isdefined(F, :variable_indices) && return W(_build_poly(u, F.variable_indices, S))
+  fl, var_ind = _maps_variables_to_variables(F)
+  fl && return W(_build_poly(u, var_ind, S))
   return evaluate(u, F.img_gens)
 end
 
@@ -2833,23 +2834,24 @@ function _evaluate_general(
     F::MPolyAnyMap{<:MPolyRing, CT}, u
   ) where {CT <: Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   S = temp_ring(F)
+  fl, var_ind = _maps_variables_to_variables(F)
   if S !== nothing
-    if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+    if !fl || coefficient_ring(S) !== codomain(F)
       return evaluate(map_coefficients(coefficient_map(F), u,
                                        parent = S), F.img_gens)
     else
       tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-      return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+      return _evaluate_with_build_ctx(tmp_poly, var_ind, codomain(F))
     end
   else
-    if !isdefined(F, :variable_indices)
+    if !fl
       return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
     else
       # For the case where we can recycle the method above, do so.
       tmp_poly = map_coefficients(coefficient_map(F), u)
       coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
                                                                                             tmp_poly,
-                                                                                            F.variable_indices,
+                                                                                            var_ind,
                                                                                             codomain(F)
                                                                                            )
       # Otherwise default to the standard evaluation for the time being.

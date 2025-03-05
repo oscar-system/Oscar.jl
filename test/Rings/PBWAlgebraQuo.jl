@@ -33,11 +33,3 @@ end
   ConformanceTests.test_NCRing_interface(Q; reps = 1)
 end
 
-@testset "PBWAlgebraQuo.conversion" begin
-  # [2023-12-21] Used to have incorrect parent object
-  E,_ = exterior_algebra(QQ,3)
-  @test  E() == E(0)
-  three = QQFieldElem(3)
-  @test  E(three) == E(3)
-end
-

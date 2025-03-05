@@ -295,6 +295,7 @@ julia> compose_count_loops(set_partition([1, 1], [2]), set_partition([1], [2, 2]
 
 julia> compose_count_loops(set_partition([1], [1, 2]), set_partition([1], [2, 2]))
 ERROR: ArgumentError: number of points mismatch
+[...]
 ```
 """
 function compose_count_loops(p::SetPartition, q::SetPartition)

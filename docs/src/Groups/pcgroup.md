@@ -116,17 +116,24 @@ julia> small_group(24, 12)
 Pc group of order 24
 ```
 
-## Functions for (subgroups of) pc groups and their elements
+## Functions for elements of (subgroups of) pc groups
+
+```@docs
+letters(g::Union{PcGroupElem, SubPcGroupElem})
+syllables(g::Union{PcGroupElem, SubPcGroupElem})
+map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+```
+
+## Functions for (subgroups of) pc groups
 
 ```@docs
 relators(G::PcGroup)
-map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 ```
 
 The function
 [`full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}`](@ref)
-for finitely presented groups is applicable to polycyclicly presented groups
-as well.
+for (subgroups of) finitely presented groups is applicable to
+(subgroups of) polycyclicly presented groups as well.
 
 ## Series of polycyclic groups
 

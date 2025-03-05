@@ -673,6 +673,7 @@ export graded_map
 export graded_polynomial_ring
 export grading_group
 export graph
+export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
 export grassmann_pluecker_ideal

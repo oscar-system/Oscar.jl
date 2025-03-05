@@ -14,7 +14,6 @@
 
 # character values are elements from QQAbField
 
-
 #############################################################################
 ##
 ##  Atlas irrationalities
@@ -1533,13 +1532,15 @@ function _translate_parameter(para)
     elseif GAPWrap.IsCyc(para)
       # happens for the `P:Q` table, only roots of unity occur
       return [x for x in GAPWrap.DescriptionOfRootOfUnity(para)]
-    elseif ! GAPWrap.IsList(para)
-      # What can this parameter be?
-      return GAP.gap_to_julia(para)
-    elseif length(para) == 0
-      return Int[]
+    elseif GAPWrap.IsList(para)
+      if isempty(para)
+        return Int[]
+      else
+        return [_translate_parameter(x) for x in para]
+      end
     else
-      return [_translate_parameter(x) for x in para]
+      # Unknown type of Gap object, we just keep it as is.
+      return para
     end
 end
 
@@ -2643,7 +2644,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples

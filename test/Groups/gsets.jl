@@ -84,6 +84,8 @@
   @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 0
+  @test_throws ArgumentError rank_action(Omega)
   @test_throws ArgumentError gset(G, permuted, omega)
 
   R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
@@ -98,6 +100,8 @@
   @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 3
+  @test rank_action(Omega) == 2
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -249,7 +253,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
+  @test transitivity(gset(G8)) == 1
   @test transitivity(S4) == 4
+  @test transitivity(gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0

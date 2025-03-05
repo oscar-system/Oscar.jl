@@ -65,6 +65,14 @@
     push!(vars, x)
     @test f(x) == x
   end
+
+  let
+    R, (xx, yy) = QQ[:xx, :yy]
+    S, (x, y, z) = QQ[:x, :y, :z]
+    f = hom(R, S, [x, y])
+    @test preimage(f, ideal(S, [x, y, z])) == ideal(R, [xx, yy])
+    @test preimage(f, ideal(S, [z])) == ideal(R, [zero(R)])
+  end
 end
 
 @testset "cross-type kernels" begin

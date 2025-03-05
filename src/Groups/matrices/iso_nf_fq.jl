@@ -88,11 +88,13 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
 
   gen = gens(G)
 
-  preimg = function(y)
-    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(_ring_iso(Gp), matrix(y)))),
+  preimg_bare = function(y)
+    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, y)),
                                   GAPWrap.FreeGeneratorsOfFpGroup(F),
                                   GapObj(gen))
   end
+
+  preimg = y -> preimg_bare(map_entries(_ring_iso(Gp), matrix(y)))
 
   has_order(Gp) && set_order(G, order(Gp))
 
@@ -106,10 +108,10 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
     risoGp = _ring_iso(Gp)
 
     # map from Gap_G to Gap_Gp
-    fun = x -> GapObj(img(G(preimage_matrix(risoG, x); check=false)))
+    fun = x -> map_entries(risoGp, _reduce(preimage_matrix(risoG, x), OtoFq))
 
     # map from Gap_Gp to Gap_G
-    invfun = x -> GapObj(preimg(Gp(preimage_matrix(risoGp, x); check=false)))
+    invfun = x -> GapObj(preimg_bare(x))
 
     Gap_mp = GAP.Globals.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
     GAP.Globals.SetNiceMonomorphism(Gap_G, Gap_mp)

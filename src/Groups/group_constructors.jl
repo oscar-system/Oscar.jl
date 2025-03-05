@@ -782,6 +782,7 @@ Pc group of infinite order
 
 julia> dihedral_group(7)
 ERROR: ArgumentError: n must be a positive even integer or infinity
+[...]
 ```
 """
 dihedral_group(n::Union{IntegerUnion,PosInf}) = dihedral_group(PcGroup, n)

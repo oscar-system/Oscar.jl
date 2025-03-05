@@ -30,7 +30,7 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -40,7 +40,7 @@ true
 julia> g4
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
@@ -72,15 +72,10 @@ end
 
 
 @doc raw"""
-    is_vertical(gf::G4Flux)
+    passes_transversality_checks(gf::G4Flux)
 
-G4-fluxes are subject to verticality conditions described first in [GH12](@cite) and in more detail in [Wei18](@cite).
-It is hard to verify that these condition are met. However,
-we can execute a number of simple consistency checks, by
-verifying that $\int_{Y}{G_4 \wedge [D_1] \wedge [zero section]} = 0$ and $\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} = 0$
-for all toric base divisors $D_1$ and $D_2$. If all of these
-simple consistency checks are met, this method will return
-`true` and otherwise `false`
+G4-fluxes are subject to transversality conditions (cf. [Wei18](@cite)).
+If these conditions are met, this method will return `true` and otherwise `false`
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -97,27 +92,27 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
-julia> is_vertical(g4)
+julia> passes_transversality_checks(g4)
 true
 
 julia> g4
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
 """
-@attr Bool function is_vertical(g4::G4Flux)
+@attr Bool function passes_transversality_checks(g4::G4Flux)
   m = model(g4)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for  G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
-  @req has_zero_section_class(m) "For verticality checks, a model zero section class needs to be specified"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
+  @req has_zero_section_class(m) "Transversality checks require zero section class"
   
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
@@ -126,7 +121,7 @@ G4-flux candidate
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
   zero_sec = zero_section_class(m)
 
-  # now execute verticality checks
+  # now execute checks to verify if the transversality conditions are satisfied
   for i in 1:n
     numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy) * zero_sec; check = false)
     numb!=0 && return false
@@ -162,7 +157,7 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -172,7 +167,7 @@ true
 julia> g4
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: satisfied
 ```
@@ -210,7 +205,7 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -220,7 +215,7 @@ false
 julia> g4
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: not broken
   - Tadpole cancellation check: not executed
 ```

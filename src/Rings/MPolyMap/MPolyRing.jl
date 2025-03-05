@@ -172,7 +172,10 @@ function _build_poly(u::MPolyRingElem, indices::Vector{Int}, S::MPolyRing)
 end
 
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
-  isdefined(F, :variable_indices) && return _build_poly(u, F.variable_indices, codomain(F))
+  fl, var_ind = _maps_variables_to_variables(F)
+  if fl
+    return _build_poly(u, var_ind, codomain(F))
+  end
   return evaluate(u, F.img_gens)
 end
 
@@ -184,7 +187,10 @@ end
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
   A = codomain(F)
   R = base_ring(A)
-  isdefined(F, :variable_indices) && return A(_build_poly(u, F.variable_indices, R))
+  fl, var_ind = _maps_variables_to_variables(F)
+  if fl
+    return A(_build_poly(u, var_ind, R))
+  end
   v = evaluate(lift(u), lift.(_images(F)))
   return simplify(A(v))
 end
@@ -216,23 +222,24 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
                                      parent = domain(F)), F.img_gens)
   else
     S = temp_ring(F)
+    fl, var_ind = _maps_variables_to_variables(F)
     if S !== nothing
-      if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+      if !fl || coefficient_ring(S) !== codomain(F)
         return evaluate(map_coefficients(coefficient_map(F), u,
                                          parent = S), F.img_gens)
       else
         tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+        return _evaluate_with_build_ctx(tmp_poly, var_ind, codomain(F))
       end
     else
-      if !isdefined(F, :variable_indices)
+      if !fl
         return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
       else
         # For the case where we can recycle the method above, do so.
         tmp_poly = map_coefficients(coefficient_map(F), u)
         coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
                    tmp_poly,
-                   F.variable_indices,
+                   var_ind,
                    codomain(F)
                  )
         # Otherwise default to the standard evaluation for the time being.
