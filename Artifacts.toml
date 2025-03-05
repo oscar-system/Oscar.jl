@@ -1,10 +1,10 @@
 [version-1-3-0-files]
-git-tree-sha1 = 89ae59fcf01c839b786729bcdaf09b46953a4835
+git-tree-sha1 = "89ae59fcf01c839b786729bcdaf09b46953a4835"
 lazy = true
 
-     [version-1-3-0-files.download]
+     [[version-1-3-0-files.download]]
      sha256 = "2e173bc1d334fcd5b477010165bfdb6dc34f8781ca89ea426985c77d4a253cc6"
-     url = "need to add "
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/version_1_3_0_files.tar.gz"     
      
 [FTM-1511-03209]
 git-tree-sha1 = "ba4c659df6bba8d746d85628bfedf8b77b77047c"
