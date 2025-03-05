@@ -1,4 +1,4 @@
-abstract type ModuleData end
+abstract type ModuleData{C <: FieldElem, LieT <: LieAlgebraElem{C}} end
 
 # To be implemented by subtypes:
 # Mandatory:
@@ -8,16 +8,16 @@ abstract type ModuleData end
 #   character(V::MyModuleData) -> Dict{WeightLatticeElem,ZZRingElem}
 
 
-mutable struct SimpleModuleData <: ModuleData
-    L::LieAlgebra
+mutable struct SimpleModuleData{C <: FieldElem, LieT <: LieAlgebraElem{C}} <: ModuleData{C, LieT}
+    L::LieAlgebra{C} # parent_type(LieT)
     highest_weight::WeightLatticeElem
 
     # The following fields are not set by default, just for caching
     dim::ZZRingElem
     character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function SimpleModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem)
-        return new(L, highest_weight)
+    function SimpleModuleData(L::LieAlgebra{C}, highest_weight::WeightLatticeElem) where {C <: FieldElem}
+        return new{C, elem_type(L)}(L, highest_weight)
     end
 end
 
@@ -25,8 +25,8 @@ function SimpleModuleData(L::LieAlgebra, highest_weight::Vector{Int})
     return SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
 end
 
-function base_lie_algebra(V::SimpleModuleData)
-    return V.L
+function base_lie_algebra(V::SimpleModuleData{C, LieT}) where {C <: FieldElem, LieT <: LieAlgebraElem{C}}
+    return V.L::parent_type(LieT)
 end
 
 function highest_weight(V::SimpleModuleData)
@@ -47,8 +47,8 @@ function character(V::SimpleModuleData)
     return V.character
 end
 
-mutable struct DemazureModuleData <: ModuleData
-    L::LieAlgebra
+mutable struct DemazureModuleData{C <: FieldElem, LieT <: LieAlgebraElem{C}} <: ModuleData{C, LieT}
+    L::LieAlgebra{C} # parent_type(LieT)
     highest_weight::WeightLatticeElem
     weyl_group_elem::WeylGroupElem
 
@@ -56,8 +56,8 @@ mutable struct DemazureModuleData <: ModuleData
     dim::ZZRingElem
     character::Dict{WeightLatticeElem, ZZRingElem}
 
-    function DemazureModuleData(L::LieAlgebra, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem)
-        return new(L, highest_weight, weyl_group_elem)
+    function DemazureModuleData(L::LieAlgebra{C}, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem) where {C <: FieldElem}
+        return new{C, elem_type(L)}(L, highest_weight, weyl_group_elem)
     end
 end
 
@@ -65,8 +65,8 @@ function DemazureModuleData(L::LieAlgebra, highest_weight::Vector{Int}, weyl_gro
     return DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem))
 end
 
-function base_lie_algebra(V::DemazureModuleData)
-    return V.L
+function base_lie_algebra(V::DemazureModuleData{C, LieT}) where {C <: FieldElem, LieT <: LieAlgebraElem{C}}
+    return V.L::parent_type(LieT)
 end
 
 function highest_weight(V::DemazureModuleData)
