@@ -463,13 +463,12 @@ function load_object(s::DeserializerState,
     value_types = Type[]
     for k in keys(s.obj)
       v = load_object(s, U, params, k)
-      dict[S(k)] = v
+      key = S <: Integer ? parse(S, string(k)) : S(k)
+      dict[key] = v
       push!(value_types, typeof(v))
     end
     value_params = type_params.(collect(values(dict)))
-    println(typejoin(unique(value_types)))
     value_type = params_all_equal(value_params) ? typejoin(unique(value_types)...) : Any
-    println(value_type)
     return Dict{S, value_type}(dict)
   end
 end
