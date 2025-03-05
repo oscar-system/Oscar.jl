@@ -265,7 +265,7 @@ end
 @register_serialization_type Dict
 
 function type_params(obj::T) where {S <: Union{Symbol, Int, String},
-                                    T <: Dict{S, Any}} 
+                                    T <: Union{Dict{S, <: Union}, Dict{S, Any}}}
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
@@ -454,7 +454,8 @@ function load_object(s::DeserializerState,
         dict[key] = load_object(s, value_type, param, k)
         push!(value_types, typeof(v))
       end
-      return Dict{S, Union{value_types...}}(dict)
+      length(unique(value_types)) == 1 && return Dict{S, first(value_types)}(dict)
+      return dict
     end
   else
     dict = Dict{S, Any}()
@@ -464,7 +465,8 @@ function load_object(s::DeserializerState,
       dict[S(k)] = v
       push!(value_types, typeof(v))
     end
-    return Dict{S, Union{value_types...}}(dict)
+    length(unique(value_types)) == 1 && return Dict{S, first(value_types)}(dict)
+    return dict
   end
 end
 
