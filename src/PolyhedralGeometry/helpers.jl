@@ -559,7 +559,8 @@ _find_elem_type(x::Polymake.Rational) = QQFieldElem
 _find_elem_type(x::Polymake.Integer) = ZZRingElem
 _find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
 _find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
-_find_elem_type(x::AbstractArray{<:AbstractArray}) = reduce(vcat, _find_elem_type.(x), init=[])
+_find_elem_type(x::AbstractArray{<:AbstractArray}) =
+  reduce(vcat, _find_elem_type.(x); init=[])
 _find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
 
 function _guess_fieldelem_type(x...)
