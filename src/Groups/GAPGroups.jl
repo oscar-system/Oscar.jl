@@ -1830,33 +1830,52 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
   set__prime_of_pgroup(G, GAP.Obj(p))
 end
 
-# TODO/FIXME: the rank method below is disabled because it conflicts
-# with semantics of  the `rank` method for FinGenAbGroup. We'll have
-# to resolve this first; afterwards we can uncomment this code,
-# and possibly rename it to whatever we agreed on (if it is different from `rank`)
-#"""
-#    rank(G::GAPGroup)
-#
-#Return the rank of the group `G`, i.e., the minimal size of a generating set.
-#
-## Examples
-#```jldoctest
-#julia> rank(symmetric_group(5))
-#2
-#
-#julia> rank(free_group(5))
-#5
-#```
-#`"""
-#function rank(G::GAPGroup)
-#  is_trivial(G) && return 0
-#  is_cyclic(G) && return 1
-#  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
-#    return GAP.Globals.Rank(GapObj(G))::Int
-#  end
-#  has_is_finite(G) && is_finite(G) && return length(minimal_size_generating_set(G))
-#  error("not yet supported")
-#end
+"""
+    rank(G::GAPGroup)
+
+Return the rank of the group `G`, i.e., the minimal size of a generating set.
+
+See also [`torsion_free_rank`](@ref).
+
+# Examples
+```jldoctest
+julia> rank(symmetric_group(5))
+2
+
+julia> rank(free_group(5))
+5
+
+julia> G = pc_group(abelian_group(5,0))
+Pc group of infinite order
+
+julia> rank(G)
+2
+
+julia> torsion_free_rank(G)
+1
+```
+`"""
+function rank(G::GAPGroup)
+  is_trivial(G) && return 0
+  is_cyclic(G) && return 1
+  if GAPWrap.IsFreeGroup(GapObj(G))
+    return GAP.Globals.RankOfFreeGroup(GapObj(G))
+  end
+  if has_is_finite(G) && is_finite(G) && is_pgroup(G)
+    return GAP.Globals.RankPGroup(GapObj(G))
+  end
+
+  if (has_is_finite(G) && is_finite(G)) || (has_is_abelian(G) && is_abelian(G))
+    return length(minimal_size_generating_set(G))
+  end
+  error("not yet supported")
+end
+
+function torsion_free_rank(G::GAPGroup)
+  is_trivial(G) && return 0
+  is_cyclic(G) && return 1
+  return count(is_zero, abelian_invariants(G))
+end
 
 """
     is_finitely_generated(G::GAPGroup)
@@ -2402,7 +2421,7 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    end
 
    famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
-   if GAP.Globals.IsFreeGroup(GapObj(G))
+   if GAPWrap.IsFreeGroup(GapObj(G))
      w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
    else
      # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
