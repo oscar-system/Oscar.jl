@@ -83,6 +83,21 @@ labels, and the release notes script will organize them appropriately:
 | `package: Polymake`           | Changes related to the package Polymake |
 | `package: Singular`           | Changes related to the package Singular |
 
+## Suggestions for formulations
+
+
+In general the description of each change should start with a verb in present
+tense. Here are some more concrete suggestions.
+
+| Change                        | Example |
+|-------------------------------|--------------------|
+| move from experimental to src/ | Graduate bla from experimental to officially supported |
+| feature added                 | Add `bla` for `blub `/ Support `bla` for `blub` / Implement `bla`
+| renaming things               | Rename `bla` to `blub`
+| bug fix                       | Fix `bla` in `blub`
+| improvements                  | Improve (performance) of `blub`
+| experimental feature          | Experimental: add support for `bla`
+
 
 ## Updating the changelog
 
