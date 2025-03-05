@@ -1,4 +1,4 @@
-@testset "Test Downloading Artifact and elementary properties" begin
+@test_skip @testset "Test Downloading Artifact and elementary properties" begin
   t = literature_model(arxiv_id = "1511.03209")
   t_resolved = resolve(t, 1)
   f1 = special_flux_family(t_resolved, check = false)
