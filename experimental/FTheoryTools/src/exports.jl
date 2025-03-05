@@ -126,7 +126,6 @@ export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
 export is_partially_resolved
-export is_vertical
 export is_well_quantized
 export journal_doi
 export journal_link
@@ -154,6 +153,7 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export passes_tadpole_cancellation_check
+export passes_transversality_checks
 export polytope_index
 export put_over_concrete_base
 export random_flux

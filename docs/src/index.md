@@ -2,7 +2,7 @@
 
 ## What is OSCAR?
 
-OSCAR is a new computer algebra system. OSCAR features functions for groups,
+OSCAR is a new *Open Source Computer Algebra Research* system. OSCAR features functions for groups,
 rings, and fields as well as linear and commutative algebra, number theory,
 algebraic and polyhedral geometry, and more. It is built upon several well
 established systems for mathematical research joined via the Julia programming
