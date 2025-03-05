@@ -60,17 +60,23 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
 
-        upgraded_explicit_model_sections = upgrade_1_4_0(s, dict[:data][:explicit_model_sections])
-        upgraded_model_section_parametrization = upgrade_1_4_0(s, dict[:data][:model_section_parametrization])
-        upgraded_defining_classes = upgrade_1_4_0(s, dict[:data][:defining_classes])
+        if haskey(dict[:data], :explicit_model_sections)
+          upgraded_explicit_model_sections = upgrade_1_4_0(s, dict[:data][:explicit_model_sections])
+          upgraded_dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
+          upgraded_dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
+        end
 
-        upgraded_dict[:_type][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
-        upgraded_dict[:_type][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
-        upgraded_dict[:_type][:defining_classes] = upgraded_defining_classes[:_type]
+        if haskey(dict[:data], :model_section_parametrization)
+          upgraded_model_section_parametrization = upgrade_1_4_0(s, dict[:data][:model_section_parametrization])
+          upgraded_dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
+          upgraded_dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
+        end
 
-        upgraded_dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
-        upgraded_dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
-        upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
+        if haskey(dict[:data], :defining_classes)
+          upgraded_defining_classes = upgrade_1_4_0(s, dict[:data][:defining_classes])
+          upgraded_dict[:_type][:params][:defining_classes] = upgraded_defining_classes[:_type]
+          upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
+        end
 
         @show upgraded_dict
 
@@ -104,7 +110,6 @@ push!(upgrade_scripts_set, UpgradeScript(
         elseif haskey(const_data, :is_exterior_power)
           upgraded_dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
         elseif !isempty(const_data)
-          print(json(const_data, 2))
           error("missed construction data")
         end
       elseif type_name == "LinearLieAlgebra"
@@ -320,7 +325,6 @@ push!(upgrade_scripts_set, UpgradeScript(
         ]
         if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
           upgraded_subdict = upgrade_1_4_0(s, dict[:data])
-          println(json(upgraded_subdict, 2))
           upgraded_subdict[:_type][:params][:key_params] = "Symbol"
           field = nothing
 

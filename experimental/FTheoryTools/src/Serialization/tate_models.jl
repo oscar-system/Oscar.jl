@@ -177,15 +177,15 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::D
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = Dict{String, MPolyRingElem}()
   if haskey(s, :explicit_model_sections)
-    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections])
+    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections], :explicit_model_sections)
   end
   model_section_parametrization = Dict{String, MPolyRingElem}()
   if haskey(s, :model_section_parametrization)
-    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization])
+    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization], :model_section_parametrization)
   end
   defining_classes = Dict{String, ToricDivisorClass}()
   if haskey(s, :defining_classes)
-    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes])
+    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes], :defining_classes)
   end
   model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
   model.defining_classes = defining_classes
