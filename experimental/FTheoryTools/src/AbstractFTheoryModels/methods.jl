@@ -652,7 +652,7 @@ function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector
   set_attribute!(m, :resolution_zero_sections => result)
 end
 
-function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Vector{Vector{Any}}}, Vector{String}}})
+function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int}}}, Vector{String}}})
   set_attribute!(m, :weighted_resolutions => desired_value)
 end
 

@@ -639,7 +639,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_data"], "weighted_resolutions")
-    set_weighted_resolutions(model, [([[string.(c[1]), c[2]] for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["weighted_resolutions"]])
+    set_weighted_resolutions(model, [([(string.(c[1]), Int.(c[2])) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["weighted_resolutions"]])
   end
   
   if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
