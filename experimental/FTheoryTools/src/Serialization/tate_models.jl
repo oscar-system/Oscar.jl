@@ -151,6 +151,7 @@ end
 function save_object(s::SerializerState, m::GlobalTateModel)
   @req base_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined over a toric base space"
   @req ambient_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined within a toric ambient space"
+  @req m.tate_polynomial !== nothing "Currently, we only serialize global Tate models for which the Tate polynomial (and not only the Tate ideal sheaf) is known"
   save_data_dict(s) do
     for (data, key) in [
         (explicit_model_sections(m), :explicit_model_sections),
