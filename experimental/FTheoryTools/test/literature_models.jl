@@ -53,7 +53,7 @@ end
   @test resolutions(t1) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t1)) == 1
   @test length(resolution_zero_sections(t1)) == 1
-  @test weighted_resolutions(t1) == [([[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"])]
+  @test weighted_resolutions(t1) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t1)) == 1
   @test length(weighted_resolution_zero_sections(t1)) == 1
 end
@@ -196,7 +196,7 @@ end
   @test resolutions(t3) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t3)) == 1
   @test length(resolution_zero_sections(t3)) == 1
-  @test weighted_resolutions(t3) == [([[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"])]
+  @test weighted_resolutions(t3) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t3)) == 1
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end
