@@ -609,3 +609,28 @@ end
     end
   end
 end
+
+@testset "Demazure" begin
+  @testset "Trivial Cases" begin
+    for case in [
+      (:A, 3, [1, 0, 1]),
+      (:A, 3, [2, 2, 2]),
+      (:B, 2, [1, 1]),
+      (:D, 4, [1, 0, 1, 0]),
+      (:G, 2, [1, 0]),
+    ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
+      
+      type, rank, highest_weight = case
+      weyl_group_elem = convert(Vector{Int64}, word(longest_element(weyl_group(type, rank))))
+
+      # longest weyl group element leads to the same result as a simple module
+      mb1 = basis_lie_highest_weight(type, rank, highest_weight; monomial_ordering)
+      mb2 = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
+      @test monomials(mb1) == monomials(mb2)
+
+      # empty weyl group element leads to a monomialbasis with only the one element
+      mb = basis_lie_demazure(type, rank, highest_weight, Int[]; monomial_ordering)
+      @test monomials(mb) == Set{ZZMPolyRingElem}([one(mb.monomials_parent)])
+    end
+  end
+end
