@@ -78,7 +78,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
         end
 
-        @show upgraded_dict
+        #println(json(upgraded_dict[:_type], 2))
+        #@show upgraded_dict
 
       elseif type_name == "WeierstrassModel"
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
