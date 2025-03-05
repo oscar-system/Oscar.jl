@@ -329,14 +329,33 @@ function is_welldefined(H::SubQuoHom)
   return true
 end
 
-function (==)(f::ModuleFPHom, g::ModuleFPHom)
+# No ring map
+function (==)(f::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  M = domain(f)
-  for v in gens(M)
-    f(v) == g(v) || return false
+  return all(f(v) == g(v) for v in gens(domain(f)))
+end
+
+# With ring map
+function (==)(f::ModuleFPHom, g::ModuleFPHom)
+  if isnothing(ring_map(f))
+    isnothing(ring_map(g)) || is_trivial(ring_map(g)) || return false
   end
-  return true
+  if isnothing(ring_map(g))
+    isnothing(ring_map(f)) || is_trivial(ring_map(f)) || return false
+  end
+  # TODO: Catch the case where == defaults to === and this returns false, 
+  # but the ring_maps are identical in the mathematical sense nevertheless.
+  ring_map(f) == ring_map(g) || return false # Will throw if ring maps do not compare
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  return all(f(v) == g(v) for v in gens(domain(f)))
+end
+
+# TODO: Move to Hecke?
+function (==)(f::Map, g::Map)
+  f === g && return true
+  error("comparison of maps of type $(typeof(f)) and $(typeof(g)) not implemented")
 end
 
 function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
