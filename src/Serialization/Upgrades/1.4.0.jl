@@ -51,6 +51,20 @@ push!(upgrade_scripts_set, UpgradeScript(
           k == :key_params && continue
           upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
+      elseif type_name == "GlobalTateModel"
+        upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
+        upgraded_dict[:attrs] = Dict()
+        for k in keys(upgraded_attr_dict[:_type][:params])
+          k == :key_params && continue
+          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
+        end
+      elseif type_name == "WeierstrassModel"
+        upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
+        upgraded_dict[:attrs] = Dict()
+        for k in keys(upgraded_attr_dict[:_type][:params])
+          k == :key_params && continue
+          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
+        end
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],

@@ -152,10 +152,13 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model.defining_classes = defining_classes
   model.model_section_parametrization = model_section_parametrization
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
-
-  # Refactor inter_dict to the type that is needed.
-  # !!!!!!! We should add functionality for storing this types of tuples !!!!!!!
-  # The code below has been moved into other places (marked with TODO). These are to be removed once NTuple{4, Int64} is supported.
+  return model
+  
+  # TODO Refactor inter_dict to the type that is needed.
+  # TODO !!!!!!! We should add functionality for storing this types of tuples !!!!!!!
+  # TODO Code alike (! not identical) the one below below has been moved into other places (marked with TODO):
+  # TODO: FamiliesOfG4Fluxes/special_constructors (3 times) & FamiliesOfG4Fluxes/attributes (once).
+  # TODO These code blocks are to be removed once NTuple{4, Int64} is supported by serialization.
 
   # if haskey(attrs_data, :inter_dict)
   #   # We want this inter_dict to be of type Dict{NTuple{4, Int64}, ZZRingElem}().
@@ -169,6 +172,4 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   #   end
   #   set_attribute!(model, :inter_dict, new_dict)
   # end
-
-  return model
 end
