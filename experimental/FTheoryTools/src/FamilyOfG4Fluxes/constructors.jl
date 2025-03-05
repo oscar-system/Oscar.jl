@@ -69,7 +69,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   properties_string = ["A family of G4 fluxes:"]
 
   # Check for elementary quantization checks
-  if has_attribute(gf, :is_well_quantized)
+  if has_attribute(gf, :is_well_quantized) && get_attribute(gf, :is_well_quantized) !== nothing
     if is_well_quantized(gf)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
@@ -80,7 +80,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Check for transversality checks
-  if has_attribute(gf, :passes_transversality_checks)
+  if has_attribute(gf, :passes_transversality_checks) && get_attribute(gf, :passes_transversality_checks) !== nothing
     if passes_transversality_checks(gf)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
@@ -91,7 +91,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Check for non-abelian gauge group breaking
-  if has_attribute(gf, :breaks_non_abelian_gauge_group)
+  if has_attribute(gf, :breaks_non_abelian_gauge_group) && get_attribute(gf, :breaks_non_abelian_gauge_group) !== nothing
     if breaks_non_abelian_gauge_group(gf)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
@@ -102,7 +102,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Is the tadpole constrained worked out as polynomial?
-  if has_attribute(gf, :d3_tadpole_constraint)
+  if has_attribute(gf, :d3_tadpole_constraint) && get_attribute(gf, :d3_tadpole_constraint(gf)) !== nothing
     push!(properties_string, "  - Tadpole constraint: evaluated")
   else
     push!(properties_string, "  - Tadpole constraint: not analyzed")
