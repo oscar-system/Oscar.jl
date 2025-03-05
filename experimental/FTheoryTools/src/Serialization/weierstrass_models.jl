@@ -103,31 +103,44 @@
 # This function saves the types of the data that define a Weierstrass model
 ###########################################################################
 
-type_params(w::WeierstrassModel) = TypeParams(
-  WeierstrassModel,
-  :base_space => base_space(w),
-  :ambient_space => ambient_space(w),
-  :wp_ring => parent(weierstrass_polynomial(w))
-)
+function type_params(m::WeierstrassModel)
+  extra_params = [data[2] => type_params(data[1]) for data in
+    [(explicit_model_sections(m), :explicit_model_sections),
+     (defining_classes(m), :defining_classes),
+     (model_section_parametrization(m), :model_section_parametrization)]
+    if !isempty(data[1])]
+
+  TypeParams(
+    WeierstrassModel,
+    :base_space => base_space(m),
+    :ambient_space => ambient_space(m),
+    :weierstrass_polynomial_ring => parent(weierstrass_polynomial(m)),
+    extra_params...
+  )
+end
+
+
 
 #########################################
 # This function saves a Weierstrass model
 #########################################
 
-function save_object(s::SerializerState, w::WeierstrassModel)
-  @req base_space(w) isa NormalToricVariety "We only serialize Weierstrass models defined over a toric base space"
-  @req ambient_space(w) isa NormalToricVariety "We only serialize Weierstrass models defined within a toric ambient space"
+function save_object(s::SerializerState, m::WeierstrassModel)
+  @req base_space(m) isa NormalToricVariety "We only serialize Weierstrass models defined over a toric base space"
+  @req ambient_space(m) isa NormalToricVariety "We only serialize Weierstrass models defined within a toric ambient space"
+  @req m.weierstrass_polynomial !== nothing "Currently, we only serialize Weierstrass models for which the Weierstrass polynomial (and not only the Weierstrass ideal sheaf) is known"
   save_data_dict(s) do
     for (data, key) in [
-        (explicit_model_sections(w), :explicit_model_sections),
-        (model_section_parametrization(w), :model_section_parametrization),
-        (defining_classes(w), :defining_classes)
+        (explicit_model_sections(m), :explicit_model_sections),
+        (model_section_parametrization(m), :model_section_parametrization),
+        (defining_classes(m), :defining_classes)
         ]
-      !isempty(data) && save_typed_object(s, data, key)
+      !isempty(data) && save_object(s, data, key)
     end
-    save_object(s, weierstrass_polynomial(w), :weierstrass_polynomial)
+    save_object(s, weierstrass_polynomial(m), :weierstrass_polynomial)
   end
 end
+
 
 
 #########################################
@@ -137,13 +150,23 @@ end
 function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Dict)
   base_space = params[:base_space]
   amb_space = params[:ambient_space]
-  wp_ring = params[:wp_ring]
+  wp_ring = params[:weierstrass_polynomial_ring]
   pw = load_object(s, MPolyDecRingElem, wp_ring, :weierstrass_polynomial)
-  explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
-  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
-  defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
+  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  if haskey(s, :explicit_model_sections)
+    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections], :explicit_model_sections)
+  end
+  model_section_parametrization = Dict{String, MPolyRingElem}()
+  if haskey(s, :model_section_parametrization)
+    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization], :model_section_parametrization)
+  end
+  defining_classes = Dict{String, ToricDivisorClass}()
+  if haskey(s, :defining_classes)
+    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes], :defining_classes)
+  end
   model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, base_space, amb_space)
   model.defining_classes = defining_classes
+  model.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   @req cox_ring(ambient_space(model)) == parent(weierstrass_polynomial(model)) "Weierstrass polynomial not in Cox ring of toric ambient space"
   return model
 end

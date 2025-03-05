@@ -44,14 +44,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           ))
         upgraded_dict[:data][:genus_ci] = upgraded_genus_ci[:data]
         upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:data]
-      elseif type_name == "HypersurfaceModel"
-        upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
-        upgraded_dict[:attrs] = Dict()
-        for k in keys(upgraded_attr_dict[:_type][:params])
-          k == :key_params && continue
-          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
-        end
-      elseif type_name == "GlobalTateModel"
+      elseif type_name in ["GlobalTateModel", "HypersurfaceModel", "WeierstrassModel"]
 
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
         upgraded_dict[:attrs] = Dict()
@@ -78,16 +71,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
         end
 
-        #println(json(upgraded_dict[:_type], 2))
-        #@show upgraded_dict
-
-      elseif type_name == "WeierstrassModel"
-        upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
-        upgraded_dict[:attrs] = Dict()
-        for k in keys(upgraded_attr_dict[:_type][:params])
-          k == :key_params && continue
-          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
-        end
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],

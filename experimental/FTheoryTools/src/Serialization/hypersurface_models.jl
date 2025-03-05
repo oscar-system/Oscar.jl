@@ -103,34 +103,46 @@
 # This function saves the types of the data that define a hypersurface model
 ############################################################################
 
-type_params(h::HypersurfaceModel) = TypeParams(
-  HypersurfaceModel,
-  :base_space => base_space(h),
-  :ambient_space => ambient_space(h),
-  :fiber_ambient_space => fiber_ambient_space(h),
-  :hypersurface_equation_ring => parent(hypersurface_equation(h)),
-  :hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(h))
-)
+function type_params(m::HypersurfaceModel)
+  extra_params = [data[2] => type_params(data[1]) for data in
+    [(explicit_model_sections(m), :explicit_model_sections),
+     (defining_classes(m), :defining_classes),
+     (model_section_parametrization(m), :model_section_parametrization)]
+    if !isempty(data[1])]
+
+  TypeParams(
+    HypersurfaceModel,
+    :base_space => base_space(m),
+    :ambient_space => ambient_space(m),
+    :fiber_ambient_space => fiber_ambient_space(m),
+    :hypersurface_equation_ring => parent(hypersurface_equation(m)),
+    :hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(m)),
+    extra_params...
+  )
+end
+
+
 
 ##########################################
 # This function saves a hypersurface model
 ##########################################
 
-function save_object(s::SerializerState, h::HypersurfaceModel)
-  @req base_space(h) isa NormalToricVariety "Currently, we only serialize hypersurface models defined over a toric base space"
-  @req ambient_space(h) isa NormalToricVariety "Currently, we only serialize hypersurface models defined within a toric ambient space"
+function save_object(s::SerializerState, m::HypersurfaceModel)
+  @req base_space(m) isa NormalToricVariety "Currently, we only serialize hypersurface models defined over a toric base space"
+  @req ambient_space(m) isa NormalToricVariety "Currently, we only serialize hypersurface models defined within a toric ambient space"
   save_data_dict(s) do
     for (data, key) in [
-        (explicit_model_sections(h), :explicit_model_sections),
-        (defining_classes(h), :defining_classes),
-        (model_section_parametrization(h), :model_section_parametrization)
+        (explicit_model_sections(m), :explicit_model_sections),
+        (defining_classes(m), :defining_classes),
+        (model_section_parametrization(m), :model_section_parametrization)
         ]
-      !isempty(data) && save_typed_object(s, data, key)
+      !isempty(data) && save_object(s, data, key)
     end
-    save_object(s, hypersurface_equation(h), :hypersurface_equation)
-    save_object(s, hypersurface_equation_parametrization(h), :hypersurface_equation_parametrization)
+    save_object(s, hypersurface_equation(m), :hypersurface_equation)
+    save_object(s, hypersurface_equation_parametrization(m), :hypersurface_equation_parametrization)
   end
 end
+
 
 
 ##########################################
@@ -145,9 +157,18 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   R2 = params[:hypersurface_equation_parametrization_ring]
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
-  explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
-  defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
-  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
+  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  if haskey(s, :explicit_model_sections)
+    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections], :explicit_model_sections)
+  end
+  model_section_parametrization = Dict{String, MPolyRingElem}()
+  if haskey(s, :model_section_parametrization)
+    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization], :model_section_parametrization)
+  end
+  defining_classes = Dict{String, ToricDivisorClass}()
+  if haskey(s, :defining_classes)
+    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes], :defining_classes)
+  end
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, amb_space, fiber_ambient_space)
   model.defining_classes = defining_classes
   model.model_section_parametrization = model_section_parametrization

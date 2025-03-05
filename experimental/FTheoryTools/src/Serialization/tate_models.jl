@@ -98,28 +98,6 @@
 ]
 
 
-# Fields of the type GlobalTateModel which are always there:
-#=
-base_space::FTheorySpace
-ambient_space::FTheorySpace
-fiber_ambient_space::AbsCoveredScheme
-=#
-
-# Of the following, one is always available
-#=
-tate_ideal_sheaf::AbsIdealSheaf
-tate_polynomial::MPolyRingElem
-=#
-
-# The following may or may not be available
-#=
-explicit_model_sections::Dict{String, <: MPolyRingElem}
-model_section_parametrization::Dict{String, <: MPolyRingElem}
-defining_classes::Dict{String, ToricDivisorClass}
-=#
-
-
-
 
 ###########################################################################
 # This function saves the types of the data that define a global Tate model
