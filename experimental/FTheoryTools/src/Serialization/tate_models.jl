@@ -103,31 +103,44 @@
 # This function saves the types of the data that define a global Tate model
 ###########################################################################
 
-type_params(gtm::GlobalTateModel) = TypeParams(
-  GlobalTateModel,
-  :base_space => base_space(gtm),
-  :ambient_space => ambient_space(gtm),
-  :tate_polynomial_ring => parent(tate_polynomial(gtm))
-)
+function type_params(m::GlobalTateModel)
+  extra_params = [data[2] => type_params(data[1]) for data in 
+    [(explicit_model_sections(m), :explicit_model_sections), 
+     (defining_classes(m), :defining_classes), 
+     (model_section_parametrization(m), :model_section_parametrization)] 
+    if !isempty(data[1])]
+
+  TypeParams(
+    GlobalTateModel,
+    :base_space => base_space(m),
+    :ambient_space => ambient_space(m),
+    :fiber_ambient_space => fiber_ambient_space(m),
+    :tate_polynomial_ring => parent(tate_polynomial(m)),
+    extra_params...
+  )
+end
+
+
 
 #########################################
 # This function saves a global Tate model
 #########################################
 
-function save_object(s::SerializerState, gtm::GlobalTateModel)
-  @req base_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined over a toric base space"
-  @req ambient_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined within a toric ambient space"
+function save_object(s::SerializerState, m::GlobalTateModel)
+  @req base_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined over a toric base space"
+  @req ambient_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined within a toric ambient space"
   save_data_dict(s) do
     for (data, key) in [
-        (explicit_model_sections(gtm), :explicit_model_sections),
-        (model_section_parametrization(gtm), :model_section_parametrization),
-        (defining_classes(gtm), :defining_classes)
+        (explicit_model_sections(m), :explicit_model_sections),
+        (defining_classes(m), :defining_classes),
+        (model_section_parametrization(m), :model_section_parametrization)
         ]
-      !isempty(data) && save_typed_object(s, data, key)
+      !isempty(data) && save_object(s, data, key)
     end
-    save_object(s, tate_polynomial(gtm), :tate_polynomial)
+    save_object(s, tate_polynomial(m), :tate_polynomial)
   end
 end
+
 
 
 #########################################
@@ -139,9 +152,23 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::D
   amb_space = params[:ambient_space]
   tp_ring = params[:tate_polynomial_ring]
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
-  explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
-  model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
-  defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
+
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  if haskey(s, :explicit_model_sections)
+    #return load_object(s, params[:explicit_model_sections_type], :explicit_model_sections)
+    #explicit_model_sections = load_object(s, params[:explicit_model_sections_type], params[:explicit_model_sections_type], :explicit_model_sections)
+  end
+
+  model_section_parametrization = Dict{String, MPolyRingElem}()
+  if haskey(s, :model_section_parametrization)
+    #model_section_parametrization = load_object(s, params[:model_section_parametrization_type], params[:model_section_parametrization_type], :model_section_parametrization)
+  end
+
+  defining_classes = Dict{String, ToricDivisorClass}()
+  if haskey(s, :defining_classes)
+    #defining_classes = load_object(s, params[:defining_classes_type], params[:defining_classes_type], :defining_classes)
+  end
+  
   model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
   model.defining_classes = defining_classes
   @req cox_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
