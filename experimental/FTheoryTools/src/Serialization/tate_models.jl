@@ -98,6 +98,28 @@
 ]
 
 
+# Fields of the type GlobalTateModel which are always there:
+#=
+base_space::FTheorySpace
+ambient_space::FTheorySpace
+fiber_ambient_space::AbsCoveredScheme
+=#
+
+# Of the following, one is always available
+#=
+tate_ideal_sheaf::AbsIdealSheaf
+tate_polynomial::MPolyRingElem
+=#
+
+# The following may or may not be available
+#=
+explicit_model_sections::Dict{String, <: MPolyRingElem}
+model_section_parametrization::Dict{String, <: MPolyRingElem}
+defining_classes::Dict{String, ToricDivisorClass}
+=#
+
+
+
 
 ###########################################################################
 # This function saves the types of the data that define a global Tate model
@@ -129,6 +151,7 @@ end
 function save_object(s::SerializerState, m::GlobalTateModel)
   @req base_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined over a toric base space"
   @req ambient_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined within a toric ambient space"
+  @req m.tate_polynomial !== nothing "Currently, we only serialize global Tate models for which the Tate polynomial (and not only the Tate ideal sheaf) is known"
   save_data_dict(s) do
     for (data, key) in [
         (explicit_model_sections(m), :explicit_model_sections),
@@ -152,23 +175,18 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::D
   amb_space = params[:ambient_space]
   tp_ring = params[:tate_polynomial_ring]
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
-
   explicit_model_sections = Dict{String, MPolyRingElem}()
   if haskey(s, :explicit_model_sections)
-    #return load_object(s, params[:explicit_model_sections_type], :explicit_model_sections)
-    #explicit_model_sections = load_object(s, params[:explicit_model_sections_type], params[:explicit_model_sections_type], :explicit_model_sections)
+    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections])
   end
-
   model_section_parametrization = Dict{String, MPolyRingElem}()
   if haskey(s, :model_section_parametrization)
-    #model_section_parametrization = load_object(s, params[:model_section_parametrization_type], params[:model_section_parametrization_type], :model_section_parametrization)
+    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization])
   end
-
   defining_classes = Dict{String, ToricDivisorClass}()
   if haskey(s, :defining_classes)
-    #defining_classes = load_object(s, params[:defining_classes_type], params[:defining_classes_type], :defining_classes)
+    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes])
   end
-  
   model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
   model.defining_classes = defining_classes
   @req cox_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
