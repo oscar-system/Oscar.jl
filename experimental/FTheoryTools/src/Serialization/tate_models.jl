@@ -107,7 +107,7 @@ type_params(gtm::GlobalTateModel) = TypeParams(
   GlobalTateModel,
   :base_space => base_space(gtm),
   :ambient_space => ambient_space(gtm),
-  :tp_ring => parent(tate_polynomial(gtm))
+  :tate_polynomial_ring => parent(tate_polynomial(gtm))
 )
 
 #########################################
@@ -137,7 +137,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Dict)
   base_space = params[:base_space]
   amb_space = params[:ambient_space]
-  tp_ring = params[:tp_ring]
+  tp_ring = params[:tate_polynomial_ring]
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()
