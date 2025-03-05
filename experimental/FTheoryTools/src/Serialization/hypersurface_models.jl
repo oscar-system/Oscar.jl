@@ -108,7 +108,7 @@ type_params(h::HypersurfaceModel) = TypeParams(
   :base_space => base_space(h),
   :ambient_space => ambient_space(h),
   :fiber_ambient_space => fiber_ambient_space(h),
-  :hypersurface_equation_ring =>parent(hypersurface_equation(h)), 
+  :hypersurface_equation_ring => parent(hypersurface_equation(h)),
   :hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(h))
 )
 
@@ -153,7 +153,7 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model.model_section_parametrization = model_section_parametrization
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
   return model
-  
+
   # TODO Refactor inter_dict to the type that is needed.
   # TODO !!!!!!! We should add functionality for storing this types of tuples !!!!!!!
   # TODO Code alike (! not identical) the one below below has been moved into other places (marked with TODO):
