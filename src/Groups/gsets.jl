@@ -950,12 +950,16 @@ end
 
 function minimal_block_reps(Omega::GSet)
   @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  L = moved_points(G)
   bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
 
   return map(A -> map(x -> Omega[x], A), bl)
 end
 
 function all_blocks(Omega::GSet)
+  G = image(action_homomorphism(Omega))[1]
+  # L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
 
   return map(A -> map(x -> Omega[x], A), bl)
