@@ -64,15 +64,22 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_model_section_parametrization = upgrade_1_4_0(s, dict[:data][:model_section_parametrization])
         upgraded_defining_classes = upgrade_1_4_0(s, dict[:data][:defining_classes])
 
-        upgraded_dict[:_type][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
-        upgraded_dict[:_type][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
-        upgraded_dict[:_type][:defining_classes] = upgraded_defining_classes[:_type]
+        upgraded_dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections
+        upgraded_dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization
+        upgraded_dict[:_type][:params][:defining_classes] = upgraded_defining_classes
+
+        #=
+        upgraded_dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
+        upgraded_dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
+        upgraded_dict[:_type][:params][:defining_classes] = upgraded_defining_classes[:_type]
+        =#
 
         upgraded_dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
         upgraded_dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
         upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
 
-        @show upgraded_dict
+        #println(json(upgraded_dict[:_type], 2))
+        #@show upgraded_dict
 
       elseif type_name == "WeierstrassModel"
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
