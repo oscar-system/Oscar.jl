@@ -1,3 +1,8 @@
+using LazyArtifacts
+artifact_toml = LazyArtifacts.find_artifacts_toml(Oscar.oscardir)
+LazyArtifacts.ensure_artifact_installed("version-1-3-0-files", artifact_toml)
+_hash = artifact_hash("version-1-3-0-files", artifact_toml)
+
 @testset "loading" begin
   @testset "loading file format paper example" begin
     F = GF(7, 2)
@@ -21,5 +26,16 @@
     @test objective_function(loaded[2]) == objective_function(v[2])
     @test optimal_value(loaded[1]) == optimal_value(v[1])
     @test optimal_value(loaded[2]) == optimal_value(v[2])
+  end
+
+  @testset "Loading all files from v1.3.0" begin
+    dir = artifact_path(_hash)
+    type_folders = joinpath(dir, "version_1_3_0_files")
+    for type_str in readdir(type_folders)
+      T = Oscar.reverse_type_map[type_str]
+      for filename in readdir(joinpath(type_folders, type_str))
+        @test load(joinpath(type_folders, type_str, filename)) isa T
+      end
+    end
   end
 end

@@ -551,7 +551,7 @@ end
     return fgs
   end
 
-
+  
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for 5-dimensional toric ambient spaces"

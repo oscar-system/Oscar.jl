@@ -803,3 +803,4 @@ foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", t
   @test [k[2:3] for k in singular_loci(foah15_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
   @test [k[2:3] for k in singular_loci(foah16_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3")]
 end
+end
