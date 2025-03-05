@@ -7,12 +7,12 @@ lazy = true
     url = "https://zenodo.org/records/14611045/files/1511-03209.tar.gz"
 
 [QSMDB]
-git-tree-sha1 = "52686066016440cf2e6e286a923aed887658543c"
+git-tree-sha1 = "f31441c66ad8579e5605eb90dc00f10707c53f20"
 lazy = true
 
      [[QSMDB.download]]
-     sha256 = "2b0a368c07d368f3973352b7f6e856214e25383d2cc3a78c70415afe247a997e"
-     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-2.tar.gz"     
+     sha256 = "94b3709aaec1eb6825e59bc577e2b228f7c1a9da2cbc18c8522f8a58f4dca4b6"
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-3.tar.gz"     
 
 [gap_extraperfect]
 git-tree-sha1 = "084fa12573e5089ceb3299f9d341f244b415da52"

@@ -29,7 +29,7 @@
       c = cube(3)
       LP0 = linear_program(c, [2,2,-3])
       LP1 = linear_program(c, [2,2,4])
-      v = LinearProgram[LP0, LP1]
+      v = LinearProgram{QQFieldElem}[LP0, LP1]
       test_save_load_roundtrip(path, v) do loaded
         @test length(v) == length(loaded)
         @test feasible_region(loaded[1]) == feasible_region(loaded[2])
@@ -124,7 +124,7 @@
       )
       Qx, x = QQ[:x]
       p = x^2 + 1
-      original = Dict{S, Union{PolyRingElem, Polyhedron}}(keys[1] => cube(2), keys[2] => p)
+      original = Dict{S, Union{QQPolyRingElem, Polyhedron{QQFieldElem}}}(keys[1] => cube(2), keys[2] => p)
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
@@ -132,7 +132,7 @@
 
     @testset "(de)serialization Dict{Symbol, T}" begin
       Qx, x = QQ[:x]
-      for (T, values) in ((Int, [1, 2]), (PolyRingElem, [x^2, x - 1]))
+      for (T, values) in ((Int, [1, 2]), (QQPolyRingElem, [x^2, x - 1]))
         original = Dict{Symbol, T}(:a => values[1], :b => values[2])
         test_save_load_roundtrip(path, original) do loaded
           @test original == loaded
