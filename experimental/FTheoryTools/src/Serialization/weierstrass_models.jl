@@ -114,7 +114,7 @@ function type_params(m::WeierstrassModel)
     WeierstrassModel,
     :base_space => base_space(m),
     :ambient_space => ambient_space(m),
-    :wp_ring => parent(weierstrass_polynomial(m)),
+    :weierstrass_polynomial_ring => parent(weierstrass_polynomial(m)),
     extra_params...
   )
 end
@@ -150,7 +150,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Dict)
   base_space = params[:base_space]
   amb_space = params[:ambient_space]
-  wp_ring = params[:wp_ring]
+  wp_ring = params[:weierstrass_polynomial_ring]
   pw = load_object(s, MPolyDecRingElem, wp_ring, :weierstrass_polynomial)
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   if haskey(s, :explicit_model_sections)
