@@ -159,6 +159,16 @@ end
 
 @attr FamilyOfG4Fluxes function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant) && has_attribute(m, :matrix_rational_quant)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant(m, check = check), matrix_rational_quant(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, false)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    return fgs
+  end
+
+
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
@@ -166,6 +176,7 @@ end
     @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
+
 
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
@@ -278,6 +289,8 @@ end
 
   # (9) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant, res[1])
+  set_attribute!(m, :matrix_rational_quant, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, false)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
@@ -292,6 +305,16 @@ end
 
 @attr FamilyOfG4Fluxes function well_quantized_and_transversal_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse(m, check = check), matrix_rational_quant_transverse(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    return fgs
+  end
+  
+  
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
@@ -479,6 +502,8 @@ end
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant_transverse, res[1])
+  set_attribute!(m, :matrix_rational_quant_transverse, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
@@ -492,6 +517,16 @@ end
 
 
 @attr FamilyOfG4Fluxes function well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse_nobreak(m, check = check), matrix_rational_quant_transverse_nobreak(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+    return fgs
+  end
+
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for toric base and ambient spaces"
@@ -705,6 +740,8 @@ end
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
+  set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)

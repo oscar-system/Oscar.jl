@@ -1973,6 +1973,14 @@ end
 ### (5) Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################
 
+@attr QQMatrix function matrix_integral_quant(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
+end
+
 @attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_integral(special_flux_family(m, check = check))
 end
