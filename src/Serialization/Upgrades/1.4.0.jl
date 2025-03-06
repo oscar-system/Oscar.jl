@@ -141,6 +141,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:data] = dict[:data][:grading][:data]
       elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
+        dict[:_type] isa Dict && haskey(dict[:_type], :params) && return dict
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
@@ -224,6 +225,12 @@ push!(upgrade_scripts_set, UpgradeScript(
         subtype = dict[:_type][:params]
         if dict[:data] isa Vector{String}
           upgraded_dict[:data] = dict[:data]
+
+          ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
+          if !isnothing(ref_entry)
+            ref_entry = upgrade_1_4_0(s, ref_entry)
+            upgraded_dict[:_type][:params] = ref_entry[:_type]
+          end
         else
           upgraded_entries = []
           for entry in dict[:data]
@@ -234,6 +241,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           end
           upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
         end
+        write("/tmp/blah.json", json(upgraded_dict))
       elseif type_name == "NamedTuple"
         #println(json(dict, 2))
       elseif type_name == "Tuple"
@@ -308,33 +316,6 @@ push!(upgrade_scripts_set, UpgradeScript(
             field = Dict(:_type => "QQBarField")
           end
 
-          # flatten the pm_dict (at most doubly nested)
-
-          for (k, v) in pm_dict[:_type][:params]
-            if v isa Dict && v[:name] == "Dict"
-              v_keys = keys(v[:params])
-
-              for v_key in v_keys
-                v_key == :key_type && continue
-                flat_key = Symbol(string(k) * "." * string(v_key))
-                
-                if pm_dict[:data][k][v_key] isa Dict && !haskey(pm_dict[:data][k][v_key], :_ns)
-                  for vv_key in keys(pm_dict[:data][k][v_key])
-                    v_key == :key_type && continue
-                    flat_flat_key = Symbol(string(flat_key) * "." * string(vv_key))
-                    pm_dict[:_type][:params][flat_flat_key] = v[:params][v_key][:params][vv_key]
-                    pm_dict[:data][flat_flat_key] = pm_dict[:data][k][v_key][vv_key]
-                  end
-                else
-                  pm_dict[:_type][:params][flat_key] = v[:params][v_key]
-                  pm_dict[:data][flat_key] = pm_dict[:data][k][v_key]
-                end
-              end
-              delete!(pm_dict[:data], k)
-              delete!(pm_dict[:_type][:params], k)
-            end
-          end
-
           pm_dict = upgrade_1_4_0(s, pm_dict)
 
           upgraded_dict[:_type] = Dict(
@@ -345,7 +326,6 @@ push!(upgrade_scripts_set, UpgradeScript(
             )
           )
           upgraded_dict[:data] = pm_dict[:data]
-          write("/tmp/blah-2.json", json(upgraded_dict))
         end
       elseif type_name in [
         "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
