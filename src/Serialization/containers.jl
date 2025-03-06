@@ -270,7 +270,7 @@ function type_params(obj::T) where {S <: Union{Symbol, Int, String},
 
   return TypeParams(
     T,
-    :key_params => = TypeParams(S, nothing),
+    :key_params => TypeParams(S, nothing),
     map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
   )
 end
