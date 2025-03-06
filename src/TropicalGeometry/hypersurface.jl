@@ -291,6 +291,6 @@ function tropical_prevariety(A,minOrMax)
     TA = tropicalize_set(A,minOrMax)
     HTA = [tropical_hypersurface_poly(tf) for tf in TA]
     RTA = [tropical_add_lineality(h) for h in HTA]
-    return reduce(Polymake.fan.common_refinement,RTA)
+    return polyhedral_complex(reduce(Polymake.fan.common_refinement,RTA))
 end
 
