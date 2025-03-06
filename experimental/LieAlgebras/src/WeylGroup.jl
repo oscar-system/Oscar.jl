@@ -394,8 +394,7 @@ function inner_direct_product(L::AbstractVector{WeylGroup}; morphisms::Bool=fals
   emb = Vector{Map{WeylGroup,WeylGroup}}(undef, length(L))
   proj = Vector{Map{WeylGroup,WeylGroup}}(undef, length(L))
   start_index = 1
-  for i in eachindex(L)
-    factor = L[i]
+  for (i, factor) in enumerate(L)
     end_index = start_index + ngens(factor) - 1
     # Embedding
     emb_gen_imgs = [product[j] for j in start_index:end_index]
