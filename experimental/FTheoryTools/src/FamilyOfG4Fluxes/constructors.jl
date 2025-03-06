@@ -102,7 +102,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Is the tadpole constrained worked out as polynomial?
-  if has_attribute(gf, :d3_tadpole_constraint) && get_attribute(gf, :d3_tadpole_constraint(gf)) !== nothing
+  if has_attribute(gf, :d3_tadpole_constraint) && get_attribute(gf, :d3_tadpole_constraint) !== nothing
     push!(properties_string, "  - Tadpole constraint: evaluated")
   else
     push!(properties_string, "  - Tadpole constraint: not analyzed")
