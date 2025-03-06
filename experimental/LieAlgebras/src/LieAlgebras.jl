@@ -60,6 +60,7 @@ import ..Oscar:
   identity_map,
   image,
   induced_map_on_exterior_power,
+  inner_direct_product,
   inv,
   is_abelian,
   is_isomorphism,
