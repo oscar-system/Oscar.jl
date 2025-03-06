@@ -457,8 +457,10 @@ function load_object(s::DeserializerState,
         dict[key] = load_object(s, value_type, param, k)
         push!(value_types, typeof(v))
       end
-      length(unique(value_types)) == 1 && return Dict{S, first(value_types)}(dict)
-      return dict
+      isempty(value_types) && return T()
+      value_params = type_params.(collect(values(dict)))
+      value_type = params_all_equal(value_params) ? typejoin(unique(value_types)...) : Any
+      return Dict{S, value_type}(dict)
     end
   else
     dict = Dict{S, Any}()
@@ -469,8 +471,10 @@ function load_object(s::DeserializerState,
       dict[key] = v
       push!(value_types, typeof(v))
     end
-    length(unique(value_types)) == 1 && return Dict{S, first(value_types)}(dict)
-    return dict
+    isempty(value_types) && return T()
+    value_params = type_params.(collect(values(dict)))
+    value_type = params_all_equal(value_params) ? typejoin(unique(value_types)...) : Any
+    return Dict{S, value_type}(dict)
   end
 end
 
