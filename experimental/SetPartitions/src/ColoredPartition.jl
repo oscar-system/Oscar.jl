@@ -250,6 +250,7 @@ julia> compose_count_loops(colored_partition([1, 1], [2], [1, 1], [0]), colored_
 
 julia> compose_count_loops(colored_partition([1], [1, 2], [0], [1, 0]), colored_partition([1], [2, 2], [0], [0, 1]))
 ERROR: ArgumentError: upper and lower colors are different
+[...]
 ```
 """
 function compose_count_loops(p::ColoredPartition, q::ColoredPartition)
