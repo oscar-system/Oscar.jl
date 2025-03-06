@@ -353,8 +353,8 @@
             @test emb_inner[i].(factor_gens) == image_gens
             @test proj_inner[i].(image_gens) == factor_gens
             start_index = start_index + rk
-            # Test that emb_inner[i] is a homomorphism
             if morphisms
+              # Test that emb_inner[i] is a homomorphism
               for _ in 1:5
                 w1 = rand(factor)
                 w2 = rand(factor)
