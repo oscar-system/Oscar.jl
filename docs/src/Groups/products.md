@@ -10,7 +10,7 @@ DocTestSetup = Oscar.doctestsetup()
 ```@docs
 DirectProductGroup
 direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
-inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,FPGroup}
+inner_direct_product(L::AbstractVector{T}; morphisms=false) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}
 number_of_factors(G::DirectProductGroup)
 cartesian_power(G::GAPGroup, n::Int)
 inner_cartesian_power(G::T, n::Int; morphisms=false) where T<: GAPGroup
