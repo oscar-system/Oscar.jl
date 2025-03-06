@@ -246,6 +246,7 @@
   @testset "irreducible_factors and inner_direct_product for $(name)" for (
     name, factor_list
   ) in [
+    ("Empty product", Vector{WeylGroup}(undef, 0)),
     ("Trivial Weyl group", [weyl_group(zero_matrix(ZZ, 0, 0))]),
     ("A1", [weyl_group(:A, 1)]),
     (
@@ -304,9 +305,7 @@
       # This is the only necessary test for inner_direct_product if morphisms=false.
       # Both type vectors must be in the same order because
       # cartan_type(cartan_matrix(type_vector)) == type_vector.
-      if length(irred_factors) > 0
-        @test root_system_type(root_system(inner_direct_product(irred_factors))) == types
-      end
+      @test root_system_type(root_system(inner_direct_product(irred_factors))) == types
 
       @test W isa WeylGroup
 

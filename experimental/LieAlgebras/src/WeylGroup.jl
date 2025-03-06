@@ -294,10 +294,10 @@ end
 @doc raw"""
     irreducible_factors(W::WeylGroup; morphisms::Bool=false)
 
-If `morphisms` is `true`, return a triple (`U`, `emb`, `proj`) that describes the irreducible factors of `W`.
+If `morphisms` is `true`, return a triple `(U, emb, proj)` that describes the irreducible factors of `W`.
 That is, `U`, `emb`, `proj` are vectors whose length is
 the number of irreducible components of the Dynkin diagram of `W`, and for each `i`,
-(`U[i]`, `emb[i]`, `proj[i]`) describes the `i`-th factor of `W` as described in
+`(U[i], emb[i], proj[i])` describes the `i`-th factor of `W` as described in
 [`parabolic_subgroup_with_projection`](@ref).
 
 If `morphisms` is `false`, return only `U` .
@@ -359,12 +359,12 @@ direct product of the Weyl groups in `L`.
 The generators of `W` are in natural 1-1 correspondence with the generators of the groups in `L`
 in the given order.
 
-If `morphisms` is `true`, return a triple (`W`, `emb`, `proj`) where
+If `morphisms` is `true`, return a triple `(W, emb, proj)` where
 `W` is as above and `emb`, `proj` are vectors such that
 `emb[i]` (resp., `proj[i]`) is the embedding of `L[i]` into `W`
 (resp., the projection of `W` onto `L[i]`).
 
-See also [`inner_direct_product(::AbstractVector{T}) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}`](@ref).
+See also [`inner_direct_product(::AbstractVector{T}; morphisms) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}`](@ref).
 
 # Examples
 ```jldoctest
@@ -381,10 +381,12 @@ true
 ```
 """
 function inner_direct_product(L::AbstractVector{WeylGroup}; morphisms::Bool=false)
-  @req length(L) > 0 "The collection of groups must be non-empty"
-
-  cm_blocks = [cartan_matrix(factor) for factor in L]
-  cm = block_diagonal_matrix(cm_blocks)
+  if length(L) > 0
+    cm_blocks = [cartan_matrix(factor) for factor in L]
+    cm = block_diagonal_matrix(cm_blocks)
+  else
+    cm = zero_matrix(ZZ, 0, 0)
+  end
   product = weyl_group(cm)
 
   if !morphisms
