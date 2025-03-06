@@ -41,6 +41,5 @@ include("FamilyOfG4Fluxes/special_constructors.jl")
 include("Serialization/tate_models.jl")
 include("Serialization/weierstrass_models.jl")
 include("Serialization/hypersurface_models.jl")
-include("Serialization/qsm_models.jl")
 
 include("exports.jl")

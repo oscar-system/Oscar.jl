@@ -44,13 +44,33 @@ push!(upgrade_scripts_set, UpgradeScript(
           ))
         upgraded_dict[:data][:genus_ci] = upgraded_genus_ci[:data]
         upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:data]
-      elseif type_name == "HypersurfaceModel"
+      elseif type_name in ["GlobalTateModel", "HypersurfaceModel", "WeierstrassModel"]
+
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
         upgraded_dict[:attrs] = Dict()
         for k in keys(upgraded_attr_dict[:_type][:params])
           k == :key_params && continue
           upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
+
+        if haskey(dict[:data], :explicit_model_sections)
+          upgraded_explicit_model_sections = upgrade_1_4_0(s, dict[:data][:explicit_model_sections])
+          upgraded_dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
+          upgraded_dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
+        end
+
+        if haskey(dict[:data], :model_section_parametrization)
+          upgraded_model_section_parametrization = upgrade_1_4_0(s, dict[:data][:model_section_parametrization])
+          upgraded_dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
+          upgraded_dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
+        end
+
+        if haskey(dict[:data], :defining_classes)
+          upgraded_defining_classes = upgrade_1_4_0(s, dict[:data][:defining_classes])
+          upgraded_dict[:_type][:params][:defining_classes] = upgraded_defining_classes[:_type]
+          upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
+        end
+
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
@@ -74,7 +94,6 @@ push!(upgrade_scripts_set, UpgradeScript(
         elseif haskey(const_data, :is_exterior_power)
           upgraded_dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
         elseif !isempty(const_data)
-          print(json(const_data, 2))
           error("missed construction data")
         end
       elseif type_name == "LinearLieAlgebra"
@@ -192,7 +211,6 @@ push!(upgrade_scripts_set, UpgradeScript(
             :value_params => value_params,
             :key_params => key_params
           )
-
         else
           d = Dict()
           for (k, v) in dict[:_type][:params]
@@ -308,7 +326,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           delete!(pm_dict[:_type][:params], :_coeff)
           delete!(pm_dict[:_type][:params], :_type)
           delete!(pm_dict[:data], :_type)
-
 
           if !(dict[:_type][:params] isa Dict)
             field = dict[:_type][:params]
