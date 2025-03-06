@@ -45,7 +45,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
@@ -90,7 +89,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
-  - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate

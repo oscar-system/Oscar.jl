@@ -30,7 +30,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 ```
 """
 function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
@@ -102,11 +101,13 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Is the tadpole constrained worked out as polynomial?
+  #=
   if has_attribute(gf, :d3_tadpole_constraint) && get_attribute(gf, :d3_tadpole_constraint) !== nothing
     push!(properties_string, "  - Tadpole constraint: evaluated")
   else
     push!(properties_string, "  - Tadpole constraint: not analyzed")
   end
+  =#
 
   # Print each line separately, to avoid extra line break at the end
   for (i, line) in enumerate(properties_string)
