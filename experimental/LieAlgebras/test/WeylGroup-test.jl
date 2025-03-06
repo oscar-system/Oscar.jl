@@ -246,7 +246,7 @@
   @testset "irreducible_factors and inner_direct_product for $(name)" for (
     name, factor_list
   ) in [
-    ("Empty product", Vector{WeylGroup}(undef, 0)),
+    ("Empty product", WeylGroup[]),
     ("Trivial Weyl group", [weyl_group(zero_matrix(ZZ, 0, 0))]),
     ("A1", [weyl_group(:A, 1)]),
     (
