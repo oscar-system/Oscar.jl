@@ -246,15 +246,6 @@ push!(upgrade_scripts_set, UpgradeScript(
               upgraded_dict[:_type][:params][k] = v[:_type]
               upgraded_dict[:data][k] = v[:data]
             end
-          else
-            for (k, v) in d
-              if k == :key_type
-                upgraded_dict[:_type][:params][:key_params] = v
-              else
-                upgraded_dict[:_type][:params][k] = v[:_type]
-                upgraded_dict[:data][k] =  v[:data]
-              end
-            end
           end
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
