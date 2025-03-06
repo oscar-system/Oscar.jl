@@ -265,7 +265,7 @@ end
 @register_serialization_type Dict
 
 function type_params(obj::T) where {S <: Union{Symbol, Int, String},
-                                    T <: Union{Dict{S, <: Union}, Dict{S, Any}}}
+                                    T <: Dict{S, Any}}
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
@@ -331,7 +331,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       value_types = Type[]
       for (k, _) in obj
         k == :key_params && continue
-        key = S == Int ? parse(Int, string(k)) : S(k)
+        key = S <: Integer ? parse(Int, string(k)) : S(k)
         params_dict[key] = load_node(s, k) do _
           value_type = decode_type(s)
           return load_type_params(s, value_type)
@@ -469,7 +469,6 @@ function load_object(s::DeserializerState,
       push!(value_types, typeof(v))
     end
     isempty(value_types) && return T()
-    
     value_params = type_params.(collect(values(dict)))
     value_type = params_all_equal(value_params) ? typejoin(unique(value_types)...) : Any
     return Dict{S, value_type}(dict)
