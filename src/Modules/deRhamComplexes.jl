@@ -244,3 +244,57 @@ end
 function derivative(a::MPolyQuoRingElem, i::Int)
   return parent(a)(derivative(lift(a), i))
 end
+
+########################################################################
+# relative Kaehler differentials
+########################################################################
+
+function relative_kaehler_differentials(
+    R::MPolyAnyRing; 
+    base_variables::Vector{T}=elem_type(R)[]
+  ) where {T <: RingElem}
+  @assert all(x in gens(R) for x in base_variables) "given polynomials must be generators of the ring"
+  @assert _allunique(base_variables)
+  return _relative_kaehler_differentials(R, sort!([findfirst(==(y), gens(R)) for y in base_variables]))
+end
+
+function _relative_kaehler_differentials(
+    R::Union{MPolyRing, MPolyLocRing},
+    ind::Vector{Int}
+  )
+  n = ngens(R)
+  m = length(ind)
+  result = FreeMod(R, n-m)
+  ind_comp = [i for i in 1:n if !(i in ind)]
+  symb = symbols(R)[ind_comp]
+  result.S = [Symbol(:d, symb[i]) for i in 1:(n-m)]
+  #set_attribute!(result, :show, show_kaehler_differentials)
+  #set_attribute!(result, :is_kaehler_differential_module, (R, 1))
+  return result
+end
+
+function _relative_kaehler_differentials(
+    R::Union{MPolyQuoRing, MPolyQuoLocRing},
+    ind::Vector{Int}
+  )
+  n = ngens(R)
+  m = length(ind)
+  ind_comp = [i for i in 1:n if !(i in ind)]
+  ind_comp_inv = 
+  P = base_ring(R)
+  OmegaP = _relative_kaehler_differentials(P, ind)
+  f = gens(saturated_ideal(modulus(R)))
+  r = length(f)
+  Pr = FreeMod(P, r)
+  img_gens = [sum(derivative(f, i)*OmegaP[k] for (k, i) in enumerate(ind_comp); init=zero(OmegaP)) for f in f]
+  phi = hom(Pr, OmegaP, img_gens)
+  phi_res, _, _ = change_base_ring(R, phi)
+  #set_attribute!(M, :show, show_kaehler_differentials)
+  #set_attribute!(M, :is_kaehler_differential_module, (R, 1))
+  return _cokernel(phi_res)
+end
+
+# TODO: Needed because of the different behavior of `cokernel` for different rings
+_cokernel(f::ModuleFPHom{T}) where {U<:MPolyRingElem, T<:ModuleFP{U}} = cokernel(f)
+_cokernel(f::ModuleFPHom) = cokernel(f)[1]
+
