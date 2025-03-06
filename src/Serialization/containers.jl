@@ -278,7 +278,7 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
     return TypeParams(
       T,
       :key_params => TypeParams(S, nothing),
-      :value_params => TypeParams(T, nothing)
+      :value_params => TypeParams(U, nothing)
     )
   end
   key_params = Oscar.type_params.(collect(keys(obj)))

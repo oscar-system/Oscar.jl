@@ -34,7 +34,9 @@ _hash = artifact_hash("version-1-3-0-files", artifact_toml)
     for type_str in readdir(type_folders)
       T = Oscar.reverse_type_map[type_str]
       for filename in readdir(joinpath(type_folders, type_str))
-        @test load(joinpath(type_folders, type_str, filename)) isa T
+        @testset "$T $filename" begin
+          @test load(joinpath(type_folders, type_str, filename)) isa T
+        end
       end
     end
   end

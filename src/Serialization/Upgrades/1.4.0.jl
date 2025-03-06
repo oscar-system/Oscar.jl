@@ -160,6 +160,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:data] = dict[:data][:grading][:data]
       elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
+        dict[:_type] isa Dict && haskey(dict[:_type], :params) && return dict
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
@@ -213,9 +214,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           d = Dict()
           for (k, v) in dict[:_type][:params]
-            if k == :key_type
+            if k == :key_type || k == :key_params
               d[k] = v
-            elseif k == :_coeff
+            elseif k == :_coeff 
               
             else
               # handle special polymake dicts
@@ -238,10 +239,11 @@ push!(upgrade_scripts_set, UpgradeScript(
             :_type => Dict(:name => "Dict", :params=>Dict()),
             :data => Dict()
           )
-          if length(unique(x -> x isa Dict ? x[:_type] : x, values(d))) == 1
-            upgraded_dict[:_type][:params][:key_params] = d[:key_type]
-            upgraded_dict[:_type][:params][:value_params] = first(values(d))[:_type]
-            for (k, v) in d
+          for (k, v) in d
+            if k == :key_type || k == :key_params
+              upgraded_dict[:_type][:params][:key_params] = v
+            else
+              upgraded_dict[:_type][:params][k] = v[:_type]
               upgraded_dict[:data][k] = v[:data]
             end
           else
@@ -257,15 +259,25 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
         subtype = dict[:_type][:params]
-        upgraded_entries = []
-        for entry in dict[:data]
-          entry isa String && break
-          push!(upgraded_entries, upgrade_1_4_0(s, Dict(
-            :_type => subtype,
-            :data => entry
-          )))
+        if dict[:data] isa Vector{String}
+          upgraded_dict[:data] = dict[:data]
+
+          ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
+          if !isnothing(ref_entry)
+            ref_entry = upgrade_1_4_0(s, ref_entry)
+            upgraded_dict[:_type][:params] = ref_entry[:_type]
+          end
+        else
+          upgraded_entries = []
+          for entry in dict[:data]
+            push!(upgraded_entries, upgrade_1_4_0(s, Dict(
+              :_type => subtype,
+              :data => entry
+            )))
+          end
+          upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
         end
-        upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
+        write("/tmp/blah.json", json(upgraded_dict))
       elseif type_name == "NamedTuple"
         #println(json(dict, 2))
       elseif type_name == "Tuple"
@@ -324,32 +336,31 @@ push!(upgrade_scripts_set, UpgradeScript(
         "SubdivisionOfPoints"
         ]
         if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
-          :_polymake_type in collect(keys(dict[:data])) && error("still need to handle polyhedral objects")
-          
-          polymake_type = dict[:data][:data][:_type]
-          delete!(dict[:data][:data], :_type)
-          upgraded_subdict = upgrade_1_4_0(s, dict[:data])
-          upgraded_subdict[:_type][:params][:key_params] = "Symbol"
-          field = nothing
+          pm_dict = dict[:data]
+          pm_dict[:_type][:params][:key_params] = "Symbol"
+          pm_dict[:_type][:params][:_polymake_type] = "String"
+          pm_dict[:data][:_polymake_type] = pm_dict[:data][:_type]
+          delete!(pm_dict[:_type][:params], :key_type)
+          delete!(pm_dict[:_type][:params], :_coeff)
+          delete!(pm_dict[:_type][:params], :_type)
+          delete!(pm_dict[:data], :_type)
 
-          for (k, v) in s.id_to_dict
-            if v[:_type] == "EmbeddedNumField"
-              field = k
-            end
-          end
-          if isnothing(field)
+          if !(dict[:_type][:params] isa Dict)
+            field = dict[:_type][:params]
+          else
             field = Dict(:_type => "QQBarField")
           end
+
+          pm_dict = upgrade_1_4_0(s, pm_dict)
+
           upgraded_dict[:_type] = Dict(
             :name => type_name,
             :params => Dict(
               :field => field,
-              :pm_params => upgraded_subdict[:_type]
+              :pm_params => pm_dict[:_type]
             )
           )
-          upgraded_dict[:data] = upgraded_subdict[:data]
-          upgraded_dict[:_type][:params][:pm_params][:params][:_polymake_type] = "String"
-          upgraded_dict[:data][:_polymake_type] = polymake_type
+          upgraded_dict[:data] = pm_dict[:data]
         end
       elseif type_name in [
         "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
