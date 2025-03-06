@@ -31,7 +31,8 @@ _hash = artifact_hash("version-1-3-0-files", artifact_toml)
   @testset "Loading all files from v1.3.0" begin
     dir = artifact_path(_hash)
     type_folders = joinpath(dir, "version_1_3_0_files")
-    for type_str in readdir(type_folders)
+    for dir_name in readdir(type_folders)
+      type_str = split(dir_name, "-")[1]
       T = Oscar.reverse_type_map[type_str]
       for filename in readdir(joinpath(type_folders, type_str))
         @testset "$T $filename" begin
