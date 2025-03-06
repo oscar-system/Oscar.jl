@@ -264,10 +264,8 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict
 
-
 function type_params(obj::T) where {S <: Union{Symbol, Int, String},
                                     T <: Dict{S, Any}}
-
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
@@ -280,7 +278,7 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
     return TypeParams(
       T,
       :key_params => TypeParams(S, nothing),
-      :value_params => TypeParams(T, nothing)
+      :value_params => TypeParams(U, nothing)
     )
   end
   key_params = Oscar.type_params.(collect(keys(obj)))
@@ -302,7 +300,6 @@ function save_type_params(
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
-      save_object(s, encode_type(S), :key_params)
       isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
       for (k, param_tp) in params(tp)
         save_type_params(s, param_tp, Symbol(k))
