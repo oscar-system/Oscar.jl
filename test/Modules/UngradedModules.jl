@@ -1344,16 +1344,21 @@ end
   i = first(gens(kk))
   conj = hom(kk, kk, -i)
   conj_S1 = hom(S1, S1, [S1[1]], hom(S, S, conj, [u, v]))
+  # recreate the same morphism, but with an anonymous function as ring_map
+  conj_S1_alt = hom(S1, S1, [S1[1]], f->evaluate(map_coefficients(conj, f), [u, v]))
+  @test_throws ErrorException conj_S1 == conj_S1_alt
 
   a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
   b = compose(compose(id_R1, compose(f, conj_S1)), id_S1)
   c = compose(compose(compose(id_R1, f), conj_S1), id_S1)
   d = compose(id_R1, compose(f, compose(conj_S1, id_S1)))
 
-  @test_throws ErrorException a == b
+  @test a == b
+  a_alt = compose(compose(id_R1, f), compose(conj_S1_alt, id_S1))
+  @test_throws MethodError f == a # non-comparable ring_maps
+  @test_throws MethodError a_alt == a # same
   @test_throws MethodError !(conj_S1 == id_S1) # ring map vs. no ring map
   @test conj_S1 == conj_S1 # identical ring maps are OK
-  @test_throws ErrorException a == b # non-comparable ring maps 
   @test all(a(x) == b(x) for x in gens(R1))
   @test all(a(x) == c(x) for x in gens(R1))
   @test all(a(x) == d(x) for x in gens(R1))
