@@ -341,8 +341,7 @@
       if morphisms
         @testset "inner_direct_product" begin
           start_index = 1
-          for i in eachindex(factor_list)
-            factor = factor_list[i]
+          for (i, factor) in enumerate(factor_list)
             rs = root_system(factor)
             type = root_system_type(rs)
             rk = rank(rs)
