@@ -364,7 +364,7 @@ If `morphisms` is `true`, return a triple (`W`, `emb`, `proj`) where
 `emb[i]` (resp., `proj[i]`) is the embedding of `L[i]` into `W`
 (resp., the projection of `W` onto `L[i]`).
 
-See also [`inner_direct_product(::AbstractVector{T})`](@ref).
+See also [`inner_direct_product(::AbstractVector{T}) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}`](@ref).
 
 # Examples
 ```jldoctest
