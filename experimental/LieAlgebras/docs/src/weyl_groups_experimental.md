@@ -28,17 +28,17 @@ isomorphism(::Type{PermGroup}, ::WeylGroup)
 
 ```@docs
 parabolic_subgroup(::WeylGroup, vec::Vector{<:Integer}, ::WeylGroupElem=one(W))
-parabolic_subgroup_with_projection(::WeylGroup, ::Vector{<:Integer}; ::Bool)
+parabolic_subgroup_with_projection(::WeylGroup, ::Vector{<:Integer})
 ```
 
 ## Irreducible factors
 
 ```@docs
-irreducible_factors(::WeylGroup; ::Bool)
+irreducible_factors(::WeylGroup)
 ```
 
 ## Inner direct products
 
 ```@docs
-inner_direct_product(::AbstractVector{WeylGroup}; ::Bool)
+inner_direct_product(::AbstractVector{WeylGroup})
 ```
