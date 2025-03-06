@@ -219,19 +219,10 @@ push!(upgrade_scripts_set, UpgradeScript(
             elseif k == :_coeff 
               
             else
-              # handle special polymake dicts
-              if k in [:_type]
-                # do nothing
-              else
-                upgraded_value = upgrade_1_4_0(s, Dict(
-                  :_type => dict[:_type][:params][k],
-                  :data => dict[:data][k]
-                ))
-                d[k] = upgrade_1_4_0(s, Dict(
-                  :_type => dict[:_type][:params][k],
-                  :data => upgraded_value[:data]
-                ))
-              end
+              d[k] = upgrade_1_4_0(s, Dict(
+                :_type => dict[:_type][:params][k],
+                :data => dict[:data][k]
+              ))
             end
           end
           
