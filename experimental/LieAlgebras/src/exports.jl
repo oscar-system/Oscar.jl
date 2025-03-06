@@ -31,7 +31,6 @@ export dim_of_simple_module
 export dominant_character
 export dominant_weights
 export engel_subalgebra
-export exchange!
 export exterior_power
 export general_linear_lie_algebra
 export has_root_system
