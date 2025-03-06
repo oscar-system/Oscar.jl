@@ -19,7 +19,7 @@ function exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
   for s in 1:length(w)
     if w[s] == root
       for n in 2:s
-        w[n] = w[s-1]
+        w[n] = w[s - 1]
       end
       w[1] = i
       return w
@@ -52,8 +52,8 @@ function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
   root = i
   for s in length(w):-1:1
     if w[s] == root
-      for n in s:length(w)-1
-        w[n] = w[s+1]
+      for n in s:(length(w) - 1)
+        w[n] = w[s + 1]
       end
       w[end] = i
       return w
@@ -121,38 +121,38 @@ function _braid_moves(
 
     # in all cases we need to move w1[i] to the right of jn[i]
     # so that we can later apply the appropriate braid move
-    @views exchange_left!(W, jn[i+1:end], w1[i])
+    @views exchange_left!(W, jn[(i + 1):end], w1[i])
 
     if cij == 0
       # compute how to get jn[i:end] into [jn[i], w1[i], ...]
-      @views append!(mvs, _braid_moves(W, jn[i+1:end], jo[i+1:end], i + offset))
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
       push!(mvs, (i + offset, 2, cij))
-      reverse!(jn, i, i+1)
+      reverse!(jn, i, i + 1)
     elseif cij == -1 && cji == -1
-      @views exchange_left!(W, jn[i+2:end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
 
       # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], ...]
-      @views append!(mvs, _braid_moves(W, jn[i+1:end], jo[i+1:end], i + offset))
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
       push!(mvs, (i + offset, 3, cij))
-      jn[i], jn[i+1], jn[i+2] = jn[i+1], jn[i], jn[i+1]
+      jn[i], jn[i + 1], jn[i + 2] = jn[i + 1], jn[i], jn[i + 1]
     elseif cij == -2 || cji == -2
-      @views exchange_left!(W, jn[i+2:end], jn[i]) # move jn[i] to the right of jn[i+1]
-      @views exchange_left!(W, jn[i+3:end], w1[i]) # move w1[i] to the right of jn[i+2]
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
 
       # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], ...]
-      @views append!(mvs, _braid_moves(W, jn[i+1:end], jo[i+1:end], i + offset))
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
       push!(mvs, (i + offset, 4, cij))
-      reverse!(jn, i, i+3)
+      reverse!(jn, i, i + 3)
     elseif cij == -3 || cji == -3
-      @views exchange_left!(W, jn[i+2:end], jn[i]) # move jn[i] to the right of jn[i+1]
-      @views exchange_left!(W, jn[i+3:end], w1[i]) # move w1[i] to the right of jn[i+2]
-      @views exchange_left!(W, jn[i+4:end], jn[i]) # move jn[i] to the right of jn[i+3]
-      @views exchange_left!(W, jn[i+5:end], w1[i]) # move w1[i] to the right of jn[i+4]
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
+      @views exchange_left!(W, jn[(i + 4):end], jn[i]) # move jn[i] to the right of jn[i+3]
+      @views exchange_left!(W, jn[(i + 5):end], w1[i]) # move w1[i] to the right of jn[i+4]
 
       # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], jn[i], w1[i], ...]
-      @views append!(mvs, _braid_moves(W, jn[i+1:end], jo[i+1:end], i + offset))
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
       push!(mvs, (i + offset, 6, cij))
-      reverse!(jn, i, i+5)
+      reverse!(jn, i, i + 5)
     end
 
     copyto!(jo, i, jn, i, length(jo) - i + 1)
@@ -171,14 +171,14 @@ See also [`braid_moves`](@ref).
 function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
   i, len, _ = mv
   if len == 2
-    w[i], w[i+1] = w[i+1], w[i]
+    w[i], w[i + 1] = w[i + 1], w[i]
   elseif len == 3
-    w[i], w[i+1], w[i+2] = w[i+1], w[i], w[i+1]
+    w[i], w[i + 1], w[i + 2] = w[i + 1], w[i], w[i + 1]
   elseif len == 4
-    w[i], w[i+1], w[i+2], w[i+3] = w[i+1], w[i], w[i+1], w[i]
+    w[i], w[i + 1], w[i + 2], w[i + 3] = w[i + 1], w[i], w[i + 1], w[i]
   elseif len == 6
-    w[i], w[i+1], w[i+2], w[i+3], w[i+4], w[i+5] = w[i+1],
-    w[i], w[i+1], w[i], w[i+1],
+    w[i], w[i + 1], w[i + 2], w[i + 3], w[i + 4], w[i + 5] = w[i + 1],
+    w[i], w[i + 1], w[i], w[i + 1],
     w[i]
   end
   return w
@@ -330,12 +330,12 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   elseif coxeter_type == :B || coxeter_type == :C
     Sym = symmetric_group(2n)
     gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n-1)], cperm(Sym, [n, 2n])
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)], cperm(Sym, [n, 2n])
     )
   elseif coxeter_type == :D
     Sym = symmetric_group(2n)
     gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n-1)],
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
       cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
     )
   elseif coxeter_type == :E
