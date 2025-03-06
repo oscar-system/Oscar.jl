@@ -1,6 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
-  v"1.2.2",
-  function upgrade_1_2_2(s::UpgradeState, dict::Dict)
+  v"1.3.0",
+  function upgrade_1_3_0(s::UpgradeState, dict::Dict)
     upgraded_dict = dict
     if haskey(dict, :_type) && dict[:_type] == "FqField"
       if dict[:data] isa Dict
@@ -9,12 +9,12 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
-      upgraded_dict[:data] = upgrade_1_2_2(s, dict[:data])
+      upgraded_dict[:data] = upgrade_1_3_0(s, dict[:data])
     end
     if haskey(dict, :_refs)
       upgraded_refs = Dict()
       for (k, v) in dict[:_refs]
-        upgraded_refs[k] = upgrade_1_2_2(s, v)
+        upgraded_refs[k] = upgrade_1_3_0(s, v)
       end
       upgraded_dict[:_refs] = upgraded_refs
     end
