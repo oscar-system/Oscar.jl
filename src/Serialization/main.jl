@@ -75,7 +75,7 @@ const type_attr_map = Dict{String, Vector{Symbol}}()
 # (De|En)coding types
 
 # parameters of type should not matter here
-const reverse_type_map = Dict{String, Type}()
+const reverse_type_map = Dict{String, Union{Dict{String, Type}, Type}}()
 
 function encode_type(::Type{T}) where T
   error(
@@ -170,7 +170,13 @@ function save_typed_object(s::SerializerState, x::T) where T
   elseif Base.issingletontype(T)
     save_object(s, encode_type(T), type_key)
   else
-    save_object(s, encode_type(T), type_key)
+    type_encoding = encode_type(T)
+    if !(T == reverse_type_map[type_encoding])
+      # here we get "$T" = "fpField"
+      # see comment in register_serialization_type
+      save_object(s, "$T", :_instance)
+    end
+    save_object(s, type_encoding, type_key)
     save_object(s, x, :data)
   end
 end
@@ -216,7 +222,14 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
-  T = decode_type(s)
+  if !(s.obj isa String) && haskey(s.obj, :_instance)
+    # to be safe we need this check but there are currently issues
+    # see register_serialization_type and construction of the reverse type map
+    #s.obj["_instance"] in keys(reverse_type_map[s.obj[type_key]])
+    T = eval(Meta.parse(s.obj["_instance"]))
+  else
+    T = decode_type(s)
+  end
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
@@ -302,10 +315,18 @@ end
 ################################################################################
 # Type Registration
 function register_serialization_type(@nospecialize(T::Type), str::String)
-  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
-    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
+  if haskey(reverse_type_map, str) 
+    init = reverse_type_map[str]
+    # promote the value to a dictionary if necessary
+    if init isa Type
+      init = Dict{String, Type}(string(init) => init)
+    end
+    # here we have "$T" = "Nemo.fpField" for example
+    # see comment in save_typed_object
+    reverse_type_map[str] = merge(Dict{String, Type}(string(T) => T), init)
+  else
+    reverse_type_map[str] = T
   end
-  reverse_type_map[str] = T
 end
 
 function register_attr_list(@nospecialize(T::Type),
@@ -325,7 +346,6 @@ import Distributed.AbstractSerializer
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
 serialize_with_params(::Type) = false
-
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool,
                                      uses_params::Bool, attrs::Any)
