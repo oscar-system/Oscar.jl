@@ -29,13 +29,13 @@
       end
 
       # Check if all compositions are distinct
-      @test C == unique(C)
+      @test allunique(C)
 
       append!(allcomps, C)
     end
 
     # All compositions need to be distinct
-    @test allcomps == unique(allcomps)
+    @test allunique(allcomps)
 
     # Number of compositions needs to be correct
     @test length(allcomps) == number_of_compositions(T(n))
@@ -43,7 +43,7 @@
     # Finally, check compositions(n) function
     allcomps2 = @inferred collect(compositions(T(n)))
     @test allcomps2 isa Vector{Oscar.Composition{T}}
-    @test allcomps2 == unique(allcomps2)
+    @test allunique(allcomps2)
     @test Set(allcomps) == Set(allcomps2)
   end
 
@@ -57,7 +57,7 @@ end
   for n in 0:20
     C = @inferred collect(ascending_compositions(T(n)))
     @test length(C) == number_of_partitions(T(n))
-    @test C == unique(C)
+    @test allunique(C)
     for lambda in C
       @test sum(lambda) == n
       @test issorted(lambda)
