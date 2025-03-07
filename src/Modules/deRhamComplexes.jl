@@ -313,7 +313,6 @@ function _relative_kaehler_differentials(
   n = ngens(R)
   m = length(ind)
   ind_comp = [i for i in 1:n if !(i in ind)]
-  ind_comp_inv = 
   P = base_ring(R)
   OmegaP = _relative_kaehler_differentials(P, ind)
   f = gens(saturated_ideal(modulus(R)))
