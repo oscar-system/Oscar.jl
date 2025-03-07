@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
-    print(f"Usage: `{name} [NEWVERSION]`")
+    print(f"Usage: `{name} [NEWVERSION] [OLDVERSION]`")
     sys.exit(1)
 
 
@@ -166,7 +166,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], startdate: str, new_version: str
+    prs: List[Dict[str, Any]], startdate: str, new_version: str, bminor:bool
 ) -> None:
     """Writes files with information for release notes."""
 
@@ -177,6 +177,9 @@ def changes_overview(
     newfile = './new.md'
     finalfile = '../../CHANGELOG.md'
     notice("Writing release notes into file " + newfile)
+    if bminor:
+        major, minor, _ = new_version.split('.')
+        prs = [pr for pr in prs if has_label(pr, f"backport {major}.{minor}.x")]
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
             pr for pr in prs if has_label(pr, "release notes: use title")
@@ -265,8 +268,9 @@ which we think might affect some users directly.
         os.rename(newfile, finalfile)
 
 
-def main(new_version: str) -> None:
+def main(new_version: str, old_version: str = "") -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
+    bminor = False
     if major != 1:
         error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
@@ -282,12 +286,13 @@ def main(new_version: str) -> None:
         # *include* PRs backported to current stable-4.X branch
         extra = f'label:"backport-to-{major}.{minor}-DONE"'
         extra = ''
+        bminor = True
 
+    if old_version != "":
+        basetag = old_version
+
+    startdate = get_tag_date(f"v{basetag}")
     print("Base tag is", basetag)
-
-    #startdate = get_tag_date(basetag)
-    # HACK HACK HACK FIXME TODO WORKAROUND
-    startdate = "2024-10-30"
     print("Base tag was created ", startdate)
 
     print("Downloading filtered PR list")
@@ -298,7 +303,7 @@ def main(new_version: str) -> None:
     
     subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
 
-    changes_overview(prs, startdate, new_version)
+    changes_overview(prs, startdate, new_version, bminor)
 
 
 if __name__ == "__main__":
@@ -321,7 +326,9 @@ if __name__ == "__main__":
         itag[-1] = str(int(itag[-1])+1)
         itag = ".".join(itag)
         main(itag)
-    elif len(sys.argv) != 2:
+    elif len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) >3:
         usage(sys.argv[0])
     else:
         main(sys.argv[1])
