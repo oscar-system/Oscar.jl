@@ -26,7 +26,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> int_combination = matrix(ZZ, [[3]])
 [3]
@@ -98,7 +97,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate
