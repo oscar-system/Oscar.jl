@@ -259,7 +259,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           end
           upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
         end
-        write("/tmp/blah.json", json(upgraded_dict))
       elseif type_name == "NamedTuple"
         #println(json(dict, 2))
       elseif type_name == "Tuple"
