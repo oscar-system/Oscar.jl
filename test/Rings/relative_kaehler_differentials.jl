@@ -18,5 +18,9 @@
   U = hypersurface_complement(X, t)
   MU1 = Oscar.relative_kaehler_differentials(OO(U); base_variables=[t])
   MU1 = Oscar.relative_kaehler_differentials(OO(U); base_variables=[t, y])
+  
+  Oscar._relative_kaehler_differentials(S, [4])
+  Oscar._relative_kaehler_differentials(graded_polynomial_ring(OX, [:u, :v])[1], [4])
+  Oscar._relative_kaehler_differentials(SY, [4])
 end
 
