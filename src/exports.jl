@@ -676,6 +676,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_labelled_edges
 export grassmann_pluecker_ideal
 export groebner_basis
 export groebner_basis_f4
