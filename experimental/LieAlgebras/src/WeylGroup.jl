@@ -42,9 +42,9 @@ Finally, return `w`.
 
 See also [`exchange_left!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
-# The algorithm is almost the same as explain_rmul.
-# But we don't need a normal form, so this is faster.
 function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  # The algorithm is almost the same as explain_rmul
+  # But we don't need a normal form, so this is faster
   if w[end] == i
     return w
   end
