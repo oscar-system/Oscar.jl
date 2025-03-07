@@ -1,4 +1,7 @@
 # Introduction for new developers
+
+HACK: modifying a doc/*.md  file should still trigger CI
+
 This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
 on these things online.
