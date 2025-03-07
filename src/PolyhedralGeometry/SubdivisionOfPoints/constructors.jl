@@ -62,11 +62,13 @@ function subdivision_of_points(
   f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::IncidenceMatrix
 )
   @req size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
+  hpts = homogenized_matrix(points, 1)
+  @req allunique(eachrow(hpts)) "Points must be unique"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
   arr = Polymake.@convert_to Array{Set{Int}} Polymake.common.rows(cells)
   SubdivisionOfPoints{scalar_type}(
     Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(;
-      POINTS=homogenized_matrix(points, 1), MAXIMAL_CELLS=arr
+      POINTS=hpts, MAXIMAL_CELLS=arr
     ),
     parent_field,
   )
@@ -103,10 +105,12 @@ function subdivision_of_points(
   f::scalar_type_or_field, points::AbstractCollection[PointVector], weights::AbstractVector
 )
   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
+  hpts = homogenized_matrix(points, 1)
+  @req allunique(eachrow(hpts)) "Points must be unique"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
   SubdivisionOfPoints{scalar_type}(
     Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(;
-      POINTS=homogenized_matrix(points, 1), WEIGHTS=weights
+      POINTS=hpts, WEIGHTS=weights
     ),
     parent_field,
   )
