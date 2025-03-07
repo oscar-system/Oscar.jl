@@ -1,37 +1,55 @@
-@register_serialization_type HypersurfaceModel uses_params
+@register_serialization_type HypersurfaceModel uses_id [
+  # intersection numbers
+  :inter_dict,
+  # special intersections
+  :s_inter_dict,
+  # pairs of ambient space divisors intersecting non-trivially with the hypersurface
+  :_ambient_space_divisor_pairs_to_be_considered,
+  # ambient space models for g4-fluxes
+  :ambient_space_models_of_g4_fluxes_indices,
+  :is_calabi_yau,
+  :partially_resolved,
+  :triang_quick,
+  :components_of_simplified_dual_graph,
+  
+  # these attributes should be moved into some form of meta data
+  :journal_volume,
+  :paper_title,
+  :paper_description,
+  :journal_link,
+  :arxiv_model_equation_number,
+  :arxiv_model_page,
+  :arxiv_version,
+  :paper_authors,
+  :arxiv_model_section,
+  :arxiv_doi,
+  :journal_model_page,
+  :journal_report_numbers,
+  :journal_model_section,
+  :literature_identifier,
+  :journal_name,
+  :journal_pages,
+  :arxiv_id,
+  :journal_model_equation_number,
+  :paper_buzzwords,
+  :arxiv_link,
+  :journal_year,
+  :model_description,
+  :journal_doi
+]
 
 ############################################################################
 # This function saves the types of the data that define a hypersurface model
 ############################################################################
 
-function save_type_params(s::SerializerState, h::HypersurfaceModel)
-  save_data_dict(s) do
-    save_object(s, encode_type(HypersurfaceModel), :name)
-    save_data_dict(s, :params) do
-      save_typed_object(s, base_space(h), :base_space)
-      save_typed_object(s, ambient_space(h), :ambient_space)
-      save_typed_object(s, fiber_ambient_space(h), :fiber_ambient_space)
-      save_typed_object(s, parent(hypersurface_equation(h)), :hypersurface_equation_ring)
-      save_typed_object(s, parent(hypersurface_equation_parametrization(h)), :hypersurface_equation_parametrization_ring)
-    end
-  end
-end
-
-
-############################################################################
-# This function loads the types of the data that define a hypersurface model
-############################################################################
-
-function load_type_params(s::DeserializerState, ::Type{<:HypersurfaceModel})
-  return (
-    load_typed_object(s, :base_space),
-    load_typed_object(s, :ambient_space),
-    load_typed_object(s, :fiber_ambient_space),
-    load_typed_object(s, :hypersurface_equation_ring),
-    load_typed_object(s, :hypersurface_equation_parametrization_ring)
-  )
-end
-
+type_params(h::HypersurfaceModel) = TypeParams(
+  HypersurfaceModel,
+  :base_space => base_space(h),
+  :ambient_space => ambient_space(h),
+  :fiber_ambient_space => fiber_ambient_space(h),
+  :hypersurface_equation_ring =>parent(hypersurface_equation(h)), 
+  :hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(h))
+)
 
 ##########################################
 # This function saves a hypersurface model
@@ -58,7 +76,6 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
       end
     end
 
-
     # Save resolutions, if they are known.
     if has_resolutions(h)
       res = resolutions(h)
@@ -66,31 +83,6 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
       exceptional_divisors = [k[2] for k in res]
       attrs_dict[:resolution_loci] = resolution_loci
       attrs_dict[:exceptional_divisors] = exceptional_divisors
-    end
-
-    # Have intersection numbers been computed?
-    if has_attribute(h, :inter_dict)
-      attrs_dict[:inter_dict] = get_attribute(h, :inter_dict)
-    end
-
-    # Have special intersections been remembered?
-    if has_attribute(h, :s_inter_dict)
-      attrs_dict[:s_inter_dict] = get_attribute(h, :s_inter_dict)
-    end
-
-    # Do we know which pairs of ambient space divisors intersect non-trivially with the hypersurface?
-    if has_attribute(h, :_ambient_space_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_divisor_pairs_to_be_considered] = _ambient_space_divisor_pairs_to_be_considered(h)
-    end
-
-    # Do we know which pairs of ambient space base divisors intersect non-trivially with the hypersurface?
-    if has_attribute(h, :_ambient_space_base_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_base_divisor_pairs_to_be_considered] = _ambient_space_base_divisor_pairs_to_be_considered(h)
-    end
-
-    # Do we know ambient space models for g4-fluxes?
-    if has_attribute(h, :ambient_space_models_of_g4_fluxes_indices)
-      attrs_dict[:g4_flux_tuple_list] = get_attribute(h, :ambient_space_models_of_g4_fluxes_indices)
     end
 
     # Do we know the well-quantized G4-fluxes
@@ -133,8 +125,12 @@ end
 # This function loads a hypersurface model
 ##########################################
 
-function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
-  base_space, amb_space, fiber_ambient_space, R1, R2 = params
+function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Dict)
+  base_space = params[:base_space]
+  amb_space = params[:ambient_space]
+  fiber_ambient_space = params[:fiber_ambient_space]
+  R1 = params[:hypersurface_equation_ring]
+  R2 = params[:hypersurface_equation_parametrization_ring]
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
@@ -144,14 +140,6 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model.defining_classes = defining_classes
   model.model_section_parametrization = model_section_parametrization
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
-
-  # Set "generic" attributes
-  attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
-  for (key, value) in attrs_data
-    if (key != :resolution_loci) && (key != :exceptional_divisors)
-      set_attribute!(model, Symbol(key), value)
-    end
-  end
 
   # Resolution loci known? If so, set them.
   if haskey(attrs_data, :resolution_loci)
@@ -165,18 +153,22 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   # (i1, i2, i3, i4) with the hypersurface consists of k points (counted with multiplicity)? If so, set it.
   # That is, we have a dictionary which assigns the tuple (i1, i2, i3, i4) - sorted in ascending order - the
   # intersection number k. In general, k could be a rational number! Cf. orbifold singularities.
-  if haskey(attrs_data, :inter_dict)
-    # We want this inter_dict to be of type Dict{NTuple{4, Int64}, ZZRingElem}().
-    # Sadly, serializing and loading turns NTuple{4, Int64} into Tuple.
-    # So we need to massage this... Not at all good, as it doubles memory usage!
-    original_dict = attrs_data[:inter_dict]
-    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-    for (key, value) in original_dict
-      new_key = NTuple{4, Int64}(key)
-      new_dict[new_key] = value
-    end
-    set_attribute!(model, :inter_dict, new_dict)
-  end
+
+  # this is handled by attr framework now,
+  # !!!!!!!   we should add fucntionality for storing this types of tuples !!!!!!!
+  
+  # if haskey(attrs_data, :inter_dict)
+  #   # We want this inter_dict to be of type Dict{NTuple{4, Int64}, ZZRingElem}().
+  #   # Sadly, serializing and loading turns NTuple{4, Int64} into Tuple.
+  #   # So we need to massage this... Not at all good, as it doubles memory usage!
+  #   original_dict = attrs_data[:inter_dict]
+  #   new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+  #   for (key, value) in original_dict
+  #     new_key = NTuple{4, Int64}(key)
+  #     new_dict[new_key] = value
+  #   end
+  #   set_attribute!(model, :inter_dict, new_dict)
+  # end
 
   # Some special intersection numbers known? If we intersect the toric divisors
   # (i1, i2, i3, i4) with the hypersurface p, then we can set a number of variables to 1
@@ -187,9 +179,12 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   # (simplified_hypersurface, remaining variables, remaining scaling relations, remaining SR-generators)
   # and its value is the number of intersection points. If such information is known,
   # then set it.
-  if haskey(attrs_data, :s_inter_dict)
-    set_attribute!(model, :s_inter_dict, attrs_data[:s_inter_dict])
-  end
+
+  # this is handled by attr framework
+  
+  # if haskey(attrs_data, :s_inter_dict)
+  #   set_attribute!(model, :s_inter_dict, attrs_data[:s_inter_dict])
+  # end
 
   # For the computation off all well-quantized G4-fluxes we compute intersection numbers in the toric
   # ambient space. Specifically, we intersect the ambient space G4-flux candidates (a product of algebraic cycles,
@@ -198,12 +193,15 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   # to the CY-hypersurface in question. We make a selection of divisor pairs that (likely - we only make a naive
   # test regarding a non-trivial restriction) restrict non-trivially to the hypersurface. If the list of those
   # toric divisor pairs is known, set it.
-  if haskey(attrs_data, :_ambient_space_divisor_pairs_to_be_considered)
-    set_attribute!(model, :_ambient_space_divisor_pairs_to_be_considered, attrs_data[:_ambient_space_divisor_pairs_to_be_considered])
-  end
-  if haskey(attrs_data, :_ambient_space_base_divisor_pairs_to_be_considered)
-    set_attribute!(model, :_ambient_space_base_divisor_pairs_to_be_considered, attrs_data[:_ambient_space_base_divisor_pairs_to_be_considered])
-  end
+
+  # these are handled by attr framework
+  
+  # if haskey(attrs_data, :_ambient_space_divisor_pairs_to_be_considered)
+  #   set_attribute!(model, :_ambient_space_divisor_pairs_to_be_considered, attrs_data[:_ambient_space_divisor_pairs_to_be_considered])
+  # end
+  # if haskey(attrs_data, :_ambient_space_base_divisor_pairs_to_be_considered)
+  #   set_attribute!(model, :_ambient_space_base_divisor_pairs_to_be_considered, attrs_data[:_ambient_space_base_divisor_pairs_to_be_considered])
+  # end
 
   # Likewise, there are only so many ambient space G4-flux candidates. If those are known, set them.
   # In the serialization, we remember only the integer tuples that tell us which toric divisors to consider,

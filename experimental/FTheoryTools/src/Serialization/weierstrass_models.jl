@@ -1,38 +1,26 @@
-@register_serialization_type WeierstrassModel uses_params
+@register_serialization_type WeierstrassModel uses_id [
+  # Intersections,
+  :inter_dict,
+  # special intersections,
+  :s_inter_dict,
+  # ambient space divisors intersecting non-trivially with the hypersurface
+  :_ambient_space_divisor_pairs_to_be_considered,
+  # ambient space base divisors intersecting non-trivially with the hypersurface,
+  :_ambient_space_base_divisor_pairs_to_be_considered,
+  # ambient space models for g4-fluxes
+  :ambient_space_models_of_g4_fluxes_indices
+]
 
 ###########################################################################
 # This function saves the types of the data that define a Weierstrass model
 ###########################################################################
 
-function save_type_params(s::SerializerState, w::WeierstrassModel)
-  save_data_dict(s) do
-    save_object(s, encode_type(WeierstrassModel), :name)
-    base, ambient, wp_ring = base_space(w), ambient_space(w), parent(weierstrass_polynomial(w))
-    save_data_dict(s, :params) do
-      for (obj, key) in [(base, :base_space), (ambient, :ambient_space), (wp_ring, :weierstrass_polynomial_ring)]
-        if serialize_with_id(obj)
-          save_object(s, save_as_ref(s, obj), key)
-        else
-          save_typed_object(s, obj, key)
-        end
-      end
-    end
-  end
-end
-
-
-###########################################################################
-# This function loads the types of the data that define a Weierstrass model
-###########################################################################
-
-function load_type_params(s::DeserializerState, ::Type{<: WeierstrassModel})
-  return (
-    load_typed_object(s, :base_space),
-    load_typed_object(s, :ambient_space),
-    load_typed_object(s, :weierstrass_polynomial_ring)
-  )
-end
-
+type_params(w::WeierstrassModel) = TypeParams(
+  WeierstrassModel,
+  :base_space => base_space(w),
+  :ambient_space => ambient_space(w),
+  :wp_ring => parent(weierstrass_polynomial(w))
+)
 
 #########################################
 # This function saves a Weierstrass model
@@ -65,31 +53,6 @@ function save_object(s::SerializerState, w::WeierstrassModel)
       exceptional_divisors = [k[2] for k in res]
       attrs_dict[:resolution_loci] = resolution_loci
       attrs_dict[:exceptional_divisors] = exceptional_divisors
-    end
-
-    # Have intersection numbers been computed?
-    if has_attribute(w, :inter_dict)
-      attrs_dict[:inter_dict] = get_attribute(w, :inter_dict)
-    end
-
-    # Have special intersections been remembered?
-    if has_attribute(w, :s_inter_dict)
-      attrs_dict[:s_inter_dict] = get_attribute(w, :s_inter_dict)
-    end
-
-    # Do we know which pairs of ambient space divisors intersect non-trivially with the hypersurface?
-    if has_attribute(w, :_ambient_space_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_divisor_pairs_to_be_considered] = _ambient_space_divisor_pairs_to_be_considered(w)
-    end
-
-    # Do we know which pairs of ambient space base divisors intersect non-trivially with the hypersurface?
-    if has_attribute(w, :_ambient_space_base_divisor_pairs_to_be_considered)
-      attrs_dict[:_ambient_space_base_divisor_pairs_to_be_considered] = _ambient_space_base_divisor_pairs_to_be_considered(w)
-    end
-
-    # Do we know ambient space models for g4-fluxes?
-    if has_attribute(w, :ambient_space_models_of_g4_fluxes_indices)
-      attrs_dict[:g4_flux_tuple_list] = get_attribute(w, :ambient_space_models_of_g4_fluxes_indices)
     end
 
     # Do we know the well-quantized G4-fluxes
@@ -132,8 +95,10 @@ end
 # This function loads a Weierstrass model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing})
-  base_space, amb_space, wp_ring = params
+function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Dict)
+  base_space = params[:base_space]
+  amb_space = params[:ambient_space]
+  wp_ring = params[:wp_ring]
   pw = load_object(s, MPolyDecRingElem, wp_ring, :weierstrass_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   model_section_parametrization = haskey(s, :model_section_parametrization) ? load_typed_object(s, :model_section_parametrization) : Dict{String, MPolyRingElem}()

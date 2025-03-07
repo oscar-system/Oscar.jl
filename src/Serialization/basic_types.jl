@@ -22,6 +22,8 @@ end
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
+load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s, T)
+
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do str
     return ZZRingElem(str)
@@ -31,6 +33,8 @@ end
 ################################################################################
 # QQFieldElem
 @register_serialization_type QQFieldElem
+
+load_object(s::DeserializerState, T::Type{QQFieldElem}, ::QQField) = load_object(s, T)
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
