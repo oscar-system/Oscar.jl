@@ -734,19 +734,10 @@ function Base.setindex!(G::Graph{T}, val, e::Edge) where T
   return val
 end
 
-function Base.getindex(G::Graph{T}, v::Int) where T
-  @req has_attribute(G, :node_map) "Graph doesn't have an node map set"
-  @req _has_node(G, v) "invalid node number"
-  M = get_attribute(G, :node_map)
-  return M[v]
-end
-
-function Base.setindex!(G::Graph{T}, val, v::Int) where T
-  @req has_attribute(G, :node_map) "Graph doesn't have an node map set"
-  @req _has_node(G, v) "invalid node number"
-  M = get_attribute(G, :node_map)
-  M[v] = val
-  return val
+function Base.getproperty(G::Graph, p::Symbol)
+  hasfield(Graph, p) && return getfield(G, p)
+  @req has_attribute(G, p) "$G doesn't have a labelling $p"
+  return get_attribute(G, p)
 end
 
 ################################################################################
@@ -1368,23 +1359,26 @@ vertex labels:
 function graph_from_labelled_edges(::Type{T},
                                    edge_labels::Dict{NTuple{2, Int}, S},
                                    vertex_labels::Dict{Int, U}=Dict{Int, Any}();
+                                   name::Symbol=:label, 
                                    n_vertices::Int=-1) where {T, S, U}
   
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
-  
   EM = EdgeMap{T, S}(pm_object(G))
-  set_attribute!(G, :edge_map, EM)
+  set_attribute!(G, name, EM)
   for (k, v) in edge_labels
-    G[k] = v
+    getproperty(G,name)[k] = v
   end
 
   if !isempty(vertex_labels)
-    NM = NodeMap{T, S}(pm_object(G))
-    set_attribute!(G, :node_map, NM)
+    for name in fieldnames(V)
+      NM = NodeMap{T, U}(pm_object(G))
+      set_attribute!(G, name, NM)
+    end
+
     for (k, v) in vertex_labels
       @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
-      G[k] = v
+      getproperty(G,name)[k] = v
     end
   end
 
@@ -1395,6 +1389,44 @@ function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
                                    vertex_labels::Dict{Int, U}=Dict{Int, Any}();
                                    n_vertices::Int=-1) where {S, U}
   graph_from_labelled_edges(Undirected, edge_labels, vertex_labels)
+end
+
+function graph_from_labelled_edges(::Type{T},
+                                   edge_labels::Dict{NTuple{2, Int}, EV},
+                                   vertex_labels::Dict{Int, NV}=Dict{Int, Any}();
+                                   n_vertices::Int=-1) where {T, EV <: NamedTuple, NV <: NamedTuple}
+  
+  edges = collect(keys(edge_labels))
+  G = graph_from_edges(T, edges, n_vertices)
+
+  for name in fieldnames(EV)
+    S = fieldtype(EV, name)
+    EM = EdgeMap{T, S}(pm_object(G))
+    set_attribute!(G, name, EM)
+  end
+
+  for (k, v) in edge_labels
+    for name in fieldnames(EV)
+      G[name][k] = v[name]
+    end
+  end
+
+  if !isempty(vertex_labels)
+    for name in fieldnames(V)
+      S = fieldtype(NV, name)
+      NM = NodeMap{T, S}(pm_object(G))
+      set_attribute!(G, name, NM)
+    end
+
+    for (k, v) in vertex_labels
+      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+      for name in fieldnames(EV)
+        G[name][k] = v[name]
+      end
+    end
+  end
+
+  return G
 end
 
 @doc raw"""
@@ -1496,3 +1528,5 @@ true
 function is_bipartite(g::Graph{Undirected})
   return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end
+
+
