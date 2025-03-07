@@ -24,7 +24,7 @@ julia> mat_rat[2,1] = 1;
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
@@ -37,7 +37,7 @@ julia> rat_combination = matrix(QQ, [[5//2]])
 julia> flux_instance(fgs, int_combination, rat_combination, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
@@ -61,9 +61,9 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
       set_attribute!(flux, :is_well_quantized, true)
     end
   end
-  if has_attribute(fgs, :is_vertical)
-    if is_vertical(fgs)
-      set_attribute!(flux, :is_vertical, true)
+  if has_attribute(fgs, :passes_transversality_checks)
+    if passes_transversality_checks(fgs)
+      set_attribute!(flux, :passes_transversality_checks, true)
     end
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)
@@ -96,14 +96,14 @@ julia> mat_rat[2,1] = 1;
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole constraint: not analyzed
 
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
@@ -129,7 +129,7 @@ end
 ##########################################
 
 @doc raw"""
-    random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+    random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
 Create a random $G_4$-flux on a given F-theory model.
 
@@ -138,15 +138,15 @@ Create a random $G_4$-flux on a given F-theory model.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> rf = random_flux(qsm_model, vert = true, check = false)
+julia> rf = random_flux(qsm_model, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 ```
 """
-function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
-  family = special_flux_family(m, vert = vert, not_breaking = not_breaking, check = check)
+function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+  family = special_flux_family(m, not_breaking = not_breaking, check = check)
   return random_flux_instance(family, check = check)
 end
