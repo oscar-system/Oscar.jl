@@ -6,7 +6,7 @@ starting with `i` if the exchange condition can be applied, otherwise leave `w` 
 Finally, return `w`.
 
 !!! warning
-  If `w` is not a reduced decomposition, the behaviour is arbitrary.
+    If `w` is not a reduced expression, the behaviour is arbitrary.
 
 See also [`exchange_right!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
@@ -18,8 +18,8 @@ function exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
   root = i
   for s in 1:length(w)
     if w[s] == root
-      for n in 2:s
-        w[n] = w[s - 1]
+      for n in s:-1:2
+        w[n] = w[n - 1]
       end
       w[1] = i
       return w
@@ -38,7 +38,7 @@ ending with `i` if the exchange condition can be applied, otherwise leave `w` un
 Finally, return `w`.
 
 !!! warning
-  If `w` is not a reduced decomposition, the behaviour is arbitrary.
+    If `w` is not a reduced expression, the behaviour is arbitrary.
 
 See also [`exchange_left!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
