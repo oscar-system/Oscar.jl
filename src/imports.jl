@@ -84,6 +84,8 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  Group,
+  GroupElem,
   has_gens,
   Ideal,
   Indent,
