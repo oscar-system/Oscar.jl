@@ -1,7 +1,3 @@
-if VERSION < v"1.11.0-DEV.1562"
-  import Compat: allequal
-end
-
 @testset "Examples.Permutations" begin
   p = @perm (1,2)(3,4)(5,6)
   @test p == cperm([1,2],[3,4],[5,6])
