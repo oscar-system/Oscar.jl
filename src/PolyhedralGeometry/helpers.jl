@@ -239,7 +239,7 @@ linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix
   assure_matrix_polymake(x)
 
 linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) =
-  assure_matrix_polymake(stack(x...))
+  assure_matrix_polymake(stack(x))
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
   assure_matrix_polymake(x)
@@ -395,7 +395,7 @@ homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
   homogenize(x, val)
 homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
-  stack((homogenize(x[i], val) for i in 1:length(x))...)
+  stack([homogenize(x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
@@ -403,7 +403,7 @@ unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
 unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
 unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) =
-  unhomogenized_matrix(stack(x...))
+  unhomogenized_matrix(stack(x))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -448,21 +448,16 @@ stack(A::AbstractVector, B::AbstractVector) =
   isempty(A) ? B : [permutedims(A); permutedims(B)]
 stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
-stack(x, y, z...) = stack(stack(x, y), z...)
-stack(x) = stack(x, nothing)
-# stack(x::Union{QQMatrix, ZZMatrix}, ::Nothing) = x
-#=
-function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
-    if length(A)==2
-        return stack(A[1],A[2])
-    end
-    M=stack(A[1],A[2])
-    for i in 3:length(A)
-        M=stack(M,A[i])
-    end
-    return M
+function stack(VV::AbstractVector{<:AbstractVector})
+  @req length(VV) > 0 "at least one vector required"
+  if VERSION >= v"1.9"
+    permutedims(Base.stack(VV))
+  else
+    permutedims(reshape(collect(Iterators.flatten(VV)), length(VV[1]), length(VV)))
+  end
 end
-=#
+stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
+stack(x) = stack(x, nothing)
 
 _ambient_dim(x::AbstractVector) = length(x)
 _ambient_dim(x::AbstractMatrix) = size(x, 2)
@@ -563,12 +558,13 @@ _find_elem_type(x::Type) = x
 _find_elem_type(x::Polymake.Rational) = QQFieldElem
 _find_elem_type(x::Polymake.Integer) = ZZRingElem
 _find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
-_find_elem_type(x::Tuple) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::AbstractArray{<:AbstractArray}) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::MatElem) = elem_type(base_ring(x))
+_find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
+_find_elem_type(x::AbstractArray{<:AbstractArray}) =
+  reduce(vcat, _find_elem_type.(x); init=[])
+_find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
 
 function _guess_fieldelem_type(x...)
-  types = filter(!=(Any), vcat(_find_elem_type.(x)...))
+  types = filter(!=(Any), _find_elem_type(x))
   T = QQFieldElem
   for t in types
     if t == Float64
@@ -841,8 +837,10 @@ end
 # Cone -> Polyhedron
 # PolyhedralFan -> PolyhedralComplex
 # for transforming coordinate matrices.
-function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
-  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+function embed_at_height_one(M::AbstractMatrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{Polymake.convert_to_pm_type(T)}(
+    add_vert + size(M)[1], size(M)[2] + 1
+  )
   if add_vert
     result[1, 1] = 1
   end
