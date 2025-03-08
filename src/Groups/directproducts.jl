@@ -17,15 +17,20 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 and order 6 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> G = direct_product(H,K)
-Direct product of
- Sym(3)
- Sym(2)
+Symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -162,22 +167,25 @@ It is not defined for proper subgroups of direct products.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 and order 6 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> G = direct_product(H, K)
-Direct product of
- Sym(3)
- Sym(2)
+Symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
-  from Sym(3)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  from symmetric group of degree 3 and order 6
+  to symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
 
 julia> h = perm(H, [2,3,1])
 (1,2,3)
@@ -187,10 +195,8 @@ julia> inj1(h)
 
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
-  from Sym(2)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  from symmetric group of degree 2 and order 2
+  to symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
 
 julia> k = perm(K, [2,1])
 (1,2)
@@ -228,29 +234,30 @@ Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 and order 6 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> G = direct_product(H, K)
-Direct product of
- Sym(3)
- Sym(2)
+Symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
+with 3 generators
+  (1,2,3)
+  (1,2)
+  (4,5)
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(3)
+  from symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
+  to symmetric group of degree 3 and order 6
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(2)
+  from symmetric group of degree 3 and order 6 x Symmetric group of degree 2 and order 2
+  to symmetric group of degree 2 and order 2
 
 julia> g = perm([2,3,1,5,4])
 (1,2,3)(4,5)
@@ -360,13 +367,19 @@ where `f` is a group homomorphism from `H` to the automorphism group of `N`.
 # Examples
 ```jldoctest
 julia> Q = quaternion_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators x, y, y2
 
 julia> C = cyclic_group(2)
-Pc group of order 2
+Pc group of order 2 with 1 generator f1
 
 julia> A = automorphism_group(Q)
-Aut( <pc group of size 8 with 3 generators> )
+Automorphism group of
+  pc group of order 8
+with 4 generators
+  Pcgs([ x, y, y2 ]) -> [ x*y, y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ y, x*y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ x*y2, y, y2 ]
+  Pcgs([ x, y, y2 ]) -> [ x, y*y2, y2 ]
 
 julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
 [ x, y ] -> [ x*y2, y*y2 ]
@@ -374,13 +387,21 @@ julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
 julia> f = hom(C,A,[C[1]],[au])
 Group homomorphism
   from pc group of order 2
-  to aut( <pc group of size 8 with 3 generators> )
+  to automorphism group of
+    pc group of order 8
 
 julia> G = semidirect_product(Q,f,C)
-SemidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> )
+Semidirect product
+  pc group of order 8 : pc group of order 2
+with 4 generators
+  f1
+  f2
+  f3
+  f4
 
 julia> derived_subgroup(G)
-(Group([ f4 ]), Hom: group([ f4 ]) -> semidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> ))
+(Subgroup of semidirect product
+  pc group of order 8 : pc group of order 2, Hom: subgroup of semidirect product -> semidirect product)
 ```
 """
 function semidirect_product(
@@ -509,13 +530,18 @@ W(g_1,...,g_n, h).
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3 wr symmetric group of degree 2 and order 2
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -572,16 +598,21 @@ Return `G`, where `W` is the wreath product of `G` and `H`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3 wr symmetric group of degree 2 and order 2
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> normal_subgroup(W)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 ```
 """
 normal_subgroup(W::WreathProductGroup) = W.G
@@ -594,16 +625,22 @@ Return `H`, where `W` is the wreath product of `G` and `H`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3 wr symmetric group of degree 2 and order 2
+with 2 generators
+  WreathProductElement(f1,<identity> of ...,())
+  WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> acting_subgroup(W)
-Sym(2)
+Symmetric group of degree 2 and order 2 with 1 generator
+  (1,2)
 ```
 """
 acting_subgroup(W::WreathProductGroup) = W.H

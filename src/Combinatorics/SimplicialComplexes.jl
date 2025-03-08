@@ -650,7 +650,9 @@ julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 
 julia> automorphism_group(K)
-Permutation group of degree 4
+Permutation group of degree 4 with 2 generators
+  (2,3)
+  (1,4)
 ```
 """
 function automorphism_group(K::SimplicialComplex; action=:on_vertices)
@@ -681,7 +683,9 @@ julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 
 julia> G = automorphism_group(K)
-Permutation group of degree 4
+Permutation group of degree 4 with 2 generators
+  (2,3)
+  (1,4)
 
 julia> g = collect(G)[2]
 (1,4)
