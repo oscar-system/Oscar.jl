@@ -189,19 +189,21 @@ function _print_generators(io::IO, G::MatrixGroup)
   rows,cols = displaysize(io)
   maxgens = div(rows-4, degree(G)+1)  # with separator we have deg+1 rows per generator
   maxgens > 0 || return
+  if maxgens > ngens(G)
+    maxgens = ngens(G)
+  end
 
   println(io, Indent())
-  for (i, g) in enumerate(gens(G))
-    if i > maxgens
-      print(io, "⋮")
-      break
-    end
-    show(io, MIME"text/plain"(), g)
+  for i in 1:maxgens
+    show(io, MIME"text/plain"(), G[i])
     if i < n
+      # one extra newline between matrices
       println(io)
       println(io)
     end
   end
+  # if necessary, indicate that we had to leave out some generators
+  ngens(G) > maxgens && print(io, "⋮")
   print(io, Dedent())
 end
 
