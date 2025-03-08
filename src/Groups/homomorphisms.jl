@@ -1436,8 +1436,14 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup(AutGAP, G)
 end
 
+#function Base.show(io::IO, ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: GAPGroup
+#  io = pretty(io)
+#  println(io, "Automorphism group of", Indent())
+#  print(io, Lowercase(), A.G)
+#end
+
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Automorphism group")
   else
     io = pretty(io)
@@ -1445,6 +1451,7 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
     print(io, Lowercase(), A.G)
   end
 end
+
 
 """
     domain(A::AutomorphismGroup) -> Group

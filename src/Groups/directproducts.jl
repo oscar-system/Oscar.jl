@@ -27,7 +27,7 @@ Direct product of
  Sym(3)
  Sym(2)
 
-julia> elements(G)
+julia> collect(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
  ()
  (4,5)
@@ -297,19 +297,36 @@ function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
   return DirectProductGroup(H, G.L, GapObj(G), false)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", G::DirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Direct product of", Indent())
+  join(io, G.L, "\n")
+  print(io, Dedent())
+
+  # We could show generators but it seems less useful for direct products
+#  has_gens(G) || return
+#  _print_generators(io, G)
+end
+
 function Base.show(io::IO, G::DirectProductGroup)
   io = pretty(io)
   if !G.isfull
     print(io, "Subgroup of ", Lowercase())
   end
-  if all(x -> !isnothing(AbstractAlgebra.PrettyPrinting.get_name(x)), G.L)
-    join(io, G.L, " x ")
+  if is_terse(io)
+    print(io, "Direct product of groups")
   else
-    print(io, "Direct product of", Indent())
-    for x in G.L
-      print(io, "\n", x)
+    io = terse(io)
+    for (i,x) in enumerate(G.L)
+      i > 1 && print(io, " x ")
+      print(io, Lowercase(), x)
     end
-    print(io, Dedent())
   end
 end
 
@@ -467,18 +484,36 @@ function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T
   return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, GapObj(G), false)
 end
 
-function Base.show(io::IO, x::SemidirectProductGroup)
+function Base.show(io::IO, ::MIME"text/plain", G::SemidirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
   io = pretty(io)
-  if !x.isfull
+  if !G.isfull
     print(io, "Subgroup of ", Lowercase())
   end
-  #print(io, String(GAPWrap.StringViewObj(GapObj(x))))
-  print(io, "Semidirect product")
-  if !get(io, :supercompact, false)
-    println(io, " ", Indent())
-    print(io, Lowercase(), x.N)
+  println(io, "Semidirect product of", Indent())
+  println(io, Lowercase(), G.N)
+  print(io, Lowercase(), G.H)
+  print(io, Dedent())
+
+  # We could show generators but it seems less useful for direct products
+#  has_gens(G) || return
+#  _print_generators(io, G)
+end
+
+function Base.show(io::IO, G::SemidirectProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Semidirect product of groups")
+  else
+    io = terse(io)
+    print(io, Lowercase(), G.N)
     print(io, is_unicode_allowed() ? " ⋊ " : " : ")
-    print(io, Lowercase(), x.H)
+    print(io, Lowercase(), G.H)
   end
 end
 
@@ -663,16 +698,36 @@ function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-function Base.show(io::IO, x::WreathProductGroup)
-  #print(io, String(GAPWrap.StringViewObj(x.X)))
-  if get(io, :supercompact, false)
-    print(io, "Wreath product group")
+function Base.show(io::IO, ::MIME"text/plain", G::WreathProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Wreath product of", Indent())
+  println(io, Lowercase(), G.G)
+  print(io, Lowercase(), G.H)
+  print(io, Dedent())
+
+  # We could show generators but it seems less useful for direct products
+#  has_gens(G) || return
+#  _print_generators(io, G)
+end
+
+function Base.show(io::IO, G::WreathProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Wreath product of groups")
   else
-    io = pretty(io)
-    println(io, "Wreath product of", Indent())
-    print(io, Lowercase(), x.G)
+    io = terse(io)
+    print(io, Lowercase(), G.G)
     print(io, is_unicode_allowed() ? " ≀ " : " wr ")
-    print(io, Lowercase(), x.H)
+    print(io, Lowercase(), G.H)
   end
 end
 
