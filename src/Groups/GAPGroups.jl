@@ -435,8 +435,12 @@ function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_special(io, G)
   if GAPWrap.IsFreeGroup(GapObj(G))
     print(io, "Free group")
-    if !is_terse(io) && GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
-      print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+    if !is_terse(io)
+      if GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
+        print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+      else
+        print(io, " of unknown rank")
+      end
     end
   else
     T = typeof(G) == FPGroup ? "Finitely presented group" : "Sub-finitely presented group"
@@ -461,26 +465,34 @@ function Base.show(io::IO, G::PermGroup)
   io = pretty(io)
   if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    if !is_terse(io)
+      print(io, "Symmetric group")
+    else
+      print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    end
   elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    if !is_terse(io)
+      print(io, "Alternating group")
+    else
+      print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    end
   else
     print(io, "Permutation group")
-    if !is_terse(io)
-      print(io, " of degree ", degree(G))
-      if has_order(G)
-        if is_finite(G)
-          print(io, " and order ", order(G))
-        else
-          print(io, " and infinite order")
-        end
-      elseif GAP.Globals.HasStabChainMutable(GapObj(G))
-        # HACK: to show order in a few more cases where it is trivial to get
-        # but really, GAP should be using this anyway?
-        s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
-        print(io, " and order ", ZZRingElem(s))
+  end
+  if !is_terse(io)
+    print(io, " of degree ", degree(G))
+    if has_order(G)
+      if is_finite(G)
+        print(io, " and order ", order(G))
+      else
+        print(io, " and infinite order")
       end
+    elseif GAP.Globals.HasStabChainMutable(GapObj(G))
+      # HACK: to show order in a few more cases where it is trivial to get
+      # but really, GAP should be using this anyway?
+      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
+      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -496,6 +508,56 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
     else
       print(io, " of infinite order")
     end
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+end
+
+function _print_generators(io::IO, G::AbstractAlgebra.Group)
+  io = pretty(io)
+  n = ngens(G)
+  if G isa PermGroup
+    print(io, " ")
+  else
+    println(io)
+  end
+  print(io, "with ", ItemQuantity(n, "generator"))
+
+  # compute maximum number of generators that can fit on the screen
+  # assuming each of those requires just one line
+  rows,cols = displaysize(io)
+  maxgens = rows - 6
+  maxgens > 0 || return
+
+  println(io, Indent())
+  for (i, g) in enumerate(gens(G))
+    if i > maxgens
+      print(io, "⋮")
+      break
+    end
+    print(io, g)  # should be using one-line printing
+    if i < n
+      println(io)
+    end
+  end
+  print(io, Dedent())
+end
+
+function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup}) # TODO: what about subgroups of those?
+  io = pretty(io)
+  n = ngens(G)
+  print(io, " with ", ItemQuantity(n, "generator"))
+  if n > 0
+    print(io, " ")
+    join(io, gens(G), ", ")
   end
 end
 
