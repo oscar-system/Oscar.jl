@@ -92,6 +92,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 julia> G = matrix_group(M1, M2)
 Matrix group of degree 3
   over cyclotomic field of order 3
+with 2 generators
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
+
+  [1   0        0]
+  [0   a        0]
+  [0   0   -a - 1]
 
 julia> IR = invariant_ring(G)
 Invariant ring
@@ -100,6 +108,14 @@ Invariant ring
 julia> group(IR)
 Matrix group of degree 3
   over cyclotomic field of order 3
+with 2 generators
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
+
+  [1   0        0]
+  [0   a        0]
+  [0   0   -a - 1]
 
 julia> coefficient_ring(IR)
 Number field with defining polynomial _$^2 + _$ + 1

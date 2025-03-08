@@ -73,19 +73,25 @@ If `G` is a permutation group and `x` is a permutation,
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
 julia> G=symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5 and order 120 with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> x=cperm([1,2,3])
 (1,2,3)
 
 julia> parent(x)
-Sym(3)
+Symmetric group of degree 3 and order 6 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> y=G(x)
 (1,2,3)
 
 julia> parent(y)
-Sym(5)
+Symmetric group of degree 5 and order 120 with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 ```
 
 If `G` is a permutation group and `x` is a vector of integers,
@@ -95,13 +101,17 @@ an exception is thrown if the element does not embed into `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(6)
-Sym(6)
+Symmetric group of degree 6 and order 720 with 2 generators
+  (1,2,3,4,5,6)
+  (1,2)
 
 julia> x = G([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6 and order 720 with 2 generators
+  (1,2,3,4,5,6)
+  (1,2)
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
