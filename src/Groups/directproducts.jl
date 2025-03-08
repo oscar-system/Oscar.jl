@@ -298,13 +298,18 @@ function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
 end
 
 function Base.show(io::IO, G::DirectProductGroup)
-  if G.isfull
-    print(io, "Direct product of")
-    for x in G.L
-      print(io, "\n ", x)
-    end
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if all(x -> !isnothing(AbstractAlgebra.PrettyPrinting.get_name(x)), G.L)
+    join(io, G.L, " x ")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(G))))
+    print(io, "Direct product of", Indent())
+    for x in G.L
+      print(io, "\n", x)
+    end
+    print(io, Dedent())
   end
 end
 
@@ -463,17 +468,17 @@ function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
-  if x.isfull
-    print(
-      io,
-      "SemidirectProduct( ",
-      String(GAPWrap.StringViewObj(GapObj(x.N))),
-      " , ",
-      String(GAPWrap.StringViewObj(GapObj(x.H))),
-      " )",
-    )
-  else
-    print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+  io = pretty(io)
+  if !x.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  #print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+  print(io, "Semidirect product")
+  if !get(io, :supercompact, false)
+    println(io, " ", Indent())
+    print(io, Lowercase(), x.N)
+    print(io, is_unicode_allowed() ? " ⋊ " : " : ")
+    print(io, Lowercase(), x.H)
   end
 end
 
@@ -658,7 +663,18 @@ function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::WreathProductGroup)
+  #print(io, String(GAPWrap.StringViewObj(x.X)))
+  if get(io, :supercompact, false)
+    print(io, "Wreath product group")
+  else
+    io = pretty(io)
+    println(io, "Wreath product of", Indent())
+    print(io, Lowercase(), x.G)
+    print(io, is_unicode_allowed() ? " ≀ " : " wr ")
+    print(io, Lowercase(), x.H)
+  end
+end
 
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)

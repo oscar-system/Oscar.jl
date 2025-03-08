@@ -153,11 +153,11 @@ change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 #
 ########################################################################
 
-function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+function _print_matrix_group_desc(io::IO, G::MatrixGroup)
   io = pretty(io)
-  R = base_ring(x)
-  print(io, LowercaseOff(), string(x.descr), "(", degree(x) ,",")
-  if x.descr==:GU || x.descr==:SU
+  R = base_ring(G)
+  print(io, LowercaseOff(), string(G.descr), "(", degree(G) ,",")
+  if G.descr==:GU || G.descr==:SU
     print(io, characteristic(R)^(div(degree(R),2)),")")
   elseif R isa Field && is_finite(R)
     print(io, order(R),")")
@@ -167,24 +167,53 @@ function _print_matrix_group_desc(io::IO, x::MatrixGroup)
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
-  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
-  println(io, "Matrix group of degree ", degree(x))
+function Base.show(io::IO, ::MIME"text/plain", G::MatrixGroup)
+  isdefined(G, :descr) && return _print_matrix_group_desc(io, G)
+  println(io, "Matrix group of degree ", degree(G))
   io = pretty(io)
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(x))
+  println(io, "over ", Lowercase(), base_ring(G))
+  print(io, Dedent())
+  has_gens(G) || return
+
+  _print_generators(io, G)
+end
+
+
+function _print_generators(io::IO, G::MatrixGroup)
+  io = pretty(io)
+  n = ngens(G)
+  print(io, "with ", ItemQuantity(n, "generator"))
+
+  # compute maximum number of generators that can fit on the screen
+  rows,cols = displaysize(io)
+  maxgens = div(rows-4, degree(G)+1)  # with separator we have deg+1 rows per generator
+  maxgens > 0 || return
+
+  println(io, Indent())
+  for (i, g) in enumerate(gens(G))
+    if i > maxgens
+      print(io, "⋮")
+      break
+    end
+    show(io, MIME"text/plain"(), g)
+    if i < n
+      println(io)
+      println(io)
+    end
+  end
   print(io, Dedent())
 end
 
-function Base.show(io::IO, x::MatrixGroup)
-  @show_name(io, x)
-  @show_special(io, x)
-  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+function Base.show(io::IO, G::MatrixGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  isdefined(G, :descr) && return _print_matrix_group_desc(io, G)
   print(io, "Matrix group")
   if !is_terse(io)
-    print(io, " of degree ", degree(x))
+    print(io, " of degree ", degree(G))
     io = pretty(io)
-    print(terse(io), " over ", Lowercase(), base_ring(x))
+    print(terse(io), " over ", Lowercase(), base_ring(G))
   end
 end
 
