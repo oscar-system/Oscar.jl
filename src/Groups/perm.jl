@@ -142,7 +142,9 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6 with 2 generators
+  (1,2,3,4,5,6)
+  (1,2)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -277,7 +279,9 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Sym(3)
+Symmetric group of degree 3 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> x == y
 true
@@ -817,7 +821,9 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym(8)
+Symmetric group of degree 8 with 2 generators
+  (1,2,3,4,5,6,7,8)
+  (1,2)
 
 julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
@@ -853,7 +859,9 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym(14)
+Symmetric group of degree 14 with 2 generators
+  (1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+  (1,2)
 ```
 """
 macro perm(expr)
@@ -940,7 +948,9 @@ elements in `perms`.
 julia> x = cperm([1,2,3], [4,5]);  y = cperm([1,4]);
 
 julia> permutation_group(5, [x, y])
-Permutation group of degree 5
+Permutation group of degree 5 with 2 generators
+  (1,2,3)(4,5)
+  (1,4)
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
@@ -956,7 +966,9 @@ given by permutations in cycle notation.
 # Examples
 ```jldoctest
 julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
-Permutation group of degree 7
+Permutation group of degree 7 with 2 generators
+  (1,2)
+  (1,2,3)(4,5)
 
 julia> degree(g)
 7

@@ -515,7 +515,7 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from Sym(3)
+  from symmetric group of degree 3
   to pc group of order 6
 ```
 """
@@ -1164,7 +1164,7 @@ can be used instead.
 # Examples
 ```jldoctest
 julia> G = dihedral_group(6)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
@@ -1172,7 +1172,9 @@ Group homomorphism
   to permutation group of degree 3 and order 6
 
 julia> permutation_group(G)
-Permutation group of degree 3 and order 6
+Permutation group of degree 3 and order 6 with 2 generators
+  (2,3)
+  (1,2,3)
 
 julia> codomain(iso) === ans
 true
@@ -1268,13 +1270,14 @@ generators, the number of relators, and the relator lengths.
 # Examples
 ```jldoctest
 julia> F = free_group(3)
-Free group of rank 3
+Free group of rank 3 with 3 generators f1, f2, f3
 
 julia> G = quo(F, [gen(F,1)])[1]
-Finitely presented group of infinite order
+Finitely presented group of infinite order with 3 generators f1, f2, f3 and with 1 relator
+  f1
 
 julia> simplified_fp_group(G)[1]
-Finitely presented group of infinite order
+Finitely presented group of infinite order with 2 generators f2, f3
 ```
 """
 function simplified_fp_group(G::FPGroup)
@@ -1301,13 +1304,19 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> typeof(S)
 PermGroup
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 3 ] ) )
+Automorphism group of
+  symmetric group of degree 3
+with 2 generators
+  Pcgs([ (2,3), (1,2,3) ]) -> [ (2,3), (1,3,2) ]
+  Pcgs([ (2,3), (1,2,3) ]) -> [ (1,2), (1,2,3) ]
 
 julia> typeof(A)
 AutomorphismGroup{PermGroup}
@@ -1318,10 +1327,18 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4 with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
+with 4 generators
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (2,3,4), (1,3)(2,4), (1,4)(2,3) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (1,2), (1,4,2), (1,4)(2,3), (1,3)(2,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (1,3,4), (1,4)(2,3), (1,3)(2,4) ]
 
 julia> x = perm(S,[2,1,4,3])
 (1,2)(3,4)
@@ -1340,10 +1357,18 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4 with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
+with 4 generators
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (2,3,4), (1,3)(2,4), (1,4)(2,3) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (1,2), (1,4,2), (1,4)(2,3), (1,3)(2,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (1,3,4), (1,4)(2,3), (1,3)(2,4) ]
 
 julia> f = A[2]
 Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
@@ -1362,18 +1387,26 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4 with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
+with 4 generators
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (2,3,4), (1,3)(2,4), (1,4)(2,3) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (1,2), (1,4,2), (1,4)(2,3), (1,3)(2,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (1,3,4), (1,4)(2,3), (1,3)(2,4) ]
 
 julia> A(f)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1414,15 +1447,23 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4 with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
+with 4 generators
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (2,3,4), (1,3)(2,4), (1,4)(2,3) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (1,2), (1,4,2), (1,4)(2,3), (1,3)(2,4) ]
+  Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (3,4), (1,3,4), (1,4)(2,3), (1,3)(2,4) ]
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )

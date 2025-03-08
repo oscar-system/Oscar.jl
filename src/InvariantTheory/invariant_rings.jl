@@ -108,7 +108,7 @@ Invariant ring
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring
-  of Sym(3)
+  of symmetric group of degree 3 and order 6
 
 julia> coefficient_ring(IRp)
 Rational field
@@ -247,6 +247,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 julia> G = matrix_group(M1, M2)
 Matrix group of degree 3
   over cyclotomic field of order 3
+with 2 generators
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
+
+  [1   0        0]
+  [0   a        0]
+  [0   0   -a - 1]
 
 julia> IR = invariant_ring(G)
 Invariant ring
@@ -278,6 +286,10 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 julia> G = matrix_group(M)
 Matrix group of degree 3
   over prime field of characteristic 3
+with 1 generator
+  [0   1   0]
+  [2   0   0]
+  [0   0   2]
 
 julia> IR = invariant_ring(G)
 Invariant ring
@@ -456,6 +468,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 julia> G = matrix_group(M1, M2)
 Matrix group of degree 3
   over cyclotomic field of order 3
+with 2 generators
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
+
+  [1   0        0]
+  [0   a        0]
+  [0   0   -a - 1]
 
 julia> IR = invariant_ring(G)
 Invariant ring
@@ -476,6 +496,10 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 julia> G = matrix_group(M)
 Matrix group of degree 3
   over prime field of characteristic 3
+with 1 generator
+  [0   1   0]
+  [2   0   0]
+  [0   0   2]
 
 julia> IR = invariant_ring(G)
 Invariant ring

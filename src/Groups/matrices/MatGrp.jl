@@ -710,6 +710,9 @@ julia> G = matrix_group(mat);
 julia> G2 = map_entries(x -> -x, G)
 Matrix group of degree 2
   over integer ring
+with 1 generator
+  [-1   -1]
+  [ 0   -1]
 
 julia> is_finite(G2)
 false
