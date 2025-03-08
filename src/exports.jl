@@ -1654,15 +1654,12 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
-export tropical_add_lineality
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
-export tropical_hypersurface_poly
 export tropical_variety
 export tropical_prevariety
-export tropicalize_set
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity

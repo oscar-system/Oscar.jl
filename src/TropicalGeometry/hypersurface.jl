@@ -262,26 +262,6 @@ end
 # end
 #
 
-function tropicalize_set(A,minOrMax)
-    nu = tropical_semiring_map(QQ,minOrMax)
-    return [tropical_polynomial(g,nu) for g in A]
-end
-
-function tropical_hypersurface_poly(tf)
-    minOrMax = convention(tf)
-    coeffs, exps = Oscar.homogenize_and_convert_to_pm(tf)
-    pt = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
-    return Polymake.tropical.affine_chart(pt)
-end
-
-function tropical_add_lineality(Hyp)
-   n = Hyp.FAN_AMBIENT_DIM
-   RHyp = Hyp.RAYS
-   LHyp = vcat(Hyp.LINEALITY_SPACE, hcat(zeros(Rational,1,1), ones(Rational,1,n-1)))
-   MPHyp = Hyp.MAXIMAL_POLYTOPES
-   return Polymake.fan.PolyhedralComplex(INPUT_RAYS=RHyp, INPUT_LINEALITY=LHyp, INPUT_POLYTOPES=MPHyp)
-end
-
 @doc raw"""
 	tropical_prevariety(A,minOrMax)
 
