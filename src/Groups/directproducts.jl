@@ -323,7 +323,11 @@ function Base.show(io::IO, G::DirectProductGroup)
   if is_terse(io)
     print(io, "Direct product of groups")
   else
-    join(terse(io), G.L, " x ")
+    io = terse(io)
+    for (i,x) in enumerate(G.L)
+      i > 1 && print(io, " x ")
+      print(io, Lowercase(), x)
+    end
   end
 end
 
