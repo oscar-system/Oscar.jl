@@ -166,7 +166,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], startdate: str, new_version: str, bminor:bool
+    prs: List[Dict[str, Any]], startdate: str, new_version: str, bminor: bool
 ) -> None:
     """Writes files with information for release notes."""
 
