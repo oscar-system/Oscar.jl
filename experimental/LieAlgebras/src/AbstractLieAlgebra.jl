@@ -136,6 +136,21 @@ end
 
 ###############################################################################
 #
+#   Structure constant table and change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::AbstractLieAlgebra)
+  struct_consts = map(e -> change_base_ring(R, e), structure_constant_table(L; copy=false))
+  return lie_algebra(R, struct_consts, symbols(L); check=false)
+end
+
+function structure_constant_table(L::AbstractLieAlgebra; copy::Bool=true)
+  return copy ? deepcopy(_struct_consts(L)) : _struct_consts(L)
+end
+
+###############################################################################
+#
 #   Constructor
 #
 ###############################################################################
