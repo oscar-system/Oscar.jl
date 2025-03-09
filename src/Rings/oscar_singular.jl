@@ -89,37 +89,14 @@ iso_oscar_singular_coeff_ring(R::Union{zzModRing, ZZModRing}) = OscarSingularCoe
 )
 
 # QQ(a)
-function iso_oscar_singular_coeff_ring(R::AbsSimpleNumField)
-  minpoly = defining_polynomial(R)
-  Qa = parent(minpoly)
-  a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, _variables_for_singular(symbols(Qa)))
-  Sminpoly = SQa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SQa(coeff(minpoly, i))*Sa^i
-  end
-  SK, _ = Singular.AlgebraicExtensionField(SQa, Sminpoly)
-  return OscarSingularCoefficientRingMapGeneric(R, SK)
-end
+iso_oscar_singular_coeff_ring(R::AbsSimpleNumField) = OscarSingularCoefficientRingMapGeneric(R, singular_coeff_ring(R))
 
 # Conversion from GF(p, n), small p, to Singular.N_AlgExtField,
 # the code for the conversion is present in Singular.jl/src/number/n_algExt.jl
 # via parent object call overloading, so we wrap it here anyway.
 
 # GF(p, n), small p
-function iso_oscar_singular_coeff_ring(F::fqPolyRepField)
-  # TODO: the Fp(Int(char)) can throw
-  minpoly = modulus(F)
-  Fa = parent(minpoly)
-  SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    _variables_for_singular(symbols(Fa)))
-  Sminpoly = SFa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SFa(coeff(minpoly, i))*Sa^i
-  end
-  SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
-  return OscarSingularCoefficientRingMapGeneric(F, SF)
-end
+iso_oscar_singular_coeff_ring(F::fqPolyRepField) = OscarSingularCoefficientRingMapGeneric(F, singular_coeff_ring(F))
 
 # Finite field (FqField)
 struct OscarSingularCoefficientRingMapFqField{D} <: OscarSingularCoefficientRingMap{FqField, D}
@@ -167,10 +144,11 @@ function image(f::OscarSingularCoefficientRingMapFqField, a::FqFieldElem)
     return codomain(f)(a)
   end
 
+  #Here we apply the (SF::Singular.N_AlgExtField)(a::FqFieldElem) conversion from mpoly.jl
   if isdefined(f, :iso)
-    b = _fq_field_to_n_algext(codomain(f), preimage(f.iso, a))
+    b = codomain(f)(preimage(f.iso, a))
   else
-    b = _fq_field_to_n_algext(codomain(f), a)
+    b = codomain(f)(a)
   end
   @assert parent(b) == codomain(f)
   return b
@@ -189,38 +167,14 @@ end
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_algExt)
   parent(a) !== codomain(f) && error("Element not in codomain")
 
+  #Here we apply the (K::FqField)(a::Singular.n_algExt) conversion from mpoly.jl
   if isdefined(f, :iso)
-    b = image(f.iso, _n_algExt_to_fqfield(domain(f.iso), a))
+    b = image(f.iso, domain(f.iso)(a))
   else
-    b = _n_algExt_to_fqfield(domain(f), a)
+    b = domain(f)(a)
   end
   @assert parent(b) == domain(f)
   return b
-end
-
-function _fq_field_to_n_algext(SF, a::FqFieldElem)
-  F = parent(a)
-  SFa = gen(SF)
-  res = SF(lift(ZZ, coeff(a, 0)))
-  for i in 1:degree(F)-1
-    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
-  end
-  return res
-end
-
-function _n_algExt_to_fqfield(K::FqField, a::Singular.n_algExt)
-  SK = parent(a)
-  SF = parent(Singular.modulus(SK))
-  SFa = SF(a)
-  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
-  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
-  @assert isone(denSa)
-  res = zero(K)
-  Ka = gen(K)
-  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
-    res += K(Int(c))*Ka^e[1]
-  end
-  return res
 end
 
 # fraction field of polynomial rings over QQ and Fp
