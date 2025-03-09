@@ -239,7 +239,7 @@ function minimize(::Type{FinField}, a::AbstractArray{<:AlgClosureElem})
   if length(a) == 0
     return a
   end
-  @assert all(x->parent(x) == parent(a[1]), a)
+  @assert allequal(parent, a)
   da = map(degree, a)
   l = reduce(lcm, da)
   k = ext_of_degree(parent(a[1]), l)

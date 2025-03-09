@@ -199,7 +199,7 @@ end
     L = [x for x in G]
     @test L isa Vector{PermGroupElem}
     @test length(L) == factorial(degree(G))
-    @test length(unique(L)) == factorial(degree(G))
+    @test allunique(L)
     @test rand(G) isa PermGroupElem
     @test rand(G) in G
     A = PermGroupElem[]

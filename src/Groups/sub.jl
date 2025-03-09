@@ -45,7 +45,7 @@ end
 function sub(gens::GAPGroupElem...)
    @req length(gens) > 0 "Empty list"
    l = collect(gens)
-   @assert all(x -> parent(x) == parent(l[1]), l)
+   @assert allequal(parent, l)
    return sub(parent(l[1]), l, check = false)
 end
 

@@ -167,7 +167,7 @@ end
 
 function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   isempty(v) && error("list of elements must not be empty")
-  all(u->parent(u) === parent(first(v)), v[2:end]) || error("parent mismatch")
+  allequal(parent, v) || error("parent mismatch")
 
   F = parent(first(v))
   success, M, p = _is_exterior_power(F)
