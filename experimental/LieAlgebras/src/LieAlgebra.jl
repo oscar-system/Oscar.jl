@@ -879,7 +879,7 @@ function _field_ext_with_sqrts(F::NumField, elems::Vector{<:NumFieldElem})
 end
 
 function _field_ext_with_sqrts(F::FqField, elems::Vector{<:FqFieldElem})
-  @req all(e -> parent(e) === F, elems) "Incompatible number fields"
+  @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
   elems_F = elems
   i = findfirst(!is_square, elems_F)
   while !isnothing(i)
