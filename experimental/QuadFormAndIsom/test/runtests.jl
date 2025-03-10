@@ -455,3 +455,9 @@ end
   _, qLf = discriminant_group(Lf)
   @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
 end
+
+@testset "Serialization.Upgrades" begin
+  @testset "< 1.4.0 Upgrade" begin
+    test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
+  end
+end

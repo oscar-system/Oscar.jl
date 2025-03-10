@@ -34,4 +34,16 @@
     Oscar.reset_global_serializer_state()
     load(joinpath(@__DIR__, "poly1.0.5.json"));
   end
+
+  @testset "< 1.4.0 Upgrade" begin
+    test_1_4_0_upgrade(; exclude=[
+      # upgrading the following is tested in experimental/LieAlgebras/test/Serialization-upgrade-test.jl
+      "AbstractLieAlgebra", "AbstractLieAlgebra",
+      "DirectSumLieAlgebra", "DirectSumLieAlgebraElem",
+      "LieAlgebraModule", "LieAlgebraModuleElem",
+      "LinearLieAlgebra", "LinearLieAlgebraElem",
+      # upgrading the following is tested in experimental/QuadFormAndIsom/test/runtests.jl
+      "ZZLatWithIsom",
+    ])
+  end
 end
