@@ -874,7 +874,7 @@ end
   @test all(is_irreducible, t)
   @test sort!([order(kernel(chi)[1]) for chi in t]) == [1, 1, 4, 12, 24]
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
-  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+  @test allunique(t)
 
   @test all(chi -> chi * chi == tensor_product(chi, chi), t)
 

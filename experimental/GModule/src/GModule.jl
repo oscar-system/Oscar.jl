@@ -1620,7 +1620,7 @@ end
 #      but for a different ordering of entries
 function _rref!(V::Vector{<:MatElem{<:FieldElem}})
   #@show :in, V
-  @assert all(x->size(x) == size(V[1]), V)
+  @assert allequal(size, V)
   n = nrows(V[1])
   @assert ncols(V[1]) == n
 
@@ -2041,7 +2041,7 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   R = base_ring(v[1])
   @assert all(x->R == base_ring(x), v)
   @assert nrows(v[1]) == ncols(v[1])
-  @assert all(x->size(v[1]) == size(x), v)
+  @assert allequal(size, v)
   F = free_module(R, nrows(v[1]))
   return gmodule(G, [hom(F, F, x) for x = v])
 end

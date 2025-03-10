@@ -257,8 +257,8 @@ end
   
   # (6) Convert the intersection matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
   # (6) Then compute its Smith normal form.
-  denom = lcm(unique(vcat([denominator.(k) for k in constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in constraint_matrix]))))
+  if !is_one(denom)
     constraint_matrix = denom * constraint_matrix
   end
   C = transpose(matrix(ZZ, constraint_matrix))
@@ -447,8 +447,8 @@ end
 
   # (6) Compute the vertical fluxes as the kernel of the vertical_constraint_matrix.
   # (6) To later tell if those fluxes are properly quantized, we want to parametrize them with integer coefficient only.
-  denom = lcm(unique(vcat([denominator.(k) for k in vertical_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in vertical_constraint_matrix]))))
+  if !is_one(denom)
     vertical_constraint_matrix = denom * vertical_constraint_matrix
   end
   C_vertical = transpose(matrix(ZZ, vertical_constraint_matrix))
@@ -492,8 +492,8 @@ end
   end
   
   # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
-  denom = lcm(unique(vcat([denominator.(k) for k in quant_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in quant_constraint_matrix]))))
+  if !is_one(denom)
     quant_constraint_matrix = denom * quant_constraint_matrix
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))
@@ -697,8 +697,8 @@ end
 
   # (6) Compute the vertical fluxes as the kernel of the vertical_and_no_gauge_group_breaking_constraint_matrix.
   # (6) To later tell if those fluxes are properly quantized, we want to parametrize them with integer coefficient only.
-  denom = lcm(unique(vcat([denominator.(k) for k in vertical_and_no_gauge_group_breaking_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in vertical_and_no_gauge_group_breaking_constraint_matrix]))))
+  if !is_one(denom)
     vertical_and_no_gauge_group_breaking_constraint_matrix = denom * vertical_and_no_gauge_group_breaking_constraint_matrix
   end
   C_vertical_and_no_gauge_group_breaking = transpose(matrix(ZZ, vertical_and_no_gauge_group_breaking_constraint_matrix))
@@ -742,8 +742,8 @@ end
   end
   
   # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
-  denom = lcm(unique(vcat([denominator.(k) for k in quant_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in quant_constraint_matrix]))))
+  if !is_one(denom)
     quant_constraint_matrix = denom * quant_constraint_matrix
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))

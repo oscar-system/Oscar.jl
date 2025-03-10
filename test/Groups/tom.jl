@@ -330,7 +330,7 @@ end
   @test res == [0, 1]
   @test res isa Vector{ZZRingElem}
   @test coordinates(Int, chi) isa Vector{Int}
-  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+  @test allunique(t)
 
   d = Dict(chi => 0)
   @test chi in keys(d)

@@ -1250,7 +1250,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
   dimL = ncols(gramL)
   Pv = unproject_wall(D.data, v)
   l = length(Pv)
-  @hassert :K3Auto 1 length(Pv) == length(unique(Pv))
+  @hassert :K3Auto 1 allunique(Pv)
   a = 1000000
   @label getu
   a = 2*a
@@ -1281,7 +1281,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     end
     rep[l+i] = (i, s, true)
   end
-  @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
+  @hassert :K3Auto 2 allunique(r -> r[2], rep)
   sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)
