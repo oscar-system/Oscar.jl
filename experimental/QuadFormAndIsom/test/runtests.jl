@@ -108,7 +108,6 @@ end
   L = integer_lattice(; gram = QQ[1 2; 2 1])
   h = QQ[4 -1; 1 0]
   Lf = integer_lattice_with_isometry(L, h)
-
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
       @test Lf == loaded

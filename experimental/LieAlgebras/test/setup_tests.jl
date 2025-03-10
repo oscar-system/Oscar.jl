@@ -369,15 +369,6 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
           test_save_load_roundtrip(
             path,
             V;
-            with_attrs=false,
-          ) do loaded
-            # nothing, cause `V === loaded` anyway
-          end
-
-          test_save_load_roundtrip(
-            path,
-            V;
-            with_attrs=true,
             check_func=loaded -> all((
               sprint(show, "text/plain", loaded) == sprint(show, "text/plain", V) ||
                 occursin(

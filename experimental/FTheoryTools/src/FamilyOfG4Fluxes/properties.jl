@@ -26,7 +26,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf)
 true
@@ -40,7 +39,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf2, check = false)
 true
@@ -103,7 +101,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> passes_transversality_checks(gf, check = false)
 true
@@ -117,7 +114,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> passes_transversality_checks(gf3)
 true
@@ -169,7 +165,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
@@ -179,7 +174,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false
@@ -193,7 +187,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf4, check = false)
 false
