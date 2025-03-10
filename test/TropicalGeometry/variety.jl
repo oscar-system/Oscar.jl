@@ -40,5 +40,12 @@
         TropH = tropical_hypersurface(f,nu)
         @test issetequal(maximal_polyhedra(TropH),maximal_polyhedra(TropV))
     end
-
+   
+    @testset "tropical prevarieties" begin
+	G = grassmann_pluecker_ideal(2,4)
+	f = gens(G)[1]
+	T = tropical_hypersurface(f)
+	TT = tropical_prevariety([f])
+	@test T == TT
+    end
 end
