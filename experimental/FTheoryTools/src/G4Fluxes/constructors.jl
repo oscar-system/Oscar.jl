@@ -183,7 +183,7 @@ function Base.show(io::IO, g4::G4Flux)
   properties_string = ["G4-flux candidate"]
 
   # Check for elementary quantization checks
-  if has_attribute(g4, :is_well_quantized)
+  if has_attribute(g4, :is_well_quantized) && get_attribute(g4, :is_well_quantized) !== nothing
     if is_well_quantized(g4)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
@@ -194,7 +194,7 @@ function Base.show(io::IO, g4::G4Flux)
   end
 
   # Check for transversality checks
-  if has_attribute(g4, :passes_transversality_checks)
+  if has_attribute(g4, :passes_transversality_checks) && get_attribute(g4, :passes_transversality_checks) !== nothing
     if passes_transversality_checks(g4)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
@@ -205,7 +205,7 @@ function Base.show(io::IO, g4::G4Flux)
   end
 
   # Check for non-abelian gauge group breaking
-  if has_attribute(g4, :breaks_non_abelian_gauge_group)
+  if has_attribute(g4, :breaks_non_abelian_gauge_group) && get_attribute(g4, :breaks_non_abelian_gauge_group) !== nothing
     if breaks_non_abelian_gauge_group(g4)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
@@ -216,7 +216,7 @@ function Base.show(io::IO, g4::G4Flux)
   end
 
   # Check for tadpole cancellation checks
-  if has_attribute(g4, :passes_tadpole_cancellation_check)
+  if has_attribute(g4, :passes_tadpole_cancellation_check) && get_attribute(g4, :passes_tadpole_cancellation_check) !== nothing
     if passes_tadpole_cancellation_check(g4)
       push!(properties_string, "  - Tadpole cancellation check: satisfied")
     else

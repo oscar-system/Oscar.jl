@@ -36,7 +36,6 @@ cases = [
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
 
-
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
     @testset "Empty Ideal" begin
@@ -70,7 +69,7 @@ cases = [
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == p
         end
-
+        
         @testset "Load with params" begin
           test_save_load_roundtrip(path, p; params=R) do loaded
             @test loaded == z^2 + case[2] * z + case[3]
@@ -112,7 +111,10 @@ cases = [
               @test ordering(gb) == ordering(loaded_gb)
             end
 
-            test_save_load_roundtrip(path, gb; params=S) do loaded_gb
+            # need a cleaner way to setup type params in general
+            params = Dict(Oscar.params(Oscar.type_params(gb))...)
+            params[:ordering_type] = Oscar.type(params[:ordering_type])
+            test_save_load_roundtrip(path, gb; params=params) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
               @test ordering(gb) == ordering(loaded_gb)
             end
