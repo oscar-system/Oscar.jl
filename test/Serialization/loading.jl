@@ -4,7 +4,7 @@ LazyArtifacts.ensure_artifact_installed("version-1-3-0-files", artifact_toml)
 _hash = artifact_hash("version-1-3-0-files", artifact_toml)
 
 @testset "loading" begin
-  @test_skip @testset "loading file format paper example" begin
+  @testset "loading file format paper example" begin
     F = GF(7, 2)
     o = gen(F)
     Fyz, (y, z) = F[:x, :y]
