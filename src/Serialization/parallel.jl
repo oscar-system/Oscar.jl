@@ -46,7 +46,7 @@ function type_params(pt::T) where T <: ParallelTask
 end
 
 function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T <: ParallelTask
+                          tp::TypeParams{T, <: Tuple{Vararg{Pair}}}) where T <: ParallelTask
   save_data_dict(s) do
     save_object(s, encode_type(type(tp)), :name)
     save_data_dict(s, :params) do

@@ -29,7 +29,7 @@ end
   @test res2 in [one(R), x, y]
 end
 
-@testset "sending dictionaries bug" begin
+@testset "sending dictionaries" begin
   R, (x, y) = QQ[:x, :y]
   l = [x^2, x*y, y^2]
   a = [SampleDataStruct([Dict(:a => R[b;]) for (i, b) in enumerate(l) if i != k]) for k in 1:length(l)]
@@ -38,7 +38,9 @@ end
       return true, prod([c[:a] for c in ds.elems])
     end
   end
-  success, res1 = Oscar.parallel_all(a) # Fails
+  success, res1 = Oscar.parallel_all(a)
+  @test success
+  @test res1 == [x*y^3, x^2 * y^2, x^3 * y]
 end
 
 map(rmprocs, procs)
