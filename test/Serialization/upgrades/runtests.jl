@@ -1,4 +1,4 @@
-@test_skip @testset "Serialization.Upgrades" begin
+@testset "Serialization.Upgrades" begin
   @testset "< 0.11.3 Upgrade" begin
     # test loading
     load(joinpath(@__DIR__, "file_version_less_than_0.11.2.json"))
