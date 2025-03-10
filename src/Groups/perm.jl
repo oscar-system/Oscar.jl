@@ -975,3 +975,94 @@ macro permutation_group(n, gens...)
        end
     end
 end
+
+function print_perm(io::IO, perm::PermGroupElem, cycle_limit::Int = 100)
+  dom = BitSet()
+  l = GAPWrap.LargestMovedPoint(GapObj(perm))
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = GAP.Globals.SmallestMovedPoint(GapObj(perm))
+  while length(dom) < cycle_limit && i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(io, ")")
+    end
+    i = i + 1
+  end
+  if i < l && any(j -> j^perm != j && !(j in dom), i:l)
+    # if there are any cycles left, indicate that
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
+  dom = BitSet()
+  l = GAPWrap.LargestMovedPoint(GapObj(perm))
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = GAP.Globals.SmallestMovedPoint(GapObj(perm))
+
+  str_io = IOBuffer()
+  str = nothing
+  while i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(str_io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(str_io, ")")
+      str = String(take!(str_io))
+      if length(str) <= width - 5
+        # TODO: handle the case where width-5 < length(str) <= width and this
+        # is the last cycle, so we don't need to abbreviate it
+        print(io, str)
+        width -= length(str)
+        str = nothing
+      else
+        break
+      end
+    end
+    i = i + 1
+  end
+  
+  any_cycles_left = i < l && any(j -> j^perm != j && !(j in dom), i:l)
+  if str !== nothing
+    @assert length(str) >= width - 5
+    if any_cycles_left
+      width -= 5
+    end
+    # We would like to abbreviate the cycle printed in str by ending it with
+    # ",...)" so a comma followed by 5 characters. We thus only keep width-4
+    # characters, and then search for a comma.
+    pos = findprev(',', str, width - 4)
+    
+    # If there is no comma within the first width character, e.g. if the
+    # cycle has large entries such as "(12345,12346,..." and we cut off before
+    # first comma, then don't print this cycle
+    if pos == nothing
+      any_cycles_left = true
+    else
+      print(io, str[1:pos], "...)")
+    end
+  end
+  if any_cycles_left
+    print(io, "(...)")
+  end
+  return nothing
+end
