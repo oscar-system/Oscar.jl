@@ -11,7 +11,7 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, con sider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -361,7 +361,6 @@ function save_object(s::SerializerState, obj::Dict{S, T}) where {S, T}
       save_object(s, (k, v))
     end
   end
-  return dict
 end
 
 function load_object(s::DeserializerState,
