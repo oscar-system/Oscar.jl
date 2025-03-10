@@ -3,7 +3,7 @@
     test_1_4_0_upgrade(;
       only=[
         "AbstractLieAlgebra",
-        "AbstractLieAlgebra",
+        "AbstractLieAlgebraElem",
         "DirectSumLieAlgebra",
         "DirectSumLieAlgebraElem",
         "LieAlgebraModule",
