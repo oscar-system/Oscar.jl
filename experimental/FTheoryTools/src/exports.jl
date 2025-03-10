@@ -5,7 +5,6 @@ export FamilyOfG4Fluxes
 export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
-export QSMModel
 export WeierstrassModel
 export _blowup_global
 export _blowup_global_sequence
