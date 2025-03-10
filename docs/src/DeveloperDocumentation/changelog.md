@@ -85,7 +85,6 @@ labels, and the release notes script will organize them appropriately:
 
 ## Suggestions for formulations
 
-
 In general the description of each change should start with a verb in present
 tense. Here are some more concrete suggestions.
 
@@ -97,7 +96,6 @@ tense. Here are some more concrete suggestions.
 | bug fix                       | Fix `bla` in `blub`
 | improvements                  | Improve (performance) of `blub`
 | experimental feature          | Experimental: add support for `bla`
-
 
 ## Updating the changelog
 

@@ -127,6 +127,13 @@ InstallMethod( GroupGeneratorsDefinePresentation,
 ############################################################################
 
 
+Perform( Oscar._GAP_type_params,
+         function( entry )
+           InstallMethod( SerializationInOscarDependentObjects,
+             [ JuliaToGAP( IsString, entry[1] ) ],
+             GAP_jl.WrapJuliaFunc( entry[2] ) );
+         end );
+
 Perform( Oscar._GAP_serializations,
          function( entry )
            InstallMethod( SerializeInOscar,
@@ -136,9 +143,15 @@ Perform( Oscar._GAP_serializations,
 
 Perform( Oscar._GAP_deserializations,
          function( entry )
-           InstallMethod( DeserializeInOscar,
-             [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject" ],
-             GAP_jl.WrapJuliaFunc( entry[2] ) );
+           if entry[3] then
+             InstallMethod( DeserializeInOscar,
+               [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject", "IsObject" ],
+               GAP_jl.WrapJuliaFunc( entry[2] ) );
+           else
+             InstallMethod( DeserializeInOscar,
+               [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject" ],
+               GAP_jl.WrapJuliaFunc( entry[2] ) );
+           fi;
          end );
 
 ############################################################################
