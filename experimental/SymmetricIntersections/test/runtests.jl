@@ -117,7 +117,7 @@ end
   p = Oscar.associated_schur_cover(fpr[1])
   RR = representation_ring_linear_lift(fpr[1])
   G = underlying_group(fpr[1])
-  @test allunique(character_linear_lift.(fpr))
+  @test allunique(character_linear_lift, fpr)
 
   prep = rand(fpr)
   @test underlying_group(prep) === G

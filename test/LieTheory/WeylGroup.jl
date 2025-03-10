@@ -517,7 +517,7 @@
       end
 
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
-      @test allunique(first.(orb))
+      @test allunique(first, orb)
       for (ow, x) in orb
         @test is_in_normal_form(x)
         @test ow * x == dom_wt
@@ -554,7 +554,7 @@
       end
 
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
-      @test allunique(first.(orb))
+      @test allunique(first, orb)
       for (ow, x) in orb
         @test is_in_normal_form(x)
         @test ow * x == dom_wt

@@ -1542,7 +1542,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         #assuming wreath_product(A, B) has block system [[1..l], [l+1..2l]...]
         # the re-ordering is easy: W^s for s = vcat(bs)
         bs = map(x->findall(isequal(x), d), r)
-        @assert all(x->length(x) == length(bs[1]), bs)
+        @assert allequal(length, bs)
         W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
         W = W^symmetric_group(degree(W))(vcat(bs...))

@@ -35,7 +35,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyRingElem})
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
-  for deg in unique([iszero(mon) ? id(grading_group(R)) : degree(mon) for mon = _monomials])
+  for deg in unique!([iszero(mon) ? id(grading_group(R)) : degree(mon) for mon = _monomials])
     g = zero(R)
     for i = 1:4
       if haskey(D[i], deg)

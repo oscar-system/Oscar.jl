@@ -452,7 +452,7 @@ end
 
 function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldElem})
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
-  @assert all(x->parent(x) == parent(a[1]), a)
+  @assert allequal(parent, a)
   @assert fl
   for p = keys(factor(c).fac)
     while c % p == 0

@@ -47,7 +47,7 @@
     @test length(P) == number_of_partitions(T(n))
 
     # Check that all partitions are distinct
-    @test P == unique(P)
+    @test allunique(P)
 
     # Check that partitions are really partitions of n
     for lambda in P
