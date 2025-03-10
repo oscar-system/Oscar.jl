@@ -40,5 +40,6 @@ _hash = artifact_hash("version-1-3-0-files", artifact_toml)
         end
       end
     end
+    Oscar.reset_global_serializer_state()
   end
 end
