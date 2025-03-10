@@ -38,7 +38,7 @@
   @testset "< 1.4.0 Upgrade" begin
     test_1_4_0_upgrade(; exclude=[
       # upgrading the following is tested in experimental/LieAlgebras/test/Serialization-upgrade-test.jl
-      "AbstractLieAlgebra", "AbstractLieAlgebra",
+      "AbstractLieAlgebra", "AbstractLieAlgebraElem",
       "DirectSumLieAlgebra", "DirectSumLieAlgebraElem",
       "LieAlgebraModule", "LieAlgebraModuleElem",
       "LinearLieAlgebra", "LinearLieAlgebraElem",
