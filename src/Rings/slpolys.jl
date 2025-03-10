@@ -287,7 +287,7 @@ end
 
 # should be AbstractPerm instead of GroupElem, but we need to support GAP's
 # permutations as provided in Oscar
-^(p::SLPoly, perm::AbstractAlgebra.GroupElem) = permutegens!(copy(p), perm)
+^(p::SLPoly, perm::GroupElem) = permutegens!(copy(p), perm)
 
 
 ## adhoc ops
