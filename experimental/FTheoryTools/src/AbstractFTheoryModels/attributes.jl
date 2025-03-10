@@ -1996,3 +1996,29 @@ end
 @attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel)
   return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
 end
+
+# Fluxes are offset by -1/2 * c2. Compute the vector which corresponds to this in terms of the internally chosen basis.
+@attr Vector{QQFieldElem} function flux_family_offset_vector(m::AbstractFTheoryModel; check::Bool = true)
+  internal_basis = [polynomial(k) for k in basis_of_h22(ambient_space(m), check = check)]
+  converter_dict = get_attribute(ambient_space(m), :converter_dict_h22)
+  to_be_transformed_poly = lift(polynomial(chern_classes(m)[3]))
+  M = collect(exponents(to_be_transformed_poly))
+  non_zero_exponents = map(M) do row
+    i1 = findfirst(!iszero, row)
+    row[i1] -= 1
+    i2 = findfirst(!iszero, row)
+    (i1, i2)
+  end
+  coeffs = (-1) * (1//2) * collect(coefficients(to_be_transformed_poly))
+  converted_poly = sum(coeffs[l] * lift(polynomial(converter_dict[non_zero_exponents[l]])) for l in eachindex(coeffs))
+  final_mons = monomials(converted_poly)
+  final_coeffs = coefficients(converted_poly)
+  offset_vector = zeros(QQ, length(internal_basis))
+  for (mon, coeff) in zip(final_mons, final_coeffs)
+    idx = findfirst(==(mon), internal_basis)
+    if idx !== nothing
+      offset_vector[idx] = coeff
+    end
+  end
+  return offset_vector
+end

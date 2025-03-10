@@ -298,7 +298,7 @@ end
 
 
   # (9) Remember computed data
-  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  fgs = family_of_g4_fluxes(m, res[1], res[2], flux_family_offset_vector(m, check = check))
   set_attribute!(m, :matrix_integral_quant, res[1])
   set_attribute!(m, :matrix_rational_quant, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
@@ -317,7 +317,10 @@ end
 
   # (0) Has this result been computed before?
   if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse)
-    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse(m, check = check), matrix_rational_quant_transverse(m, check = check))
+    fgs_m_int = matrix_integral_quant_transverse(m, check = check)
+    fgs_m_rat = matrix_rational_quant_transverse(m, check = check)
+    fgs_offset = flux_family_offset_vector(m, check = check) 
+    fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset)
     set_attribute!(fgs, :is_well_quantized, true)
     set_attribute!(fgs, :passes_transversality_checks, true)
     set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
@@ -522,8 +525,8 @@ end
   res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
 
 
-  # (11) Remember computed data
-  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  # (11) Remember computed data and return the result
+  fgs = family_of_g4_fluxes(m, res[1], res[2], flux_family_offset_vector(m, check = check))
   set_attribute!(m, :matrix_integral_quant_transverse, res[1])
   set_attribute!(m, :matrix_rational_quant_transverse, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
@@ -531,9 +534,6 @@ end
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
-
-
-  # (12) Finally, return the result
   return fgs
 end
 
@@ -542,7 +542,10 @@ end
 
   # (0) Has this result been computed before?
   if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak)
-    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse_nobreak(m, check = check), matrix_rational_quant_transverse_nobreak(m, check = check))
+    fgs_m_int = matrix_integral_quant_transverse_nobreak(m, check = check)
+    fgs_m_rat = matrix_rational_quant_transverse_nobreak(m, check = check)
+    fgs_offset = flux_family_offset_vector(m, check = check)
+    fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset)
     set_attribute!(fgs, :is_well_quantized, true)
     set_attribute!(fgs, :passes_transversality_checks, true)
     set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
@@ -772,8 +775,8 @@ end
   res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
 
 
-  # (11) Remember computed data
-  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  # (11) Remember computed data and return result
+  fgs = family_of_g4_fluxes(m, res[1], res[2], flux_family_offset_vector(m, check = check))
   set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
   set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
@@ -781,8 +784,5 @@ end
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
-
-
-  # (12) Finally, return the result
   return fgs
 end
