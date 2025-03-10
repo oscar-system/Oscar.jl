@@ -243,8 +243,10 @@ function addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeEl
 end
 
 # ignore temp storage
-addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) = addmul!(wr, w, n)
-addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) = addmul!(wr, n, w)
+addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) =
+  addmul!(wr, w, n)
+addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) =
+  addmul!(wr, n, w)
 
 function submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
@@ -259,8 +261,10 @@ function submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeEl
 end
 
 # ignore temp storage
-submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) = submul!(wr, w, n)
-submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) = submul!(wr, n, w)
+submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) =
+  submul!(wr, w, n)
+submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) =
+  submul!(wr, n, w)
 
 function mat_entry_ptr(w::WeightLatticeElem, i::Int)
   return mat_entry_ptr(w.vec, 1, i)

@@ -1271,8 +1271,10 @@ function addmul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceE
 end
 
 # ignore temp storage
-addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) = addmul!(rr, r, q)
-addmul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) = addmul!(rr, q, r)
+addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) =
+  addmul!(rr, r, q)
+addmul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) =
+  addmul!(rr, q, r)
 
 function submul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
@@ -1287,8 +1289,10 @@ function submul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceE
 end
 
 # ignore temp storage
-submul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) = submul!(rr, r, q)
-submul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) = submul!(rr, q, r)
+submul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) =
+  submul!(rr, r, q)
+submul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) =
+  submul!(rr, q, r)
 
 function mat_entry_ptr(r::DualRootSpaceElem, i::Int)
   return mat_entry_ptr(r.vec, 1, i)
