@@ -32,4 +32,10 @@
         @test issetequal(plueckerVector,tropical_pluecker_vector(TropL))
     end
 
+    @testset "tropical linear space from graphs" begin
+        G = complete_graph(3)
+        TropG = tropical_linear_space(G)
+        @test f_vector(TropG) == [0,1,3]
+    end
+
 end
