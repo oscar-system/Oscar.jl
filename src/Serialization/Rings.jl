@@ -675,17 +675,14 @@ end
 
 @register_serialization_type MPolyComplementOfPrimeIdeal uses_id
 
-type_params(U::MPolyComplementOfPrimeIdeal) = typeof(U), Dict(:ring => (typeof(ring(U)), ring(U)))
+type_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), ring(U))
 
 function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
-  save_data_dict(s) do
-    save_object(s, prime_ideal(U), :ideal)
-  end
+  save_object(s, prime_ideal(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, params::Dict)
-  R = params[:ring]
-  id = load_object(s, ideal_type(R), R, :ideal)
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, R::Ring)
+  id = load_object(s, ideal_type(R), R)
   return MPolyComplementOfPrimeIdeal(id)
 end
 
@@ -813,5 +810,3 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocalizedRingHom})
 end
 
 =#
-=======
->>>>>>> origin/master
