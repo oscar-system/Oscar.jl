@@ -90,7 +90,7 @@ function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG::Fu
   GAP.Globals.SetPositiveRootVectors(RG, pos_root_vectorsG)
   GAP.Globals.SetNegativeRootVectors(RG, neg_root_vectorsG)
   GAP.Globals.SetCanonicalGenerators(
-    RG, GAP.Obj([pos_root_vectorsG, neg_root_vectorsG, csa_basisG])
+    RG, GAP.Obj([pos_root_vectorsG[1:rank(RO)], neg_root_vectorsG[1:rank(RO)], csa_basisG])
   )
   GAP.Globals.SetChevalleyBasis(
     LG, GAP.Obj([pos_root_vectorsG, neg_root_vectorsG, csa_basisG])
