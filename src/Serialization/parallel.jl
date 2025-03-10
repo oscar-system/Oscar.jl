@@ -97,12 +97,13 @@ function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
 end
 
 # Method for end of recursion.
+# TODO: there is probably a way to stop the code from getting here that will speed up the code
 function put_type_params(channel::RemoteChannel, ::TypeParams{T, Nothing}) where T
   return
 end
 
 function put_type_params(channel::RemoteChannel,
-                         ::TypeParams{T, Tuple{Vararg{<:Pair{Symbol, Nothing}}}}) where T
+                         ::TypeParams{T, Tuple{Vararg{Pair{Symbol, Nothing}}}}) where T
   return
 end
 
@@ -113,7 +114,7 @@ function put_type_params(channel::RemoteChannel, tp::TypeParams)
   put_type_params(channel, params(tp))
 end
 
-function put_type_params(channel::RemoteChannel, tps::Tuple{Vararg{<:Pair}})
+function put_type_params(channel::RemoteChannel, tps::Tuple{Vararg{Pair}})
   for tp in tps
     put_type_params(channel, tp.second)
   end
