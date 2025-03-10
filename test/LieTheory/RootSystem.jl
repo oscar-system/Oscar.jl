@@ -13,10 +13,6 @@
   end
 
   @testset "property tests" begin
-    Main.equality(a::RootSpaceElem, b::RootSpaceElem) = a == b
-    Main.equality(a::DualRootSpaceElem, b::DualRootSpaceElem) = a == b
-    Main.equality(a::WeightLatticeElem, b::WeightLatticeElem) = a == b
-
     function root_system_property_tests(R::RootSystem, rk::Int, npositive_roots::Int)
       W = weyl_group(R)
 
@@ -137,22 +133,30 @@
           b = T(R, rand(-10:10, rk))
           n = rand(-10:10)
 
-          test_mutating_op_like_zero(zero, zero!, a)
+          ConformanceTests.test_mutating_op_like_zero(zero, zero!, a)
 
-          test_mutating_op_like_neg(-, neg!, a)
+          ConformanceTests.test_mutating_op_like_neg(-, neg!, a)
 
-          test_mutating_op_like_add(+, add!, a, b)
-          test_mutating_op_like_add(-, sub!, a, b)
+          ConformanceTests.test_mutating_op_like_add(+, add!, a, b)
+          ConformanceTests.test_mutating_op_like_add(-, sub!, a, b)
 
-          test_mutating_op_like_add(*, mul!, a, n, T)
-          test_mutating_op_like_add(*, mul!, n, a, T)
-          test_mutating_op_like_add(*, mul!, a, ZZ(n), T)
-          test_mutating_op_like_add(*, mul!, ZZ(n), a, T)
+          ConformanceTests.test_mutating_op_like_add(*, mul!, a, n, T)
+          ConformanceTests.test_mutating_op_like_add(*, mul!, n, a, T)
+          ConformanceTests.test_mutating_op_like_add(*, mul!, a, ZZ(n), T)
+          ConformanceTests.test_mutating_op_like_add(*, mul!, ZZ(n), a, T)
 
-          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, n, T)
-          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, n, b, T)
-          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, ZZ(n), T)
-          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, ZZ(n), b, T)
+          ConformanceTests.test_mutating_op_like_addmul(
+            (a, b, c) -> a + b * c, addmul!, a, b, n, T
+          )
+          ConformanceTests.test_mutating_op_like_addmul(
+            (a, b, c) -> a + b * c, addmul!, a, n, b, T
+          )
+          ConformanceTests.test_mutating_op_like_addmul(
+            (a, b, c) -> a + b * c, addmul!, a, b, ZZ(n), T
+          )
+          ConformanceTests.test_mutating_op_like_addmul(
+            (a, b, c) -> a + b * c, addmul!, a, ZZ(n), b, T
+          )
         end
       end
     end

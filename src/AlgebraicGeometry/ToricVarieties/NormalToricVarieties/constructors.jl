@@ -184,7 +184,7 @@ end
 @doc raw"""
     (==)(X::NormalToricVariety, Y::NormalToricVariety) -> Bool
 
-Checks equality of the polyhedral fans as sets of cones.
+Check equality of the polyhedral fans as sets of cones.
 
 # Examples
 ```jldoctest
@@ -219,7 +219,7 @@ end
     _id(X::NormalToricVariety)
     -> Tuple{Vector{Vector{QQFieldElem}}, Vector{Vector{Int64}}}
 
-Given a toric variety `X`, returns a pair `Oscar._id(X)` with the
+Given a toric variety `X`, return a pair `Oscar._id(X)` with the
 following property: two toric varieties `X` and `Y` have equal
 polyhedral fans, taken as sets of cones, if and only if
 `Oscar._id(X) == Oscar._id(Y)`.

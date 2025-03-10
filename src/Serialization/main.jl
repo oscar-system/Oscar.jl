@@ -216,10 +216,10 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     # this branching needs to be better understood,
     # seems like params(tp) wont be a TypeParams if
     # the type is not some container type
-    if !(params(tp) isa TypeParams)
-      save_typed_object(s, params(tp), :params)
-    else
+    if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
+    else
+      save_typed_object(s, params(tp), :params)
     end
   end
 end
@@ -230,20 +230,47 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
+                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
+  for param in params(tp)
+    save_type_params(s, param.second, Symbol(param.first))
+  end
+end
+
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{<:TypeParams, <:Tuple})
+  save_data_array(s) do 
+    for param in params(tp)
+      save_type_params(s, param)
+    end
+  end
+end
+
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params(tp)
-        param_tp = type_params(param.second)
-        #if isnothing(params(param_tp))
-        #  save_object(s, encode_type(type(param_tp)), Symbol(param.first))
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeParams)
-          save_typed_object(s, param.second, Symbol(param.first))
+          if param.second isa Tuple
+            save_data_array(s, Symbol(param.first)) do
+              for entry in param.second
+                if serialize_with_id(entry)
+                  save_object(s, save_as_ref(s, entry))
+                else
+                  save_data_dict(s) do
+                    save_typed_object(s, entry)
+                  end
+                end
+              end
+            end
+          else
+            save_typed_object(s, param.second, Symbol(param.first))
+          end
         else
-          save_type_params(s, param_tp, Symbol(param.first))
+          save_type_params(s, param.second, Symbol(param.first))
         end
       end
     end
@@ -256,6 +283,17 @@ function load_type_params(s::DeserializerState, T::Type, key::Symbol)
   end
 end
 
+function load_type_array_params(s::DeserializerState)
+  load_array_node(s) do obj
+    T = decode_type(s)
+    if obj isa String
+      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+      return T
+    end
+    return load_type_params(s, T)[2]
+  end
+end
+
 function load_type_params(s::DeserializerState, T::Type)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
@@ -265,7 +303,9 @@ function load_type_params(s::DeserializerState, T::Type)
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa String || haskey(s, :params)
+      if obj isa JSON3.Array || obj isa Vector
+        params = load_type_array_params(s)
+      elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           params = U()
@@ -276,9 +316,13 @@ function load_type_params(s::DeserializerState, T::Type)
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
         for (k, _) in obj
-          params[k] = load_node(s, k) do _
+          params[k] = load_node(s, k) do obj
+            if obj isa JSON3.Array || obj isa Vector
+              return load_type_array_params(s)
+            end
+            
             U = decode_type(s)
-            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
+            if obj isa String && isnothing(tryparse(UUID, obj))
               return U
             end
             return load_type_params(s, U)[2]
@@ -308,12 +352,8 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   Base.issingletontype(T) && return T()
   if !isnothing(override_params)
-    if override_params isa Dict
-      error("Unsupported override type")
-    else
-      T, _ = load_type_params(s, T, type_key)
-      params = override_params
-    end
+    T, _ = load_type_params(s, T, type_key)
+    params = override_params
   else
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
@@ -374,6 +414,7 @@ end
 function register_attr_list(@nospecialize(T::Type),
                             attrs::Union{Vector{Symbol}, Nothing})
   if !isnothing(attrs)
+    serialize_with_id(T) || error("Only types that are stored as references can store attributes")
     Oscar.type_attr_map[encode_type(T)] = attrs
   end
 end
@@ -387,8 +428,6 @@ import Distributed.AbstractSerializer
 # when the type hasn't been registered
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
-serialize_with_params(::Type) = false
-
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool,
                                      uses_params::Bool, attrs::Any)
@@ -409,12 +448,11 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
-      # add list of possible attributes to save for a given type to a global dict
-      Oscar.register_attr_list($ex, $attrs)
-      
       Oscar.serialize_with_id(obj::T) where T <: $ex = $uses_id
       Oscar.serialize_with_id(T::Type{<:$ex}) = $uses_id
-      Oscar.serialize_with_params(T::Type{<:$ex}) = $uses_params
+
+      # add list of possible attributes to save for a given type to a global dict
+      Oscar.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
@@ -489,34 +527,30 @@ for convenience.
 macro import_all_serialization_functions()
   return quote
     import Oscar:
+      load_attrs,
       load_object,
-      load_type_params,
+      save_attrs,
       save_object,
-      save_type_params
+      type_params
 
     using Oscar:
       @register_serialization_type,
       DeserializerState,
       SerializerState,
+      TypeParams,
       encode_type,
       haskey,
       load_array_node,
-      load_attrs,
       load_node,
       load_ref,
-      load_typed_object,
       save_as_ref,
-      save_attrs,
       save_data_array,
       save_data_basic,
       save_data_dict,
       save_data_json,
-      save_typed_object,
       serialize_with_id,
-      serialize_with_params,
       set_key,
-      with_attrs,
-      type_attr_map
+      with_attrs
   end
 end
 
@@ -719,10 +753,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = upgrade(file_version, jsondict)
     jsondict_str = JSON3.write(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
-                                serializer,
+                          serializer,
                           with_attrs)
   end
-
+  
   try
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.

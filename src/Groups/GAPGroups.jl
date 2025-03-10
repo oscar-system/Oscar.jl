@@ -1799,9 +1799,11 @@ julia> prime_of_pgroup(UInt16, quaternion_group(8))
 
 julia> prime_of_pgroup(symmetric_group(1))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 julia> prime_of_pgroup(symmetric_group(3))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 ```
 """
@@ -1961,6 +1963,28 @@ function relators(G::FPGroup)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
 end
 
+@doc raw"""
+    relators(G::PcGroup)
+
+Return a vector of elements in a free group of rank `ngens(G)`
+that describes the defining relators of the underlying polycyclic presentation
+of `G`.
+
+# Examples
+```jldoctest
+julia> g = dihedral_group(8)
+Pc group of order 8
+
+julia> relators(g)
+6-element Vector{FPGroupElem}:
+ g1^2
+ g2^-1*g1^-1*g2*g1*g3^-1
+ g3^-1*g1^-1*g3*g1
+ g2^2*g3^-1
+ g3^-1*g2^-1*g3*g2
+ g3^2
+```
+"""
 function relators(G::PcGroup)
   gapG = GapObj(G)
   Ggens = GAPWrap.GeneratorsOfGroup(gapG)
@@ -2023,7 +2047,8 @@ If `init == nothing` and `genimgs` is empty, an error occurs.
 Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
 
-See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2106,7 +2131,8 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
-See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref).
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2221,6 +2247,8 @@ end
 Return the syllables of `g` as a list of pairs `gen => exp` where
 `gen` is the index of a generator and `exp` is an exponent.
 
+See also [`letters(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
+
 # Examples
 ```jldoctest
 julia> F = @free_group(:F1, :F2);
@@ -2266,11 +2294,13 @@ function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
 end
 
 @doc raw"""
-    letters(g::FPGroupElem)
+    letters(g::Union{FPGroupElem, SubFPGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
 a group generator. Inverses of the generators are represented by negative
 numbers.
+
+See also [`syllables(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
 
 # Examples
 ```jldoctest
@@ -2304,7 +2334,7 @@ julia> letters(epi(F1^5*F2^-3))
  -2
 ```
 """
-function letters(g::FPGroupElem)
+function letters(g::Union{FPGroupElem, SubFPGroupElem})
   w = GAPWrap.UnderlyingElement(GapObj(g))
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
 end
@@ -2329,6 +2359,7 @@ julia> length(one(F))
 
 julia> length(one(quo(F, [F1])[1]))
 ERROR: ArgumentError: the element does not lie in a free group
+[...]
 ```
 """
 function length(g::Union{FPGroupElem, SubFPGroupElem})

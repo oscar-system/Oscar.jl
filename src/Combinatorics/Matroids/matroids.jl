@@ -18,7 +18,7 @@ pm_object(M::Matroid) = M.pm_matroid
 function Base.show(io::IO, M::Matroid)
     r = rank(M)
     n = length(M.groundset)
-    print(io, "Matroid of rank $(r) on $(n) elements")
+    print(io, "Matroid of rank $(r) on ", ItemQuantity(n, "element"))
 end
 
 # function that generates the dictionary which maps the groundset to integers
@@ -764,7 +764,7 @@ end
     free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
-See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
+See [`principal_extension`](@ref) and Section 7.2 of [Oxl11](@cite).
 
 # Examples
 To add `5` freely to the uniform matroid `U_{3,4}` do

@@ -18,5 +18,3 @@ foreach(w->push!(wp, w), process_ids)
 end
 
 map(rmprocs, process_ids)
-
-

@@ -7,6 +7,7 @@
 @register_serialization_type QQField
 # exclude from ring union definition
 type_params(::QQField) = TypeParams(QQField, nothing)
+type_params(::QQFieldElem) = TypeParams(QQFieldElem, nothing)
 type_params(::fpField) = TypeParams(fpField, nothing)
 type_params(::FpField) = TypeParams(FpField, nothing)
 type_params(::QQBarField) = TypeParams(QQBarField, nothing)
@@ -143,21 +144,19 @@ function type_params(K::FqField)
 end
 
 function save_object(s::SerializerState, K::FqField)
-  save_data_dict(s) do
-    if absolute_degree(K) == 1
-      save_object(s, order(K), :order)
-    else
-      save_object(s, defining_polynomial(K), :def_pol)
-    end
+  if absolute_degree(K) == 1
+    save_object(s, order(K))
+  else
+    save_object(s, defining_polynomial(K))
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRing)
-  finite_field(load_object(s, PolyRingElem, params, :def_pol), cached=false)[1]
+  finite_field(load_object(s, PolyRingElem, params), cached=false)[1]
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
-  finite_field(load_object(s, ZZRingElem, ZZRing(), :order))[1]
+  finite_field(load_object(s, ZZRingElem, ZZRing()))[1]
 end
 
 # elements
@@ -427,46 +426,40 @@ end
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
   base_K = base_field(K)
-  save_data_dict(s) do
-    if is_simple(K)
-      a = gen(K)
-      gen_emb_approx = E(a)
-      if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
-        error("Internal error in internal serialization.")
-      end
-      save_object(s, gen_emb_approx, :gen_approx)
-    else
-      a = gens(K)
-      data = E.(a)
-      if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, base_field(K)) == restrict(e, base_field(K)))
-        error("Internal error in internal serialization.")
-      end
-      save_object(s, tuple(data...), :gen_approx)
+  if is_simple(K)
+    a = gen(K)
+    gen_emb_approx = E(a)
+    if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
+      error("Internal error in internal serialization.")
     end
+    save_object(s, gen_emb_approx)
+  else
+    a = gens(K)
+    data = E.(a)
+    if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, base_field(K)) == restrict(e, base_field(K)))
+      error("Internal error in internal serialization.")
+    end
+    save_object(s, tuple(data...))
   end
 end
 
 function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, K::Field)
-  approx = load_node(s, :gen_approx) do _
-    if !is_simple(K)
-      data = load_object(s, Vector{AcbFieldElem}, AcbField())
-    else
-      data = load_object(s, AcbFieldElem, AcbField())
-    end
-    return complex_embedding(K, data)
+  if !is_simple(K)
+    data = load_object(s, Vector{AcbFieldElem}, AcbField())
+  else
+    data = load_object(s, AcbFieldElem, AcbField())
   end
+  return complex_embedding(K, data)
 end
 
 function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, params::Dict)
   K = params[:num_field]
-  load_node(s, :gen_approx) do _
-    if !is_simple(K)
-      data = load_object(s, Vector{AcbFieldElem}, AcbField())
-    else
-      data = load_object(s, AcbFieldElem, AcbField())
-    end
-    return complex_embedding(K, params[:base_field_emb], data)
+  if !is_simple(K)
+    data = load_object(s, Vector{AcbFieldElem}, AcbField())
+  else
+    data = load_object(s, AcbFieldElem, AcbField())
   end
+  return complex_embedding(K, params[:base_field_emb], data)
 end
 
 @register_serialization_type EmbeddedNumField uses_id

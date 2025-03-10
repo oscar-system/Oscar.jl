@@ -74,7 +74,8 @@ using Oscar: _integer_variables
       f_vector(d_hedron)
       lattice_points(d_hedron)
 
-      dict_ps = Dict(
+      # this type needs to be any since the values have different type_params
+      dict_ps = Dict{String, Any}(
         "unprecise" => polyhedron(
           Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
         ),

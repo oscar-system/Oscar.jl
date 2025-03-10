@@ -1,7 +1,7 @@
 @doc raw"""
     contains(tvs::ToricVanishingSet, l::ToricLineBundle)
 
-Checks if the toric line bundle `l` is contained in the toric vanishing set `tvs`.
+Check if the toric line bundle `l` is contained in the toric vanishing set `tvs`.
 
 # Examples
 ```jldoctest

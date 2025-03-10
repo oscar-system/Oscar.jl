@@ -6,7 +6,6 @@ import Base.haskey
 abstract type OscarSerializer end
 
 struct JSONSerializer <: OscarSerializer end
-
 struct IPCSerializer <: OscarSerializer end
 
 abstract type MultiFileSerializer <: OscarSerializer end
@@ -161,27 +160,6 @@ function save_as_ref(s::SerializerState, obj::T) where T
   return string(ref)
 end
 
-#function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
-#  ref = get(global_serializer_state.obj_to_id, obj, nothing)
-#  w = s.serializer.worker_pid
-#  if !isnothing(ref)
-#    # check if ref already exists on worker
-#    f = remotecall_fetch(
-#      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
-#      w,
-#      string(ref)) #&& return string(ref)
-#    return string(ref)
-#  else
-#    ref = uuid4()
-#    global_serializer_state.id_to_obj[ref] = obj
-#  end
-#
-#  rrid = Distributed.RRID(myid(), w)
-#  put!(channel_from_id(rrid), obj)
-#
-#  return string(ref)
-#end
-
 function handle_refs(s::SerializerState)
   if !isempty(s.refs) 
     save_data_dict(s, refs_key) do
@@ -290,41 +268,3 @@ function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
 
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
-
-################################################################################
-# Refs Channel
-import Base: put!, wait, isready, take!, fetch
-
-mutable struct RefChannel{T} <: AbstractChannel{T}
-  stack::Vector
-  cond_take::Condition    # waiting for data to become available
-  RefChannel{T}() where T = new([], Condition())
-end
-
-function put!(D::RefChannel, v)
-  push!(D.stack, v)
-  notify(D.cond_take)
-  D
-end
-
-function take!(D::RefChannel)
-    v = fetch(D)
-    delete!(D.d, k)
-    v
-end
-
-isready(D::RefChannel) = length(D.d) > 1
-
-function fetch(D::RefChannel)
-    wait(D,k)
-    D.d[k]
-end
-
-function wait(D::RefChannel)
-    while !isready(D, k)
-        wait(D.cond_take)
-    end
-end
-
-
-

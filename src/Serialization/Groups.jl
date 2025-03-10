@@ -133,7 +133,6 @@ function save_object(s::SerializerState, G::PermGroup)
   save_data_dict(s) do
     save_object(s, n, :degree)
     save_object(s, [Vector{Int}(GAPWrap.ListPerm(GapObj(x))) for x in gens(G)], :gens)
-    save_attrs(s, G)
   end
 end
 
@@ -141,7 +140,6 @@ function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
   generators = load_object(s, Vector{Vector{Int}}, :gens)
   G = permutation_group(n, [perm(x) for x in generators])
-  load_attrs(s, G)
   return G
 end
 

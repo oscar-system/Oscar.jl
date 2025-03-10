@@ -144,8 +144,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       entry_data = []
 
       for (i, field_type) in enumerate(dict[:data][:field_types])
-        U = reverse_type_map[field_type]
-        if serialize_with_params(U)
+        if !(dict[:data][:content][i] isa String)
           upgraded_entry = upgrade_0_13_0(s, dict[:data][:content][i])
           push!(params, upgraded_entry[:_type])
           push!(entry_data, upgraded_entry[:data])

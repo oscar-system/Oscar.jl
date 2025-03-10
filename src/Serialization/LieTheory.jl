@@ -23,7 +23,7 @@ function load_object(s::DeserializerState, ::Type{RootSystem})
   cm = load_object(s, Matrix{Int}, :cartan_matrix)
   R = root_system(cm; check=false, detect_type=false)
   if haskey(s, :type)
-    type = load_object(s, Vector{Tuple{Symbol, Int}}, :type)
+    type = load_object(s, Vector{Tuple{Symbol,Int}}, :type)
     if haskey(s, :type_ordering)
       type_ordering = load_object(s, Vector{Int}, :type_ordering)
       set_root_system_type!(R, type, type_ordering)
@@ -49,7 +49,6 @@ function load_object(
   return T(R, load_object(s, Vector{QQFieldElem}))
 end
 
-
 ###############################################################################
 #
 #   Weight lattices
@@ -71,7 +70,7 @@ function load_object(s::DeserializerState, ::Type{WeightLattice}, R::RootSystem)
   return weight_lattice(R)
 end
 
-@register_serialization_type WeightLatticeElem 
+@register_serialization_type WeightLatticeElem
 
 type_params(w::WeightLatticeElem) = TypeParams(WeightLatticeElem, parent(w))
 
@@ -94,7 +93,7 @@ end
 type_params(W::WeylGroup) = TypeParams(WeylGroup, root_system(W))
 
 function save_object(s::SerializerState, W::WeylGroup)
-    save_data_dict(s) do
+  save_data_dict(s) do
     # no data required but we leave this function here to generate a valid json
     # and leave root for possible future attrs
   end

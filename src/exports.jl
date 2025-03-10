@@ -537,6 +537,7 @@ export double_dual
 export dst
 export dual
 export dual_continued_fraction_hirzebruch_jung
+export dual_geometric_representation
 export dual_graph
 export dual_matroid
 export dual_subdivision
@@ -648,6 +649,7 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export geometric_representation
 export get_conjugate
 export get_power
 export get_relative_order
@@ -671,6 +673,7 @@ export graded_map
 export graded_polynomial_ring
 export grading_group
 export graph
+export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
 export grassmann_pluecker_ideal
@@ -1064,6 +1067,7 @@ export linear_symmetries
 export linear_system
 export link_subcomplex
 export load
+export generic_enriques_surface
 export load_lp
 export load_mps
 export localization
@@ -1089,6 +1093,7 @@ export marks_vector
 export mat_elem_type
 export mathieu_group
 export matrix_group
+export matrix_group_type
 export matrix_kernel
 export matrix_ordering
 export matroid_base_polytope
@@ -1371,6 +1376,7 @@ export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
+export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
 export quantum_automorphism_group
@@ -1460,6 +1466,8 @@ export reverse_direction!
 export revlex_basis_encoding
 export reynolds_operator
 export right_acting_group
+export translation_morphism
+export isomorphism_from_generic_fibers
 export right_coset
 export right_coset_action
 export right_cosets
@@ -1697,6 +1705,7 @@ export volume
 export volume_form
 export volume_map
 export walls
+export walls_defined_by_rational_curves
 export wdeglex
 export wdegrevlex
 export weak_composition

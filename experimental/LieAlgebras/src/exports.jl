@@ -34,12 +34,15 @@ export general_linear_lie_algebra
 export has_root_system
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
+export irreducible_factors
 export is_ad_nilpotent
 export is_self_normalizing
 export killing_matrix
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis
+export parabolic_subgroup
+export parabolic_subgroup_with_projection
 export show_dynkin_diagram
 export simple_module
 export special_linear_lie_algebra

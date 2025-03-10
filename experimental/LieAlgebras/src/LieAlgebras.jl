@@ -20,6 +20,8 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
+  FPGroup,
+  PermGroup,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
@@ -33,6 +35,7 @@ import ..Oscar:
   cartan_matrix,
   center,
   centralizer,
+  change_base_ring,
   character,
   characteristic,
   check_parent,
@@ -58,11 +61,13 @@ import ..Oscar:
   identity_map,
   image,
   induced_map_on_exterior_power,
+  inner_direct_product,
   inv,
   is_abelian,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
+  is_semisimple,
   is_simple,
   is_solvable,
   is_welldefined,
@@ -77,6 +82,7 @@ import ..Oscar:
   permutation_group,
   rank,
   root_system,
+  structure_constant_table,
   sub,
   symbols,
   symmetric_power,
@@ -106,7 +112,6 @@ include("Combinatorics.jl")
 include("Util.jl")
 
 include("CoxeterGroup.jl")
-include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
@@ -125,6 +130,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("SSLieAlgebraModule.jl")
 
 include("serialization.jl")
 
