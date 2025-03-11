@@ -10,6 +10,7 @@
         "LieAlgebraModuleElem",
         "LinearLieAlgebra",
         "LinearLieAlgebraElem",
+        "Vector" => 49:97,
       ],
     )
   end
