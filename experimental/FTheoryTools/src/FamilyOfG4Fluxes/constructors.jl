@@ -9,7 +9,11 @@ Given an F-theory model with a toric ambient space, we can
 identify ambient space candidates of G4-fluxes. In terms of these
 candidates, we can define a family of G4-fluxes as:
 - $\mathbb{Z}$-linear combinations, provided by a matrix $mat_int$,
-- $\mathbb{Q}$-linear combinations, provided by a matrix $mat_rat$.
+- $\mathbb{Q}$-linear combinations, provided by a matrix $mat_rat$,
+- a shift (invoked for instance by the appearance of $\frac{1}{2} \cdot c_2$ in the quantization condition), provided by a vector $offset$.
+
+For convenience we also allow to only provide $mat_int$, $mat_rat$. In this case, the shift is taken to be zero.
+
 An example is in order.
 
 # Examples
@@ -25,21 +29,28 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
-function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
+function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Family of G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
+  @req nrows(mat_int) == length(offset) "Number of rows of integral matrix and length offset must coincide"
   n_gens = length(chosen_g4_flux_basis(m, check = check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
-  return FamilyOfG4Fluxes(m, mat_int, mat_rat)
+  return FamilyOfG4Fluxes(m, mat_int, mat_rat, offset)
+end
+
+function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
+  return family_of_g4_fluxes(m, mat_int, mat_rat, fill(QQ(0), nrows(mat_int)), check = check)
 end
 
 
@@ -48,7 +59,7 @@ end
 ################################################
 
 function Base.:(==)(gf1::FamilyOfG4Fluxes, gf2::FamilyOfG4Fluxes)
-  return model(gf1) === model(gf2) && mat_int(gf1) == mat_int(gf2) && mat_rat(gf1) == mat_rat(gf2)
+  return model(gf1) === model(gf2) && mat_int(gf1) == mat_int(gf2) && mat_rat(gf1) == mat_rat(gf2) && offset(gf1) == offset(gf2)
 end
 
 function Base.hash(gf::FamilyOfG4Fluxes, h::UInt)
@@ -56,6 +67,7 @@ function Base.hash(gf::FamilyOfG4Fluxes, h::UInt)
   h = hash(model(gf), h)
   h = hash(mat_int(gf), h)
   h = hash(mat_rat(gf), h)
+  h = hash(offset(gf), h)
   return xor(h, b)
 end
 
