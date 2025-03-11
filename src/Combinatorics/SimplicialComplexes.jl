@@ -637,7 +637,7 @@ function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:Abstrac
 end
 
 @doc raw"""
-    automorphism_group(K::SimplicialComplex)
+    automorphism_group(K::SimplicialComplex; action=:on_vertices)
 
 Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
 The group can be returned as a subgroup of the permutation group of the vertices
