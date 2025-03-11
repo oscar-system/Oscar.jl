@@ -37,5 +37,6 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
         end
       end
     end
+    Oscar.reset_global_serializer_state()
   end
 end
