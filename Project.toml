@@ -27,7 +27,7 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
 [compat]
-AbstractAlgebra = "0.44.6"
+AbstractAlgebra = "0.44.9"
 AlgebraicSolving = "0.8.0"
 Distributed = "1.6"
 GAP = "0.13.1"
