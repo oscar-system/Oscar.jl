@@ -1,7 +1,7 @@
 using Distributed
 
 procs = addprocs(1)
-@everywhere using Oscar
+@everywhere procs using Oscar
 
 @everywhere begin
   struct SampleDataStruct{T} <: Oscar.ParallelTask where T
@@ -17,8 +17,8 @@ end
   l = [x^2, x*y, y^2]
   a = [SampleDataStruct([a for (i, a) in enumerate(l) if i != k]) for k in 1:length(l)]
 
-  @everywhere begin
-    function Oscar._compute(ds::SampleDataStruct)
+  @everywhere procs begin
+    function Oscar._compute(ds::SampleDataStruct{Vector{MPolyRingElem}})
       return true, gcd(ds.elems...)
     end
   end
@@ -36,8 +36,8 @@ end
   R, (x, y) = QQ[:x, :y]
   l = [x^2, x*y, y^2]
   a = [SampleDataStruct([Dict(:a => R[b;]) for (i, b) in enumerate(l) if i != k]) for k in 1:length(l)]
-  @everywhere begin
-    function Oscar._compute(ds::SampleDataStruct)
+  @everywhere procs begin
+    function Oscar._compute(ds::SampleDataStruct{Vector{Dict{Symbol, MatElem}}})
       return true, prod([c[:a] for c in ds.elems])
     end
   end
@@ -52,8 +52,8 @@ end
   MR = matrix_space(F, 2, 2)
   c = [SampleDataStruct(MR([a^i F(1); a a + 1])) for i in 1:5]
   
-  @everywhere begin
-    Oscar._compute(ds::SampleDataStruct) = true, det(ds.elems)
+  @everywhere procs begin
+    Oscar._compute(ds::SampleDataStruct{MatElem}) = true, det(ds.elems)
   end
   
   success, dets = Oscar.parallel_all(c)
@@ -63,4 +63,3 @@ end
 end
 
 map(rmprocs, procs)
-
