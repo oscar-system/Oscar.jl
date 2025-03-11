@@ -21,7 +21,9 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -76,12 +78,15 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
+  shift = offset(fgs)
   gens = chosen_g4_flux_basis(model(fgs), check = check)
   c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
   c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
-  flux = c1 + c2
+  c3 = sum(shift[k] * gens[k] for k in 1:length(gens))
+  flux = c1 + c2 + c3
   set_attribute!(flux, :int_combination, int_combination)
   set_attribute!(flux, :rat_combination, rat_combination)
+  set_attribute!(flux, :offset, shift)
   set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
     if is_well_quantized(fgs)
@@ -159,7 +164,9 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
