@@ -120,7 +120,7 @@ def get_tag_date(tag: str) -> str:
                 "gh",
                 "release",
                 "view",
-                tag,
+                f"{tag}",
                 "--json=createdAt"
             ],
             shell=False,
@@ -166,7 +166,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], startdate: str, new_version: str, bminor: bool
+    prs: List[Dict[str, Any]], startdate: str, new_version: str
 ) -> None:
     """Writes files with information for release notes."""
 
@@ -177,9 +177,6 @@ def changes_overview(
     newfile = './new.md'
     finalfile = '../../CHANGELOG.md'
     notice("Writing release notes into file " + newfile)
-    if bminor:
-        major, minor, _ = new_version.split('.')
-        prs = [pr for pr in prs if has_label(pr, f"backport {major}.{minor}.x")]
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
             pr for pr in prs if has_label(pr, "release notes: use title")
@@ -270,28 +267,42 @@ which we think might affect some users directly.
 
 def main(new_version: str, old_version: str = "") -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
-    bminor = False
+    extra = ""
+    release_type = 0 # 0 by default, 1 for point release, 2 for patch release
     if major != 1:
         error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
         # "major" OSCAR release which changes just the minor version
+        release_type = 1
         previous_minor = minor - 1
-        basetag = f"v{major}.{minor}dev"
+        basetag = f"v{major}.{minor}-dev"
         # *exclude* PRs backported to previous stable-1.X branch
-        extra = f'-label:"backport-to-{major}.{previous_minor}-DONE"'
+        extra = f'-label:"backport {major}.{previous_minor}.x"'
     else:
         # "minor" OSCAR release which changes just the patchlevel
+        release_type = 2
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
-        extra = f'label:"backport-to-{major}.{minor}-DONE"'
-        extra = ''
-        bminor = True
+        extra = f'label:"backport {major}.{minor}.x"'
 
     if old_version != "":
-        basetag = old_version
-
-    startdate = get_tag_date(f"v{basetag}")
+        basetag = f"v{old_version}"
+    if release_type == 2:
+        startdate = get_tag_date(basetag)
+    else:
+        # Find the date when the last version bump happened
+        # step 1 : find the PR number of the version bump
+        l = subprocess.run([
+            "gh",
+            "pr",
+            "list",
+            f'--search="Version 1.{minor}.0-dev"',
+            "--state=merged",
+            "--json=id,title,number,closedAt",
+        ], shell=False, capture_output=True)
+        j = list(json.loads(l.stdout.decode()))
+        startdate = [k['closedAt'] for k in j if k['title'] == f"Version 1.{minor}.0-dev"][0][0:10]
     print("Base tag is", basetag)
     print("Base tag was created ", startdate)
 
@@ -303,7 +314,7 @@ def main(new_version: str, old_version: str = "") -> None:
     
     subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
 
-    changes_overview(prs, startdate, new_version, bminor)
+    changes_overview(prs, startdate, new_version)
 
 
 if __name__ == "__main__":
