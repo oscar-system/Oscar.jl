@@ -226,8 +226,8 @@ julia> d3_tadpole_constraint(fgs);
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = _ambient_space_models_of_g4_fluxes(m, check = check)
-  basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
+  basis = basis_of_h22_hypersurface(m, check = check)
+  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
   C = MPolyBuildCtx(amb_ring)

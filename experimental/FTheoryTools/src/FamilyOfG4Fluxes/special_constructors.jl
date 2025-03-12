@@ -221,9 +221,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = Oscar._ambient_space_models_of_g4_fluxes(m, check = check)
+  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
+  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S))) # TODO: This line is a bit fragile. Fix it!
 
@@ -465,20 +465,16 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 
   # TODO:
   
-  # Family of G4-fluxes constructor expects two matrices in a lot of places. I guess we make this a convenience method, which puts the offset to zero.
-  # Let's see if this works, or what other failures we are seeing. Then I proceed.
+  # Idea:
 
-  # How do we verify for a family of G4-fluxes if there are passing the tadpole constraint etc?
-  # Also, computation of the D3-tadpole might now be wrong.
+  # (1) Can computation of converter_dict_h22_ambient be made more efficient/better? Once done, we are one great step towards finally finishing this!
 
-  # converter_dict_h22 is also currently an attribute of toric ambient space.
-  # We likely want to remember this, so maybe make it an attribute of the F-theory model in question.
-  # (Note that converter_dict_h22 includes knowledge about basis_of_h22 as its keys.)
-  
-  # Actually, converter dict needs to go into the G4-flux basis that we have chosen, not into the ambient space basis. So... need to rectify this too. DAMN IT!
+  # (8) Employ converter_dict_hypersurface in computation of 1/2 c2 intersection number in special_flux_family.
+  # (9) Employ converter_dict_hypersurface to ALWAYS cast a G4-flux into the G4-basis chosen by us.
 
-  # Test this code on the big model. Likely this is currently super slow or maybe not even functional.
-  # Prepare a first update of the big model artifact, so that we can also activate the long tests again.
+  # Test code on the big model. Likely everything is super slow... Yikes. Improve.
+
+  # Prepare a first update of the big model artifact, so that we can also activate the long tests again. Make sure important data is checked in.
 
   # Can we support the following for all families of fluxes?
   # is_well_quantized
