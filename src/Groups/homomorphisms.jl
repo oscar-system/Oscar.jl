@@ -623,15 +623,6 @@ for T in [FPGroup, PcGroup]
   end
 end
 
-function isomorphism(::Type{FinGenAbGroup}, A::FinGenAbGroup)
-   # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
-   return get!(isos, (FinGenAbGroup, false)) do
-     return identity_map(A)
-   end::AbstractAlgebra.Generic.IdentityMap{FinGenAbGroup}
-end
-
-
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
 
 # We use `GAP.Globals.IsomorphismPcGroup` as the `_get_iso_function` value
@@ -1176,37 +1167,52 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=true) where T <: Union{FPGro
    end::MapFromFunc{S, T}
 end
 
-
+const change_group_type_doc =
 """
-    FPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    fp_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    SubFPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    sub_fp_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    FinGenAbGroup(G::T) where T <: GAPGroup
-    PcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    SubPcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    sub_pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    PermGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
-    permutation_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    FPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
+    fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
+    SubFPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
+    sub_fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
+    PcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
+    pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
+    SubPcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
+    sub_pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
+    PermGroup(G::T) where T <: Union{Group, FinGenAbGroup}
+    permutation_group(G::T) where T <: Union{Group, FinGenAbGroup}
 
 Return a group of the requested type that is isomorphic to `G`.
 An exception is thrown if no such group exists.
-A MethodError is thrown if this particular pair of types is not implemented (yet).
+A `MethodError` is thrown if this particular pair of types is not implemented (yet).
 
 If one needs the isomorphism then
 [`isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}`](@ref)
 can be used instead.
 """
-function (::Type{T})(G::Group) where T <: Group
-   return codomain(isomorphism(T, G))
-end
 
-fp_group(G::Group) = FPGroup(G)
-sub_fp_group(G::Group) = SubFPGroup(G)
-pc_group(G::Group) = PcGroup(G)
-sub_pc_group(G::Group) = SubPcGroup(G)
-permutation_group(G::Group) = PermGroup(G)
+@doc change_group_type_doc
+FPGroup(G::Union{Group, FinGenAbGroup})
+@doc change_group_type_doc
+fp_group(G::Union{Group, FinGenAbGroup}) = FPGroup(G)
+
+@doc change_group_type_doc
+SubFPGroup(G::Union{Group, FinGenAbGroup})
+@doc change_group_type_doc
+sub_fp_group(G::Union{Group, FinGenAbGroup}) = SubFPGroup(G)
+
+@doc change_group_type_doc
+PcGroup(G::Union{Group, FinGenAbGroup})
+@doc change_group_type_doc
+pc_group(G::Union{Group, FinGenAbGroup}) = PcGroup(G)
+
+@doc change_group_type_doc
+SubPcGroup(G::Union{Group, FinGenAbGroup})
+@doc change_group_type_doc
+sub_pc_group(G::Union{Group, FinGenAbGroup}) = SubPcGroup(G)
+
+@doc change_group_type_doc
+PermGroup(G::Union{Group, FinGenAbGroup})
+@doc change_group_type_doc
+permutation_group(G::Union{Group, FinGenAbGroup}) = PermGroup(G)
 
 # Now for MultTableGroup
 
