@@ -23,5 +23,3 @@ process_ids = addprocs(1)
 end
 
 map(rmprocs, process_ids)
-
-

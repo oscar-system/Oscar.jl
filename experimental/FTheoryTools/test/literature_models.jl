@@ -50,10 +50,10 @@ end
   @test paper_buzzwords(t1) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t1) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t1) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t1) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t1) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t1)) == 1
   @test length(resolution_zero_sections(t1)) == 1
-  @test weighted_resolutions(t1) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t1) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t1)) == 1
   @test length(weighted_resolution_zero_sections(t1)) == 1
 end
@@ -193,10 +193,10 @@ end
   @test paper_buzzwords(t3) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t3) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t3) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t3) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t3) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t3)) == 1
   @test length(resolution_zero_sections(t3)) == 1
-  @test weighted_resolutions(t3) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t3) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t3)) == 1
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end

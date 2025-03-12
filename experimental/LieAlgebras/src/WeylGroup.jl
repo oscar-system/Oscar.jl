@@ -290,3 +290,131 @@ function parabolic_subgroup_with_projection(
   end
   return factor, emb, MapFromFunc(W, factor, proj)
 end
+
+@doc raw"""
+    irreducible_factors(W::WeylGroup; morphisms::Bool=false)
+
+If `morphisms` is `true`, return a triple `(U, emb, proj)` that describes the irreducible factors of `W`.
+That is, `U`, `emb`, `proj` are vectors whose length is
+the number of irreducible components of the Dynkin diagram of `W`, and for each `i`,
+`(U[i], emb[i], proj[i])` describes the `i`-th factor of `W` as described in
+[`parabolic_subgroup_with_projection`](@ref).
+
+If `morphisms` is `false`, return only `U` .
+
+The order of the irreducible factors is the one given by [`cartan_type_with_ordering`](@ref).
+
+See also [`inner_direct_product(::AbstractVector{WeylGroup})`](@ref).
+
+# Examples
+```jldoctest
+julia> W = weyl_group([(:A, 3), (:B, 4)]);
+
+julia> irreducible_factors(W)
+2-element Vector{WeylGroup}:
+ Weyl group of root system of type A3
+ Weyl group of root system of type B4
+
+julia> U, emb, proj = irreducible_factors(W; morphisms=true)
+(WeylGroup[Weyl group of root system of type A3, Weyl group of root system of type B4], Map{WeylGroup, WeylGroup}[Map: Weyl group -> W, Map: Weyl group -> W], Map{WeylGroup, WeylGroup}[Map: W -> Weyl group, Map: W -> Weyl group])
+
+julia> emb[1](U[1][1]) == W[1]
+true
+
+julia> proj[2](W[4]) == U[2][1]
+true
+```
+"""
+function irreducible_factors(W::WeylGroup; morphisms::Bool=false)
+  types, ordering = root_system_type_with_ordering(root_system(W))
+  num_factors = length(types) # Number of irreducible factors of W
+
+  U = Vector{WeylGroup}(undef, num_factors)
+  emb = Vector{Map{WeylGroup,WeylGroup}}(undef, num_factors)
+  proj = Vector{Map{WeylGroup,WeylGroup}}(undef, num_factors)
+
+  start_index = 1
+  for (i, type) in enumerate(types)
+    rk = type[2] # rank of the i-th irreducible factor
+    end_index = start_index + rk - 1
+    U[i], emb[i], proj[i] = parabolic_subgroup_with_projection(
+      W, ordering[start_index:end_index]; check=false # No check needed by construction
+    )
+    start_index = end_index + 1
+  end
+
+  if morphisms
+    return U, emb, proj
+  else
+    return U
+  end
+end
+
+@doc raw"""
+    inner_direct_product(L::AbstractVector{WeylGroup}; morphisms::Bool=false)
+    inner_direct_product(L::WeylGroup...; morphisms::Bool=false)
+
+If `morphisms` is `false`, then return a Weyl group `W` that is isomorphic to the
+direct product of the Weyl groups in `L`.
+The generators of `W` are in natural 1-1 correspondence with the generators of the groups in `L`
+in the given order.
+
+If `morphisms` is `true`, return a triple `(W, emb, proj)` where
+`W` is as above and `emb`, `proj` are vectors such that
+`emb[i]` (resp., `proj[i]`) is the embedding of `L[i]` into `W`
+(resp., the projection of `W` onto `L[i]`).
+
+See also [`inner_direct_product(::AbstractVector{T}) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}`](@ref).
+
+# Examples
+```jldoctest
+julia> W1 = weyl_group(:A, 2); W2 = weyl_group(:B, 3);
+
+julia> W, emb, proj = inner_direct_product(W1, W2; morphisms=true)
+(Weyl group of root system of type A2 x B3, Map{WeylGroup, WeylGroup}[Map: W1 -> W, Map: W2 -> W], Map{WeylGroup, WeylGroup}[Map: W -> W1, Map: W -> W2])
+
+julia> proj[2](W[3]) == W2[1]
+true
+
+julia> gens(W) == vcat(emb[1].(gens(W1)), emb[2].(gens(W2)))
+true
+```
+"""
+function inner_direct_product(L::AbstractVector{WeylGroup}; morphisms::Bool=false)
+  if length(L) > 0
+    cm_blocks = [cartan_matrix(factor) for factor in L]
+    cm = block_diagonal_matrix(cm_blocks)
+  else
+    cm = zero_matrix(ZZ, 0, 0)
+  end
+  product = weyl_group(cm)
+
+  if !morphisms
+    return product
+  end
+
+  emb = Vector{Map{WeylGroup,WeylGroup}}(undef, length(L))
+  proj = Vector{Map{WeylGroup,WeylGroup}}(undef, length(L))
+  start_index = 1
+  for (i, factor) in enumerate(L)
+    end_index = start_index + ngens(factor) - 1
+    # Embedding
+    emb_gen_imgs = [product[j] for j in start_index:end_index]
+    emb[i] = MapFromFunc(
+      factor, product, w::WeylGroupElem -> map_word(w, emb_gen_imgs; init=one(product))
+    )
+    # Projection
+    proj_gen_imgs = fill(one(factor), ngens(product))
+    proj_gen_imgs[start_index:end_index] = gens(factor)
+    proj[i] = MapFromFunc(
+      product, factor, w::WeylGroupElem -> map_word(w, proj_gen_imgs; init=one(factor))
+    )
+    start_index = end_index + 1
+  end
+
+  return product, emb, proj
+end
+
+function inner_direct_product(L::WeylGroup, Ls::WeylGroup...; morphisms::Bool=false)
+  return inner_direct_product([L, Ls...]; morphisms=morphisms)
+end
