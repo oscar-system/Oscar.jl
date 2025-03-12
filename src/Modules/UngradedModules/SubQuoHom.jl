@@ -342,13 +342,13 @@ function (==)(f::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) wher
 end
 
 # With ring map
-# Note that we only allow comparison in case that the ring map is either `nothing` 
-# (i.e. the identity), or an honest `Map`. For these cases, we may require that 
-# comparison `==` is properly implemented. Since the ring maps can take any other 
-# form (e.g. rings by abuse of type-casting, or anonymous julia functions), we have 
-# little chance to write generic code for comparison in such cases. Note that 
-# in many cases, `==` will even default to `===` and then produce mathematically 
-# wrong results (i.e. returning `false` on `f==g` on mathematically equal maps. 
+#
+# Comparing ring maps is tricky, because for several types/implementations 
+# there is no algorithm to do that (think of using a julia-function and 
+# deciding what it does mathematically). Therefore we default to `is_equal_as_morphism`
+# to handle comparisons in a mathematically correct way or throw an error. 
+# If in doubt, one needs to introduce more methods for that function.
+
 function (==)(
               f::ModuleFPHom{D, C, Nothing}, 
               g::ModuleFPHom{D, C, <:Map}
@@ -365,19 +365,9 @@ function (==)(
   return _cmp_internal(f, g)
 end
 
-function (==)(
-              f::ModuleFPHom{D, C, <:Map}, 
-              g::ModuleFPHom{D, C, <:Map}
-             ) where {D, C}
-  # for `Map`s we expect `==` to be properly implemented
-  ring_map(g) == ring_map(f) || return false
-  return _cmp_internal(f, g)
-end
-
 function (==)(f::ModuleFPHom, g::ModuleFPHom)
-  # `===` is the only generic case we can handle in general; see above comment.
-  is_equal_as_morphism(f, g) || return false # this call might even throw!
-  return true
+  _cmp_internal(f, g) || return false
+  return is_equal_as_morphism(ring_map(g), ring_map(f))
 end
 
 # Internal hash function to hash the trivially accessible information.
