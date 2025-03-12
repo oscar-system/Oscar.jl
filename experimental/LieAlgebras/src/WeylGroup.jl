@@ -196,7 +196,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(FPGroup, W)` yi
 
 If only the image of such an isomorphism is needed, use `fp_group(W)`.
 """
-function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
@@ -252,7 +252,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(PermGroup, W)` 
 
 If only the image of such an isomorphism is needed, use `permutation_group(W)`.
 """
-function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
