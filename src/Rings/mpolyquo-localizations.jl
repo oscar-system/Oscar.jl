@@ -2698,21 +2698,13 @@ function Base.:(==)(
 
   if _has_coefficient_map(f)
     if _has_coefficient_map(g) 
-      if coefficient_map(f) isa Map && coefficient_map(g) isa Map
-        coefficient_map(f) == coefficient_map(g) || return false
-      else
-        error("comparison of `coefficient_map`s of type $(typeof(coefficient_map(f))) and $(typeof(coefficient_map(g))) is not implemented")
-      end
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
       return is_trivial(coefficient_map(f))
     end
   elseif _has_coefficient_map(g)
     if _has_coefficient_map(f) 
-      if coefficient_map(f) isa Map && coefficient_map(g) isa Map
-        coefficient_map(f) == coefficient_map(g) || return false
-      else
-        error("comparison of `coefficient_map`s of type $(typeof(coefficient_map(f))) and $(typeof(coefficient_map(g))) is not implemented")
-      end
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
       is_trivial(coefficient_map(g))
     end
@@ -2721,14 +2713,22 @@ function Base.:(==)(
   return all(f(x) == g(x) for x in gens(domain(f)))
 end
 
-# TODO: Move to wherever `MapFromFunc` comes from
-function (==)(f::MapFromFunc, g::MapFromFunc)
+# TODO: Move to wherever `MapFromFunc` comes from ?
+function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
   f === g && return true
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   f.f === g.f && return true
   error("comparison of maps $f and $g not possible")
 end
+
+function is_equal_as_morphism(f::Map, g::Map)
+  f === g && return true
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  error("comparison of maps $f and $g not possible")
+end
+
 
 function Base.hash(f::MapFromFunc, h::UInt)
   h = hash(domain(f), h)
