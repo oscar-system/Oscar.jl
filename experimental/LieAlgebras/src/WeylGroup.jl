@@ -132,7 +132,15 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   type, ordering = root_system_type_with_ordering(R)
 
   if length(type) != 1
-    error("Not implemented (yet)")
+    # Apply recursion to the irreducible factors
+    # Note that the gens of each irreducible factor are in canonical ordering
+    factors = irreducible_factors(W; morphisms=false)
+    factors_as_perm = [_isomorphic_group_on_gens(PermGroup, factor) for factor in factors]
+    G = inner_direct_product(factors_as_perm; morphisms=false)
+    # gens(G) corresponds to gens(W)[ordering], so
+    # gens(G)[sortperm(ordering)] corresponds to gens(W)
+    G_sorted, _ = sub(G, gens(G)[sortperm(ordering)])
+    return G_sorted
   end
 
   # Compute generators of the permutation group to which the simple reflections are mapped.
