@@ -380,7 +380,7 @@ julia> groebner_basis(I,nu,w)
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
     G = gens(I)
-    # Principal and binomial ideal shortcut, return G
+    # Principal ideal shortcut, return G
     if isone(length(G))
         return G
     end
