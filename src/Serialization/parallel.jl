@@ -1,4 +1,3 @@
-using Distributed
 # An abstract type from which all concrete tasks should be derived. 
 abstract type ParallelTask end 
 
@@ -155,12 +154,13 @@ The user can specify a list of worker ids to be used for deployment via the kwar
 """
 function parallel_all(
     task_list::Vector{TaskType};
-    workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
+    workers::Vector{Int}=Oscar.workers(); # Specify which workers to use
+    channel_size::Int=32
   ) where {TaskType <: ParallelTask} # TaskType is the type of the task to be deployed.
   n = length(task_list)
   w = length(workers)
   is_zero(w) && !isempty(task_list) && error("zero workers available for non-trivial task; aborting")
-  fut_vec = _deploy_work(task_list, workers)
+  fut_vec = _deploy_work(task_list, workers; channel_size)
   @sync fut_vec
   results = [fetch(fut) for (fut, _) in fut_vec]
   return all(success for (success, _) in results), [result for (_, result) in results]
@@ -184,12 +184,13 @@ When `kill_workers` is set to `true`, the workers are killed after call to this 
 function parallel_any(
     task_list::Vector{T};
     workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
-    kill_workers::Bool=false
+    kill_workers::Bool=false,
+    channel_size::Int=32
   ) where {T <: ParallelTask} # T is the type of the task to be deployed.
   n = length(task_list)
   w = length(workers)
   is_zero(w) && !isempty(task_list) && error("zero workers available for non-trivial task; aborting")
-  fut_vec = _deploy_work(task_list, workers)
+  fut_vec = _deploy_work(task_list, workers; channel_size)
   while true
     all_failed = true
     for (k, (fut, wid)) in enumerate(fut_vec)
@@ -213,17 +214,17 @@ end
 # id of the worker where the task has been sent to.
 function _deploy_work(
     task_list::Vector{TaskType},
-    workers::Vector{Int}
+    workers::Vector{Int};
+    channel_size::Int=32
   ) where {TaskType}
   w = length(workers)
-  individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(32), i) for i in workers)
+  individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(channel_size), i) for i in workers)
   assigned_workers = IdDict{TaskType, Int}()
   fut_vec = Tuple{Future, Int}[]
   for (i, task) in enumerate(task_list)
     wid = workers[mod(i, w) + 1]
     channel = individual_channels[wid]
     put_type_params(channel, task)
-    #remotecall(take!, wid, channel)
     assigned_workers[task] = wid
     fut = remotecall(_compute, wid, task)
     push!(fut_vec, (fut, wid))
