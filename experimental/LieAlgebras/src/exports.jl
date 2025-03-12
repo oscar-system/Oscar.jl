@@ -34,6 +34,7 @@ export general_linear_lie_algebra
 export has_root_system
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
+export irreducible_factors
 export is_ad_nilpotent
 export is_self_normalizing
 export killing_matrix

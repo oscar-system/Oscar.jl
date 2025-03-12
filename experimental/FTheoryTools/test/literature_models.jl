@@ -3,8 +3,10 @@
 #############################################################
 
 B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]
 t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+D = classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(t1)
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
@@ -21,6 +23,7 @@ t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
   @test is_base_space_fully_specified(t1) == is_base_space_fully_specified(weierstrass_model(t1))
   @test is_smooth(ambient_space(t1)) == false
   @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
+  @test sum(D["a43"].*[Kbar, toric_divisor_class(w)]) == classes_of_model_sections(t1)["a43"]
 end
 
 @testset "Test meta data for literature Tate model over concrete base" begin
@@ -47,10 +50,10 @@ end
   @test paper_buzzwords(t1) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t1) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t1) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t1) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t1) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t1)) == 1
   @test length(resolution_zero_sections(t1)) == 1
-  @test weighted_resolutions(t1) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t1) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t1)) == 1
   @test length(weighted_resolution_zero_sections(t1)) == 1
 end
@@ -190,10 +193,10 @@ end
   @test paper_buzzwords(t3) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t3) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t3) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t3) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t3) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t3)) == 1
   @test length(resolution_zero_sections(t3)) == 1
-  @test weighted_resolutions(t3) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t3) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t3)) == 1
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end

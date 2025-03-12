@@ -115,6 +115,7 @@ julia> gens(ans)
 
 julia> perfect_group(60, 2)
 ERROR: ArgumentError: there are only 1 perfect groups of order 60
+[...]
 ```
 """
 function perfect_group(::Type{T}, n::IntegerUnion, k::IntegerUnion) where T <: GAPGroup
@@ -246,15 +247,6 @@ function all_perfect_groups(L...)
       ok && push!(res, G)
    end
    return res
-end
-
-function __init_extraperfect()
-  for i in [27, 33]
-    _write_gap_file(
-      "grp/perf$(i).grp",
-      "Read(JuliaToGAP(IsString, Oscar._path_extraperfect($(i))));\n",
-    )
-  end
 end
 
 function _path_extraperfect(i::Int)

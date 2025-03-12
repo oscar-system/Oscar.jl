@@ -540,6 +540,8 @@ end
 Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
 a group generator and its exponent.
 
+See also [`letters(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
 # Examples
 
 ```jldoctest

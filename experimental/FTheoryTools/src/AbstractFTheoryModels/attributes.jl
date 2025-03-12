@@ -880,8 +880,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolutions(m)
-1-element Vector{Vector{Vector}}:
- [[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]
+1-element Vector{Tuple{Vector{Vector{String}}, Vector{String}}}:
+ ([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
 ```
 """
 function resolutions(m::AbstractFTheoryModel)
@@ -955,8 +955,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolutions(m)
-1-element Vector{Vector{Vector}}:
- [Vector{Vector{Any}}[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]
+1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
+ ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
 ```
 """
 function weighted_resolutions(m::AbstractFTheoryModel)
@@ -1146,7 +1146,7 @@ with summands
   sl_2
   sl_2
   linear Lie algebra
-over field of algebraic numbers
+over algebraic closure of rational field
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
@@ -1373,6 +1373,34 @@ julia> model_sections(m)
 """
 model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
 
+
+@doc raw"""
+    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+
+Returns a dictionary giving the classes of all parameters (tunable sections)
+in terms of Kbar and the defining classes. Each value gives the divisor
+class of the corresponding section/key in this basis. This information is currently only available for literature models.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+
+julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
+Dict{String, Vector{Int64}} with 6 entries:
+  "b1" => [1, 0]
+  "b3" => [3, -5]
+  "b4" => [4, -6]
+  "b6" => [6, -11]
+  "b2" => [2, -1]
+  "ζ0" => [0, 1]
+```
+"""
+@attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+  @req has_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes) "No detailed information about tunable sections stored for this model"
+  return get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes)
+end
 
 
 ##########################################
@@ -1938,4 +1966,33 @@ julia> genera_of_components_of_simplified_dual_graph(qsm_model)["C2"]
 function genera_of_components_of_simplified_dual_graph(m::AbstractFTheoryModel)
   @req has_attribute(m, :genus_of_components_of_simplified_dual_graph) "Genera of components of simplified dual graph not known for this model"
   return get_attribute(m, :genus_of_components_of_simplified_dual_graph)
+end
+
+
+######################################################################################
+### (5) Attributes for flux families (not exported, rather for serialization overhaul)
+######################################################################################
+
+@attr QQMatrix function matrix_integral_quant(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel)
+  return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel)
+  return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
 end

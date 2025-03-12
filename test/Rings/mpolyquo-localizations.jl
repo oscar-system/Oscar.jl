@@ -8,7 +8,6 @@
   I = ideal(R, f)
   Q, p = quo(R, I)
   S = Oscar.MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [QQ(0), QQ(0), QQ(0), QQ(0)])
   L, _ = localization(Q, S)
   a = L(x)
   b = L(y)
