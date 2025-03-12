@@ -945,7 +945,7 @@ function maximal_blocks(Omega::GSet)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
   bl = map(A -> map(x -> Omega[x], A), bl)
   # TODO how to compose `on_sets` with `action_function(Omega)`?
-  return gset(G, on_sets, bl; closed = true)
+  return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
 function minimal_block_reps(Omega::GSet)
