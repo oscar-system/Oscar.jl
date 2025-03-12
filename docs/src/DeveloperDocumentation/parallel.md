@@ -32,7 +32,7 @@ that is with *concrete types* for the fields with *every one* of those
 types appearing in the same order as type parameters. 
 
 It is also important to note that the serialization for each of the concrete
-types in a `ParallelTask` must be implemented, see [serialization](@ref dev_serialization)
+types in a `ParallelTask` must be implemented, see [serialization](@ref dev_serialization).
 
 The following is a generic implementation which hopefully serves for 
 most concrete tasks automatically. The methods might need to be overwritten, 
