@@ -3,7 +3,7 @@ using Distributed
 procs = addprocs(1)
 @everywhere procs using Oscar
 
-@everywhere begin
+@everywhere [myid(), procs...] begin
   struct SampleDataStruct{T} <: Oscar.ParallelTask where T
     elems::T
   end
@@ -23,11 +23,11 @@ end
     end
   end
 
-  success, res1 = Oscar.parallel_all(a)
+  success, res1 = Oscar.parallel_all(a; workers=procs)
   @test success
   @test all(p in [one(R), x, y] for p in res1)
 
-  success, _, res2 = Oscar.parallel_any(a)
+  success, _, res2 = Oscar.parallel_any(a; workers=procs)
   @test success
   @test res2 in [one(R), x, y]
 end
@@ -41,7 +41,7 @@ end
       return true, prod([c[:a] for c in ds.elems])
     end
   end
-  success, res1 = Oscar.parallel_all(a)
+  success, res1 = Oscar.parallel_all(a; workers=procs)
   @test success
   @test res1 == [x*y^3, x^2 * y^2, x^3 * y]
 end
@@ -56,7 +56,7 @@ end
     Oscar._compute(ds::SampleDataStruct{MatElem}) = true, det(ds.elems)
   end
   
-  success, dets = Oscar.parallel_all(c)
+  success, dets = Oscar.parallel_all(c; workers=procs)
   @test success
   total = reduce(*, dets)
   @test total == F(4)
