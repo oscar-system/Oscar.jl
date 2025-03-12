@@ -17,7 +17,7 @@ The pattern is the following.
    4. Use `parallel_all` and `parallel_any` on `Vector`s of `MyParallelTask` 
       to do things in parallel. 
 
-## Paralleltask
+## ParallelTask
 
 In order for the generic code below to work, any concrete instance 
 must be of the form 
