@@ -376,8 +376,8 @@ end
 
 function (==)(f::ModuleFPHom, g::ModuleFPHom)
   # `===` is the only generic case we can handle in general; see above comment.
-  ring_map(f) === ring_map(g) && return _cmp_internal(f, g)
-  error("comparison of morphisms of modules is only implemented for `ring_map`s of type $(typeof(ring_map(f))) and $(typeof(ring_map(g))); see the source code for details")
+  is_equal_as_morphism(f, g) || return false # this call might even throw!
+  return true
 end
 
 # Internal hash function to hash the trivially accessible information.
