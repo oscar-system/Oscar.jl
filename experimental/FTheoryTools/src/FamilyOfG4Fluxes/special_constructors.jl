@@ -451,11 +451,11 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   
   # Idea:
 
-  # Employ converter_dict_hypersurface in computation of 1/2 c2 intersection number in special_flux_family.
+  # Make all tests run successfully again.
 
   # Test code on the big model. Likely everything is super slow... Yikes. Improve.
 
-  # Prepare a first update of the big model artifact, so that we can also activate the long tests again. Make sure important data is checked in.
+  # Make update of the big model artifact, so that we can activate the long tests again. Make sure important data is checked in (a.k.a. test on serialization)
 
   # Can we support the following for all families of fluxes?
   # is_well_quantized
@@ -463,6 +463,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   # breaks_non_abelian_gauge_group
   # d3_tadpole_constraint
 
-  # (1) Can computation of converter_dict_h22_ambient be made more efficient/better? Once done, we are one great step towards finally finishing this!
+  # Can computation of converter_dict_h22_ambient be made more efficient/better?
 
 end
