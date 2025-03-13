@@ -45,7 +45,7 @@ normal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
-derived_series
+derived_series(G::GAPGroup)
 sylow_system
 hall_system
 complement_system
@@ -53,7 +53,7 @@ chief_series
 composition_series
 jennings_series
 p_central_series
-lower_central_series
+lower_central_series(G::GAPGroup)
 upper_central_series
 ```
 

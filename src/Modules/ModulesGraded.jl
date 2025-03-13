@@ -1535,7 +1535,7 @@ function Base.show(io::IO, b::BettiTable)
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
 
       # figure out width of first column
-      L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
+      L = sort(unique!(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
       # 6 = length(degree); we take length of mi into account in case it is negative

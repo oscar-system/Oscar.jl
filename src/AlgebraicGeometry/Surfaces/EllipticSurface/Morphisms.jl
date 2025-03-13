@@ -94,12 +94,10 @@ end
 end
 
 
-function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
-  return get_attribute!(X, :raw_reduction_of_algebraic_lattice) do
-    X_red_raw, bc = raw_good_reduction(X)
-    basis_ambient, _, _= algebraic_lattice(X)
-    return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
-  end::IdDict
+@attr IdDict{AbsWeilDivisor, AbsWeilDivisor} function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
+  X_red_raw, bc = raw_good_reduction(X)
+  basis_ambient, _, _= algebraic_lattice(X)
+  return IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
 end
 
 @attr ZZMatrix function good_reduction_algebraic_lattice(X::EllipticSurface)
@@ -418,16 +416,39 @@ function _pushforward_section(
 end
 
 @doc raw"""
-    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
+    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}; algorithm=:default)) -> AbstractSpaceMor
     
 Return the pushforward ``f_*: V_1 \to V_2`` where ``V_i`` is the ambient quadratic space of the `algebraic_lattice`.
 
 This assumes that the image ``f_*(V_1)`` is contained in ``V_2``. If this is not the case, you will get  
 ``f_*`` composed with the orthogonal projection to ``V_2``. 
+
+# Algorithm
+If the attribute `good_reduction_map` has been set via the internal method `Oscar.set_good_reduction_map!`
+then the surfaces and the automorphism can be specialized and the computation carried out after specialization.
+This is much faster, especially when working over number fields and for complicated maps `f`.
+  
+# Input
+The keyword argument `algorithm` can be 
+- `:default` -- use specialization if possible
+- `:specialization` -- use specialization and error if this is not possible
+- none of the above -- no specialization
 """
-function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
-  imgs_divs = _pushforward_lattice_along_isomorphism(f)
-  M = matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}; algorithm=:default)
+  X1 = domain(f)
+  X2 = codomain(f)
+  can_specialize =  has_attribute(X1, :good_reduction_map) && has_attribute(X2, :good_reduction_map)
+  if algorithm == :specialization || (algorithm==:default && can_specialize)
+    match1 = good_reduction_algebraic_lattice(X1)
+    match2 = good_reduction_algebraic_lattice(X2)
+    f_red = good_reduction(f)
+    imgs_divs_red = _pushforward_lattice_along_isomorphism(f_red)
+    M_red = matrix([basis_representation(codomain(f_red), i) for i in imgs_divs_red])
+    M = match1 * M_red * inv(match2)
+  else
+    imgs_divs = _pushforward_lattice_along_isomorphism(f)
+    M = matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  end
   V1 = ambient_space(algebraic_lattice(domain(f))[3])
   V2 = ambient_space(algebraic_lattice(codomain(f))[3])
   # keep the check on since it is simple compared to all the other computations done here

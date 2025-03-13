@@ -14,7 +14,6 @@
 
 # character values are elements from QQAbField
 
-
 #############################################################################
 ##
 ##  Atlas irrationalities
@@ -306,7 +305,7 @@ julia> Oscar.with_unicode() do
 ```
 """
 function character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
-    tbls = get_attribute!(G, :character_tables, Dict{Int,Any}())
+    tbls = get_attribute!(Dict{Int,Any}, G, :character_tables)
     return get!(tbls, p) do
       p != 0 && return mod(character_table(G, 0), p)
       iso = isomorphism_to_GAP_group(G)
@@ -439,6 +438,35 @@ function Base.hash(tbl::GAPGroupCharacterTable, h::UInt)
   else
     return Base.hash(identifier(tbl), h)
   end
+end
+
+"""
+    is_atlas_character_table(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is either an ordinary character table
+that belongs to the ATLAS of Finite Groups [CCNPW85](@cite)
+or a Brauer table whose underlying ordinary table
+belongs to the ATLAS of Finite Groups.
+
+One application of this function is to restrict the search with
+[`all_character_table_names`](@ref) to ATLAS tables.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> is_atlas_character_table(tbl)
+true
+
+julia> is_atlas_character_table(mod(tbl, 2))
+true
+
+julia> is_atlas_character_table(character_table("A4"))
+false
+```
+"""
+function is_atlas_character_table(tbl::GAPGroupCharacterTable)
+  return GAPWrap.IsAtlasCharacterTable(GapObj(tbl))
 end
 
 
@@ -1256,7 +1284,7 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     @req is_prime(p) "p must be a prime integer"
     characteristic(tbl) == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute!(tbl, :brauer_tables, Dict{Int,Any}())
+    modtbls = get_attribute!(Dict{Int,Any}, tbl, :brauer_tables)
     if !haskey(modtbls, p)
       modtblgap = mod(GapObj(tbl), GAP.Obj(p))::GapObj
       if modtblgap === GAP.Globals.fail
@@ -1504,13 +1532,15 @@ function _translate_parameter(para)
     elseif GAPWrap.IsCyc(para)
       # happens for the `P:Q` table, only roots of unity occur
       return [x for x in GAPWrap.DescriptionOfRootOfUnity(para)]
-    elseif ! GAPWrap.IsList(para)
-      # What can this parameter be?
-      return GAP.gap_to_julia(para)
-    elseif length(para) == 0
-      return Int[]
+    elseif GAPWrap.IsList(para)
+      if isempty(para)
+        return Int[]
+      else
+        return [_translate_parameter(x) for x in para]
+      end
     else
-      return [_translate_parameter(x) for x in para]
+      # Unknown type of Gap object, we just keep it as is.
+      return para
     end
 end
 
@@ -1949,8 +1979,9 @@ true
 ```
 """
 function trivial_character(tbl::GAPGroupCharacterTable)
-    val = QQAbFieldElem(1)
-    return class_function(tbl, [val for i in 1:ncols(tbl)])
+    triv = GAPWrap.TrivialCharacter(GapObj(tbl))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(tbl, triv)
 end
 
 @doc raw"""
@@ -1968,8 +1999,9 @@ true
 ```
 """
 function trivial_character(G::GAPGroup)
-    val = QQAbFieldElem(1)
-    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
+    triv = GAPWrap.TrivialCharacter(GapObj(G))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(G, triv)
 end
 
 @doc raw"""
@@ -2041,7 +2073,7 @@ function natural_character(G::PermGroup)
 end
 
 @doc raw"""
-    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
+    natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
@@ -2064,7 +2096,7 @@ function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQField
 end
 
 @doc raw"""
-    natural_character(G::MatrixGroup{FinFieldElem})
+    natural_character(G::MatrixGroup{<:FinFieldElem})
 
 Return the character that maps each $p$-regular element of `G`,
 where $p$ is the characteristic of the base field of `G`,
@@ -2172,9 +2204,12 @@ julia> length(linear_characters(tbl))
 ```
 """
 function linear_characters(tbl::GAPGroupCharacterTable)
-    return [class_function(tbl, chi) for chi in GAPWrap.LinearCharacters(GapObj(tbl))]
+    lin = GAPWrap.LinearCharacters(GapObj(tbl))
+    for chi in lin
+      GAPWrap.SetIsIrreducibleCharacter(chi, true)
+    end
+    return [class_function(tbl, chi) for chi in lin]
 end
-
 
 @doc raw"""
     induce(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup})
@@ -2529,11 +2564,11 @@ multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), n * GapObj(chi))
+    return GAPGroupClassFunction(parent(chi), GapObj(n) * GapObj(chi))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ n)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ GapObj(n))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2609,7 +2644,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples
@@ -2828,6 +2863,7 @@ end
 
 @doc raw"""
     character_field(chi::GAPGroupClassFunction)
+    character_field(l::Vector{GAPGroupClassFunction})
 
 If `chi` is an ordinary character then
 return the pair `(F, phi)` where `F` is a number field that is generated
@@ -2838,6 +2874,10 @@ If `chi` is a Brauer character in characteristic `p` then
 return the pair `(F, phi)` where `F` is the finite field that is generated
 by the `p`-modular reductions of the values of `chi`,
 and `phi` is the identity map on `F`.
+
+If a nonempty vector `l` of characters is given then `(F, phi)` is returned
+such that `F` is the smallest field that contains the character fields
+of the entries of `l`.
 
 # Examples
 ```jldoctest
@@ -2851,6 +2891,9 @@ julia> flds_2 = map(character_field, mod(t, 2));
 
 julia> println([degree(x[1]) for x in flds_2])
 [1, 2, 2, 1]
+
+julia> degree(character_field(collect(t))[1])
+2
 ```
 """
 function character_field(chi::GAPGroupClassFunction)
@@ -2864,8 +2907,31 @@ function character_field(chi::GAPGroupClassFunction)
       return (F, identity_map(F))
     end
 
-    values = GapObj(chi)  # a list of GAP cyclotomics
+    values = GapObj(chi)::GapObj
     gapfield = GAPWrap.Field(values)
+    return _character_field(gapfield)
+end
+
+function character_field(l::Vector{GAPGroupClassFunction})
+    @req length(l) > 0 "need at least one class function"
+    p = characteristic(l[1])
+    @req all(chi -> characteristic(chi) == p, l) "all entries must have the same characteristic"
+
+    if p != 0
+      # Brauer characters, construct a finite field
+      orders = [order_field_of_definition(chi) for chi in l]
+      exps = [is_prime_power_with_data(q)[2] for q in orders]
+      e = lcm(exps)
+      F = GF(p, e)
+      return (F, identity_map(F))
+    end
+
+    values = GapObj(l, recursive = true)::GapObj
+    gapfield = GAPWrap.Field(GAPWrap.Flat(values))
+    return _character_field(gapfield)
+end
+
+function _character_field(gapfield::GapObj)
     N = GAPWrap.Conductor(gapfield)
     FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)

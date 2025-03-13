@@ -111,7 +111,7 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
 end
 
 function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
     res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
     return res, compose(a, to_R), compose(to_R_flat, b)
@@ -119,13 +119,13 @@ function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; 
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
@@ -169,13 +169,22 @@ end
   J = saturated_ideal(I)
   res = absolute_primary_decomposition(J)
   result = []
+  if is_empty(res)
+    U = ideal(A, one(A))
+    return [(U, U, U, 0)]
+  end
+  
+  # Create the ring for the return values
   for (P, Q, P_prime, d) in res
+    R_prime = base_ring(P_prime) # the new polynomial ring
+    L = coefficient_ring(R_prime) # the new field for the result
+    A_ext, ext_map = change_base_ring(L, A) # recreate the quo-ring over that field
+    @assert coefficient_ring(base_ring(A_ext)) === L
+    help_map = hom(R_prime, A_ext, gens(A_ext); check=false)
     PP = ideal(A, A.(gens(P)))
     QQ = ideal(A, A.(gens(Q)))
-    R_prime = base_ring(P_prime)
-    L = coefficient_ring(R_prime)
-    A_ext, ext_map = change_base_ring(L, R_prime)
-    PP_prime = ideal(A_ext, ext_map.(gens(P_prime)))
+    trans_gens = help_map.(gens(P_prime))
+    PP_prime = ideal(A_ext, trans_gens)
     push!(result, (PP, QQ, PP_prime, d))
   end
   return result

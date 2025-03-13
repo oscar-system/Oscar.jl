@@ -63,6 +63,10 @@ resolution_zero_sections(m::AbstractFTheoryModel)
 weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+zero_section(m::AbstractFTheoryModel)
+zero_section_class(m::AbstractFTheoryModel)
+zero_section_index(m::AbstractFTheoryModel)
+torsion_sections(m::AbstractFTheoryModel)
 ```
 
 One can check if a model has a particular set of information. This is achieved with the
@@ -102,6 +106,7 @@ following methods:
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
 * `has_zero_section(m::AbstractFTheoryModel)`,
 * `has_zero_section_class(m::AbstractFTheoryModel)`,
+* `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 

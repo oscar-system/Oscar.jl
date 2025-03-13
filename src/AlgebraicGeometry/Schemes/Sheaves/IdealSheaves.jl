@@ -339,7 +339,7 @@ function subscheme(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(
 end
 
 
-@attr Int function dim(I::AbsIdealSheaf)
+@attr Union{Int, NegInf} function dim(I::AbsIdealSheaf)
   dims = [dim(I(U)) for U in affine_charts(scheme(I))]
   return maximum(dims)
 end
@@ -667,13 +667,11 @@ end
 #end
 #
 
-function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
-    end
-    return all(x->isone(I(x)), covering)
-  end::Bool
+@attr Bool function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
+  end
+  return all(x->isone(I(x)), covering)
 end
 
 function is_one(I::PrimeIdealSheafFromChart; covering::Covering=default_covering(scheme(I)))
@@ -684,40 +682,38 @@ function dim(I::PrimeIdealSheafFromChart)
   return dim(I(original_chart(I)))
 end
 
-function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(I(U)) && return false
-    end
+@attr Bool function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(I(U)) && return false
+  end
 
-    J = summands(I)
-    k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
-    if k !== nothing
-      P = J[k]
-      U = original_chart(P)
-      if !is_one(cheap_sub_ideal(I, U))
-        is_one(I(U)) || return false
+  J = summands(I)
+  k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+  if k !== nothing
+    P = J[k]
+    U = original_chart(P)
+    if !is_one(cheap_sub_ideal(I, U))
+      is_one(I(U)) || return false
+    end
+  end
+  
+  if has_decomposition_info(covering)
+    dec = decomposition_info(covering)
+    for U in covering 
+      D = ideal(OO(U), dec[U])
+      K = D
+      for J in summands(I) # shortcut for trivial patches
+        if U in keys(object_cache(J))
+          K = K + J(U)
+        end 
       end
-    end
-    
-    if has_decomposition_info(covering)
-      dec = decomposition_info(covering)
-      for U in covering 
-        D = ideal(OO(U), dec[U])
-        K = D
-        for J in summands(I) # shortcut for trivial patches
-          if U in keys(object_cache(J))
-            K = K + J(U)
-          end 
-        end
-        isone(K) && continue
-        
-        isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
-      end 
-      return true
-    end
-    return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
-  end::Bool
+      isone(K) && continue
+      
+      isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
+    end 
+    return true
+  end
+  return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
 end
 
 function is_one(I::ProductIdealSheaf; covering::Covering=default_covering(scheme(I)))
@@ -1499,20 +1495,18 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:AbsIdealShe
   return new_cov
 end
 
-function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
-  get_attribute!(I, :small_generating_set) do
-    L = base_ring(I)
-    poly_ideal = pre_saturated_ideal(I)
-    if algorithm == :simple
-      # do nothing more
-    elseif algorithm == :with_saturation
-      poly_ideal = saturated_ideal(I)
-    else
-      error("algorithm keyword not recognized")
-    end
-    g = small_generating_set(poly_ideal)
-    unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
-  end::Vector{elem_type(base_ring(I))} 
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
+  L = base_ring(I)
+  poly_ideal = pre_saturated_ideal(I)
+  if algorithm == :simple
+    # do nothing more
+  elseif algorithm == :with_saturation
+    poly_ideal = saturated_ideal(I)
+  else
+    error("algorithm keyword not recognized")
+  end
+  g = small_generating_set(poly_ideal)
+  unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
 end
 
 function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
@@ -2264,7 +2258,7 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
   @vprintln :Divisors 2 "checking colength of $(I)"
   for U in all_patches
     dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
-    if _is_known_to_be_one(I, U; dec_inf)
+    if is_known(is_one, I, U; dec_inf)
       push!(patches_done, U)
     else
       push!(patches_todo, U)

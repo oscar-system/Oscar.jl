@@ -9,4 +9,11 @@
     @test collect(monomials_of_degree(R, 3, 1:1)) == [x^3]
     @test isempty(monomials_of_degree(R, 2, Int[]))
   end
+
+  R, (x, y, z, t) = graded_polynomial_ring(QQ, [:x, :y, :z, :t], [1, 1, 3, 3])
+  @test collect(monomials_of_degree(R, 3, [1, 2])) == [x^3, x^2 * y, x * y^2, y^3]
+  @test collect(monomials_of_degree(R, 6, [3, 4])) == [z^2, z * t, t^2]
+  @test collect(monomials_of_degree(R, -1, [3, 4])) == Vector{elem_type(R)}[]
+  @test collect(monomials_of_degree(R, 2, [3, 4])) == Vector{elem_type(R)}[]
+  @test collect(monomials_of_degree(R, 0, [3, 4])) == [R(1)]
 end

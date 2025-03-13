@@ -8,6 +8,7 @@
   @test (@inferred length(Omega)) == 6
   @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
@@ -22,6 +23,7 @@
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
@@ -42,6 +44,7 @@
   @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -51,6 +54,7 @@
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -77,8 +81,11 @@
   @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 0
+  @test_throws ArgumentError rank_action(Omega)
   @test_throws ArgumentError gset(G, permuted, omega)
 
   R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
@@ -90,8 +97,11 @@
   @test length(orbits(Omega)) == 1
   @test order(stabilizer(Omega)[1]) * length(orbit(Omega, f)) == order(G)
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 3
+  @test rank_action(Omega) == 2
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -243,7 +253,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
+  @test transitivity(gset(G8)) == 1
   @test transitivity(S4) == 4
+  @test transitivity(gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
@@ -335,8 +347,7 @@ end
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
-#     for k in 0:n   # k = 0 is a problem in GAP 4.12.0
-      for k in 1:n
+      for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
         for (U, stab) in res
@@ -365,6 +376,17 @@ end
   f = x^2 + y
   orb = orbit(G, f)
   @test length(orb) == 3
+
+  F = QQBarField()
+  e = one(F)
+  s, c = sincospi(2 * e / 3)
+  mat_rot = matrix([c -s; s c])
+  G = matrix_group(mat_rot)
+  p = F.([1, 0])
+  orb = orbit(G, *, p)
+  @test length(orb) == 3
+
+
 end
 
 @testset "G-sets by right transversals" begin

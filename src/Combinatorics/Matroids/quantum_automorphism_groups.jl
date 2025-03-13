@@ -74,11 +74,9 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   rels = Vector{Tuple{Int,Int}}[]
 
   sets  = getproperty(Oscar, structure)(M)
-  sizes = unique!(map(length, sets))
-
-
   #Computing the sizehint for the relations
   setSizes = map(length, sets)
+  sizes = unique(setSizes)
 
   sets_count = [0 for _ in 1:maximum(setSizes)]
   foreach(size->sets_count[size] += 1, setSizes)
@@ -143,7 +141,7 @@ function quantum_automorphism_group(
 
   SN = quantum_symmetric_group(n)
   A = base_ring(SN)
-  u = permutedims(reshape(gens(A),(n, n)),[2, 1])
+  u = permutedims(reshape(gens(A),(n, n)))
 
   new_relations = elem_type(A)[prod(gen -> u[gen[1], gen[2]], relation; init=one(A)) for relation in relation_indices]
   return ideal(vcat(gens(SN), new_relations))
@@ -170,7 +168,7 @@ function quantum_automorphism_group(G::Graph{Undirected})
 
   SN = quantum_symmetric_group(n)
   A = base_ring(SN)
-  u = permutedims(reshape(gens(A),(n, n)),[2, 1])
+  u = permutedims(reshape(gens(A),(n, n)))
 
   nonedges = Tuple{Int,Int}[(i, j) for i in 1:n for j in i:n if !has_edge(G,i,j)]
 

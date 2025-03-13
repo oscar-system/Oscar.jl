@@ -679,12 +679,10 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int = 0)
-  get_attribute!(L, :isometry_group) do
-    gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
-    G = matrix_group(gens)
-    return G
-  end::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
+@attr matrix_group_type(S) function isometry_group(L::Hecke.AbstractLat{S}; depth::Int=-1, bacher_depth::Int=0) where S
+  gens = automorphism_group_generators(L; depth, bacher_depth)
+  G = matrix_group(gens)
+  return G
 end
 
 @doc raw"""
@@ -703,30 +701,45 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0)
-  get_attribute!(L, :isometry_group) do
+@attr QQMatrixGroup function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
+  # corner case
+  @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
+  if rank(L) == 0
+    G = matrix_group(identity_matrix(QQ, degree(L)))
+  end
 
-    # corner case
-    @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
-    if rank(L) == 0
-      G = matrix_group(identity_matrix(QQ,degree(L)))
-    end
+  if !is_definite(L) && (rank(L) == 2)
+    gene = automorphism_group_generators(L)
+    G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
+  end
 
-    if !is_definite(L) && (rank(L) == 2)
-      gene = automorphism_group_generators(L)
-      G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
-    end
+  if algorithm == :direct
+    gens = automorphism_group_generators(L; depth=depth, bacher_depth=bacher_depth)
+    G = matrix_group(gens)
+  elseif algorithm == :decomposition
+    G, _ = _isometry_group_via_decomposition(L; depth=depth, bacher_depth=bacher_depth)
+  else
+    error("Unknown algorithm: for the moment, we support :direct or :decomposition")
+  end
+  return G
+end
 
-    if algorithm == :direct
-      gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
-      G = matrix_group(gens)
-    elseif algorithm == :decomposition
-      G, _ = _isometry_group_via_decomposition(L, depth = depth, bacher_depth = bacher_depth)
-    else
-      error("Unknown algorithm: for the moment, we support :direct or :decomposition")
-    end
-    return G
-  end::MatrixGroup{QQFieldElem, QQMatrix}
+"""
+    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
+
+Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
+
+The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
+
+First computes the orthogonal group of ``K`` and then its subgroup 
+consisting of isometries extending to ``L``.
+"""
+function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
+  V = lattice(ambient_space(L),v)
+  K = orthogonal_submodule(L, V)
+  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
+  OK = orthogonal_group(K; kwargs...)
+  return stabilizer(OK, L, on_lattices)[1]
 end
 
 """

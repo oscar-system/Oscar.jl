@@ -166,6 +166,35 @@ end
 
 ## Code structure
 
+- use logical operations (`&&`/`||`) instead of bitwise operations (`&`/`|`) for conditional statements
+  ```julia
+  if f(x) == 1 && g(y) >= 2
+      bla
+  end
+  ```
+  instead of
+  ```julia
+  if (f(x) == 1) & (g(y) >= 2)
+      bla
+  end
+  ```
+
+- use short-circuiting only for control flow
+  ```julia
+  for i in 1:10
+      fl = ...
+      fl && continue
+  end
+  ```
+  or
+  ```julia
+  fl && return bla
+  ```
+  is fine. The following is not:
+  ```julia
+  fl && (x = false) || (y = f(1, x))
+  ```
+
 - do not nest loops and `if` clauses too deeply; if you are using 5 or more
   levels, then in general that's a hint that you should refactor; e.g.
   - by moving parts of the code into a separate function

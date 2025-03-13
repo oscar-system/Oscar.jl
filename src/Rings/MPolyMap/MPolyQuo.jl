@@ -152,6 +152,7 @@ end
 # The two main evaluation methods
 function (F::MPolyAnyMap{<: MPolyQuoRing})(g)
   if g isa elem_type(domain(F))
+    @req parent(g) === domain(F) "Element not in domain"
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)
     else 

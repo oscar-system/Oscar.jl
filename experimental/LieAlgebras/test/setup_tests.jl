@@ -1,15 +1,8 @@
 include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
+include(joinpath(Oscar.oscardir, "test", "Serialization", "upgrades", "setup_tests.jl"))
 
 if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
-end
-
-if !isdefined(Main, :test_mutating_op_like_zero)
-  include(
-    joinpath(
-      pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"
-    ),
-  )
 end
 
 if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
@@ -121,8 +114,10 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
     @testset "Root systems" begin
       if !(L isa DirectSumLieAlgebra) # TODO: make root_system work for DirectSumLieAlgebra
+        root_system_succeeded = false
         try
           root_system(L)
+          root_system_succeeded = true
         catch e
           e isa ArgumentError || rethrow()
           @test any(
@@ -130,17 +125,82 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
             ["Killing form is degenerate", "Cartan subalgebra is not split"],
           )
         end
-        if has_root_system(L)
+        if root_system_succeeded
+          @test has_root_system(L)
           rs = root_system(L)
           @test rs isa RootSystem
-          @test dim(L) == n_roots(rs) + n_simple_roots(rs)
           chev = @inferred chevalley_basis(L)
           @test length(chev) == 3
-          @test length(chev[1]) == length(chev[2])
-          @test dim(L) == sum(length, chev; init=0)
+          es, fs, hs = chev
+          @test length(es) == length(fs) == n_positive_roots(rs)
+          @test length(hs) == rank(rs)
+
+          # Cartan subalgebra matches third Chevalles basis part
           H = cartan_subalgebra(L)
-          @test all(in(H), chev[3])
-          @test all(xs -> bracket(xs...) in H, zip(chev[1], chev[2]))
+          @test all(in(H), hs)
+
+          # Chevalley basis is a basis
+          @test length(es) + length(fs) + length(hs) == dim(L)
+          base_change_mat = matrix(
+            coefficient_ring(L),
+            permutedims(
+              reduce(
+                hcat,
+                [coefficients.(es); coefficients.(fs); coefficients.(hs)];
+                init=zeros(coefficient_ring(L), dim(L), 0),
+              ),
+            ),
+          )
+          @test is_invertible(base_change_mat)
+
+          # Chevalley basis properties (see [Hum72; Thm. 25.2])
+          # a) [h_i, h_j] = 0, for 1 <= i,j <= rank(L)
+          for hi in hs, hj in hs
+            @test is_zero(hi * hj)
+          end
+          # b) [h_i, x_a] = <a,a_i> x_a, for 1 <= i <= rank(L), a some root
+          for (alpha_i, hi) in zip(simple_roots(rs), hs),
+            (alpha, x_alpha) in zip(roots(rs), [es; fs])
+
+            @test hi * x_alpha ==
+              Int(2 * dot(alpha, alpha_i)//dot(alpha_i, alpha_i)) * x_alpha
+          end
+          # c) [x_a, x_-a] = h_a is a ZZ-linear combination of hs
+          # We test something stronger here, namely that the ZZ-coefficients of h_a in the hs
+          # are given by the coefficients of a^v in the simple coroots (and thus in particular integral)
+          for (alpha_v, e_alpha, f_alpha) in zip(positive_coroots(rs), es, fs)
+            @test e_alpha * f_alpha ==
+              sum(Int(c) * h for (c, h) in zip(coefficients(alpha_v), hs); init=zero(L))
+          end
+          # d) If a,b are independent roots, b-ra,...,b+qa the a-string through b,
+          #    then [x_a, x_b] = 0 if q = 0, while [x_a, x_b] = +- (r+1)x_{a+b} if a+b is a root
+          for (alpha, x_alpha) in zip(roots(rs), [es; fs]),
+            (beta, x_beta) in zip(roots(rs), [es; fs])
+
+            alpha == beta && continue
+            alpha == -beta && continue
+            r = 0
+            while is_root(beta - (r + 1) * alpha)
+              r += 1
+            end
+            q = 0
+            while is_root(beta + (q + 1) * alpha)
+              q += 1
+            end
+            if q == 0
+              @test is_zero(x_alpha * x_beta)
+            else # q >= 1
+              alpha_plus_beta = alpha + beta
+              if ((fl, k) = is_positive_root_with_index(alpha_plus_beta); fl)
+                rhs = (r + 1) * es[k]
+              else
+                fl, k = is_negative_root_with_index(alpha_plus_beta)
+                @assert fl # alpha_plus_beta is some root as q >= 1
+                rhs = (r + 1) * fs[k]
+              end
+              @test x_alpha * x_beta in (rhs, -rhs)
+            end
+          end
         end
       end
     end
@@ -310,15 +370,6 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
           test_save_load_roundtrip(
             path,
             V;
-            with_attrs=false,
-          ) do loaded
-            # nothing, cause `V === loaded` anyway
-          end
-
-          test_save_load_roundtrip(
-            path,
-            V;
-            with_attrs=true,
             check_func=loaded -> all((
               sprint(show, "text/plain", loaded) == sprint(show, "text/plain", V) ||
                 occursin(

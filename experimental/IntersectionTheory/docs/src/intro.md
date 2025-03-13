@@ -50,9 +50,17 @@ For computations in the Chow rings of abstract flag bundles see
 - [GSS22](@cite).
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on intersection theory in OSCAR,
+which can be found [here](https://www.oscar-system.org/tutorials/IntersectionTheory/).
+
+
 ## Contact
 
-Please direct questions about this part of OSCAR to the following people:
+Please direct questions about this part of OSCAR to the following
+people:
+* [Pieter Belmans](https://pbelmans.ncag.info/),
 * [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker),
 * [Tommy Hofmann](https://www.thofma.com/).
 

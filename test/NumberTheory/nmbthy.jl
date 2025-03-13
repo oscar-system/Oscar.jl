@@ -11,6 +11,7 @@ end
   f = factorizations(zk(6))
   @test length(f) == 2
   @test all(x -> evalu(x) == 6, f)
+  @test !is_irreducible(zk(6))
 end
 
 @testset "norm_equation.absolute" begin

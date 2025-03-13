@@ -316,6 +316,8 @@ Vector{Int}(e::Edge) = [src(e), dst(e)]
 
 Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
 
+Base.in(i::Int, a::Edge) = (i==src(a) || i==dst(a))
+
 rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
   rem_edge!(g, src(e), dst(e))
 
@@ -387,6 +389,26 @@ julia> n_vertices(g)
 """
 function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
+end
+
+@doc raw"""
+    vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the vertex indices of a graph.
+
+# Examples
+The edge graph of the cube has eight vertices, numbered 1 to 8.
+```jldoctest
+julia> c = cube(3);
+
+julia> g = vertex_edge_graph(c);
+
+julia> vertices(g)
+1:8
+```
+"""
+function vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return 1:n_vertices(g)
 end
 
 @doc raw"""
@@ -511,8 +533,9 @@ end
 @doc raw"""
     degree(g::Graph{T} [, v::Int64]) where {T <: Union{Directed, Undirected}}
 
-Return the degree of the vertex `v` in the graph `g`.
-If `v` is missing, return the list of degrees of all vertices.
+Return the degree of the vertex `v` in the graph `g`. If `v` is
+missing, return the list of degrees of all vertices. If the graph is
+directed, only neighbors reachable via outgoing edges are counted.
 
 # Examples
 ```jldoctest
@@ -641,9 +664,9 @@ function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    signed_incidence_matrix(g::Graph{Directed})
+    signed_incidence_matrix(g::Graph)
 
-Return a signed incidence matrix representing a directed graph `g`.
+Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targest will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
 
 # Examples
 ```jldoctest
@@ -658,9 +681,22 @@ julia> signed_incidence_matrix(g)
   0   1  -1   0   0
   0   0   1  -1   0
   0   0   0   1  -1
+
+julia> g = Graph{Undirected}(5);
+
+julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); add_edge!(g,5,1);
+
+julia> signed_incidence_matrix(g)
+5×5 Matrix{Int64}:
+  1   0   0   1   0
+ -1   1   0   0   0
+  0  -1   1   0   0
+  0   0  -1   0   1
+  0   0   0  -1  -1
+
 ```
 """
-signed_incidence_matrix(g::Graph{Directed}) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
+signed_incidence_matrix(g::Graph) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
 ################################################################################
 ################################################################################
@@ -754,9 +790,34 @@ function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=f
 end
 
 @doc raw"""
+    connectivity(g::Graph{Undirected})
+
+Return the connectivity of the undirected graph `g`.
+
+# Examples
+```jldoctest
+julia> g = complete_graph(3);
+
+julia> connectivity(g)
+2
+
+julia> rem_edge!(g, 2, 3);
+
+julia> connectivity(g)
+1
+
+julia> rem_edge!(g, 1, 3);
+
+julia> connectivity(g)
+0
+```
+"""
+connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)::Int
+
+@doc raw"""
     is_connected(g::Graph{Undirected})
 
-Checks if the undirected graph `g` is connected.
+Check if the undirected graph `g` is connected.
 
 # Examples
 ```jldoctest
@@ -783,7 +844,7 @@ end
 @doc raw"""
     is_strongly_connected(g::Graph{Directed})
 
-Checks if the directed graph `g` is strongly connected.
+Check if the directed graph `g` is strongly connected.
 
 # Examples
 ```jldoctest
@@ -831,7 +892,7 @@ end
 @doc raw"""
     is_weakly_connected(g::Graph{Directed})
 
-Checks if the directed graph `g` is weakly connected.
+Check if the directed graph `g` is weakly connected.
 
 # Examples
 ```jldoctest
@@ -893,7 +954,7 @@ end
 @doc raw"""
     is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Checks if the graph `g1` is isomorphic to the graph `g2`.
+Check if the graph `g1` is isomorphic to the graph `g2`.
 
 # Examples
 ```jldoctest
@@ -1096,15 +1157,11 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
-Visualize a graph.
+Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 """
-function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
-    Polymake.visual(BigGraph)
-end
-
+visualize
 
 
 # Some standard polytopes from graphs
@@ -1193,7 +1250,7 @@ end
     graph_from_edges(edges::Vector{Vector{Int}})
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
 
-Creates a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
+Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
 
 # Examples
@@ -1301,4 +1358,21 @@ function laplacian_matrix(g::Graph)
   D = diagonal_matrix(degree(g))
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
+end
+
+@doc raw"""
+    is_bipartite(g::Graph{Undirected})
+
+Return true if the undirected graph `g` is bipartite.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1,2],[2,3],[3,4]]);
+
+julia> is_bipartite(g)
+true
+```
+"""
+function is_bipartite(g::Graph{Undirected})
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end

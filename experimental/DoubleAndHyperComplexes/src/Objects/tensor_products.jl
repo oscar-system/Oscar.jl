@@ -315,21 +315,6 @@ function (fac::HCTensorProductMapFactory{MorphismType})(c::AbsHyperComplex, p::I
   return tensor_product(c[I], c[J], maps)
 end
 
-function can_compute(fac::HCTensorProductMapFactory, c::AbsHyperComplex, p::Int, I::Tuple)
-  i = collect(I)
-  # decompose I into its individual indices
-  j = Vector{Vector{Int}}()
-  k = 0
-  for f in fac.factors
-    push!(j, i[k+1:k+dim(f)])
-    k = k + dim(f)
-  end
-  d = length.(j)
-  l = findfirst(l->sum(d[1:l]; init=0)>=p, 1:length(j))
-  l === nothing && error("mapping direction out of bounds")
-  return can_compute_map(fac.factors[l], p - sum(d[1:l-1]; init=0), Tuple(j[l]))
-end
-
 ### The concrete struct
 @attributes mutable struct HCTensorProductComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
@@ -368,14 +353,12 @@ function tensor_product(factors::Vector{<:AbsHyperComplex})
   return HCTensorProductComplex(factors)
 end
 
-function tensor_product(c::AbsHyperComplex...)
-  return tensor_product(collect(c))
+function tensor_product(c::AbsHyperComplex, cs::AbsHyperComplex...)
+  return tensor_product([c, cs...])
 end
 
-function tensor_product(M::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
-  R = base_ring(first(M))
-  @assert all(N->base_ring(N)===R, M) "modules must be defined over the same ring"
-  return tensor_product([free_resolution(SimpleFreeResolution, N)[1] for N in M]...)
+function tensor_product(M::ModuleFP{T}, Ms::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+  R = base_ring(M)
+  @assert all(N->base_ring(N)===R, Ms) "modules must be defined over the same ring"
+  return tensor_product([free_resolution(SimpleFreeResolution, N)[1] for N in (M, Ms...)])
 end
-
-

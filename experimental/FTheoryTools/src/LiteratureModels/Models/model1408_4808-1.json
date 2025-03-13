@@ -48,7 +48,7 @@
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
         "model_sections": ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10"],
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [3,   2,  1,  0,  2, 1, 0, 1, 0, 0],
             [-1,  0,  1,  2, -1, 0, 1, -1, 0, -1],
             [-1, -1, -1, -1,  0, 0, 0, 1, 1, 2]

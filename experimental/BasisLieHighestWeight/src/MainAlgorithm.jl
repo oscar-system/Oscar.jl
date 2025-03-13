@@ -392,10 +392,10 @@ function add_by_hand(
       vec = calc_vec(v0, mon, matrices_of_operators)
 
       # check if vec extends the basis
-      if !haskey(space, weight_w)
-        space[weight_w] = sparse_matrix(QQ)
+      s = get!(space, weight_w) do
+        sparse_matrix(QQ)
       end
-      Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
+      Hecke._add_row_to_rref!(s, change_base_ring(QQ, vec))
     end
   end
 

@@ -79,7 +79,7 @@ function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T 
   return normal_toric_variety(polyhedral_fan(IncidenceMatrix(new_maximal_cones), total_rays_gens))
 end
 
-function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Union{ToricDivisor, ToricLineBundle})::RayVector{QQFieldElem}
+function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Union{ToricDivisor, ToricLineBundle})
 
   ans = ray_vector(zeros(QQFieldElem, dim(sigma)))
   coeff = coefficients(isa(D, ToricDivisor) ? D : toric_divisor(D))

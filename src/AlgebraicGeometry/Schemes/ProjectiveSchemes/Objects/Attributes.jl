@@ -501,11 +501,11 @@ projective_scheme_type(::Type{T}) where {T<:AbsAffineScheme} = projective_scheme
 # Attributes for projective schemes over a field                       #
 ########################################################################
 
-@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+@attr Union{Int, NegInf} function dim(P::AbsProjectiveScheme{<:Field})
   return dim(defining_ideal(P))-1
 end
 
-@attr Int function codim(P::AbsProjectiveScheme{<:Field})
+@attr Union{Int, NegInf} function codim(P::AbsProjectiveScheme{<:Field})
   return dim(ambient_space(P)) - dim(defining_ideal(P)) + 1
 end
 
@@ -602,24 +602,22 @@ julia> geometric_genus(C)
 
 ```
 """
-function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
-  get_attribute!(X, :genus) do
-    I = defining_ideal(X)
-    I_sing = singular_generators(I)
-    if algorithm == :default
-      g = Singular.LibNormal.genus(I_sing)
-    elseif algorithm == :normalization
-      g =  Singular.LibNormal.genus(I_sing, "nor")
-    elseif algorithm == :primary_decomposition
-      g =  Singular.LibNormal.genus(I_sing, "prim")
-    else 
-      error("algorithm not recognized")
-    end
-    if g == -1
-      error("$(X) must be a geometrically integral curve")
-    end
-    return g
-  end::Int
+@attr Int function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
+  I = defining_ideal(X)
+  I_sing = singular_generators(I)
+  if algorithm == :default
+    g = Singular.LibNormal.genus(I_sing)
+  elseif algorithm == :normalization
+    g =  Singular.LibNormal.genus(I_sing, "nor")
+  elseif algorithm == :primary_decomposition
+    g =  Singular.LibNormal.genus(I_sing, "prim")
+  else 
+    error("algorithm not recognized")
+  end
+  if g == -1
+    error("$(X) must be a geometrically integral curve")
+  end
+  return g
 end
 
 

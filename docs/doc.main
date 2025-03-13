@@ -70,9 +70,12 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/manual/misc/sparse.md",
      "AbstractAlgebra/matrix.md",
+     "AbstractAlgebra/matrix_spaces.md",
+     "AbstractAlgebra/matrix_implementation.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
+     "Hecke/manual/misc/sparse.md",
      "Modules" => [
         "AbstractAlgebra/module.md",
         "AbstractAlgebra/free_module.md",
@@ -128,9 +131,11 @@
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
-      "PolyhedralGeometry/linear_programs.md",
-      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
+     "Optimization"=> [
+       "PolyhedralGeometry/Optimization/linear_programs.md",
+       "PolyhedralGeometry/Optimization/mixed_integer_linear_programs.md",
+     ],
   ],
 
   "Commutative Algebra" => [
@@ -203,6 +208,7 @@
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/EnriquesSurfaces.md",
         "AlgebraicGeometry/Surfaces/EllipticSurface.md",
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
@@ -248,7 +254,7 @@
      "TropicalGeometry/tropicalization.md",
   ],
 
- "Noncommutative Algebra" => [
+  "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
@@ -257,6 +263,14 @@
     "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
     ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
+  ],
+
+  "Lie Theory" => [
+    "LieTheory/intro.md",
+    "LieTheory/cartan_matrix.md",
+    "LieTheory/root_systems.md",
+    "LieTheory/weight_lattices.md",
+    "LieTheory/weyl_groups.md",
   ],
 
   "Combinatorics" => [
@@ -291,6 +305,7 @@
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

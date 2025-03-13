@@ -4,6 +4,7 @@
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
         @test n_edges(g) == 0
+        @test vertices(g) == 1:5
         add_edge!(g, 1, 2)
         @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
@@ -19,14 +20,21 @@
         @test !has_vertex(g, 6)
         @test add_vertices!(g, 5) == 5
         @test n_vertices(g) == 10
+        @test vertices(g) == 1:10
         @test rem_vertices!(g, [2, 4, 6, 11])
         @test n_vertices(g) == 7
+        @test vertices(g) == 1:7
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
         add_edge!(g, 2, 3)
         add_edge!(g, 3, 1)
         @test signed_incidence_matrix(g) == Matrix([-1 0 1; 1 -1 0; 0 1 -1; 0 0 0])
+
+        e = Edge(1,2)
+        @test 1 in e
+        @test 2 in e
+        @test !(3 in e)
     end
 
     triangle = simplex(2)
@@ -42,7 +50,7 @@
     egpos = vertex_edge_graph(pos)
     egpl = vertex_edge_graph(pl)
     egplc = vertex_edge_graph(pl, modulo_lineality=true)
-    
+
     @testset "graphs from polytopes" begin
         @test n_vertices(egtriangle) == 3
         @test n_edges(egtriangle) == 3
@@ -127,6 +135,7 @@
 
         g = Graph{Undirected}(5)
         @test !is_connected(g)
+        @test connectivity(g) == 0
         @test length(connected_components(g)) == 5
 
         add_edge!(g, 1, 2)
@@ -134,10 +143,12 @@
         add_edge!(g, 1, 3)
         add_edge!(g, 4, 5)
         @test !is_connected(g)
+        @test connectivity(g) == 0
         @test length(connected_components(g)) == 2
 
         add_edge!(g, 3, 5)
         @test is_connected(g)
+        @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
     end
@@ -153,7 +164,7 @@
 
         @test n_vertices(G1) == 12
         @test n_edges(G1) == 3
-      
+
         x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
         G2 = graph_from_edges(Undirected, x2, 13)
 
@@ -181,5 +192,16 @@
       G1 = vertex_edge_graph(cube(2))
       @test matrix(ZZ, adjacency_matrix(G1)) == matrix(ZZ, [0 1 1 0; 1 0 0 1; 1 0 0 1; 0 1 1 0])
       @test laplacian_matrix(G1) == matrix(ZZ, [2 -1 -1 0; -1 2 0 -1; -1 0 2 -1; 0 -1 -1 2])
+    end
+
+    @testset "is_bipartite" begin
+      G0 = Graph{Undirected}(3)
+      add_edge!(G0,1,2)
+      add_edge!(G0,1,3)
+      add_edge!(G0,2,3)
+      @test is_bipartite(G0) == false
+
+      G1 = graph_from_edges([[1,2],[2,3],[3,4]])
+      @test is_bipartite(G1) == true
     end
 end

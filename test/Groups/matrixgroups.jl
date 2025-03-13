@@ -123,9 +123,9 @@ end
      G0 = matrix_group(mats)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
 
-     @test !has_order(G0)
-     order(G0)
+     @test has_order(G)
      @test has_order(G0)
+     @test order(G0) == order(G)
 
      for i in 1:10
        x, y = rand(G), rand(G)
@@ -137,6 +137,13 @@ end
      f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
+
+     Gap_G0 = GapObj(G0)
+     @test GAP.Globals.HasNiceMonomorphism(GapObj(G0))
+     iso = GAP.Globals.NiceMonomorphism(Gap_G0)
+     x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
+     img = GAP.Globals.ImagesRepresentative(iso, x)
+     @test x == GAP.Globals.PreImagesRepresentative(iso, img)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -150,6 +157,16 @@ end
      @test characteristic(base_ring(G7)) == 7
      G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
      @test G === G3
+   end
+
+   @testset "membership test" begin
+     K, a = cyclotomic_field(12, "a")
+     M = K[a^3 0; 0 a^-3]
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test !(M in G)
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test order(G) == 12
+     @test !(M in G)
    end
 end
 
