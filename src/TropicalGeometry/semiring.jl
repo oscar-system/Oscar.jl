@@ -209,6 +209,14 @@ function (R::TropicalSemiring)(x::RingElem; preserve_ordering::Bool=false)
   return R(x, preserve_ordering=preserve_ordering)
 end
 
+function (R::TropicalSemiring{typeof(min)})(::PosInf)
+  return TropicalSemiringElem(R,true)
+end
+
+function (R::TropicalSemiring{typeof(max)})(::NegInf)
+  return TropicalSemiringElem(R,true)
+end
+
 function (::QQField)(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)
     @req !iszero(x) "cannot convert $(repr(x))"
     return data(x)
