@@ -642,10 +642,10 @@ G4-flux candidate
   - Tadpole cancellation check: not executed
 
 julia> cohomology_class(g4_basis[1])
-Cohomology class on a normal toric variety given by z^2
+Cohomology class on a normal toric variety given by y^2
 
 julia> cohomology_class(g4_basis[2])
-Cohomology class on a normal toric variety given by y^2
+Cohomology class on a normal toric variety given by z^2
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
 Hypersurface model over a concrete base
@@ -653,7 +653,7 @@ Hypersurface model over a concrete base
 julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
 
 julia> cohomology_class(g4_basis[1])
-Cohomology class on a normal toric variety given by x15*e2
+Cohomology class on a normal toric variety given by x35*e4
 
 julia> length(g4_basis) == 172
 true
