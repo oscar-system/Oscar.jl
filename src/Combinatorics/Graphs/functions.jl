@@ -707,7 +707,10 @@ function Base.setindex!(M::Polymake.EdgeMap{T, TV}, val, e::Edge) where {T, TV}
   return val
 end
 
+_has_vertex_map(GM::GraphMap) = !isnothing(GM.vertex_map)
+
 function Base.getindex(GM::GraphMap, i::Int)
+  @req _has_vertex_map(GM) "Graph map not defined for vertices"
   return GM.vertex_map[i]
 end
 
@@ -746,7 +749,8 @@ function Base.getproperty(G::Graph, p::Symbol)
 end
 
 function labellings(G)
-  [k for (k, v ) in G.__attrs if v isa GraphMap ]
+  !isdefined(G, :__attrs) && return []
+  [k for (k, v ) in G.__attrs if v isa GraphMap]
 end
 ################################################################################
 ################################################################################
@@ -1259,16 +1263,18 @@ _to_string(::Type{Polymake.Undirected}) = "Undirected"
 
 function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
   if n_edges(G) > 0
-    println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes with labelling(s)")
-    labels =  labellings(G)
+    labels = labellings(G)
     if !isempty(labels)
+      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labelling(s)")
       for label in labels
         println(io, "label: $label")
         for e in edges(G)
           println(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
         end
-        for v in 1:n_vertices(G)
-          println(io, "$v -> $(getproperty(G, label)[v])")
+        if _has_vertex_map(getproperty(G, label))
+          for v in 1:n_vertices(G)
+            println(io, "$v -> $(getproperty(G, label)[v])")
+          end
         end
       end
     else
@@ -1340,8 +1346,64 @@ function graph_from_edges(edges::Vector{T},
 end
 
 @doc raw"""
-    graph_from_labelled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Dict{Int, U}=Dict{Int, U}(); n_vertices::Int=-1)
-    graph_from_labelled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Dict{Int, U}=Dict{Int, U}(); n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+     add_label!(G::Graph{T}, edge_labels::Dict{NTuple{2, Int}, S}, vertex_labels::Union{Dict{Int, S}, Nothing}=nothing; name::Symbol=:label)
+Given a graph `G` add a label to the edges and optinally to the vertixes with the given `name`
+
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+Directed graph with 3 nodes and the following edges:
+(1, 2)(2, 3)
+
+julia> add_label!(G, Dict((1, 2) => 1); name=:colour)
+Directed graph with 3 nodes and the following labelling(s)
+label: colour
+(1, 2) -> 1
+(2, 3) -> 0
+
+julia> G = graph_from_labelled_edges(Undirected, Dict((1, 2) => 1, (2, 3) => 2, (1, 3) => 1); name=:colour)
+Undirected graph with 3 nodes and the following labelling(s)
+label: colour
+(2, 1) -> 1
+(3, 1) -> 1
+(3, 2) -> 2
+
+julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
+Undirected graph with 3 nodes and the following labelling(s)
+label: colour
+(2, 1) -> 1
+(3, 1) -> 1
+(3, 2) -> 2
+label: shading
+(2, 1) -> 1
+(3, 1) -> 0
+(3, 2) -> 0
+1 -> 1
+2 -> 0
+3 -> 0
+```
+"""
+function add_label!(G::Graph{T},
+                    edge_labels::Dict{NTuple{2, Int}, S},
+                    vertex_labels::Union{Dict{Int, S}, Nothing}=nothing;
+                    name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
+  EM = EdgeMap{T, S}(pm_object(G))
+  NM = isnothing(vertex_labels) ? nothing : NodeMap{T, S}(pm_object(G))
+  set_attribute!(G, name, GraphMap{T, S}(EM, NM))
+  for (k, v) in edge_labels
+    getproperty(G,name)[k] = v
+  end
+  if !isnothing(vertex_labels)
+    for (k, v) in vertex_labels
+      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+      getproperty(G,name)[k] = v
+    end
+  end
+  return G
+end
+
+@doc raw"""
+    graph_from_labelled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
+    graph_from_labelled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
 Create a graph from edge labellings and an optional vertex labellings. There is an optional input for number of vertices, see `graph_from_edges`.
 
@@ -1353,9 +1415,6 @@ Directed graph with 3 nodes with labelling(s)
 label: label
 (1, 2) -> 1
 (2, 3) -> 4
-1 -> 0
-2 -> 0
-3 -> 0
 
 julia> graph_from_labelled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
 Undirected graph with 3 nodes with labelling(s)
@@ -1374,65 +1433,13 @@ function graph_from_labelled_edges(::Type{T},
                                    n_vertices::Int=-1) where {T, S}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
-  EM = EdgeMap{T, S}(pm_object(G))
-  NM = NodeMap{T, S}(pm_object(G))
-  set_attribute!(G, name, GraphMap{T, S}(EM, NM))
-  for (k, v) in edge_labels
-    getproperty(G,name)[k] = v
-  end
-
-  if !isnothing(vertex_labels)
-    for (k, v) in vertex_labels
-      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
-      getproperty(G,name)[k] = v
-    end
-  end
-
-  return G
+  add_label!(G, edge_labels, vertex_labels; name=name)
 end
 
 function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
-                                   vertex_labels::Dict{Int, U}=Dict{Int, Any}();
-                                   n_vertices::Int=-1) where {S, U}
+                                   vertex_labels::Union{Dict{Int, S}, Nothing}=nothing;
+                                   n_vertices::Int=-1) where S
   graph_from_labelled_edges(Undirected, edge_labels, vertex_labels)
-end
-
-function graph_from_labelled_edges(::Type{T},
-                                   edge_labels::Dict{NTuple{2, Int}, EV},
-                                   vertex_labels::Dict{Int, NV}=Dict{Int, Any}();
-                                   n_vertices::Int=-1) where {T, EV <: NamedTuple, NV <: NamedTuple}
-  
-  edges = collect(keys(edge_labels))
-  G = graph_from_edges(T, edges, n_vertices)
-
-  for name in fieldnames(EV)
-    S = fieldtype(EV, name)
-    EM = EdgeMap{T, S}(pm_object(G))
-    set_attribute!(G, name, EM)
-  end
-
-  for (k, v) in edge_labels
-    for name in fieldnames(EV)
-      G[name][k] = v[name]
-    end
-  end
-
-  if !isempty(vertex_labels)
-    for name in fieldnames(V)
-      S = fieldtype(NV, name)
-      NM = NodeMap{T, S}(pm_object(G))
-      set_attribute!(G, name, NM)
-    end
-
-    for (k, v) in vertex_labels
-      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
-      for name in fieldnames(EV)
-        G[name][k] = v[name]
-      end
-    end
-  end
-
-  return G
 end
 
 @doc raw"""

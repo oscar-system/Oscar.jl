@@ -16,5 +16,5 @@ end
 
 struct GraphMap{T, S}
   edge_map::EdgeMap{T, S}
-  vertex_map::NodeMap{T, S}
+  vertex_map::Union{Nothing, NodeMap{T, S}}
 end

@@ -214,6 +214,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
+export add_label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
