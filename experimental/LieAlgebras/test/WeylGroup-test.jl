@@ -7,9 +7,6 @@
 
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
-    # Some test cases can be removed as soon as isomorphism has support for reducible types.
-    # (Then nearly everything is covered by complicated case 1 and 2.)
-    # Until then, all irreducible types and some explicit non-canonical orderings should be tested.
     ("A1", weyl_group(:A, 1)),
     (
       "A3 with non-canonical ordering of simple roots",
