@@ -37,7 +37,7 @@ julia> length(collect(keys(cdh22)))
 105
 ```
 """
-@attr Dict{Tuple{Int64, Int64}, Any} function converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
+@attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of converter_dict_h22_ambient only supported for toric base and ambient spaces"
@@ -53,12 +53,12 @@ julia> length(collect(keys(cdh22)))
   v = ambient_space(m)
   mnf = Oscar._minimal_nonfaces(v)
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
-  converter_dict = Dict{Tuple{Int, Int}, Any}()
+  converter_dict = Dict{Tuple{Int, Int}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}}()
   for k in 1:n_rays(v)
     for l in k:n_rays(v)
       my_tuple = (k, l)
       if (my_tuple in ignored_sets)
-        converter_dict[my_tuple] = 0
+        converter_dict[my_tuple] = Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}()
       else
         converter_dict[my_tuple] = [(QQ(1), my_tuple)]
       end
@@ -279,7 +279,7 @@ julia> length(collect(keys(cdh22)))
         for (ikey, ivalue) in converter_dict
 
           # If the entry maps to zero, then nothing is to be done. Continue!
-          if ivalue == 0
+          if length(ivalue) == 0
             continue
           end
 
@@ -301,7 +301,7 @@ julia> length(collect(keys(cdh22)))
 
             # Is the list empty after the removal? If so, we map to zero
             if length(new_tuple_list) == 0 && length(new_coeff_list) == 0 && relation_to_be_applied == 0
-              converter_dict[ikey] = 0
+              converter_dict[ikey] = Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}()
             elseif length(new_tuple_list) == 0 && length(new_coeff_list) == 0
               converter_dict[ikey] = [(coeff_in_question * k[1], k[2]) for k in relation_to_be_applied if k[1] != 0]
             elseif relation_to_be_applied == 0
@@ -601,10 +601,6 @@ julia> length(collect(keys(cdh22)))
   end
   return new_converter
 end
-
-# Replace also: basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
-# With basis_of_h22_hypersurface_indices
-
 
 
 @doc raw"""
