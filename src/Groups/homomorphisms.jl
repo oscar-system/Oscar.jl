@@ -1256,10 +1256,6 @@ function isomorphism(::Type{T}, A::MultTableGroup; on_gens::Bool=false) where T 
    end::MapFromFunc{MultTableGroup, T}
 end
 
-function (::Type{T})(G::MultTableGroup) where T <: GAPGroup
-   return codomain(isomorphism(T, G))
-end
-
 
 """
     simplified_fp_group(G::FPGroup)
