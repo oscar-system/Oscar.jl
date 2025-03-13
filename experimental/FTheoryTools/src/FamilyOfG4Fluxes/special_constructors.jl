@@ -341,9 +341,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
       push!(quant_constraint_matrix, condition)
     end
 
-    # Express the 2nd Chern class of the hypersurface in terms of our generators of H22 of the hypersurface.
-    # Thereby, we can use the sophisticated intersection product for the computation in question.
-    converter_dict = get_attribute(ambient_space(m), :converter_dict_h22)
+    # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
     chern_class = lift(polynomial(chern_classes(m, check = check)[3]))
     coeffs = collect(coefficients(chern_class))
     M = collect(exponents(lift(chern_class)))
@@ -354,25 +352,11 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
       i2 = findfirst(x -> x != 0, my_row)
       push!(non_zero_exponents, (i1, i2))
     end
-    @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
-    half_c2_converted = 1//2 * sum(coeffs[l] * lift(polynomial(converter_dict[non_zero_exponents[l]])) for l in 1:length(coeffs))
-    converted_coeffs = collect(coefficients(half_c2_converted))
-    M = collect(exponents(half_c2_converted))
-    converted_non_zero_exponents = Vector{Tuple{Int64, Int64}}()
-    for my_row in M
-      i1 = findfirst(x -> x != 0, my_row)
-      my_row[i1] -= 1
-      i2 = findfirst(x -> x != 0, my_row)
-      push!(converted_non_zero_exponents, (i1, i2))
-    end
-    @req length(converted_coeffs) == length(converted_non_zero_exponents) "Inconsistency encountered"
-
-    # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
       inter_numb = QQ(0)
-      for k in 1:length(converted_non_zero_exponents)
-        my_tuple = Tuple(sort([converted_non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        inter_numb += converted_coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
+      for k in 1:length(non_zero_exponents)
+        my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
+        inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
       end
       push!(condition, inter_numb)
     end
