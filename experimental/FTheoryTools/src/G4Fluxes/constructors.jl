@@ -87,9 +87,8 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
 
   # If conversion to internally chosen basis desired, then modify the cohomology class
+  converted_class = g4_class
   if convert == true
-    internal_basis = basis_of_h22(ambient_space(m), check = check)
-    converter_dict = get_attribute(ambient_space(m), :converter_dict_h22)
     to_be_transformed_poly = lift(polynomial(g4_class))
     M = collect(exponents(lift(to_be_transformed_poly)))
     non_zero_exponents = Vector{Tuple{Int64, Int64}}()
@@ -101,10 +100,22 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
     end
     coeffs = collect(coefficients(lift(to_be_transformed_poly)))
     @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
-    converted_poly = cohomology_ring(ambient_space(m), check = check)(sum(coeffs[l] * lift(polynomial(converter_dict[non_zero_exponents[l]])) for l in 1:length(coeffs)))
+
+    converter_dict = converter_dict_h22_hypersurface(m, check = check)
+    b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+    b_ring_gens = gens(b_ring)
+    new_converter_dict = Dict{Tuple{Int64, Int64}, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+    for (key, value) in converter_dict
+      if length(value) == 0
+        new_converter_dict[key] = zero(b_ring)
+      else
+        new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+      end
+    end
+ 
+    converted_poly = cohomology_ring(ambient_space(m), check = check)(sum(coeffs[l] * new_converter_dict[non_zero_exponents[l]] for l in 1:length(coeffs)))
     converted_class = CohomologyClass(ambient_space(m), converted_poly)
-  else
-    converted_class = g4_class
+    
   end
 
   # Build the G4-flux candidate
