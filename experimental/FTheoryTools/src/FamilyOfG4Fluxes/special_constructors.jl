@@ -467,10 +467,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   
   # Idea:
 
-  # (1) Can computation of converter_dict_h22_ambient be made more efficient/better? Once done, we are one great step towards finally finishing this!
-
-  # (8) Employ converter_dict_hypersurface in computation of 1/2 c2 intersection number in special_flux_family.
-  # (9) Employ converter_dict_hypersurface to ALWAYS cast a G4-flux into the G4-basis chosen by us.
+  # Employ converter_dict_hypersurface in computation of 1/2 c2 intersection number in special_flux_family.
 
   # Test code on the big model. Likely everything is super slow... Yikes. Improve.
 
@@ -481,5 +478,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   # passes_transversality_checks
   # breaks_non_abelian_gauge_group
   # d3_tadpole_constraint
+
+  # (1) Can computation of converter_dict_h22_ambient be made more efficient/better? Once done, we are one great step towards finally finishing this!
 
 end

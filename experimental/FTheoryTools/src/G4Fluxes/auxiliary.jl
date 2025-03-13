@@ -583,7 +583,7 @@ julia> length(collect(keys(cdh22)))
 105
 ```
 """
-@attr Dict{Tuple{Int64, Int64}, Any} function converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
+@attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
   non_trivial_indices = basis_of_h22_hypersurface_indices(m, check = check)
   old_indices = basis_of_h22_ambient_indices(m, check = check)
   to_be_deleted = setdiff(old_indices, non_trivial_indices)
