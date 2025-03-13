@@ -138,8 +138,8 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
     factors_as_perm = [_isomorphic_group_on_gens(PermGroup, factor) for factor in factors]
     G = inner_direct_product(factors_as_perm; morphisms=false)
     # gens(G) corresponds to gens(W)[ordering], so
-    # gens(G)[sortperm(ordering)] corresponds to gens(W)
-    G_sorted, _ = sub(G, gens(G)[sortperm(ordering)])
+    # gens(G)[invperm(ordering)] corresponds to gens(W)
+    G_sorted, _ = sub(G, gens(G)[invperm(ordering)])
     return G_sorted
   end
 
@@ -184,9 +184,9 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
 
   # Reorder generators
   # (Details: simple_roots(R)[ordering] is in canonical ordering.
-  # s = sortperm(ordering) is the inverse of the corresponding permutation.
+  # s = invperm(ordering) is the inverse of the corresponding permutation.
   # Hence (gen_G[s])[i] is the image of gen(W, i).)
-  gen_G = gen_G[sortperm(ordering)]
+  gen_G = gen_G[invperm(ordering)]
   G, _ = sub(Sym, gen_G)
   return G
 end
