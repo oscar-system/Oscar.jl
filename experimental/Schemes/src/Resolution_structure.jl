@@ -1017,7 +1017,7 @@ end
 ##############################################################################################
 function _jacobian_matrix_wrt_system_of_param(W::AbsAffineScheme{<:Any, <:MPolyRing}, I::Ideal,
                     ambient_param_data::Tuple{Vector{Int64},Vector{Int64},<:RingElem};
-       check::Bool=true) = 
+       check::Bool=true)
   return jacobian_matrix(OO(W),gens(I))
 end
 
