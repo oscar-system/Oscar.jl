@@ -4,6 +4,7 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
+using Distributed: RemoteChannel, Future, remotecall
 
 # our packages
 import AbstractAlgebra
