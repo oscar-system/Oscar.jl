@@ -14,6 +14,9 @@ which we think might affect some users directly.
 ### Lie Theory
 
 - [#4676](https://github.com/oscar-system/Oscar.jl/pull/4676) Fix `bracket` for `LieSubalgebra`s (the return value had the wrong type)
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Fix `chevalley_basis` (sometimes returning wrong results)
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Add `change_base_ring(::Field, ::LieAlgebra)`
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Add `structure_constant_table(::LieAlgebra, basis)`
 
 ### Polyhedral Geometry
 
@@ -26,13 +29,6 @@ which we think might affect some users directly.
 ### Improvements or additions to documentation
 
 - [#4701](https://github.com/oscar-system/Oscar.jl/pull/4701) Include linear solving doc page in the Oscar docs
-
-### **TODO** release notes: to be added
-
-If there are any PRs listed below, check their title and labels.
-When done, change their label to "release notes: use title".
-
-- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Fix Chevalley basis; add more functionality
 
 ## [1.3.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.0) - 2025-02-28
 
