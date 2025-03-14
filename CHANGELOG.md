@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.1) - 2025-03-14
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Lie Theory
+
+- [#4676](https://github.com/oscar-system/Oscar.jl/pull/4676) Fix `bracket` for `LieSubalgebra`s (the return value had the wrong type)
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Fix `chevalley_basis` (sometimes returning wrong results)
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Add `change_base_ring(::Field, ::LieAlgebra)`
+- [#4695](https://github.com/oscar-system/Oscar.jl/pull/4695) Add `structure_constant_table(::LieAlgebra, basis)`
+
+### Polyhedral Geometry
+
+- [#4690](https://github.com/oscar-system/Oscar.jl/pull/4690) SubdivisionOfPoints: reject duplicate points
+
+### Other fixed bugs
+
+- [#4696](https://github.com/oscar-system/Oscar.jl/pull/4696) Restore Oscar<->Singular conversion for multivariate rational function fields
+
+### Improvements or additions to documentation
+
+- [#4701](https://github.com/oscar-system/Oscar.jl/pull/4701) Include linear solving doc page in the Oscar docs
+
 ## [1.3.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.0) - 2025-02-28
 
 The following gives an overview of the changes compared to the previous release. This list is not
