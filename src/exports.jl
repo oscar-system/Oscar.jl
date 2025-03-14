@@ -214,6 +214,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
+export add_label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -676,6 +677,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_labelled_edges
 export grassmann_pluecker_ideal
 export groebner_basis
 export groebner_basis_f4
