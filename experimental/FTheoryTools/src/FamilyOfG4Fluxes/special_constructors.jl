@@ -329,8 +329,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   offset_vector = Vector{QQFieldElem}()
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
 
-    error("Not yet supported! Martin has to work on this first!")
-
     # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
     for i in 1:length(ambient_space_flux_candidates_basis)
       condition = Vector{ZZRingElem}()
@@ -451,11 +449,21 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   
   # Idea:
 
-  # Make all tests run successfully again.
+  # Remainder flux breaking: Transversality conditions need to be modified (Wati & Kobi).
+  # Primitivity condition: G4 wedge J = 0. Not currently checked.
+  # Quantization condition in full employed: Is the D3-tadpole then automatically integral? Ling says "this is typically assumed". About 10 papers.
 
-  # Test code on the big model. Likely everything is super slow... Yikes. Improve.
+  # Problem in the code, rather than no gauge fluxes! Change error message.
 
+  # For QSM model: Tadpole for QSM G4-flux matches with that the paper states? Also, recompute that manually entered G4 matches with our flux basis.
+  # -------
+
+  # Ambient space of big model is simplicial and not smooth. So cannot - at least not based on the theory currently employed - compute its Chern classes.
+  # I suppose, we need to extend the blowup sequence to resolve also the ambient space. Then start-over...
+
+  # Test code on the big model. Likely everything is super slow... Yikes. Improve until it runs/execute long computations, serialize the results.
   # Make update of the big model artifact, so that we can activate the long tests again. Make sure important data is checked in (a.k.a. test on serialization)
+  # -------
 
   # Can we support the following for all families of fluxes?
   # is_well_quantized
