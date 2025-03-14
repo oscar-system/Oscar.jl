@@ -14,7 +14,8 @@ import Oscar.Polymake:
   end
 end
 
-struct GraphMap{T, S}
-  edge_map::EdgeMap{T, S}
-  vertex_map::Union{Nothing, NodeMap{T, S}}
+struct GraphMap{T, S <: Union{Nothing, EdgeMap}, U <: Union{Nothing, NodeMap}}
+  graph::Graph{T}
+  edge_map::S
+  vertex_map::U
 end

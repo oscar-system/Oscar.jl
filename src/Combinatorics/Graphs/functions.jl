@@ -708,13 +708,17 @@ function Base.setindex!(M::Polymake.EdgeMap{T, TV}, val, e::Edge) where {T, TV}
 end
 
 _has_vertex_map(GM::GraphMap) = !isnothing(GM.vertex_map)
+_has_edge_map(GM::GraphMap) = !isnothing(GM.edge_map)
 
 function Base.getindex(GM::GraphMap, i::Int)
   @req _has_vertex_map(GM) "Graph map not defined for vertices"
+  @req _has_node(GM.graph, i) "Graph doesn't have vertex $i"
   return GM.vertex_map[i]
 end
 
 function Base.getindex(GM::GraphMap, i::Int, j::Int)
+  @req has_edge(GM.graph, i, j) "Graph doesn't have edge ($i, $j) "
+  @req _has_edge_map(GM) "Graph map not defined on edges"
   return GM.edge_map[i, j]
 end
 
@@ -723,17 +727,19 @@ function Base.getindex(GM::GraphMap, e::Edge)
 end
 
 function Base.setindex!(GM::GraphMap, val, i::Int)
+  @req _has_node(GM.graph, i) "Graph doesn't have vertex $i"
   GM.vertex_map[i] = val
   return val
 end
 
 function Base.setindex!(GM::GraphMap, val, i::Int, j::Int)
+  @req has_edge(GM.graph, i, j) "Graph doesn't have edge ($i, $j) "
   GM.edge_map[i, j] = val
   return val
 end
 
 function Base.setindex!(GM::GraphMap, val, indices::Tuple{Int, Int})
-  GM.edge_map[indices] = val
+  GM[indices[1], indices[2]] = val
   return val
 end
 
@@ -1268,8 +1274,10 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
       println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labelling(s)")
       for label in labels
         println(io, "label: $label")
-        for e in edges(G)
-          println(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
+        if _has_edge_map(getproperty(G, label))
+          for e in edges(G)
+            println(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
+          end
         end
         if _has_vertex_map(getproperty(G, label))
           for v in 1:n_vertices(G)
@@ -1383,14 +1391,16 @@ label: shading
 ```
 """
 function add_label!(G::Graph{T},
-                    edge_labels::Dict{NTuple{2, Int}, S},
-                    vertex_labels::Union{Dict{Int, S}, Nothing}=nothing;
-                    name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
-  EM = EdgeMap{T, S}(pm_object(G))
-  NM = isnothing(vertex_labels) ? nothing : NodeMap{T, S}(pm_object(G))
-  set_attribute!(G, name, GraphMap{T, S}(EM, NM))
-  for (k, v) in edge_labels
-    getproperty(G,name)[k] = v
+                    edge_labels::Union{Dict{NTuple{2, Int}, S}, Nothing},
+                    vertex_labels::Union{Dict{Int, U}, Nothing};
+                    name::Symbol=:label) where {S, U, T <: Union{Directed, Undirected}}
+  EM = isnothing(edge_labels) ? nothing : EdgeMap{T, S}(pm_object(G))
+  NM = isnothing(vertex_labels) ? nothing : NodeMap{T, U}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, EM, NM))
+  if !isnothing(EM)
+    for (k, v) in edge_labels
+      getproperty(G,name)[k] = v
+    end
   end
   if !isnothing(vertex_labels)
     for (k, v) in vertex_labels

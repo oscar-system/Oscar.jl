@@ -158,7 +158,7 @@
         @test !add_edge!(g,1,2)
     end
 
-    @testset "grap_from_edges" begin
+    @testset "graph_from_edges" begin
         x1 = [[5,6],[7,8],[11,12]]
         G1 = graph_from_edges(x1)
 
@@ -183,26 +183,27 @@
     end
 
       @testset "graph_from_labelled_edges" begin
+        G1 = graph_from_edges([[1, 2], [3, 4]])
+        vertex_labels = Dict(1 => 2, 3 => 4)
+        add_label!(G1, nothing, vertex_labels; name=:colour)
+        @test_throws ArgumentError G1.colour[1, 2]
+        @test G1.colour[1] == 2
+        
         edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
-        G1 = graph_from_edges(collect(keys(edge_labels)))
-
-        @test_throws ArgumentError G1[5, 6]
-        @test_throws ArgumentError G1[6]
-
         G2 = graph_from_labelled_edges(edge_labels)
-        @test G2[6, 5] == G2[5, 6] == 4
-        @test_throws ArgumentError G2[6, 7]
-        @test_throws ArgumentError G2[6]
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
+        @test_throws ArgumentError G2.label[6, 7]
+        @test_throws ArgumentError G2.label[6]
 
         vertex_labels = Dict(9 => 10)
         @test_throws ArgumentError graph_from_labelled_edges(Directed, edge_labels, vertex_labels)
 
         G3 = graph_from_labelled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
-        @test_throws ArgumentError G3[10]
-        @test_throws ArgumentError G3[6, 5]
-        @test G3[7, 8] == 3
-        @test G3[9] == 10
-        @test G3[1] == 0
+        @test_throws ArgumentError G3.label[10]
+        @test_throws ArgumentError G3.label[6, 5]
+        @test G3.label[7, 8] == 3
+        @test G3.label[9] == 10
+        @test G3.label[1] == 0
     end
   
     @testset "adjacency_matrix laplacian_matrix" begin
