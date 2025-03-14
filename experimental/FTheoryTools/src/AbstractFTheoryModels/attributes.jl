@@ -1225,7 +1225,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   if !has_attribute(m, :chern_classes)
     cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
     cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+    # For performance:
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
+    # Alternatively, the following line is slower.
+    # However, the following line fails should the hypersurface equation not be homogeneous.
+    # Inhomogeneity of hypersurface_equation will not be detected by the above line.
+    #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
     cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
     set_attribute!(m, :chern_classes, cs)
   end
