@@ -476,6 +476,10 @@ end
 Return the matrix over a valued field used to construct `TropL`.
 """
 @attr MatElem function algebraic_matrix(TropL::TropicalLinearSpace)
+    if has_attribute(TropL,:algebraic_matrix)
+        return get_attribute(TropL, :algebraic_matrix)::MatElem
+    end
+    @req has_attribute(TropL,:algebraic_ideal) "neither algebraic matrix nor algebraic ideal cached"
     I = algebraic_ideal(TropL)
     return basis_of_vanishing_of_linear_ideal(I)
 end
