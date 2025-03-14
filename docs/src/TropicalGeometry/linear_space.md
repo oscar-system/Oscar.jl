@@ -6,7 +6,8 @@ A tropical linear space is a balanced polyhedral complex supported on a finite i
 - Chapter 10 in [Jos21](@cite)
 
 #### Note:
-- Unlike in [MS15](@cite) and [Jos21](@cite), tropical linear spaces in OSCAR are polyhedral complexes in euclidean space that are invariant under translation by the ones vector.  They are not polyhedral complexes in the tropical torus.
+- Tropical linear spaces in OSCAR are polyhedral complexes in euclidean space that are invariant under translation by the ones vector.  Unlike in [MS15](@cite) and [Jos21](@cite), they are not polyhedral complexes in the tropical torus.
+- Tropical linear spaces constructed with respect to a trivial valuation are also known as Bergman fans.  Bergman fans can have several possible polyhedral structures, though their support always remains the same.  In OSCAR, which structure is being used depends on how it was constructed.
 - Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
 - The type `TropicalLinearSpace` can be thought of as subtype of `TropicalVariety` in the sense that it should have all properties and features of the latter.
 
