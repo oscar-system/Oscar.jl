@@ -319,8 +319,8 @@ function basis_of_vanishing_of_linear_ideal(I::MPolyIdeal)
 
     x = gens(base_ring(I))
     G = gens(I)
-    macaulayMatrix = matrix([[coeff(g,xi) for xi in x] for g in G])
-    A = transpose(kernel(macaulayMatrix, side = :right))
+    coefficientMatrix = matrix([[coeff(g,xi) for xi in x] for g in G])
+    A = transpose(kernel(coefficientMatrix, side = :right))
 
     return A
 end
