@@ -15,7 +15,7 @@
     end
 
     @testset "tropical linear space attributes" begin
-        R,(w,x,y,z) = QQ[:w, :x, :y, :z]
+        R,(w,x,y,z) = GF(2)[:w, :x, :y, :z]
         I = ideal([w+x+y+z])
         TropL = tropical_linear_space(I)
         @test has_attribute(TropL, :tropical_pluecker_vector)
