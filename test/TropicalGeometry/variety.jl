@@ -50,5 +50,10 @@
 	G = grassmann_pluecker_ideal(2,5)
 	T = tropical_prevariety(gens(G))
 	@test length(rays_modulo_lineality(T)[1]) == 10
+	T = tropical_prevariety(max,gens(G))
+	@test length(rays_modulo_lineality(T)[1]) == 10
+	TG = tropical_hypersurface.(gens(G))
+	T = tropical_prevariety(TG)
+	@test length(rays_modulo_lineality(T)[1]) == 10
     end
 end
