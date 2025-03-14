@@ -1,4 +1,4 @@
-# Debugging OSCAR Code
+# Debugging Code
 
 ## Pitfalls: Mutable objects in OSCAR code
 
