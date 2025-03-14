@@ -460,8 +460,13 @@ end
 Return the tropical matrix used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function tropical_matrix(TropL::TropicalLinearSpace{minOrMax}) where minOrMax
-    @req has_attribute(TropL,:tropical_matrix) "no tropical matrix cached"
-    return get_attribute(TropL, :tropical_matrix)::dense_matrix_type(TropicalSemiringElem{minOrMax})
+    if has_attribute(TropL,:tropical_matrix)
+        return get_attribute(TropL, :tropical_matrix)::dense_matrix_type(TropicalSemiringElem{minOrMax})
+    end
+    @req has_attribute(TropL,:algebraic_matrix) && has_attribute(TropL,:tropical_semiring_map) "neither tropical matrix nor algebraic matrix and tropical semiring map cached"
+    A = algebraic_matrix(TropL)
+    nu = tropical_semiring_map(TropL)
+    return nu.(A)
 end
 
 
