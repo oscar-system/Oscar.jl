@@ -163,10 +163,7 @@ Min tropical linear space
 
 ```
 """
-function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialize as the trivial valuation + min convention
-    isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
-
+function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
     TropL = tropical_linear_space(plueckerIndices,
                                   nu.(plueckerVector),
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
@@ -195,10 +192,7 @@ Min tropical linear space
 
 ```
 """
-function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialize as the trivial valuation + min convention
-    isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
-
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
     TropL = tropical_linear_space(AbstractAlgebra.combinations(1:n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
     if !weighted_polyhedral_complex_only
@@ -275,7 +269,7 @@ Min tropical linear space
 
 ```
 """
-function tropical_linear_space(A::MatElem, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+function tropical_linear_space(A::MatElem, nu::TropicalSemiringMap=tropical_semiring_map(base_ring(A)); weighted_polyhedral_complex_only::Bool=false)
     # compute reduced row echelon form of A
     # and remove all zero rows so that matrix is of full rank
     _,A = rref(A)
@@ -291,7 +285,7 @@ function tropical_linear_space(A::MatElem, nu::Union{Nothing,TropicalSemiringMap
     end
     return TropL
 end
-function tropical_linear_space(A::Matrix, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+function tropical_linear_space(A::Matrix, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(A))); weighted_polyhedral_complex_only::Bool=false)
     return tropical_linear_space(matrix(parent(first(A)),A), nu, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 end
 
@@ -353,7 +347,7 @@ Min tropical linear space
 
 ```
 """
-function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+function tropical_linear_space(I::MPolyIdeal, nu::TropicalSemiringMap=tropical_semiring_map(coefficient_ring(I)); weighted_polyhedral_complex_only::Bool=false)
     A = basis_of_vanishing_of_linear_ideal(I)
     TropL = tropical_linear_space(A,nu,
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
@@ -381,10 +375,7 @@ Min tropical linear space
 
 ```
 """
-function tropical_linear_space(G::Graph, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialize as the trivial valuation on QQ + min convention
-    isnothing(nu) && (nu=tropical_semiring_map(QQ))
-
+function tropical_linear_space(G::Graph, nu::TropicalSemiringMap=tropical_semiring_map(QQ); weighted_polyhedral_complex_only::Bool=false)
     M = matrix(QQ,signed_incidence_matrix(G))
     TropG = tropical_linear_space(M,nu;weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     if !weighted_polyhedral_complex_only
