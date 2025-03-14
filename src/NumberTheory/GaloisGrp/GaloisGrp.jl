@@ -1534,8 +1534,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       @assert parent(R[1]) == parent(d[1])
       d = map(mF, d)
       R = map(mF, R)
+
       if length(Set(r)) == length(r) &&
-         length(Set(d)) == divexact(length(d), length(r))
+         length(Set(d)) == length(r) &&
          length(Set(R)) == length(R) #no problems with precision, 
                                      #we can proceed.
         @assert Set(r) == Set(d)
