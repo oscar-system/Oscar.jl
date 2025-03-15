@@ -118,14 +118,14 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
 
   m_int = matrix(ZZ, [int_coeffs])
   if length(int_coeffs) == 0
-    m_int = zero_matrix(ZZ, 1, ncols(matrix_integral(fgs)))
+    m_int = zero_matrix(ZZ, ncols(matrix_integral(fgs)), 1)
   end
   if length(int_coeffs) > 0
     @req length(int_coeffs) == ncols(matrix_integral(fgs)) "Number of specified integers must match the number of integral combinations in G4-flux family"
   end
   m_rat = matrix(QQ, [rat_coeffs])
   if length(rat_coeffs) == 0
-    m_rat = zero_matrix(QQ, 1, ncols(matrix_rational(fgs)))
+    m_rat = zero_matrix(QQ, ncols(matrix_rational(fgs)), 1)
   end
   if length(rat_coeffs) > 0
     @req length(rat_coeffs) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
