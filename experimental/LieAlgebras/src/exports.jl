@@ -16,8 +16,10 @@ export abelian_lie_algebra
 export abstract_module
 export adjoint_matrix
 export any_non_ad_nilpotent_element
+export apply_braid_move!
 export base_lie_algebra
 export bracket
+export braid_moves
 export cartan_subalgebra
 export chevalley_basis
 export coerce_to_lie_algebra_elem
