@@ -396,6 +396,7 @@ export cokernel
 export collector
 export coloops
 export column
+export combinations
 export combinatorial_symmetries
 export comm
 export comm!
