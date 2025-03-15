@@ -27,6 +27,7 @@ GAP.@wrap Basis(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BrauerCharacterValue(x::GapObj)::GAP.Obj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
+GAP.@wrap CentralCharacter(x::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
@@ -328,6 +329,8 @@ GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap PowerMap(x::GapObj, y::Int)::GapObj
+GAP.@wrap PowerMap(x::GapObj, y::Int, z::Int)::Int
 GAP.@wrap PrimeBlocks(x::GapObj, y::Int)::GapObj
 GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
