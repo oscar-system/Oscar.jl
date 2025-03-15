@@ -461,6 +461,8 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   # Ambient space of big model is simplicial and not smooth. So cannot - at least not based on the theory currently employed - compute its Chern classes.
   # I suppose, we need to extend the blowup sequence to resolve also the ambient space. Then start-over...
 
+  # The non-resolved model does not seem to remember its resolutions. We should probably recompute these models from scratch and verify that all attributes are available...
+
   # Test code on the big model. Likely everything is super slow... Yikes. Improve until it runs/execute long computations, serialize the results.
   # Make update of the big model artifact, so that we can activate the long tests again. Make sure important data is checked in (a.k.a. test on serialization)
   # -------
