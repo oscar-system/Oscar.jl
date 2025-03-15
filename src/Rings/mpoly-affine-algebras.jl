@@ -1123,7 +1123,7 @@ function _subalgebra_membership_homogeneous_internal(f::MPolyDecRingElem, RtoT::
   # f is in the subalgebra iff nf does not involve the variables
   # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
   # than gen(T, ngens(R)) w.r.t. the block ordering o.
-  if isone(cmp(o, gen(T, ngens(R)), leading_monomial(nf, ordering = o)))
+  if cmp(o, gen(T, ngens(R)), leading_monomial(nf, ordering = o)) > 0
     return true, TtoS(nf)
   else
     return false, zero(S)
