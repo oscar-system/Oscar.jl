@@ -1273,15 +1273,17 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
     if !isempty(labels)
       println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labelling(s)")
       for label in labels
-        println(io, "label: $label")
+        print(io, "label: $label")
         if _has_edge_map(getproperty(G, label))
           for e in edges(G)
-            println(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
+            println(io, "")
+            print(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
           end
         end
         if _has_vertex_map(getproperty(G, label))
           for v in 1:n_vertices(G)
-            println(io, "$v -> $(getproperty(G, label)[v])")
+            println(io, "")
+            print(io, "$v -> $(getproperty(G, label)[v])")
           end
         end
       end
@@ -1388,6 +1390,7 @@ label: shading
 1 -> 1
 2 -> 0
 3 -> 0
+
 ```
 """
 function add_label!(G::Graph{T},
@@ -1416,6 +1419,7 @@ function add_label!(G::Graph{T},
   for (k, v) in edge_labels
     getproperty(G,name)[k] = v
   end
+  return G
 end
 
 function add_label!(G::Graph{T},
@@ -1454,6 +1458,7 @@ label: label
 1 -> 0
 2 -> 3
 3 -> 0
+
 ```
 """
 function graph_from_labelled_edges(::Type{T},
@@ -1468,8 +1473,8 @@ end
 
 function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
                                    vertex_labels::Union{Dict{Int, U}, Nothing}=nothing;
-                                   n_vertices::Int=-1) where {S <: Union{Int, String}, U <: Union{Int, String}}
-  graph_from_labelled_edges(Undirected, edge_labels, vertex_labels)
+                                   kwargs...) where {S <: Union{Int, String}, U <: Union{Int, String}}
+  graph_from_labelled_edges(Undirected, edge_labels, vertex_labels; kwargs...)
 end
 
 @doc raw"""
