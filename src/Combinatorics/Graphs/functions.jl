@@ -754,10 +754,34 @@ function Base.getproperty(G::Graph, p::Symbol)
   return get_attribute(G, p)
 end
 
+@doc raw"""
+     labellings(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Returns the labellings of a graph `G` as a `Tuple{Symbol}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=colour)
+Directed graph with 3 nodes and the following labelling(s)
+label: label
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> labellings(G)
+(:colour,)
+```
+"""
 function labellings(G)
   !isdefined(G, :__attrs) && return []
-  [k for (k, v ) in G.__attrs if v isa GraphMap]
+  tuple([k for (k, v ) in G.__attrs if v isa GraphMap]...)
 end
+
+function _graph_maps(G)
+  labels = labellings(G)
+  isempty(labels) && return NamedTuple{}()
+  return NamedTuple{labels}(tuple([getproperty(G, l) for l in labels]...))
+end
+
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
