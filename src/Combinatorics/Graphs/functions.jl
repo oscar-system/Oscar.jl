@@ -1271,8 +1271,9 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
   if n_edges(G) > 0
     labels = labellings(G)
     if !isempty(labels)
-      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labelling(s)")
+      print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labelling(s)")
       for label in labels
+        println(io, "")
         print(io, "label: $label")
         if _has_edge_map(getproperty(G, label))
           for e in edges(G)
@@ -1364,7 +1365,7 @@ julia> G = graph_from_edges(Directed, [[1, 2], [2, 3]])
 Directed graph with 3 nodes and the following edges:
 (1, 2)(2, 3)
 
-julia> add_label!(G, nothing, Dict((1, 2) => 1); name=:colour)
+julia> add_label!(G, Dict((1, 2) => 1), nothing; name=:colour)
 Directed graph with 3 nodes and the following labelling(s)
 label: colour
 (1, 2) -> 1
@@ -1377,6 +1378,7 @@ label: colour
 (3, 1) -> 1
 (3, 2) -> 2
 
+julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
 julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
 Undirected graph with 3 nodes and the following labelling(s)
 label: colour
