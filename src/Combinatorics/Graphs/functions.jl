@@ -1421,13 +1421,13 @@ Create a graph from edge labellings and an optional vertex labellings. There is 
 ```jldoctest
 julia> graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
  graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
-Directed graph with 3 nodes with labelling(s)
+Directed graph with 3 nodes and the following labelling(s)
 label: label
 (1, 2) -> 1
 (2, 3) -> 4
 
 julia> graph_from_labelled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
-Undirected graph with 3 nodes with labelling(s)
+Undirected graph with 3 nodes and the following labelling(s)
 label: label
 (2, 1) -> 1
 (3, 2) -> 4
