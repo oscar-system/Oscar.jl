@@ -1391,22 +1391,42 @@ label: shading
 ```
 """
 function add_label!(G::Graph{T},
-                    edge_labels::Union{Dict{NTuple{2, Int}, S}, Nothing},
-                    vertex_labels::Union{Dict{Int, U}, Nothing};
+                    edge_labels::Dict{NTuple{2, Int}, S},
+                    vertex_labels::Dict{Int, U};
                     name::Symbol=:label) where {S <: Union{Int, String}, U <: Union{Int, String}, T <: Union{Directed, Undirected}}
-  EM = isnothing(edge_labels) ? nothing : EdgeMap{T, S}(pm_object(G))
-  NM = isnothing(vertex_labels) ? nothing : NodeMap{T, U}(pm_object(G))
+  EM = EdgeMap{T, S}(pm_object(G))
+  NM = NodeMap{T, U}(pm_object(G))
   set_attribute!(G, name, GraphMap(G, EM, NM))
-  if !isnothing(EM)
-    for (k, v) in edge_labels
-      getproperty(G,name)[k] = v
-    end
+  for (k, v) in edge_labels
+    getproperty(G,name)[k] = v
   end
-  if !isnothing(vertex_labels)
-    for (k, v) in vertex_labels
-      @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
-      getproperty(G,name)[k] = v
-    end
+  for (k, v) in vertex_labels
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+    getproperty(G,name)[k] = v
+  end
+  return G
+end
+
+function add_label!(G::Graph{T},
+                    edge_labels::Dict{NTuple{2, Int}, S},
+                    vertex_labels::Nothing;
+                    name::Symbol=:label) where {S <: Union{Int, String}, T <: Union{Directed, Undirected}}
+  EM = EdgeMap{T, S}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, EM, nothing))
+  for (k, v) in edge_labels
+    getproperty(G,name)[k] = v
+  end
+end
+
+function add_label!(G::Graph{T},
+                    edge_labels::Nothing,
+                    vertex_labels::Dict{Int, U};
+                    name::Symbol=:label) where {U <: Union{Int, String}, T <: Union{Directed, Undirected}}
+  NM = NodeMap{T, U}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, nothing, NM))
+  for (k, v) in vertex_labels
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+    getproperty(G,name)[k] = v
   end
   return G
 end
