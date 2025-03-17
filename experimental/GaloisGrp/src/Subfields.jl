@@ -10,6 +10,10 @@ if isdefined(Oscar, :subfield)
   import Oscar: subfield
 end
 
+if isdefined(Oscar, :subfield)
+  import Oscar: subfield
+end
+
 
 function embedding_hom(k, K)
   return MapFromFunc(k, K, K)
