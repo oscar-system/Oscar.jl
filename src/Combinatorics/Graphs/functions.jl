@@ -1448,7 +1448,7 @@ end
 
 function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
                                    vertex_labels::Union{Dict{Int, U}, Nothing}=nothing;
-                                   n_vertices::Int=-1) where where {S <: Union{Int, String}, U <: Union{Int, String}}
+                                   n_vertices::Int=-1) where {S <: Union{Int, String}, U <: Union{Int, String}}
   graph_from_labelled_edges(Undirected, edge_labels, vertex_labels)
 end
 
