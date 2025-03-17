@@ -345,7 +345,6 @@ end
 
 function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; error_tolerant::Bool = false, unbalanced::Bool = false)
   return Nemo._induce_rational_reconstruction_nosplit(a, pg; error_tolerant, unbalanced)
-end
 
 
 #############################################################################

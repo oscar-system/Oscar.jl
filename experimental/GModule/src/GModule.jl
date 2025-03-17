@@ -957,6 +957,10 @@ function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNu
   return subfield(C, [c.data for c = v])
 end
 
+function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNumFieldElem}})
+  return subfield(C, [c.data for c = v])
+end
+
 function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _character_field(C)[1]
 end
@@ -1920,13 +1924,26 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   return E, mE
 end
 
+function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  mE = get_attribute(M, :center_endo)
+  if mE !== nothing
+    return domain(mE), mE
+  end
+  E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
+  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  set_attribute!(M, :center_endo => mE)
+  return E, mE
+end
+
+
+
 Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
 
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []
   iszero(b) && error("b is zero")
   f = minpoly(b)
-  lf = factor(f)
+  @show lf = factor(f)
   if length(lf) == 1
     return []
   end
