@@ -1362,13 +1362,13 @@ julia> G = graph_from_edges(Directed, [[1, 2], [2, 3]])
 Directed graph with 3 nodes and the following edges:
 (1, 2)(2, 3)
 
-julia> add_label!(G, Dict((1, 2) => 1); name=:colour)
+julia> add_label!(G, nothing, Dict((1, 2) => 1); name=:colour)
 Directed graph with 3 nodes and the following labelling(s)
 label: colour
 (1, 2) -> 1
 (2, 3) -> 0
 
-julia> G = graph_from_labelled_edges(Undirected, Dict((1, 2) => 1, (2, 3) => 2, (1, 3) => 1); name=:colour)
+julia> G = graph_from_labelled_edges(Undirected, Dict((1, 2) => 1, (2, 3) => 2, (1, 3) => 1), nothing; name=:colour)
 Undirected graph with 3 nodes and the following labelling(s)
 label: colour
 (2, 1) -> 1
