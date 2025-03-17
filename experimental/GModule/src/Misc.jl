@@ -343,6 +343,7 @@ function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleN
   return true, c
 end
 
+#=
 function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
   c = zero_matrix(QQ, nrows(a), ncols(a))
   for i=1:nrows(a)
@@ -354,6 +355,7 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; Error
   end
   return true, c
 end
+=#
 
 #############################################################################
 ##

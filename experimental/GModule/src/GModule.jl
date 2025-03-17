@@ -29,6 +29,7 @@ import Hecke: data
 
 import Oscar: _vec, gmodule, GAPWrap
 import Oscar: MultGrp, MultGrpElem, CoChain
+import Oscar: local_schur_indices
 
 import AbstractAlgebra: Group, Module
 import Base: parent
@@ -502,6 +503,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
   k, m = _character_field(V)
   chi = character(V)
   d = schur_index(chi)
+  d = 1
   if d != 1
     @vprint :MinField 1  "non-trivial Schur index $d found\n"
   end
@@ -566,8 +568,12 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     mA = mU*mA
     c, X = _two_cocycle(mA, V, two_cycle = true, GL_chain = true)
 
-    ld = local_schur_indices(c, mA)
-    d = reduce(lcm, [x[2] for x = ld], init = 1)
+    if d == 1
+      ld = Vector{Pair{Int, Int}}()
+    else
+      ld = local_schur_indices(c, mA)
+    end
+    d =  reduce(lcm, [x[2] for x = ld], init = 1)
 
     s = subfields(base_ring(V))
 
@@ -905,6 +911,10 @@ Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
   return k, mkK
 end
 
+function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNumFieldElem}})
+  return subfield(C, [c.data for c = v])
+end
+
 function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _character_field(C)[1]
 end
@@ -915,6 +925,7 @@ end
 
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   chr = _character(C)
+
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
   A = maximal_abelian_subfield(ClassField, k)
   c = Hecke.norm(conductor(A)[1])
@@ -1328,14 +1339,14 @@ function hilbert90_generic(X::Dict, mA)
   K = domain(mA(one(G))) #can map parent do this better?
   n = nrows(first(values(X)))
   cnt = 0
-  rnd = div(n^2, 10)+1
+  rnd = min(5, div(n^2, 20)+1)
   while true
     local Y
     while true #TODO: choose Y more sparse
       #Glasby shows that this approach, over a finite field,
       #has a high success probability.
       #a sparse matrix yields better (smaller) transformations...
-      Y = zero_matrix(K, n, n)
+      Y = identity_matrix(K, n)
       for i=1:rnd
         Y[rand(1:n), rand(1:n)] = rand(K, -5:5)
       end
@@ -1347,7 +1358,7 @@ function hilbert90_generic(X::Dict, mA)
       cnt += 1
       if cnt > 20 error("s.th. weird") end
     end
-    S = sum(map_entries(mA(g), Y)*X[g] for g = G)
+    S = QQ(1, length(G))*sum(map_entries(mA(g), Y)*X[g] for g = G)
     fl, Si = is_invertible_with_inverse(S)
     fl && return S, Si
   end
@@ -1703,7 +1714,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
       T = [induce_crt(tt[i], T[i], ZZRingElem(p), pp) for i=1:length(T)]
       @assert base_ring(T[1]) == k
       pp *= p
-      S = []
+      S = typeof(T[1])[]
       for t = T
         fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
         fl || break
@@ -1720,6 +1731,66 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
     end
   end
 end
+
+function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  p = Hecke.p_start
+  p = 2^10
+  p = 127
+  m_out = m_in = map(matrix, C.ac)
+  local T
+  pp = ZZRingElem(1)
+  k = base_ring(C)
+  @assert base_ring(m_in[1]) == k
+  @assert base_ring(m_in[1]) == k
+  @assert k == QQ
+  #a heuristic when to try to call reconstruct...
+  bt = maximum(maximum(nbits, matrix(x)) for x = C.ac) * dim(C)
+  reco = 10
+  while true
+    p = next_prime(p)
+    z1 = gmodule(Native.GF(p), C)
+    @show p
+    @time t = hom_base(z1, z1)
+    @show length(t)
+    isempty(t) && return QQMatrix[]
+    @time c, mc = center(matrix_algebra(base_ring(z1), t; isbasis = true))
+    @show c
+    t = [mc(x).matrix for x = basis(c)]
+    @show length(t)
+
+    _rref!(t)
+    tt = [lift(s)  for s=t]
+    @assert base_ring(tt[1]) == ZZ
+    if isone(pp)
+      pp = ZZRingElem(p)
+      T = tt
+    else
+      T = [induce_crt(tt[i], ZZRingElem(p), T[i], pp)[1] for i=1:length(T)]
+      @assert base_ring(T[1]) == ZZ
+      pp *= p
+      S = QQMatrix[]
+      if nbits(pp) > min(reco, bt)
+        if nbits(pp) > reco
+          reco *= 2
+        end
+        for t = T
+          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = true, unbalanced = false)
+          fl || break
+          push!(S, s)
+        end
+      end
+      if nbits(pp) > 1000 && get_assertion_level(:MinField) > 1
+        error("ndw")
+      end
+      if length(S) == length(T)
+        if all(s->all(i->m_in[i]*s ==  s*m_out[i], 1:length(m_in)), S)
+          return S
+        end
+      end
+    end
+  end
+end
+
 
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
   @assert base_ring(C) == base_ring(D)
@@ -1766,7 +1837,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
           reco *= 2
         end
         for t = T
-          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true, Unbalanced = false)
+          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = true, unbalanced = false)
           fl || break
           push!(S, s)
         end
@@ -1785,23 +1856,50 @@ end
 
 #can't use "end" as a function name... and "End" does not fit into our scheme
 #life is hard.
-function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
-  return matrix_algebra(QQ, hom_base(M, M))
+function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem}}})
+  mE = get_attribute(M, :endo)
+  if mE !== nothing
+    return domain(mE), mE
+  end
+  E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
+  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  set_attribute!(M, :endo => mE)
+  return E, mE
 end
+
+function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+  mE = get_attribute(M, :center_endo)
+  if mE !== nothing
+    return domain(mE), mE
+  end
+  E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
+  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  set_attribute!(M, :center_endo => mE)
+  return E, mE
+end
+
+
 
 Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
 
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []
+  iszero(b) && error("b is zero")
   f = minpoly(b)
-  lf = factor(f)
+  @show lf = factor(f)
   if length(lf) == 1
     return []
   end
   for (p, k) = lf
     x = (p^k)(b)
     h = hom(M, M, hom(M.M, M.M, matrix(x)))
-    append!(H, split_into_homogenous(kernel(h)[1]))
+    k, mk = kernel(h)
+    @assert dim(k) > 0
+    q, mq = quo(M, mk.module_map)
+    @assert dim(q) > 0
+    append!(H, split_into_homogenous(k))
+    append!(H, split_into_homogenous(q))
+    break
   end
   return H
 end
@@ -1819,13 +1917,32 @@ function Oscar.lll_basis(M::Hecke.AlgAssAbsOrd{MatAlgebra{QQFieldElem, QQMatrix}
   return [M(A(m[i, :])) for i=1:nrows(m)]
 end
 
-function split_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+function Oscar.lll_basis(M::Hecke.AlgAssAbsOrd{ZZRing, MatAlgebra{QQFieldElem, QQMatrix}})
+  A = algebra(M)
+  b = basis(M, A)
+  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
+  m = lll(m)
+  return [M(A(m[i, :])) for i=1:nrows(m)]
+end
+
+function Oscar.lll_basis(I::Hecke.AlgAssAbsOrdIdl{MatAlgebra{QQFieldElem, QQMatrix}, ZZRing})
+  M = order(I)
+  A = algebra(M)
+  b = basis(I) # is in A
+  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
+  m = lll(m)
+  return [M(A(m[i, :])) for i=1:nrows(m)]
+end
+
+
+
+function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p31: MaximalOrderBasisSearch
   #            well, Step 1
   #            need to look for more elements - but how many?
-  E = endo(M)
+  E, mE = endo(M)
   Z_M = maximal_order(E)
-  @show s = schur_index(E)
+  @show s = 1#schur_index(E)
   @show k = dim(center(E)[1])
   @show m = div(root(div(dim(E), k), 2), s)
   if m == 1
@@ -1834,16 +1951,85 @@ function split_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEl
   end
 
   S = []
-  for b = lll_basis(Z_M)
-    z = split_via_endo(b.elem_in_algebra, M)
+  B = lll_basis(Z_M)
+  @assert all(!iszero, B)
+  seen = Set{elem_type(E)}()
+  #=
+  for b = B
+    x = b.elem_in_algebra
+    if x in seen
+      continue
+    end
+    push!(seen, x)
+    z = split_via_endo(x, M)
     if length(z) > 0
+      return z
       append!(S, z)
     end
   end
+  for b = B
+    for c = B
+      x = (b+c).elem_in_algebra
+      if x in seen
+        continue
+      end
+      push!(seen, x)
+      z = split_via_endo(x, M)
+      length(z) > 0 && return z
+      x = (b*c).elem_in_algebra
+      if x in seen
+        continue
+      end
+      push!(seen, x)
+      z = split_via_endo(x, M)
+      length(z) > 0 && return z
+    end
+  end
+  =#
+ 
+  #=
+  p = 10000
+  for i=1:10
+    p = next_prime(p)
+
+    @time P = prime_ideals_over(Z_M, p)[1]
+    @time B = lll_basis(P)
+    for b = B
+      x = b.elem_in_algebra
+      if x in seen
+        continue
+      end
+      push!(seen, x)
+      z = split_via_endo(x, M)
+      if length(z) > 0
+        return z
+        append!(S, z)
+      end
+    end
+  end
+  =#
+
+#=
+  mb = matrix(QQ, transpose(hcat([coefficients(x.elem_in_algebra) for x = B]...)))
+  T = 10
+  for i=1:T
+    @show i
+    g = [rand(B)*rand(B) for i=1:length(B)]
+    m = matrix(QQ, transpose(hcat([coefficients(x.elem_in_algebra) for x = g]...)))
+    m = lll(vcat(m, mb))
+    for j=1:nrows(m)
+      x = E(m[j, :])
+      iszero(x) && continue
+      z = split_via_endo(x, M)
+      length(z) > 0 && return z
+    end
+  end
+  =#
+
   return S
 end
 
-function split_homogenous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p36: SplitHomogeneousByMinimalField(M)
   #            ... up to Step 2
   #TODO:-use this to reduce to the m=1 part - ignoring the Schur stuff
@@ -1867,31 +2053,58 @@ function split_homogenous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   #     -finally get some examples going and see where the infrastructure can be 
   #      improved
   #     - e.g. write & use factored_minpoly, factored_charpoly ...
-  E = endo(M)
+  E, mE = endo(M)
   Z_M = maximal_order(E)
-  @show s = schur_index(E)
+  @show s = 1#schur_index(E)
   @show k = dim(center(E)[1])
   @show m = div(root(div(dim(E), k), 2), s)
-  if m == 1
-    @show :is_irr
+  if false && s*m == 1
+    @show :is_irr_and_min
     return [M]
   end
+
+  first = true
+  local best_f::QQPolyRingElem
+  local best_i::elem_type(E)
 
   for i=basis(E)
     f = minpoly(i)
     lf = factor(f)
     if length(lf) == 1 && degree(f) == s*m*k &&  lf[f] == 1
-      @show :bingo
-      Ka, a = number_field(f)
-      Mf = extension_of_scalars(M, Ka)
-      h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, i.matrix) - a*identity_matrix(Ka, dim(M))))
-      k = kernel(h)
-      #k is abs. irr. but field is too large
-      return k
+      if first
+        best_f = f
+        best_i = i
+        first = false
+      else
+        if length(string(f)) < length(best_f) ||
+          discriminant(f) < discriminant(best_f)
+          best_f = f
+          best_i = i
+        end
+      end
     end
+  end
+  if !first
+    Ka, a = number_field(best_f)
+    k = eigenspace(mE(best_i), a)
+#      Mf = extension_of_scalars(M, Ka)
+#      h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, i.matrix) - a*identity_matrix(Ka, dim(M))))
+#      k = kernel(h)
+    #k is abs. irr. but field is too large
+    return k
   end
 
   return :nothing_found
+end
+
+#XXX: is this the correct interface?
+function Oscar.eigenspace(f::Oscar.GModuleHom{<:Any, T, T}, a::AbsSimpleNumFieldElem) where T <: AbstractAlgebra.FPModule{QQFieldElem}
+  Ka = parent(a)
+  M = domain(f)
+  @req codomain(f) == M "1st argument must be an endomorphism"
+  Mf = extension_of_scalars(M, Ka)
+  h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, f.module_map.matrix) - a*identity_matrix(Ka, dim(M))))
+  return kernel(h)[1]
 end
 
 function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
@@ -1900,7 +2113,7 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
   #         with lots of repetition
   #TODO: write and use CentreOfEndomorphismRing
   #      have a sane overall strategy
-  E = endo(M)
+  E, mE = endo(M)
   C, mC = center(E)
   H = []
   for b = basis(C)
@@ -1914,8 +2127,13 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
     end
     for (p, k) = lf
       x = (p^k)(b)
-      h = hom(M, M, hom(M.M, M.M, matrix(mC(x))))
-      append!(H, split_into_homogenous(kernel(h)[1]))
+      h = mE(mC(x))
+      k, mk = kernel(h)
+      q, _ = quo(M, mk.module_map)
+      @assert dim(q) > 0 && dim(k) > 0
+      append!(H, split_into_homogenous(k))
+      append!(H, split_into_homogenous(q))
+      return H
     end
   end
   return H
@@ -2079,7 +2297,7 @@ function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}},
   N = gmodule(T, M)
   c = get_attribute(M, :_character)
   if c !== nothing
-    set_attribute!(N, :_character => [(x[1], base_ring(N)(x[2])) for x = c])
+    set_attribute!(N, :_character => c)
   end
   c = get_attribute(M, :_character_field)
   if c !== nothing
@@ -2110,6 +2328,53 @@ function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   return map(matrix, action(C))
 end
 
+#=
+function form_reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
+  I = identity_matrix(ZZ, rank(C.M))
+  O = I
+  de = ZZ(1)
+  for x = C.ac
+    O *= (I-matrix(x))
+    de *= 2
+  end
+  for i=1:-1
+    l = rand(C.G)
+    O *= (I-action(C, l).matrix)
+    de *= 2
+    @show order(l)
+  end
+  a = identity_matrix(ZZ, rank(C.M))
+  @show rank(C.M)
+  den = ZZ(1)
+  for i=1:70
+#    @assert is_symmetric(a)
+#    @show signature_tuple(integer_lattice(;gram = a))
+#    @assert is_positive_definite(a)
+#    global last_a_in = deepcopy(a)
+a = transpose(O)*a*(O)
+#      global last_a_out = (a, g)
+
+#    @assert is_symmetric(a)
+#    @show signature_tuple(integer_lattice(;gram = a))
+#    @assert is_positive_definite(a)
+    den *= de
+    @show nbits(den), maximum(nbits, a)
+    aa = a*QQ(1, 240*den)
+    @assert is_positive_definite(aa)
+    aa = map_entries(x->abs(x-round(x)), aa)
+    @show [nbits(denominator(x)) for x = convergents(continued_fraction(aa[10,10]))]
+    @show maximum(aa)*1.0
+    if maximum(aa) < 1e-5
+      a = map_entries(x->round(ZZRingElem, QQ(x, den)), a)
+      error("ASDasd")
+    @assert is_positive_definite(a)
+      return a
+    end
+  end
+end
+
+=#
+
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
 # f = invariant_forms(C)[1]
 #thsi will not give pos. def. forms!!! we need to go via Reynolds.
@@ -2118,20 +2383,27 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
  S = identity_matrix(ZZ, dim(C))
  while true
    f = zero_matrix(ZZ, dim(C), dim(C))
-   for i=gens(C.G)
+   for i=(C.G)
+     @show i
      x = action(C, i)
      f = f + matrix(x)*transpose(matrix(x))
+     @assert is_symmetric(f)
    end
 #   @assert is_symmetric(f)
 #   @assert is_positive_definite(f)
+   global last_f = f
    L, T = lll_gram_with_transform(f)
-#   @assert L == T*f*transpose(T)
+   @assert L == T*f*transpose(T)
 
    Ti = inv(T)
    n = [T*x*Ti for x = m]
+     @show length(string(n)), length(string(m))
+     @show sum([maximum(nbits, x) for x = n])
+     @show sum([maximum(nbits, x) for x = m])
    if length(string(n)) >= length(string(m))
      return C, S
    end
+   error("ASD")
    S = T*S
    C = gmodule(group(C), n)
    f = invariant_forms(C)[1]
