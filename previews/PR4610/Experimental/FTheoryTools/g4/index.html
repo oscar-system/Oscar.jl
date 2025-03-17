@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>G4-Fluxes · Oscar.jl</title><meta name="title" content="G4-Fluxes · Oscar.jl"/><meta property="og:title" content="G4-Fluxes · Oscar.jl"/><meta property="twitter:title" content="G4-Fluxes · Oscar.jl"/><meta name="description" content="Documentation for Oscar.jl."/><meta property="og:description" content="Documentation for Oscar.jl."/><meta property="twitter:description" content="Documentation for Oscar.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Saving and loading files</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><input class="collapse-toggle" id="menuitem-3-14" type="checkbox"/><label class="tocitem" for="menuitem-3-14"><span class="docs-label">Abelian Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/abelian/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/maps/">Morphisms</a></li><li><a class="tocitem" href="../../../Hecke/manual/abelian/structural/">Structural Computations</a></li></ul></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li><li><a class="tocitem" href="../../../Groups/recog/">Group recognition</a></li><li><a class="tocitem" href="../../../Groups/tom/">Tables of Marks</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/manual/misc/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/class_fields/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li><li><a class="tocitem" href="../../../Nemo/algebraic/">Algebraic numbers</a></li><li><a class="tocitem" href="../../../Fields/algebraic_closure_fp/">Algebraic closure of finite prime fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_spaces/">Matrix Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_implementation/">Matrix implementation</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/linear_solving/">Linear solving</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><a class="tocitem" href="../../../Hecke/manual/misc/sparse/">Sparse linear algebra</a></li><li><input class="collapse-toggle" id="menuitem-6-8" type="checkbox"/><label class="tocitem" for="menuitem-6-8"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-9" type="checkbox"/><label class="tocitem" for="menuitem-6-9"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/manual/quad_forms/discriminant_group/">Discriminant Groups</a></li><li><a class="tocitem" href="../../../NumberTheory/vinberg/">Vinberg&#39;s algorithm</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/manual/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/manual/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-4" type="checkbox"/><label class="tocitem" for="menuitem-7-4"><span class="docs-label">Elliptic Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/basics/">Basics</a></li><li><a class="tocitem" href="../../../Hecke/manual/elliptic_curves/finite_fields/">Elliptic curves over finite fields</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../NumberTheory/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li><li><input class="collapse-toggle" id="menuitem-8-7" type="checkbox"/><label class="tocitem" for="menuitem-8-7"><span class="docs-label">Optimization</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Optimization/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Optimization/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules/">Ideals and Quotient Rings as Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li></ul></li><li><a class="tocitem" href="../../../CommutativeAlgebra/homological_algebra/">Homological Algebra</a></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-10" type="checkbox"/><label class="tocitem" for="menuitem-9-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/tori/">Invariants of Tori</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/RationalPointsAffine/">Rational Points on Affine Schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveringsAndGluings/">Coverings</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemeMorphisms/">Morphisms of covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ProjectiveSchemes/">Projective schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes/">Morphisms of projective schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/RationalPointsProjective/">Rational Points on Projective Schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/Sheaves/">Sheaves on covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/Cycles/">Cycles and divisors</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Algebraic Sets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet/">Affine Algebraic Sets</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet/">Projective Algebraic Sets</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Algebraic Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/AffineVariety/">Affine Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety/">Projective Varieties</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/AffinePlaneCurves/">Affine plane curves</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/ProjectiveCurves/">Projective Curves</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/ProjectivePlaneCurves/">Projective Plane Curves</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/ParametrizationPlaneCurves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/K3Surfaces/">Automorphism Groups of  K3 surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/EnriquesSurfaces/">Borcherds&#39; method for Enriques surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/EllipticSurface/">Elliptic Surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/AdjunctionProcess/">Adjunction Process for Surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/ParametrizationSurfaces/">Rational Parametrization of Rational Surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/SurfacesP4/">Nongeneral Type Surfaces in <span>$\mathbb P^4$</span></a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/duValSing/">Classifier/identifier specifically for du Val singularities</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Sheaf Cohomology</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/SheafCohomology/sheaf_cohomology/">Sheaves on Projective Space</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-8" type="checkbox"/><label class="tocitem" for="menuitem-11-8"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricSchemes/">Toric Schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricIdealSheaves/">Toric Ideal Sheaves (Experimental)</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/BlowupMorphisms/">Toric Blowups (Experimental)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-9" type="checkbox"/><label class="tocitem" for="menuitem-11-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Miscellaneous/miscellaneous/">Some Special Ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-10" type="checkbox"/><label class="tocitem" for="menuitem-11-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring/">Tropical semirings, matrices, and polynomials</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring_map/">Tropical semiring maps</a></li><li><a class="tocitem" href="../../../TropicalGeometry/variety/">Tropical varieties</a></li><li><a class="tocitem" href="../../../TropicalGeometry/hypersurface/">Tropical hypersurfaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/curve/">Tropical curves</a></li><li><a class="tocitem" href="../../../TropicalGeometry/linear_space/">Tropical linear spaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/groebner_theory/">Tropical Groebner theory</a></li><li><a class="tocitem" href="../../../TropicalGeometry/tropicalization/">Tropicalization of polynomial ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-13-2" type="checkbox"/><label class="tocitem" for="menuitem-13-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Lie Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LieTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../LieTheory/cartan_matrix/">Cartan matrices</a></li><li><a class="tocitem" href="../../../LieTheory/root_systems/">Root systems</a></li><li><a class="tocitem" href="../../../LieTheory/weight_lattices/">Weight lattices</a></li><li><a class="tocitem" href="../../../LieTheory/weyl_groups/">Weyl groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-15" type="checkbox"/><label class="tocitem" for="menuitem-15"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li><li><a class="tocitem" href="../../../Combinatorics/phylogenetic_trees/">Phylogenetic Trees</a></li><li><input class="collapse-toggle" id="menuitem-15-5" type="checkbox"/><label class="tocitem" for="menuitem-15-5"><span class="docs-label">Enumerative combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/partitions/">Partitions</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/tableaux/">Tableaux</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/schur_polynomials/">Schur polynomials</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/compositions/">Compositions</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-16" type="checkbox"/><label class="tocitem" for="menuitem-16"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-19" type="checkbox"/><label class="tocitem" for="menuitem-19"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/printing_details/">Printing in OSCAR</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/caching/">Caching parent objects in OSCAR</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/gap_integration/">GAP Integration</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/release/">Release management</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/changelog/">Updating <code>CHANGELOG.md</code></a></li><li><input class="collapse-toggle" id="menuitem-19-12" type="checkbox"/><label class="tocitem" for="menuitem-19-12"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-20" type="checkbox" checked/><label class="tocitem" for="menuitem-20"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Adding new projects to experimental</a></li><li><input class="collapse-toggle" id="menuitem-20-2" type="checkbox"/><label class="tocitem" for="menuitem-20-2"><span class="docs-label">Algebraic Statistics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicStatistics/introduction/">Introduction</a></li><li><a class="tocitem" href="../../AlgebraicStatistics/graphical_models/">Graphical Models</a></li><li><a class="tocitem" href="../../AlgebraicStatistics/gaussian_graphical_models/">Gaussian Graphical Models</a></li><li><a class="tocitem" href="../../AlgebraicStatistics/ci/">Conditional independence statements</a></li><li><a class="tocitem" href="../../AlgebraicStatistics/markov/">Discrete random variables</a></li><li><a class="tocitem" href="../../AlgebraicStatistics/phylogenetics/">Algebraic Phylogenetics</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-3" type="checkbox"/><label class="tocitem" for="menuitem-20-3"><span class="docs-label">Double complexes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DoubleAndHyperComplexes/user_interface/">Double complexes – the user&#39;s interface</a></li><li><a class="tocitem" href="../../DoubleAndHyperComplexes/advice_for_the_programmer/">Advice for the programmer</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-4" type="checkbox"/><label class="tocitem" for="menuitem-20-4"><span class="docs-label">Gröbner walk</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../GroebnerWalk/introduction/">Usage</a></li><li><a class="tocitem" href="../../GroebnerWalk/special-ideals/">Special ideals used for benchmarking</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-5" type="checkbox"/><label class="tocitem" for="menuitem-20-5"><span class="docs-label">Linear Quotients</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearQuotients/introduction/">Introduction</a></li><li><a class="tocitem" href="../../LinearQuotients/linear_quotients/">Construction and basic functionality</a></li><li><a class="tocitem" href="../../LinearQuotients/cox_rings/">Cox rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-6" type="checkbox"/><label class="tocitem" for="menuitem-20-6"><span class="docs-label">Matroid Realization Spaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../MatroidRealizationSpaces/introduction/">Matroid Realization Spaces</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-7" type="checkbox"/><label class="tocitem" for="menuitem-20-7"><span class="docs-label">Orthogonal discriminants</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../OrthogonalDiscriminants/introduction/">Introduction</a></li><li><a class="tocitem" href="../../OrthogonalDiscriminants/access/">Access to precomputed OD data</a></li><li><a class="tocitem" href="../../OrthogonalDiscriminants/compute/">Criteria for computing orthogonal discriminants</a></li><li><a class="tocitem" href="../../OrthogonalDiscriminants/misc/">Miscellaneous functions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-8" type="checkbox"/><label class="tocitem" for="menuitem-20-8"><span class="docs-label">Quadratic forms and isometries</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../QuadFormAndIsom/introduction/">Quadratic forms and isometries</a></li><li><a class="tocitem" href="../../QuadFormAndIsom/spacewithisom/">Quadratic spaces with isometry</a></li><li><a class="tocitem" href="../../QuadFormAndIsom/latwithisom/">Lattices with isometry</a></li><li><a class="tocitem" href="../../QuadFormAndIsom/enumeration/">Enumeration of isometries</a></li><li><a class="tocitem" href="../../QuadFormAndIsom/primembed/">Nikulin&#39;s theory on primitive embeddings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-9" type="checkbox"/><label class="tocitem" for="menuitem-20-9"><span class="docs-label">Standard Finite Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StandardFiniteFields/introduction/">-</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-10" type="checkbox"/><label class="tocitem" for="menuitem-20-10"><span class="docs-label">Lie Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LieAlgebras/introduction/">Introduction</a></li><li><a class="tocitem" href="../../LieAlgebras/lie_algebras/">Lie algebras</a></li><li><a class="tocitem" href="../../LieAlgebras/ideals_and_subalgebras/">Ideals and Lie subalgebras</a></li><li><a class="tocitem" href="../../LieAlgebras/lie_algebra_homs/">Lie algebra homomorphisms</a></li><li><a class="tocitem" href="../../LieAlgebras/modules/">Lie algebra modules</a></li><li><a class="tocitem" href="../../LieAlgebras/module_homs/">Lie algebra module homomorphisms</a></li><li><a class="tocitem" href="../../LieAlgebras/weyl_groups_experimental/">Weyl groups (experimental features)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-11" type="checkbox"/><label class="tocitem" for="menuitem-20-11"><span class="docs-label">Bases for highest weight modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../BasisLieHighestWeight/introduction/">Introduction</a></li><li><a class="tocitem" href="../../BasisLieHighestWeight/user_functions/">Functions for a monomial basis of highest weight modules</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-12" type="checkbox"/><label class="tocitem" for="menuitem-20-12"><span class="docs-label">Algebraic Shifting</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicShifting/introduction/">Introduction</a></li><li><a class="tocitem" href="../../AlgebraicShifting/exterior_shifting/">Exterior Shifting</a></li><li><a class="tocitem" href="../../AlgebraicShifting/partial_shift_graph/">Partial Shift Graph</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-13" type="checkbox"/><label class="tocitem" for="menuitem-20-13"><span class="docs-label">Partitioned Permutations</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PartitionedPermutations/introduction/">Partitioned Permutations</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-14" type="checkbox" checked/><label class="tocitem" for="menuitem-20-14"><span class="docs-label">F-Theory Tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../introduction/">Welcome to FTheoryTools</a></li><li><a class="tocitem" href="../generalities/">Functionality for all F-theory models</a></li><li><a class="tocitem" href="../weierstrass/">Weierstrass models</a></li><li><a class="tocitem" href="../tate/">Global Tate models</a></li><li><a class="tocitem" href="../hypersurface/">Hypersurface models</a></li><li><a class="tocitem" href="../literature/">Literature constructions</a></li><li class="is-active"><a class="tocitem" href>G4-Fluxes</a><ul class="internal"><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Attributes"><span>Attributes</span></a></li><li><a class="tocitem" href="#Methods"><span>Methods</span></a></li><li><a class="tocitem" href="#Properties"><span>Properties</span></a></li><li><a class="tocitem" href="#Ambient-Space-Models-for-G4-Fluxes"><span>Ambient Space Models for G4-Fluxes</span></a></li><li><a class="tocitem" href="#Families-of-G4-Fluxes"><span>Families of G4-Fluxes</span></a></li><li><a class="tocitem" href="#Special-Families-of-G4-Fluxes"><span>Special Families of G4-Fluxes</span></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-20-15" type="checkbox"/><label class="tocitem" for="menuitem-20-15"><span class="docs-label">Intersection Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../IntersectionTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../IntersectionTheory/AbstractVarieties/">Abstract Varieties</a></li><li><a class="tocitem" href="../../IntersectionTheory/AbstractBundles/">Abstract Bundles</a></li><li><a class="tocitem" href="../../IntersectionTheory/AbstractVarietyMaps/">Abstract Variety Maps</a></li><li><a class="tocitem" href="../../IntersectionTheory/BlowUps/">Blow-Ups</a></li><li><a class="tocitem" href="../../IntersectionTheory/schubert/">Schubert Calculus</a></li><li><a class="tocitem" href="../../IntersectionTheory/BottFormulas/">Bott&#39;s Formula</a></li><li><a class="tocitem" href="../../IntersectionTheory/examples/">Illustrating Examples From Enumerative Geometry</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Experimental</a></li><li><a class="is-disabled">F-Theory Tools</a></li><li class="is-active"><a href>G4-Fluxes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>G4-Fluxes</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/experimental/FTheoryTools/docs/src/g4.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="G4-Fluxes"><a class="docs-heading-anchor" href="#G4-Fluxes">G4-Fluxes</a><a id="G4-Fluxes-1"></a><a class="docs-heading-anchor-permalink" href="#G4-Fluxes" title="Permalink"></a></h1><p class="math-container">\[G_4\]</p><p>-fluxes are at the heart of F-theory model building.</p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><p>We currently support the following constructor:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="g4_flux-Tuple{AbstractFTheoryModel, CohomologyClass}" href="#g4_flux-Tuple{AbstractFTheoryModel, CohomologyClass}"><code>g4_flux</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; convert::Bool = false)</code></pre><p>Construct a G4-flux candidate on an F-theory model. This functionality is currently limited to</p><ul><li>Weierstrass models,</li><li>global Tate models,</li><li>hypersurface models.</li></ul><p>Furthermore, our functionality requires a concrete geometry. That is, the base space as well as the ambient space must be toric varieties. In the toric ambient space <span>$X_\Sigma$</span>, the elliptically fibered space <span>$Y$</span> that defines the F-theory model, is given by a hypersurface (cut out by the Weierstrass, Tate or hypersurface polynomial, respectively).</p><p>In this setting, we assume that a <span>$G_4$</span>-flux candidate is represented by a cohomology class <span>$h$</span> in <span>$H^{(2,2)} (X_\Sigma)$</span>. The actual <span>$G_4$</span>-flux candidate is then obtained by restricting <span>$h$</span> to <span>$Y$</span>.</p><p>It is worth recalling that the <span>$G_4$</span>-flux candidate is subject to the quantization condition <span>$G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})$</span> (see [<a href="../../../references/#Wit97">Wit97</a>]). This condition is very hard to verify. However, it is relatively easy to gather evidence for this condition to be satisfied/show that it is violated. To this end, let <span>$D_1$</span>, <span>$D_2$</span> be two toric divisors in <span>$X_\Sigma$</span>, then the topological intersection number <span>$\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]$</span> must be an integer. Even this rather elementary check can be computationally expensive. Users can therefore decide to skip this check upon construction by setting the parameter <code>check</code> to the value <code>false</code>.</p><p>Another bottleneck can be the computation of the cohomology ring, which is necessary to work with cohomology classes on the toric ambient space, which in turn define the G4-flux, as explained above. The reason for this is, that by employing the theory explained in [<a href="../../../references/#CLS11">CLS11</a>], we can only work out the cohomology ring of simpicial and complete (i.e. compact) toric varieties. However, checking if a toric variety is complete (i.e. compact) can take a long time. If the geometry in question is involved and you already know that the variety is simplicial and complete, then we recommend to trigger the computation of the cohomology ring with <code>check = false</code>. This will avoid this time consuming test.</p><p>Let us mention that you can also supply the option <code>convert = true</code>. This will turn the provided cohomology class into the basis chosen internally.</p><p>An example is in order.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; cohomology_ring(ambient_space(qsm_model), check = false);
+
+julia&gt; g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+
+julia&gt; g4f = g4_flux(qsm_model, g4_class)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; g4f2 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; cohomology_class(g4f2)
+Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w + 8*x8*x23 + 4*x10*x23 - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 22*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 + 7//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 88//3*x20*x21 - 7*x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 11//3*x21^2 - 77//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w + 31//3*x22^2 + 5//3*x22*x23 + 97//6*x22*x25 + 4*x23^2 - 8*x24^2 - 17//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w + 7//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 - 7//3*x29^2 + 5*e1*w
+
+julia&gt; g4f3 = g4_flux(qsm_model, g4_class, check = false, convert = true)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; cohomology_class(g4f3)
+Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 8*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w - 1//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/constructors.jl#L5-L83">source</a></section></article><h2 id="Attributes"><a class="docs-heading-anchor" href="#Attributes">Attributes</a><a id="Attributes-1"></a><a class="docs-heading-anchor-permalink" href="#Attributes" title="Permalink"></a></h2><p>We currently support the following attributes:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="model-Tuple{Oscar.G4Flux}" href="#model-Tuple{Oscar.G4Flux}"><code>model</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">model(gf::G4Flux)</code></pre><p>Return the F-theory model for which this <span>$G_4$</span>-flux candidate is defined.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; cohomology_ring(ambient_space(qsm_model), check = false);
+
+julia&gt; g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+
+julia&gt; g4f = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed  
+  - Tadpole cancellation check: not executed
+
+julia&gt; model(g4f)
+Hypersurface model over a concrete base</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L5-L28">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="cohomology_class-Tuple{Oscar.G4Flux}" href="#cohomology_class-Tuple{Oscar.G4Flux}"><code>cohomology_class</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">cohomology_class(gf::G4Flux)</code></pre><p>Return the cohomology class which defines the <span>$G_4$</span>-flux candidate.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; cohomology_ring(ambient_space(qsm_model), check = false);
+
+julia&gt; g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+
+julia&gt; g4f = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; cohomology_class(g4f) == g4_class
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L32-L55">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="d3_tadpole_constraint-Tuple{Oscar.G4Flux}" href="#d3_tadpole_constraint-Tuple{Oscar.G4Flux}"><code>d3_tadpole_constraint</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">d3_tadpole_constraint(gf::G4Flux; check::Bool = true)</code></pre><p>Return the d3-tapdole constraint of a G4-flux, that is compute the quantity <span>$- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia&gt; e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
+
+julia&gt; u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
+
+julia&gt; g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia&gt; g4 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; d3_tadpole_constraint(g4, check = false)
+12
+
+julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; g4_2 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; dv2 = d3_tadpole_constraint(g4_2, check = false);
+
+julia&gt; int_comb = integral_coefficients(g4_2);
+
+julia&gt; rat_comb = rational_coefficients(g4_2);
+
+julia&gt; g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; d3_tadpole_constraint(gfs, check = false);
+
+julia&gt; dv3 = d3_tadpole_constraint(g4_3, check = false);
+
+julia&gt; dv2 == dv3
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L64-L128">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="g4_flux_family-Tuple{Oscar.G4Flux}" href="#g4_flux_family-Tuple{Oscar.G4Flux}"><code>g4_flux_family</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">g4_flux_family(gf::G4Flux; check::Bool = true)</code></pre><p>Return the family of <span>$G_4$</span>-fluxes that possesses, such that all fluxes in this family share the following properties with the given <span>$G_4$</span>-flux: Transversality and breaking of the non-Abelian gauge group.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; g4_flux_family(g4, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L158-L189">source</a></section></article><p>Note that such a family of <span>$G_4$</span>-fluxes expresses its elements as linear combinations of the basis elements. Crucially, some of the coefficients must only be integers, whilst the remaining coefficients can be any rational number. With the following methods one can extract those coefficients for a given <span>$G_4$</span>-flux.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="integral_coefficients-Tuple{Oscar.G4Flux}" href="#integral_coefficients-Tuple{Oscar.G4Flux}"><code>integral_coefficients</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">integral_coefficients(gf::G4Flux)</code></pre><p>Return the integral coefficients of a given <span>$G_4$</span>-flux. If these coefficients are not known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; integral_coefficients(g4);</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L197-L222">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="rational_coefficients-Tuple{Oscar.G4Flux}" href="#rational_coefficients-Tuple{Oscar.G4Flux}"><code>rational_coefficients</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">rational_coefficients(gf::G4Flux)</code></pre><p>Return the integral coefficients of a given <span>$G_4$</span>-flux. If these coefficients are not known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; rational_coefficients(g4);</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/attributes.jl#L229-L254">source</a></section></article><h2 id="Methods"><a class="docs-heading-anchor" href="#Methods">Methods</a><a id="Methods-1"></a><a class="docs-heading-anchor-permalink" href="#Methods" title="Permalink"></a></h2><p>You can create instances of families of G4-fluxes, i.e. a flux that is contained in said family. For this, we support the following:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="flux_instance-Tuple{FamilyOfG4Fluxes, ZZMatrix, QQMatrix}" href="#flux_instance-Tuple{FamilyOfG4Fluxes, ZZMatrix, QQMatrix}"><code>flux_instance</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)</code></pre><p>Create an element of a family of G4-fluxes.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; int_combination = matrix(ZZ, [[3]])
+[3]
+
+julia&gt; rat_combination = matrix(QQ, [[5//2]])
+[5//2]
+
+julia&gt; flux_instance(fgs, int_combination, rat_combination, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; flux_instance(fgs, Int[], [], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; flux_instance(fgs, [3], [], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; flux_instance(fgs, [], [5//2], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; flux_instance(fgs, [3], [5//2], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/methods.jl#L6-L71">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="random_flux_instance-Tuple{FamilyOfG4Fluxes}" href="#random_flux_instance-Tuple{FamilyOfG4Fluxes}"><code>random_flux_instance</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)</code></pre><p>Create a random element of a family of G4-fluxes.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; random_flux_instance(fgs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/methods.jl#L144-L175">source</a></section></article><p>For convenience, we also support the following method to create a random <span>$G_4$</span>-flux with prescribed properties on a given F-theory model:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="random_flux-Tuple{AbstractFTheoryModel}" href="#random_flux-Tuple{AbstractFTheoryModel}"><code>random_flux</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)</code></pre><p>Create a random <span>$G_4$</span>-flux on a given F-theory model.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; rf = random_flux(qsm_model, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/methods.jl#L196-L213">source</a></section></article><h2 id="Properties"><a class="docs-heading-anchor" href="#Properties">Properties</a><a id="Properties-1"></a><a class="docs-heading-anchor-permalink" href="#Properties" title="Permalink"></a></h2><p>We currently support the following properties:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_well_quantized-Tuple{Oscar.G4Flux}" href="#is_well_quantized-Tuple{Oscar.G4Flux}"><code>is_well_quantized</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">is_well_quantized(gf::G4Flux)</code></pre><p>G4-fluxes are subject to the quantization condition [<a href="../../../references/#Wit97">Wit97</a>] <span>$G_4 + \frac{1}{2} c_2(Y) \in H^{(2,2)}(Y, \mathbb{Z})$</span>. It is hard to verify that this condition is met. However, we can execute a number of simple consistency checks, by verifying that <span>$\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} \in \mathbb{Z}$</span> for any two toric divisors <span>$D_1$</span>, <span>$D_2$</span>. If all of these simple consistency checks are met, this method will return <code>true</code> and otherwise <code>false</code>.</p><p>It is worth mentioning that currently (August 2024), we only support this check for <span>$G_4$</span>-fluxes defined on Weierstrass, global Tate and hypersurface models. If this condition is not met, this method will return an error.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; cohomology_ring(ambient_space(qsm_model), check = false);
+
+julia&gt; g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+
+julia&gt; g4 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; is_well_quantized(g4)
+true
+
+julia&gt; g4
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/properties.jl#L5-L47">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="passes_tadpole_cancellation_check-Tuple{Oscar.G4Flux}" href="#passes_tadpole_cancellation_check-Tuple{Oscar.G4Flux}"><code>passes_tadpole_cancellation_check</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">passes_tadpole_cancellation_check(gf::G4Flux)</code></pre><p>G4-fluxes are subject to the D3-tadpole cancellation condition described in [<a href="../../../references/#Wei18">Wei18</a>]. This check verifies that <span>$euler_characteristic(Y)/24 - 1/2 * \int_{Y}{G_4 \wedge G_4}$</span> is a non-negative integer.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia&gt; e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
+
+julia&gt; u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
+
+julia&gt; g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia&gt; g4 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; passes_tadpole_cancellation_check(g4)
+true
+
+julia&gt; g4
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: satisfied</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/properties.jl#L139-L174">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="passes_transversality_checks-Tuple{Oscar.G4Flux}" href="#passes_transversality_checks-Tuple{Oscar.G4Flux}"><code>passes_transversality_checks</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">passes_transversality_checks(gf::G4Flux)</code></pre><p>G4-fluxes are subject to transversality conditions (cf. [<a href="../../../references/#Wei18">Wei18</a>]). If these conditions are met, this method will return <code>true</code> and otherwise <code>false</code></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia&gt; e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
+
+julia&gt; u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
+
+julia&gt; g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia&gt; g4 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; passes_transversality_checks(g4)
+true
+
+julia&gt; g4
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/properties.jl#L74-L109">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="breaks_non_abelian_gauge_group-Tuple{Oscar.G4Flux}" href="#breaks_non_abelian_gauge_group-Tuple{Oscar.G4Flux}"><code>breaks_non_abelian_gauge_group</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">breaks_non_abelian_gauge_group(gf::G4Flux)</code></pre><p>G4-fluxes may break the non-abelian gauge group (cf. [<a href="../../../references/#Wei18">Wei18</a>]). This function verifies if this is the case for the given G4-flux. If it does not break any non-abelian gauge factor, we return  <code>true</code> and otherwise <code>false</code></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 4))
+Hypersurface model over a concrete base
+
+julia&gt; divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia&gt; e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
+
+julia&gt; u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
+
+julia&gt; g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia&gt; g4 = g4_flux(qsm_model, g4_class, check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; breaks_non_abelian_gauge_group(g4)
+false
+
+julia&gt; g4
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/properties.jl#L185-L222">source</a></section></article><h2 id="Ambient-Space-Models-for-G4-Fluxes"><a class="docs-heading-anchor" href="#Ambient-Space-Models-for-G4-Fluxes">Ambient Space Models for G4-Fluxes</a><a id="Ambient-Space-Models-for-G4-Fluxes-1"></a><a class="docs-heading-anchor-permalink" href="#Ambient-Space-Models-for-G4-Fluxes" title="Permalink"></a></h2><p>Focus on 4-dimensional F-theory models <span>$m$</span>, such that the resolution <span>$\widehat{Y}_4$</span> of the defining singular elliptically fibered CY 4-fold <span>$\Y_4 \twoheadrightarrow B_3$</span> is defined as hypersurface in a complete and simplicial toric variety <span>$X_\Sigma$</span>. In such a setup, it is convenient to focus on <span>$G_4$</span>-fluxes modelled from the restriction of elements of <span>$H^{(2,2)}( X_\Sigma, \mathbb{Q})$</span> to <span>$\widehat{Y}_4$</span>. This method identifies a basis of <span>$H^{(2,2)}( X_\Sigma, \mathbb{Q})$</span> and filters out elements, whose restricton to <span>$\widehat{Y}_4$</span> is obviously trivial.</p><p>It is important to elaborate a bit more on the meaning of &quot;obviously&quot;. To this end, fix a basis element of <span>$H^{(2,2)}( X_\Sigma, \mathbb{Q})$</span>. Let us denote a corresponding algebraic cycle by <span>$A = \mathbb{V}(x_i, x_j) \subset X_\Sigma$</span>, where <span>$x_i$</span>, <span>$x_j$</span> are suitable homogeneous coordinates. Furthermore, let <span>$\widehat{Y}_4 = \mathbb{V}( p ) \subset X_\Sigma$</span>. Then of course, we can look at the set-theoretic intersection <span>$\mathbb{V}( p, x_i, x_j)$</span>. Provided that <span>$p(x_i = 0, x_j = 0)$</span> is a non-zero constant, this set-theoretic intersection is trivial. This is exactly the check conducted by the method <code>chosen_g4_flux_basis</code> below. However, for reasons of simplicity, this approach is avoid a number of sutleties.</p><p>Namely, we really have to work out the intersection in the Chow ring, that is we should consider the rational equivalence class of the algebraic cycle <span>$A$</span> and intersect this class with the rational equivalence class of the algebraic cycle <span>$\mathbb{V}( p )$</span>. In particular, for &quot;unlucky&quot; choices of <span>$i, j$</span>, the algebraic cycles <span>$\mathbb{V}( p )$</span> and <span>$\mathbb{V}(x_i, x_j)$</span> may not intersect transversely. This is for instance the case if <span>$i = j$</span>. Such phenomena are addressed in theory by &quot;moving the algebraic cycles into general position&quot;, but in practice this somewhat tricky. Instances include the following:</p><ol><li><p class="math-container">\[i = j\]</p>: Then apparently, a self-intersection of <span>$\mathbb{V}(x_i)$</span> is involved.</li><li><p class="math-container">\[p(x_i, x_j) \equiv 0\]</p>: This is unexpected for dimensional reasons, and indicates a</li></ol><p>non-transverse intersection.</p><p>In both instances, one makes use of the linear relations of <span>$X_\Sigma$</span> to replace the cycle   <span>$\mathbb{V}(x_i)$</span> (and/or <span>$\mathbb{V}(x_j)$</span>) with a rational combination of algebraic cycles <span>$R = \sum_{k = 1}^{N}{c_k \cdot A_k}$</span>, such that <span>$R$</span> is rationally equivalent to <span>$\mathbb{V}(x_i)$</span>. From experience, it is then rather common that <span>$R$</span> and <span>$\mathbb{V}(x_i)$</span> intersect transversely. And if not, then modify the non-transverse intersections by using the linear relations again to replace an involved algebraic cycle.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="chosen_g4_flux_basis-Tuple{AbstractFTheoryModel}" href="#chosen_g4_flux_basis-Tuple{AbstractFTheoryModel}"><code>chosen_g4_flux_basis</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}</code></pre><p>Given an F-theory model <code>m</code> defined as a hypersurface in a simplicial and complete toric base, this method computes a basis of <span>$H^{2,2}(X, \mathbb{Q})$</span> (using the method <code>basis_of_h22</code>) and then filters out certain basis elements  whose restriction to the hypersurface in question is trivial. The criteria for  &quot;certain&quot; elements are explained in the documentation above this method.</p><p>Note: Checking whether a toric variety <span>$X$</span> is complete and simplicial can be computationally expensive. The optional argument <code>check</code> can be set to <code>false</code> to skip these tests.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia&gt; Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;, base_space = B3, defining_classes = Dict(&quot;w&quot;=&gt;Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia&gt; g4_basis = chosen_g4_flux_basis(t);
+
+julia&gt; length(g4_basis)
+2
+
+julia&gt; g4_basis[1]
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by z^2
+
+julia&gt; cohomology_class(g4_basis[2])
+Cohomology class on a normal toric variety given by y^2
+
+julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 8))
+Hypersurface model over a concrete base
+
+julia&gt; g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
+
+julia&gt; cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by x15*e2
+
+julia&gt; length(g4_basis) == 172
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/auxiliary.jl#L519-L574">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="basis_of_h22-Tuple{NormalToricVariety}" href="#basis_of_h22-Tuple{NormalToricVariety}"><code>basis_of_h22</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}</code></pre><p>By virtue of Theorem 12.4.1 in [<a href="../../../references/#CLS11">CLS11</a>], one can compute a monomial basis of <span>$H^4(X, \mathbb{Q})$</span> for a simplicial, complete toric variety <span>$X$</span> by truncating its cohomology ring to degree <span>$2$</span>. Inspired by this, this method identifies a basis of <span>$H^{(2,2)}(X, \mathbb{Q})$</span> by multiplying pairs of cohomology classes associated with toric coordinates.</p><p>By definition, <span>$H^{(2,2)}(X, \mathbb{Q})$</span> is a subset of <span>$H^{4}(X, \mathbb{Q})$</span>. However, by Theorem 9.3.2 in [<a href="../../../references/#CLS11">CLS11</a>], for complete and simplicial toric varieties and <span>$p \neq q$</span> it holds <span>$H^{(p,q)}(X, \mathbb{Q}) = 0$</span>. It follows that for such varieties <span>$H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$</span> and the vector space dimension of those spaces agrees with the Betti number <span>$b_4(X)$</span>.</p><p>Note that it can be computationally very demanding to check if a toric variety <span>$X$</span> is complete (and simplicial). The optional argument <code>check</code> can be set to <code>false</code> to skip these tests.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Y1 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; Y2 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; Y = Y1 * Y2
+Normal toric variety
+
+julia&gt; h22_basis = basis_of_h22(Y, check = false)
+6-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by xx2*yx2
+ Cohomology class on a normal toric variety given by xt2*yt2
+ Cohomology class on a normal toric variety given by xx2*yt2
+ Cohomology class on a normal toric variety given by xt2*yx2
+ Cohomology class on a normal toric variety given by yx2^2
+ Cohomology class on a normal toric variety given by xx2^2
+
+julia&gt; betti_number(Y, 4) == length(h22_basis)
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/G4Fluxes/auxiliary.jl#L1-L43">source</a></section></article><h2 id="Families-of-G4-Fluxes"><a class="docs-heading-anchor" href="#Families-of-G4-Fluxes">Families of G4-Fluxes</a><a id="Families-of-G4-Fluxes-1"></a><a class="docs-heading-anchor-permalink" href="#Families-of-G4-Fluxes" title="Permalink"></a></h2><h3 id="Constructor"><a class="docs-heading-anchor" href="#Constructor">Constructor</a><a id="Constructor-1"></a><a class="docs-heading-anchor-permalink" href="#Constructor" title="Permalink"></a></h3><p>Physics often is interested in families of G4-fluxes, that are expressed in terms of integral or rational combinations of the ambient space models of G4-fluxes, that we described above. For such families, we currently support the following constructor:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="family_of_g4_fluxes-Tuple{AbstractFTheoryModel, QQMatrix, QQMatrix}" href="#family_of_g4_fluxes-Tuple{AbstractFTheoryModel, QQMatrix, QQMatrix}"><code>family_of_g4_fluxes</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)</code></pre><p>Given an F-theory model with a toric ambient space, we can  identify ambient space candidates of G4-fluxes. In terms of these candidates, we can define a family of G4-fluxes as:</p><ul><li><p class="math-container">\[\mathbb{Z}\]</p>-linear combinations, provided by a matrix <span>$mat_int$</span>,</li><li><p class="math-container">\[\mathbb{Q}\]</p>-linear combinations, provided by a matrix <span>$mat_rat$</span>.</li></ul><p>An example is in order.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/constructors.jl#L5-L34">source</a></section></article><h3 id="Attributes-2"><a class="docs-heading-anchor" href="#Attributes-2">Attributes</a><a class="docs-heading-anchor-permalink" href="#Attributes-2" title="Permalink"></a></h3><p>Families of G4-fluxes currently support the following attributes:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="model-Tuple{FamilyOfG4Fluxes}" href="#model-Tuple{FamilyOfG4Fluxes}"><code>model</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">model(gf::FamilyOfG4Fluxes)</code></pre><p>Return the F-theory model for which this family of <span>$G_4$</span>-flux candidates is defined.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; model(f_gs) == qsm_model
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/attributes.jl#L5-L31">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="matrix_integral-Tuple{FamilyOfG4Fluxes}" href="#matrix_integral-Tuple{FamilyOfG4Fluxes}"><code>matrix_integral</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">matrix_integral(gf::FamilyOfG4Fluxes)</code></pre><p>Return the matrix whose columns specify those combinations of ambient space G4-flux candidates, of which integral linear combinations are contained in this family of G4-fluxes.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; matrix_integral(f_gs) == mat_int
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/attributes.jl#L35-L63">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="matrix_rational-Tuple{FamilyOfG4Fluxes}" href="#matrix_rational-Tuple{FamilyOfG4Fluxes}"><code>matrix_rational</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">matrix_rational(gf::FamilyOfG4Fluxes)</code></pre><p>Return the matrix whose columns specify those combinations of ambient space G4-flux candidates, of which rational linear combinations are contained in this family of G4-fluxes.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; mat_int = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_int[1,1] = 1;
+
+julia&gt; mat_rat = zero_matrix(QQ, 37, 1);
+
+julia&gt; mat_rat[2,1] = 1;
+
+julia&gt; f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; matrix_rational(f_gs) == mat_rat
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/attributes.jl#L67-L95">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="d3_tadpole_constraint-Tuple{FamilyOfG4Fluxes}" href="#d3_tadpole_constraint-Tuple{FamilyOfG4Fluxes}"><code>d3_tadpole_constraint</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)</code></pre><p>Return the d3-tapdole constraint of a family of G4-fluxes. Recall that for a given <span>$G_4$</span>-flux, this constraint is <span>$- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$</span>.</p><p>Note that the family of fluxes is specified by linear combination of cohomology classes, some with rational and some with integral coefficients. In terms of these coefficients the d3-tadpole constraint is the demand that a quadratic polynomial in the coefficients evaluates to a non-negative number. This method returns said polynomial in the cofficients. In order to evaluate the D3-tadpole for a particular <span>$G_4$</span>-flux, one has to evaluate this polynomial for the numeric coefficient values that correspond to the given <span>$G_4$</span>-flux.</p><p>We use symbols <span>$a_i$</span> to indicate integral coefficients and <span>$r_i$</span> to indicate rational coefficients.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; fgs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; d3_tadpole_constraint(fgs);</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/attributes.jl#L103-L129">source</a></section></article><h3 id="Properties-2"><a class="docs-heading-anchor" href="#Properties-2">Properties</a><a class="docs-heading-anchor-permalink" href="#Properties-2" title="Permalink"></a></h3><p>Families of G4-fluxes currently support the following properties:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_well_quantized-Tuple{FamilyOfG4Fluxes}" href="#is_well_quantized-Tuple{FamilyOfG4Fluxes}"><code>is_well_quantized</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)</code></pre><p>Executes elementary tests (they are necessary but not sufficient) to tell if a family of <span>$G_4$</span>-fluxes is well-quantized. In case any of these tests fails, we know that this family of <span>$G_4$</span>-fluxes is definitely not well-quantized. This method then returns <code>false</code>.</p><p>In the opposite case that all elementary tests pass, this method returns <code>true</code>. Note however that this does not imply that the family is well-quantized. At least, according to the current theoretical understanding it does not. Rather, this means that to the best of our current means, this family of fluxes appears to be well-quantized.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gf = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; is_well_quantized(gf)
+true
+
+julia&gt; m1 = matrix_integral(gf);
+
+julia&gt; m2 = matrix_rational(gf);
+
+julia&gt; gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; is_well_quantized(gf2, check = false)
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/properties.jl#L5-L46">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="passes_transversality_checks-Tuple{FamilyOfG4Fluxes}" href="#passes_transversality_checks-Tuple{FamilyOfG4Fluxes}"><code>passes_transversality_checks</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)</code></pre><p>Check if the given family of <span>$G_4$</span>-fluxes passes the transversality checks. If so, this method returns <code>true</code> and otherwise <code>false</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gf = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; passes_transversality_checks(gf, check = false)
+true
+
+julia&gt; m1 = matrix_integral(gf);
+
+julia&gt; m2 = matrix_rational(gf);
+
+julia&gt; gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; passes_transversality_checks(gf3)
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/properties.jl#L89-L121">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="breaks_non_abelian_gauge_group-Tuple{FamilyOfG4Fluxes}" href="#breaks_non_abelian_gauge_group-Tuple{FamilyOfG4Fluxes}"><code>breaks_non_abelian_gauge_group</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)</code></pre><p>Check if a family of G4-fluxes breaks the non-abelian gauge group. If so, this method returns <code>true</code> and otherwise <code>false</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; gf = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; breaks_non_abelian_gauge_group(gf)
+true
+
+julia&gt; gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
+
+julia&gt; breaks_non_abelian_gauge_group(gf3)
+false
+
+julia&gt; m1 = matrix_integral(gf3);
+
+julia&gt; m2 = matrix_rational(gf3);
+
+julia&gt; gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia&gt; breaks_non_abelian_gauge_group(gf4, check = false)
+false</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/properties.jl#L152-L194">source</a></section></article><h2 id="Special-Families-of-G4-Fluxes"><a class="docs-heading-anchor" href="#Special-Families-of-G4-Fluxes">Special Families of G4-Fluxes</a><a id="Special-Families-of-G4-Fluxes-1"></a><a class="docs-heading-anchor-permalink" href="#Special-Families-of-G4-Fluxes" title="Permalink"></a></h2><p>Among the <span>$G_4$</span>-flux candidates, the physics is interested in the well-quantized fluxes that pass the transversality conditions. Regarding the quantization condition, this means that we seek those cohomology classes which integrate to an integer against any other 2-cycle in the elliptic 4-fold <span>$\widehat{Y}_4$</span>. Even in theory, this is a hard task. In practice, one therefore focuses on consistency checks. In the case at hand, we can integrate any ambient space <span>$G_4$</span>-flux candidate against a pair of (algebraic cycles associated to) toric divisors. If for any two toric divisors, the result is an integer, then this <span>$G_4$</span>-flux candidate passes a rather non-trivial and necessary test. </p><p>Similarly, we have a method that identifies all fluxes which are well-quantized, pass the transversality conditions and in addition to this do not break the non-abelian gauge group. For these families, we support the following constructor. Please note that this method may take a long time to execute for involved geometries <span>$\widehat{Y}_4$</span>.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="special_flux_family-Tuple{AbstractFTheoryModel}" href="#special_flux_family-Tuple{AbstractFTheoryModel}"><code>special_flux_family</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)</code></pre><p>Compute a family of G4-fluxes with specified properties for a given F-theory model <code>m</code>, defined as a hypersurface in a simplicial and complete toric ambient space.</p><p><strong>Description</strong></p><p>This method models the G4-flux family using the restriction of cohomology classes on the toric ambient space to the hypersurface. In the toric ambient space, these classes are vertical, meaning they are of the form <span>$a \wedge b$</span>, where <span>$a, b \in H^(1,1)(X_\Sigma)$</span>, with <span>$X_\Sigma$</span> denoting the toric ambient space.</p><p>The resulting family is subjected to consistency conditions to ensure it satisfies elementary quantization requirements and transversality conditions. By default, the method returns ambient space G4-flux candidates that meet these conditions.</p><p><strong>Optional Arguments</strong></p><ul><li><code>not_breaking = true</code>: Ensures the flux family preserves the non-abelian gauge group.</li><li><code>check = false</code>: Skips computational checks for whether the toric ambient space <span>$X_\Sigma$</span> is complete and simplicial, which can be resource-intensive.</li></ul><p><strong>Notes</strong></p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>This method assumes that <span>$c_2( \widehat{Y}_4)$</span> is even. No checks or errors are implemented for this condition, so use cautiously.</p></div></div><p>This assumption relates to the quantization condition, which requires verifying if the twist of a given <span>$G_4$</span>-flux by <span>$1/2 \cdot c_2( \widehat{Y}_4)$</span> is even. For many F-theory models, such as compactifications on smooth Calabi-Yau 4-folds with globally defined Weierstrass models ([<a href="../../../references/#CS12">CS12</a>]), <span>$c_2( \widehat{Y}_4)$</span> is known to be even. This also applies to all F-theory QSMs ([<a href="../../../references/#CHLLT19">CHLLT19</a>]).</p><p><strong>Computational Details</strong></p><p>The method internally identifies two matrices related to the family of fluxes:</p><ol><li><code>matrix_integral</code>: Specifies rational combinations of ambient space G4-flux candidates that can only form <span>$\mathbb{Z}$</span>-linear combinations without violating elementary flux quantization conditions.</li><li><code>matrix_rational</code>: Specifies rational combinations of flux candidates for which any rational linear combination satisfies the elementary flux quantization conditions.</li></ol><p>These matrices are accessible for further analysis.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; fg = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia&gt; g4_tester = random_flux_instance(fg, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
+
+julia&gt; is_well_quantized(g4_tester_double)
+true
+
+julia&gt; passes_transversality_checks(g4_tester_double)
+true
+
+julia&gt; c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120, 0, -60, 0, -720, -420, -270, -60, -2190];
+
+julia&gt; qsm_g4_flux = flux_instance(fg, transpose(matrix(ZZ, [c])), zero_matrix(QQ, 0, 1), check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia&gt; passes_transversality_checks(qsm_g4_flux)
+true
+
+julia&gt; is_well_quantized(qsm_g4_flux)
+true</code></pre><p>Finally, we demonstrate the computation of the well-quantized <span>$G_4$</span>-fluxes which pass the transversality checks, and which in addition do not break the non-abelian gauge group.</p><pre><code class="language-julia-repl hljs">julia&gt; qsm_model = literature_model(arxiv_id = &quot;1903.00009&quot;, model_parameters = Dict(&quot;k&quot; =&gt; 2021))
+Hypersurface model over a concrete base
+
+julia&gt; fg = special_flux_family(qsm_model, not_breaking = true, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
+
+julia&gt; g4_tester = random_flux_instance(fg, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed
+
+julia&gt; g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
+
+julia&gt; is_well_quantized(g4_tester_double)
+true
+
+julia&gt; passes_transversality_checks(g4_tester_double)
+true
+
+julia&gt; breaks_non_abelian_gauge_group(g4_tester_double)
+false
+
+julia&gt; c = [3];
+
+julia&gt; qsm_g4_flux = flux_instance(fg, matrix(ZZ, [[3]]), zero_matrix(QQ, 0, 1), check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed
+
+julia&gt; is_well_quantized(qsm_g4_flux)
+true
+
+julia&gt; passes_transversality_checks(qsm_g4_flux)
+true
+
+julia&gt; breaks_non_abelian_gauge_group(qsm_g4_flux)
+false
+
+julia&gt; divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia&gt; e1 = cohomology_class(divs[15]);
+
+julia&gt; e2 = cohomology_class(divs[12]);
+
+julia&gt; e4 = cohomology_class(divs[14]);
+
+julia&gt; u = cohomology_class(divs[13]);
+
+julia&gt; v = cohomology_class(divs[10]);
+
+julia&gt; pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
+
+julia&gt; g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia&gt; qsm_g4_flux == g4_flux(qsm_model, g4_class)
+true</code></pre><div class="admonition is-warning"><header class="admonition-header">Experimental</header><div class="admonition-body"><p>This function is part of the experimental code in Oscar. Please read <a href="https://docs.oscar-system.org/v1/Experimental/intro/">here</a> for more details.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/3d05513912e8933fe013ceb5d04156da76211042/experimental/FTheoryTools/src/FamilyOfG4Fluxes/special_constructors.jl#L1-L148">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../literature/">« Literature constructions</a><a class="docs-footer-nextpage" href="../../IntersectionTheory/intro/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Sunday 16 March 2025 20:36">Sunday 16 March 2025</span>. Using Julia version 1.10.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
