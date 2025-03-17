@@ -4,6 +4,7 @@ using Oscar
 using Oscar.GaloisGrp
 import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
                         primitive_by_shape, bound_to_precision
+import Oscar: subfield
 
 if isdefined(Oscar, :subfield)
   import Oscar: subfield
@@ -194,7 +195,7 @@ For a (potential) block system `bs` either find the corresponding subfield,
 thus proving the block system to be valid, or return `nothing` showing the
 block system to be wrong.
 """
-function subfield(S::SubfieldLattice, bs::BlockSystem_t)
+function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if bs in S.P && haskey(S.l, S.P(bs))
     #this catches [[1,2], ...] [[1,2], ...] only one of them can be
     #valid. However, the poset is only comparing the 1st block...
@@ -296,7 +297,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   return nothing
 end
 
-function subfield(S::SubfieldLatticeElem)
+function Oscar.subfield(S::SubfieldLatticeElem)
   return subfield(parent(S), S.b)
 end
 
@@ -492,9 +493,9 @@ function subfield_lattice(K::AbsSimpleNumField)
   return _subfields(K)
 end
 
-export subfield, subfield_lattice
+export subfield_lattice
 
 end #module
 
 using .SubfieldLattice_Module
-export subfield, subfield_lattice
+export subfield_lattice
