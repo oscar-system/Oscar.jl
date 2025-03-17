@@ -233,6 +233,21 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
   return (parametrization=param_classes, classes=classes)
 end
 
+function equivalent_classes(pm::GroupBasedPhylogeneticModel; coordinates::Symbol=:fourier)
+  if coordinates == :probabilities
+    parametrization = probability_map(pm)
+  elseif coordinates == :fourier
+    parametrization = fourier_map(pm)
+  end
+
+  compute_equivalent_classes(parametrization).classes
+end
+
+function equivalent_classes(pm::PhylogeneticModel)
+  parametrization = probability_map(pm)
+  compute_equivalent_classes(parametrization).classes
+end
+
 @doc raw"""
     sum_equivalent_classes(equivalent_classes::NamedTuple{(:parametrization, :classes), Tuple{Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}, Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}}})
 

@@ -1,5 +1,4 @@
 @testset "GaussianGraphicalModels" begin
-
   S = gaussian_ring(3)
   s = gens(S)
   G = graph_from_edges(Directed, [[1,2],[2,3]])
@@ -14,7 +13,6 @@ end
 # * specialized (inverse) fourier transform, two functions still as comments (Christiane)
 
 @testset "Graphical Models tests" begin
-
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
 
   @testset "cavender_farris_neyman_model" begin
@@ -40,6 +38,8 @@ end
     # group of the model
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
+
+    @test vanishing_ideal(QQ, model) == vanishing_ideal(QQ, model; algorithm=:markov)
   end
 
   @testset "Jukes Cantor" begin

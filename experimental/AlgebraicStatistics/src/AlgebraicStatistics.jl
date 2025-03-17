@@ -5,6 +5,8 @@ include("GraphicalModels.jl")
 include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
 include("PhylogeneticParametrization.jl")
+include("PhylogeneticInvariants.jl")
+include("LoadModels.jl")
 
 #export models
 export cavender_farris_neyman_model
@@ -40,3 +42,6 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+
+# export functions to load objects (currently only graphs of phylogenetic models)
+export load_phylogenetic_model
