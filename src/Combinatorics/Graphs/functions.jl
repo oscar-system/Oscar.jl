@@ -1462,19 +1462,18 @@ label: label
 ```
 """
 function graph_from_labelled_edges(::Type{T},
-                                   edge_labels::Dict{NTuple{2, Int}, S},
-                                   vertex_labels::Union{Dict{Int, U}, Nothing}=nothing;
+                                   edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
+                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
                                    name::Symbol=:label, 
-                                   n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, S <: Union{Int, String}, U <: Union{Int, String}}
+                                   n_vertices::Int=-1) where T <: Union{Directed, Undirected}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   add_label!(G, edge_labels, vertex_labels; name=name)
 end
 
-function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, S},
-                                   vertex_labels::Union{Dict{Int, U}, Nothing}=nothing;
-                                   name::Symbol=:label, 
-                                   n_vertices::Int=-1) where {S <: Union{Int, String}, U <: Union{Int, String}}
+function graph_from_labelled_edges(edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
+                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
+                                   name::Symbol=:label, n_vertices::Int=-1)
   graph_from_labelled_edges(Undirected, edge_labels, vertex_labels; name=name, n_vertices=n_vertices)
 end
 
