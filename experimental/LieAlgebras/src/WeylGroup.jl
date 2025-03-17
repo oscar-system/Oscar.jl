@@ -1,4 +1,190 @@
 @doc raw"""
+    exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8) -> AbstractVector{UInt8}
+
+Given a word `w` which is reduced w.r.t. `W`, modify `w` in-place into an equivalent word
+starting with `i` if the exchange condition can be applied, otherwise leave `w` unchanged.
+Finally, return `w`.
+
+!!! warning
+    If `w` is not a reduced expression, the behaviour is arbitrary.
+
+See also [`exchange_right!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
+"""
+function exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  if w[1] == i
+    return w
+  end
+
+  root = i
+  for s in 1:length(w)
+    if w[s] == root
+      for n in s:-1:2
+        w[n] = w[n - 1]
+      end
+      w[1] = i
+      return w
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return w
+end
+
+@doc raw"""
+    exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8) -> AbstractVector{UInt8}
+
+Given a word `w` which is reduced w.r.t. `W`, modify `w` in-place into an equivalent word
+ending with `i` if the exchange condition can be applied, otherwise leave `w` unchanged.
+Finally, return `w`.
+
+!!! warning
+    If `w` is not a reduced expression, the behaviour is arbitrary.
+
+See also [`exchange_left!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
+"""
+function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  # The algorithm is almost the same as explain_rmul
+  # But we don't need a normal form, so this is faster
+  if w[end] == i
+    return w
+  end
+
+  root = i
+  for s in length(w):-1:1
+    if w[s] == root
+      for n in s:(length(w) - 1)
+        w[n] = w[s + 1]
+      end
+      w[end] = i
+      return w
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return w
+end
+
+@doc raw"""
+    braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8}) -> Vector{Tuple{Int,Int,Int}}
+
+Return the braid moves required to transform the reduced expression `w2`
+into the reduced expression `w1` with respect to the Weyl group `W`.
+A braid move `(n, len, dir)` should be understood as follows:
+- `n` is the position where the braid move starts
+- `len` is the length of the braid move
+- `dir` is the direction of the braid move. If `len=2` or `len=3`, `dir` is `0` or `-1`.
+  If `len=4` or `len=6`, `dir` is `-2` or `-3` if the root at `n` is short, otherwise `dir` is `-1`.
+  This information can be used, when computing the tropical Plücker relations.
+
+!!! warning
+    If `w1` and `w2` do not define the same element in `W`, the behaviour is arbitrary.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 3);
+
+julia> braid_moves(W, UInt8[1,2,1,3,2,1], UInt8[1,3,2,1,3,2])
+4-element Vector{Tuple{Int64, Int64, Int64}}:
+ (4, 2, 0)
+ (2, 3, -1)
+ (4, 3, -1)
+ (3, 2, 0)
+
+julia> W = weyl_group(:B, 2);
+
+julia> braid_moves(W, UInt8[2,1,2,1], UInt8[1,2,1,2])
+1-element Vector{Tuple{Int64, Int64, Int64}}:
+ (1, 4, -2)
+```
+"""
+function braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8})
+  return _braid_moves(W, w1, w2, 0)
+end
+
+function _braid_moves(
+  W::WeylGroup, w1::AbstractVector{UInt8}, w2::AbstractVector{UInt8}, offset::Int
+)
+  mvs = Tuple{Int,Int,Int}[]
+  if w1 == w2
+    return mvs
+  end
+
+  C = cartan_matrix(W)
+  jo, jn = copy(w2), copy(w2)
+  for i in 1:length(w1)
+    if w1[i] == jo[i]
+      continue
+    end
+
+    cij = Int(C[Int(w1[i]), Int(jo[i])])
+    cji = Int(C[Int(jo[i]), Int(w1[i])])
+
+    # in all cases we need to move w1[i] to the right of jn[i]
+    # so that we can later apply the appropriate braid move
+    @views exchange_left!(W, jn[(i + 1):end], w1[i])
+
+    if cij == 0
+      # compute how to get jn[i:end] into [jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 2, cij))
+      reverse!(jn, i, i + 1)
+    elseif cij == -1 && cji == -1
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 3, cij))
+      jn[i], jn[i + 1], jn[i + 2] = jn[i + 1], jn[i], jn[i + 1]
+    elseif cij == -2 || cji == -2
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 4, cij))
+      reverse!(jn, i, i + 3)
+    elseif cij == -3 || cji == -3
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
+      @views exchange_left!(W, jn[(i + 4):end], jn[i]) # move jn[i] to the right of jn[i+3]
+      @views exchange_left!(W, jn[(i + 5):end], w1[i]) # move w1[i] to the right of jn[i+4]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 6, cij))
+      reverse!(jn, i, i + 5)
+    end
+
+    copyto!(jo, i, jn, i, length(jo) - i + 1)
+  end
+
+  return mvs
+end
+
+@doc raw"""
+    apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int}) -> Vector{UInt8}
+
+Apply the braid move `mv` to the word `w` and return the result.
+If `mv` is not a valid braid move for `w`, the behaviour is arbitrary.
+See also [`braid_moves`](@ref).
+"""
+function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
+  i, len, _ = mv
+  if len == 2
+    w[i], w[i + 1] = w[i + 1], w[i]
+  elseif len == 3
+    w[i], w[i + 1], w[i + 2] = w[i + 1], w[i], w[i + 1]
+  elseif len == 4
+    w[i], w[i + 1], w[i + 2], w[i + 3] = w[i + 1], w[i], w[i + 1], w[i]
+  elseif len == 6
+    w[i], w[i + 1], w[i + 2], w[i + 3], w[i + 4], w[i + 5] = w[i + 1],
+    w[i], w[i + 1], w[i], w[i + 1],
+    w[i]
+  end
+  return w
+end
+
+@doc raw"""
     FPGroup(W::WeylGroup) -> FPGroup
     fp_group(W::WeylGroup) -> FPGroup
 

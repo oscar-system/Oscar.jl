@@ -7,6 +7,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 This page is an addition to the documentation of [Weyl groups](@ref) with the additional experimental features.
 
+# Exchange lemma and Braid moves
+
+```@docs
+braid_moves(::WeylGroup, ::Vector{UInt8}, ::Vector{UInt8})
+apply_braid_move!(::Vector{UInt8}, ::Tuple{Int, Int, Int})
+```
 
 ## Conversion to other group types
 

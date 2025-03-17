@@ -5,6 +5,42 @@
 
   _isomorphic_group_on_gens = Oscar.LieAlgebras._isomorphic_group_on_gens
 
+  @testset "apply_braid_move!" begin
+    @test apply_braid_move!(UInt8[1, 3, 2, 1], (1, 2, 0)) == [3, 1, 2, 1]
+    @test apply_braid_move!(UInt8[2, 3, 1, 4], (2, 2, 0)) == [2, 1, 3, 4]
+    @test apply_braid_move!(UInt8[2, 3, 1, 2, 1, 4], (3, 3, -1)) == [2, 3, 2, 1, 2, 4]
+    @test apply_braid_move!(UInt8[2, 3, 4, 3, 4, 2], (2, 4, -2)) == [2, 4, 3, 4, 3, 2]
+    @test apply_braid_move!(UInt8[1, 2, 1, 2, 1, 2], (1, 6, -3)) == [2, 1, 2, 1, 2, 1]
+  end
+
+  @testset "braid_moves for $fam$rk" for (fam, rk) in [
+    (:A, 3), (:B, 3), (:C, 3), (:D, 4), (:F, 4), (:G, 2)
+  ]
+    W = weyl_group(fam, rk)
+    for _ in 1:10
+      w = rand(W)
+      w1 = word(w)
+      w2 = copy(w1)
+
+      i = 0
+      n = rand(1:(10 * order(W)))
+      for r in reduced_expressions(w)
+        i += 1
+        copy!(w2, r)
+        if i == n
+          break
+        end
+      end
+
+      mvs = braid_moves(W, w1, w2)
+      @test !isnothing(mvs)
+      for mv in mvs
+        apply_braid_move!(w2, mv)
+      end
+      @test w1 == w2
+    end
+  end
+
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
     ("A1", weyl_group(:A, 1)),
