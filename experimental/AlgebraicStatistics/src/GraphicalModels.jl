@@ -35,10 +35,11 @@ end
 #       Generic Graphical Models
 #
 ###################################################################################
+abstract type AbstractGraphicalModel{T, R, L} end
 
-struct GraphicalModel{G, T}
-  graph::G
-  ring::T
+struct GraphicalModel{T, R} <: AbstractGraphicalModel{T, R, Nothing}
+  graph::Graph{T}
+  ring::R
   param_ring::Ring
   param_gens
 end
