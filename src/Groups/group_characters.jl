@@ -3280,8 +3280,8 @@ end
 For an ordinary irreducible character `chi`,
 return the minimal integer `m` such that the character `m * chi`
 is afforded by a representation over the character field of `chi`,
-or throw an exception if the currently used character theoretic criteria
-do not suffice for computing `m`.
+or throw an exception if `group(chi)` is not defined and the currently used
+character theoretic criteria do not suffice for computing `m`.
 
 # Examples
 ```jldoctest
@@ -3291,79 +3291,14 @@ julia> println(map(schur_index, t))
 [1, 1, 1, 1, 2]
 ```
 """
-function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+function schur_index(chi::GAPGroupClassFunction)
     @req characteristic(chi) == 0 "defined only for ordinary characters"
-    deg = numerator(degree(chi))
-    deg == 1 && return 1
+
+    # Irreducible characters with indicator -1 have Schur index 2.
     indicator(chi) == -1 && return 2
 
-    # The character field contains an `m`-th root of unity.
-    values = GapObj(chi)
-    if conj(chi) == chi
-      bound = ZZRingElem(2)
-    else
-      # Compute the conductor of the largest cyclotomic field
-      # that is contained in the character field of `chi`.
-      gapfield = GAPWrap.Field(values)
-      N = GAPWrap.Conductor(gapfield)
-      for n in reverse(sort(divisors(N)))
-        if GAPWrap.E(n) in gapfield
-          if Base.isodd(n)
-            bound = ZZRingElem(2*n)
-          else
-            bound = ZZRingElem(n)
-          end
-          break
-        end
-      end
-    end
-
-    # `m` divides `deg`
-    bound = gcd(bound, deg)
-    bound == 1 && return 1
-
-    # `m` divides the multiplicity of `chi` in any rational character
-    # with trivial Schur index.
-    # - Consider permutation characters induced from cyclic subgroups.
-    tbl = parent(chi)
-    for psi in induced_cyclic(tbl)
-      bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
-      bound == 1 && return 1
-    end
-    # - Consider characters induced from other known subgroups.
-    for name in names_of_fusion_sources(tbl)
-      s = character_table(name)
-      if s !== nothing
-        known, fus = known_class_fusion(s, tbl)
-        @assert known "the class fusion is not stored"
-        if length(class_positions_of_kernel(fus)) == 1
-          psi = trivial_character(s)^(tbl)
-          bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
-          bound == 1 && return 1
-        end
-      end
-    end
-
-    if recurse
-      # Consider tensor products of rational characters with Schur index 1.
-      cand = filter(psi -> degree(character_field(psi)[1]) == 1 &&
-                           schur_index(psi, false) == 1, collect(tbl))
-      for i in 1:length(cand)
-        for j in 1:i
-          bound = gcd(bound, scalar_product(ZZRingElem, chi, cand[i] * cand[j]))
-          bound == 1 && return 1
-        end
-      end
-    end
-
-    if isdefined(tbl, :group) && hasproperty(GAP.Globals, :SchurIndexByCharacter)
-      # The function is defined in the Wedderga package.
-      g = group(tbl)
-      return GAPWrap.SchurIndexByCharacter(GAP.Globals.Rationals, codomain(isomorphism_to_GAP_group(tbl)), values)
-    end
-
-    # For the moment, we do not have more character theoretic criteria.
-    error("cannot determine the Schur index with the currently used criteria")
+    # Delegate to the computation of the local Schur indices.
+    return lcm([x[2] for x in local_schur_indices(chi)])
 end
 
 

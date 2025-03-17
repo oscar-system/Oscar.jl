@@ -239,7 +239,6 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
   chipos = findfirst(isequal(chi), tbl)
   @assert chipos !== nothing "chi must be irreducible"
   @vprintln :SchurIndices 1 "called with character of degree $deg"
-  G = group(tbl)
   result = Pair{Int, Int}[]
 
   # Step 1:
@@ -315,8 +314,37 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
     return result
   end
 
+  # `m` divides the multiplicity of `chi` in any character that is
+  # afforded by a rational representation.
+  # (This is Thm. 2.1 in the 1983 paper by Feit.)
+  # Here we consider permutation characters.
+  for psi in induced_cyclic(tbl)
+    u = gcd(u, scalar_product(ZZRingElem, chi, psi))
+    if u == 1
+      @vprintln :SchurIndices 1 "m = 1 (mult. of chi in cyclic perm. char.)"
+      return result
+    end
+  end
+  for name in names_of_fusion_sources(tbl)
+    s = character_table(name)
+    if s !== nothing
+      known, fus = known_class_fusion(s, tbl)
+      if known && length(class_positions_of_kernel(fus)) == 1
+        psi = trivial_character(s)^(tbl)
+        u = gcd(u, scalar_product(ZZRingElem, chi, psi))
+        if u == 1
+          @vprintln :SchurIndices 1 "m = 1 (mult. of chi in perm. char. from $name)"
+          return result
+        end
+      end
+    end
+  end
+
   # If `q` is a prime such that the Sylow `q`-subgroups of G are
   # elementary abelian then `q` does not divide `m`.
+  # (Here we need the group for the first time.)
+  @req isdefined(tbl, :group) "cannot determine the Schur index with the currently used criteria"
+  G = group(tbl)
   for q in primes
     if mod(Gorder, q^2) != 0 ||
        (mod(Gorder, q^3) != 0 && !(q in orders)) ||
@@ -362,7 +390,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
   # (We store for each p the pair (u_p, exact) where u_p is a known multiple
   # of m_p(chi), and exact is `true` or `false`,
   # where `true` means that u_p = m_p(chi).)
-  u_p = Dict([p => p == 2 ? 2 : (gcd(u, p-1), false) for p in primes])
+  u_p = Dict([p => p == 2 ? (2, false) : (gcd(u, p-1), false) for p in primes])
   # Theorem 4.4
   if primes[1] == 2
     if mod(Gorder, 4) != 0 ||
@@ -471,8 +499,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
       @vprintln :SchurIndices 1 "step 3, q = $q"
       qregs = findall(x -> mod(x, q) != 0, ords)
       found = false
-      for i in qregs
-        i == 1 && continue
+      for i in reverse(qregs)
         C = sub(G, [representative(ccl[i])])[1]
         N = normalizer(G, C)[1]
         Q = sylow_subgroup(N, q)[1]

@@ -1145,20 +1145,7 @@ end
   t = character_table(g);
   trivial_character(s)^t;  # side-effect: stores a class fusion
   @test length(names_of_fusion_sources(t)) > 0
-  if hasproperty(GAP.Globals, :SchurIndexByCharacter)
-    # We can compute the values.
-    @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
-  else
-    # We can fail.
-    for chi in t
-      try
-        schur_index(chi)
-      catch(e)
-        msg = sprint(showerror, e)
-        @test msg == "cannot determine the Schur index with the currently used criteria"
-      end
-    end
-  end
+  @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
 
   # For a character table without group, we can fail.
   t = character_table("S6")
@@ -1167,7 +1154,7 @@ end
       schur_index(chi)
     catch(e)
       msg = sprint(showerror, e)
-      @test msg == "cannot determine the Schur index with the currently used criteria"
+      @test msg == "ArgumentError: cannot determine the Schur index with the currently used criteria"
     end
   end
 
