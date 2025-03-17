@@ -204,6 +204,7 @@
         @test G3.label[7, 8] == 3
         @test G3.label[9] == 10
         @test G3.label[1] == 0
+        @test labellings(G3) == (:label,)
     end
   
     @testset "adjacency_matrix laplacian_matrix" begin

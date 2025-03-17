@@ -1031,6 +1031,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export labellings
 export laplacian_matrix
 export lattice_homomorphism
 export lattice_of_one_parameter_subgroups
