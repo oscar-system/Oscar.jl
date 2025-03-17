@@ -10,13 +10,13 @@ export graphical_model, parametrization
 export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 
-struct GaussianRing
+struct GaussianRing <: Ring
   ring::MPolyRing
   gens::Dict{Tuple{Int64, Int64}, <:MPolyRingElem}
   covariance_matrix::MatElem
 end
 
-struct GaussianGraphicalModel{T, GaussianRing} <: GraphicalModel{T, GaussianRing}
+struct GaussianGraphicalModel{T, GaussianRing, Nothing} <: GraphicalModel{T, GaussianRing, Nothing}
   graph::Graph{T}
   ring::GaussianRing
   param_ring::MPolyRing
@@ -155,7 +155,7 @@ function graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarNam
   GraphicalModel(G, S, R, [d, w])
 end
 
-function Base.show(io::IO, M::GraphicalModel{Graph{Directed}, GaussianRing})
+function Base.show(io::IO, M::GaussianGraphicalModel{Directed, GaussianRing, Nothing})
   G = M.graph
   E = [(src(e), dst(e)) for e in edges(G)]
 
@@ -186,7 +186,7 @@ julia> directed_edges_matrix(M)
 [0         0         0]
 ```
 """
-function directed_edges_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
+function directed_edges_matrix(M::GaussianGraphicalModel{Directed, GaussianRing})
   G = graph(M)
   l = param_gens(M)[1]
   L = matrix(M.param_ring, [[has_edge(G, i, j) ? l[i,j] : 0 for j in vertices(G)] for i in vertices(G)])
@@ -210,14 +210,14 @@ julia> error_covariance_matrix(M)
 [   0      0   w[3]]
 ```
 """
-function error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
+function error_covariance_matrix(M::GaussianGraphicalModel{Directed, GaussianRing})
   G = graph(M)
   w = param_gens(M)[2]
   W = matrix(M.param_ring, [[i == j ? w[i] : 0 for j in vertices(G)] for i in vertices(G)])
 end
 
 @doc raw"""
-    parametrization(M::GraphicalModel{Graph{Directed}, GaussianRing})
+    parametrization(M::GaussianGraphicalModel{Directed, GaussianRing})
 
 Create the polynomial map which parametrizes the vanishing ideal of the directed Gaussian graphical model `M`.
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
@@ -243,7 +243,7 @@ defined by
   s[3, 3] -> l[1, 2]^2*l[2, 3]^2*w[1] + l[2, 3]^2*w[2] + w[3]
 ```
 """
-function parametrization(M::GraphicalModel{Graph{Directed}, GaussianRing})
+function parametrization(M::GaussianGraphicalModel{Directed, GaussianRing})
   S = ring(M)
   R = param_ring(M)
   G = graph(M)
@@ -282,10 +282,10 @@ function graphical_model(G::Graph{Undirected}, S::GaussianRing; k_var_name::VarN
   varindices = [Tuple([V[i],V[j]]) for i in 1:length(V) for j in i:length(V) if i == j || has_edge(G, V[i], V[j])]
   R, k = polynomial_ring(QQ, ["$(k_var_name)[$(i), $(j)]" for (i,j) in varindices]; cached=cached)
   d = Dict([varindices[i] => k[i] for i in 1:length(varindices)])
-  GraphicalModel(G, S, R, d)
+  GaussianGraphicalModel(G, S, R, d)
 end
 
-function Base.show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function Base.show(io::IO, M::GaussianGraphicalModel{Undirected, GaussianRing})
   G = M.graph
   E = [(dst(e), src(e)) for e in edges(G)]
 
@@ -299,7 +299,7 @@ function Base.show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
 end
 
 @doc raw"""
-    concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+    concentration_matrix(M::GaussianGraphicalModel{Undirected, GaussianRing})
 
 Create the concentration matrix `K` of an undirected Gaussian graphical model which is a symmetric positive definite matrix
 whose nonzero entries correspond to the edges of the associated graph.
@@ -317,7 +317,7 @@ julia> concentration_matrix(M)
 [      0   k[2, 3]   k[3, 3]]
 ```
 """
-function concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function concentration_matrix(M::GaussianGraphicalModel{Undirected, GaussianRing})
   G = graph(M)
   k = param_gens(M)
   K = zero_matrix(param_ring(M), n_vertices(G), n_vertices(G))
@@ -335,7 +335,7 @@ function concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing}
 end
 
 @doc raw"""
-    parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+    parametrization(M::GaussianGraphicalModel{Undirected, GaussianRing})
 
 Create the polynomial map which parametrizes the vanishing ideal of the undirected Gaussian graphical model `M`.
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
@@ -361,7 +361,7 @@ defined by
   s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
 ```
 """
-function parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function parametrization(M::GaussianGraphicalModel{Undirected, GaussianRing})
   G = graph(M)
   S = ring(M)
   R = param_ring(M)
@@ -371,7 +371,7 @@ function parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 end
 
 @doc raw"""
-    vanishing_ideal(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+    vanishing_ideal(M::GaussianGraphicalModel{Undirected, GaussianRing})
 
 Compute the vanishing ideal of the undirected Gaussian graphical model `M`.
 This is done by saturating the ideal given by $ \Sigma K - Id $ by the determinant of $ K $
@@ -389,7 +389,7 @@ Ideal generated by
   -s[1, 2]*s[2, 3] + s[1, 3]*s[2, 2]
 ```
 """
-function vanishing_ideal(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function vanishing_ideal(M::GaussianGraphicalModel{Undirected, GaussianRing})
   G = graph(M)
   S = ring(M)
   R = param_ring(M)

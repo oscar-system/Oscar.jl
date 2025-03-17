@@ -37,9 +37,7 @@ end
 ###################################################################################
 GraphTypes = Union{Directed, Undirected} # TODO add Mixed
 
-abstract type GraphicalModel end
-abstract type GraphicalModel{T, R} where {T <: GraphTypes, R <: Ring} <: GraphicalModel{T, R} end
-abstract type GraphicalModel{T, R, L} where {T <: GraphTypes, R <: Ring, L <: NamedTuple} <: GraphicalModel
+abstract type GraphicalModel{T <: GraphTypes, R <: Ring, L <: Union{NamedTuple, Nothing}} end
 
 # todo
 graph(M::GraphicalModel) = M.graph
