@@ -1393,7 +1393,7 @@ label: shading
 function add_label!(G::Graph{T},
                     edge_labels::Union{Dict{NTuple{2, Int}, S}, Nothing},
                     vertex_labels::Union{Dict{Int, U}, Nothing};
-                    name::Symbol=:label) where {S, U, T <: Union{Directed, Undirected}}
+                    name::Symbol=:label) where {S <: Union{Int, String}, U <: Union{Int, String}, T <: Union{Directed, Undirected}}
   EM = isnothing(edge_labels) ? nothing : EdgeMap{T, S}(pm_object(G))
   NM = isnothing(vertex_labels) ? nothing : NodeMap{T, U}(pm_object(G))
   set_attribute!(G, name, GraphMap(G, EM, NM))
