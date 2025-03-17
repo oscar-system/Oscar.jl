@@ -45,8 +45,6 @@ ring(M::GraphicalModel) =  M.ring
 param_ring(M::GraphicalModel) =  M.param_ring
 param_gens(M::GraphicalModel) = gens(param_ring(M))
 
-include("GaussianGraphicalModels.jl")
-
 @doc raw"""
     vanishing_ideal(M::GraphicalModel)
 

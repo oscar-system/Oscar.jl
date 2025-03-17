@@ -16,12 +16,6 @@ struct GaussianRing <: Ring
   covariance_matrix::MatElem
 end
 
-struct GaussianGraphicalModel{T, GaussianRing, Nothing} <: GraphicalModel{T, GaussianRing, Nothing}
-  graph::Graph{T}
-  ring::GaussianRing
-  param_ring::MPolyRing
-end
-
 @doc raw"""
     gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ, cached=false)
 
@@ -126,9 +120,20 @@ end
 
 ###################################################################################
 #
-#       Directed Gaussian Graphical Models
+#       (Un)Directed Gaussian Graphical Models
 #
 ###################################################################################
+
+struct GaussianGraphicalModel{T, GaussianRing, L} <: GraphicalModel{T, GaussianRing, L}
+  graph::Graph{T}
+  ring::GaussianRing
+  param_ring::MPolyRing
+  param_gens
+  labellings::L
+  function GaussianGraphicalModel(G::Graph{T}, S::GaussianRing, R::MPolyRing, param_gens)
+    
+  end
+end
 
 @doc raw"""
     graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)

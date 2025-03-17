@@ -1,6 +1,7 @@
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
+include("GaussianGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
