@@ -459,6 +459,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
           Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
+
         end
         function Oscar.deserialize(s::Oscar.AbstractSerializer, T::Type{<:$ex})
           Oscar.load(s.io; serializer=Oscar.IPCSerializer())
@@ -574,6 +575,7 @@ include("Groups.jl")
 include("LieTheory.jl")
 
 include("Upgrades/main.jl")
+include("parallel.jl")
 
 ################################################################################
 # Interacting with IO streams and files
