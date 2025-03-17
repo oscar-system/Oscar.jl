@@ -1444,7 +1444,6 @@ Create a graph from edge labellings and an optional vertex labellings. There is 
 # Examples
 ```jldoctest
 julia> graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
- graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
 Directed graph with 3 nodes and the following labelling(s)
 label: label
 (1, 2) -> 1
