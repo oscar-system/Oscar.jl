@@ -1438,9 +1438,9 @@ label: label
 """
 function graph_from_labelled_edges(::Type{T},
                                    edge_labels::Dict{NTuple{2, Int}, S},
-                                   vertex_labels::Union{Dict{Int, S}, Nothing}=nothing;
+                                   vertex_labels::Union{Dict{Int, U}, Nothing}=nothing;
                                    name::Symbol=:label, 
-                                   n_vertices::Int=-1) where {T, S}
+                                   n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, S <: Union{Int, String}, U <: Union{Int, String}}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   add_label!(G, edge_labels, vertex_labels; name=name)
