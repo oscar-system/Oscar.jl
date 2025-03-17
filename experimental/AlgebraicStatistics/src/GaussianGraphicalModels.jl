@@ -16,6 +16,12 @@ struct GaussianRing
   covariance_matrix::MatElem
 end
 
+struct GaussianGraphicalModel{T, GaussianRing} <: GraphicalModel{T, GaussianRing}
+  graph::Graph{T}
+  ring::GaussianRing
+  param_ring::MPolyRing
+end
+
 @doc raw"""
     gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ, cached=false)
 
