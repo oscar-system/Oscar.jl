@@ -295,7 +295,8 @@ function _relative_kaehler_differentials(
     R::Union{MPolyRing, MPolyLocRing},
     ind::Vector{Int} # indices of the parameter variables in increasing order
   )
-  symb = [Symbol(:d, symb[i]) for i in 1:n if !(i in ind)]
+  symb = symbols(R)
+  symb = [Symbol(:d, symb[i]) for i in 1:ngens(R) if !(i in ind)]
   result = FreeMod(R, symb)
   #set_attribute!(result, :show, show_kaehler_differentials)
   #set_attribute!(result, :is_kaehler_differential_module, (R, 1))
