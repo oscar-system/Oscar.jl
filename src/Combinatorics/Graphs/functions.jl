@@ -1379,7 +1379,6 @@ label: colour
 (3, 2) -> 2
 
 julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
-julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
 Undirected graph with 3 nodes and the following labelling(s)
 label: colour
 (2, 1) -> 1
