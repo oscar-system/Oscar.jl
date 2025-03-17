@@ -407,16 +407,15 @@ function _relative_kaehler_differentials(
   # Proj(Q) by means of 
   f = gens(modulus(Q))
   F = ambient_free_module(WS)
-  @show F
-  @show ngens(F)
-  @show S
-  @show A
   ind_comp = [i for i in 1:ngens(A) if !(i in ind)]
   img_gens = [sum(derivative(f, i)*F[i] for i in 1:ngens(S); init=zero(F)) + 
               sum(_coefficient_derivative(f, k)*F[i+ngens(S)] for (i, k) in enumerate(ind_comp); init=zero(F)) 
               for f in f]
   @assert all(v in WS for v in img_gens) "something went wrong with lifting the jacobian matrix"
-  return quo(WS, img_gens)
+  img_gens = vcat(img_gens, relations(WS))
+  sub_mod, _ = sub(F, ambient_representatives_generators(WS))
+  rel_mod, _ = sub(F, img_gens)
+  return quo(sub_mod, rel_mod)
 end
 
 ### Helper functions
