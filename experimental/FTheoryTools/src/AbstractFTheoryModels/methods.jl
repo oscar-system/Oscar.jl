@@ -948,8 +948,8 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
       pos_2 = findfirst(k -> k == "z", [string(a) for a in gens(cox_ring(as))])
       exp_list = [collect(exponents(m))[1] for m in my_mons];
       my_exps = [[k[pos_1], k[pos_2]] for k in exp_list];
-      @req all(k -> isinteger(sum(k)), my_exps) "Inconsistency encountered in computation of strict transform. Please inform the authors."
-      m_power = [Int(sum(a)) for a in my_exps]
+      @req all(k -> isinteger(1//2 * sum(k)), my_exps) "Inconsistency encountered in computation of strict transform. Please inform the authors."
+      m_power = [Int(1//2 * sum(a)) for a in my_exps]
       overall_factor = minimum(m_power)
       new_coeffs = collect(coefficients(f))
       new_exps = [vcat([exp_list[k], m_power[k] - overall_factor]...) for k in 1:length(exp_list)]
@@ -1007,9 +1007,21 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
       # We add the ray m3: (0,0,0,-1,1). This looks like blowing up at m1 = m2 = 0 and introducing the variable m3. For the strict transform, we thus do
       # m1 -> m1 * m3
       # m2 -> m2 * m3
+      # (0,0,0,-1,1) = (0,0,0,-3,1) + 2 * (0,0,0,1,0), so also x * m1^2 * m3 is homogeneous.
+
       as = ambient_space(model_bl2);
+
+      # Q: Which maximal cones of as do contain the ray (0,0,0,-1,1)? For those are then telling us which variables need scaling.
+      # -> This tells us the overall pwer of m3!
+      Sigma = polyhedral_fan(as)
+      Oscar.pm_object(Sigma).FACET_NORMALS
+      Oscar.pm_object(Sigma).MAXIMAL_CONES_FACETS
+      my_list = findall(mc -> [0,0,0,-1,1] in mc, maximal_cones(Sigma))
+      # This vector appears in 198 maximal cones! Puh... how to take all of this into account?
+
+
       bl = domain(blow_up(as, [0,0,0,-1,1], coordinate_name = "m3"));
-      f = hypersurface_equation(model_bl);
+      f = hypersurface_equation(model_bl2);
       my_mons = collect(monomials(f));
       pos_1 = findfirst(k -> k == "m1", [string(a) for a in gens(cox_ring(as))])
       pos_2 = findfirst(k -> k == "m2", [string(a) for a in gens(cox_ring(as))])
@@ -1020,11 +1032,29 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
       overall_factor = minimum(m_power)
       new_coeffs = collect(coefficients(f))
       new_exps = [vcat([exp_list[k], m_power[k] - overall_factor]...) for k in 1:length(exp_list)]
+      #=
       my_builder = MPolyBuildCtx(cox_ring(bl))
       for a in 1:length(new_exps)
         push_term!(my_builder, new_coeffs[a], new_exps[a])
       end
       new_tate_polynomial = finish(my_builder);
+      =#
+
+      my_builder = MPolyBuildCtx(cox_ring(bl))
+      for a in 1:Int(floor(1//2*length(new_exps)))
+        push_term!(my_builder, new_coeffs[a], new_exps[a])
+      end
+      new_tate_polynomial_1 = finish(my_builder);
+
+      my_builder = MPolyBuildCtx(cox_ring(bl))
+      for a in Int(floor(1//2*length(new_exps)))+1:length(new_exps)
+        push_term!(my_builder, new_coeffs[a], new_exps[a])
+      end
+      new_tate_polynomial_2 = finish(my_builder);
+      @req is_homogeneous(new_tate_polynomial_1) "First poly not homogeneous"
+      @req is_homogeneous(new_tate_polynomial_2) "Second poly not homogeneous"
+      @req degree(new_tate_polynomial_2) == degree(new_tate_polynomial_1) "Poly have different degree"
+
       model_bl3 = GlobalTateModel(explicit_model_sections(model_bl2), model_section_parametrization(model_bl2), new_tate_polynomial, base_space(model_bl2), bl);
       set_attribute!(model_bl3, :partially_resolved, true)
 
