@@ -415,7 +415,7 @@ function _relative_kaehler_differentials(
   img_gens = vcat(img_gens, relations(WS))
   sub_mod, _ = sub(F, ambient_representatives_generators(WS))
   rel_mod, _ = sub(F, img_gens)
-  return quo(sub_mod, rel_mod)
+  return quo(sub_mod, rel_mod)[1]
 end
 
 ### Helper functions
