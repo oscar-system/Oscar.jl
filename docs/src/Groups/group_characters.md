@@ -117,7 +117,7 @@ indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
-schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+schur_index(chi::GAPGroupClassFunction)
 det(chi::GAPGroupClassFunction)
 order(chi::GAPGroupClassFunction)
 order_field_of_definition(chi::GAPGroupClassFunction)
