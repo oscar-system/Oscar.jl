@@ -771,12 +771,12 @@ julia> labellings(G)
 (:colour,)
 ```
 """
-function labellings(G)
+function labellings(G::Graph)
   !isdefined(G, :__attrs) && return []
   tuple([k for (k, v ) in G.__attrs if v isa GraphMap]...)
 end
 
-function _graph_maps(G)
+function _graph_maps(G::Graph)
   labels = labellings(G)
   isempty(labels) && return NamedTuple{}()
   return NamedTuple{labels}(tuple([getproperty(G, l) for l in labels]...))
