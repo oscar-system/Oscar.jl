@@ -491,6 +491,7 @@ export defining_ideal
 export deginvlex
 export deglex
 export degree
+export degree_of_character_field
 export degrees_of_generators
 export degrevlex
 export dehomogenization_map
