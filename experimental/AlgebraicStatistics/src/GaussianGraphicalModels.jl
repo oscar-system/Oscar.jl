@@ -130,8 +130,13 @@ struct GaussianGraphicalModel{T, GaussianRing, L} <: GraphicalModel{T, GaussianR
   param_ring::MPolyRing
   param_gens
   labellings::L
-  function GaussianGraphicalModel(G::Graph{T}, S::GaussianRing, R::MPolyRing, param_gens)
-    
+  function GaussianGraphicalModel(G::Graph{T},
+                                  S::GaussianRing,
+                                  R::MPolyRing,
+                                  param_gens) where T <: GraphTypes
+    graph_maps = _graph_maps(G)
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{T, GaussianRing, typeof(graph_maps)}(G, S, R, param_gens, graph_maps)
   end
 end
 
