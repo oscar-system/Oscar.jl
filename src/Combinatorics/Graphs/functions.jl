@@ -761,7 +761,7 @@ Returns the labellings of a graph `G` as a `Tuple{Symbol}`.
 
 # Examples
 ```jldoctest
-julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=colour)
+julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:colour)
 Directed graph with 3 nodes and the following labelling(s)
 label: label
 (1, 2) -> 1
