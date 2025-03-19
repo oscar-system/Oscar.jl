@@ -106,14 +106,15 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
     b_ring_gens = gens(b_ring)
     new_converter_dict = Dict{Tuple{Int64, Int64}, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
     for (key, value) in converter_dict
-      if length(value) == 0
-        new_converter_dict[key] = zero(b_ring)
-      else
-        new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+      new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+    end
+    converted_poly = zero(b_ring)
+    for l in 1:length(coeffs)
+      if haskey(new_converter_dict, non_zero_exponents[l])
+        converted_poly += coeffs[l] * new_converter_dict[non_zero_exponents[l]]
       end
     end
- 
-    converted_poly = cohomology_ring(ambient_space(m), check = check)(sum(coeffs[l] * new_converter_dict[non_zero_exponents[l]] for l in 1:length(coeffs)))
+    converted_poly = cohomology_ring(ambient_space(m), check = check)(converted_poly)
     converted_class = CohomologyClass(ambient_space(m), converted_poly)
     
   end
