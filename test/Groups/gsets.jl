@@ -403,6 +403,10 @@ end
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test length(blocks(Omega)) == 5
+  @test length(minimal_block_reps(Omega)) == 1
+  @test length(all_blocks(Omega::GSet)[1]) == 3
+
 
   @test eltype(Omega) == typeof(representative(Omega))
 
