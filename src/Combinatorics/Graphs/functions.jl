@@ -755,7 +755,7 @@ function Base.getproperty(G::Graph, p::Symbol)
 end
 
 @doc raw"""
-    labelings(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+    labelings(G::Graph)
 
 Return the names of all labelings of a graph `G` as a `Tuple{Symbol}`.
 
@@ -1354,9 +1354,11 @@ end
 
 function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Polymake.Undirected}}
   if is_terse(io)
+    !isempty(labelings(G)) && print(io, "Labeled ")
     print(io, "$(_to_string(T)) graph")
   else
     print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and $(n_edges(G)) edges")
+    !isempty(labelings(G)) && print(io, " with labeling(s) $(labelings(G))")
   end
 end
 
@@ -1490,7 +1492,7 @@ end
     graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
     graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
-Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see `graph_from_edges`.
+Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
 
 # Examples
 ```jldoctest
