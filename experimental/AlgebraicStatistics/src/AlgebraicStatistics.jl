@@ -9,6 +9,14 @@ include("PhylogeneticParametrization.jl")
 include("PhylogeneticInvariants.jl")
 include("LoadModels.jl")
 
+# export Abstract Graphical Model
+export GraphicalModel
+export probability_ring
+export parameter_ring
+export parameter_ring_gens
+export parametrization
+export graph
+
 #export models
 export cavender_farris_neyman_model
 export jukes_cantor_model
@@ -19,7 +27,6 @@ export affine_phylogenetic_model!
 
 #export phylogenetic models attributes
 export phylogenetic_model
-export graph
 export number_states
 export transition_matrices
 export probability_ring
@@ -46,3 +53,12 @@ export GroupBasedPhylogeneticModel
 
 # export functions to load objects (currently only graphs of phylogenetic models)
 export load_phylogenetic_model
+
+# Gaussian Graphical Model Exports
+export GaussianRing
+export gaussian_ring, gens, covariance_matrix
+export gaussian_graphical_model
+export directed_edges_matrix, error_covariance_matrix
+export concentration_matrix
+
+

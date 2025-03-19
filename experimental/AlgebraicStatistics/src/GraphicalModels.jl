@@ -35,15 +35,16 @@ end
 #       Generic Graphical Models
 #
 ###################################################################################
-GraphTypes = Union{Directed, Undirected} # TODO add Mixed
+const GraphTypes = Union{Directed, Undirected} # TODO add Mixed
 
-abstract type GraphicalModel{T <: GraphTypes, R <: Ring, L <: Union{NamedTuple, Nothing}} end
+abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 
 # todo
 graph(M::GraphicalModel) = M.graph
-ring(M::GraphicalModel) =  M.ring
-param_ring(M::GraphicalModel) =  M.param_ring
-param_gens(M::GraphicalModel) = gens(param_ring(M))
+probability_ring(M::T) where T <: GraphicalModel = error("Please implement the method probability_ring for $T")
+parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring for $T")
+parameter_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring_gens for $T")
+parametrization(M::T) where T <: GraphicalModel = error("Please implement the method parametrization for $T")
 
 @doc raw"""
     vanishing_ideal(M::GraphicalModel)
