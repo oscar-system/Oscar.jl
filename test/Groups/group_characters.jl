@@ -957,16 +957,18 @@ end
 
   t = character_table("A5")
   sums = [galois_orbit_sum(x) for x in t]
-  degrees = [degree(character_field(x)[1]) for x in t]
+  degrees = [degree_of_character_field(x) for x in t]
+  @test degrees == [degree(character_field(x)[1]) for x in t]
   @test degrees == [1, 2, 2, 1, 1]
   @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
   m = mod(t, 2)
   sums = [galois_orbit_sum(x) for x in m]
-  degrees = [degree(character_field(x)[1]) for x in m]
+  degrees = [degree_of_character_field(x) for x in m]
+  @test degrees == [degree(character_field(x)[1]) for x in m]
   @test degrees == [1, 2, 2, 1]
   @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
 
   # irreducibles not all rational but all are defined over the prime field
   m = character_table("L3(2)", 2)
@@ -1072,9 +1074,13 @@ end
 
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
-  @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
+  degrees = [degree_of_character_field(chi) for chi in tbl]
+  @test degrees == [degree(character_field(chi)[1]) for chi in tbl]
+  @test degrees == [1, 2, 2, 1, 1]
   @test characteristic(character_field(tbl[1])[1]) == 0
-  @test degree(character_field(collect(tbl))[1]) == 2
+  deg = degree_of_character_field(collect(tbl))
+  @test deg == degree(character_field(collect(tbl))[1])
+  @test deg == 2
 
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
@@ -1131,7 +1137,9 @@ end
   @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
   @test order_field_of_definition(Int, modtbl[1]) isa Int
   @test_throws ArgumentError order_field_of_definition(ordtbl[1])
-  @test degree(character_field(collect(modtbl))[1]) == 2
+  deg = degree_of_character_field(collect(modtbl))
+  @test deg == degree(character_field(collect(modtbl))[1])
+  @test deg == 2
 end
 
 @testset "Schur index" begin
