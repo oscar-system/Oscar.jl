@@ -4,6 +4,7 @@
   "General" => [
      "General/architecture.md",
      "General/other.md",
+     "General/printing.md",
      "General/faq.md",
      "General/serialization.md",
      "General/complex.md",
@@ -310,5 +311,6 @@
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
+    "DeveloperDocumentation/parallel.md"
   ],
 ]
