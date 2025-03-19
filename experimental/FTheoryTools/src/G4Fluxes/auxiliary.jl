@@ -34,7 +34,7 @@ Hypersurface model over a concrete base
 julia> cdh22 = converter_dict_h22_ambient(qsm_model, check = false);
 
 julia> length(collect(keys(cdh22)))
-105
+81
 ```
 """
 @attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
@@ -581,7 +581,7 @@ Hypersurface model over a concrete base
 julia> cdh22 = converter_dict_h22_hypersurface(qsm_model, check = false);
 
 julia> length(collect(keys(cdh22)))
-105
+81
 ```
 """
 @attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
@@ -655,7 +655,7 @@ Hypersurface model over a concrete base
 julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
 
 julia> cohomology_class(g4_basis[1])
-Cohomology class on a normal toric variety given by x35*e4
+Cohomology class on a normal toric variety given by x15*e2
 
 julia> length(g4_basis) == 172
 true
