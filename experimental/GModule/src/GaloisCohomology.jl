@@ -312,7 +312,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
   @vprint :GaloisCohomology 2 ".. map to abstract chain ..\n"
   cc = CoChain{2,PermGroupElem,FinGenAbGroupElem}(C, Dict((h, preimage(mu, FacElem(v.data))) for (h,v) = c.d))
   @vprint :GaloisCohomology 2 ".. test for boundary ..\n"
-  fl, d = z(cc)
+  fl, d = z(cc; reduce = true)
   if !fl
     @vprint :GaloisCohomology 2 ".. no boundary\n"
     return fl, d
