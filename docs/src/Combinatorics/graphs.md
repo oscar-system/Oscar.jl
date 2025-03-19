@@ -37,7 +37,7 @@ dual_graph(p::Polyhedron)
 vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
-graph_from_labelled_edges
+graph_from_labeled_edges
 ```
 
 ### Modifying graphs
@@ -48,7 +48,7 @@ add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
-add_label!
+label!
 ```
 
 ## Auxiliary functions
@@ -75,6 +75,7 @@ signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 is_bipartite(g::Graph{Undirected})
+labelings(G::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```
 
 ### Edges

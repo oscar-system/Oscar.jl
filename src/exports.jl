@@ -214,7 +214,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
-export add_label!
+export label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -677,7 +677,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
-export graph_from_labelled_edges
+export graph_from_labeled_edges
 export grassmann_pluecker_ideal
 export groebner_basis
 export groebner_basis_f4
@@ -1031,7 +1031,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
-export labellings
+export labelings
 export laplacian_matrix
 export lattice_homomorphism
 export lattice_of_one_parameter_subgroups

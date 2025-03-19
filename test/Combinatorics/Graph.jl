@@ -182,29 +182,29 @@
         @test is_isomorphic(G2, GG2)
     end
 
-      @testset "graph_from_labelled_edges" begin
+      @testset "graph_from_labeled_edges" begin
         G1 = graph_from_edges([[1, 2], [3, 4]])
         vertex_labels = Dict(1 => 2, 3 => 4)
-        add_label!(G1, nothing, vertex_labels; name=:colour)
-        @test_throws ArgumentError G1.colour[1, 2]
-        @test G1.colour[1] == 2
+        label!(G1, nothing, vertex_labels; name=:color)
+        @test_throws ArgumentError G1.color[1, 2]
+        @test G1.color[1] == 2
         
         edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
-        G2 = graph_from_labelled_edges(edge_labels)
+        G2 = graph_from_labeled_edges(edge_labels)
         @test G2.label[6, 5] == G2.label[5, 6] == 4
         @test_throws ArgumentError G2.label[6, 7]
         @test_throws ArgumentError G2.label[6]
 
         vertex_labels = Dict(9 => 10)
-        @test_throws ArgumentError graph_from_labelled_edges(Directed, edge_labels, vertex_labels)
+        @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
 
-        G3 = graph_from_labelled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
+        G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
         @test_throws ArgumentError G3.label[10]
         @test_throws ArgumentError G3.label[6, 5]
         @test G3.label[7, 8] == 3
         @test G3.label[9] == 10
         @test G3.label[1] == 0
-        @test labellings(G3) == (:label,)
+        @test labelings(G3) == [:label]
     end
   
     @testset "adjacency_matrix laplacian_matrix" begin
