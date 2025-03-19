@@ -336,7 +336,7 @@ function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleN
   c = parent(a)()
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
+      fl, c[i,j] = rational_reconstruction(a[i,j], pg; error_tolerant = ErrorTolerant)
       fl || return fl, c
     end
   end
