@@ -535,3 +535,21 @@ end
   o = orbs[findfirst(o -> length(o) == 3, orbs)]
   @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
 end
+
+@testset "G-sets of WeylGroups" begin
+  W = weyl_group(:A, 2)
+  R = root_system(W)
+  pts = roots(R)
+  Omega = @inferred gset(W, *, pts)
+  orbs = @inferred orbits(Omega)
+  @test (@inferred length(orbs)) == 1
+  @test map(length, orbs) == [6]
+
+  W = weyl_group([(:A, 2), (:B, 3)])
+  R = root_system(W)
+  pts = roots(R)
+  Omega = @inferred gset(W, *, pts)
+  orbs = @inferred orbits(Omega)
+  @test (@inferred length(orbs)) == 3
+  @test sort(map(length, orbs)) == [6, 6, 12]
+end
