@@ -107,6 +107,7 @@ is_character_table_name
 ## Attributes of group characters
 
 ```@docs
+central_character(chi::GAPGroupClassFunction)
 character_field
 conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
@@ -116,7 +117,7 @@ indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
-schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+schur_index(chi::GAPGroupClassFunction)
 det(chi::GAPGroupClassFunction)
 order(chi::GAPGroupClassFunction)
 order_field_of_definition(chi::GAPGroupClassFunction)
@@ -131,6 +132,7 @@ class_names(tbl::GAPGroupCharacterTable)
 class_parameters
 conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
+defect_group
 identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
 is_atlas_character_table
@@ -239,6 +241,7 @@ known_class_fusions
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
 approximate_class_fusion
+power_map(tbl::GAPGroupCharacterTable, k::Int, i::Int)
 ```
 
 ## Character tables and normal subgroups
