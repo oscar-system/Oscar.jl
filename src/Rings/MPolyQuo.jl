@@ -1163,6 +1163,7 @@ function is_invertible_with_inverse(a::MPolyQuoRingElem)
 end
 
 is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
+is_nilpotent(a::MPolyQuoRingElem) = radical_membership(a.f, modulus(parent(a)))
 
 @doc raw"""
     inv(f::MPolyQuoRingElem)
