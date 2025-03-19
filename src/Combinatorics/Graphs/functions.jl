@@ -761,9 +761,9 @@ Returns the labellings of a graph `G` as a `Tuple{Symbol}`.
 
 # Examples
 ```jldoctest
-julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=colour)
+julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:colour)
 Directed graph with 3 nodes and the following labelling(s)
-label: label
+label: colour
 (1, 2) -> 1
 (2, 3) -> 4
 
@@ -771,12 +771,12 @@ julia> labellings(G)
 (:colour,)
 ```
 """
-function labellings(G)
+function labellings(G::Graph)
   !isdefined(G, :__attrs) && return []
   tuple([k for (k, v ) in G.__attrs if v isa GraphMap]...)
 end
 
-function _graph_maps(G)
+function _graph_maps(G::Graph)
   labels = labellings(G)
   isempty(labels) && return NamedTuple{}()
   return NamedTuple{labels}(tuple([getproperty(G, l) for l in labels]...))
