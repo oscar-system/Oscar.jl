@@ -1,11 +1,14 @@
-# motivated by Magma, see <https://magma.maths.usyd.edu.au/magma/handbook/text/108>
 """
     IndexedSet{T}
 
-TODO: the idea is that this is a mixture between a vector and a set, perfect
-for e.g. orbit algorithms: you can push things to its end and iterate it sequentially;
-but duplicates are simply dropped (like in a set), and given any element you can
+A hybrid data structure combining properties of both a vector and a set.
+
+By implementation you can push things to its end and iterate it sequentially;
+but duplicates are simply dropped (like in a set). Therefore, given any element you can
 test in O(1) if it is contained in the set, and find out at which position.
+
+This structure is suited well for applications such as orbit algorithms, 
+where efficient membership checks and indexed retrieval are beneficial.
 
 ```jldoctest
 julia> s = IndexedSet(["ball", "flower", "house"])
@@ -23,7 +26,7 @@ julia> s[2]
 julia> "stone" in s
 false
 
-julia> s("stone")    # the "position" of objects no in there is 0
+julia> s("stone")    # the "position" of objects now in there is 0
 0
 
 julia> push!(s, "ball", "stone")    # only "new" things are actually added
@@ -45,7 +48,10 @@ function IndexedSet(v::Vector{T}) where T
   return s
 end
 
-# adding an element
+function Base.show(io::IO, s::IndexedSet)
+  print(io, "Indexed set ", s.data)
+end
+
 function Base.push!(s::IndexedSet, x)
   n = length(s.data)+1
   i = get!(s.pos, x, n)
@@ -53,12 +59,8 @@ function Base.push!(s::IndexedSet, x)
   return s
 end
 
-# TODO: implement append!(::IndexedSet{T}, some_collection_or_iterator) ?
-# TODO: implement union!(::IndexedSet{T}, some_collection_or_iterator) ?
-
-function Base.show(io::IO, s::IndexedSet)
-   print(io, "Indexed set ", s.data)
-end
+Base.append!(s::IndexedSet{T}, x::Vector{T}) where {T} = foreach(e -> push!(s, e), x)
+Base.union!(s::IndexedSet{T}, iters...) where {T} = foreach(e -> append!(s, e), iters)
 
 function Base.in(x, s::IndexedSet)
   return haskey(s.pos, x)
@@ -71,19 +73,18 @@ Base.isequal(a::IndexedSet, b::IndexedSet) = a.data == b.data
 Base.getindex(s::IndexedSet, i::Int) = s.data[i]
 
 # lookup index via object
-(s::IndexedSet{T})(x::T) where T = get(s.pos, x, 0)
-#Base.get(s::IndexedSet, x::T, default::Int) = get(s.pos, x, def)
-
-Base.isempty(s::IndexedSet) = isempty(s.data)
-Base.length(s::IndexedSet) = length(s.data)
+(s::IndexedSet{T})(x::T) where T = get(s, x, 0)
+Base.get(s::IndexedSet, x::T, def::Int) where T = get(s.pos, x, def)
 
 Base.iterate(s::IndexedSet) = iterate(s.data)
 Base.iterate(s::IndexedSet, state) = iterate(s.data, state)
 
+Base.isempty(s::IndexedSet) = isempty(s.data)
+Base.length(s::IndexedSet) = length(s.data)
+
 Base.IteratorSize(::Type{<:IndexedSet}) = Base.HasShape{1}()
 Base.size(s::IndexedSet) = size(s.data)
 Base.eltype(s::IndexedSet{T}) where T = T
-
 
 #=
 module Orbit
