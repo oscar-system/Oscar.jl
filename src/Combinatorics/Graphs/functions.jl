@@ -761,9 +761,9 @@ Returns the labellings of a graph `G` as a `Tuple{Symbol}`.
 
 # Examples
 ```jldoctest
-julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=colour)
+julia> G = graph_from_labelled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:colour)
 Directed graph with 3 nodes and the following labelling(s)
-label: label
+label: colour
 (1, 2) -> 1
 (2, 3) -> 4
 
@@ -771,12 +771,12 @@ julia> labellings(G)
 (:colour,)
 ```
 """
-function labellings(G)
+function labellings(G::Graph)
   !isdefined(G, :__attrs) && return []
   tuple([k for (k, v ) in G.__attrs if v isa GraphMap]...)
 end
 
-function _graph_maps(G)
+function _graph_maps(G::Graph)
   labels = labellings(G)
   isempty(labels) && return NamedTuple{}()
   return NamedTuple{labels}(tuple([getproperty(G, l) for l in labels]...))
@@ -1241,11 +1241,37 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 
 Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
+
+The `backend` keyword argument allows the user to pick between a Threejs visual by default, or passing `:tikz` for a tikz visual.
+The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or tikz code for `:tikz`.
+If the graph `G` has a labelling `:color` (see [`add_label!`](@ref)) then the visualization will use these colors to color the graph.
+
+Possible Color labellings include RGB color labellings of the form `"255 0 255"` as well as the following named colors `"polymakeorange"`, `"polymakegreen"`,
+`"white"`, `"purple"`, `"cyan"`, `"darkolivegreen"`, `"indianred"`, `"plum1"`, `"red"`, `"lightslategrey"`, `"yellow"`, `"orange"`, `"salmon1"`, `"azure"`, `"green"`, `"gray"`, `"midnightblue"`, `"pink"`, `"magenta"`, `"blue"`, `"lavenderblush"`, `"chocolate1"`, `"lightgreen"`, `"black"`.
+
 """
-visualize
+function visualize(G::Graph{T};
+                   backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing,
+                   kwargs...) where {T <: Union{Directed, Undirected}}
+  BG = Polymake.bigobject("graph::Graph<$T>", ADJACENCY=G)
+
+  defaults = (;VertexLabels = collect(1:n_vertices(G)))
+  if has_attribute(G, :color)
+    defaults = merge(defaults,
+                     NamedTuple(k => v for (k, v) in
+                                  [(:EdgeColor, G.color.edge_map), (:VertexColor, G.color.vertex_map)] if !isnothing(v)))
+  end
+  
+  vBG = Polymake.visual(Polymake.Visual, BG; merge(defaults, kwargs)...)
+  if !isnothing(filename)
+    Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+  else
+    Polymake.call_function(Nothing, :graph, backend, vBG;)
+  end
+end
 
 
 # Some standard polytopes from graphs
@@ -1381,7 +1407,7 @@ function graph_from_edges(edges::Vector{T},
 end
 
 @doc raw"""
-     add_label!(G::Graph{T}, edge_labels::Dict{NTuple{2, Int}, S}, vertex_labels::Union{Dict{Int, S}, Nothing}=nothing; name::Symbol=:label)
+     add_label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
 Given a graph `G` add a label to the edges and optinally to the vertixes with the given `name`
 
 ```jldoctest
@@ -1402,16 +1428,13 @@ label: colour
 (3, 1) -> 1
 (3, 2) -> 2
 
-julia> add_label!(G, Dict((1, 2) => 1, (2, 3) => 0), Dict(1 => 1); name=:shading)
+julia> add_label!(G, nothing, Dict(1 => 1); name=:shading)
 Undirected graph with 3 nodes and the following labelling(s)
 label: colour
 (2, 1) -> 1
 (3, 1) -> 1
 (3, 2) -> 2
 label: shading
-(2, 1) -> 1
-(3, 1) -> 0
-(3, 2) -> 0
 1 -> 1
 2 -> 0
 3 -> 0

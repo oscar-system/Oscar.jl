@@ -48,6 +48,7 @@ add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
+add_label!
 ```
 
 ## Auxiliary functions
@@ -83,6 +84,10 @@ reverse(e::Edge)
 src(e::Edge)
 ```
 
+### Visualization
+```@docs
+visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
+```
 ## Saving and loading
 
 Objects of type `Graph` can be saved to a file and loaded with the methods
