@@ -637,6 +637,7 @@ export galois_group
 export galois_ideal
 export galois_orbit_sum
 export galois_quotient
+export galois_representative_and_multiplicity
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group

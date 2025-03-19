@@ -3336,6 +3336,54 @@ function galois_orbit_sum(chi::GAPGroupClassFunction)
     return class_function(tbl, GAPWrap.ClassFunction(GapObj(tbl), GapObj(sums)))
 end
 
+
+@doc raw"""
+    galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+
+Return `phi, n, m` where `phi` is an absolutely irreducible constituent
+of the rational ordinary character `chi` and `n`, `m` are positive
+`ZZRingElem`s such that `phi` has `n` Galois conjugates
+and `chi` is `m` times the sum of these Galois conjugates.
+
+If `check` is `true` then an exception is thrown if `chi` is not rational
+or not an ordinary character or not a multiple of a Galois sum of an
+irreducible character.
+If `check` is `false` then these checks are omitted.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> chi = 3 * (t[2] + t[3]);  chi[1]
+18
+
+julia> phi, n, m = galois_representative_and_multiplicity(chi);
+
+julia> phi[1], n, m
+(3, 2, 3)
+```
+"""
+function galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+    if check
+      @req characteristic(chi) == 0 "chi must be ordinary"
+      @req degree_of_character_field(chi) == 1 "chi must be rational"
+    end
+    tbl = parent(chi)
+    for phi in tbl
+      m = scalar_product(ZZRingElem, chi, phi)
+      if m != 0
+        # We assume `chi[1] == m * n * phi[1]`.
+        n = div(degree(ZZRingElem, chi), m * degree(ZZRingElem, phi))
+        if check
+          @req chi == m * galois_orbit_sum(phi) "chi must be a multiple of a Galois sum"
+        end
+        return (phi, n, m)
+      end
+    end
+    throw(ArgumentError("chi must be a character"))
+end
+
+
 @doc raw"""
     schur_index(chi::GAPGroupClassFunction) -> Int
 
