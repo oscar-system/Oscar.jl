@@ -26,7 +26,7 @@ julia> s[2]
 julia> "stone" in s
 false
 
-julia> s("stone")    # the "position" of objects now in there is 0
+julia> s("stone")    # the "position" of objects not in there is 0
 0
 
 julia> push!(s, "ball", "stone")    # only "new" things are actually added
