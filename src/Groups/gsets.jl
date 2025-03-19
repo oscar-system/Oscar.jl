@@ -41,7 +41,7 @@ The fields are
     action_function::Function
     seeds
 
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup}}
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup, AbstractAlgebra.Group}}
         @req !isempty(seeds) "seeds for G-set must be nonempty"
         check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
         Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
@@ -118,7 +118,7 @@ end
 ##  general method with explicit action function
 
 """
-    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
+    gset(G::Union{GAPGroup, FinGenAbGroup, AbstractAlgebra.Group}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
 
 Return the G-set `Omega` that consists of the closure of the seeds `seeds`
 under the action of `G` defined by `fun`.
@@ -155,7 +155,7 @@ julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
 6
 ```
 """
-function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
+function gset(G::Union{GAPGroup, FinGenAbGroup, AbstractAlgebra.Group}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
   return GSetByElements(G, fun, seeds; closed = closed, check = check)
 end
 
@@ -243,7 +243,7 @@ end
 ##
 ##  G-sets given by the complete set
 
-function as_gset(G::T, fun::Function, Omega) where T<:Union{GAPGroup,FinGenAbGroup}
+function as_gset(G::T, fun::Function, Omega) where T<:Union{GAPGroup,FinGenAbGroup,AbstractAlgebra.Group}
     return GSetByElements(G, fun, Omega; closed = true)
 end
 
@@ -413,7 +413,7 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
     return res
 end
 
-function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
+function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{FinGenAbGroup, AbstractAlgebra.Group}, S}
     return orbit_via_Julia(Omega, omega)
 end
 
@@ -462,7 +462,7 @@ julia> map(collect, orbs)
  [5, 6]
 ```
 """
-@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
+@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup, AbstractAlgebra.Group},S}
   orbs = GSetByElements{T,S}[]
   for p_ in Omega.seeds
     p = p_::S
