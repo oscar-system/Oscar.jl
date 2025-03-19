@@ -3115,7 +3115,7 @@ function _regularity_bound(M::SubquoModule)
   S = base_ring(M)
   @assert is_z_graded(S) "base ring must be ZZ-graded"
   @assert all(x->degree(Int, x; check=false) >= 0, gens(S)) "base ring variables must be non-negatively graded"
-  res = free_resolution(M)
+  res = free_resolution(M; length=ngens(S)+2)
   result = maximum((x->degree(Int, x; check=false)).(gens(res[0])))
   for i in 0:first(chain_range(res))
     result = maximum(push!((x->degree(Int, x; check=false)).(gens(res[i])), result))
