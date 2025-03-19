@@ -757,7 +757,7 @@ end
 @doc raw"""
      labellings(G::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Returns the labellings of a graph `G` as a `Tuple{Symbol}`.
+Return the names of all labellings of a graph `G` as a `Tuple{Symbol}`.
 
 # Examples
 ```jldoctest
@@ -1245,18 +1245,18 @@ end
 
 Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 
-The `backend` keyword argument allows the user to pick between a Threejs visual by default, or passing `:tikz` for a tikz visual.
-The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or tikz code for `:tikz`.
+The `backend` keyword argument allows the user to pick between a Three.js visualization by default, or passing `:tikz` for a TikZ visualization.
+The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or TikZ code for `:tikz`.
 If the graph `G` has a labelling `:color` (see [`add_label!`](@ref)) then the visualization will use these colors to color the graph.
 
-Possible Color labellings include RGB color labellings of the form `"255 0 255"` as well as the following named colors `"polymakeorange"`, `"polymakegreen"`,
-`"white"`, `"purple"`, `"cyan"`, `"darkolivegreen"`, `"indianred"`, `"plum1"`, `"red"`, `"lightslategrey"`, `"yellow"`, `"orange"`, `"salmon1"`, `"azure"`, `"green"`, `"gray"`, `"midnightblue"`, `"pink"`, `"magenta"`, `"blue"`, `"lavenderblush"`, `"chocolate1"`, `"lightgreen"`, `"black"`.
+Possible color labellings include RGB values of the form `"255 0 255"` or `"#ff00ff"`, as well as the following named colors as strings: `polymakeorange`, `polymakegreen`,
+`white`, `purple`, `cyan`, `darkolivegreen`, `indianred`, `plum1`, `red`, `lightslategrey`, `yellow`, `orange`, `salmon1`, `azure`, `green`, `gray`, `midnightblue`, `pink`, `magenta`, `blue`, `lavenderblush`, `chocolate1`, `lightgreen`, `black`.
 
 """
 function visualize(G::Graph{T};
                    backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing,
                    kwargs...) where {T <: Union{Directed, Undirected}}
-  BG = Polymake.bigobject("graph::Graph<$T>", ADJACENCY=G)
+  BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
 
   defaults = (;VertexLabels = collect(1:n_vertices(G)))
   if has_attribute(G, :color)
@@ -1408,14 +1408,14 @@ end
 
 @doc raw"""
      add_label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
-Given a graph `G` add a label to the edges and optinally to the vertixes with the given `name`
+Given a graph `G`, add labels to the edges and optionally to the vertices with the given `name`.
 
 ```jldoctest
 julia> G = graph_from_edges(Directed, [[1, 2], [2, 3]])
 Directed graph with 3 nodes and the following edges:
 (1, 2)(2, 3)
 
-julia> add_label!(G, Dict((1, 2) => 1), nothing; name=:colour)
+julia> add_label!(G, Dict((1, 2) => 1), nothing; name=:color)
 Directed graph with 3 nodes and the following labelling(s)
 label: colour
 (1, 2) -> 1
@@ -1452,7 +1452,7 @@ function add_label!(G::Graph{T},
     getproperty(G,name)[k] = v
   end
   for (k, v) in vertex_labels
-    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
     getproperty(G,name)[k] = v
   end
   return G
@@ -1477,7 +1477,7 @@ function add_label!(G::Graph{T},
   NM = NodeMap{T, U}(pm_object(G))
   set_attribute!(G, name, GraphMap(G, nothing, NM))
   for (k, v) in vertex_labels
-    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph, please set n_vertices"
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
     getproperty(G,name)[k] = v
   end
   return G
@@ -1487,7 +1487,7 @@ end
     graph_from_labelled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
     graph_from_labelled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
-Create a graph from edge labellings and an optional vertex labellings. There is an optional input for number of vertices, see `graph_from_edges`.
+Create a graph from an edge labelling and an optional vertex labelling. There is an optional input for the number of vertices, see `graph_from_edges`.
 
 # Examples
 ```jldoctest
