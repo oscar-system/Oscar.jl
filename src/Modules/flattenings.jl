@@ -74,11 +74,12 @@ function coordinates(
 end
 
 function free_resolution(
-    M::SubquoModule{T}
+    M::SubquoModule{T};
+    length::Int=0
   ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(M))
   M_flat, iso_M, iso_M_inv = flat(M)
-  comp = free_resolution(M_flat) # assuming that this is potentially cached
+  comp = free_resolution(M_flat; length) # assuming that this is potentially cached
   return get!(flat_counterparts(flat), comp) do
     res_obj = ModuleFP[]
     isos = ModuleFPHom[]
