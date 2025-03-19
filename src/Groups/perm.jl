@@ -1017,26 +1017,6 @@ function print_perm(io::IO, perm::PermGroupElem, cycle_limit::Int = 100)
   return nothing
 end
 
-# print a permutation but limited to 'width' characters
-# width must be at least 5, if it is lower we set it to that
-function print_perm_trunc(io::IO, perm::PermGroupElem, width::Int)
-  width = max(width, 5)
-
-  # print the permutation into a string; since each cycle takes up at least
-  # five character (as in `(1,2)` or `(...)`), we limit to at most width/5
-  # cycles.
-  str_io = IOBuffer()
-  print_perm(str_io, perm, div(width, 5))
-  str = String(take!(str_io))
-
-  if length(str) > width
-    head = str[1:width-5]
-    error("TODO")
-  end
-
-  print(io, str)
-end
-
 function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
   dom = BitSet()
   l = GAPWrap.LargestMovedPoint(GapObj(perm))
@@ -1090,7 +1070,7 @@ function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
     if pos == nothing
       any_cycles_left = true
     else
-      print(io, @view str[1:pos], "...)")
+      print(io, str[1:pos], "...)")
     end
   end
   if any_cycles_left
