@@ -638,6 +638,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
       @vprint :MinField 1 "descending to $m...\n"
       pe = mm(m[1])
       U, mU = sub(domain(mA), [a for a = domain(mA) if mA(a)(pe) == pe])
+      @assert order(U) == divexact(degree(base_ring(V)), degree(m))
       cc = restrict(c, mU)
       fl, b = Oscar.is_coboundary(cc)
       @assert fl
@@ -1695,6 +1696,7 @@ function _rref!(V::Vector{<:MatElem{<:FieldElem}})
     for k=o+1:length(V)
       iszero(V[k][i]) && continue
       V[k] -= V[k][i] * V[o]
+      @assert iszero(V[k][i])
     end
     o += 1
     if o>length(V)
@@ -1722,10 +1724,19 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
   k = base_ring(C)
   @assert base_ring(m_in[1]) == k
   @assert base_ring(m_in[1]) == k
+  is_galois = true
   while true
     p = next_prime(p)
-    me = modular_init(k, p, deg_limit = 1)
-    isempty(me) && continue
+    if is_galois
+      me = modular_init(k, p, deg_limit = 1)
+      isempty(me) && continue
+      if me.ce.n * degree(me.ce.pr[1]) != degree(k)
+        is_galois = false
+        continue
+      end
+    else
+      me = modular_init(k, p)
+    end
     z1 = Hecke.modular_proj(C, me)
     if C === D
       z2 = z1
@@ -1735,10 +1746,18 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
     t = []
     for i=1:length(z1)
       mp = hom_base(z1[i], z2[i])
+#      for x = mp
+#        h = hom(z1[i].M, z2[i].M, x)
+#        @assert is_G_hom(z1[i], z2[i], h)
+#      end
       if isempty(mp)
         return dense_matrix_type(base_ring(C))[]
       end
       _rref!(mp)
+#      for x = mp
+#        h = hom(z1[i].M, z2[i].M, x)
+#        @assert is_G_hom(z1[i], z2[i], h)
+#      end
       push!(t, mp)
     end
     #should actually compute an rref of the hom base to make sure
@@ -1751,15 +1770,29 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
       return []
     end
 
+#    _t = deepcopy(t)
     tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
+#    for l=1:length(tt)
+#      _s = Hecke.modular_proj(tt[l], me)
+#      @assert all(ll -> _s[ll] == _t[ll][l], 1:length(_s))
+#    end
+
+#    tst = [[m_in[i]*s -  s*m_out[i] for i= 1:length(m_in)] for s = tt]
+#    @show [[map_entries(x->valuation(x, ZZ(p)), y) for y = z] for z = tst]
+#    if valuation(tst[1][1][1,1], ZZ(p)) == 0
+#      global last_bad = (tst, tt, p)
+#      error("bad")
+#    end
     @assert base_ring(tt[1]) == k
     if isone(pp)
       pp = ZZRingElem(p)
       T = tt
     else
       T = [induce_crt(tt[i], T[i], ZZRingElem(p), pp) for i=1:length(T)]
+#     tst = [[m_in[i]*s -  s*m_out[i] for i= 1:length(m_in)] for s = T]
       @assert base_ring(T[1]) == k
       pp *= p
+#      @show [[map_entries(x->valuation(x, pp), y) for y = z] for z = tst]
       S = typeof(T[1])[]
       for t = T
         fl, s = induce_rational_reconstruction(t, pp, error_tolerant = true)
@@ -1776,6 +1809,11 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
       end
     end
   end
+end
+
+function Hecke.valuation(a::NumFieldElem, p::ZZRingElem)
+  iszero(a) && return -1
+  return minimum([valuation(coeff(a, i), p) for i=0:degree(parent(a))-1 if !iszero(coeff(a, i))])
 end
 
 function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
@@ -1795,14 +1833,10 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
   while true
     p = next_prime(p)
     z1 = gmodule(Native.GF(p), C)
-    @show p
-    @time t = hom_base(z1, z1)
-    @show length(t)
+    t = hom_base(z1, z1)
     isempty(t) && return QQMatrix[]
-    @time c, mc = center(matrix_algebra(base_ring(z1), t; isbasis = true))
-    @show c
+    c, mc = center(matrix_algebra(base_ring(z1), t; isbasis = true))
     t = [mc(x).matrix for x = basis(c)]
-    @show length(t)
 
     _rref!(t)
     tt = [lift(s)  for s=t]
@@ -2011,7 +2045,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   B = lll_basis(Z_M)
   @assert all(!iszero, B)
   seen = Set{elem_type(E)}()
-  #=
+  
   for b = B
     x = b.elem_in_algebra
     if x in seen
@@ -2042,7 +2076,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
       length(z) > 0 && return z
     end
   end
-  =#
+ #
  
   #=
   p = 10000
@@ -2066,7 +2100,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   end
   =#
 
-#=
+
   mb = matrix(QQ, transpose(hcat([coefficients(x.elem_in_algebra) for x = B]...)))
   T = 10
   for i=1:T
@@ -2081,7 +2115,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
       length(z) > 0 && return z
     end
   end
-  =#
+
 
   return S
 end
@@ -2124,10 +2158,11 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
   local best_f::QQPolyRingElem
   local best_i::elem_type(E)
 
-  for i=basis(E)
+  for _i=lll_basis(Z_M)
+    i = _i.elem_in_algebra
     f = minpoly(i)
     lf = factor(f)
-    if length(lf) == 1 && degree(f) == s*m*k &&  collect(values(lf.fac))[1] == 1
+    if length(lf) == 1 && degree(f) == s*m*k &&  haskey(lf.fac, f)
       if first
         best_f = f
         best_i = i
@@ -2160,6 +2195,7 @@ function Oscar.eigenspace(f::Oscar.GModuleHom{<:Any, T, T}, a::AbsSimpleNumField
   @req codomain(f) == M "1st argument must be an endomorphism"
   Mf = extension_of_scalars(M, Ka)
   h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, f.module_map.matrix) - a*identity_matrix(Ka, dim(M))))
+  global last_h = h
   return kernel(h)[1]
 end
 
@@ -2385,30 +2421,43 @@ function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   return map(matrix, action(C))
 end
 
-#=
 function form_reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
   I = identity_matrix(ZZ, rank(C.M))
-  O = I
   de = ZZ(1)
+  iter = []
   for x = C.ac
-    O *= (I-matrix(x))
-    de *= 2
+    push!(iter, [matrix(x)])
+    l = 1
+    while !is_one(iter[end][end])
+      push!(iter[end], iter[end][1]*iter[end][end])
+      l += 1
+    end
+    @assert length(iter[end]) == l
+    @assert is_one(iter[end][end])
+    de *= l
   end
-  for i=1:-1
+  for i=1:-4
     l = rand(C.G)
-    O *= (I-action(C, l).matrix)
+    is_one(l) && continue 
+
+    push!(iter, [I, action(C, l).matrix])
     de *= 2
-    @show order(l)
   end
   a = identity_matrix(ZZ, rank(C.M))
-  @show rank(C.M)
+  a = matrix(ZZ, rand(-10:10, rank(C.M), rank(C.M)))
+  a = a*transpose(a)
+  @assert is_symmetric(a)
+  @assert is_positive_definite(a)
+ 
   den = ZZ(1)
   for i=1:70
 #    @assert is_symmetric(a)
 #    @show signature_tuple(integer_lattice(;gram = a))
 #    @assert is_positive_definite(a)
 #    global last_a_in = deepcopy(a)
-a = transpose(O)*a*(O)
+     for D = iter
+       a = sum(t*a*transpose(t) for t = D)
+     end
 #      global last_a_out = (a, g)
 
 #    @assert is_symmetric(a)
@@ -2416,21 +2465,23 @@ a = transpose(O)*a*(O)
 #    @assert is_positive_definite(a)
     den *= de
     @show nbits(den), maximum(nbits, a)
-    aa = a*QQ(1, 240*den)
-    @assert is_positive_definite(aa)
+    aa = a*QQ(order(C.G), den)
+#    @assert is_positive_definite(aa)
     aa = map_entries(x->abs(x-round(x)), aa)
-    @show [nbits(denominator(x)) for x = convergents(continued_fraction(aa[10,10]))]
+#    @show [nbits(denominator(x)) for x = convergents(continued_fraction(aa[10,10]))]
     @show maximum(aa)*1.0
     if maximum(aa) < 1e-5
-      a = map_entries(x->round(ZZRingElem, QQ(x, den)), a)
-      error("ASDasd")
+      a = map_entries(x->round(ZZRingElem, QQ(x*order(C.G), den)), a)
+      if any(x->x.matrix * a *transpose(x.matrix) != a, C.ac)
+        @show :bad
+        continue
+      end
     @assert is_positive_definite(a)
       return a
     end
   end
 end
 
-=#
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
 # f = invariant_forms(C)[1]
@@ -2439,32 +2490,27 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
  while true
-   f = zero_matrix(ZZ, dim(C), dim(C))
-   for i=(C.G)
-     @show i
-     x = action(C, i)
-     f = f + matrix(x)*transpose(matrix(x))
-     @assert is_symmetric(f)
-   end
+#   f = zero_matrix(ZZ, dim(C), dim(C))
+#   for i=(C.G)
+#     @show i
+#     x = action(C, i)
+#     f = f + matrix(x)*transpose(matrix(x))
+#     @assert is_symmetric(f)
+#   end
+   f = form_reynold(C)
 #   @assert is_symmetric(f)
 #   @assert is_positive_definite(f)
-   global last_f = f
    L, T = lll_gram_with_transform(f)
    @assert L == T*f*transpose(T)
 
    Ti = inv(T)
    n = [T*x*Ti for x = m]
-     @show length(string(n)), length(string(m))
-     @show sum([maximum(nbits, x) for x = n])
-     @show sum([maximum(nbits, x) for x = m])
    if length(string(n)) >= length(string(m))
      return C, S
    end
-   error("ASD")
    S = T*S
    C = gmodule(group(C), n)
-   f = invariant_forms(C)[1]
-   M = n
+   m = n
  end
 end
 
