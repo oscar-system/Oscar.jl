@@ -45,7 +45,7 @@ end
 function sub(gens::GAPGroupElem...)
    @req length(gens) > 0 "Empty list"
    l = collect(gens)
-   @assert all(x -> parent(x) == parent(l[1]), l)
+   @assert allequal(parent, l)
    return sub(parent(l[1]), l, check = false)
 end
 
@@ -384,6 +384,7 @@ julia> jennings_series(dihedral_group(16))
 
 julia> jennings_series(dihedral_group(10))
 ERROR: ArgumentError: group must be a p-group
+[...]
 ```
 """
 @gapattribute function jennings_series(G::GAPGroup)
@@ -412,6 +413,7 @@ julia> p_central_series(alternating_group(4), 3)
 
 julia> p_central_series(alternating_group(4), 4)
 ERROR: ArgumentError: p must be a prime
+[...]
 ```
 """
 function p_central_series(G::GAPGroup, p::IntegerUnion)
@@ -508,6 +510,7 @@ julia> nilpotency_class(dihedral_group(8))
 
 julia> nilpotency_class(dihedral_group(12))
 ERROR: ArgumentError: The group is not nilpotent.
+[...]
 ```
 """
 @gapattribute function nilpotency_class(G::GAPGroup)
@@ -546,6 +549,7 @@ false
 
 julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
@@ -646,6 +650,7 @@ false
 
 julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)

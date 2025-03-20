@@ -67,6 +67,7 @@ julia> number_of_transitive_groups(30)
 
 julia> number_of_transitive_groups(64)
 ERROR: ArgumentError: the number of transitive groups of degree 64 is not available
+[...]
 ```
 """
 function number_of_transitive_groups(deg::Int)
@@ -88,6 +89,7 @@ Alt(5)
 
 julia> transitive_group(5,6)
 ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
+[...]
 ```
 """
 function transitive_group(deg::Int, i::Int)
@@ -131,11 +133,13 @@ true
 
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
+[...]
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
 ERROR: ArgumentError: group is not transitive on its moved points
+[...]
 ```
 """
 function transitive_group_identification(G::PermGroup)

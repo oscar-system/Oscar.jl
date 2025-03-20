@@ -24,6 +24,7 @@ Permutation group of degree 11 and order 7920
 
 julia> atlas_group("M")  # Monster group M
 ERROR: ArgumentError: the group atlas does not provide a representation for M
+[...]
 ```
 """
 function atlas_group(name::String)
