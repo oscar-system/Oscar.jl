@@ -75,7 +75,7 @@ function koszul_complex(::Type{T}, v::Vector{<:RingElem}) where {T<:AbsSimpleCom
   R = parent(first(v))
   @assert all(u->parent(u)===R, v) "elements must belong to the same ring"
   r = length(v)
-  F = (is_graded(R) ? graded_free_module(R, degree.(x)) : FreeMod(R, r))
+  F = (is_graded(R) ? graded_free_module(R, degree.(v)) : FreeMod(R, r))
   w = sum(u*e for (u, e) in zip(v, gens(F)); init = zero(F))
   return koszul_complex(T, w)
 end
