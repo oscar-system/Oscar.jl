@@ -7,10 +7,11 @@
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
   graph::Graph{T}
   labellings::L
-  function GaussianGraphicalModel(F::Field, G::Graph{T}) where T <: GraphTypes
+  varnames::Vector{VarName}
+  function GaussianGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(F, G, graph_maps)
+    return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
   end
 end
 
@@ -31,8 +32,15 @@ Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 ```
 """
-gaussian_graphical_model(F::Field, G::Graph) = GaussianGraphicalModel(F, G)
-gaussian_graphical_model(G::Graph) = gaussian_graphical_model(QQ, G)
+function gaussian_graphical_model(G::Graph{Directed};
+                                  s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+  GaussianGraphicalModel(G, VarName[s_varname, l_varname, w_varname])
+end
+
+function gaussian_graphical_model(G::Graph{Undirected};
+                                  s_varname::VarName="s", k_varname::VarName="k")
+  GaussianGraphicalModel(G, [s_varname, k_varname])
+end
 
 function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
@@ -58,7 +66,7 @@ struct GaussianRing <: Ring
 end
 
 @doc raw"""
-    gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ, cached=false)
+    gaussian_ring(n::Int; s_varname::VarName="s", K::Field=QQ, cached=false)
 
 A polynomial ring whose variables correspond to the entries of a covariance matrix of `n` Gaussian random variables.
 It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose coefficient field `K` is by default `QQ`.
@@ -73,26 +81,39 @@ Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
-@attr function probability_ring(GM::GaussianGraphicalModel; s_var_name::VarName="s", cached=false)
+@attr function probability_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
-  varnames = ["$(s_var_name)[$(i), $(j)]" for (i, j) in varindices]
-  S, s = polynomial_ring(QQ, varnames; cached=cached)
-  d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
-  cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
-  GaussianRing(S, d, cov_matrix)
+  varnames = ["$(GM.varnames[1])[$(i), $(j)]" for (i, j) in varindices]
+  polynomial_ring(QQ, varnames; cached=false)[1]
 end
 
-@attr function parameter_ring(GM::GaussianGraphicalModel; l_var_name::VarName="l", w_var_name::VarName="w")
+function covariance_matrix(GM::GaussianGraphicalModel)
+  S = probability_ring(GM)
+  cov_mat = upper_triangular_matrix(gens(S))
+  n = n_vertices(graph(GM))
+  # turn upper triangular matrix into a symmetric one
+  for i in 1:n
+    for j in i + 1:n
+      cov_mat[j, i] = cov_mat[i, j]
+    end
+  end
+  return cov_mat
+end
+
+@attr function parameter_ring(GM::GaussianGraphicalModel{Directed, Nothing}; l_varname::VarName="l", w_varname::VarName="w", cached=false)
   G = graph(GM)
   l_indices = [(src(e), dst(e)) for e in edges(G)]
   w_indices = vertices(G)
-  R, _ = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices]; cached=cached)
+  varnames = (["$(l_varname)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_varname)[$(v)]" for v in w_indices])
+  polynomial_ring(QQ, varnames; cached=cached)[1]
   return R
 end
 
-@attr function parameter_ring_gens(GM::GaussianGraphicalModel)
-  
+@attr function parameter_ring_gens(GM::GaussianGraphicalModel{Directed, Nothing})
+  G = graph(GM)
+  R = parameter_ring(GM)
+  reshape_to_varnames(R)
 end
 
 function Base.show(io::IO, R::GaussianRing)
@@ -193,7 +214,7 @@ julia> directed_edges_matrix(M)
 """
 function directed_edges_matrix(M::GaussianGraphicalModel{Directed, T}) where T
   G = graph(M)
-  l = parameter_gens(M)[1]
+  l = parameter_ring_gens(M)[1]
   L = matrix(parameter_ring(M), [[has_edge(G, i, j) ? l[i,j] : 0 for j in vertices(G)] for i in vertices(G)])
 end
 
