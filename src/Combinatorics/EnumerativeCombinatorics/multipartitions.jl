@@ -9,7 +9,6 @@
 
 """
     multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
-    multipartition(mp::Vector{Vector{Any}})
 
 Return the multipartition given by the vector `mp` of integer sequences `mp`
 (which are interpreted as integer partitions) as an object of type
@@ -25,7 +24,7 @@ julia> sum(P)
 9
 julia> P[2]
 Int64[]
-julia> P=Multipartition( Array{Int8,1}[[2,1], [], [3,2,1]] )
+julia> P=Multipartition( Vector{Int8}[[2,1], [], [3,2,1]] )
 Partition{Int8}[[2, 1], [], [3, 2, 1]]
 ```
 
@@ -103,8 +102,8 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
     #the composition.
     #We create the compositions here in place for efficiency.
 
-    #recursively produces all Integer Arrays p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
-    function recP!(p::Array{T,1}, i::T, n::T) #where T<:Integer
+    #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
+    function recP!(p::Vector{T}, i::T, n::T) #where T<:Integer
         if i==length(p) || n==0
             p[i] = n
             recMultipartitions!(fill(Partition(T[]),r), p, T(1))
@@ -117,7 +116,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
     end
 
     #recursively produces all multipartitions such that the i-th partition sums up to p[i]
-    function recMultipartitions!(mp::Array{Partition{T},1}, p::Array{T,1}, i::T) #where T<:Integer
+    function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:Integer
         if i == length(p)
             for q in partitions(p[i])
                 mp[i] = q
