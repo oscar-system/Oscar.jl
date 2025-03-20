@@ -782,7 +782,7 @@ end
 function _graph_maps(G::Graph)
   labels = tuple(labelings(G)...)
   isempty(labels) && return NamedTuple{}()
-  return NamedTuple{labels}(tuple([getproperty(G, l) for l in labels]...))
+  return Dict(l => getproperty(G, l) for l in labels)
 end
 
 ################################################################################
