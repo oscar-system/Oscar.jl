@@ -218,33 +218,69 @@ function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeEle
   return wr
 end
 
-function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, w.vec, n)
   return wr
 end
 
-function mul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+function mul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, n, w.vec)
   return wr
 end
 
-function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, w.vec, n)
   return wr
 end
 
-function addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+function addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, n, w.vec)
   return wr
 end
 
 # ignore temp storage
-addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion, t) = addmul!(wr, w, n)
-addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem, t) = addmul!(wr, n, w)
+addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) =
+  addmul!(wr, w, n)
+addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) =
+  addmul!(wr, n, w)
+
+function submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
+  @req parent(wr) === parent(w) "parent mismatch"
+  wr.vec = submul!(wr.vec, w.vec, n)
+  return wr
+end
+
+function submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
+  @req parent(wr) === parent(w) "parent mismatch"
+  wr.vec = submul!(wr.vec, n, w.vec)
+  return wr
+end
+
+# ignore temp storage
+submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr, t) =
+  submul!(wr, w, n)
+submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) =
+  submul!(wr, n, w)
+
+function mat_entry_ptr(w::WeightLatticeElem, i::Int)
+  return mat_entry_ptr(w.vec, 1, i)
+end
+
+function is_zero_entry(w::WeightLatticeElem, i::Int)
+  return is_zero_entry(w.vec, 1, i)
+end
+
+function is_positive_entry(w::WeightLatticeElem, i::Int)
+  return is_positive_entry(w.vec, 1, i)
+end
+
+function is_negative_entry(w::WeightLatticeElem, i::Int)
+  return is_negative_entry(w.vec, 1, i)
+end
 
 function Base.:(==)(w1::WeightLatticeElem, w2::WeightLatticeElem)
   return parent(w1) === parent(w2) && w1.vec == w2.vec
@@ -426,11 +462,10 @@ See also: [`is_fundamental_weight(::WeightLatticeElem)`](@ref).
 """
 function is_fundamental_weight_with_index(w::WeightLatticeElem)
   ind = 0
-  coeffs = coefficients(w)
-  for i in 1:size(coeffs, 2)
-    if is_zero_entry(coeffs, 1, i)
+  for i in 1:rank(parent(w))
+    if is_zero_entry(w, i)
       continue
-    elseif is_one(coeffs[1, i])
+    elseif GC.@preserve w is_one(mat_entry_ptr(w, i))
       ind != 0 && return false, 0
       ind = i
     else
@@ -459,7 +494,8 @@ Reflect `w` in the hyperplane orthogonal to the `s`-th simple root, and return i
 This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
+  # the scalar `w.vec[s]` needs to be implicitly copied as it otherwise gets mutated by `submul!`
+  w.vec = submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
   return w
 end
 

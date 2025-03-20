@@ -26,7 +26,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> int_combination = matrix(ZZ, [[3]])
 [3]
@@ -40,13 +39,41 @@ G4-flux candidate
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
+
+julia> flux_instance(fgs, Int[], [], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> flux_instance(fgs, [3], [], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> flux_instance(fgs, [], [5//2], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> flux_instance(fgs, [3], [5//2], check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
   @req ncols(int_combination) == 1 "int_combination is expected to be a single column vector"
   @req ncols(rat_combination) == 1 "rat_combination is expected to be a single column vector"
   @req nrows(int_combination) == ncols(matrix_integral(fgs)) "Number of specified integers must match the number of integral combinations in G4-flux family"
-  @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of integral combinations in G4-flux family"
+  @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
   gens = chosen_g4_flux_basis(model(fgs), check = check)
@@ -75,6 +102,45 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
 end
 
 
+function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeffs::Vector{Rational{Int}}; check::Bool = true)
+  if length(int_coeffs) == 0 && length(rat_coeffs) == 0
+    m = model(fgs)
+    r = cohomology_ring(ambient_space(m), check = check)
+    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r)))
+  end
+  @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
+  @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
+
+  m_int = matrix(ZZ, [int_coeffs])
+  if length(int_coeffs) == 0
+    m_int = zero_matrix(ZZ, 1, ncols(matrix_integral(fgs)))
+  end
+  if length(int_coeffs) > 0
+    @req length(int_coeffs) == ncols(matrix_integral(fgs)) "Number of specified integers must match the number of integral combinations in G4-flux family"
+  end
+  m_rat = matrix(QQ, [rat_coeffs])
+  if length(rat_coeffs) == 0
+    m_rat = zero_matrix(QQ, 1, ncols(matrix_rational(fgs)))
+  end
+  if length(rat_coeffs) > 0
+    @req length(rat_coeffs) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
+  end
+  return flux_instance(fgs, m_int, m_rat, check = check)
+end
+
+function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Any}, rat_coeffs::Vector{Rational{Int}}; check::Bool = true)
+  return flux_instance(fgs, Vector{Int}(int_coeffs), rat_coeffs, check = check)
+end
+
+function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeffs::Vector{Any}; check::Bool = true)
+  return flux_instance(fgs, int_coeffs, Vector{Rational{Int}}(rat_coeffs), check = check)
+end
+
+function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Any}, rat_coeffs::Vector{Any}; check::Bool = true)
+  return flux_instance(fgs, Vector{Int}(int_coeffs), Vector{Rational{Int}}(rat_coeffs), check = check)
+end
+
+
 @doc raw"""
     random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
@@ -98,7 +164,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate

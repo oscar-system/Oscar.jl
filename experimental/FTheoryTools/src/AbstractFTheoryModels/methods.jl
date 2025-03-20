@@ -634,7 +634,7 @@ function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}
   set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
-function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
+function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Vector{String}}, Vector{String}}})
   set_attribute!(m, :resolutions => desired_value)
 end
 
@@ -652,7 +652,7 @@ function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector
   set_attribute!(m, :resolution_zero_sections => result)
 end
 
-function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
+function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int}}}, Vector{String}}})
   set_attribute!(m, :weighted_resolutions => desired_value)
 end
 

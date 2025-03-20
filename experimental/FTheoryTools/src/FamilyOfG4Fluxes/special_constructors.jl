@@ -45,7 +45,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
@@ -90,7 +89,6 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
-  - Tadpole constraint: not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
@@ -159,6 +157,16 @@ end
 
 @attr FamilyOfG4Fluxes function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant) && has_attribute(m, :matrix_rational_quant)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant(m, check = check), matrix_rational_quant(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, false)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    return fgs
+  end
+
+
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
@@ -166,6 +174,7 @@ end
     @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
+
 
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
@@ -184,6 +193,18 @@ end
 
 
   # (3) Are intersection numbers known?
+  # TODO: If available and necessary, convert inter_dict.
+  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
+  # TODO: Once serialization has caught up, this conversion will no longer be needed.
+  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
+    original_dict = get_attribute(m, :inter_dict)
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
+  end
   inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
@@ -236,8 +257,8 @@ end
   
   # (6) Convert the intersection matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
   # (6) Then compute its Smith normal form.
-  denom = lcm(unique(vcat([denominator.(k) for k in constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in constraint_matrix]))))
+  if !is_one(denom)
     constraint_matrix = denom * constraint_matrix
   end
   C = transpose(matrix(ZZ, constraint_matrix))
@@ -278,6 +299,8 @@ end
 
   # (9) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant, res[1])
+  set_attribute!(m, :matrix_rational_quant, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, false)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
@@ -292,6 +315,16 @@ end
 
 @attr FamilyOfG4Fluxes function well_quantized_and_transversal_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse(m, check = check), matrix_rational_quant_transverse(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    return fgs
+  end
+  
+  
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
@@ -318,10 +351,22 @@ end
 
 
   # (3) Are intersection numbers known?
-  inter_dict = get_attribute(m, :inter_dict) do
+  # TODO: If available and necessary, convert inter_dict.
+  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
+  # TODO: Once serialization has caught up, this conversion will no longer be needed.
+  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
+    original_dict = get_attribute(m, :inter_dict)
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
+  end
+  inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
-  s_inter_dict = get_attribute(m, :s_inter_dict) do
+  s_inter_dict = get_attribute!(m, :s_inter_dict) do
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
 
@@ -402,8 +447,8 @@ end
 
   # (6) Compute the vertical fluxes as the kernel of the vertical_constraint_matrix.
   # (6) To later tell if those fluxes are properly quantized, we want to parametrize them with integer coefficient only.
-  denom = lcm(unique(vcat([denominator.(k) for k in vertical_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in vertical_constraint_matrix]))))
+  if !is_one(denom)
     vertical_constraint_matrix = denom * vertical_constraint_matrix
   end
   C_vertical = transpose(matrix(ZZ, vertical_constraint_matrix))
@@ -447,8 +492,8 @@ end
   end
   
   # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
-  denom = lcm(unique(vcat([denominator.(k) for k in quant_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in quant_constraint_matrix]))))
+  if !is_one(denom)
     quant_constraint_matrix = denom * quant_constraint_matrix
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))
@@ -479,6 +524,8 @@ end
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant_transverse, res[1])
+  set_attribute!(m, :matrix_rational_quant_transverse, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
@@ -493,6 +540,16 @@ end
 
 @attr FamilyOfG4Fluxes function well_quantized_and_transversal_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
+  # (0) Has this result been computed before?
+  if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak)
+    fgs = family_of_g4_fluxes(m, matrix_integral_quant_transverse_nobreak(m, check = check), matrix_rational_quant_transverse_nobreak(m, check = check))
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :passes_transversality_checks, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+    return fgs
+  end
+
+  
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized, transversal and non-breaking G4-fluxes only supported for 5-dimensional toric ambient spaces"
@@ -519,10 +576,22 @@ end
 
 
   # (3) Are intersection numbers known?
-  inter_dict = get_attribute(m, :inter_dict) do
+  # TODO: If available and necessary, convert inter_dict.
+  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
+  # TODO: Once serialization has caught up, this conversion will no longer be needed.
+  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
+    original_dict = get_attribute(m, :inter_dict)
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
+  end
+  inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
-  s_inter_dict = get_attribute(m, :s_inter_dict) do
+  s_inter_dict = get_attribute!(m, :s_inter_dict) do
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
 
@@ -628,8 +697,8 @@ end
 
   # (6) Compute the vertical fluxes as the kernel of the vertical_and_no_gauge_group_breaking_constraint_matrix.
   # (6) To later tell if those fluxes are properly quantized, we want to parametrize them with integer coefficient only.
-  denom = lcm(unique(vcat([denominator.(k) for k in vertical_and_no_gauge_group_breaking_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in vertical_and_no_gauge_group_breaking_constraint_matrix]))))
+  if !is_one(denom)
     vertical_and_no_gauge_group_breaking_constraint_matrix = denom * vertical_and_no_gauge_group_breaking_constraint_matrix
   end
   C_vertical_and_no_gauge_group_breaking = transpose(matrix(ZZ, vertical_and_no_gauge_group_breaking_constraint_matrix))
@@ -673,8 +742,8 @@ end
   end
   
   # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
-  denom = lcm(unique(vcat([denominator.(k) for k in quant_constraint_matrix]...)))
-  if denom != 1
+  denom = lcm(unique!(sort!(reduce(vcat, [denominator.(k) for k in quant_constraint_matrix]))))
+  if !is_one(denom)
     quant_constraint_matrix = denom * quant_constraint_matrix
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))
@@ -705,6 +774,8 @@ end
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
+  set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)

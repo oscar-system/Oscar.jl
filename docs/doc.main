@@ -73,6 +73,7 @@
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_spaces.md",
      "AbstractAlgebra/matrix_implementation.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
      "Modules" => [
@@ -309,5 +310,6 @@
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
+    "DeveloperDocumentation/parallel.md"
   ],
 ]
