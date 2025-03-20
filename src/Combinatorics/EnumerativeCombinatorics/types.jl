@@ -287,9 +287,8 @@ end
 #
 ################################################################################
 
-
 """
-    Multipartition{T} <: AbstractArray{Partition{T},1}
+    Multipartition{T<:IntegerUnion} <: AbstractArray{Partition{T},1}
 
 Multipartitions are generalizations of partitions. An r-component **multipartition** of an integer n is an r-tuple of partitions λ¹, λ², …, λʳ where each λⁱ is a partition of some integer nᵢ ≥ 0 and the nᵢ sum to n.
 
@@ -310,7 +309,7 @@ Partition{Int8}[[2, 1], [], [3, 2, 1]]
 # References
 1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
 """
-struct Multipartition{T} <: AbstractArray{Partition{T},1}
+struct Multipartition{T<:IntegerUnion} <: AbstractArray{Partition{T},1}
     mp::Array{Partition{T},1}
 end
 
