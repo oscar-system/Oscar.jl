@@ -5,7 +5,9 @@ julia> sym = symmetric_group(n);
 julia> G, emb = sub([sym(x) for x in perms_list]...);
 
 julia> G
-Permutation group of degree 10
+Permutation group of degree 10 with 2 generators
+  (2,3)(5,6)(9,10)
+  (1,5,9,10,3)(2,7,8,4,6)
 
 julia> describe(G)
 "S5"
