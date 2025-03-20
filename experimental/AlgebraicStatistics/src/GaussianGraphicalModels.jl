@@ -1,5 +1,53 @@
 ###################################################################################
 #
+#       (Un)Directed Gaussian Graphical Models
+#
+###################################################################################
+
+@attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
+  base_field::Field
+  graph::Graph{T}
+  labellings::L
+  function GaussianGraphicalModel(F::Field, G::Graph{T}) where T <: GraphTypes
+    graph_maps = _graph_maps(G)
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{T, typeof(graph_maps)}(F, G, graph_maps)
+  end
+end
+
+@doc raw"""
+     gaussian_graphical_model(G::Graph)
+
+A parametric statistical model associated to a directed acyclic graph.
+It contains a directed acylic graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
+and a parameter ring whose variables `l[i,j]` correspond to the directed edges `i -> j` in `G`. 
+
+If `cached` is `true`, the internally generated polynomial ring will be cached.
+
+## Examples
+
+```jldoctest
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on a directed graph with edges:
+(1, 2), (2, 3)
+```
+"""
+gaussian_graphical_model(F::Field, G::Graph) = GaussianGraphicalModel(F, G)
+gaussian_graphical_model(G::Graph) = gaussian_graphical_model(QQ, G)
+
+function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Gaussian Graphical Model from ")
+    !(L == Nothing) && print(io, " labelled")
+    print(io, " $T graph")
+  else
+    print(io, "Gaussian Graphical Model from $(graph(M))")
+  end
+end
+
+###################################################################################
+#
 #       Gaussian Rings
 #
 ###################################################################################
@@ -26,10 +74,11 @@ Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
-function gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ, cached=false)
+@attr function probability_ring(GM::GaussianGraphicalModel; s_var_name::VarName="s")
+  n = n_vertices(graph(GM))
   varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
   varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
-  S, s = polynomial_ring(K, varnames; cached=cached)
+  S, s = polynomial_ring(base_field(GM), varnames; cached=false)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
   GaussianRing(S, d, cov_matrix)
@@ -112,52 +161,6 @@ function covariance_matrix(R::GaussianRing)
   R.covariance_matrix
 end
 
-###################################################################################
-#
-#       (Un)Directed Gaussian Graphical Models
-#
-###################################################################################
-
-struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
-  graph::Graph{T}
-  labellings::L
-  function GaussianGraphicalModel(G::Graph{T}) where T <: GraphTypes
-    graph_maps = _graph_maps(G)
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(G, graph_maps)
-  end
-end
-
-@doc raw"""
-     gaussian_graphical_model(G::Graph)
-
-A parametric statistical model associated to a directed acyclic graph.
-It contains a directed acylic graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
-and a parameter ring whose variables `l[i,j]` correspond to the directed edges `i -> j` in `G`. 
-
-If `cached` is `true`, the internally generated polynomial ring will be cached.
-
-## Examples
-
-```jldoctest
-julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
-Gaussian graphical model on a directed graph with edges:
-(1, 2), (2, 3)
-```
-"""
-gaussian_graphical_model(G::Graph) = GaussianGraphicalModel(G)
-
-function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
-  io = pretty(io)
-  if is_terse(io)
-    print(io, "Gaussian Graphical Model with ")
-    !(L == Nothing) && print(io, " labelled")
-    print(io, " $T graph")
-  else
-    print(io, "Gaussian Graphical Model with")
-    print(io, "with $(graph(M))")
-  end
-end
 
 @doc raw"""
     directed_edges_matrix(M::GaussianGraphicalModel{Graph{Directed}, T}) where T

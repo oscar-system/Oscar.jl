@@ -45,6 +45,7 @@ probability_ring(M::T) where T <: GraphicalModel = error("Please implement the m
 parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring for $T")
 parameter_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring_gens for $T")
 parametrization(M::T) where T <: GraphicalModel = error("Please implement the method parametrization for $T")
+base_field(GM::GraphicalModel) = GM.base_field
 
 @doc raw"""
     vanishing_ideal(M::GraphicalModel)
