@@ -32,32 +32,31 @@ Partition{Int8}[[2, 1], [], [3, 2, 1]]
 1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
 """
 function multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
-    return Multipartition([partition(p) for p in mp])
+  return Multipartition([partition(p) for p in mp])
 end
 
 # This is only called when the empty array is part of mp (because then it's
 # "Any" type and not of Integer type).
 function multipartition(mp::Vector{Vector{Any}})
-    return Multipartition([partition(p) for p in mp])
+  return Multipartition([partition(p) for p in mp])
 end
 
 
 function Base.show(io::IO, ::MIME"text/plain", MP::Multipartition)
-    print(io, MP.mp)
+  print(io, MP.mp)
 end
 
 function Base.size(MP::Multipartition)
-    return size(MP.mp)
+  return size(MP.mp)
 end
 
 function Base.length(MP::Multipartition)
-    return length(MP.mp)
+  return length(MP.mp)
 end
 
 function Base.getindex(MP::Multipartition, i::Int)
-    return getindex(MP.mp,i)
+  return getindex(MP.mp,i)
 end
-
 
 
 """
@@ -66,11 +65,11 @@ end
 If P is a multipartition of the integer n, this function returns n.
 """
 function Base.sum(P::Multipartition{T}) where T<:Integer
-    s = zero(T)
-    for i=1:length(P)
-        s += sum(P[i])
-    end
-    return s
+  s = zero(T)
+  for i=1:length(P)
+    s += sum(P[i])
+  end
+  return s
 end
 
 
@@ -91,47 +90,47 @@ julia> multipartitions(2,2)
 ```
 """
 function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
-    #Argument checking
-    n >= 0 || throw(ArgumentError("n >= 0 required"))
-    r >= 1 || throw(ArgumentError("r >= 1 required"))
+  #Argument checking
+  n >= 0 || throw(ArgumentError("n >= 0 required"))
+  r >= 1 || throw(ArgumentError("r >= 1 required"))
 
-    #This will be the list of multipartitions
-    MP = Multipartition{T}[]
+  #This will be the list of multipartitions
+  MP = Multipartition{T}[]
 
-    #We will go through all compositions of n into r parts, and for each such #composition, we collect all the partitions for each of the components of
-    #the composition.
-    #We create the compositions here in place for efficiency.
+  #We will go through all compositions of n into r parts, and for each such #composition, we collect all the partitions for each of the components of
+  #the composition.
+  #We create the compositions here in place for efficiency.
 
-    #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
-    function recP!(p::Vector{T}, i::T, n::T) #where T<:Integer
-        if i==length(p) || n==0
-            p[i] = n
-            recMultipartitions!(fill(Partition(T[]),r), p, T(1))
-        else
-            for j=0:n
-                p[i] = T(j)
-                recP!(copy(p), T(i+1), T(n-j))
-            end
-        end
+  #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
+  function recP!(p::Vector{T}, i::T, n::T) #where T<:Integer
+    if i==length(p) || n==0
+      p[i] = n
+      recMultipartitions!(fill(Partition(T[]),r), p, T(1))
+    else
+      for j=0:n
+        p[i] = T(j)
+        recP!(copy(p), T(i+1), T(n-j))
+      end
     end
+  end
 
-    #recursively produces all multipartitions such that the i-th partition sums up to p[i]
-    function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:Integer
-        if i == length(p)
-            for q in partitions(p[i])
-                mp[i] = q
-                push!(MP, Multipartition{T}(copy(mp)))
-            end
-        else
-            for q in partitions(p[i])
-                mp[i] = q
-                recMultipartitions!(copy(mp), p, T(i+1))
-            end
-        end
+  #recursively produces all multipartitions such that the i-th partition sums up to p[i]
+  function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:Integer
+    if i == length(p)
+      for q in partitions(p[i])
+        mp[i] = q
+        push!(MP, Multipartition{T}(copy(mp)))
+      end
+    else
+      for q in partitions(p[i])
+        mp[i] = q
+        recMultipartitions!(copy(mp), p, T(i+1))
+      end
     end
+  end
 
-    recP!(zeros(T,r), T(1), n)
-    return MP
+  recP!(zeros(T,r), T(1), n)
+  return MP
 end
 
 
@@ -149,21 +148,21 @@ where the second sum is over all [compositions](@ref Compositions) ``λ`` of ``n
 """
 function num_multipartitions(n::Int, k::Int)
 
-    z = ZZ(0)
+  z = ZZ(0)
 
-    # Special cases
-    if n==0
-        return ZZ(k)
+  # Special cases
+  if n==0
+    return ZZ(k)
+  end
+
+  for a=1:k
+    w = ZZ(0)
+    for λ in compositions(n,a)
+      w += prod([num_partitions(λ[i]) for i=1:length(λ)])
     end
+    z += binomial(k,a)*w
+  end
 
-    for a=1:k
-        w = ZZ(0)
-        for λ in compositions(n,a)
-            w += prod([num_partitions(λ[i]) for i=1:length(λ)])
-        end
-        z += binomial(k,a)*w
-    end
-
-    return z
+  return z
 
 end
