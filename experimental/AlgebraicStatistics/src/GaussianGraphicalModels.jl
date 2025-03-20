@@ -5,7 +5,6 @@
 ###################################################################################
 
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
-  base_field::Field
   graph::Graph{T}
   labellings::L
   function GaussianGraphicalModel(F::Field, G::Graph{T}) where T <: GraphTypes
@@ -74,17 +73,25 @@ Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
-@attr function probability_ring(GM::GaussianGraphicalModel; s_var_name::VarName="s")
+@attr function probability_ring(GM::GaussianGraphicalModel; s_var_name::VarName="s", cached=false)
   n = n_vertices(graph(GM))
-  varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
-  varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
-  S, s = polynomial_ring(base_field(GM), varnames; cached=false)
+  varindices = [(i, j) for i in 1:n for j in i:n]
+  varnames = ["$(s_var_name)[$(i), $(j)]" for (i, j) in varindices]
+  S, s = polynomial_ring(QQ, varnames; cached=cached)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
   GaussianRing(S, d, cov_matrix)
 end
 
-@attr function parameter_ring(GM::GaussianGraphicalModel; )
+@attr function parameter_ring(GM::GaussianGraphicalModel; l_var_name::VarName="l", w_var_name::VarName="w")
+  G = graph(GM)
+  l_indices = [(src(e), dst(e)) for e in edges(G)]
+  w_indices = vertices(G)
+  R, _ = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices]; cached=cached)
+  return R
+end
+
+@attr function parameter_ring_gens(GM::GaussianGraphicalModel)
   
 end
 
