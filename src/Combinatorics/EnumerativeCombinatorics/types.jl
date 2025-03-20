@@ -297,7 +297,7 @@ Multipartitions are implemented as a subtype of 1-dimensional arrays of partitio
 See [`multipartition`](@ref) for the user-facing constructor and an example.
 """
 struct Multipartition{T<:IntegerUnion} <: AbstractArray{Partition{T},1}
-    mp::Array{Partition{T},1}
+    mp::Vector{Partition{T}}
 end
 
 ################################################################################

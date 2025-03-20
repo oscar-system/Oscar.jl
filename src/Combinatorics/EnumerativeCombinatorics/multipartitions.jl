@@ -32,7 +32,7 @@ Partition{Int8}[[2, 1], [], [3, 2, 1]]
 # References
 1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
 """
-function multipartition(mp::Vector{Vector{T}}) where T<:IntegerUnion
+function multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
     return Multipartition([partition(p) for p in mp])
 end
 
