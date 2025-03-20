@@ -186,7 +186,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, rays(ambient_space(m)))
+  linear_relations = matrix(ZZ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
