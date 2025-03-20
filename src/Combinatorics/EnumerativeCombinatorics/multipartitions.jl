@@ -4,8 +4,6 @@
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
 ################################################################################
 
-export Multipartition, multipartitions, num_multipartitions
-
 """
     Multipartition{T} <: AbstractArray{Partition{T},1}
 
