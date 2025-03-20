@@ -34,13 +34,14 @@ function homogenize_pre_tropicalization(I::MPolyIdeal)
 end
 
 
-function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
-    @req lineality_dim(Sigma)>0 "dehomogenizing polyhedral complex without lineality"
+function dehomogenize_post_tropicalization(TropV::TropicalVarietySupertype)
+
+    @req lineality_dim(TropV)>0 "dehomogenizing polyhedral complex without lineality"
 
     ###
     # Construct hyperplane {first coord = 0}
     ###
-    n = ambient_dim(Sigma)
+    n = ambient_dim(TropV)
     zerothUnitRowVector = zeros(Int,1,n)
     zerothUnitRowVector[1,1] = 1
     dehomogenisingHyperplane = polyhedron((zeros(Int,0,n),zeros(Int,0)), (zerothUnitRowVector,[0]))
@@ -52,7 +53,7 @@ function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
     dehomogenizedVertices = Vector{QQFieldElem}[]
     incidenceMatrixRays = Vector{Int}[]
     dehomogenizedRays = Vector{QQFieldElem}[]
-    for sigma in maximal_polyhedra(Sigma)
+    for sigma in maximal_polyhedra(TropV)
         sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
         incidenceVectorVertices = Int[]
         V,_ = minimal_faces(sigmaDehomogenized)
@@ -95,12 +96,17 @@ function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
     ###
     # Dehomogenize lineality space
     ###
-    sigma = first(maximal_polyhedra(Sigma))
+    sigma = first(maximal_polyhedra(TropV))
     sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
     dehomogenizedLineality = [linealityVector[2:end] for linealityVector in lineality_space(sigmaDehomogenized)]
 
-    return polyhedral_complex(incidenceMatrixVerticesAndRays,
-                              dehomogenizedVerticesAndRays,
-                              collect(length(dehomogenizedVertices)+1:length(dehomogenizedVertices)+length(dehomogenizedRays)),
-                              dehomogenizedLineality)
+    SigmaDehom =  polyhedral_complex(incidenceMatrixVerticesAndRays,
+                                     dehomogenizedVerticesAndRays,
+                                     collect(length(dehomogenizedVertices)+1:length(dehomogenizedVertices)+length(dehomogenizedRays)),
+                                     dehomogenizedLineality)
+
+    TropVDehom = tropical_variety(SigmaDehom,multiplicities(TropV),convention(TropV))
+    copy_tropical_attributes!(TropVDehom,TropV)
+    return TropVDehom
+
 end

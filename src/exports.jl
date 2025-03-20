@@ -1664,6 +1664,7 @@ export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
+export tropical_varieties
 export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
