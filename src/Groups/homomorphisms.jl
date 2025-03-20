@@ -1158,7 +1158,7 @@ An exception is thrown if no such group exists.
 A `MethodError` is thrown if this particular pair of types is not implemented (yet).
 
 If one needs the isomorphism then
-[`isomorphism(::Type{T}, G::Group) where T <: Group](@ref)
+[`isomorphism(::Type{T}, G::Group) where T <: Group`](@ref)
 can be used instead.
 
 # Examples
