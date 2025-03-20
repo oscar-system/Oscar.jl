@@ -4,30 +4,16 @@
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
 ################################################################################
 
-"""
-    Multipartition{T} <: AbstractArray{Partition{T},1}
 
-Multipartitions are generalizations of partitions. An r-component **multipartition** of an integer n is an r-tuple of partitions λ¹, λ², …, λʳ where each λⁱ is a partition of some integer nᵢ ≥ 0 and the nᵢ sum to n.
+# More convenient constructors
+function Multipartition(mp::Array{Array{T,1},1}) where T<:Integer
+    return Multipartition([Partition(p) for p in mp])
+end
 
-Multipartitions are implemented as a subtype of 1-dimensional arrays of partitions. You can use smaller integer types to increase performance.
-
-# Examples
-```julia-repl
-julia> P=Multipartition( [[2,1], [], [3,2,1]] )
-Partition{Int64}[[2, 1], [], [3, 2, 1]]
-julia> sum(P)
-9
-julia> P[2]
-Int64[]
-julia> P=Multipartition( Array{Int8,1}[[2,1], [], [3,2,1]] )
-Partition{Int8}[[2, 1], [], [3, 2, 1]]
-```
-
-# References
-1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
-"""
-struct Multipartition{T} <: AbstractArray{Partition{T},1}
-    mp::Array{Partition{T},1}
+# This is only called when the empty array is part of mp (because then it's
+# "Any" type and not of Integer type).
+function Multipartition(mp::Array{Array{Any,1},1})
+    return Multipartition([Partition(p) for p in mp])
 end
 
 
@@ -47,16 +33,6 @@ function Base.getindex(MP::Multipartition, i::Int)
     return getindex(MP.mp,i)
 end
 
-# More convenient constructors
-function Multipartition(mp::Array{Array{T,1},1}) where T<:Integer
-    return Multipartition([Partition(p) for p in mp])
-end
-
-# This is only called when the empty array is part of mp (because then it's
-# "Any" type and not of Integer type).
-function Multipartition(mp::Array{Array{Any,1},1})
-    return Multipartition([Partition(p) for p in mp])
-end
 
 
 """
