@@ -45,7 +45,7 @@ labelled. We have the following labels, along with how they are meant to be appl
 |-------|---------|
 | `release notes: added`        | The release notes for this PR were manually added to the changelog, and should be ignored by the script |
 | `release notes: not needed`   | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
-| `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn $TITLE from the PR to `[#xyz] $TITLE` |
+| `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn \$TITLE from the PR to `[#xyz] $TITLE` |
 | `release notes: to be added`  | These PRs will be marked by the script as a prominent TODO item. Check these PRs manually, and after updating them appropriately, relabel these items to either `release notes: added` or `release notes: use title` |
 | none of the above             | These PRs will be added to a separate prominent TODO category. Check these PRs manually, and after updating them appropriately, relabel these items to one of `release notes: added`, `release notes: use title`, or `release notes: not needed` |
 
