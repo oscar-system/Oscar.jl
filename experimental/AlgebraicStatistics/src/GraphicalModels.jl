@@ -39,9 +39,9 @@ const GraphTypes = Union{Directed, Undirected} # TODO add Mixed
 
 abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 
-# todo
 graph(M::GraphicalModel) = M.graph
 probability_ring(M::T) where T <: GraphicalModel = error("Please implement the method probability_ring for $T")
+probability_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method probability_ring_gens for $T")
 parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring for $T")
 parameter_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring_gens for $T")
 parametrization(M::T) where T <: GraphicalModel = error("Please implement the method parametrization for $T")

@@ -91,6 +91,7 @@ export GU
 export GapObj
 export Gluing
 export Graph
+export GraphMap
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset

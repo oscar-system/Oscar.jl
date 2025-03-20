@@ -55,8 +55,8 @@ export GroupBasedPhylogeneticModel
 export load_phylogenetic_model
 
 # Gaussian Graphical Model Exports
-export GaussianRing
-export gaussian_ring, gens, covariance_matrix
+export GaussianGraphicalModel
+export covariance_matrix
 export gaussian_graphical_model
 export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
