@@ -9,7 +9,7 @@
   graph::Graph{T}
   labellings::L
   function GaussianGraphicalModel(F::Field, G::Graph{T}) where T <: GraphTypes
-    graph_maps = _graph_maps(G)
+    graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{T, typeof(graph_maps)}(F, G, graph_maps)
   end
@@ -82,6 +82,10 @@ s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
   GaussianRing(S, d, cov_matrix)
+end
+
+@attr function parameter_ring(GM::GaussianGraphicalModel; )
+  
 end
 
 function Base.show(io::IO, R::GaussianRing)
