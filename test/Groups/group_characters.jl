@@ -957,6 +957,9 @@ end
 
   t = character_table("A5")
   sums = [galois_orbit_sum(x) for x in t]
+  rep = galois_representative_and_multiplicity(sums[2])
+  @test_throws ArgumentError galois_representative_and_multiplicity(0*t[1])
+  @test rep[1] == t[2] && rep[3] == 1
   degrees = [degree_of_character_field(x) for x in t]
   @test degrees == [degree(character_field(x)[1]) for x in t]
   @test degrees == [1, 2, 2, 1, 1]
