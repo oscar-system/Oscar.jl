@@ -5,15 +5,41 @@
 ################################################################################
 
 
-# More convenient constructors
-function Multipartition(mp::Array{Array{T,1},1}) where T<:Integer
-    return Multipartition([Partition(p) for p in mp])
+
+
+"""
+    multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
+    multipartition(mp::Vector{Vector{Any}})
+
+Return the multipartition given by the vector `mp` of integer sequences `mp`
+(which are interpreted as integer partitions) as an object of type
+`Multipartition{T}`.
+
+The element type `T` may be optionally specified, see also the examples below.
+
+# Examples
+```julia-repl
+julia> P=Multipartition( [[2,1], [], [3,2,1]] )
+Partition{Int64}[[2, 1], [], [3, 2, 1]]
+julia> sum(P)
+9
+julia> P[2]
+Int64[]
+julia> P=Multipartition( Array{Int8,1}[[2,1], [], [3,2,1]] )
+Partition{Int8}[[2, 1], [], [3, 2, 1]]
+```
+
+# References
+1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
+"""
+function multipartition(mp::Vector{Vector{T}}) where T<:IntegerUnion
+    return Multipartition([partition(p) for p in mp])
 end
 
 # This is only called when the empty array is part of mp (because then it's
 # "Any" type and not of Integer type).
-function Multipartition(mp::Array{Array{Any,1},1})
-    return Multipartition([Partition(p) for p in mp])
+function multipartition(mp::Vector{Vector{Any}})
+    return Multipartition([partition(p) for p in mp])
 end
 
 
@@ -65,7 +91,7 @@ julia> multipartitions(2,2)
  Partition{Int64}[[1, 1], []]
 ```
 """
-function multipartitions(n::T, r::Integer) where T<:Integer
+function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
     #Argument checking
     n >= 0 || throw(ArgumentError("n >= 0 required"))
     r >= 1 || throw(ArgumentError("r >= 1 required"))
