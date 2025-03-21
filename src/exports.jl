@@ -91,9 +91,11 @@ export GU
 export GapObj
 export Gluing
 export Graph
+export Group
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
+export GroupElem
 export Halfspace
 export Hecke
 export HilbertData
