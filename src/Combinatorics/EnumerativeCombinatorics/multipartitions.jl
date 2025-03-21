@@ -8,6 +8,7 @@
 
 
 """
+    multipartition(mp::Vector{Partition{T}}) where T <: IntegerUnion
     multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
 
 Return the multipartition given by the vector `mp` of integer sequences `mp`
@@ -31,6 +32,10 @@ Partition{Int8}[[2, 1], [], [3, 2, 1]]
 # References
 1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
 """
+function multipartition(mp::Vector{Partition{T}}) where T <: IntegerUnion
+  return Multipartition(mp)
+end
+
 function multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
   return Multipartition([partition(p) for p in mp])
 end
@@ -40,7 +45,6 @@ end
 function multipartition(mp::Vector{Vector{Any}})
   return Multipartition([partition(p) for p in mp])
 end
-
 
 function Base.show(io::IO, ::MIME"text/plain", MP::Multipartition)
   print(io, MP.mp)
