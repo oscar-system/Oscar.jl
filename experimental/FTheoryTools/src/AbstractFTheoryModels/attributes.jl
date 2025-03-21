@@ -1225,7 +1225,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   if !has_attribute(m, :chern_classes)
     cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
     cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+    # For performance:
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
+    # Alternatively, the following line is slower.
+    # However, the following line fails should the hypersurface equation not be homogeneous.
+    # Inhomogeneity of hypersurface_equation will not be detected by the above line.
+    #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
     cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
     set_attribute!(m, :chern_classes, cs)
   end
@@ -1973,14 +1978,6 @@ end
 ### (5) Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################
 
-@attr QQMatrix function matrix_integral_quant(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_integral(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
-end
-
-@attr QQMatrix function matrix_rational_quant(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_rational(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
-end
-
 @attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_integral(special_flux_family(m, check = check))
 end
@@ -1989,10 +1986,18 @@ end
   return matrix_rational(special_flux_family(m, check = check))
 end
 
-@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel)
+@attr Vector{QQFieldElem} function offset_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
 end
 
-@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel)
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, not_breaking = true; check = check))
 end

@@ -174,5 +174,6 @@ end
   model::AbstractFTheoryModel
   mat_int::QQMatrix
   mat_rat::QQMatrix
-  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix) = new(model, mat_int, mat_rat)
+  offset::Vector{QQFieldElem}
+  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}) = new(model, mat_int, mat_rat, offset)
 end

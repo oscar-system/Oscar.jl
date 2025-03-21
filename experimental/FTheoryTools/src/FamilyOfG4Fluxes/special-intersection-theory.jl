@@ -235,13 +235,13 @@ function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, 
   pos_power_variable = findfirst(==(power_variable), indices)
 
   # Let us simplify the problem by extracting the entries in the columns of single_variables and double_variables of the linear relation matrix
-  simpler_matrix = data.linear_relations[[other_variables..., power_variable], :]
+  simpler_matrix = matrix(QQ, data.linear_relations[[other_variables..., power_variable], :])
   b = zero_matrix(QQ, length(other_variables) + 1, 1)
   b[nrows(b), 1] = 1
   A = solve(simpler_matrix, b; side =:right)
   
   # Now form the relation in case...
-  employed_relation = -sum((data.linear_relations[:, k] .* A[k]) for k in 1:5)
+  employed_relation = -sum((data.linear_relations[:, k] .* A[k,1]) for k in 1:nrows(A))
   employed_relation[power_variable] = 0
 
   # Populate `coeffs` and `tuples` that form rationally equivalent algebraic cycle
