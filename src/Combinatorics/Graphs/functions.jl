@@ -757,12 +757,12 @@ end
 @doc raw"""
     labelings(G::Graph)
 
-Return the names of all labelings of a graph `G` as a `Tuple{Symbol}`.
+Return the names of all labelings of a graph `G` as a `Vector{Symbol}`.
 
 # Examples
 ```jldoctest
 julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:color)
-Directed graph with 3 nodes and the following labeling(s)
+Directed graph with 3 nodes and the following labeling(s):
 label: color
 (1, 2) -> 1
 (2, 3) -> 4
@@ -781,7 +781,7 @@ end
 
 function _graph_maps(G::Graph)
   labels = tuple(labelings(G)...)
-  isempty(labels) && return NamedTuple{}()
+  isempty(labels) && return Dict{Symbol, GraphMap}()
   return Dict(l => getproperty(G, l) for l in labels)
 end
 
@@ -1324,7 +1324,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
   if n_edges(G) > 0
     labels = labelings(G)
     if !isempty(labels)
-      print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labeling(s)")
+      print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labeling(s):")
       for label in labels
         println(io, "")
         print(io, "label: $label")
@@ -1421,20 +1421,20 @@ Directed graph with 3 nodes and the following edges:
 (1, 2)(2, 3)
 
 julia> label!(G, Dict((1, 2) => 1), nothing; name=:color)
-Directed graph with 3 nodes and the following labeling(s)
+Directed graph with 3 nodes and the following labeling(s):
 label: color
 (1, 2) -> 1
 (2, 3) -> 0
 
 julia> G = graph_from_labeled_edges(Undirected, Dict((1, 2) => 1, (2, 3) => 2, (1, 3) => 1), nothing; name=:color)
-Undirected graph with 3 nodes and the following labeling(s)
+Undirected graph with 3 nodes and the following labeling(s):
 label: color
 (2, 1) -> 1
 (3, 1) -> 1
 (3, 2) -> 2
 
 julia> label!(G, nothing, Dict(1 => 1); name=:shading)
-Undirected graph with 3 nodes and the following labeling(s)
+Undirected graph with 3 nodes and the following labeling(s):
 label: color
 (2, 1) -> 1
 (3, 1) -> 1
@@ -1497,13 +1497,13 @@ Create a graph from an edge labeling and an optional vertex labeling. There is a
 # Examples
 ```jldoctest
 julia> graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
-Directed graph with 3 nodes and the following labeling(s)
+Directed graph with 3 nodes and the following labeling(s):
 label: label
 (1, 2) -> 1
 (2, 3) -> 4
 
 julia> graph_from_labeled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
-Undirected graph with 3 nodes and the following labeling(s)
+Undirected graph with 3 nodes and the following labeling(s):
 label: label
 (2, 1) -> 1
 (3, 2) -> 4
@@ -1628,5 +1628,3 @@ true
 function is_bipartite(g::Graph{Undirected})
   return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end
-
-
