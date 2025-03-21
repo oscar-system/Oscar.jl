@@ -442,8 +442,20 @@ end
     centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T})
 
 Return (`C`,`f`), where `C` is the centralizer of `x` in `C` and `f` is the embedding of `C` into `G`.
-If `G` = `GL(n,F)` or `SL(n,F)`, then `f` = `nothing`. In this case, to get the embedding homomorphism of `C` into `G`, use
-> `is_subgroup(C, G)[2]`
+If `G` = `GL(n,F)` or `SL(n,F)`, then `f` = `nothing`.
+In this case, use `is_subgroup(C, G)[2]` to get the embedding homomorphism
+of `C` into `G`.
+
+# Examples
+```jldoctest
+julia> g = Sp(4, 2);  x = gen(g, 1);
+
+julia> C, emb = centralizer(g, x)
+(Matrix group of degree 4 over GF(2), Hom: C -> g)
+
+julia> order(C)
+8
+```
 """
 function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
