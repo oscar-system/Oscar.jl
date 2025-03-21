@@ -1,15 +1,13 @@
-@testset "Multipartitions" begin
+@testset "Multipartitions" for T in [Int, ZZRingElem]
   #constructors
-  @test Multipartition([[3,2],[1]]) == Multipartition([Partition([3,2]),Partition([1])])
-  @test Multipartition([[3,2],[]]) == Multipartition([Partition([3,2]),Partition([])])
+  @test multipartition([T[3,2], T[1]]) == multipartition([Partition(T[3,2]), Partition(T[1])])
+  @test multipartition([T[3,2], T[]]) == multipartition([Partition(T[3,2]),Partition(T[])])
 
   # multi-partitions
   check = true
-  N = 0:10
-  R = 1:5
-  for n in N
-    for r in R
-      MP = multipartitions(n,r)
+  for n in 0:10
+    for r in 1:5
+      MP = multipartitions(T(n),r)
       # check that all multipartitions are distinct
       if MP != unique(MP)
         check = false
@@ -22,19 +20,19 @@
           break
         end
       end
-      # check that all multisetpartitions have k parts
-      if length(MP) !=0 && unique([ length(mp) for mp in MP ]) != [r]
+      # check that all multipartitions have r parts
+      if length(MP) != 0 && unique([ length(mp) for mp in MP ]) != [r]
         check = false
         break
       end
     end
   end
-  @test check==true
+  @test check == true
 
   #counting
-  for n=0:5
-    for k=1:n+1
-      @test length(multipartitions(n,k)) == num_multipartitions(n,k)
+  for n in 0:5
+    for k in 1:n+1
+      @test length(multipartitions(T(n),k)) == num_multipartitions(T(n),k)
     end
   end
 
