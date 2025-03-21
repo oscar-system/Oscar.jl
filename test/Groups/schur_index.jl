@@ -45,10 +45,10 @@ end
 end
 
 @testset "small examples from Feit's list" begin
-   expls = [("2.M12", 32, [0 => 2, 2 => 2]),
-            ("J2", 336, [2 => 2, 3 => 2])]
-   for (nam, deg, res) in expls
-     G = atlas_group(nam)
+   expls = [(190080,  32, [0 => 2, 2 => 2]),     # 2.M12
+            (604800, 336, [2 => 2, 3 => 2])]     # J2
+   for (grouporder, deg, res) in expls
+     G = perfect_group(grouporder, 1)
      t = character_table(G)
      irr = collect(t)
      pos = findfirst(x -> degree(x) == deg, irr)
