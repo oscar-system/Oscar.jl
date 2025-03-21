@@ -74,9 +74,10 @@ end
 
 
 """
-    multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
+    multipartitions(n::T, r::IntegerUnion)  where T<:IntegerUnion
 
-A list of all `r`-component multipartitions of `n`. The algorithm is recursive and  based on [`partitions(::IntegerUnion)`](@ref).
+A list of all `r`-component multipartitions of `n`, as elements of type Multipartitoon{T}.
+The algorithm is recursive and  based on [`partitions(::IntegerUnion)`](@ref).
 
 # Example
 ```jldoctest
