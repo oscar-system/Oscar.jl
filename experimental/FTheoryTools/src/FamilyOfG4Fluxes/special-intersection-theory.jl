@@ -235,8 +235,8 @@ function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, 
   pos_power_variable = findfirst(==(power_variable), indices)
 
   # Let us simplify the problem by extracting the entries in the columns of single_variables and double_variables of the linear relation matrix
-  simpler_matrix = data.linear_relations[[other_variables..., power_variable], :]
-  b = zero_matrix(ZZ, length(other_variables) + 1, 1)
+  simpler_matrix = matrix(QQ, data.linear_relations[[other_variables..., power_variable], :])
+  b = zero_matrix(QQ, length(other_variables) + 1, 1)
   b[nrows(b), 1] = 1
   A = solve(simpler_matrix, b; side =:right)
   
