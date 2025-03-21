@@ -17,14 +17,14 @@ Return the multipartition given by the vector `mp` of integer sequences `mp`
 The element type `T` may be optionally specified, see also the examples below.
 
 # Examples
-```julia-repl
-julia> P=Multipartition( [[2,1], [], [3,2,1]] )
+```jldoctest
+julia> P = multipartition([[2,1], [], [3,2,1]])
 Partition{Int64}[[2, 1], [], [3, 2, 1]]
 julia> sum(P)
 9
 julia> P[2]
 Int64[]
-julia> P=Multipartition( Vector{Int8}[[2,1], [], [3,2,1]] )
+julia> P = multipartition(Vector{Int8}[[2,1], [], [3,2,1]])
 Partition{Int8}[[2, 1], [], [3, 2, 1]]
 ```
 
@@ -60,11 +60,11 @@ end
 
 
 """
-    sum(P::Multipartition{T}) where T<:Integer
+    sum(P::Multipartition{T}) where T<:IntegerUnion
 
-If P is a multipartition of the integer n, this function returns n.
+If `P` is a multipartition of the integer n, this function returns n.
 """
-function Base.sum(P::Multipartition{T}) where T<:Integer
+function Base.sum(P::Multipartition{T}) where T<:IntegerUnion
   s = zero(T)
   for i=1:length(P)
     s += sum(P[i])
@@ -74,12 +74,12 @@ end
 
 
 """
-    multipartitions(n::T, r::Integer) where T<:Integer
+    multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
 
-A list of all r-component multipartitions of n. The algorithm is recursive and  based on [`partitions(::Integer)`](@ref).
+A list of all `r`-component multipartitions of `n`. The algorithm is recursive and  based on [`partitions(::IntegerUnion)`](@ref).
 
 # Example
-```julia-repl
+```jldoctest
 julia> multipartitions(2,2)
 5-element Vector{Multipartition{Int64}}:
  Partition{Int64}[[], [2]]
@@ -91,8 +91,8 @@ julia> multipartitions(2,2)
 """
 function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #Argument checking
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
-  r >= 1 || throw(ArgumentError("r >= 1 required"))
+  @req n >= 0 "n >= 0 required"
+  @req r >= 1 "r >= 1 required"
 
   #This will be the list of multipartitions
   MP = Multipartition{T}[]
@@ -102,7 +102,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #We create the compositions here in place for efficiency.
 
   #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
-  function recP!(p::Vector{T}, i::T, n::T) #where T<:Integer
+  function recP!(p::Vector{T}, i::T, n::T) #where T<:IntegerUnion
     if i==length(p) || n==0
       p[i] = n
       recMultipartitions!(fill(Partition(T[]),r), p, T(1))
@@ -115,7 +115,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   end
 
   #recursively produces all multipartitions such that the i-th partition sums up to p[i]
-  function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:Integer
+  function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:IntegerUnion
     if i == length(p)
       for q in partitions(p[i])
         mp[i] = q
@@ -148,17 +148,14 @@ where the second sum is over all [compositions](@ref Compositions) ``λ`` of ``n
 """
 function num_multipartitions(n::Int, k::Int)
 
-  z = ZZ(0)
-
   # Special cases
-  if n==0
-    return ZZ(k)
-  end
+  n == 0 && return ZZ(k)
 
-  for a=1:k
+  z = ZZ(0)
+  for a in 1:k
     w = ZZ(0)
-    for λ in compositions(n,a)
-      w += prod([num_partitions(λ[i]) for i=1:length(λ)])
+    for lambda in compositions(n,a)
+      w += prod([num_partitions(lambda[i]) for i in 1:length(lambda)])
     end
     z += binomial(k,a)*w
   end
