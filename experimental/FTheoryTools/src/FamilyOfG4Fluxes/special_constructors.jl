@@ -449,29 +449,18 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   
   # Idea:
 
-  # Remainder flux breaking: Transversality conditions need to be modified (Wati & Kobi).
-  # Primitivity condition: G4 wedge J = 0. Not currently checked.
-  # Quantization condition in full employed: Is the D3-tadpole then automatically integral? Ling says "this is typically assumed". About 10 papers.
+  # Recompute all data for fully resolved big model, verify and serialize the results.
+  # In particular: No reason why rationally equivalent cycle should exist with integral coefficients. However, code runs.
+  # Maybe redo computation with this assumption losened, then compare and decide what code to use.
+  
+  # The non-resolved big model does not seem to remember its resolutions. We should recompute the models from scratch and verify that all attributes are there...
 
-  # For QSM model: Tadpole for QSM G4-flux matches with that the paper states? Also, recompute that manually entered G4 matches with our flux basis.
-  # -------
+  # Make update of the big model artifact on zenodo and activate the long tests again.
 
-  # Ambient space of big model is simplicial and not smooth. So cannot - at least not based on the theory currently employed - compute its Chern classes.
-  # I suppose, we need to extend the blowup sequence to resolve also the ambient space. Then start-over...
-  # This requires a new blowup method, which I will (try to) code...
-
-  # The non-resolved model does not seem to remember its resolutions. We should recompute the models from scratch and verify that all attributes are there...
-
-  # Test code on the big model. Likely everything is super slow... Yikes. Improve until it runs/execute long computations, serialize the results.
-  # Make update of the big model artifact, so that we can activate the long tests again. Make sure important data is checked in (a.k.a. test on serialization)
-  # -------
-
-  # Can we support the following for all families of fluxes?
+  # Can we support the following for ALL families of fluxes?
   # is_well_quantized
   # passes_transversality_checks
   # breaks_non_abelian_gauge_group
   # d3_tadpole_constraint
-
-  # Can computation of converter_dict_h22_ambient be made more efficient/better?
 
 end
