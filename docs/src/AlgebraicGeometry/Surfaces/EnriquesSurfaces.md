@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 ```
 
 # Borcherds' method for Enriques surfaces
