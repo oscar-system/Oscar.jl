@@ -376,7 +376,7 @@ function _orbit_generic(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 #T check whether omega lies in Omega?
@@ -409,7 +409,7 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
@@ -435,7 +435,7 @@ function orbit_via_Julia(Omega::GSet, omega)
 
     res = as_gset(acting_group(Omega), action_function(Omega), orbarray)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orbarray])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
