@@ -278,6 +278,7 @@ jobs:
           needs_context: ${{ toJson(needs) }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           notify_on_changed_status: true
+          event: ${{ github.event_name }}
       - name: Send slack notification
         uses: act10ns/slack@v2
         if: ${{ steps.should_notify.outputs.should_send_message == 'yes' }}
