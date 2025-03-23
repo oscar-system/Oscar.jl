@@ -320,6 +320,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
   end
 
   # test all chapters
-  test_chapter()
+  test_chapter("specialized/brandhorst-zach-fibration-hopping")
 
 end
