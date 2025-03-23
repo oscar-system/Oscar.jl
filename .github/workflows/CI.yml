@@ -122,6 +122,9 @@ jobs:
   book-tests:
     runs-on: 'ubuntu-latest'
     timeout-minutes: 80
+    # book tests should run in default threadpool to allow hangcheck timer
+    env:
+      JULIA_NUM_THREADS: 1,1
     strategy:
       fail-fast: false
       matrix:

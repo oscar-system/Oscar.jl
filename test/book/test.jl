@@ -140,7 +140,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options
       Base.active_repl = repl
-      repltask = @async begin
+      repltask = Threads.@spawn :default begin
         REPL.run_repl(repl)
       end
       preout = redirect_stdout(out_stream) do
