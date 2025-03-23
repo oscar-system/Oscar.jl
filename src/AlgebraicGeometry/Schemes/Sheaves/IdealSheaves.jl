@@ -2258,7 +2258,7 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
   @vprintln :Divisors 2 "checking colength of $(I)"
   for U in all_patches
     dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
-    if _is_known_to_be_one(I, U; dec_inf)
+    if is_known(is_one, I, U; dec_inf)
       push!(patches_done, U)
     else
       push!(patches_todo, U)

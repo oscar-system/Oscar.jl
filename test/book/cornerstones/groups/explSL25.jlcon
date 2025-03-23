@@ -21,7 +21,7 @@ X_8  5                 .                 .  5                  .                
 X_9  6                -1                -1 -6                  1                  1  .  .  .
 
 julia> R = gmodule(T[end])
-G-module for G acting on vector space of dimension 6 over abelian closure of Q
+G-module for G acting on vector space of dimension 6 over abelian closure of QQ
 
 julia> S = gmodule(CyclotomicField, R)
 G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5

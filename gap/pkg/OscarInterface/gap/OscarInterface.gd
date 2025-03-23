@@ -26,8 +26,10 @@ DeclareProperty( "GroupGeneratorsDefinePresentation", IsGroup );
 
 # Use GAP operations for the serialization of GAP objects.
 # (The methods will be Julia functions.)
+DeclareOperation( "SerializationInOscarDependentObjects", [ IsObject ] );
 DeclareOperation( "SerializeInOscar", [ IsObject, IsObject ] );
 DeclareConstructor( "DeserializeInOscar", [ IsObject, IsObject, IsObject ] );
+DeclareConstructor( "DeserializeInOscar", [ IsObject, IsObject, IsObject, IsObject ] );
 
 ############################################################################
 

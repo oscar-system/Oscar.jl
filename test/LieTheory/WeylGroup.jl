@@ -65,7 +65,32 @@
     ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
     (
-      "complicated case 1",
+      "A_3^(1)",
+      begin
+        cm = cartan_matrix(:A, 4)
+        cm[1, 4] = -1
+        cm[4, 1] = -1
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(A_3^(1)), once functionality for affine type is added
+    (
+      "F_4^(1)",
+      begin
+        cm = cartan_matrix(:A, 5)
+        cm[2:5, 2:5] = cartan_matrix(:F, 4)
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(F_4^(1)), once functionality for affine type is added
+    ("A_2^(2)", weyl_group(ZZ[2 -4; -1 2])), # TODO: replace with cartan_matrix(A_2^(2)), once functionality for affine type is added
+    (
+      "D_4^(2)",
+      begin
+        cm = cartan_matrix(:B, 4)
+        cm[1, 2] = -2
+        weyl_group(cm)
+      end,
+    ), # TODO: replace with cartan_matrix(D_4^(2)), once functionality for affine type is added
+    ("complicated case 1",
       begin
         cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
         for _ in 1:50
@@ -93,9 +118,8 @@
       end,
     ),
   ]
-    # TODO: make this work
-    # test_Group_interface(W)
-    # test_GroupElem_interface(rand(W, 2)...)
+    ConformanceTests.test_Group_interface(W)
+    ConformanceTests.test_GroupElem_interface(rand(W, 2)...)
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
@@ -493,7 +517,7 @@
       end
 
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
-      @test allunique(first.(orb))
+      @test allunique(first, orb)
       for (ow, x) in orb
         @test is_in_normal_form(x)
         @test ow * x == dom_wt
@@ -530,7 +554,7 @@
       end
 
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
-      @test allunique(first.(orb))
+      @test allunique(first, orb)
       for (ow, x) in orb
         @test is_in_normal_form(x)
         @test ow * x == dom_wt
@@ -575,6 +599,25 @@
 
       @test !isnothing(findfirst(==(wt), orb))
       @test allunique(orb)
+    end
+  end
+
+  @testset "(dual_)geometric_representation" begin
+    for W in [weyl_group(:B, 3), weyl_group(:E, 6), weyl_group(:G, 2)]
+      R = root_system(W)
+      G, hom = geometric_representation(W)
+      for _ in 1:5
+        x = rand(W)
+        a = RootSpaceElem(R, rand(-10:10, rank(R)))
+        @test coefficients(a) * hom(x) == coefficients(a * x)
+      end
+
+      G, hom = dual_geometric_representation(W)
+      for _ in 1:5
+        x = rand(W)
+        w = WeightLatticeElem(R, rand(-10:10, rank(R)))
+        @test coefficients(w) * hom(x) == coefficients(w * x)
+      end
     end
   end
 end

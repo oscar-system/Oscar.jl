@@ -38,10 +38,10 @@ We can convert elements of `K` to elements of `F` as follows.
 
 ```jldoctest naturalembedding
 julia> K, z = abelian_closure(QQ)
-(Abelian closure of Q, Generator of abelian closure of Q)
+(Abelian closure of rational field, Generator of abelian closure of rational field)
 
 julia> F = algebraic_closure(QQ)
-Field of algebraic numbers
+Algebraic closure of rational field
 
 julia> x = z(5)
 zeta(5)
@@ -65,8 +65,9 @@ true
 
 ## Printing
 
-The n-th primitive root of the abelian closure of will by default be printed as
-`z(n)`. The printing can be manipulated using the following functions:
+The n-th primitive root of the abelian closure of $\mathbf{Q}$
+will by default be printed as `zeta(n)`.
+The printing can be manipulated using the following functions:
 
 ```@docs
 gen(::QQAbField, ::String)
@@ -76,17 +77,25 @@ get_variable(::QQAbField)
 
 ### Examples
 
-```@jldoctest
+```
 julia> K, z = abelian_closure(QQ);
 
 julia> z(4)
-z(4)
+zeta(4)
 
 julia> ζ = gen(K, "ζ")
-Generator of abelian closure of Q
+Generator of abelian closure of QQ
 
 julia> ζ(5) + ζ(3)
 ζ(15)^5 + ζ(15)^3
+
+julia> z(4)
+"ζ"
+
+julia> set_variable!(K, "zeta");
+
+julia> z(4)
+zeta(4)
 ```
 
 ## Reduction to characteristic ``p``

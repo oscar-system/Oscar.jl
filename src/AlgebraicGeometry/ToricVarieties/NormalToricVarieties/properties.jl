@@ -5,7 +5,7 @@
 @doc raw"""
     is_normal(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
+Check if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
 ```jldoctest
@@ -19,7 +19,7 @@ is_normal(v::NormalToricVarietyType) = true
 @doc raw"""
     is_affine(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is affine.
+Check if the normal toric variety `v` is affine.
 
 # Examples
 ```jldoctest
@@ -33,7 +33,7 @@ false
 @doc raw"""
     is_projective(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
+Check if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
 # Examples
 ```jldoctest
@@ -88,7 +88,7 @@ end
 @doc raw"""
     is_smooth(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is smooth.
+Check if the normal toric variety `v` is smooth.
 
 # Examples
 ```jldoctest
@@ -102,7 +102,7 @@ true
 @doc raw"""
     is_complete(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is complete.
+Check if the normal toric variety `v` is complete.
 
 # Examples
 ```jldoctest
@@ -116,7 +116,7 @@ true
 @doc raw"""
     has_torusfactor(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` has a torus factor.
+Check if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```jldoctest
@@ -130,7 +130,7 @@ false
 @doc raw"""
     is_orbifold(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is an orbifold.
+Check if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```jldoctest
@@ -144,7 +144,7 @@ true
 @doc raw"""
     is_simplicial(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
+Check if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
 # Examples
 ```jldoctest
@@ -158,7 +158,7 @@ is_simplicial(v::NormalToricVarietyType) = is_orbifold(v)
 @doc raw"""
     is_gorenstein(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is Gorenstein.
+Check if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
@@ -172,7 +172,7 @@ true
 @doc raw"""
     is_q_gorenstein(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is Q-Gorenstein.
+Check if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
 ```jldoctest
@@ -186,7 +186,7 @@ true
 @doc raw"""
     is_fano(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is fano.
+Check if the normal toric variety `v` is fano.
 
 # Examples
 ```jldoctest

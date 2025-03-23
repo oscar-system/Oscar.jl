@@ -8,6 +8,7 @@
   @test (@inferred length(Omega)) == 6
   @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
@@ -22,6 +23,7 @@
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
@@ -42,6 +44,7 @@
   @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -51,6 +54,7 @@
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -77,8 +81,11 @@
   @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 0
+  @test_throws ArgumentError rank_action(Omega)
   @test_throws ArgumentError gset(G, permuted, omega)
 
   R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
@@ -90,8 +97,11 @@
   @test length(orbits(Omega)) == 1
   @test order(stabilizer(Omega)[1]) * length(orbit(Omega, f)) == order(G)
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 3
+  @test rank_action(Omega) == 2
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -243,7 +253,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
+  @test transitivity(gset(G8)) == 1
   @test transitivity(S4) == 4
+  @test transitivity(gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
@@ -391,6 +403,10 @@ end
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test length(blocks(Omega)) == 5
+  @test length(minimal_block_reps(Omega)) == 1
+  @test length(all_blocks(Omega::GSet)[1]) == 3
+
 
   @test eltype(Omega) == typeof(representative(Omega))
 

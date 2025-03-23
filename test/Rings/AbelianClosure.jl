@@ -1,13 +1,7 @@
-function test_elem(K::QQAbField)
-  ns = rand(1:8, 3)
-  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
-  return sum(zs)
-end
-
 @testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation" begin
@@ -59,7 +53,14 @@ end
 
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
-    @test sprint(show, "text/plain", K) == "Abelian closure of Q"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(K) == "Abelian closure of QQ"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(z) == "Generator of abelian closure of QQ"
 
     orig = get_variable(K)
     @test orig == "zeta"

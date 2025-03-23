@@ -123,8 +123,8 @@ end
     strict_transform_with_index(phi::ToricBlowupMorphism, I::MPolyIdeal) -> (MPolyIdeal, Int)
     strict_transform_with_index(phi::ToricBlowupMorphism, f::MPolyDecRingElem) -> (MPolyDecRingElem, Int)
 
-Returns the pair $(J, k)$, where $J$ coincides with `strict_transform(phi,
-I)` (or with `strict_transform(phi, f)`) and where $k$ is the multiplicity
+Return the pair $(J, k)$, where $J$ coincides with `strict_transform(phi, I)`
+(or with `strict_transform(phi, f)`) and where $k$ is the multiplicity
 of the total transform along the exceptional prime divisor.
 
 This is implemented under the following assumptions:

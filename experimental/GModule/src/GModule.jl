@@ -444,7 +444,7 @@ end
 #          prime ideal of the character field have the same local index,
 #          all such primes behave the same and the local degree of the character
 #          field should be 1)
-#          However, for generalcentral simple algebras this is not true,
+#          However, for general central simple algebras this is not true,
 #          here prime ideals are independent
 function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, c.C.M.data)[2]; primes::Vector{<:Any}= [])
 
@@ -484,7 +484,7 @@ function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleN
   if length(emb) > 0
     i = Oscar.GaloisCohomology_Mod.local_index(c, emb[1], mG; index_only = true)
     if order(i) > 1
-      push!(li, -1 => order(i))
+      push!(li, 0 => order(i))
     end
   end
   return li
@@ -500,6 +500,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
   if d !== nothing && d*degree(k) == degree(base_ring(V))
     return V
   elseif d == -1
+#TODO: how could this happen?
     @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
     Vmin = gmodule_over(m, V)
     return Vmin
@@ -578,7 +579,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       ok = true
       lr = Vector{Pair{Int, Int}}[]
       for (p,d) = ld
-        if p == -1
+        if p == 0
           @assert d == 2
           if signature(m)[1] != 0
             ok = false
@@ -654,7 +655,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       LD = Dict{AbsSimpleNumFieldOrderIdeal, Int}()
       LI = Dict{AbsSimpleNumFieldEmbedding, Int}()
       for (p, d) = ld
-        if p == -1
+        if p == 0
           @assert d == 2
           if signature(k)[2] == 0
             for e = real_embeddings(k)
@@ -1611,7 +1612,7 @@ end
 #      but for a different ordering of entries
 function _rref!(V::Vector{<:MatElem{<:FieldElem}})
   #@show :in, V
-  @assert all(x->size(x) == size(V[1]), V)
+  @assert allequal(size, V)
   n = nrows(V[1])
   @assert ncols(V[1]) == n
 
@@ -1696,7 +1697,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField
       pp *= p
       S = []
       for t = T
-        fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
+        fl, s = induce_rational_reconstruction(t, pp, error_tolerant = true)
         fl || break
         push!(S, s)
       end
@@ -1757,7 +1758,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
           reco *= 2
         end
         for t = T
-          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
+          fl, s = induce_rational_reconstruction(t, pp, error_tolerant = true)
           fl || break
           push!(S, s)
         end
@@ -1894,7 +1895,7 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   R = base_ring(v[1])
   @assert all(x->R == base_ring(x), v)
   @assert nrows(v[1]) == ncols(v[1])
-  @assert all(x->size(v[1]) == size(x), v)
+  @assert allequal(size, v)
   F = free_module(R, nrows(v[1]))
   return gmodule(G, [hom(F, F, x) for x = v])
 end
@@ -2005,46 +2006,6 @@ export natural_gmodule
 export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
-
-## Fill in some stubs for Hecke
-
-function _to_gap(h, x::Vector)
-  return GAP.Globals.GModuleByMats(GAP.Obj([GAP.Obj(map(h, Matrix(y))) for y in x]), codomain(h))
-end
-
-function _gap_matrix_to_julia(h, g)
-  return matrix(domain(h), [map(y -> preimage(h, y), gg) for gg in GAP.gap_to_julia(g)])
-end
-
-function _to_julia(h, C)
-  return [ matrix(domain(h), [map(y -> preimage(h, y), gg) for gg in GAP.gap_to_julia(g)]) for g in GAP.Globals.MTX.Generators(C)]
-end
-
-if isdefined(Hecke, :stub_composition_factors)
-  function Hecke.stub_composition_factors(x::Vector{T}) where {T}
-    F = base_ring(x[1])
-    h = Oscar.iso_oscar_gap(F)
-    V = _to_gap(h, x)
-    Vcf = GAP.Globals.MTX.CompositionFactors(V)
-    res = Vector{T}[]
-    for C in Vcf
-      push!(res, _to_julia(h, C))
-    end
-    return res
-  end
-end
-
-if isdefined(Hecke, :stub_basis_hom_space)
-  function Hecke.stub_basis_hom_space(x::Vector, y::Vector)
-    F = base_ring(x[1])
-    h = Oscar.iso_oscar_gap(F)
-    @assert base_ring(x[1]) == base_ring(y[1])
-    @assert length(x) == length(y)
-    hb = GAP.Globals.MTX.BasisModuleHomomorphisms(_to_gap(h, x), _to_gap(h, y))
-    hbb = [_gap_matrix_to_julia(h, g) for g in GAP.gap_to_julia(hb)]
-    return hbb
-  end
-end
 
 end #module GModuleFromGap
 

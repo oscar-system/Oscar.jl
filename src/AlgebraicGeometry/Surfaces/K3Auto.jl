@@ -533,90 +533,6 @@ end
 ################################################################################
 
 @doc raw"""
-    enumerate_quadratic_triple -> Vector{Tuple{Vector{Int}, QQFieldElem}}
-
-Return $\{x \in \mathbb Z^n : x Q x^T + 2xb^T + c <=0\}$.
-
-#Input:
-- `Q`: positive definite matrix
-- `b`: row vector
-- `c`: rational number
-"""
-function enumerate_quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=false)
-  if algorithm == :short_vectors
-    L, p, dist = Hecke._convert_type(Q, b, QQ(c))
-    #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
-    if equal
-      cv = Hecke.close_vectors(L, _vec(p), dist, dist, check=false)
-    else
-      cv = Hecke.close_vectors(L, _vec(p), dist, check=false)
-    end
-  end
-  return cv
-end
-
-@doc raw"""
-    short_vectors_affine(S::ZZLat, v::MatrixElem, alpha, d)
-    short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha, d)
-
-Return the vectors of squared length `d` in the given affine hyperplane.
-
-```math
-\{x \in S : x^2=d, x.v=\alpha \}.
-```
-The matrix version takes `S` with standard basis and the given gram matrix.
-
-# Arguments
-- `v`: row vector with $v^2 > 0$
-- `S`: a hyperbolic `Z`-lattice
-
-The output is given in the ambient representation.
-
-The implementation is based on Algorithm 2.2 in [Shi15](@cite)
-"""
-function short_vectors_affine(S::ZZLat, v::MatrixElem, alpha, d)
-  alpha = QQ(alpha)
-  gram = gram_matrix(S)
-  tmp = v*gram_matrix(ambient_space(S))*transpose(basis_matrix(S))
-  v_S = solve(gram_matrix(S),tmp; side = :left)
-  sol = short_vectors_affine(gram, v_S, alpha, d)
-  B = basis_matrix(S)
-  return [s*B for s in sol]
-end
-
-function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
-  # find a solution <x,v> = alpha with x in L if it exists
-  w = gram*transpose(v)
-  tmp = Hecke.FakeFmpqMat(w)
-  wn = numerator(tmp)
-  wd = denominator(tmp)
-  b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]); side = :right)
-  if !b
-    return QQMatrix[]
-  end
-  K = kernel(wn; side = :left)
-  # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
-
-  # now I want to formulate this as a cvp
-  # (x +y K) gram (x+yK) ==d
-  # (x
-  GK = gram*transpose(K)
-  Q = K * GK
-  b = transpose(x) * GK
-  c = (transpose(x)*gram*x)[1,1] - d
-  # solve the quadratic triple
-  Q = change_base_ring(QQ, Q)
-  b = change_base_ring(QQ, transpose(b))
-  cv = enumerate_quadratic_triple(-Q, -b,-QQ(c),equal=true)
-  xt = transpose(x)
-  cv = [xt+matrix(ZZ,1,nrows(Q),u[1])*K for u in cv]
-  @hassert :K3Auto 1 all((v*gram*transpose(u))[1,1]==alpha for u in cv)
-  @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]== d for u in cv)
-  return cv #[u for u in cv if (u*gram*transpose(u))[1,1]==d]
-end
-
-
-@doc raw"""
     separating_hyperplanes(S::ZZLat, v::QQMatrix, h::QQMatrix, d)
 
 Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
@@ -1334,7 +1250,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
   dimL = ncols(gramL)
   Pv = unproject_wall(D.data, v)
   l = length(Pv)
-  @hassert :K3Auto 1 length(Pv) == length(unique(Pv))
+  @hassert :K3Auto 1 allunique(Pv)
   a = 1000000
   @label getu
   a = 2*a
@@ -1365,7 +1281,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     end
     rep[l+i] = (i, s, true)
   end
-  @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
+  @hassert :K3Auto 2 allunique(r -> r[2], rep)
   sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)

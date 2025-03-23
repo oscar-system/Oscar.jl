@@ -38,6 +38,8 @@ import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots, @req
 
+import Oscar: pretty, Lowercase
+
 using Hecke
 import Hecke: conductor, data
 
@@ -350,19 +352,15 @@ end
 ################################################################################
 
 function Base.show(io::IO, a::QQAbField{AbsNonSimpleNumField})
-  print(io, "(Sparse) abelian closure of Q")
+  print(pretty(io), "Sparse abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbField{AbsSimpleNumField})
-  print(io, "Abelian closure of Q")
+  print(pretty(io), "Abelian closure of ", Lowercase(), QQ)
 end
 
 function Base.show(io::IO, a::QQAbFieldGen)
-  if isa(a.K, QQAbField{AbsSimpleNumField})
-    print(io, "Generator of abelian closure of Q")
-  else
-    print(io, "Generator of sparse abelian closure of Q")
-  end
+  print(pretty(io), "Generator of ", Lowercase(), a.K)
 end
 
 """
@@ -454,7 +452,7 @@ end
 
 function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldElem})
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
-  @assert all(x->parent(x) == parent(a[1]), a)
+  @assert allequal(parent, a)
   @assert fl
   for p = keys(factor(c).fac)
     while c % p == 0
@@ -1192,7 +1190,8 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
   # Compute the coefficients of the Atlas irrationality 2*b_nn+1,
   # w.r.t. the N-th cyclotomic field.
-  # (The underlying formula is due to a theorem of Gauss.)
+  # (The underlying formula is due to a theorem of Gauss,
+  # see Chapter IV, § 3, QS 4 in [Lan70](@cite).)
   cfs = zeros(ZZRingElem, N)
   cfs[1] = 1
   q = div(N, nn)
@@ -1308,6 +1307,18 @@ function reduce(val::QQAbFieldElem, F::FinField)
 end
 
 #TODO: add reduction to alg. closure as soon as this is available!
+
+###############################################################################
+#
+#   Conformance test element generation
+#
+###############################################################################
+
+function ConformanceTests.generate_element(K::QQAbField)
+  ns = rand(1:8, 3)
+  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
+  return sum(zs)
+end
 
 end # module AbelianClosure
 
