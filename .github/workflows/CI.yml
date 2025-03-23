@@ -20,16 +20,9 @@ permissions:
   actions: write
   contents: read
 
-concurrency:
-  # group by workflow and ref; the last slightly strange component ensures that for pull
-  # requests, we limit to 1 concurrent job, but for the master branch we don't
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
-  # Cancel intermediate builds, but only if it is a pull request build.
-  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
-
 jobs:
   book-tests:
-    runs-on: 'ubuntu-latest'
+    runs-on: [Linux, RPTU, normal-memory]
     timeout-minutes: 80
     # book tests should run in default threadpool to allow hangcheck timer
     env:
