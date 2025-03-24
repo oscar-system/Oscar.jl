@@ -1216,23 +1216,21 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
-  # Check if we can compute the Chern classes for the toric ambient space
-  if check
-    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
-  end
-
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
     cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
     cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
-    # For performance:
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
-    # Alternatively, the following line is slower.
-    # However, the following line fails should the hypersurface equation not be homogeneous.
-    # Inhomogeneity of hypersurface_equation will not be detected by the above line.
-    #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
+    diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
+    coeffs_list = coefficients(toric_divisor(toric_divisor_class(ambient_space(m), diff)))
+    indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
+    poly = sum(QQ(coeffs_list[k]) * indets[k] for k in 1:length(indets))
+    cs[2] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
     set_attribute!(m, :chern_classes, cs)
+  end
+
+  # Check if we can compute the Chern classes for the toric ambient space
+  if check
+    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
 
   # Check if the Chern class in question is known
@@ -1240,10 +1238,18 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   if cs[k+1] !== nothing
     return cs[k+1]::CohomologyClass
   end
-
   # Chern class is not known, so compute and return it...
-  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  #cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  d = toric_divisor(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
+  indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
+  coeff_ring = coefficient_ring(ambient_space(m))
+  poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
+  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
+  ck_ambient = chern_class(ambient_space(m), k, check = check)
+  ckm1 = chern_class(m, k-1, check = check)
+  new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
+  cs[k+1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly))
   set_attribute!(m, :chern_classes, cs)
   return cs[k+1]
 end
