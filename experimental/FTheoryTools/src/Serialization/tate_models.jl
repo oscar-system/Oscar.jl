@@ -10,7 +10,6 @@
   :basis_of_h22_hypersurface,
   :basis_of_h22_hypersurface_indices,
   :birational_literature_models,
-  :chern_classes,
   :classes_of_model_sections,
   :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes,
   :components_of_dual_graph,
