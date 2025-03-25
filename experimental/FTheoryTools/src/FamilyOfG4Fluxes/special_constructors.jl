@@ -356,7 +356,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
         my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
         inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
       end
-      push!(condition, inter_numb)
+      push!(offset_vector, inter_numb)
     end
 
   else
