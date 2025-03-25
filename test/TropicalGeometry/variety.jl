@@ -42,19 +42,21 @@
     end
    
     @testset "tropical prevarieties" begin
-	G = grassmann_pluecker_ideal(2,4)
-	f = gens(G)[1]
-	T = tropical_hypersurface(f)
-	TT = tropical_prevariety([f])
-	@test T == TT
-	G = grassmann_pluecker_ideal(2,5)
-	T = tropical_prevariety(gens(G))
-	@test length(rays_modulo_lineality(T)[1]) == 10
-	nu = tropical_semiring_map(QQ,max)
-	T = tropical_prevariety(gens(G),nu)
-	@test length(rays_modulo_lineality(T)[1]) == 10
-	TG = tropical_hypersurface.(gens(G))
-	T = tropical_prevariety(TG)
-	@test length(rays_modulo_lineality(T)[1]) == 10
+      G = grassmann_pluecker_ideal(2,4)
+      f = gens(G)[1]
+      T = tropical_hypersurface(f)
+      TP = polyhedral_complex(T)
+      TT = tropical_prevariety([f])
+      @test rays_modulo_lineality(TP) == rays_modulo_lineality(TT)
+      @test incidence_matrix(maximal_polyhedra(TP)) == incidence_matrix(maximal_polyhedra(TT))
+      G = grassmann_pluecker_ideal(2,5)
+      T = tropical_prevariety(gens(G))
+      @test length(rays_modulo_lineality(T)[1]) == 10
+      nu = tropical_semiring_map(QQ,max)
+      T = tropical_prevariety(gens(G),nu)
+      @test length(rays_modulo_lineality(T)[1]) == 10
+      TG = tropical_hypersurface.(gens(G))
+      T = tropical_prevariety(TG)
+      @test length(rays_modulo_lineality(T)[1]) == 10
     end
 end
