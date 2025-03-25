@@ -296,6 +296,8 @@ include("Misc/Misc.jl")
 # be written inside the corresponding experimental code sub directory
 include("Serialization/main.jl")
 
+include("Oscardb.jl")
+
 include("../experimental/Experimental.jl")
 
 include("deprecations.jl")
