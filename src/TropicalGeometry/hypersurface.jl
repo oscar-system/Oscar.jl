@@ -316,7 +316,7 @@ Polyhedral complex in ambient dimension 10
 function tropical_prevariety(F::Vector{<:AbstractAlgebra.Generic.MPoly{TropicalSemiringElem{minmax}}}) where {minmax<:Union{typeof(min),typeof(max)}}
     length(F) > 0 || error("Empty array.")
     HTF = tropical_hypersurface.(F)
-    return reduce(common_refinement, [h.polyhedralComplex for h in HTF])
+    return tropical_prevariety(HTF)
 end
 
 function tropical_prevariety(F::Vector{<:MPolyRingElem}, nu::TropicalSemiringMap)
@@ -327,3 +327,5 @@ end
 tropical_prevariety(F::Vector{<:MPolyRingElem}) = tropical_prevariety(F, tropical_semiring_map(coefficient_ring(first(F))))
 
 tropical_prevariety(F::Vector{<:MPolyRingElem}, convention::minmax) where {minmax<:Union{typeof(min),typeof(max)}} = tropical_prevariety(F, tropical_semiring_map(coefficient_ring(first(F)), convention))
+
+tropical_prevariety(F::Vector{TropicalHypersurface{minmax, true}}) where {minmax<:Union{typeof(min),typeof(max)}} = reduce(common_refinement, [h.polyhedralComplex for h in F])
