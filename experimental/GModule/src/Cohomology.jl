@@ -85,20 +85,30 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function GModule(M, G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(M, G::T, ac::Vector{<:Map}) where {T}
     r = new{T,typeof(M)}()
     r.G = G
     r.ac = ac
     r.M = M
     @assert all(x -> domain(x) === codomain(x) === r.M, ac)
-    @assert length(ac) == ngens(G)
-    @hassert :GroupCohomology 1 is_consistent(r)
+    if isa(G, Group)
+      @assert length(ac) == ngens(G)
+      @hassert :GroupCohomology 1 is_consistent(r)
+    end
     return r
   end
 
 
-  function GModule(G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(G::T, ac::Vector{<:Map}) where {T}
     return GModule(domain(ac[1]), G, ac)
+  end
+
+  function GModule(ac::Vector{<:Map})
+    T = typeof(domain(ac[1]))
+    M = new{Nothing, T}()
+    M.M = domain(ac[1])
+    M.ac = ac
+    return M
   end
 
   F::Group # G as an Fp-group (if set)
@@ -136,14 +146,14 @@ group `H`, return the `ZZ[H]` module.
 
 Note: we do not check that this defined indeed a `ZZ[H]` module.
 """
-function gmodule(H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(H, ac)
 end
 
 #in case the group is trivial, (ngens == 0), then length(ac)=0
 #and the modules cannot be inferred. Thus a version with the
 #module...
-function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(M, H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(M, H, ac)
 end
 
