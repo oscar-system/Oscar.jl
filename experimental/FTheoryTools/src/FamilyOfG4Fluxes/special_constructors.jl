@@ -447,5 +447,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 
   # (1) Verify fluxes in fully resolved big model & attributes.
   # (2) Update zenodo and then the artifact in OSCAR.
+  # (3) Activate the extra long tests again.
+  # (4) Have the refs been updated? I mentioned this to Mikelis a while back. Singular -> latest version. And Hanselmann -> preprint.
+  # (5) Back to writing our preprint...
+  # (6) Can we get an official email address for Mikelis? Talk to Hans.
 
 end
