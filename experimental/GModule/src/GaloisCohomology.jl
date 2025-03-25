@@ -191,7 +191,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
       if i == 1
         o = _o
       else
-        o = vcat([collect(values(factor(x))) for x = _o]...)
+        o = vcat([collect(keys(factor(x))) for x = _o]...)
       end
       M = abelian_group([0 for x = o])
       h = MapFromFunc(c.C.M, M, x->M([valuation(x.data, y) for y = o]))
