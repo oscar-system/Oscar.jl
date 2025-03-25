@@ -359,6 +359,33 @@ function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
   return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
 end
 
+#over a ring we might have torsion in the modules and I do not
+#know if det/ trace/ ... work and make sense
+#for free/ZZ it would (but difficult to "type")
+function AbstractAlgebra.tr(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return AbstractAlgebra.tr(matrix(h))
+end
+
+function Nemo.det(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return det(matrix(h))
+end
+
+function Nemo.minpoly(R::PolyRing, h::Generic.ModuleHomomorphism{<:FieldElem})
+  return minpoly(R, matrix(h))
+end
+
+function Nemo.minpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return minpoly(matrix(h))
+end
+
+function Nemo.charpoly(R::PolyRing, h::Generic.ModuleHomomorphism{<:FieldElem})
+  return charpoly(R, matrix(h))
+end
+
+function Nemo.charpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return charpoly(matrix(h))
+end
+
 end # module
 using .Misc
 export relative_field
