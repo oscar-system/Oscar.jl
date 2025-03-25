@@ -59,9 +59,7 @@ end
   @test is_negative_definite(L) == is_positive_definite(Vf)
   @test rational_spinor_norm(Vf) > 0
 
-  @test rank(biproduct(Vf, Vf)[1]) == 12
   @test order_of_isometry(direct_sum(Vf, Vf, Vf)[1]) == 3
-  @test det(direct_product(Vf, Vf)[1]) == det(Vf)^2
 
   @test Vf != quadratic_space_with_isometry(V; neg=true)
   @test length(unique([Vf, quadratic_space_with_isometry(V, isometry(Vf))])) == 1
@@ -87,7 +85,7 @@ end
   g = agg[4]
 
   L = integer_lattice(gram = matrix(QQ, 0, 0, []))
-  Lf = integer_lattice_with_isometry(L; neg = true)
+  Lf = integer_lattice_with_isometry(L; neg=true)
   @test order_of_isometry(Lf) == -1
 
   F, C = invariant_coinvariant_pair(Lf)
@@ -145,13 +143,13 @@ end
   nf = multiplicative_order(f)
   @test_throws ArgumentError integer_lattice_with_isometry(A3, zero_matrix(QQ, 0, 0))
 
-  L2 = @inferred integer_lattice_with_isometry(A3, f; ambient_representation = false)
+  L2 = @inferred integer_lattice_with_isometry(A3, f; ambient_representation=false)
   @test order_of_isometry(L2) == nf
   L2v = @inferred dual(L2)
   @test order_of_isometry(L2v) == nf
   @test ambient_isometry(L2v) == ambient_isometry(L2)
   
-  L3 = @inferred integer_lattice_with_isometry(A3, g; ambient_representation = true)
+  L3 = @inferred integer_lattice_with_isometry(A3, g; ambient_representation=true)
   @test order_of_isometry(L3) == multiplicative_order(g)
   @test L3^(order_of_isometry(L3)+1) == L3
   @test genus(lll(L3; same_ambient=false)) == genus(L3)
@@ -162,16 +160,14 @@ end
   @test_throws ArgumentError dual(L4)
   @test ambient_isometry(lll(L4)) == ambient_isometry(L4)
 
-  @test order_of_isometry(biproduct(L2, L3)[1]) == lcm(order_of_isometry(L2), order_of_isometry(L3))
   @test rank(direct_sum(L2, L3)[1]) == rank(L2) + rank(L3)
-  @test genus(direct_product(L2, L3)[1]) == direct_sum(genus(L2), genus(L3))
 
   L5 = @inferred lattice(ambient_space(L2))
   @test (L2 == L5)
 
   B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
   G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
-  L = integer_lattice(B; gram = G);
+  L = integer_lattice(B; gram=G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
 
@@ -208,7 +204,7 @@ end
 
   B = matrix(QQ, 4, 8, [0 0 0 0 3 0 0 0; 0 0 0 0 1 1 0 0; 0 0 0 0 1 0 1 0; 0 0 0 0 2 0 0 1]);
   G = matrix(QQ, 8, 8, [-2 1 0 0 0 0 0 0; 1 -2 0 0 0 0 0 0; 0 0 2 -1 0 0 0 0; 0 0 -1 2 0 0 0 0; 0 0 0 0 -2 -1 0 0; 0 0 0 0 -1 -2 0 0; 0 0 0 0 0 0 2 1; 0 0 0 0 0 0 1 2]);
-  L = integer_lattice(B; gram = G);
+  L = integer_lattice(B; gram=G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 -1 1 0 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 -1 1]);
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)[1]
@@ -216,7 +212,7 @@ end
 
   B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
   G = matrix(QQ, 6, 6, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
-  L = integer_lattice(B; gram = G);
+  L = integer_lattice(B; gram=G);
   f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 -1 0 0 1; 0 0 0 -1 1 -1]);
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)[1]
@@ -225,9 +221,9 @@ end
   F, C, _ = invariant_coinvariant_pair(A3, OA3)
   @test rank(F) == 0
   @test C == A3
-  _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation = false)
+  _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation=false)
   @test order(G) == order(OA3)
-  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1]; ambient_representation = false)
+  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1]; ambient_representation=false)
   @test is_sublattice(A3, C)
 
   B = matrix(QQ, 3, 3, [1 0 0; 0 1 0; 0 0 1]);
@@ -270,9 +266,9 @@ end
   @test length(enumerate_classes_of_lattices_with_isometry(E6, 9)) == 1
   @test length(enumerate_classes_of_lattices_with_isometry(genus(E6), 1)) == 1
 
-  @test length(admissible_triples(E6, 2; pA=2)) == 2
-  @test length(admissible_triples(rescale(E6, 2), 2; pB = 4)) == 2
-  @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
+  @test length(admissible_triples(E6, 2; IpA=[2])) == 2
+  @test length(admissible_triples(rescale(E6, 2), 2; IpB=[4])) == 2
+  @test length(admissible_triples(E6, 3; IpA=[2], IpB=[4])) == 1
 end
 
 @testset "Enumeration of lattices with isometry of hermitian type" begin
@@ -287,8 +283,8 @@ end
   # Galois orbits
   U = hyperbolic_plane_lattice()
   L = direct_sum(U, U, U, U)[1]
-  @test length(representatives_of_hermitian_type(L, 5, false)) == 3
-  @test length(representatives_of_hermitian_type(L, 5, true)) == 2
+  @test length(representatives_of_hermitian_type(L, 5)) == 3
+  @test length(representatives_of_hermitian_type(L, 5, 5)) == 2
 end
 
 @testset "Primitive extensions and embeddings" begin
@@ -325,11 +321,11 @@ end
   ok, _ = primitive_embeddings(q, (p,n), E7; classification=:none)
   @test ok
 
-  @test !primitive_embeddings(rescale(E7, 2), k; classification=:none, check = false)[1]
+  @test !primitive_embeddings(rescale(E7, 2), k; classification=:none, check=false)[1]
 
   B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
   G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
-  L = integer_lattice(B; gram = G);
+  L = integer_lattice(B; gram=G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
   F = invariant_lattice(Lf)
@@ -337,7 +333,7 @@ end
   reps = @inferred admissible_equivariant_primitive_extensions(F, C, Lf^0, 5)
   @test length(reps) == 1
   @test is_of_same_type(Lf, reps[1])
-  _, reps = @inferred primitive_extensions(lattice(F), lattice(C); q = discriminant_group(L), classification=:embemb)
+  _, reps = @inferred primitive_extensions(lattice(F), lattice(C); q=discriminant_group(L), classification=:embemb)
   @test length(reps) == 2
   @test reps[1] == (L, lattice(F), lattice(C))
 
@@ -382,7 +378,7 @@ end
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 -2 0;
                                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -4])
 
-  ok, reps = primitive_embeddings(L, C; check = false)
+  ok, reps = primitive_embeddings(L, C; check=false)
   @test length(reps) == 1
 
   ## Odd case
@@ -429,7 +425,7 @@ end
 @testset "Fix hermitian miranda-morrison" begin
   B = matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]);
   G = matrix(QQ, 4, 4, [0 0 0 4; 0 0 4 0; 0 4 0 0; 4 0 0 0]);
-  L = integer_lattice(B, gram = G);
+  L = integer_lattice(B, gram=G);
   f = matrix(QQ, 4, 4, [1 0 2 0; 0 1 0 -2; -1 0 -1 0; 0 1 0 -1]);
   Lf = integer_lattice_with_isometry(L, f);
   GLf, _ = image_centralizer_in_Oq(Lf)
@@ -437,7 +433,7 @@ end
 
   B = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 1 0 0 0; 0 0 0 1 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1]);
   G = matrix(QQ, 6, 6, [0 0 0 0 0 3; 0 0 0 0 3 0; 0 0 -6 0 0 0; 0 0 0 -6 0 0; 0 3 0 0 0 0; 3 0 0 0 0 0]);
-  L = integer_lattice(B, gram = G);
+  L = integer_lattice(B, gram=G);
   f = matrix(QQ, 6, 6, [0 1 -1 1 2 0; -1 -2 1 -1 0 -2; 0 0 0 1 2 -2; 2 2 -1 0 -2 2; -1 0 0 1 2 -1; 0 1 0 1 1 0]);
   Lf = integer_lattice_with_isometry(L, f);
   GLf, _ = image_centralizer_in_Oq(Lf)
@@ -447,7 +443,7 @@ end
 @testset "Fix Galois action" begin
   U = hyperbolic_plane_lattice()
   L, _ = direct_sum(U, U)
-  reps = representatives_of_hermitian_type(L, 4, true)
+  reps = representatives_of_hermitian_type(L, 4, 4)
   @test length(reps) == 1
   # The rest is for code coverage
   Lf = first(reps)

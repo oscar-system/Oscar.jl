@@ -3,31 +3,32 @@ CurrentModule = Oscar
 DocTestSetup = Oscar.doctestsetup()
 ```
 
+# Nikulin's theory on primitive embeddings
+
 We introduce here the necessary definitions and results which lie behind the
 methods about primitive embeddings. Most of the content is taken from
 [Nik79](@cite).
 
-# Nikulin's theory on primitive embeddings
-
 ## Primitive embeddings
 
-Given an embedding $i\colon S\hookrightarrow T$ of non-degenerate integral
+Given an embedding $i\colon S\hookrightarrow T$ of nondegenerate integral
 integer lattices, we call $i$ *primitive* if its cokernel $T/i(S)$ is torsion
 free. Two primitive embeddings $i_1\colon S\hookrightarrow M_1$ and
 $i_2\colon S \hookrightarrow M_2$ of $S$ into two lattices $M_1$ and $M_2$ are
-called *isomorphic* if there exists an isometry $M_1 \to M_2$ which restricts to
-the identity of $S$. Moreover, if there exists an isometry between $M_1$ and
+called *isomorphic* if there exists an isometry $M_1 \to M_2$ which restricts
+to the identity of $S$. Moreover, if there exists an isometry between $M_1$ and
 $M_2$ which maps $S$ to itself (not necessarily identically), we say that $i_1$
 and $i_2$ defines *isomorphic primitive sublattices* [Nik79](@cite).
 
-In his paper, V. V. Nikulin gives necessary and sufficient condition for an even
-integral lattice $M$ to embed primitively into an even unimodular lattice with
-given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally, the
-author also provides methods to compute primitive embeddings of any even lattice
-into an even lattice of a given genus (see Proposition 1.15.1 in [Nik79](@cite)).
-In the latter proposition, it is explained how to classify such embeddings as
-isomorphic embeddings or as isomorphic sublattices. Moreover, with enough care,
-one can generalize the previous results for embeddings in odd lattices.
+In [Nik79](@cite), Nikulin gives necessary and sufficient condition for an
+even integer lattice $M$ to embed primitively into an even unimodular lattice
+with given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally,
+the author also provides methods to compute primitive embeddings of any even
+lattice into an even lattice of a given genus (see Proposition 1.15.1 in
+[Nik79](@cite)). In this proposition, it is explained how to classify such
+embeddings as isomorphic embeddings or as isomorphic sublattices. Moreover,
+with enough care, one can generalize the previous results for embeddings in odd
+lattices.
 
 A general method to compute primitive embeddings between integral lattices
 can be algorithmically implemented, however it tends to be slow and inefficient
@@ -45,9 +46,9 @@ We provide 4 kinds of output:
 primitive_embeddings(::ZZLat, ::ZZLat)
 ```
 
-Note that the previous two functions require the first lattice of the input to be
-unique in its genus. Otherwise, one can specify a genus, or its invariants, as a
-first input:
+Note that the previous function requires the first lattice of the input to
+be unique in its genus. Otherwise, one can specify a genus, or its invariants,
+as a first input.
 
 ```@docs
 primitive_embeddings(::ZZGenus, ::ZZLat)
@@ -82,9 +83,9 @@ An *equivariant primitive extension* of a pair of integer lattices with
 isometries $(M, f_M)$ and $(N, f_N)$ is a primitive extension of $M$ and $N$
 obtained by gluing two subgroups which are respectively $D_{f_M}$ and
 $D_{f_N}$ stable along a glue map which commutes with these two actions.
-If such a gluing exists, then the overlattice $L$ of $M\oplus N$ is equipped with
-an isometry $f_L$ which preserves both $M$ and $N$, and restricts to $f_M$ and
-$f_N$ respectively.
+If such a gluing exists, then the overlattice $L$ of $M\oplus N$ is equipped
+with an isometry $f_L$ which preserves both $M$ and $N$, and restricts to $f_M$
+and $f_N$ respectively.
 
 ```@docs
 equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLatWithIsom, ZZLat})
@@ -94,11 +95,12 @@ equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLatWit
 
 The following function is a major tool provided by [BH23](@cite). Given
 a triple of even integer lattices with isometry $((A, a), (B, b), (C, c))$
-and two prime numbers $p$ and $q$ (possibly equal), if $(A, B, C)$ is $p$-admissible,
-this function returns representatives of isomorphism classes of equivariant primitive
-extensions $(A, a)\oplus (B, b)\to (D, d)$ such that the type of $(D, d^q)$ is
-equal to the type of $(C, c)$ (see [`type(::ZZLatWithIsom)`](@ref)).
+and two prime numbers $p$ and $q$ (possibly equal), if $(A, B, C)$ is
+$p$-admissible, this function returns representatives of isomorphism classes of
+equivariant primitive extensions $(A, a)\oplus (B, b)\to (D, d)$ such that the
+type of $(D, d^q)$ is equal to the type of $(C, c)$
+(see [`type(::ZZLatWithIsom)`](@ref)).
 
 ```@docs
-admissible_equivariant_primitive_extensions(::ZZLatWithIsom, ::ZZLatWithIsom, ::ZZLatWithIsom, ::IntegerUnion, ::IntegerUnion)
+admissible_equivariant_primitive_extensions(::ZZLatWithIsom, ::ZZLatWithIsom, ::ZZLatWithIsom, ::Int, ::Int)
 ```

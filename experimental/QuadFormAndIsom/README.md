@@ -35,7 +35,7 @@ in the case were the discriminant groups have a large number of subgroups.
 
 Currently, the project features the following:
 
-- enumeration of conjugacy classes of isometries of finite order for even lattices (in the case of at most 2 prime divisors);
+- enumeration of conjugacy classes of isometries of finite order for even lattices;
 - enumeration of conjugacy classes of isometries with irreducible and reciprocal minimal polynomial for integral lattices (with maximal equation order);
 - primitive embeddings/extensions for integral lattices;
 - equivariant primitive extensions for integral lattices;

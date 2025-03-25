@@ -9,8 +9,8 @@ This project is a complement to the code about *hermitian lattices* available
 in Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
 methods regarding quadratic forms with their isometries. In particular,
 the integration of this code within Oscar is necessary to benefit from all the
-performance of GAP with respect to computations with groups and automorphisms in
-general.
+performance of GAP with respect to computations with groups and automorphisms
+in general.
 
 For now, the project covers methods regarding rational and integral quadratic
 forms.
@@ -40,7 +40,7 @@ in the case were the discriminant groups have a large number of subgroups.
 
 Currently, the project features the following:
 
-- enumeration of conjugacy classes of isometries of finite order for even lattices (in the case of at most 2 prime divisors);
+- enumeration of conjugacy classes of isometries of finite order for even lattices;
 - enumeration of conjugacy classes of isometries with irreducible and reciprocal minimal polynomial for integral lattices (with maximal equation order);
 - primitive embeddings/extensions for integral lattices;
 - equivariant primitive extensions for integral lattices;
@@ -48,10 +48,10 @@ Currently, the project features the following:
 
 ## Current applications of this project
 
-The project was initiated by S. Brandhorst and T. Hofmann for classifying
-finite subgroups of automorphisms of K3 surfaces. Our current goal is to use
-this code, and further extensions of it, to classify finite subgroups of
-bimeromorphic self-maps of *hyperkaehler manifolds*, which are a higher
+The project was initiated by Brandhorst and Hofmann [BH23](@cite) for
+classifying finite subgroups of automorphisms of K3 surfaces. Our current goal
+is to use this code, and further extensions of it, to classify finite subgroups
+of bimeromorphic self-maps of *hyperkähler manifolds*, which are higher
 dimensional analogues of K3 surface.
 
 ## Tutorials
@@ -69,7 +69,7 @@ No examples available at the moment.
 Since this project is still under development, feel free to try any feature and
 report all the bugs you may have found. Any suggestions for improvements or
 extensions are more than welcome. Refer to the next section to know who you
-should contact and how. Do not hesitate either to ask for new features - we
+should contact and how. Do not hesitate either to ask for new features --- we
 will be glad to add anything you may need for your research.
 
 One may expect many things to vary within the next months: name of the
@@ -78,16 +78,16 @@ current version of the code is still at an experimental stage.
 
 ### Report an issue
 
-If you are working with some objects of type `QuadSpaceWithIsom` or `ZZLatWithIsom`
-and you need to report an issue, you can produce directly some lines of codes
-helping to reconstruct your example. This can help the reviewers to understand
-your issue and assist you. We have implemented a method `to_oscar` which
-prints few lines of codes for reconstructing your example.
+If you are working with some objects of type `QuadSpaceWithIsom` or
+`ZZLatWithIsom` and you need to report an issue, you can produce directly some
+lines of codes helping to reconstruct your example. This can help the reviewers
+to understand your issue and assist you. We have implemented a method
+`to_oscar` which prints few lines of codes for reconstructing your example.
 
 ```@repl 2
 using Oscar # hide
 V = quadratic_space(QQ, 2);
-Vf = quadratic_space_with_isometry(V, neg = true)
+Vf = quadratic_space_with_isometry(V; neg=true)
 Oscar.to_oscar(Vf)
 
 Lf = lattice(Vf)
