@@ -445,9 +445,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   end
   return fgs
 
-  # (1) Recompute fluxes in fully resolved big model.
-  # (2) The singular big model does not seem to remember its resolutions. Redo and update.
-  # (3) Update zenodo and then the artifact in OSCAR.
-  # (4) Should we also keep supporting the partially resolved big model? Might be interesting to compare the results/update them.
+  # (1) Verify fluxes in fully resolved big model & attributes.
+  # (2) Update zenodo and then the artifact in OSCAR.
 
 end
