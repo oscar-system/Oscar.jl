@@ -788,6 +788,7 @@ export inv!
 export invariant_alternating_forms
 export invariant_bilinear_forms
 export invariant_hermitian_forms
+export invariant_lattice_of_K3_cover
 export invariant_quadratic_forms
 export invariant_ring
 export invariant_sesquilinear_forms
@@ -1248,6 +1249,8 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
+export numerical_lattice 
+export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats

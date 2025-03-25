@@ -32,6 +32,9 @@ borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
 splitting_roots_mod2(Y::EnriquesBorcherdsCtx)
 root_invariant(Y::EnriquesBorcherdsCtx)
 mass(ECtx::EnriquesBorcherdsCtx)
+numerical_lattice(Y::EnriquesBorcherdsCtx)
+numerical_lattice_of_K3_cover(Y::EnriquesBorcherdsCtx)
+invariant_lattice_of_K3_cover(Y::EnriquesBorcherdsCtx)
 ```
 ## Chambers
 ```@docs
