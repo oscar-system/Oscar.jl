@@ -401,7 +401,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   r = rank(S)
   @req all(k -> !is_zero(S[k,k]), 1:r) "Inconsistency in Smith normal form computation detected. Please inform the authors."
   @req all(k -> is_zero(S[k,k]), r+1:min(nrows(S), ncols(S))) "Inconsistency in Smith normal form computation detected. Please inform the authors."
-  @req all(k -> !isinteger(offset_vector[k]), r+1:min(nrows(S), ncols(S))) "Inconsistency in Smith normal form computation detected. Please inform the authors."
   S_prime = zero_matrix(QQ, ncols(S), ncols(S))
   transformed_offset_vector = T * offset_vector
   shift_vector = [zero(QQ) for k in 1:nrows(S_prime)]
@@ -412,6 +411,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
         shift_vector[k] = - transformed_offset_vector[k]//S[k,k]
       end
     else
+      @req isinteger(transformed_offset_vector[k]) "Inconsistency in Smith normal form computation detected. Please inform the authors."
       S_prime[k,k] = 1
     end
   end
