@@ -24,7 +24,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
-             #"specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
+             "specialized/brandhorst-zach-fibration-hopping/vinberg_1.jlcon",
              # very slow: 24000s
              "cornerstones/number-theory/cohenlenstra.jlcon",
              # ultra slow: time unknown

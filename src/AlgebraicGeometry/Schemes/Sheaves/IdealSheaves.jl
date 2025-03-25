@@ -853,6 +853,9 @@ function order_of_vanishing(
     if tmp < complexity
       complexity = tmp
       V = U
+      ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing  select $(tmp): $(objectid(U)) -- $(repr(U))\n")
+    elseif tmp == complexity
+      ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing  ambig  $(tmp): $(objectid(U)) -- $(repr(U))\n")
     end
   end
   flag = false
@@ -862,6 +865,7 @@ function order_of_vanishing(
       # no chart has been computed, so we just take the first one
       flag = true
       V = U
+      ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing  selecting first: $(repr(U))\n")
       break
     end
     flag || error("divisor is empty")
@@ -872,8 +876,17 @@ function order_of_vanishing(
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))
+  ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing  K: $(repr.(gens(K)))\n")
+  ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing  J: $(repr.(gens(J)))\n")
+  ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing aR: $(repr.(gens(aR)))\n")
+  ccall(:jl_safe_printf, Cvoid, (Cstring, ), "order_of_vanishing bR: $(repr.(gens(bR)))\n")
+  #save("/tmp/K.mrdi", K)
+  #save("/tmp/J.mrdi", J)
+  #save("/tmp/aR.mrdi", aR)
+  #save("/tmp/bR.mrdi", bR)
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
+  #num_mult = _minimal_power_such_that(J, x->(save("/tmp/xK.mrdi", x+K); issubset(quotient(x+K, aR), J)))[1]-1
   num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
   den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
   return num_mult - den_mult
