@@ -499,18 +499,29 @@ function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleN
   return li
 end
 
-function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
-  k, m = _character_field(V)
-  chi = character(V)
-  d = schur_index(chi)
-  d = 1
+function AbstractAlgebra.tr(h::Oscar.GModuleHom{<:Union{Nothing, Group}, <:AbstractAlgebra.FPModule{<:FieldElem}})
+  return AbstractAlgebra.tr(matrix(h.module_map))
+end
+
+function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+  if !isa(V.G, Group)
+    E, mE = endo(V)
+    k, m = subfield(base_ring(V), map(x->trace(mE(x)), basis(E)))
+    d = -1 # TODO: Find out what we need there
+      # E is (or should be at this point) CSA, but we want to write it
+      # over a smaller field...
+      #maybe fixed further down
+  else
+    k, m = _character_field(V)
+    chi = character(V)
+    d = schur_index(chi)
+  end
   if d != 1
     @vprint :MinField 1  "non-trivial Schur index $d found\n"
   end
   if d !== nothing && d*degree(k) == degree(base_ring(V))
     return V
-  elseif d == -1
-#TODO: how could this happen?
+  elseif d == 1
     @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
     Vmin = gmodule_over(m, V)
     return Vmin
@@ -560,7 +571,6 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     =#
 
 
-    k, m = _character_field(V)
     u = m(k[1])
     K = base_ring(V)
     A, mA = automorphism_group(PermGroup, K)
@@ -571,7 +581,13 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     if d == 1
       ld = Vector{Pair{Int, Int}}()
     else
-      ld = local_schur_indices(c, mA)
+      if isa(V.G, Group)
+        ld = local_schur_indices(character(V))
+      else
+        @assert d == -1
+        ld = local_schur_indices(c, mA)
+        d = lcm(Int[x[2] for x = ld])
+      end
     end
     d =  reduce(lcm, [x[2] for x = ld], init = 1)
 
@@ -819,7 +835,11 @@ end
 
 function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
-  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+  if isa(group(C), Group)
+    return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+  else
+    return GModule([hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+  end
 end
 
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
@@ -1595,7 +1615,7 @@ inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)
 q, mq = quo(H, image(inj)[2])
 =#
 
-function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Oscar.GAPGroup, T <: FinFieldElem}
+function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Union{Nothing, Oscar.GAPGroup}, T <: FinFieldElem}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C), Gap(D))
@@ -2070,7 +2090,7 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
   for i=basis(E)
     f = minpoly(i)
     lf = factor(f)
-    if length(lf) == 1 && degree(f) == s*m*k &&  lf[f] == 1
+    if length(lf) == 1 && degree(f) == s*m*k &&  collect(values(lf.fac))[1] == 1
       if first
         best_f = f
         best_i = i
