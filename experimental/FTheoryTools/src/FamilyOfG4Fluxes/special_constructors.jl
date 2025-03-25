@@ -445,22 +445,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   end
   return fgs
 
-  # TODO:
-  
-  # Idea:
-
-  # Recompute all data for fully resolved big model, verify and serialize the results.
-  # In particular: No reason why rationally equivalent cycle should exist with integral coefficients. However, code runs.
-  # Maybe redo computation with this assumption losened, then compare and decide what code to use.
-  
-  # The non-resolved big model does not seem to remember its resolutions. We should recompute the models from scratch and verify that all attributes are there...
-
-  # Make update of the big model artifact on zenodo and activate the long tests again.
-
-  # Can we support the following for ALL families of fluxes?
-  # is_well_quantized
-  # passes_transversality_checks
-  # breaks_non_abelian_gauge_group
-  # d3_tadpole_constraint
+  # (1) Recompute fluxes in fully resolved big model.
+  # (2) The singular big model does not seem to remember its resolutions. Redo and update.
+  # (3) Update zenodo and then the artifact in OSCAR.
+  # (4) Should we also keep supporting the partially resolved big model? Might be interesting to compare the results/update them.
 
 end
