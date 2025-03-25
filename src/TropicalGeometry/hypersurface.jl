@@ -319,10 +319,11 @@ function tropical_prevariety(F::Vector{<:AbstractAlgebra.Generic.MPoly{TropicalS
     return reduce(common_refinement, [h.polyhedralComplex for h in HTF])
 end
 
-#Default to min convention
 function tropical_prevariety(F::Vector{<:MPolyRingElem}, nu::TropicalSemiringMap)
    return tropical_prevariety(tropical_polynomial.(F,Ref(nu)))
 end
 
 #Default to min with trivial valuation
 tropical_prevariety(F::Vector{<:MPolyRingElem}) = tropical_prevariety(F, tropical_semiring_map(coefficient_ring(first(F))))
+
+tropical_prevariety(F::Vector{<:MPolyRingElem}, convention::minmax) where {minmax<:Union{typeof(min),typeof(max)}} = tropical_prevariety(F, tropical_semiring_map(coefficient_ring(first(F)), convention))
