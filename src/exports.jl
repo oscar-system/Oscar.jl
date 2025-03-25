@@ -91,9 +91,11 @@ export GU
 export GapObj
 export Gluing
 export Graph
+export Group
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
+export GroupElem
 export Halfspace
 export Hecke
 export HilbertData
@@ -214,6 +216,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
+export label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -637,6 +640,7 @@ export galois_group
 export galois_ideal
 export galois_orbit_sum
 export galois_quotient
+export galois_representative_and_multiplicity
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -679,6 +683,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_labeled_edges
 export grassmann_pluecker_ideal
 export groebner_basis
 export groebner_basis_f4
@@ -1032,6 +1037,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export labelings
 export laplacian_matrix
 export lattice_homomorphism
 export lattice_of_one_parameter_subgroups

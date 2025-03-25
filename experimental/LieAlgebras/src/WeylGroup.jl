@@ -185,35 +185,6 @@ function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
 end
 
 @doc raw"""
-    FPGroup(W::WeylGroup) -> FPGroup
-    fp_group(W::WeylGroup) -> FPGroup
-
-Construct a group of type `FPGroup` that is isomorphic to `W`.
-
-If one needs the isomorphism then [`isomorphism(::Type{FPGroup}, W::WeylGroup)`](@ref)
-can be used instead.
-"""
-function FPGroup(W::WeylGroup)
-  return codomain(isomorphism(FPGroup, W))
-end
-
-@doc raw"""
-    PermGroup(W::WeylGroup) -> PermGroup
-    permutation_group(W::WeylGroup) -> PermGroup
-
-Construct a group of type `PermGroup` that is isomorphic to `W`.
-
-If one needs the isomorphism then [`isomorphism(::Type{PermGroup}, W::WeylGroup)`](@ref)
-can be used instead.
-"""
-function PermGroup(W::WeylGroup)
-  return codomain(isomorphism(PermGroup, W))
-end
-
-fp_group(W::WeylGroup) = FPGroup(W)
-permutation_group(W::WeylGroup) = PermGroup(W)
-
-@doc raw"""
     isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
 
 Return an isomorphism from `W` to a group `H` of type `FPGroup`.
@@ -225,7 +196,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(FPGroup, W)` yi
 
 If only the image of such an isomorphism is needed, use `fp_group(W)`.
 """
-function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
@@ -281,7 +252,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(PermGroup, W)` 
 
 If only the image of such an isomorphism is needed, use `permutation_group(W)`.
 """
-function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}

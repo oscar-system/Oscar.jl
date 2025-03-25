@@ -932,12 +932,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     # Compute the degrees of the character fields if applicable.
     field_degrees = get(io, :character_field, false)::Bool
     if field_degrees
-      p = characteristic(tbl)
-      if p == 0
-        field_degrees = [[string(degree(character_field(x)[1])) for x in tbl]]
-      else
-        field_degrees = [[string(collect(factor(order_field_of_definition(x)))[1][2]) for x in tbl]]
-      end
+      field_degrees = [[string(degree_of_character_field(x)) for x in tbl]]
       field_label = ["d"]
       push!(emptycor, "")
     else
@@ -3083,6 +3078,10 @@ If a nonempty vector `l` of characters is given then `(F, phi)` is returned
 such that `F` is the smallest field that contains the character fields
 of the entries of `l`.
 
+If only the degree of the character field is needed then better call
+[`degree_of_character_field`](@ref),
+this avoids the construction of the field.
+
 # Examples
 ```jldoctest
 julia> t = character_table("A5");
@@ -3150,7 +3149,7 @@ function _character_field(gapfield::GapObj)
       gappol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
       gapcoeffs = GAPWrap.CoefficientsOfUnivariatePolynomial(gappol)
       v = Vector{QQFieldElem}(gapcoeffs)
-      R, = polynomial_ring(QQ, :x; cached=false)
+      R, = polynomial_ring(QQ, :x; cached = true)
       f = R(v)
       F, _ = number_field(f, "z"; cached = true, check = false)
       nfelm = QQAbFieldElem(gapgens[1])
@@ -3307,10 +3306,10 @@ but the values of `psi` need not be rationals.
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> println([degree(character_field(x)[1]) for x in t])
+julia> println([degree_of_character_field(x) for x in t])
 [1, 2, 2, 1, 1]
 
-julia> println([degree(character_field(galois_orbit_sum(x))[1]) for x in t])
+julia> println([degree_of_character_field(galois_orbit_sum(x)) for x in t])
 [1, 1, 1, 1, 1]
 ```
 """
@@ -3335,6 +3334,69 @@ function galois_orbit_sum(chi::GAPGroupClassFunction)
     end
     return class_function(tbl, GAPWrap.ClassFunction(GapObj(tbl), GapObj(sums)))
 end
+
+
+@doc raw"""
+    galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+
+Return `phi, n, m` where `phi` is an absolutely irreducible constituent
+of the rational ordinary character `chi` and `n`, `m` are positive
+`ZZRingElem`s such that `n` is the degree of the character field of `phi`
+(`phi` has `n` Galois conjugates)
+and `chi` is `m` times the sum of these Galois conjugates.
+If `chi` is the character of a rational *representation* that is irreducible
+over the rationals then `m` is equal to the Schur index of `phi`,
+see [`schur_index(chi::GAPGroupClassFunction)`](@ref).
+
+If `check` is `true` then an exception is thrown if `chi` is not rational
+or not an ordinary character or not a multiple of a Galois sum of an
+irreducible character.
+If `check` is `false` then these checks are omitted.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> chi = 3 * (t[2] + t[3]);  chi[1]
+18
+
+julia> phi, n, m = galois_representative_and_multiplicity(chi);
+
+julia> phi[1], n, m
+(3, 2, 3)
+
+julia> G = quaternion_group(8)
+Pc group of order 8
+
+julia> t = character_table(G);
+
+julia> chi = t[5]
+class_function(character table of G, [2, 0, 0, -2, 0])
+
+julia> galois_representative_and_multiplicity(chi)
+(class_function(character table of G, [2, 0, 0, -2, 0]), 1, 1)
+```
+"""
+function galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+    if check
+      @req characteristic(chi) == 0 "chi must be ordinary"
+      @req degree_of_character_field(chi) == 1 "chi must be rational"
+    end
+    tbl = parent(chi)
+    for phi in tbl
+      m = scalar_product(ZZRingElem, chi, phi)
+      if m != 0
+        # We assume `chi[1] == m * n * phi[1]`.
+        n = div(degree(ZZRingElem, chi), m * degree(ZZRingElem, phi))
+        if check
+          @req chi == m * galois_orbit_sum(phi) "chi must be a multiple of a Galois sum"
+        end
+        return (phi, n, m)
+      end
+    end
+    throw(ArgumentError("chi must be a character"))
+end
+
 
 @doc raw"""
     schur_index(chi::GAPGroupClassFunction) -> Int

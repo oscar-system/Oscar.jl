@@ -957,6 +957,9 @@ end
 
   t = character_table("A5")
   sums = [galois_orbit_sum(x) for x in t]
+  rep = galois_representative_and_multiplicity(sums[2])
+  @test_throws ArgumentError galois_representative_and_multiplicity(0*t[1])
+  @test rep[1] == t[2] && rep[3] == 1
   degrees = [degree_of_character_field(x) for x in t]
   @test degrees == [degree(character_field(x)[1]) for x in t]
   @test degrees == [1, 2, 2, 1, 1]
@@ -1077,6 +1080,7 @@ end
   degrees = [degree_of_character_field(chi) for chi in tbl]
   @test degrees == [degree(character_field(chi)[1]) for chi in tbl]
   @test degrees == [1, 2, 2, 1, 1]
+  @test character_field(tbl[2])[1] === character_field(tbl[3])[1] # caching
   @test characteristic(character_field(tbl[1])[1]) == 0
   deg = degree_of_character_field(collect(tbl))
   @test deg == degree(character_field(collect(tbl))[1])
@@ -1133,6 +1137,7 @@ end
 @testset "character fields of Brauer characters" begin
   ordtbl = character_table("A5")
   modtbl = mod(ordtbl, 2)
+  @test character_field(modtbl[2])[1] === character_field(modtbl[3])[1] # caching
   @test [order_field_of_definition(chi) for chi in modtbl] == [2, 4, 4, 2]
   @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
   @test order_field_of_definition(Int, modtbl[1]) isa Int

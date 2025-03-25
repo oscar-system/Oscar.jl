@@ -16,7 +16,7 @@ The chains is then of type `CoChain{2, S, T}`, elements
 of this group are essentially pairs of elements of `G` and
 `M`.
 """
-struct GrpExt{S, T} <: AbstractAlgebra.Group
+struct GrpExt{S, T} <: Group
   c :: Oscar.GrpCoh.CoChain{2, S, T} 
   function GrpExt(c::Oscar.GrpCoh.CoChain{2, A, B}) where A where B
     return new{A, B}(c)

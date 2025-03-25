@@ -114,6 +114,7 @@ conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 degree_of_character_field
 galois_orbit_sum
+galois_representative_and_multiplicity
 indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)

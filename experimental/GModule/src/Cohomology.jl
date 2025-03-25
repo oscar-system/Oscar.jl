@@ -2351,7 +2351,7 @@ end
 
 Tests if the domain is in the center of the codomain.    
 """
-function Oscar.is_central(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group})
+function Oscar.is_central(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group})
   E = codomain(NtoE)
   n = map(NtoE, gens(domain(NtoE)))
   return all(x->all(y->y*x == x*y, n), gens(E))
@@ -2363,7 +2363,7 @@ end
 
 Tests if the domain is in the center and the derived subgroup of the codomain.
 """
-function is_stem_extension(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group}; is_central_known::Bool = false)
+function is_stem_extension(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group}; is_central_known::Bool = false)
   E = codomain(NtoE)
   N = image(NtoE)[1]
   E = codomain(NtoE)
