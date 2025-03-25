@@ -452,7 +452,7 @@ end
 
 function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldElem})
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
-  @assert all(x->parent(x) == parent(a[1]), a)
+  @assert allequal(parent, a)
   @assert fl
   for p = keys(factor(c).fac)
     while c % p == 0
@@ -1190,7 +1190,8 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
   # Compute the coefficients of the Atlas irrationality 2*b_nn+1,
   # w.r.t. the N-th cyclotomic field.
-  # (The underlying formula is due to a theorem of Gauss.)
+  # (The underlying formula is due to a theorem of Gauss,
+  # see Chapter IV, § 3, QS 4 in [Lan70](@cite).)
   cfs = zeros(ZZRingElem, N)
   cfs[1] = 1
   q = div(N, nn)

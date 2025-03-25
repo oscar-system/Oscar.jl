@@ -163,6 +163,8 @@ function __init__()
   add_assertion_scope(:IdealSheaves)
   add_verbosity_scope(:IdealSheaves)
 
+  add_verbosity_scope(:SchurIndices)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?

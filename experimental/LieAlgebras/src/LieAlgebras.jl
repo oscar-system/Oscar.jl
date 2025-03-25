@@ -20,8 +20,6 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
-  FPGroup,
-  PermGroup,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
@@ -35,6 +33,7 @@ import ..Oscar:
   cartan_matrix,
   center,
   centralizer,
+  change_base_ring,
   character,
   characteristic,
   check_parent,
@@ -50,7 +49,6 @@ import ..Oscar:
   elem_type,
   expressify,
   exterior_power,
-  fp_group,
   gen,
   gens,
   hom,
@@ -60,6 +58,7 @@ import ..Oscar:
   identity_map,
   image,
   induced_map_on_exterior_power,
+  inner_direct_product,
   inv,
   is_abelian,
   is_isomorphism,
@@ -77,9 +76,9 @@ import ..Oscar:
   number_of_generators,
   ngens,
   parent_type,
-  permutation_group,
   rank,
   root_system,
+  structure_constant_table,
   sub,
   symbols,
   symmetric_power,

@@ -5,7 +5,11 @@ on:
     branches:
       - master
       - 'release-*'
+    paths-ignore:
+      - '*.md'
   pull_request:
+    paths-ignore:
+      - '*.md'
   schedule:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
@@ -151,10 +155,12 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
       - name: "Process code coverage"
+        if: matrix.julia-version == '1.10'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.10'
         continue-on-error: true
         uses: codecov/codecov-action@v5
         with:

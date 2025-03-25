@@ -106,7 +106,6 @@ end
   L = integer_lattice(; gram = QQ[1 2; 2 1])
   h = QQ[4 -1; 1 0]
   Lf = integer_lattice_with_isometry(L, h)
-
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
       @test Lf == loaded
@@ -451,4 +450,10 @@ end
   G, _ = image_centralizer_in_Oq(Lf)
   _, qLf = discriminant_group(Lf)
   @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
+end
+
+@testset "Serialization.Upgrades" begin
+  @testset "< 1.4.0 Upgrade" begin
+    test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
+  end
 end
