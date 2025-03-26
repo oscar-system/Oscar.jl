@@ -16,5 +16,5 @@ For algorithmic details, see
 
 ## Main function
 ```@docs
-tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, skip_saturation::Bool=false, skip_primary_decomposition::Bool=false)
+Oscar.tropical_variety(::MPolyIdeal, ::TropicalSemiringMap)
 ```
