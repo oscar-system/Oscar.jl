@@ -1,0 +1,6 @@
+# The documentation
+
+```@docs
+irreducible_res(M::SubquoModule,P::Vector{FaceQ},P_Q::Polyhedron,G::Polyhedron,F::Vector{Polyhedron{QQFieldElem}},H::Vector{FaceQ})
+```
+
