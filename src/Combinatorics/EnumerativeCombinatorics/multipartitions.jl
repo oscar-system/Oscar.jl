@@ -140,7 +140,7 @@ end
 
 
 @doc raw"""
-    num_multipartitions(n::Int, k::Int)
+    number_of_multipartitions(n::Int, k::Int)
 
 The number of multipartitions of ``n`` into ``k`` parts is equal to
 ```math
@@ -151,7 +151,7 @@ where the second sum is over all [compositions](@ref Compositions) ``λ`` of ``n
 # References
 1. Craven, D. (2006). The Number of t-Cores of Size n. [http://web.mat.bham.ac.uk/D.A.Craven/docs/papers/tcores0608.pdf](http://web.mat.bham.ac.uk/D.A.Craven/docs/papers/tcores0608.pdf)
 """
-function num_multipartitions(n::Int, k::Int)
+function number_of_multipartitions(n::Int, k::Int)
 
   # Special cases
   n == 0 && return ZZ(k)

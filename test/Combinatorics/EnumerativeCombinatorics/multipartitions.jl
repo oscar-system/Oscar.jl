@@ -32,7 +32,7 @@
   #counting
   for n in 0:5
     for k in 1:n+1
-      @test length(multipartitions(T(n),k)) == num_multipartitions(T(n),k)
+      @test length(multipartitions(T(n),k)) == number_of_multipartitions(T(n),k)
     end
   end
 
