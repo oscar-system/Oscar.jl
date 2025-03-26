@@ -84,7 +84,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
       amb_cols = min_list[k][3]
       selected_gens = [IUgens[i] for i in amb_cols]             ## selected generators via matrix columns
       max_contact_data[current_patch] = (selected_gens, [0 for i in 1:(nvars(RU) - dim(OO(U)))])
-                                                                ## entry 2 marks that all are from orig W
+                                                                ## entry 0 marks that all are from orig W
       if length(amb_cols) < ncols(JM)
         JM_essential = JM[:, amb_cols]
       else
@@ -209,7 +209,7 @@ _agnostic_complement_equation(X::AbsAffineScheme) =  one(base_ring(OO(X)))
 ########################################################
 ## jacobian matrix in chart in maximal contact setting
 ########################################################
-function jacobian_matrix(MC::Oscar.MaxContactObject, I::IdealSheaf, U::AbsAffineScheme)
+function jacobian_matrix(MC::Oscar.MaxContactObject, I::AbsIdealSheaf, U::AbsAffineScheme)
   U in covering(MC) || error("U is not a chart of the given maximal contact covering")
   max_contact_data = maximal_contact_data(MC)[U]
   amb_data = ambient_parameter_data(MC)[U]
@@ -242,4 +242,88 @@ function jacobian_matrix(MC::Oscar.MaxContactObject, I::IdealSheaf, U::AbsAffine
   end
 
   return(res_mat)
+end
+
+function _delta_ideal_sheaf(MC::MaxContactObject,I_sheaf::AbsIdealSheaf)
+  Cov = covering(MC)
+  I_simple = small_generating_set(I_sheaf)
+
+  ## run through all charts, compute the jacobian matrices w.r.t. the respective system of parameters
+  ## and flatten the matrix to append it to gens(I)
+  Delta_dict = IdDict{AbsAffineScheme,Ideal}()
+  for U in Cov
+    if is_one(I_simple(U))
+      Delta_dict[U] = I_simple(U)
+      continue
+    end
+
+    result_mat = jacobian_matrix(MC, I_simple , U)
+    Ivec = copy(gens(I))
+    append!(Ivec, maximal_contact_data(MC)[U][1])
+    append!(Ivec,[a for a in collect(result_mat)])
+    Delta_dict[U] = ideal(OO(U), OO(U).(Ivec))
+  end
+
+  return small_generating_set(IdealSheaf(scheme(I_sheaf),Delta_dict)
+end
+
+function _delta_list(MC::MaxContactObject,I_sheaf::AbsIdealSheaf,b::Int=0)
+  Delta_list = AbsIdealSheaf[]
+  j = 0
+  I = I_sheaf
+  while (( !is_one(I) && b == 0 ) || ( j < b ))
+    push!(Delta_list, I)
+    I = _delta_ideal_sheaf(MC,I)
+    j = j + 1
+  end
+
+  return Delta_list
+end
+############################################################################################
+## Maximal contact loci -- in different context
+############################################################################################
+function _nu_star_not_one_max(I::AbsIdealSheaf)
+  W = scheme(I)
+  Cov = covering(W)
+  inc_W = Oscar.CoveredClosedEmbedding(W,I)
+
+  MC = _initialize_max_contact_object(inc_W)   ## only taking into account ambient W
+  DI = _delta_ideal_sheaf(MC, I)
+  if !is_one(DI)
+    DL = _delta_list(MC.DI)
+    return DL[:end],0,length(DL)+1
+  end
+
+  ## we can be sure that the maximal order of I is one
+  MC2 = _max_contact_step(MC,I)               ## first maximal contact step
+
+  shortest = dim(base_ring(OO(W)))            ## how many 1 in nu^*
+  ret_dict = IdDict{AbsAffineScheme,Ideal}()
+
+  for U in covering(MC2)
+    max_contact_data = maximal_contact_data(MC2)
+    temp_len = length([a for a in max_contact_data[2] if a == 1])      ## not counting leading zeros from W
+    shortest >= temp_len || continue                                   ## not relevant for maximal value
+    if shortest > temp_len
+      shortest  = temp_len                                             ## new shortest one
+      ret_dict = IdDict{AbsAffineScheme,Ideal}()
+    end
+    ret_dict[U] = ideal(OO(U),OO(U).(max_contact_data[1]))
+  end
+
+  ideal_dict = IdDict{AbsAffineSchme,Ideal}()
+  for U in covering(MC2)
+    if U in keys(ret_dict)
+      I_one = ideal(OO(U), one(OO(U)))
+      ret_dict[U] = I_one
+      ideal_dict[U] = I_one
+    else
+      ideal_dict[U] = I(U))
+    end
+  end
+
+  J = IdealSheaf(W,red_dict;check=false)
+  I_new = IdealSheaf(W,ideal_dict;check=false)
+  DL = _delta_list(MC2,I_new)
+  return J,DL[:end],shortest,length(DL)
 end
