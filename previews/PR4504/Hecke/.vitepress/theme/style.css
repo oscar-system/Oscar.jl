@@ -1,11 +1,11 @@
+@import url(https://fonts.googleapis.com/css?family=Space+Mono:regular,italic,700,700italic);
 @import url(https://fonts.googleapis.com/css?family=Space+Grotesk:regular,italic,700,700italic);
 
 /* Customize default theme styling by overriding CSS variables:
 https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/vars.css
  */
 
-/* Layouts */
-
+  /* Layouts */
 
 :root {
   --vp-font-family-mono: "Fira Code", Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -22,7 +22,7 @@ https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/var
 
 .VPHero .clip {
   white-space: pre;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 /* Fonts */
@@ -34,25 +34,33 @@ https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/var
     Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 
   /* Code Snippet font */
-  --vp-font-family-mono: "Space Mono", Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  --vp-font-family-mono: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.mono {
+  /* 
+  Disable contextual alternates (kind of like ligatures but different) in monospace, 
+  which turns `/>` to an up arrow and `|>` (the Julia pipe symbol) to an up arrow as well.  
+  This is pretty bad for Julia folks reading even though copy+paste retains the same text.
+  */
+  font-feature-settings: 'calt' 0;
 }
 
 /* Colors */
 
 :root {
-  --julia-blue: #4063D8;
-  --julia-purple: #9558B2;
-  --julia-red: #CB3C33;
-  --julia-green: #389826;
+    --julia-blue: rgb(56.475, 87.3, 190.575);
+    --julia-purple: rgb(131.4, 77.625, 157.05);
+    --julia-red: rgb(179.10, 52.875, 45.0);
+    --julia-green: rgb(49.5, 134.1, 33.525);
 
-  --vp-c-brand: #389826;
-  --vp-c-brand-light: #3dd027;
-  --vp-c-brand-lighter: #9499ff;
-  --vp-c-brand-lightest: #bcc0ff;
-  --vp-c-brand-dark: #535bf2;
-  --vp-c-brand-darker: #454ce1;
-  --vp-c-brand-dimm: #212425;
+    --vp-c-brand: #646cff;
+    --vp-c-brand-light: #747bff;
+    --vp-c-brand-lighter: #9499ff;
+    --vp-c-brand-lightest: #bcc0ff;
+    --vp-c-brand-dark: #535bf2;
+    --vp-c-brand-darker: #454ce1;
+    --vp-c-brand-dimm: rgba(100, 108, 255, 0.08);
 }
 
  /* Component: Button */
@@ -72,12 +80,15 @@ https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/var
 /* Component: Home */
 
 :root {
-  --vp-home-hero-name-color: transparent;
+    --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
-    #9558B2 30%,
-    #CB3C33
+    #e4c92a,
+    #dd3365,
+    #3782b9 80%
   );
+  --vp-home-hero-image-background-image: none;
+  --vp-home-hero-image-filter: blur(40px);
 }
 
 @media (min-width: 640px) {
@@ -169,45 +180,25 @@ mjx-container > svg {
   --vitest-c-sponsor-hover: #e51370;
 }
 
-.MathJax { font-size: 0.9em !important; }
+/* Component: Docstring Custom Block */
 
-/* https://bddxg.top/article/note/vitepress优化/一些细节上的优化.html#文档页面调整-加宽 */
-
-
-.VPDoc.has-aside .content-container {
-  max-width: 100% !important;
-}
-.aside {
-  max-width: 200px !important;
-  padding-left: 0 !important;
-}
-.VPDoc {
-  padding-top: 15px !important;
-  padding-left: 5px !important;
-
-}
-/* This one does the right menu */
-
-.VPDocOutlineItem li {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 200px;
+.jldocstring.custom-block {
+  border: 1px solid var(--vp-c-gray-2);
+  color: var(--vp-c-text-1)
 }
 
-.VPNavBar .title {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
+.jldocstring.custom-block summary {
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 0 8px;
 }
 
-@media (max-width: 960px) {
-  .VPDoc {
-    padding-left: 25px !important;
-  }
+.jldocstring.custom-block summary a {
+  pointer-events: none;
 }
 
-/* .mjx-container {font-size: calc(0.5 * var(--editor-font-size));} */
+/* Overlay thing for outdated doc warner */
 
 .outdated-warning-overlay {
     position: fixed;
