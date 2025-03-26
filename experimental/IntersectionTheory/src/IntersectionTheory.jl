@@ -44,6 +44,7 @@ export graph
 export hom
 export hyperplane_class
 export identity_map
+export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
@@ -63,6 +64,7 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
 export tn_variety
@@ -79,6 +81,7 @@ export AbstractVarietyMap
 export AbstractBundle
 export TnBundle
 export TnVariety
+export TnVarietyT
 
 include("Types.jl")
 include("Misc.jl")
@@ -87,6 +90,7 @@ include("Bott.jl")   # integration using Bott's formula
 include("Main.jl")   # basic constructors and functionality
 include("blowup.jl") # blow_up
 include("schubert.jl") # Schubert calculus
+include("kontsevich.jl") # Kontsevich moduli spaces
 # include("Moduli.jl") # moduli of matrices, twisted cubics
 # include("Weyl.jl")   # weyl groups
 
@@ -128,6 +132,7 @@ export hom
 export hyperplane_class
 export intersection_matrix
 export identity_map
+export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
@@ -148,6 +153,7 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
 export tn_variety
@@ -164,3 +170,4 @@ export AbstractVarietyMap
 export AbstractBundle
 export TnBundle
 export TnVariety
+export TnVarietyT
