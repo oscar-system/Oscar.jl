@@ -1,10 +1,10 @@
-@testset "Multipartitions" for T in [Int, ZZRingElem]
+@testset "Multipartitions for integer type $T" for T in [Int, ZZRingElem]
   #constructors
   @test multipartition([T[3,2], T[1]]) == multipartition([Partition(T[3,2]), Partition(T[1])])
   @test multipartition([T[3,2], T[]]) == multipartition([Partition(T[3,2]),Partition(T[])])
 
   # multi-partitions
-  @testset "multipartitions($n, $r) for integer type $T" for n in 0:10, r in 1:5
+  @testset "multipartitions($n, $r)" for n in 0:10, r in 1:5
     MP = multipartitions(T(n),r)
 
     @test MP == unique(MP)
