@@ -262,6 +262,8 @@ include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PartiallyOrderedSet/structs.jl")
+include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
 
