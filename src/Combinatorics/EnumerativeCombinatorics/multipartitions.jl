@@ -71,8 +71,8 @@ end
 
 If `P` is a multipartition of the integer n, this function returns n.
 """
-function Base.sum(P::Multipartition{T}) where T<:IntegerUnion
-  return sum(sum, P.mp)
+function Base.sum(MP::Multipartition{T}) where T<:IntegerUnion
+  return sum(sum, MP.mp)
 end
 
 
