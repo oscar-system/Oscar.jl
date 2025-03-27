@@ -145,10 +145,7 @@ The number of multipartitions of ``n`` into ``k`` parts is equal to
 ```math
 \sum_{a=1}^k {k \choose a} \sum_{λ} p(λ₁) p(λ₂) ⋯ p(λ_a) \;,
 ```
-where the second sum is over all [compositions](@ref Compositions) ``λ`` of ``n`` into ``a`` parts. I found this formula in the Proof of Lemma 2.4 in Craven (2006).
-
-# References
-1. Craven, D. (2006). The Number of t-Cores of Size n. [http://web.mat.bham.ac.uk/D.A.Craven/docs/papers/tcores0608.pdf](http://web.mat.bham.ac.uk/D.A.Craven/docs/papers/tcores0608.pdf)
+where the second sum is over all [compositions](@ref Compositions) ``λ`` of ``n`` into ``a`` parts. I found this formula in the Proof of Lemma 2.4 in [Cra06](@cite).
 """
 function number_of_multipartitions(n::IntegerUnion, k::IntegerUnion)
 
