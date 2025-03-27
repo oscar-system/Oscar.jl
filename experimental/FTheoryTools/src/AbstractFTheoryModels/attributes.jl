@@ -1216,6 +1216,11 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
+  # CAREFUL: The code below works ONLY for hypersurfaces in toric spaces.
+  # CAREFUL: It represents the Chern classes of the hypersurface by - so I believe canonical - counterparts in the toric ambient space.
+  # CAREFUL: Those counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
+  # CAREFUL: Currently, we only integrate those Chern classes against the hypersurface, which automatically executes the restriction in question.
+
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
     cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
