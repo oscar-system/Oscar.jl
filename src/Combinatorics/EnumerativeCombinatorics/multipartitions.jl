@@ -108,7 +108,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
   function recP!(p::Vector{T}, i::T, n::T) #where T<:IntegerUnion
     if i==length(p) || n==0
-      p[i] = n
+      p[Int(i)] = n
       recMultipartitions!(fill(Partition(T[]),r), p, T(1))
     else
       for j=0:n
