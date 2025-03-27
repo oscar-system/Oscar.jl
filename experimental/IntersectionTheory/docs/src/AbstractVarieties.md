@@ -16,9 +16,8 @@ abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
 ```@docs
-abstract_point()
+abstract_point(; base::Ring=QQ)
 ```
-
 ### Specialized Constructors
 
 ```@docs
