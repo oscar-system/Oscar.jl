@@ -90,9 +90,11 @@ function integral(X::TnVariety, cycle::Cycle; noretry::Bool=false)
   end
   retry = true
   while retry
-    if noretry retry = false end
+    if noretry
+      retry = false
+    end
     # pre-allocations
-    # this is wrong
+    # this is wrong and needs to be fixed if we want a parallel version
     # _ans = [QQ() for _ in 1:Threads.nthreads()]
     # extra = [(QQ(), QQ()) for _ in 1:Threads.nthreads()]
     # alloc = [[QQ() for _ in 1:max(cycle.num_alloc, 3)] for _ in 1:Threads.nthreads()]
@@ -105,10 +107,13 @@ function integral(X::TnVariety, cycle::Cycle; noretry::Bool=false)
       for (p, e) in X.points
         Fp, Tp = extra
         cycle(p, λ, Fp, alloc)
-        euler(p, λ, Tp, alloc)
+        __euler(p, λ, Tp, alloc)
         Nemo.add!(_ans, div!(Fp, mul!(Tp, e)))
       end
     catch e
+      if e isa InterruptException
+        rethrow(e)
+      end
       !noretry || throw(e)
       # It's possible that the chosen random weights do not work
       # In this case we reset and start again
@@ -206,7 +211,7 @@ function _euler(p::Tuple{MultiGraph, Vector}, λ::Vector, ans::QQFieldElem=QQ(1)
   ans
 end
 
-###const euler = Cycle(_euler, 3)
+const __euler = Cycle(_euler, 3)
 
 ###############################################################################
 # 
