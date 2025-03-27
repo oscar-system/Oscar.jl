@@ -160,7 +160,7 @@ function number_of_multipartitions(n::Int, k::Int)
   for a in 1:k
     w = ZZ(0)
     for lambda in compositions(n,a)
-      w += prod([num_partitions(lambda[i]) for i in 1:length(lambda)])
+      w += prod([number_of_partitions(lambda[i]) for i in 1:length(lambda)])
     end
     z += binomial(k,a)*w
   end
