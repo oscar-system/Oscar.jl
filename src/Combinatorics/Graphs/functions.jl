@@ -1629,4 +1629,8 @@ function is_bipartite(g::Graph{Undirected})
   return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end
 
-
+function max_cliques(g::Graph{Undirected})
+  Set{Set{Int}}(
+    Polymake.graph.Graph{Undirected}(ADJACENCY=Oscar.pm_object(G)).max_cliques
+  )
+end
