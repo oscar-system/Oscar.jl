@@ -26,7 +26,7 @@ where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``.
 An easy way to construct examples is to call [`generic_enriques_surface`](@ref).
 Here the generic 1-nodal Enriques surface:
 ```jldoctest
-julia> generic_enriques_surface(1)
+julia> Y = generic_enriques_surface(1)
 Enriques Borcherds context
   with det(SX) = 1024
   with root invariant [(:A, 1)]
