@@ -125,6 +125,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Multipartition
 export Nemo
 export NormalToricVariety
 export OO
