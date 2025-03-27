@@ -112,7 +112,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
       recMultipartitions!(fill(Partition(T[]),r), p, T(1))
     else
       for j=0:n
-        p[i] = T(j)
+        p[Int(i)] = T(j)
         recP!(copy(p), T(i+1), T(n-j))
       end
     end
@@ -121,13 +121,13 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #recursively produces all multipartitions such that the i-th partition sums up to p[i]
   function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:IntegerUnion
     if i == length(p)
-      for q in partitions(p[i])
-        mp[i] = q
+      for q in partitions(p[Int(i)])
+        mp[Int(i)] = q
         push!(MP, Multipartition{T}(copy(mp)))
       end
     else
-      for q in partitions(p[i])
-        mp[i] = q
+      for q in partitions(p[Int(i)])
+        mp[Int(i)] = q
         recMultipartitions!(copy(mp), p, T(i+1))
       end
     end
