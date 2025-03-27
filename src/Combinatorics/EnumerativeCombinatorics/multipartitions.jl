@@ -2,6 +2,9 @@
 # Multipartitions.
 #
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
+#
+# Originally taken from the JuLie [repository](https://github.com/ulthiel/JuLie)
+# by Ulrich Thiel and OSCAR-ified by Morgan Rodgers.
 ################################################################################
 
 
