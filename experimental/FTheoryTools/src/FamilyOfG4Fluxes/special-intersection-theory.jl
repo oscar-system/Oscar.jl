@@ -80,11 +80,10 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
       number_of_zeros = count(==(0), list_of_exps)
       if number_of_zeros == length(list_of_exps) - 1
         if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-          if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
-            highest_power = list_of_exps[findfirst(x -> x > 0, list_of_exps)]
-            if highest_power == 1
-              inter_dict[indices] = highest_power
-              return highest_power
+          if (mons_list[1] == remaining_vars[1] && reduced_scaling_relations[1,2] != 0) || (mons_list[1] == remaining_vars[2] && reduced_scaling_relations[1,1] != 0)
+            if list_of_exps[findfirst(x -> x > 0, list_of_exps)] == 1
+              inter_dict[indices] = ZZ(1)
+              return ZZ(1)
             end
           end
         end
@@ -102,7 +101,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
     mons_list = collect(monomials(pt_reduced))
     if length(mons_list) == 1 && mons_list[1] == remaining_vars[1] * remaining_vars[2]
       if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-        if reduced_scaling_relations == matrix(ZZ, [[1,1]])
+        if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
           inter_dict[indices] = 2
           return 2
         end
