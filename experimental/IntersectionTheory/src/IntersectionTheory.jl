@@ -10,6 +10,7 @@ import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map,
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
+import ..Oscar: IntegerUnion
 
 export a_hat_genus
 export abstract_bundle
