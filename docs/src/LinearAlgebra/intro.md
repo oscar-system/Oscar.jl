@@ -7,12 +7,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 The linear algebra part of OSCAR provides functionality for handling:
 - [Basic matrix and vector operations](https://docs.oscar-system.org/dev/AbstractAlgebra/matrix/)
-- [Linear solving](https://docs.oscar-system.org/dev/AbstractAlgebra/linear_solving/)
-- [Matrix spaces](https://docs.oscar-system.org/dev/AbstractAlgebra/matrix_spaces/)
-- [Matrix algebras](https://docs.oscar-system.org/dev/AbstractAlgebra/matrix_algebras/)
-- [Sparse linear algebra](https://docs.oscar-system.org/dev/Hecke/manual/misc/sparse/)
-- [Modules and vector spaces](https://docs.oscar-system.org/dev/AbstractAlgebra/module/)
-- [Lattices](https://docs.oscar-system.org/dev/Hecke/manual/quad_forms/lattices/)
+- [Linear solving](@ref solving_chapter)
+- [Matrix spaces](@ref "Matrix Spaces")
+- [Matrix algebras](@ref "Generic matrix algebras")
+- [Sparse linear algebra](@ref)
+- [Modules and vector spaces](@ref "Finitely presented modules")
+- [Lattices](@ref)
 
 General textbooks offering details on theory and algorithms include:
 - [Kir16](@cite)
