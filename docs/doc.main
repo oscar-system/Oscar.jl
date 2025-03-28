@@ -73,7 +73,6 @@
      "LinearAlgebra/intro.md",
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_spaces.md",
-     "AbstractAlgebra/matrix_implementation.md",
      "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
@@ -95,6 +94,7 @@
         "Hecke/manual/quad_forms/discriminant_group.md",
         "NumberTheory/vinberg.md",
      ],
+     "AbstractAlgebra/matrix_implementation.md",
   ],
 
   "Number Theory" => [
