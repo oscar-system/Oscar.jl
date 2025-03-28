@@ -47,11 +47,12 @@ with gram matrix
 
 ```
 """
-@attributes mutable struct EnriquesBorcherdsCtx
+mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
   L26::ZZLat
   SX::ZZLat # numerical lattice of X
   SY::ZZLat # numerical lattice of Y with form rescaled by 2
+  numerical_lattice::ZZLat
   # the following are given with respect to the basis of SY
   initial_walls::Vector{ZZMatrix}
   initial_rays::Vector{ZZMatrix}
@@ -190,8 +191,13 @@ numerical_lattice_of_K3_cover(Y::EnriquesBorcherdsCtx) = Y.SX
 
 Return the numerical lattice of the Enriques surface ``Y``.
 """
-@attr ZZLat numerical_lattice(Y::EnriquesBorcherdsCtx) = lattice(rescale(rational_span(Y.SY),1//2))
-
+function numerical_lattice(Y::EnriquesBorcherdsCtx) 
+  if !isdefined(Y,:numerical_lattice) 
+    Y.numerical_lattice = rescale(rational_span(Y.SY),1//2)
+  end 
+  return Y.numerical_lattice 
+end
+  
 function Base.show(io::IO, ::MIME"text/plain", Y::EnriquesBorcherdsCtx)
   io = pretty(io)
   println(io, "Enriques Borcherds context")
