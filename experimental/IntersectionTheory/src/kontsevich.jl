@@ -232,7 +232,7 @@ end
 function oeis_A55(n::Int)
   n == 1 && return 1
   ans = iseven(n) ? binomial(oeis_A81(n÷2)+1, 2) : 0
-  for p in partitions(n-1, n-1, (n-1)÷2)
+  for p in _partitions(n-1, n-1, (n-1)÷2)
     ans += prod(binomial(oeis_A81(k)+c-1, c) for (k,c) in _tally(p))
   end
   ans
@@ -255,7 +255,7 @@ trees(n::Int) = oeis_A55_graphs(n) # alias
 function oeis_A55_graphs(n::Int)
   n == 1 && return [SimpleGraph{UInt8}(1)]
   ans = iseven(n) ? [_connect_root(g[1], g[2]) for g in _sym(oeis_A81_graphs(n÷2), 2)] : Graph{Undirected}[]
-  for p in partitions(n-1,n-1,(n-1)÷2)
+  for p in _partitions(n-1,n-1,(n-1)÷2)
     for g in Base.Iterators.product([_sym(oeis_A81_graphs(k), c) for (k,c) in _tally(p)]...)
       push!(ans, _add_common_root(n, vcat(g...)))
     end
@@ -414,7 +414,7 @@ function _part(n::T, rem::T, k::T, m::T, part::Vector{T}, ans::Vector{Generic.Pa
   end
 end
 # partitions of n with at most k numbers each <= m
-function partitions(n::T, k::T=n, m::T=n) where T <: Integer
+function _partitions(n::T, k::T=n, m::T=n) where T <: Integer
   ans = Generic.Partition{T}[]
   _part(n, n, k, m, Vector{T}(undef, k), ans)
   return ans
