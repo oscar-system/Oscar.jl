@@ -798,7 +798,8 @@ end
       ) where {PropertyType}
 
 Find a minimal exponent `k` such that `P(I^k) == true` where `P` is 
-some property which can be evaluated on an ideal. 
+some property which can be evaluated on an ideal; return the pair 
+`(k, I^k)`.
 
 By default, this is done by bisection, i.e. first we try with powers 
 `I^0, I^1, I^2, I^4, I^8, I^16, ...` until we obtain `P(I^k) == true` 
@@ -831,7 +832,7 @@ function _minimal_power_such_that(
     while true
       push!(I_powers, (last(I_powers)[1]+1, last(I_powers)[2]*I))
       k, J = last(I_powers)
-      P(J) && return k
+      P(J) && return k, J
     end
   end
 
@@ -909,8 +910,8 @@ function order_of_vanishing(
   bR = ideal(R, denominator(floc))
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
   return num_mult - den_mult
 end
 
