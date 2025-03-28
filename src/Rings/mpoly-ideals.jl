@@ -1572,6 +1572,88 @@ function equidimensional_hull_radical(
   return ideal(R, unique!(iso.(gens(res))))
 end
 
+################################################################################
+#
+#  triangular decomposition
+#
+################################################################################
+
+@doc raw"""
+    triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard)
+
+Return a triangular decomposition of a zero-dimensional `I`.
+
+The default algorithm is `:lazard` based on [Laz92](@cite).  Algorithm `:lazard_factorized` further
+factorizes each polynomial in the output of `:lazard`. Algorithm `:moeller` is based on [Moe93](@cite)
+and Algorithm `:moeller_hillebrand` is based on [Hill99](@cite).
+
+# Examples
+```jldoctest
+julia> R, (x1,x2,x3,x4,x5) = polynomial_ring(QQ, [:x1,:x2,:x3,:x4,:x5]);
+
+julia> I = ideal([x1+x2+x3+x4+x5,
+                  x1*x2+x2*x3+x3*x4+x1*x5+x4*x5,
+                  x1*x2*x3+x2*x3*x4+x1*x2*x5+x1*x4*x5+x3*x4*x5,
+                  x1*x2*x3*x4+x1*x2*x3*x5+x1*x2*x4*x5+x1*x3*x4*x5+x2*x3*x4*x5,
+                  x1*x2*x3*x4*x5-1]);
+
+julia> triangular_decomposition(I)
+4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (x5^5 - 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
+ Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
+ Ideal with 5 generators
+ Ideal with 5 generators
+
+julia> triangular_decomposition(I, :LazardFactorized)
+13-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (x5 - 1, x4 - 1, x3 - 1, x2^2 + 3*x2 + 1, x1 + x2 + 3)
+ Ideal (x5 - 1, x4 - 1, x3^2 + 3*x3 + 1, x2 + x3 + 3, x1 - 1)
+ Ideal (x5 - 1, x4^2 + 3*x4 + 1, x3 + x4 + 3, x2 - 1, x1 - 1)
+ Ideal (x5 - 1, x4^4 + x4^3 + x4^2 + x4 + 1, -x3 + x4^2, -x2 + x4^3, x1 + x4^3 + x4^2 + x4 + 1)
+ Ideal (x5^2 + 3*x5 + 1, x4 - 1, x3 - 1, x2 - 1, x1 + x5 + 3)
+ Ideal (x5^2 + 3*x5 + 1, x4 + x5 + 3, x3 - 1, x2 - 1, x1 - 1)
+ ⋮
+ Ideal (x5^4 + x5^3 + x5^2 + x5 + 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
+ Ideal (x5^4 + x5^3 + x5^2 + x5 + 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
+ Ideal with 5 generators
+ Ideal (x5^4 + x5^3 + x5^2 + x5 + 1, x4^2 + 3*x4*x5 + x5^2, x3 + x4 + 3*x5, x2 - x5, x1 - x5)
+ Ideal with 5 generators
+
+julia> triangular_decomposition(I, :Moeller)
+4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
+ Ideal with 5 generators
+ Ideal with 5 generators
+ Ideal (x5^5 - 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
+
+julia> triangular_decomposition(I, :MoellerHillebrand)
+4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
+ Ideal with 5 generators
+ Ideal with 5 generators
+ Ideal (x5^5 - 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
+
+```
+"""
+function triangular_decomposition(I::MPolyIdeal, algorithm::Symbol=:lazard)
+  @req dim(I)==0 "The ideal must be zero-dimensional."
+  R = base_ring(I)
+  G = ideal(groebner_basis(I; ordering=lex(R), complete_reduction=true))
+  Gsing = singular_generators(G,lex(R))
+  if algorithm==:lazard
+    Ts = Singular.LibTriang.triangL(Gsing)
+  elseif algorithm==:lazard_factorized
+    Ts = Singular.LibTriang.triangLfak(Gsing)
+  elseif algorithm==:moeller
+    Ts = Singular.LibTriang.triangM(Gsing)
+  elseif algorithm==:moeller_hillebrand
+    Ts = Singular.LibTriang.triangMH(Gsing)
+  else
+    error("algorithm allowed are :lazard, :lazard_factorized, :moeller, or :moeller_hillebrand")
+  end
+  return [ideal(R, T) for T in Ts]
+end
+
 #######################################################
 @doc raw"""
     ==(I::MPolyIdeal, J::MPolyIdeal)
