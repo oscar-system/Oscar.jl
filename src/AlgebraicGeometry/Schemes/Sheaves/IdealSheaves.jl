@@ -791,15 +791,51 @@ end
   return is_equidimensional(pre_image_ideal(I))
 end
 
-function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+@doc raw"""
+    _minimal_power_such_that(
+        I::Ideal, P::PropertyType;
+        boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+      ) where {PropertyType}
+
+Find a minimal exponent `k` such that `P(I^k) == true` where `P` is 
+some property which can be evaluated on an ideal; return the pair 
+`(k, I^k)`.
+
+By default, this is done by bisection, i.e. first we try with powers 
+`I^0, I^1, I^2, I^4, I^8, I^16, ...` until we obtain `P(I^k) == true` 
+for the first time and then downwards bisection to find the minimal 
+exponent with this property. 
+
+As this is prone quickly trigger Groebner basis computations of ideals 
+with generators of rather high degree, we provide the keyword argument 
+`boundary_for_incremental_strategy`. If set to some integer value `k_lim`, 
+the build up phase for finding powers `J = I^(2^r)` with `P(J) == true` 
+is aborted, once `2^r >= k_lim` and an incremental search for the lowest 
+exponent is done instead. 
+"""
+function _minimal_power_such_that(
+    I::Ideal, P::PropertyType;
+    boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+  ) where {PropertyType}
   whole_ring = ideal(base_ring(I), [one(base_ring(I))])
   P(whole_ring) && return (0, whole_ring)
   P(I) && return (1, I)
   I_powers = [(1,I)]
 
-  while !P(last(I_powers)[2])
+  # building up a cache by iterated squaring of the exponent
+  while 2*last(I_powers)[1] < boundary_for_incremental_strategy && !P(last(I_powers)[2])
     push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
   end
+
+  # if we crossed the boundary for the build up, switch to dumb iteration
+  if 2*last(I_powers)[1] >= boundary_for_incremental_strategy && !P(last(I_powers)[2])
+    while true
+      push!(I_powers, (last(I_powers)[1]+1, last(I_powers)[2]*I))
+      k, J = last(I_powers)
+      P(J) && return k, J
+    end
+  end
+
   upper = pop!(I_powers)
   lower = pop!(I_powers)
   while upper[1]!=lower[1]+1
@@ -846,6 +882,29 @@ function order_of_vanishing(
   # We look for the chart with the least complexity
   V = first(affine_charts(X))
   complexity = inf
+
+  # debugging code to make sure every possible outcome 
+  # of the iteration over the keys below is tested once
+  #=
+  cand = [(U, sum([total_degree(lifted_numerator(g)) for g in gens(J) if !iszero(g)])) for (U, J) in object_cache(underlying_presheaf(I)) if !is_one(J)]
+  min_comp = minimum(c for (_, c) in cand; init=inf)
+  cand = [(U, c) for (U, c) in cand if c == min_comp]
+  for (V, c) in cand
+    @show (V, c)
+    R = ambient_coordinate_ring(V)
+    J = saturated_ideal(I(V))
+    @show gens(J)
+    K = saturated_ideal(defining_ideal(V))
+    floc = f[V]
+    aR = ideal(R, numerator(floc))
+    bR = ideal(R, denominator(floc))
+
+    # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
+    num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+    den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
+  end
+  =#
+
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
     is_one(I(U)) && continue
@@ -874,8 +933,8 @@ function order_of_vanishing(
   bR = ideal(R, denominator(floc))
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
   return num_mult - den_mult
 end
 
