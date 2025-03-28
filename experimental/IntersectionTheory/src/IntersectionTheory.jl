@@ -64,7 +64,6 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
-export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
 export tn_variety
@@ -153,7 +152,6 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
-export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
 export tn_variety
