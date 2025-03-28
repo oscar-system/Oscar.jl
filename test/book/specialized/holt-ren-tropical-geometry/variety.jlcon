@@ -8,7 +8,7 @@ julia> I = intersect(ideal([x+y+z+1,2*x+11*y+23*z+31]),
                      ideal([t^3*x*y*z-1]));
 
 julia> TropV = tropical_variety(I,nu)
-2-element Vector{TropicalVariety{typeof(min),true}}:
+2-element Vector{TropicalVariety{typeof(min), true}}:
  Min tropical variety
  Min tropical variety
 
