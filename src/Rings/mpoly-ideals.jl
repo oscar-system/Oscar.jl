@@ -1606,7 +1606,7 @@ julia> triangular_decomposition(I)
  Ideal with 5 generators
  Ideal with 5 generators
 
-julia> triangular_decomposition(I, :LazardFactorized)
+julia> triangular_decomposition(I; algorithm=:lazard_factorized)
 13-element Vector{MPolyIdeal{QQMPolyRingElem}}:
  Ideal (x5 - 1, x4 - 1, x3 - 1, x2^2 + 3*x2 + 1, x1 + x2 + 3)
  Ideal (x5 - 1, x4 - 1, x3^2 + 3*x3 + 1, x2 + x3 + 3, x1 - 1)
@@ -1621,14 +1621,14 @@ julia> triangular_decomposition(I, :LazardFactorized)
  Ideal (x5^4 + x5^3 + x5^2 + x5 + 1, x4^2 + 3*x4*x5 + x5^2, x3 + x4 + 3*x5, x2 - x5, x1 - x5)
  Ideal with 5 generators
 
-julia> triangular_decomposition(I, :Moeller)
+julia> triangular_decomposition(I; algorithm=:moeller)
 4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
  Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
  Ideal with 5 generators
  Ideal with 5 generators
  Ideal (x5^5 - 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
 
-julia> triangular_decomposition(I, :MoellerHillebrand)
+julia> triangular_decomposition(I; algorithm=:moeller_hillebrand)
 4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
  Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
  Ideal with 5 generators
@@ -1637,7 +1637,7 @@ julia> triangular_decomposition(I, :MoellerHillebrand)
 
 ```
 """
-function triangular_decomposition(I::MPolyIdeal, algorithm::Symbol=:lazard)
+function triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard)
   @req dim(I)==0 "The ideal must be zero-dimensional."
   R = base_ring(I)
   G = ideal(groebner_basis(I; ordering=lex(R), complete_reduction=true))
