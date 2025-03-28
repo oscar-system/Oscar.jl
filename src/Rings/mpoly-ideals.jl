@@ -1585,7 +1585,7 @@ Return a triangular decomposition of a zero-dimensional `I`.
 
 The default algorithm is `:lazard` based on [Laz92](@cite).  Algorithm `:lazard_factorized` further
 factorizes each polynomial in the output of `:lazard`. Algorithm `:moeller` is based on [Moe93](@cite)
-and Algorithm `:moeller_hillebrand` is based on [Hill99](@cite).
+and Algorithm `:moeller_hillebrand` is based on [Hil99](@cite).
 
 # Examples
 ```jldoctest
