@@ -193,7 +193,7 @@ Return the numerical lattice of the Enriques surface ``Y``.
 """
 function numerical_lattice(Y::EnriquesBorcherdsCtx) 
   if !isdefined(Y,:numerical_lattice) 
-    Y.numerical_lattice = rescale(rational_span(Y.SY),1//2)
+    Y.numerical_lattice = lattice(rescale(rational_span(Y.SY), 1//2))
   end 
   return Y.numerical_lattice 
 end
