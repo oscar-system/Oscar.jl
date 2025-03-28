@@ -8,7 +8,7 @@
     MP = multipartitions(T(n),r)
 
     @test MP == unique(MP)
-    @test length(MP) == 0 || unique([ length(mp) for mp in MP ]) == [r]
+    @test all(mp -> length(mp) == r, MP)
     for mp in MP
       @test sum(mp) == n
     end
