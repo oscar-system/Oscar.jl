@@ -259,7 +259,7 @@ equidimensional_hull_radical(I::MPolyIdeal)
 ### Triangular Decomposition
 
 ```@docs
-triangular_decomposition(::MPolyIdeal, ::Symbol)
+triangular_decomposition(::MPolyIdeal)
 ```
 
 
