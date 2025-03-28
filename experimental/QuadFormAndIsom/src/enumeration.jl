@@ -866,11 +866,11 @@ function splitting_of_hermitian_type(
     _rB = rL - _rA
     if pA < 0 && pB < 0
       IpA = 0:max(_rA, pL)
-      IpB = (pL).-(intrA)
+      IpB = (pL).-(IpA)
     end
     if nA < 0 && nB < 0
       InA = 0:max(_rA, nL)
-      InB = (nL).-(intnA)
+      InB = (nL).-(InA)
     end
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
@@ -1473,11 +1473,11 @@ function _conditions_from_input(
     end
   else
     for k in divs
-      jr = findfirst(a -> a[1] == n, rks)
+      jr = findfirst(a -> a[1] == k, rks)
       rn = isnothing(jr) ? -1 : rks[jr][2]
-      jp = findfirst(a -> a[1] == n, pos_sigs)
+      jp = findfirst(a -> a[1] == k, pos_sigs)
       pn = isnothing(jp) ? -1 : pos_sigs[jp][2]
-      jn = findfirst(a -> a[1] == n, neg_sigs)
+      jn = findfirst(a -> a[1] == k, neg_sigs)
       nn = isnothing(jn) ? -1 : neg_sigs[jn][2]
       eiglat_cond[k] = Int[rn, pn, nn]
     end
@@ -1534,7 +1534,8 @@ function oscar_genus_representatives(
       return ZZLat[]
     end
   end
-  mm, l = enumerate_definite_genus(G; stop_after=1000)
+  l = enumerate_definite_genus(G; stop_after=1000)
+  mm = mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
   if !iszero(mm)
     inv_lat = Hecke.default_invariant_function(l[1])
     inv_dict = Dict{typeof(inv_lat), Vector{ZZLat}}(inv_lat => ZZLat[l[1]])
