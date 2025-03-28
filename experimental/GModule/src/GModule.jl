@@ -506,7 +506,15 @@ end
 function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   if !isa(V.G, Group)
     E, mE = endo(V)
-    k, m = subfield(base_ring(V), map(x->trace(mE(x)), basis(E)))
+    lds = Hecke.local_schur_indices(E) #assumes central simple
+    k, m = subfield(base_ring(V), [base_ring(V)(1)]) 
+    #we need subfields such that the local data matches
+    # ie K = base_ring(V), P => a prime (and exponent), P in K
+    # k a subfield of K and p below P
+    #then k works iff local_degree(p)*e == local_degree(P)*e
+    #              so local_degree(p) == local_degree(P)
+    #I suspect that conjugate P need to have the same invariants
+    #
     d = -1 # TODO: Find out what we need there
       # E is (or should be at this point) CSA, but we want to write it
       # over a smaller field...
@@ -845,6 +853,10 @@ end
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
 @attr Any function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
+  #NOTE: the "proper" characters need to be in QQab for compatibility!!!
+  #      this is to be used internally (e.g. over fin. fields) and as a 
+  #      first step.
+  #TODO: long term: implement more sane (or complicated) ideas ala Steel
   G = group(C)
   phi = epimorphism_from_free_group(G)
   ac = Oscar.GrpCoh.action(C)
@@ -928,7 +940,17 @@ Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
 @attr Any function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
-  return k, mkK
+  if isa(val[2], QQAbFieldElem)
+    return k, mkK
+  end
+
+  A = maximal_abelian_subfield(ClassField, k)
+  c = Hecke.norm(conductor(A)[1])
+  QQAb = abelian_closure(QQ)[1]
+  K = cyclotomic_field(QQAb, Int(c))[1]
+  fl, em = is_subfield(k, K)
+  kk, mkk = sub(K, [em(gen(k))])
+  return kk, hom(kk, base_ring(C), mkK(preimage(em, mkk(gen(kk)))))
 end
 
 function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNumFieldElem}})
