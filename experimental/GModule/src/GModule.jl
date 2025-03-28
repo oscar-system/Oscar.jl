@@ -2343,7 +2343,8 @@ function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}},
   end
   c = get_attribute(M, :_character_field)
   if c !== nothing
-    set_attribute!(N, :_character_field => c)
+    fl, em = is_subfield(c[1], base_ring(N))
+    set_attribute!(N, :_character_field => (c[1], hom(c[1], base_ring(N), em(gen(c[1])))))
   end
 end
 
