@@ -24,10 +24,13 @@ The element type `T` may be optionally specified, see also the examples below.
 ```jldoctest
 julia> P = multipartition([[2,1], [], [3,2,1]])
 Partition{Int64}[[2, 1], [], [3, 2, 1]]
+
 julia> sum(P)
 9
+
 julia> P[2]
 Empty partition
+
 julia> P = multipartition(Vector{Int8}[[2,1], [], [3,2,1]])
 Partition{Int8}[[2, 1], [], [3, 2, 1]]
 ```
