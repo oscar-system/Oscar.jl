@@ -23,7 +23,7 @@ S_Y(2) \subseteq S_X \subseteq L_{1,25}
 ```
 where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``. 
 
-An easy way to construct examples is to call [`generic_enriques_surface`](@ref).
+An easy way to construct examples is to call [`generic_enriques_surface(n::Int)`](@ref).
 Here the generic 1-nodal Enriques surface:
 ```jldoctest
 julia> Y = generic_enriques_surface(1)
@@ -581,9 +581,10 @@ aut(D::EnriquesChamber) = hom(D, D)
 @doc raw"""
     generic_enriques_surface(n::Int)  -> EnriquesBorcherdsCtx
  
-Return a ``(\tau,\overline{\tau})-generic`` Enriques surface of number ``n`` as in Table 1.1 of [BS22](@cite).
+Return the ``(\tau,\overline{\tau})``-generic Enriques surface of number ``n`` as in Table 1.1 of [BS22](@cite).
 
-
+#Input:
+``n`` -- an integer between ``1`` and ``184`` different from ``88`` and ``146``.
 """
 function generic_enriques_surface(n::Int)
   @req 1<=n<=184 "n must be a number between 1 and 184"
