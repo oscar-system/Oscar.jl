@@ -1670,6 +1670,7 @@ export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
 export tropical_variety
+export tropical_prevariety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity

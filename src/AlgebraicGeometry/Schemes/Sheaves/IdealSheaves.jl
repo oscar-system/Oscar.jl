@@ -791,15 +791,51 @@ end
   return is_equidimensional(pre_image_ideal(I))
 end
 
-function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+@doc raw"""
+    _minimal_power_such_that(
+        I::Ideal, P::PropertyType;
+        boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+      ) where {PropertyType}
+
+Find a minimal exponent `k` such that `P(I^k) == true` where `P` is 
+some property which can be evaluated on an ideal; return the pair 
+`(k, I^k)`.
+
+By default, this is done by bisection, i.e. first we try with powers 
+`I^0, I^1, I^2, I^4, I^8, I^16, ...` until we obtain `P(I^k) == true` 
+for the first time and then downwards bisection to find the minimal 
+exponent with this property. 
+
+As this is prone quickly trigger Groebner basis computations of ideals 
+with generators of rather high degree, we provide the keyword argument 
+`boundary_for_incremental_strategy`. If set to some integer value `k_lim`, 
+the build up phase for finding powers `J = I^(2^r)` with `P(J) == true` 
+is aborted, once `2^r >= k_lim` and an incremental search for the lowest 
+exponent is done instead. 
+"""
+function _minimal_power_such_that(
+    I::Ideal, P::PropertyType;
+    boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+  ) where {PropertyType}
   whole_ring = ideal(base_ring(I), [one(base_ring(I))])
   P(whole_ring) && return (0, whole_ring)
   P(I) && return (1, I)
   I_powers = [(1,I)]
 
-  while !P(last(I_powers)[2])
+  # building up a cache by iterated squaring of the exponent
+  while 2*last(I_powers)[1] < boundary_for_incremental_strategy && !P(last(I_powers)[2])
     push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
   end
+
+  # if we crossed the boundary for the build up, switch to dumb iteration
+  if 2*last(I_powers)[1] >= boundary_for_incremental_strategy && !P(last(I_powers)[2])
+    while true
+      push!(I_powers, (last(I_powers)[1]+1, last(I_powers)[2]*I))
+      k, J = last(I_powers)
+      P(J) && return k, J
+    end
+  end
+
   upper = pop!(I_powers)
   lower = pop!(I_powers)
   while upper[1]!=lower[1]+1
@@ -886,9 +922,9 @@ function order_of_vanishing(
   #save("/tmp/bR.mrdi", bR)
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  #num_mult = _minimal_power_such_that(J, x->(save("/tmp/xK.mrdi", x+K); issubset(quotient(x+K, aR), J)))[1]-1
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
+  #num_mult = _minimal_power_such_that(J, x->(save("/tmp/xK.mrdi", x+K); issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
   return num_mult - den_mult
 end
 
