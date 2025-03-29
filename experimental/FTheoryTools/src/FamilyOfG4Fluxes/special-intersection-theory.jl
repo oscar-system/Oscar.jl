@@ -80,11 +80,10 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
       number_of_zeros = count(==(0), list_of_exps)
       if number_of_zeros == length(list_of_exps) - 1
         if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-          if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
-            highest_power = list_of_exps[findfirst(x -> x > 0, list_of_exps)]
-            if highest_power == 1
-              inter_dict[indices] = highest_power
-              return highest_power
+          if (mons_list[1] == remaining_vars[1] && reduced_scaling_relations[1,2] != 0) || (mons_list[1] == remaining_vars[2] && reduced_scaling_relations[1,1] != 0)
+            if list_of_exps[findfirst(x -> x > 0, list_of_exps)] == 1
+              inter_dict[indices] = ZZ(1)
+              return ZZ(1)
             end
           end
         end
@@ -102,7 +101,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
     mons_list = collect(monomials(pt_reduced))
     if length(mons_list) == 1 && mons_list[1] == remaining_vars[1] * remaining_vars[2]
       if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-        if reduced_scaling_relations == matrix(ZZ, [[1,1]])
+        if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
           inter_dict[indices] = 2
           return 2
         end
@@ -235,13 +234,13 @@ function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, 
   pos_power_variable = findfirst(==(power_variable), indices)
 
   # Let us simplify the problem by extracting the entries in the columns of single_variables and double_variables of the linear relation matrix
-  simpler_matrix = data.linear_relations[[other_variables..., power_variable], :]
+  simpler_matrix = matrix(QQ, data.linear_relations[[other_variables..., power_variable], :])
   b = zero_matrix(QQ, length(other_variables) + 1, 1)
   b[nrows(b), 1] = 1
   A = solve(simpler_matrix, b; side =:right)
   
   # Now form the relation in case...
-  employed_relation = -sum((data.linear_relations[:, k] .* A[k]) for k in 1:5)
+  employed_relation = -sum((data.linear_relations[:, k] .* A[k,1]) for k in 1:nrows(A))
   employed_relation[power_variable] = 0
 
   # Populate `coeffs` and `tuples` that form rationally equivalent algebraic cycle

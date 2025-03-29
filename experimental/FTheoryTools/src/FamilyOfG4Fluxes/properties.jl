@@ -50,6 +50,8 @@ true
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric ambient space"
+  @req all(==(0), offset(fgs)) "Currently, is_well_quantized is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
@@ -125,7 +127,9 @@ true
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
-  
+  @req all(==(0), offset(fgs)) "Currently, the transversality check is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
+
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
@@ -198,6 +202,8 @@ false
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
+  @req all(==(0), offset(fgs)) "Currently, the check for breaking the non-abelian gauge group is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
