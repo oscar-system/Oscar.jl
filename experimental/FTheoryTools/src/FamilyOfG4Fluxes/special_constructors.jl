@@ -341,7 +341,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 
     # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
     c2 = lift(polynomial(chern_class(m, 2, check = check)))
-    coeffs = collect(coefficients(chern_class))
+    coeffs = collect(coefficients(c2))
     M = collect(exponents(lift(chern_class)))
     non_zero_exponents = Vector{Tuple{Int64, Int64}}()
     for my_row in M
