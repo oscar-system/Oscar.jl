@@ -2699,27 +2699,50 @@ function Base.:(==)(
 
   if _has_coefficient_map(f)
     if _has_coefficient_map(g) 
-      coefficient_map(f) == coefficient_map(g) || return false
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      coefficient_map(f) == identity_map(coefficient_ring(domain(f))) || return false
+      return is_trivial(coefficient_map(f))
     end
   elseif _has_coefficient_map(g)
     if _has_coefficient_map(f) 
-      coefficient_map(f) == coefficient_map(g) || return false
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      coefficient_map(g) == identity_map(coefficient_ring(domain(g))) || return false
+      is_trivial(coefficient_map(g))
     end
   end
 
-  return all(x->f(x) == g(x), gens(domain(f)))
+  return all(f(x) == g(x) for x in gens(domain(f)))
+end
+
+# TODO: Move to wherever `MapFromFunc` comes from ?
+function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
+  f === g && return true
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  f.f === g.f && return true
+  error("comparison of maps $f and $g not possible")
+end
+
+function is_equal_as_morphism(f::Map, g::Map)
+  f === g && return true
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  error("comparison of maps $f and $g not possible")
+end
+
+
+function Base.hash(f::MapFromFunc, h::UInt)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return h
 end
 
 function Base.hash(f::Map{<:MPolyAnyRing, <:MPolyAnyRing}, h::UInt)
-    h = hash(domain(f), h)
-    h = hash(codomain(f), h)
-    # TODO: add in coefficient_map if available
-    h = hash(f.(gens(domain(f))), h)
-    return h
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  # TODO: add in coefficient_map if available
+  h = hash(f.(gens(domain(f))), h)
+  return h
 end
 
 coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))

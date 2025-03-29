@@ -98,6 +98,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_equal_as_morphism,
   is_known,
   is_terse,
   is_trivial,
