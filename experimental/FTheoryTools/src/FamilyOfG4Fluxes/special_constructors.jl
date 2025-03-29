@@ -383,7 +383,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 
     # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
     # TODO: We currently do not remember any intersection numbers computed from this operation. Improve.
-    offset = 1//2 * chern_classes(m, check = check)[3]
+    offset = 1//2 * chern_class(m, 2, check = check)
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
       class = offset * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
       push!(offset_vector, QQ(integrate(class)))
