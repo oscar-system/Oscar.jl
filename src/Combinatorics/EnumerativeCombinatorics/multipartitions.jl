@@ -17,6 +17,7 @@
 Return the multipartition given by the vector `mp` of integer sequences `mp`
 (which are interpreted as integer partitions) as an object of type
 `Multipartition{T}`.
+Note that a partition must be given by a weakly descending integer sequence.
 
 The element type `T` may be optionally specified, see also the examples below.
 
