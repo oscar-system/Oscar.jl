@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# TnRep - n-dim representation of a torus, specified by its weights5
+# TnRep - n-dim representation of a torus, specified by its weights
 #
 @doc raw"""
     TnRep(w::Vector)
