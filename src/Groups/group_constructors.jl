@@ -612,9 +612,9 @@ julia> gens(free_group([:a, :b], "x" => 1:2, 'y' => (1:2, 1:2)))
 """
 function free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
   @req allunique(L) "generator names must be unique"
-   J = GapObj(L, recursive = true)
+  J = GapObj(L, recursive = true)
   if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+    G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
   elseif eltype == :letter
     G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
   else
@@ -821,78 +821,34 @@ false
 @gapattribute is_dihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(GapObj(G))::Bool
 
 """
+    dicyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
     quaternion_group(::Type{T} = PcGroup, n::IntegerUnion)
 
-Return the (generalized) quaternion group of order `n`,
-as an instance of `T`,
-where `n` is a multiple of 4 and `T` is in
-{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
+Return the dicyclic group of order `n`,
+as an instance of `T`, where `n` is a multiple of 4
+and `T` is a suitable group type such as
+`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`.
 
-This is an alias of `dicyclic_group`.
+!!! note
+    For historical reasons and backwards compatibility, `quaternion_group` is an alias
+    of `dicyclic_group`. The two functions are fully identical. We recommend always
+    using `dicyclic_group`.
 
 # Examples
 ```jldoctest
-julia> g = quaternion_group(8)
+julia> g = dicyclic_group(8)
 Pc group of order 8
 
-julia> quaternion_group(PermGroup, 8)
+julia> dicyclic_group(PermGroup, 8)
 Permutation group of degree 8
 
-julia> g = quaternion_group(FPGroup, 8)
+julia> g = dicyclic_group(FPGroup, 8)
 Finitely presented group of order 8
 
 julia> relators(g)
 3-element Vector{FPGroupElem}:
  r^2*s^-2
  s^4
- r^-1*s*r*s
-```
-"""
-quaternion_group(n::IntegerUnion) = quaternion_group(PcGroup, n)
-
-quaternion_group(::Type{T}, n::IntegerUnion) where {T<:Union{GAPGroup,PcGroup,SubPcGroup}} =
-  dicyclic_group(T, n)
-
-@doc raw"""
-    is_quaternion_group(G::GAPGroup)
-
-Return `true` if `G` is isomorphic to a (generalized) quaternion group
-of order $2^{k+1}, k \geq 2$, and `false` otherwise.
-
-# Examples
-```jldoctest
-julia> is_quaternion_group(small_group(8, 3))
-false
-
-julia> is_quaternion_group(transitive_group(8, 5))
-true
-```
-"""
-@gapattribute is_quaternion_group(G::GAPGroup) =
-  GAP.Globals.IsGeneralisedQuaternionGroup(GapObj(G))::Bool
-
-"""
-    dicyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
-
-Return the dicyclic group of order `n`, as an instance of `T`,
-where `n` is a multiple of 4 and `T` is in
-{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
-
-# Examples
-```jldoctest
-julia> g = dicyclic_group(12)
-Pc group of order 12
-
-julia> dicyclic_group(PermGroup, 12)
-Permutation group of degree 12
-
-julia> g = dicyclic_group(FPGroup, 12)
-Finitely presented group of order 12
-
-julia> relators(g)
-3-element Vector{FPGroupElem}:
- r^2*s^-3
- s^6
  r^-1*s*r*s
 ```
 """
@@ -904,25 +860,29 @@ function dicyclic_group(::Type{T}, n::IntegerUnion) where {T<:GAPGroup}
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
-function dicyclic_group(::Type{T}, n::IntegerUnion) where {T<:Union{PcGroup,SubPcGroup}}
+function dicyclic_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
   @assert iszero(mod(n, 4))
   return T(GAP.Globals.DicyclicGroup(GAP.Globals.IsPcGroup, n)::GapObj)
 end
 
 @doc raw"""
     is_dicyclic_group(G::GAPGroup)
+    is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic to a dicyclic group
-of order $4n, n > 1$, and `false` otherwise.
+of order $2^{k+1}, k \geq 2$ or $4k$, and `false` otherwise.
 
 # Examples
 ```jldoctest
 julia> is_dicyclic_group(small_group(8, 3))
 false
 
-julia> is_dicyclic_group(small_group(8, 4))
+julia> is_dicyclic_group(transitive_group(8, 5))
 true
 ```
 """
 @gapattribute is_dicyclic_group(G::GAPGroup) =
   GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool
+
+const quaternion_group = dicyclic_group
+const is_quaternion_group = is_dicyclic_group
