@@ -90,7 +90,12 @@ The algorithm is recursive and  based on [`partitions(::IntegerUnion)`](@ref).
 
 # Example
 ```jldoctest
-julia> multipartitions(2,2)
+julia> MP = multipartitions(2,2);
+
+julia> first(MP)
+Partition{Int64}[[], [2]]
+
+julia> collect(multipartitions(2,2))
 5-element Vector{Multipartition{Int64}}:
  Partition{Int64}[[], [2]]
  Partition{Int64}[[], [1, 1]]
@@ -142,7 +147,8 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   end
 
   recP!(zeros(T,r), T(1), n)
-  return MP
+  return (x for x in MP)
+  # return MP
 end
 
 
