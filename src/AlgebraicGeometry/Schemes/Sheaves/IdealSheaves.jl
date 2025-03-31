@@ -806,7 +806,7 @@ By default, this is done by bisection, i.e. first we try with powers
 for the first time and then downwards bisection to find the minimal 
 exponent with this property. 
 
-As this is prone quickly trigger Groebner basis computations of ideals 
+As this is prone to quickly trigger Groebner basis computations of ideals 
 with generators of rather high degree, we provide the keyword argument 
 `boundary_for_incremental_strategy`. If set to some integer value `k_lim`, 
 the build up phase for finding powers `J = I^(2^r)` with `P(J) == true` 
