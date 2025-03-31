@@ -157,7 +157,7 @@ function number_of_multipartitions(n::IntegerUnion, k::IntegerUnion)
 
   z = ZZ(0)
   for a in 1:k
-    w = sum(lambda -> prod(number_of_partitions, lambda), compositions(n, a))
+    w = sum(lambda -> prod(number_of_partitions, lambda), compositions(n, a), init=ZZ(0))
     z += binomial(k,a)*w
   end
 
