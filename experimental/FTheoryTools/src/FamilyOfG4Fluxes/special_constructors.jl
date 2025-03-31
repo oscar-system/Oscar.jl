@@ -126,30 +126,8 @@ true
 julia> breaks_non_abelian_gauge_group(qsm_g4_flux)
 false
 
-julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
-
-julia> e1 = cohomology_class(divs[15]);
-
-julia> e2 = cohomology_class(divs[12]);
-
-julia> e4 = cohomology_class(divs[14]);
-
-julia> u = cohomology_class(divs[13]);
-
-julia> v = cohomology_class(divs[10]);
-
-julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
-
-julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
-
-julia> qsm_g4_flux == g4_flux(qsm_model, g4_class)
+julia> qsm_g4_flux == qsm_flux(qsm_model)
 true
-
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
-Hypersurface model over a concrete base
-
-julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
-
 ```
 """
 function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
