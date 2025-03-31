@@ -34,9 +34,6 @@ Empty partition
 julia> P = multipartition(Vector{Int8}[[2,1], [], [3,2,1]])
 Partition{Int8}[[2, 1], [], [3, 2, 1]]
 ```
-
-# References
-1. Wikipedia, [Multipartition](https://en.wikipedia.org/wiki/Multipartition)
 """
 function multipartition(mp::Vector{Partition{T}}) where T <: IntegerUnion
   return Multipartition(mp)
