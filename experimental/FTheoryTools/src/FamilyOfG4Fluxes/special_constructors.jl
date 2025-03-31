@@ -203,8 +203,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   fgs = family_of_g4_fluxes(m, res[1], res[2], final_shift)
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :passes_transversality_checks, true)
-  #set_attribute!(m, :inter_dict, inter_dict)
-  #set_attribute!(m, :s_inter_dict, s_inter_dict)  
   if !not_breaking
     set_attribute!(m, :matrix_integral_quant_transverse, res[1])
     set_attribute!(m, :matrix_rational_quant_transverse, res[2])
@@ -219,14 +217,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   return fgs
 
 end
-
-
-
-
-
-
-
-
 
 
 function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)  
@@ -259,11 +249,6 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   S = cox_ring(ambient_space(m))
-  #gS = gens(cox_ring(ambient_space(m)))
-  #linear_relations = matrix(ZZ, rays(ambient_space(m)))
-  #scalings = [c.coeff for c in S.d]
-  #mnf = Oscar._minimal_nonfaces(ambient_space(m))
-  #sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
   exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S))) # TODO: This line is a bit fragile. Fix it!
   tds = torusinvariant_prime_divisors(ambient_space(m))
   cds = [cohomology_class(td) for td in tds]
@@ -369,171 +354,6 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   return [final_shift, res]
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#=
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
-Hypersurface model over a concrete base
-
-julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
-
-julia> e1 = cohomology_class(divs[13]);
-
-julia> e2 = cohomology_class(divs[10]);
-
-julia> e4 = cohomology_class(divs[12]);
-
-julia> u = cohomology_class(divs[11]);
-
-julia> v = cohomology_class(divs[8]);
-
-julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:7]));
-
-julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
-
-julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
-
-julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
-
-julia> qsm_g4_flux_2 = flux_instance(fg, [3], [])
-
-julia> lift(polynomial(cohomology_class(qsm_g4_flux))) == lift(polynomial(cohomology_class(qsm_g4_flux_2)))
-true
-=#
-
-
-
-
-#=
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
-Hypersurface model over a concrete base
-
-julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
-
-julia> e1 = cohomology_class(divs[15]);
-
-julia> e2 = cohomology_class(divs[12]);
-
-julia> e4 = cohomology_class(divs[14]);
-
-julia> u = cohomology_class(divs[13]);
-
-julia> v = cohomology_class(divs[10]);
-
-julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
-
-julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
-
-julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
-
-julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
-
-julia> qsm_g4_flux_2 = flux_instance(fg, [3], [])
-
-julia> cohomology_class(qsm_g4_flux) == cohomology_class(qsm_g4_flux_2)
-true
-=#
-
-
-
-
-#=
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
-Hypersurface model over a concrete base
-
-julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
-
-julia> e1 = cohomology_class(divs[44]);
-
-julia> e2 = cohomology_class(divs[41]);
-
-julia> e4 = cohomology_class(divs[43]);
-
-julia> u = cohomology_class(divs[42]);
-
-julia> v = cohomology_class(divs[39]);
-
-julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:38]));
-
-julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
-
-julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
-
-julia> our_list = basis_of_h22_hypersurface_indices(qsm_model)
-
-julia> qsm_g4_flux_poly_string = string(polynomial(cohomology_class(qsm_g4_flux)))
-
-julia> desired_ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
-
-julia> qsm_g4_flux_poly = Oscar.eval_poly(qsm_g4_flux_poly_string, desired_ring)
-
-julia> coeffs = collect(coefficients(qsm_g4_flux_poly))
-
-julia> exps = [findall(k -> k != 0, l) for l in collect(exponents(qsm_g4_flux_poly))]
-
-julia> massaged_exps = []
-
-julia> for k in 1:length(exps)
-  if length(exps[k]) > 2 || length(exps[k]) == 0
-    error("BAD!")
-  end
-  if length(exps[k]) == 2
-    push!(massaged_exps, Tuple(sort(exps[k])))
-  end
-  if length(exps[k]) == 1
-    push!(massaged_exps, (exps[k][1], exps[k][1])) 
-  end
-end
-
-julia> our_vector = [QQ(0) for k in 1:length(our_list)]
-
-julia> for k in 1:length(coeffs)
-  my_posi = findfirst(x -> x == massaged_exps[k], our_list)
-  our_vector[my_posi] = coeffs[k]
-end
-
-julia> our_vector = transpose(matrix(QQ, [our_vector]))
-
-julia> our_vector = matrix_rational(fg) * ???? + 3 * matrix_integral(fg)
-
-We are looking for q in Q^25 s.t.
-julia> our_vector - 3 * matrix_integral(fg) == matrix_rational(fg) * q
-
-julia> b_vec = our_vector - 3 * matrix_integral(fg)
-
-julia> my_mat = matrix_rational(fg)
-
-julia> my_sol = solve(my_mat, b_vec, side = :right)
-
-julia> qsm_g4_flux_2 = flux_instance(fg, matrix(ZZ, [[3]]), my_sol)
-
-julia> cohomology_class(qsm_g4_flux) == cohomology_class(qsm_g4_flux_2)
-true
-=#
-
-
-
 
 
 function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
