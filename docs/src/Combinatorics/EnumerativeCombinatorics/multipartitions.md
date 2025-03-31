@@ -11,7 +11,7 @@ An $r$-component **multipartition** of an integer ``n``
 is an $r$-tuple of partitions $\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_r)$
 where each $\lambda_i$ is a partition of some integer $n_i \geq 0$
 and the $n_i$ sum to $n$.
-For an overview of multipartitions, see [And07](@cite).
+For an overview of multipartitions, see [And08](@cite).
 
 A multipartition can be encoded as a 1-dimensional array whose elements are partitions.
 In OSCAR, we provide the parametric type `Multipartition{T}` which is a subtype of `AbstractVector{T}`,
