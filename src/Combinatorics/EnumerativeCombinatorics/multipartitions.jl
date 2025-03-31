@@ -49,6 +49,11 @@ function multipartition(mp::Vector{Vector{Any}})
   return Multipartition([partition(p) for p in mp])
 end
 
+# This is only called when mp is itself an empty array.
+function multipartition(mp::Vector{Any})
+  return Multipartiton(Vector{Partition{Int}}(mp))
+end
+
 function Base.show(io::IO, ::MIME"text/plain", MP::Multipartition)
   print(io, MP.mp)
 end
