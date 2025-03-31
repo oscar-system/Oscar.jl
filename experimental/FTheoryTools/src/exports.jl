@@ -167,6 +167,7 @@ export passes_tadpole_cancellation_check
 export passes_transversality_checks
 export polytope_index
 export put_over_concrete_base
+export qsm_flux
 export random_flux
 export random_flux_instance
 export rational_coefficients

@@ -130,6 +130,43 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
 end
 
 
+@doc raw"""
+    qsm_flux(qsm_model::AbstractFTheoryModel)
+
+For an F-theory QSM [CHLLT19](@cite), this method creates the particularly chosen G4-flux in these models.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> qsm_flux(qsm_model)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed
+```
+"""
+function qsm_flux(qsm_model::AbstractFTheoryModel)
+  @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
+  divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
+  gens_strings = [string(g) for g in gens(cox_ring(ambient_space(qsm_model)))]
+  e1 = cohomology_class(divs[findfirst(x -> x == "e1", gens_strings)])
+  e2 = cohomology_class(divs[findfirst(x -> x == "e2", gens_strings)])
+  e4 = cohomology_class(divs[findfirst(x -> x == "e4", gens_strings)])
+  u = cohomology_class(divs[findfirst(x -> x == "u", gens_strings)])
+  v = cohomology_class(divs[findfirst(x -> x == "v", gens_strings)])
+  pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
+  g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
+  my_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+  set_attribute!(my_flux, :is_well_quantized, true)
+  set_attribute!(my_flux, :passes_transversality_checks, true)
+  set_attribute!(my_flux, :breaks_non_abelian_gauge_group, false)
+  return my_flux
+end
+
+
 ################################################
 # 2: Equality and hash
 ################################################
