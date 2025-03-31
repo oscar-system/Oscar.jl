@@ -168,8 +168,7 @@ julia> c2 = chern_class(T, 2)
 Chern class c[2] of TnBundle of rank 2 on TnVariety of dim 2 with 3 fixed points
 
 julia> c = c1^2-3*c2
-Chern class c[1]^2 - 3*c[2] of TnBundle of rank 2 on TnVariety of dim
-2 with 3 fixed points
+Chern class c[1]^2 - 3*c[2] of TnBundle of rank 2 on TnVariety of dim 2 with 3 fixed points
 
 julia> typeof(c)
 TnBundleChern

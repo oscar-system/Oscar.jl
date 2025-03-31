@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# TnRep - n-dim representation of a torus, specified by its weights
+# TnRep - n-dim representation of a torus, specified by its weights5
 #
 @doc raw"""
     TnRep(w::Vector)
@@ -112,7 +112,7 @@ Return the localization of `F` at the fixed points of the given torus action.
 julia> G = tn_grassmannian(1, 3);
 
 julia> T = tangent_bundle(G)
-TnBundle of rank 2 on TnVariety of dim 2
+TnBundle of rank 2 on TnVariety of dim 2 with 3 fixed points
 
 julia> V = fixed_points(G)
 3-element Vector{Pair{Vector{Int64}, Int64}}:
@@ -120,8 +120,7 @@ julia> V = fixed_points(G)
  [2] => 1
  [3] => 1
 
-julia> f = localization(T)
-#35 (generic function with 1 method)
+julia> f = localization(T);
 
 julia> P1 = V[1][1];
 
@@ -246,8 +245,7 @@ julia> V = fixed_points(G)
  [2] => 1
  [3] => 1
 
-julia> f = localization(T)
-#35 (generic function with 1 method)
+julia> f = localization(T);
 
 julia> P1 = V[1][1];
 
@@ -279,8 +277,8 @@ julia> G = tn_grassmannian(2, 5);
 
 julia> tautological_bundles(G)
 2-element Vector{TnBundle}:
- TnBundle of rank 2 on TnVariety of dim 6
- TnBundle of rank 3 on TnVariety of dim 6
+ TnBundle of rank 2 on TnVariety of dim 6 with 10 fixed points
+ TnBundle of rank 3 on TnVariety of dim 6 with 10 fixed points
 
 ```
 """
@@ -450,11 +448,9 @@ Return the integral of `c`.
 julia> G = tn_grassmannian(2, 4)
 TnVariety of dim 4 with 6 fixed points
 
-julia> Q = tautological_bundles(G)[2]
-TnBundle of rank 2 on TnVariety of dim 4 with 6 fixed points
+julia> Q = tautological_bundles(G)[2];
 
 julia> E = symmetric_power(Q, 3)
-
 TnBundle of rank 4 on TnVariety of dim 4 with 6 fixed points
 
 julia> integral(top_chern_class(E))
