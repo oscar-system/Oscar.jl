@@ -1509,6 +1509,7 @@ export scalar_product
 export scheme
 export scheme_type
 export schensted
+export show_atlas_info
 export schur_cover
 export schur_index
 export schur_multiplier
