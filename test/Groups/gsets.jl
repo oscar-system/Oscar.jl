@@ -153,7 +153,9 @@
   # orbit
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test length(orbit(Omega, [0,1,0,1,0,1])) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  orb = orbit(Omega, [0,1,0,1,0,1])
+  @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  @test orbits(orb) == [orb]
 
   # permutation
   G = symmetric_group(6)
