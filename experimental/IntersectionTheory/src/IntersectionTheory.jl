@@ -11,6 +11,9 @@ import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
+import ..Oscar: localization
+import ..AbstractAlgebra: polynomial
+
 
 export a_hat_genus
 export abstract_bundle
@@ -37,6 +40,8 @@ export complete_intersection
 export compose
 export cotangent_bundle
 export degeneracy_locus
+export det
+export dual
 export dual_basis
 export euler_number
 export euler_pairing
@@ -50,9 +55,12 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
+export localization 
 export map
 export OO
 export point_class
+### export r_polynomial
+export polynomial
 export pontryagin_class
 export product
 export pullback
@@ -65,8 +73,10 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
+export tn_representation
 export tn_variety
 export todd_class
 export top_chern_class
@@ -80,8 +90,10 @@ export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
 export TnBundle
+export TnBundleChern
+export TnRep
 export TnVariety
-export TnVarietyT
+
 
 include("Types.jl")
 include("Misc.jl")
@@ -123,6 +135,8 @@ export complete_intersection
 export compose
 export cotangent_bundle
 export degeneracy_locus
+export det
+export dual
 export dual_basis
 export euler_number
 export euler_pairing
@@ -137,10 +151,12 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
+export localization 
 export map
 export OO
 export point_class
-export points
+### export r_polynomial
+export polynomial
 export pontryagin_class
 export product
 export pullback
@@ -153,8 +169,10 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_bundle
 export tn_flag_variety
 export tn_grassmannian
+export tn_representation
 export tn_variety
 export todd_class
 export top_chern_class
@@ -168,5 +186,8 @@ export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
 export TnBundle
+export TnBundleChern
+export TnRep
 export TnVariety
-export TnVarietyT
+
+
