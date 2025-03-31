@@ -144,11 +144,28 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 
 julia> qsm_g4_flux == g4_flux(qsm_model, g4_class)
 true
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+Hypersurface model over a concrete base
+
+julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
+
 ```
 """
-function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
-  # (0) Has this result been computed before?
+  # (1) Consistency checks
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209" && algorithm == "default"
+    error("The default algorithm for intersection computations will likely not terminate in a reasonable time for this model and is therefore not supported")
+  end
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  if check
+    @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
+  end
+
+  # (2) Is result known?
   if !not_breaking
     if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse) && has_attribute(m, :offset_quant_transverse)
       fgs_m_int = matrix_integral_quant_transverse(m, check = check)
@@ -172,18 +189,356 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
       return fgs
     end  
   end
-  
-  
-  # (1) Entry checks
-  @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
-  @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
-  if check
-    @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
+
+  # (3) Result not known, compute it!
+  final_shift = Vector{QQFieldElem}()
+  res = Vector{ZZMatrix}()
+  if algorithm == "special"
+    final_shift, res = special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking = not_breaking, check = check)
+  else
+    final_shift, res = special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking = not_breaking, check = check)
   end
 
+  # (4) Set attributes accordingly, and return result
+  fgs = family_of_g4_fluxes(m, res[1], res[2], final_shift)
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :passes_transversality_checks, true)
+  #set_attribute!(m, :inter_dict, inter_dict)
+  #set_attribute!(m, :s_inter_dict, s_inter_dict)  
+  if !not_breaking
+    set_attribute!(m, :matrix_integral_quant_transverse, res[1])
+    set_attribute!(m, :matrix_rational_quant_transverse, res[2])
+    set_attribute!(m, :offset_quant_transverse, final_shift)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+  else
+    set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
+    set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])
+    set_attribute!(m, :offset_quant_transverse_nobreak, final_shift)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+  end
+  return fgs
 
-  # (2) Compute data, that is frequently used by the sophisticated intersection product below
+end
+
+
+
+
+
+
+
+
+
+
+function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)  
+  
+  # (1) Are intersection numbers known?
+  # TODO: If available and necessary, convert inter_dict.
+  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
+  # TODO: Once serialization has caught up, this conversion will no longer be needed.
+  # TODO 2: This appear exactly twice, once in the default and once in the special algorithnm. Code duplication? Improve it!
+  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
+    original_dict = get_attribute(m, :inter_dict)
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
+  end
+  inter_dict = get_attribute!(m, :inter_dict) do
+    Dict{NTuple{4, Int64}, ZZRingElem}()
+  end::Dict{NTuple{4, Int64}, ZZRingElem}
+  s_inter_dict = get_attribute!(m, :s_inter_dict) do
+    Dict{String, ZZRingElem}()
+  end::Dict{String, ZZRingElem}
+
+
+  # (2) Obtain critical information - this may take significant time!
+  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
+  list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
+  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
+  S = cox_ring(ambient_space(m))
+  #gS = gens(cox_ring(ambient_space(m)))
+  #linear_relations = matrix(ZZ, rays(ambient_space(m)))
+  #scalings = [c.coeff for c in S.d]
+  #mnf = Oscar._minimal_nonfaces(ambient_space(m))
+  #sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
+  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S))) # TODO: This line is a bit fragile. Fix it!
+  tds = torusinvariant_prime_divisors(ambient_space(m))
+  cds = [cohomology_class(td) for td in tds]
+  pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
+
+
+  # (3) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) does not break the non-abelian gauge group.
+  transversality_constraint_matrix = Vector{Vector{ZZRingElem}}()
+  for i in 1:length(ambient_space_flux_candidates_basis)
+
+    condition = Vector{ZZRingElem}()
+
+    # Compute against pairs of base divisors
+    for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
+      push!(condition, get!(inter_dict, my_tuple) do
+        class = ambient_space_flux_candidates_basis[i] * cds[list_of_base_divisor_pairs_to_be_considered[j][1]] * cds[list_of_base_divisor_pairs_to_be_considered[j][2]] * pt_class
+        return ZZ(integrate(class))
+      end)
+    end
+
+    # Compute against zero section and base divisor
+    zsc = zero_section_class(m)
+    pos_zero_section = zero_section_index(m)
+    @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
+    for j in 1:n_rays(base_space(m))
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
+      push!(condition, get!(inter_dict, my_tuple) do
+        class = ambient_space_flux_candidates_basis[i] * cds[j] * zsc * pt_class
+        return ZZ(integrate(class))
+      end)
+    end
+
+    # Compute against exceptional divisors
+    if not_breaking
+      for j in 1:n_rays(base_space(m))
+        for k in 1:length(exceptional_divisor_positions)
+          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
+          push!(condition, get!(inter_dict, my_tuple) do
+            class = ambient_space_flux_candidates_basis[i] * cds[j] * cds[exceptional_divisor_positions[k]] * pt_class
+            return ZZ(integrate(class))
+          end)
+        end
+      end
+    end      
+
+    # Remember the computed result
+    push!(transversality_constraint_matrix, condition)
+
+  end
+  C_transverse = transpose(matrix(ZZ, transversality_constraint_matrix))
+  transverse_fluxes = nullspace(C_transverse)[2]
+
+
+  # (4) Work out the relevant intersection numbers to tell if a flux is well quantized
+  quant_constraint_matrix = Vector{Vector{ZZRingElem}}()
+  offset_vector = Vector{QQFieldElem}()
+  for i in 1:length(ambient_space_flux_candidates_basis)
+    condition = Vector{ZZRingElem}()
+    for j in 1:length(list_of_divisor_pairs_to_be_considered)
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
+      push!(condition, get!(inter_dict, my_tuple) do
+        class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
+        return ZZ(integrate(class))
+      end)
+    end
+    push!(quant_constraint_matrix, condition)
+  end
+  C = transpose(matrix(ZZ, quant_constraint_matrix))
+  # TODO: We currently do not remember any intersection numbers computed from this operation. Improve.
+  offset = 1//2 * chern_class(m, 2, check = check)
+  for j in 1:length(list_of_divisor_pairs_to_be_considered)
+    class = offset * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
+    push!(offset_vector, QQ(integrate(class)))
+  end
+  
+
+  # (5) Work out the well-quantized fluxes as linear combinations of the parametrization of the fluxes which pass the transversality constraints.
+  C2 = C * transverse_fluxes # Intersection numbers in terms off the basis of transverse fluxes.
+  S, T, U = snf_with_transform(C2)
+  r = rank(S)
+  @req all(k -> !is_zero(S[k,k]), 1:r) "Inconsistency in Smith normal form computation detected. Please inform the authors."
+  @req all(k -> is_zero(S[k,k]), r+1:min(nrows(S), ncols(S))) "Inconsistency in Smith normal form computation detected. Please inform the authors."
+  S_prime = zero_matrix(QQ, ncols(S), ncols(S))
+  transformed_offset_vector = T * offset_vector
+  shift_vector = [zero(QQ) for k in 1:nrows(S_prime)]
+  for k in 1:min(nrows(S), ncols(S))
+    if k <= r
+      S_prime[k,k] = 1//S[k,k]
+      if !isinteger(transformed_offset_vector[k])
+        shift_vector[k] = - transformed_offset_vector[k]//S[k,k]
+      end
+    else
+      @req isinteger(transformed_offset_vector[k]) "Inconsistency in Smith normal form computation detected. Please inform the authors."
+      S_prime[k,k] = 1
+    end
+  end
+  solution_matrix = U * S_prime
+  solution_shift = U * shift_vector
+  sol_mat = transverse_fluxes * solution_matrix
+  final_shift = transverse_fluxes * solution_shift
+  res = [sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)]]
+  return [final_shift, res]
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#=
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+Hypersurface model over a concrete base
+
+julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia> e1 = cohomology_class(divs[13]);
+
+julia> e2 = cohomology_class(divs[10]);
+
+julia> e4 = cohomology_class(divs[12]);
+
+julia> u = cohomology_class(divs[11]);
+
+julia> v = cohomology_class(divs[8]);
+
+julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:7]));
+
+julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+
+julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
+
+julia> qsm_g4_flux_2 = flux_instance(fg, [3], [])
+
+julia> lift(polynomial(cohomology_class(qsm_g4_flux))) == lift(polynomial(cohomology_class(qsm_g4_flux_2)))
+true
+=#
+
+
+
+
+#=
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia> e1 = cohomology_class(divs[15]);
+
+julia> e2 = cohomology_class(divs[12]);
+
+julia> e4 = cohomology_class(divs[14]);
+
+julia> u = cohomology_class(divs[13]);
+
+julia> v = cohomology_class(divs[10]);
+
+julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
+
+julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+
+julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false, algorithm = "special")
+
+julia> qsm_g4_flux_2 = flux_instance(fg, [3], [])
+
+julia> cohomology_class(qsm_g4_flux) == cohomology_class(qsm_g4_flux_2)
+true
+=#
+
+
+
+
+#=
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
+Hypersurface model over a concrete base
+
+julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia> e1 = cohomology_class(divs[44]);
+
+julia> e2 = cohomology_class(divs[41]);
+
+julia> e4 = cohomology_class(divs[43]);
+
+julia> u = cohomology_class(divs[42]);
+
+julia> v = cohomology_class(divs[39]);
+
+julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:38]));
+
+julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia> qsm_g4_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+
+julia> our_list = basis_of_h22_hypersurface_indices(qsm_model)
+
+julia> qsm_g4_flux_poly_string = string(polynomial(cohomology_class(qsm_g4_flux)))
+
+julia> desired_ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
+
+julia> qsm_g4_flux_poly = Oscar.eval_poly(qsm_g4_flux_poly_string, desired_ring)
+
+julia> coeffs = collect(coefficients(qsm_g4_flux_poly))
+
+julia> exps = [findall(k -> k != 0, l) for l in collect(exponents(qsm_g4_flux_poly))]
+
+julia> massaged_exps = []
+
+julia> for k in 1:length(exps)
+  if length(exps[k]) > 2 || length(exps[k]) == 0
+    error("BAD!")
+  end
+  if length(exps[k]) == 2
+    push!(massaged_exps, Tuple(sort(exps[k])))
+  end
+  if length(exps[k]) == 1
+    push!(massaged_exps, (exps[k][1], exps[k][1])) 
+  end
+end
+
+julia> our_vector = [QQ(0) for k in 1:length(our_list)]
+
+julia> for k in 1:length(coeffs)
+  my_posi = findfirst(x -> x == massaged_exps[k], our_list)
+  our_vector[my_posi] = coeffs[k]
+end
+
+julia> our_vector = transpose(matrix(QQ, [our_vector]))
+
+julia> our_vector = matrix_rational(fg) * ???? + 3 * matrix_integral(fg)
+
+We are looking for q in Q^25 s.t.
+julia> our_vector - 3 * matrix_integral(fg) == matrix_rational(fg) * q
+
+julia> b_vec = our_vector - 3 * matrix_integral(fg)
+
+julia> my_mat = matrix_rational(fg)
+
+julia> my_sol = solve(my_mat, b_vec, side = :right)
+
+julia> qsm_g4_flux_2 = flux_instance(fg, matrix(ZZ, [[3]]), my_sol)
+
+julia> cohomology_class(qsm_g4_flux) == cohomology_class(qsm_g4_flux_2)
+true
+=#
+
+
+
+
+
+function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+  
+  # (1) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
   linear_relations = matrix(ZZ, rays(ambient_space(m)))
@@ -199,7 +554,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   )
 
 
-  # (3) Are intersection numbers known?
+  # (2) Are intersection numbers known?
   # TODO: If available and necessary, convert inter_dict.
   # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
   # TODO: Once serialization has caught up, this conversion will no longer be needed.
@@ -225,177 +580,92 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
   ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S))) # TODO: This line is a bit fragile. Fix it!
+   # TODO: This line is a bit fragile. Fix it!
+  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S)))
 
 
-  # (5) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints.
-  # (5) If desired, we also compute the intersection numbers, which will tell if the flux breaks a non-abelian gauge group.
+  # (5) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) if the flux is not breaking the gauge group.
   transversality_constraint_matrix = Vector{Vector{ZZRingElem}}()
-  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+  println("")
+  println("transverse: $(length(ambient_space_flux_candidates_basis))")
+  println("")
+  for i in 1:length(ambient_space_flux_candidates_basis)
+    print("\ri: $i")
 
-    # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
-    for i in 1:length(ambient_space_flux_candidates_basis)
+    condition = Vector{ZZRingElem}()
 
-      condition = Vector{ZZRingElem}()
-
-      # Compute against pairs of base divisors
-      for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
-        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
-      end
-
-      # Compute against zero section and base divisor
-      pos_zero_section = findfirst(x -> x == "z", string.(gS))
-      for j in 1:n_rays(base_space(m))
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
-        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
-      end
-
-      # Compute against exceptional divisors if desired
-      if not_breaking
-        for j in 1:n_rays(base_space(m))
-          for k in 1:length(exceptional_divisor_positions)
-            my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, exceptional_divisor_positions[k]]...]))
-            push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
-          end
-        end
-      end
-
-      # Remember the computed intersection numbers
-      push!(transversality_constraint_matrix, condition)
-
+    # Compute against pairs of base divisors
+    for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
     end
 
-  else
-  
-    # Cover all other case with generic, but potentially painfully slow methodology.
-    tds = torusinvariant_prime_divisors(ambient_space(m))
-    cds = [cohomology_class(td) for td in tds]
-    pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
-    for i in 1:length(ambient_space_flux_candidates_basis)
-
-      condition = Vector{ZZRingElem}()
-
-      # Compute against pairs of base divisors
-      for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
-        push!(condition, get!(inter_dict, my_tuple) do
-          class = ambient_space_flux_candidates_basis[i] * cds[list_of_base_divisor_pairs_to_be_considered[j][1]] * cds[list_of_base_divisor_pairs_to_be_considered[j][2]] * pt_class
-          return ZZ(integrate(class))
-        end)
-      end
-
-      # Compute against zero section and base divisor
-      zsc = zero_section_class(m)
-      pos_zero_section = findfirst(x -> x == string(polynomial(zsc)), string.([polynomial(x) for x in cds]))
-      @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
-      for j in 1:n_rays(base_space(m))
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
-        push!(condition, get!(inter_dict, my_tuple) do
-          class = ambient_space_flux_candidates_basis[i] * cds[j] * zsc * pt_class
-          return ZZ(integrate(class))
-        end)
-      end
-
-      # Compute against exceptional divisors
-      if not_breaking
-        for j in 1:n_rays(base_space(m))
-          for k in 1:length(exceptional_divisor_positions)
-            my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
-            push!(condition, get!(inter_dict, my_tuple) do
-              class = ambient_space_flux_candidates_basis[i] * cds[j] * cds[exceptional_divisor_positions[k]] * pt_class
-              return ZZ(integrate(class))
-            end)
-          end
-        end
-      end      
-
-      # Remember the computed result
-      push!(transversality_constraint_matrix, condition)
-
+    # Compute against zero section and base divisor
+    pos_zero_section = zero_section_index(m)
+    for j in 1:n_rays(base_space(m))
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
     end
+
+    # Compute against exceptional divisors if desired
+    if not_breaking
+      for j in 1:n_rays(base_space(m))
+        for k in 1:length(exceptional_divisor_positions)
+          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, exceptional_divisor_positions[k]]...]))
+          push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+        end
+      end
+    end
+
+    # Remember the computed intersection numbers
+    push!(transversality_constraint_matrix, condition)
 
   end
-
-
-  # (6) Compute the fluxes which pass the transversality constraint as the kernel of the transversality_constraint_matrix.
-  # (6) If desired, this includes the fluxes which do not break the non-abelian gauge group.
   C_transverse = transpose(matrix(ZZ, transversality_constraint_matrix))
   transverse_fluxes = nullspace(C_transverse)[2]
 
 
-  # (7) Work out the relevant intersection numbers to tell if a flux is well quantized
+  # (6) Work out the relevant intersection numbers to tell if a flux is well quantized
   quant_constraint_matrix = Vector{Vector{ZZRingElem}}()
   offset_vector = Vector{QQFieldElem}()
-  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
-
-    # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
-    for i in 1:length(ambient_space_flux_candidates_basis)
-      condition = Vector{ZZRingElem}()
-      for j in 1:length(list_of_divisor_pairs_to_be_considered)
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
-      end
-      push!(quant_constraint_matrix, condition)
-    end
-
-    # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
-    c2 = lift(polynomial(chern_class(m, 2, check = check)))
-    coeffs = collect(coefficients(c2))
-    M = collect(exponents(lift(c2)))
-    non_zero_exponents = Vector{Tuple{Int64, Int64}}()
-    for my_row in M
-      i1 = findfirst(x -> x != 0, my_row)
-      my_row[i1] -= 1
-      i2 = findfirst(x -> x != 0, my_row)
-      push!(non_zero_exponents, (i1, i2))
-    end
+  println("")
+  println("quant: $(length(ambient_space_flux_candidates_basis))")
+  println("")
+  for i in 1:length(ambient_space_flux_candidates_basis)
+    print("\ri: $i")
+    condition = Vector{ZZRingElem}()
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
-      inter_numb = QQ(0)
-      for k in 1:length(non_zero_exponents)
-        my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
-      end
-      push!(offset_vector, inter_numb)
+      my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
     end
-
-  else
-  
-    # Cover all other case with generic, but potentially painfully slow methodology.
-
-    # Extract some important information
-    tds = torusinvariant_prime_divisors(ambient_space(m))
-    cds = [cohomology_class(td) for td in tds]
-    pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
-
-    # Identify the constraint matrix
-    for i in 1:length(ambient_space_flux_candidates_basis)
-      condition = Vector{ZZRingElem}()
-      for j in 1:length(list_of_divisor_pairs_to_be_considered)
-        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        push!(condition, get!(inter_dict, my_tuple) do
-          class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
-          return ZZ(integrate(class))
-        end)
-      end
-      push!(quant_constraint_matrix, condition)
-    end
-
-    # Identify the offset vector by integrating 1/2 c2 against pair of toric divisors on the hypersurface.
-    # TODO: We currently do not remember any intersection numbers computed from this operation. Improve.
-    offset = 1//2 * chern_class(m, 2, check = check)
-    for j in 1:length(list_of_divisor_pairs_to_be_considered)
-      class = offset * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
-      push!(offset_vector, QQ(integrate(class)))
-    end
-  
+    push!(quant_constraint_matrix, condition)
   end
-  
-  # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
   C = transpose(matrix(ZZ, quant_constraint_matrix))
+  c2 = lift(polynomial(chern_class(m, 2, check = check)))
+  coeffs = collect(coefficients(c2))
+  M = collect(exponents(lift(c2)))
+  non_zero_exponents = Vector{Tuple{Int64, Int64}}()
+  for my_row in M
+    i1 = findfirst(x -> x != 0, my_row)
+    my_row[i1] -= 1
+    i2 = findfirst(x -> x != 0, my_row)
+    push!(non_zero_exponents, (i1, i2))
+  end
+  println("")
+  println("1/2 c2: $(length(list_of_divisor_pairs_to_be_considered))")
+  println("")
+  for j in 1:length(list_of_divisor_pairs_to_be_considered)
+    print("\rj: $j")
+    inter_numb = QQ(0)
+    for k in 1:length(non_zero_exponents)
+      my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
+      inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
+    end
+    push!(offset_vector, inter_numb)
+  end
 
-
-  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the fluxes which pass the transversality constraints.
+  
+  # (7) Work out the well-quantized fluxes as linear combinations of the parametrization of the fluxes which pass the transversality constraints.
   C2 = C * transverse_fluxes # Intersection numbers in terms off the basis of transverse fluxes.
   S, T, U = snf_with_transform(C2)
   r = rank(S)
@@ -417,32 +687,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   end
   solution_matrix = U * S_prime
   solution_shift = U * shift_vector
-
-
-  # (10) Finally, we need to re-express those in terms of the original bases.
-  # (10) Rather, we have res now expressed in terms of the basis of vertical fluxes...
   sol_mat = transverse_fluxes * solution_matrix
   final_shift = transverse_fluxes * solution_shift
-  res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
-
-
-  # (11) Remember computed data, set attributes and return the result
-  fgs = family_of_g4_fluxes(m, res[1], res[2], final_shift)
-  set_attribute!(fgs, :is_well_quantized, true)
-  set_attribute!(fgs, :passes_transversality_checks, true)
-  set_attribute!(m, :inter_dict, inter_dict)
-  set_attribute!(m, :s_inter_dict, s_inter_dict)  
-  if !not_breaking
-    set_attribute!(m, :matrix_integral_quant_transverse, res[1])
-    set_attribute!(m, :matrix_rational_quant_transverse, res[2])
-    set_attribute!(m, :offset_quant_transverse, final_shift)
-    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
-  else
-    set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
-    set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])
-    set_attribute!(m, :offset_quant_transverse_nobreak, final_shift)
-    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
-  end
-  return fgs
+  res = [sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)]]
+  return [final_shift, res]
 
 end

@@ -90,7 +90,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   converted_class = g4_class
   if convert == true
     to_be_transformed_poly = lift(polynomial(g4_class))
-    M = collect(exponents(lift(to_be_transformed_poly)))
+    M = collect(exponents(to_be_transformed_poly))
     non_zero_exponents = Vector{Tuple{Int64, Int64}}()
     for my_row in M
       i1 = findfirst(x -> x != 0, my_row)
