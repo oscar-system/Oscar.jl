@@ -96,10 +96,12 @@ julia> multipartitions(2,2)
 function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #Argument checking
   @req n >= 0 "n >= 0 required"
-  @req r >= 1 "r >= 1 required"
+  @req r >= 0 "r >= 0 required"
+  @req n == 0 || r >= 1 "impossible with r == 0 and n >= 1"
 
   #This will be the list of multipartitions
   MP = Multipartition{T}[]
+  n == r == 0 && return MP
 
   #We will go through all compositions of n into r parts, and for each such #composition, we collect all the partitions for each of the components of
   #the composition.
