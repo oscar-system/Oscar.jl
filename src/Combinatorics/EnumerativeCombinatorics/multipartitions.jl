@@ -51,7 +51,7 @@ end
 
 # This is only called when mp is itself an empty array.
 function multipartition(mp::Vector{Any})
-  return Multipartiton(Vector{Partition{Int}}(mp))
+  return Multipartition(Vector{Partition{Int}}(mp))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", MP::Multipartition)
