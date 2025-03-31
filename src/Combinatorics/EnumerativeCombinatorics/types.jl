@@ -290,7 +290,10 @@ end
 @doc raw"""
     Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
 
-Multipartitions are generalizations of partitions. An r-component **multipartition** of an integer n is an r-tuple of partitions λ¹, λ², …, λʳ where each λⁱ is a partition of some integer nᵢ ≥ 0 and the nᵢ sum to n.
+Multipartitions are generalizations of partitions.
+An ``r``-component **multipartition** of an integer ``n``
+is an ``r``-tuple of partitions ``\lambda_1, \lambda_2, \ldots, \lambda_r``
+where each ``\lambda_i`` is a partition of some integer ``n_i \geq 0`` and the ``n_i`` sum to ``n``.
 
 Multipartitions are implemented as a subtype of 1-dimensional arrays of partitions. You can use smaller integer types to increase performance.
 
