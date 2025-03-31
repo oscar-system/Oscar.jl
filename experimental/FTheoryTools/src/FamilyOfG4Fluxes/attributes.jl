@@ -180,18 +180,6 @@ julia> d3_tadpole_constraint(fgs);
   end
 
   # Are intersection numbers known?
-  # TODO: If available and necessary, convert inter_dict.
-  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
-  # TODO: Once serialization has caught up, this conversion will no longer be needed.
-  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
-    original_dict = get_attribute(m, :inter_dict)
-    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-    for (key, value) in original_dict
-      new_key = NTuple{4, Int64}(key)
-      new_dict[new_key] = value
-    end
-    set_attribute!(model, :inter_dict, new_dict)
-  end
   inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
