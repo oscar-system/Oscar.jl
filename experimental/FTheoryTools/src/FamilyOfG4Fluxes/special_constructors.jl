@@ -360,11 +360,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
 
   # (5) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) if the flux is not breaking the gauge group.
   transversality_constraint_matrix = Vector{Vector{ZZRingElem}}()
-  println("")
-  println("transverse: $(length(ambient_space_flux_candidates_basis))")
-  println("")
   for i in 1:length(ambient_space_flux_candidates_basis)
-    print("\ri: $i")
 
     condition = Vector{ZZRingElem}()
 
@@ -402,11 +398,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
   # (6) Work out the relevant intersection numbers to tell if a flux is well quantized
   quant_constraint_matrix = Vector{Vector{ZZRingElem}}()
   offset_vector = Vector{QQFieldElem}()
-  println("")
-  println("quant: $(length(ambient_space_flux_candidates_basis))")
-  println("")
   for i in 1:length(ambient_space_flux_candidates_basis)
-    print("\ri: $i")
     condition = Vector{ZZRingElem}()
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
       my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
@@ -425,11 +417,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
     i2 = findfirst(x -> x != 0, my_row)
     push!(non_zero_exponents, (i1, i2))
   end
-  println("")
-  println("1/2 c2: $(length(list_of_divisor_pairs_to_be_considered))")
-  println("")
   for j in 1:length(list_of_divisor_pairs_to_be_considered)
-    print("\rj: $j")
     inter_numb = QQ(0)
     for k in 1:length(non_zero_exponents)
       my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
