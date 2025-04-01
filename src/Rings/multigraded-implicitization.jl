@@ -17,19 +17,15 @@ function pivots(M)
   return pivots
 end
 
-
 # given a vector of monomials mons and a row vector M of polynomials finds a matrix coeffs such that mons*coeffs = M
 # this replaces the function coefficients which we use in macaulay2
-@everywhere function mons_and_coeffs(mons, M)
+function mons_and_coeffs(mons, M)
     coeffs = [[coeff(f, mons[j]) for f in M] for j in 1:length(mons)]
-
     return matrix(QQ, coeffs)
 end
 
-
 # compute the homogeneity space of an ideal and return it in row reduced echelon form
 function homogeneity_space(I)
-
   F = gens(I)
   n = length(gens(parent(F[1])))
   homogeneity_eqs = matrix(ZZ, [[0 for i in 1:n]])
@@ -43,7 +39,6 @@ function homogeneity_space(I)
   
   return rref(transpose(nullspace(homogeneity_eqs)[2]))[2]
 end
-
 
 # finds the maximal grading of the kernel of a polynomial map phi
 # by computing the homogeneity space of the elimination ideal
@@ -59,24 +54,22 @@ function max_grading(phi)
 end
 
 
-# computes the basis for domain in degree deg but removes all monomials 
-# which correspond to previously computed relations G
-@everywhere function find_basis_in_degree(domain, deg, prev_gens) 
+function component_of_kernel(deg::Vector{Int},
+                             graded_phi::MPolyAnyMap{MPolyDecRing, S, T, U},
+                             prev_gens::Vector{MPolyDecRingElem},
+                             jac) where {S, T, U}
   if length(prev_gens) == 0
-      return monomial_basis(domain, deg)
+    mon_basis = monomial_basis(domain, deg)
+  else
+    # computes the basis for domain in degree deg but removes all monomials 
+    # which correspond to previously computed relations G
+    gen_shifts = reduce(vcat, [[g*b for b in monomial_basis(domain, deg - degree(g))] for g in prev_gens])
+    mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+    coeffs = mons_and_coeffs(mons, gen_shifts)
+    bad_monomials = [mons[p[1]] for p in pivots(coeffs)]
+
+    mon_basis = [m for m in monomial_basis(domain, deg) if !(m in bad_monomials)]
   end
-  gen_shifts = reduce(vcat, [[g*b for b in monomial_basis(domain, deg - degree(g))] for g in prev_gens])
-  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
-  coeffs = mons_and_coeffs(mons, gen_shifts)
-  bad_monomials = [mons[p[1]] for p in pivots(coeffs)]
-
-  return [m for m in monomial_basis(domain, deg) if !(m in bad_monomials)]
-end
-
-
-@everywhere function component_of_kernel(deg, phi, prev_gens, jac)
-
-  mon_basis = find_basis_in_degree(domain(phi), deg, prev_gens)
 
   if length(mon_basis) < 2
     return MPolyDecRingElem[]
@@ -98,60 +91,47 @@ end
   return mon_basis*K
 end
 
-
 # compute the (transpose) of the jacobian
 function jacobian(phi)
   return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
-
 
 # compute the jacobian and evalauate it at the point pt
 function jacobian_at_point(phi, pt)
   return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
 
-
 # compute the jacobian at a random point with parameters sampled from a finite field
-function jacobian_at_rand_point(phi, K::Field = GF(32003))
-
+function jacobian_at_rand_point(phi::MPolyAnyMap; char::Int=32003)
+  K = GF(char) #TODO: implement rand for fpField so we can replace GF
+  
   # remake codomain over finite field
   R = codomain(phi)
   fq_R = polynomial_ring(K, string.(gens(R)))[1]
 
   # randomly sample parameter values in the finite field
-  pt = [rand(K) for _ in gens(fq_R)]
+  pt = [rand(K) for _ in 1:ngens(fq_R)]
 
   return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
 end
 
 
 # find the indices of the variable support of all monomials in mon_basis
-@everywhere function component_support(mon_basis)
-
+function component_support(mon_basis)
   supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
 end
 
-
 function components_of_kernel(d, phi)
-  
-
-  Oscar.put_params(channels, phi)
-
   # Compute a maximal grading on the domain
   A = max_grading(phi)[:, (ngens(codomain(phi))+1):end]
   
   # grade the domain 
   graded_dom = grade(domain(phi), A)[1]
-  grA = grading_group(graded_dom)
-  Oscar.put_params(channels, grA)
-  Oscar.put_params(channels, graded_dom)
   
   # grade the domain by the standard grading as well and compute the jacobian at a random point over a finite field
   total_deg_dom = grade(domain(phi), [1 for i in 1:ngens(domain(phi))])[1]
-  phi = hom(graded_dom, codomain(phi), [phi(x) for x in gens(domain(phi))])
-  jac = jacobian_at_rand_point(phi)
-  # currently throws an error which I think is due to the type of jac
-  Oscar.put_params(channels, jac)
+  graded_phi = hom(graded_dom, codomain(phi), [phi(x) for x in gens(domain(phi))])
+  jac = jacobian_at_rand_point(graded_phi)
 
   # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()

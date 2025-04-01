@@ -10,6 +10,7 @@ include("solving.jl")
 include("MPolyQuo.jl")
 include("FractionalIdeal.jl")
 include("oscar_singular.jl")
+include("multigraded-implicitization.jl")
 
 include("special_ideals.jl")
 
