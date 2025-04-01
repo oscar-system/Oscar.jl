@@ -5,12 +5,18 @@ DocTestSetup = Oscar.doctestsetup()
 
 # [Introduction](@id linear_algebra)
 
-The linear algebra part of OSCAR provides functionality for handling
-- vectors and matrices
-- modules and vector spaces,
-- vector spaces over fields
-- matrix spaces and matrix algebras
+The linear algebra part of OSCAR provides functionality for handling:
+- [Matrix functionality](@ref matrix_functionality_chapter)
+- [Linear solving](@ref solving_chapter)
+- [Matrix spaces](@ref "Matrix Spaces")
+- [Matrix algebras](@ref "Generic matrix algebras")
+- [Sparse linear algebra](@ref)
+- [Modules and vector spaces](@ref "Finitely presented modules")
+- [Lattices](@ref)
 
+General textbooks offering details on theory and algorithms include:
+- [Lan71](@cite)
+- [Kir16](@cite)
 
 ## Tutorials
 
