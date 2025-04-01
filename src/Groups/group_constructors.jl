@@ -881,8 +881,39 @@ julia> is_dicyclic_group(transitive_group(8, 5))
 true
 ```
 """
-@gapattribute is_dicyclic_group(G::GAPGroup) =
-  GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool
+# TODO: Remove once IsDicyclicGroup from GAP is available.
+function _is_dicyclic_group(G::GAPGroup)
+  N = order(G)
+  !iszero(mod(N, 4)) && return false
+  
+  n = N//2
+  a = n//2
+
+  G1, _ = derived_subgroup(G)
+  !(is_cyclic(G1) && order(G1) == a) && return false
+
+  local Zn
+  T = right_transversal(G, G1)
+  i = 1
+  while true
+    H = GAP.Globals.ClosureGroup(GapObj(G1), GapObj(T[i]))
+    Zn, _ = Oscar._as_subgroup(G1, H)
+    i = i + 1
+    if (i > 4) || (is_cyclic(Zn) && order(Zn) == n)
+      break
+    end
+  end
+  !(is_cyclic(Zn) && order(Zn) == n) && return false
+
+  local t = one(G)
+  while t in Zn
+    t = rand(G)
+  end
+  !(order(t) == 4 && all(s -> s^t*s == s^0, gens(Zn))) && return false
+
+  # Different from GAP code, here we skip finding other generator.
+  return true
+end
 
 const quaternion_group = dicyclic_group
 const is_quaternion_group = is_dicyclic_group
