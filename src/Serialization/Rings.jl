@@ -775,19 +775,18 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRingElem}, parent
   return parent(num, den; check=false)
 end
 
-#=
 @register_serialization_type MPolyComplementOfKPointIdeal uses_id
 
+type_params(U::T) where {T<:MPolyComplementOfKPointIdeal} = TypeParams(T, ring(U))
+
 function save_object(s::SerializerState, U::MPolyComplementOfKPointIdeal)
-  save_data_dict(s) do
-    save_typed_object(s, ring(U), :ring)
-    save_typed_object(s, point_coordinates(U), :pt_coords)
-  end
+  save_object(s, point_coordinates(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfKPointIdeal})
-  R = load_typed_object(s, :ring)
-  a = load_typed_object(s, :pt_coords)
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfKPointIdeal}, R::Ring)
+  kk = coefficient_ring(R)
+  T = elem_type(kk)
+  a = load_object(s, Vector{T}, kk)
   return MPolyComplementOfKPointIdeal(R, a)
 end
 
@@ -795,37 +794,33 @@ end
 
 @register_serialization_type MPolyLocalizedRingHom uses_id
 
+type_params(phi::T) where {T<:MPolyLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_params(restricted_map(phi)))
+
 function save_object(s::SerializerState, phi::MPolyLocalizedRingHom)
-  save_data_dict(s) do
-    save_typed_object(s, domain(phi), :domain)
-    save_typed_object(s, codomain(phi), :codomain)
-    save_typed_object(s, restricted_map(phi), :res_map)
-  end
+  save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyLocalizedRingHom})
-  dom = load_typed_object(s, :domain)
-  cod = load_typed_object(s, :codomain)
-  res = load_typed_object(s, :res_map)
+function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyLocalizedRingHom} # RT is the type of the `restricted_map`
+  dom = params[:domain]
+  cod = params[:codomain]
+  rm_tp = params[:restricted_map_params]
+  res = load_object(s, MPolyAnyMap, rm_tp)
   return MPolyLocalizedRingHom(dom, cod, res; check=false)
 end
 
-
 @register_serialization_type MPolyQuoLocalizedRingHom uses_id
 
+type_params(phi::T) where {T<:MPolyQuoLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_params(restricted_map(phi)))
+
 function save_object(s::SerializerState, phi::MPolyQuoLocalizedRingHom)
-  save_data_dict(s) do
-    save_typed_object(s, domain(phi), :domain)
-    save_typed_object(s, codomain(phi), :codomain)
-    save_typed_object(s, restricted_map(phi), :res_map)
-  end
+  save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocalizedRingHom})
-  dom = load_typed_object(s, :domain)
-  cod = load_typed_object(s, :codomain)
-  res = load_typed_object(s, :res_map)
+function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyQuoLocalizedRingHom} # RT is the type of the `restricted_map`
+  dom = params[:domain]
+  cod = params[:codomain]
+  rm_tp = params[:restricted_map_params]
+  res = load_object(s, MPolyAnyMap, rm_tp)
   return MPolyQuoLocalizedRingHom(dom, cod, res; check=false)
 end
 
-=#
