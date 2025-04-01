@@ -142,7 +142,7 @@ type(tp::TypeParams) = tp.type
 
 type_params(obj::T) where T = TypeParams(T, nothing)
 
-function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
+function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
   if is_terse(io)
     print(io, "Type parameters for $T")
   else
@@ -152,6 +152,16 @@ function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
       println(io, "")
       print(terse(io), Lowercase(), param)
     end
+  end
+end
+
+function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
+  if is_terse(io)
+    print(io, "Type parameters for $T")
+  else
+    io = pretty(io)
+    print(io, "Type parameter for $T ")
+    print(terse(io), Lowercase(), params(tp))
   end
 end
 
