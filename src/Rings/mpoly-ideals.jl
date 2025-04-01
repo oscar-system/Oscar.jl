@@ -1581,9 +1581,12 @@ end
 @doc raw"""
     triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard, ord::Vector{<:MPolyRingElem}=reverse(gens(base_ring(I))))
 
-Return a triangular decomposition of a zero-dimensional `I` starting with univariate polynomial in
-`ord[1]`, bivariate polynomial in `ord[1]` and `ord[2]`, etc.  By default starts with a univariate
-polynomial in the last variable similar to a lex Groebner basis.
+Return a triangular decomposition of a zero-dimensional `I`.
+
+By default the decomposition starts with a univariate polynomial in the last variable, then a
+bivariate polynomial in the last two, etc similar to a lex Groebner basis..  If the optional argument 
+`ord` is specified, it contains the list of variables fixing the ordering in which these are considered, that 
+is the decomposition starts with a univariate polynomial in `ord[1]` and so on.
 
 Possible algorithms are:
 - `:lazard` (default) based on [Laz92](@cite).
