@@ -15,6 +15,7 @@ The linear algebra part of OSCAR provides functionality for handling:
 - [Lattices](@ref)
 
 General textbooks offering details on theory and algorithms include:
+- [Lan71](@cite)
 - [Kir16](@cite)
 
 ## Tutorials
