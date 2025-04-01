@@ -988,7 +988,7 @@ function maximal_blocks(Omega::GSet)
   L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
-  bl = map(A -> map(x -> Omega[x], A), bl)
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
@@ -1022,7 +1022,7 @@ function minimal_block_reps(Omega::GSet)
   L = moved_points(G)
   bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
 
-  return map(A -> map(x -> Omega[x], A), bl)
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
 
 """
@@ -1057,7 +1057,7 @@ function all_blocks(Omega::GSet)
   G = image(action_homomorphism(Omega))[1]
   bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
 
-  return map(A -> map(x -> Omega[x], A), bl)
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
 
 """
