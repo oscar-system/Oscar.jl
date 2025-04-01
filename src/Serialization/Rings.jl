@@ -18,8 +18,7 @@ const IdealUnionType = Union{MPolyIdeal,
                                 MPolyLocalizedIdeal,
                                 MPolyQuoLocalizedIdeal,
                                 LaurentMPolyIdeal,
-                                FreeAssociativeAlgebraIdeal,
-                                IdealGens
+                                FreeAssociativeAlgebraIdeal
                             }
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
