@@ -46,6 +46,7 @@ export dual_basis
 export euler_number
 export euler_pairing
 export fixed_points
+export gromov_witten_invariant
 export graph
 export hom
 export hyperplane_class
@@ -142,6 +143,7 @@ export euler_number
 export euler_pairing
 export fixed_points
 export graph
+export gromov_witten_invariant
 export hom
 export hyperplane_class
 export intersection_matrix

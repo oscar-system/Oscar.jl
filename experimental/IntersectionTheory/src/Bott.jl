@@ -173,7 +173,9 @@ tn_bundle(X::TnVariety, r::Int, f::Function) = TnBundle(X, r, f)
 Return an abstract variety with a (split) torus action, represented by its dimension `n` and a `Vector` specifying the fixed points of the action together with their multiplicities.
 
 !!! note
-    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. See the section on Kontsevich moduli spaces in the documentation.
+    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
+
+See the section on Kontsevich moduli spaces in the documentation.
 """
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 
@@ -199,7 +201,7 @@ dim(X::TnVariety) = X.dim
 Return the fixed points representing `X` and their multiplicities.
 
 !!! note
-    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. See the section of the documentation on Kontsevich moduli spaces.
+    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
 
 # Examples
 ```jldoctest
