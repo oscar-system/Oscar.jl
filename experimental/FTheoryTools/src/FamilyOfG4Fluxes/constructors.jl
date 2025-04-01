@@ -28,9 +28,8 @@ julia> mat_rat[2,1] = 1;
 julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 ```
 """
 function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
@@ -69,7 +68,7 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   properties_string = ["A family of G4 fluxes:"]
 
   # Check for elementary quantization checks
-  if has_attribute(gf, :is_well_quantized)
+  if has_attribute(gf, :is_well_quantized) && get_attribute(gf, :is_well_quantized) !== nothing
     if is_well_quantized(gf)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
@@ -79,19 +78,19 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
     push!(properties_string, "  - Elementary quantization checks: not executed")
   end
 
-  # Check for verticality checks
-  if has_attribute(gf, :is_vertical)
-    if is_vertical(gf)
-      push!(properties_string, "  - Verticality checks: satisfied")
+  # Check for transversality checks
+  if has_attribute(gf, :passes_transversality_checks) && get_attribute(gf, :passes_transversality_checks) !== nothing
+    if passes_transversality_checks(gf)
+      push!(properties_string, "  - Transversality checks: satisfied")
     else
-      push!(properties_string, "  - Verticality checks: failed")
+      push!(properties_string, "  - Transversality checks: failed")
     end
   else
-    push!(properties_string, "  - Verticality checks: not executed")
+    push!(properties_string, "  - Transversality checks: not executed")
   end
 
   # Check for non-abelian gauge group breaking
-  if has_attribute(gf, :breaks_non_abelian_gauge_group)
+  if has_attribute(gf, :breaks_non_abelian_gauge_group) && get_attribute(gf, :breaks_non_abelian_gauge_group) !== nothing
     if breaks_non_abelian_gauge_group(gf)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
@@ -102,11 +101,13 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
   end
 
   # Is the tadpole constrained worked out as polynomial?
-  if has_attribute(gf, :d3_tadpole_constraint)
+  #=
+  if has_attribute(gf, :d3_tadpole_constraint) && get_attribute(gf, :d3_tadpole_constraint) !== nothing
     push!(properties_string, "  - Tadpole constraint: evaluated")
   else
     push!(properties_string, "  - Tadpole constraint: not analyzed")
   end
+  =#
 
   # Print each line separately, to avoid extra line break at the end
   for (i, line) in enumerate(properties_string)

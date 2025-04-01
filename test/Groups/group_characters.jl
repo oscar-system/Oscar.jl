@@ -782,9 +782,6 @@ end
   @test modtbl === rem(ordtbl, 2)
   @test modtbl === ordtbl % 2
 
-  @test block_distribution(ordtbl, 2) == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
-  @test block_distribution(ordtbl, 2) == block_distribution(ordtbl, ZZ(2))
-  @test_throws ArgumentError block_distribution(modtbl, 2)
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
@@ -812,6 +809,23 @@ end
   @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
   @test trivial_character(ordtbl)[1] == 1
   @test trivial_character(modtbl)[1] == 1
+  @test [power_map(ordtbl, 3, i) for i in 1:5] == [1, 2, 1, 5, 4]
+end
+
+@testset "p-blocks" begin
+  tbl = character_table("A5")
+  p = 2
+  bl = block_distribution(tbl, p)
+  @test bl == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
+  @test bl == block_distribution(tbl, ZZ(p))
+  @test_throws ArgumentError block_distribution(mod(tbl, p), p)
+
+  G = alternating_group(5)
+  tbl = character_table(G)
+  bl = block_distribution(tbl, p)
+  defects = bl[:defect]
+  @test [order(defect_group(tbl, p, b)[1]) for b in 1:length(defects)] ==
+        [p^d for d in defects]
 end
 
 @testset "characters" begin
@@ -860,7 +874,7 @@ end
   @test all(is_irreducible, t)
   @test sort!([order(kernel(chi)[1]) for chi in t]) == [1, 1, 4, 12, 24]
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
-  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+  @test allunique(t)
 
   @test all(chi -> chi * chi == tensor_product(chi, chi), t)
 
@@ -929,6 +943,10 @@ end
   @test ! (x in h)
   psi = chi^x
   @test all(y -> mod(order(y), p) == 0 || chi(x*y*x^-1) == psi(y), collect(h))
+
+  t = character_table("A5")
+  chi = t[4]
+  @test values(central_character(chi)) == [1, 0, 5, -3, -3]
 end
 
 @testset "Galois conjugacy of characters" begin
@@ -939,16 +957,21 @@ end
 
   t = character_table("A5")
   sums = [galois_orbit_sum(x) for x in t]
-  degrees = [degree(character_field(x)[1]) for x in t]
+  rep = galois_representative_and_multiplicity(sums[2])
+  @test_throws ArgumentError galois_representative_and_multiplicity(0*t[1])
+  @test rep[1] == t[2] && rep[3] == 1
+  degrees = [degree_of_character_field(x) for x in t]
+  @test degrees == [degree(character_field(x)[1]) for x in t]
   @test degrees == [1, 2, 2, 1, 1]
   @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
   m = mod(t, 2)
   sums = [galois_orbit_sum(x) for x in m]
-  degrees = [degree(character_field(x)[1]) for x in m]
+  degrees = [degree_of_character_field(x) for x in m]
+  @test degrees == [degree(character_field(x)[1]) for x in m]
   @test degrees == [1, 2, 2, 1]
   @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
 
   # irreducibles not all rational but all are defined over the prime field
   m = character_table("L3(2)", 2)
@@ -1054,9 +1077,14 @@ end
 
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
-  @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
+  degrees = [degree_of_character_field(chi) for chi in tbl]
+  @test degrees == [degree(character_field(chi)[1]) for chi in tbl]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test character_field(tbl[2])[1] === character_field(tbl[3])[1] # caching
   @test characteristic(character_field(tbl[1])[1]) == 0
-  @test degree(character_field(collect(tbl))[1]) == 2
+  deg = degree_of_character_field(collect(tbl))
+  @test deg == degree(character_field(collect(tbl))[1])
+  @test deg == 2
 
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
@@ -1109,11 +1137,14 @@ end
 @testset "character fields of Brauer characters" begin
   ordtbl = character_table("A5")
   modtbl = mod(ordtbl, 2)
+  @test character_field(modtbl[2])[1] === character_field(modtbl[3])[1] # caching
   @test [order_field_of_definition(chi) for chi in modtbl] == [2, 4, 4, 2]
   @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
   @test order_field_of_definition(Int, modtbl[1]) isa Int
   @test_throws ArgumentError order_field_of_definition(ordtbl[1])
-  @test degree(character_field(collect(modtbl))[1]) == 2
+  deg = degree_of_character_field(collect(modtbl))
+  @test deg == degree(character_field(collect(modtbl))[1])
+  @test deg == 2
 end
 
 @testset "Schur index" begin
@@ -1127,20 +1158,7 @@ end
   t = character_table(g);
   trivial_character(s)^t;  # side-effect: stores a class fusion
   @test length(names_of_fusion_sources(t)) > 0
-  if hasproperty(GAP.Globals, :SchurIndexByCharacter)
-    # We can compute the values.
-    @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
-  else
-    # We can fail.
-    for chi in t
-      try
-        schur_index(chi)
-      catch(e)
-        msg = sprint(showerror, e)
-        @test msg == "cannot determine the Schur index with the currently used criteria"
-      end
-    end
-  end
+  @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
 
   # For a character table without group, we can fail.
   t = character_table("S6")
@@ -1149,7 +1167,7 @@ end
       schur_index(chi)
     catch(e)
       msg = sprint(showerror, e)
-      @test msg == "cannot determine the Schur index with the currently used criteria"
+      @test msg == "ArgumentError: cannot determine the Schur index with the currently used criteria"
     end
   end
 

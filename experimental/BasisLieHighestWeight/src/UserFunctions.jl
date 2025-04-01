@@ -26,7 +26,7 @@ end
     basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
     basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra of type `type_rank`.
 
@@ -156,7 +156,7 @@ end
 @doc raw"""
     basis_lie_highest_weight_lusztig(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -207,7 +207,7 @@ end
 @doc raw"""
     basis_lie_highest_weight_string(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -277,7 +277,7 @@ end
 @doc raw"""
     basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -318,7 +318,7 @@ end
 @doc raw"""
     basis_lie_highest_weight_nz(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 

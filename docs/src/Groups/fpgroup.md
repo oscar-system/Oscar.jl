@@ -78,6 +78,10 @@ true
 Subgroups of finitely presented groups in Oscar have the type
 [`SubFPGroup`](@ref),
 their elements have the type [`SubFPGroupElem`](@ref).
+We distinguish between full finitely presented groups and their subgroups
+because different methods are needed for them,
+and because functions such as [`relators(G::FPGroup)`](@ref) make sense
+only for full finitely presented groups.
 
 ```jldoctest fpgroupxpl
 julia> S, emb = sylow_subgroup(G, 2)
@@ -101,15 +105,24 @@ Group homomorphism
   to permutation group of degree 5 and order 6
 ```
 
-## Functions for (subgroups of) finitely presented groups and their elements
+## Functions for elements of (subgroups of) finitely presented groups
+
+```@docs
+letters(g::Union{FPGroupElem, SubFPGroupElem})
+syllables(g::Union{FPGroupElem, SubFPGroupElem})
+length(g::Union{FPGroupElem, SubFPGroupElem})
+map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+```
+
+## Functions for (subgroups of) finitely presented groups
 
 ```@docs
 free_group
 @free_group
 full_group(G::Union{SubFPGroup, SubPcGroup})
 relators(G::FPGroup)
-length(g::Union{FPGroupElem, SubFPGroupElem})
-map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+simplified_fp_group(G::FPGroup)
+epimorphism_from_free_group(G::GAPGroup)
 ```
 
 ## Technicalities

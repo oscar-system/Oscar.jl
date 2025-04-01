@@ -80,3 +80,11 @@
     @test is_zero(prod21 * fac2)
   end
 end
+
+@testset "PBWAlgebraQuo.conversion (#3133)" begin
+  # PBWAlgebraQuo with special singular sring had incorrect parent objects
+  E, _ = exterior_algebra(QQ, 3)
+  @test E() == E(0)
+  three = QQFieldElem(3)
+  @test E(three) == E(3)
+end

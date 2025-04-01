@@ -67,6 +67,15 @@ is_conjugate_with_data(Omega::GSet, omega1, omega2)
 orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+is_transitive(Omega::GSet)
+transitivity(Omega::GSet)
+blocks(Omega::GSet)
+maximal_blocks(Omega::GSet)
+minimal_block_reps(Omega::GSet)
+all_blocks(Omega::GSet)
+rank_action(Omega::GSet)
+is_regular(Omega::GSet)
+is_semiregular(Omega::GSet)
 ```
 
 

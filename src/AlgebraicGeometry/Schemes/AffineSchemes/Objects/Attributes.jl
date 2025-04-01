@@ -613,7 +613,7 @@ julia> singular_locus(A3)
 (scheme(1), Hom: scheme(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z), Hom: scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z) -> scheme(x^2 - y^2 + z^2))
+(scheme(x^2 - y^2 + z^2, x, y, z), Hom: scheme(x^2 - y^2 + z^2, x, y, z) -> scheme(x^2 - y^2 + z^2))
 
 julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement

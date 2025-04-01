@@ -18,7 +18,7 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed  
   - Tadpole cancellation check: not executed
 
@@ -45,7 +45,7 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -82,7 +82,7 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -95,14 +95,13 @@ Hypersurface model over a concrete base
 julia> gfs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4_2 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -115,7 +114,7 @@ julia> rat_comb = rational_coefficients(g4_2);
 julia> g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -161,7 +160,7 @@ end
 
 Return the family of $G_4$-fluxes that possesses, such
 that all fluxes in this family share the following properties
-with the given $G_4$-flux: Verticality and breaking of the
+with the given $G_4$-flux: Transversality and breaking of the
 non-Abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -171,29 +170,26 @@ Hypersurface model over a concrete base
 julia> gfs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
 julia> g4_flux_family(g4, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 ```
 """
 @attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; check::Bool = true)
-  nv = passes_verticality_checks(gf)
   nb = breaks_non_abelian_gauge_group(gf)
-  gfs = special_flux_family(model(gf), vert = nv, not_breaking = nb, check = check)
+  gfs = special_flux_family(model(gf), not_breaking = nb, check = check)
   return gfs
 end
 
@@ -211,14 +207,13 @@ Hypersurface model over a concrete base
 julia> gfs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
@@ -244,14 +239,13 @@ Hypersurface model over a concrete base
 julia> gfs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Verticality checks: not executed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 

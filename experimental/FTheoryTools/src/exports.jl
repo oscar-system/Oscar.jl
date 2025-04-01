@@ -5,7 +5,6 @@ export FamilyOfG4Fluxes
 export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
-export QSMModel
 export WeierstrassModel
 export _blowup_global
 export _blowup_global_sequence
@@ -43,11 +42,12 @@ export chern_class
 export chern_classes
 export chosen_g4_flux_basis
 export classes_of_model_sections
+export classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes
 export components_of_dual_graph
 export components_of_simplified_dual_graph
 export coordinate_ring
 export defining_classes
-export defining_section_parametrization
+export model_section_parametrization
 export degrees_of_kbar_restrictions_to_ci_curves
 export degrees_of_kbar_restrictions_to_components_of_dual_graph
 export degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph
@@ -125,7 +125,6 @@ export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
 export is_partially_resolved
-export is_vertical
 export is_well_quantized
 export journal_doi
 export journal_link
@@ -147,13 +146,13 @@ export model
 export model_description
 export model_index
 export model_parameters
+export model_sections
 export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
-export passes_elementary_quantization_checks
 export passes_tadpole_cancellation_check
-export passes_verticality_checks
+export passes_transversality_checks
 export polytope_index
 export put_over_concrete_base
 export random_flux
@@ -219,6 +218,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export torsion_sections
+export tunable_sections
 export tune
 export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf

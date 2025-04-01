@@ -22,9 +22,8 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> model(f_gs) == qsm_model
 true
@@ -55,9 +54,8 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> matrix_integral(f_gs) == mat_int
 true
@@ -88,9 +86,8 @@ julia> mat_rat[2,1] = 1;
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> matrix_rational(f_gs) == mat_rat
 true
@@ -124,18 +121,10 @@ Hypersurface model over a concrete base
 julia> fgs = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> d3_tadpole_constraint(fgs);
-
-julia> fgs
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: failed
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: evaluated
 ```
 """
 @attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -150,6 +139,18 @@ A family of G4 fluxes:
   end
 
   # Are intersection numbers known?
+  # TODO: If available and necessary, convert inter_dict.
+  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
+  # TODO: Once serialization has caught up, this conversion will no longer be needed.
+  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
+    original_dict = get_attribute(m, :inter_dict)
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
+  end
   inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}

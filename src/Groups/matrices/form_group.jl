@@ -716,7 +716,7 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-@attr MatrixGroup{elem_type(base_field(L)),dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbstractLat; depth::Int=-1, bacher_depth::Int=0)
+@attr matrix_group_type(S) function isometry_group(L::Hecke.AbstractLat{S}; depth::Int=-1, bacher_depth::Int=0) where S
   gens = automorphism_group_generators(L; depth, bacher_depth)
   G = matrix_group(gens)
   return G
@@ -738,7 +738,7 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
+@attr QQMatrixGroup function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
   # corner case
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) == 0
