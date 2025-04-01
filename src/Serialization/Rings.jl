@@ -699,7 +699,7 @@ end
 
 @register_serialization_type MPolyLocRing uses_id
 
-type_params(W::T) where {T <: MPolyLocRing} = TypeParams(T, :base_ring => base_ring(W), :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing)) # TODO: This seems to cause the trouble!
+type_params(W::T) where {T <: MPolyLocRing} = TypeParams(T, :base_ring => base_ring(W), :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing)) # TODO: make this neater!
 
 function save_object(s::SerializerState, L::MPolyLocRing)
   save_object(s, inverted_set(L))
@@ -761,10 +761,7 @@ end
 type_params(a::T) where {T<:MPolyQuoLocRingElem} = TypeParams(T, parent(a))
 
 function save_object(s::SerializerState, a::MPolyQuoLocRingElem)
-  save_data_array(s) do
-    save_object(s, lifted_numerator(a))
-    save_object(s, lifted_denominator(a))
-  end
+ save_object(s, [lifted_numerator(a), lifted_denominator(a)])
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRingElem}, parent::MPolyQuoLocRing)
