@@ -794,11 +794,14 @@ export intersections
 export inv
 export inv!
 export invariant_alternating_forms
+export invariant_bilinear_form
 export invariant_bilinear_forms
 export invariant_hermitian_forms
 export invariant_lattice_of_K3_cover
+export invariant_quadratic_form
 export invariant_quadratic_forms
 export invariant_ring
+export invariant_sesquilinear_form
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
