@@ -955,7 +955,7 @@ function blocks(Omega::GSet)
   L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
-  bl = map(A -> map(x -> Omega[x], A), bl)
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
