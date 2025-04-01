@@ -867,10 +867,9 @@ end
 
 @doc raw"""
     is_dicyclic_group(G::GAPGroup)
-    is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic to a dicyclic group
-of order $2^{k+1}, k \geq 2$ or $4k$, and `false` otherwise.
+of order $4k, k > 1$, and `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -881,6 +880,16 @@ julia> is_dicyclic_group(transitive_group(8, 5))
 true
 ```
 """
+is_dicyclic_group(G::GAPGroup) = _is_dicyclic_group(G)
+
+@doc raw"""
+    is_quaternion_group(G::GAPGroup)
+
+Return `true` if `G` is isomorphic to a generalised quaternion group
+of order $2^{k+1}, k \geq 2$, and `false` otherwise.
+"""
+@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsGeneralisedQuaternionGroup(GapObj(G))
+
 # TODO: Remove once IsDicyclicGroup from GAP is available.
 function _is_dicyclic_group(G::GAPGroup)
   N = order(G)
@@ -916,4 +925,3 @@ function _is_dicyclic_group(G::GAPGroup)
 end
 
 const quaternion_group = dicyclic_group
-const is_quaternion_group = is_dicyclic_group
