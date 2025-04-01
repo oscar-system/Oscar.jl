@@ -457,7 +457,7 @@ end
   @test Oscar.action_function(Omega)(x, rep[2]) == y
 end
 
-@testset "General G-set action"
+@testset "General G-set action" begin
   gen_up    = @perm 48 ( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19);
   gen_left  = @perm 48 ( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35);
   gen_front = @perm 48 (17,19,24,22)(18,21,23,20)( 6,25,43,16)( 7,28,42,13)( 8,30,41,11);
