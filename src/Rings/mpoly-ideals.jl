@@ -1579,9 +1579,11 @@ end
 ################################################################################
 
 @doc raw"""
-    triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard)
+    triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard, ord::Vector{<:MPolyRingElem}=reverse(gens(base_ring(I))))
 
-Return a triangular decomposition of a zero-dimensional `I`.
+Return a triangular decomposition of a zero-dimensional `I` starting with univariate polynomial in
+`ord[1]`, bivariate polynomial in `ord[1]` and `ord[2]`, etc.  By default starts with a univariate
+polynomial in the last variable similar to a lex Groebner basis.
 
 Possible algorithms are:
 - `:lazard` (default) based on [Laz92](@cite).
@@ -1603,6 +1605,13 @@ julia> triangular_decomposition(I)
 4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
  Ideal (x5^5 - 1, x4 - x5, x3^2 + 3*x3*x5 + x5^2, x2 + x3 + 3*x5, x1 - x5)
  Ideal (x5^5 - 1, x4 - x5, x3 - x5, x2^2 + 3*x2*x5 + x5^2, x1 + x2 + 3*x5)
+ Ideal with 5 generators
+ Ideal with 5 generators
+
+julia> triangular_decomposition(I,ord=[x1,x2,x3,x4,x5])
+4-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (x1^5 - 1, -x1 + x2, x1^2 + 3*x1*x3 + x3^2, 3*x1 + x3 + x4, -x1 + x5)
+ Ideal (x1^5 - 1, -x1 + x2, -x1 + x3, x1^2 + 3*x1*x4 + x4^2, 3*x1 + x4 + x5)
  Ideal with 5 generators
  Ideal with 5 generators
 
@@ -1638,23 +1647,47 @@ julia> triangular_decomposition(I; algorithm=:moeller_hillebrand)
 
 ```
 """
-function triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard)
+function triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard, ord::Vector{<:MPolyRingElem}=reverse(gens(base_ring(I))))
   @req dim(I)==0 "The ideal must be zero-dimensional."
   R = base_ring(I)
-  G = ideal(groebner_basis(I; ordering=lex(R), complete_reduction=true))
-  Gsing = singular_generators(G,lex(R))
-  if algorithm==:lazard
-    Ts = Singular.LibTriang.triangL(Gsing)
-  elseif algorithm==:lazard_factorized
-    Ts = Singular.LibTriang.triangLfak(Gsing)
-  elseif algorithm==:moeller
-    Ts = Singular.LibTriang.triangM(Gsing)
-  elseif algorithm==:moeller_hillebrand
-    Ts = Singular.LibTriang.triangMH(Gsing)
+
+  if ord==reverse(gens(R))
+      G = ideal(groebner_basis(I; ordering=lex(R), complete_reduction=true))
+      Gsing = singular_generators(G,lex(R)) # convert to Singular ideal
+      if algorithm==:lazard
+          Ts = Singular.LibTriang.triangL(Gsing)
+      elseif algorithm==:lazard_factorized
+          Ts = Singular.LibTriang.triangLfak(Gsing)
+      elseif algorithm==:moeller
+          Ts = Singular.LibTriang.triangM(Gsing)
+      elseif algorithm==:moeller_hillebrand
+          Ts = Singular.LibTriang.triangMH(Gsing)
+      else
+          error("algorithm allowed are :lazard, :lazard_factorized, :moeller, or :moeller_hillebrand")
+      end
+      Ts = ideal.(Ref(R),Ts) # convert to OSCAR ideals
   else
-    error("algorithm allowed are :lazard, :lazard_factorized, :moeller, or :moeller_hillebrand")
+      n = ngens(R)
+      perm = zeros(Int,n) # image notation permutation mapping
+      #   - ord[1] to gens(R)[n]
+      #   - ord[2] to gens(R)[n-1]
+      #   - etc
+      # so that triangular decomposition of permuted variables has form
+      #   - univariate poly in ord[1]
+      #   - bivariate poly in ord[1] and ord[2]
+      #   - etc
+      mrep = zeros(Int,n) # image notation permutation inverse to perm
+      for (i,xi) in enumerate(gens(R))
+          j = findfirst(isequal(xi),ord)
+          perm[n-i+1] = j
+          mrep[n-j+1] = i
+      end
+
+      Iperm = hom(R,R,gens(R)[perm])(I)
+      Tperms = triangular_decomposition(Iperm,algorithm=algorithm)
+      Ts = hom(R,R,gens(R)[mrep]).(Tperms)
   end
-  return [ideal(R, T) for T in Ts]
+  return Ts
 end
 
 #######################################################
