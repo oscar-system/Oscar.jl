@@ -944,9 +944,9 @@ G-set of
   with seeds 1:4
 
 julia> collect(blocks(Omega))
-2-element Vector{Vector{Int64}}:
- [1, 2]
- [3, 4]
+2-element Vector{Set{Int64}}:
+ Set([2, 1])
+ Set([4, 3])
 ```
 """
 function blocks(Omega::GSet)
@@ -977,9 +977,9 @@ G-set of
   with seeds 1:8
 
 julia> collect(maximal_blocks(Omega))
-2-element Vector{Vector{Int64}}:
- [1, 2, 3, 8]
- [4, 5, 6, 7]
+2-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 4, 6, 7])
 ```
 """
 function maximal_blocks(Omega::GSet)
@@ -1010,10 +1010,10 @@ G-set of
   with seeds 1:8
 
 julia> minimal_block_reps(Omega)
-3-element Vector{Vector{Int64}}:
- [1, 3]
- [1, 5]
- [1, 7]
+3-element Vector{Set{Int64}}:
+ Set([3, 1])
+ Set([5, 1])
+ Set([7, 1])
 ```
 """
 function minimal_block_reps(Omega::GSet)
@@ -1043,13 +1043,13 @@ G-set of
   with seeds 1:8
 
 julia> all_blocks(Omega)
-6-element Vector{Vector{Int64}}:
- [1, 2, 3, 8]
- [1, 5]
- [1, 3, 5, 7]
- [1, 3]
- [1, 3, 4, 6]
- [1, 7]
+6-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 1])
+ Set([5, 7, 3, 1])
+ Set([3, 1])
+ Set([4, 6, 3, 1])
+ Set([7, 1])
 ```
 """
 function all_blocks(Omega::GSet)
