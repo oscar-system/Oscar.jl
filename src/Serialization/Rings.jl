@@ -671,13 +671,11 @@ end
 type_params(U::T) where T <: MPolyPowersOfElement = TypeParams(T, ring(U))
 
 function save_object(s::SerializerState, U::MPolyPowersOfElement)
-  save_data_dict(s) do
-    save_object(s, denominators(U), :dens)
-  end
+  save_object(s, denominators(U))
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyPowersOfElement}, R::MPolyRing)
-  dens = Vector{elem_type(R)}(load_object(s, Vector{elem_type(R)}, R, :dens)) # casting is necessary for empty arrays
+  dens = load_object(s, Vector{elem_type(R)}, R)
   return MPolyPowersOfElement(R, dens)
 end
 
@@ -687,13 +685,11 @@ end
 type_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), ring(U))
 
 function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
-  save_data_dict(s) do
-    save_object(s, prime_ideal(U), :ideal)
-  end
+  save_object(s, prime_ideal(U))
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, R::MPolyRing)
-  id = load_object(s, ideal_type(R), R, :ideal)
+  id = load_object(s, ideal_type(R), R)
   return MPolyComplementOfPrimeIdeal(id)
 end
 
