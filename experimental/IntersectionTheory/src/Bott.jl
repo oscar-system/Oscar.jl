@@ -174,8 +174,6 @@ Return an abstract variety with a (split) torus action, represented by its dimen
 
 !!! note
     Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
-
-See the section on Kontsevich moduli spaces in the documentation.
 """
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 

@@ -1,6 +1,3 @@
-
-
-
 function _copy(G::Graph{Undirected})
   GG = Graph{Undirected}(n_vertices(G))
   for e in edges(G)
