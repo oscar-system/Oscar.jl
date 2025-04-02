@@ -151,7 +151,7 @@ The user can specify a list of worker ids to be used for deployment via the kwar
 """
 function parallel_all(
     task_list::Vector{TaskType};
-    workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
+    workers::Vector{Int}=workers(), # Specify which workers to use
     channel_size::Int=32
   ) where {TaskType <: ParallelTask} # TaskType is the type of the task to be deployed.
   n = length(task_list)
