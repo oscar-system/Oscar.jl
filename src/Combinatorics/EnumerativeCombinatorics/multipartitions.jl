@@ -95,7 +95,7 @@ julia> MP = multipartitions(2,2);
 julia> first(MP)
 Partition{Int64}[[], [2]]
 
-julia> collect(multipartitions(2,2))
+julia> collect(MP)
 5-element Vector{Multipartition{Int64}}:
  Partition{Int64}[[], [2]]
  Partition{Int64}[[], [1, 1]]
