@@ -21,6 +21,14 @@ end
 @testset "Advanced intersection theory and QSM-fluxes" begin
   for k in 1:5000
     qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k)) catch e continue end
+    h22_converter_dict = converter_dict_h22_ambient(qsm_model, check = false)
+    coh_ring = cohomology_ring(ambient_space(qsm_model), check = false)
+    coh_ring_gens = gens(coh_ring)
+    for (key, value) in h22_converter_dict
+      obj1 = coh_ring_gens[key[1]] * coh_ring_gens[key[2]]
+      obj2 = sum(value[k][1] * coh_ring_gens[value[k][2][1]] * coh_ring_gens[value[k][2][2]] for k in 1:length(value))
+      @test obj1 == obj2
+    end
     qsm_g4_flux = qsm_flux(qsm_model)
     h22_basis = basis_of_h22_hypersurface_indices(qsm_model, check = false)
     flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
