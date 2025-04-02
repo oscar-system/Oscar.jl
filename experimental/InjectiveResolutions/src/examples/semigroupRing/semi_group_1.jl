@@ -10,6 +10,8 @@ x,y,z = gens(R_Q)
 
 # get MonoidAlgebra
 kQ = get_monoid_algebra(R_Q)
+kQ = get_monoid_algebra_from_lattice([[0,1],[1,1],[2,1]],QQ)
+x,y,z = gens(kQ.algebra)
 
 R = get_monoid_algebra_module(kQ,quotient_ring_as_module(ideal(R_Q,[])))
 
@@ -25,11 +27,11 @@ M = sub(_M,[y*_M[1]+y*_M[2],x^2*_M[2]])
 N = get_monoid_algebra_module(kQ,M[1])
 
 # irreducible resolution of M = kQ/I
-M = quotient_ring_as_module(I)
-irr_res = irreducible_res(M)
+# M = quotient_ring_as_module(I)
+irr_res = irreducible_res(N)
 
 # minimal injective resolution of kQ/I up to cohomological degree 3
-inj_res = injective_res(I,3)
+inj_res = injective_res(N,3)
 
 inj_res.injMods[1].indecInjectives #J^0
 inj_res.injMods[2].indecInjectives #J^1
