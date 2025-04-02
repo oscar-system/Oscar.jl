@@ -19,7 +19,7 @@ end
 
 # compute the homogeneity space of an ideal and return it in row reduced echelon form
 function homogeneity_space(I::MPolyIdeal)
-  n = ngens(parent(I))
+  n = ngens(base_ring(I))
   homogeneity_eqs = zero_matrix(ZZ, 1, n)
 
   for f in gens(I)
@@ -41,6 +41,36 @@ function max_grading(phi::MPolyAnyMap)
   lift_dom = hom(dom, elim_ring, gens(elim_ring)[ngens(codom) + 1:ngens(elim_ring)])
 
   return homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
+end
+
+# compute the (transpose) of the jacobian
+function jacobian(phi)
+  return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
+end
+
+# compute the jacobian and evalauate it at the point pt
+function jacobian_at_point(phi, pt)
+  return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
+end
+
+# compute the jacobian at a random point with parameters sampled from a finite field
+function jacobian_at_rand_point(phi::MPolyAnyMap; char::Int=32003)
+  K = GF(char) #TODO: implement rand for fpField so we can replace GF
+  
+  # remake codomain over finite field
+  R = codomain(phi)
+  fq_R = polynomial_ring(K, string.(gens(R)))[1]
+
+  # randomly sample parameter values in the finite field
+  pt = [rand(K) for _ in 1:ngens(fq_R)]
+
+  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
+end
+
+
+# find the indices of the variable support of all monomials in mon_basis
+function component_support(mon_basis)
+  supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
 end
 
 function component_of_kernel(deg::Vector{Int},
@@ -78,40 +108,21 @@ function component_of_kernel(deg::Vector{Int},
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
   coeffs = matrix(QQ, [[coeff(f, mon) for f in M] for mon in mons])
   (r, K) = nullspace(coeffs)
-  return mon_basis*K
+  return mon_basis * K
 end
 
-# compute the (transpose) of the jacobian
-function jacobian(phi)
-  return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
+struct KernelComponentTask <: ParallelTask
+  deg::FinGenAbGroupElem
+  phi::MPolyAnyMap
+  prev_gens::Vector{MPolyDecRingElem}
+  jac::MatElem
 end
 
-# compute the jacobian and evalauate it at the point pt
-function jacobian_at_point(phi, pt)
-  return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
+function _compute(kct::KernelComponentTask)
+  return component_of_kernel(kct.deg, kct.phi, kct.prev_gens, kct.jac)
 end
 
-# compute the jacobian at a random point with parameters sampled from a finite field
-function jacobian_at_rand_point(phi::MPolyAnyMap; char::Int=32003)
-  K = GF(char) #TODO: implement rand for fpField so we can replace GF
-  
-  # remake codomain over finite field
-  R = codomain(phi)
-  fq_R = polynomial_ring(K, string.(gens(R)))[1]
-
-  # randomly sample parameter values in the finite field
-  pt = [rand(K) for _ in 1:ngens(fq_R)]
-
-  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
-end
-
-
-# find the indices of the variable support of all monomials in mon_basis
-function component_support(mon_basis)
-  supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
-end
-
-function components_of_kernel(d, phi)
+function components_of_kernel(d::Int, phi::MPolyAnyMap; parallel::Bool=false)
   # Compute a maximal grading on the domain
   A = Oscar.max_grading(phi)[:, ngens(codomain(phi)) + 1:end]
   
@@ -127,19 +138,17 @@ function components_of_kernel(d, phi)
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
   for i in 1:d
-    all_mons = [graded_dom(m) for m in monomial_basis(total_deg_dom, [i])]
-    all_degs = unique!([degree(m) for m in all_mons])
+    all_mons = graded_dom.(monomial_basis(total_deg_dom, [i]))
+    all_degs = unique!(degree.(all_mons))
 
     if isempty(gens_dict)
       prev_gens = MPolyDecRingElem[]
     else
       prev_gens = reduce(vcat, values(gens_dict))
     end
-    
-    results = pmap(component_of_kernel,
-                    all_degs,
-                    [graded_phi for _ in all_degs] ,
-                    [prev_gens for _ in all_degs], [jac for _ in all_degs])
+
+    results = parallel_all([KernelComponentTask(deg, graded_phi, prev_gens, jac) for deg in all_degs])
+
     merge!(gens_dict, Dict(zip(all_degs, results)))
   end
 

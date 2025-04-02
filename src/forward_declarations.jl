@@ -138,3 +138,4 @@ end
 end
 
 const NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariety, CyclicQuotientSingularity}
+

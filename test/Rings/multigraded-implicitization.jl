@@ -5,5 +5,5 @@
 
   phi = hom(R, S, [s1*t1, s1*t2, s2*t1, s2*t2, m1*n1, m1*n2, m2*n1, m2*n2])
 
-  dicts = components_of_kernel(2, phi)
+  dicts = Oscar.components_of_kernel(2, phi)
 end
