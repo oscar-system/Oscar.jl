@@ -81,7 +81,7 @@ If we have a G-set $\Omega$, a *block system* of $\Omega$ is a partition that is
 The group action on $\Omega$ induces a natural action on such a partition.
 If the action is not transitive, then the orbits naturally form a block system.
 
-When calling these methods with a `Gset` as the argument, we require that the group action is transitive.
+When calling these methods with a `GSet` as the argument, we require that the group action is transitive.
 The blocks are returned as Julia `Set` objects.
 Note that this is in contrast to the return type when calling the methods with a `PermGroup` as the argument, in which case the blocks are sorted vectors of integers.
 
