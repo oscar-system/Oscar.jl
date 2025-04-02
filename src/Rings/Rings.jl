@@ -10,7 +10,7 @@ include("solving.jl")
 include("MPolyQuo.jl")
 include("FractionalIdeal.jl")
 include("oscar_singular.jl")
-include("multigraded-implicitization.jl")
+
 
 include("special_ideals.jl")
 
@@ -20,6 +20,7 @@ include("MPolyMap/MPolyRing.jl")
 include("MPolyMap/MPolyQuo.jl")
 include("MPolyMap/AffineAlgebras.jl")
 include("MPolyMap/base_change.jl")
+include("multigraded-implicitization.jl")
 
 include("mpoly-affine-algebras.jl")
 include("localization_interface.jl")
