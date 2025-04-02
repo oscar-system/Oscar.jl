@@ -257,6 +257,7 @@ push!(upgrade_scripts_set, UpgradeScript(
               :data => entry
             )))
           end
+          upgraded_dict[:_type][:params] = upgraded_entries[1][:_type]
           upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
         end
       elseif type_name == "NamedTuple"
