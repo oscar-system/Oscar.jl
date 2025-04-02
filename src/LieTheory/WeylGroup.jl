@@ -754,6 +754,21 @@ function reflection(beta::RootSpaceElem)
 end
 
 ###############################################################################
+# G-set functionality
+
+# TODO: Better way to do this, can be inefficient.
+function action_homomorphism(Omega::GSetByElements{WeylGroup})
+  W = acting_group(Omega) # our base group
+  phi = isomorphism(PermGroup, W)
+  G = codomain(phi) # permutation group
+
+  psi = action_homomorphism(gset(G))
+  acthom = compose(phi, psi)
+  return acthom
+end
+
+
+###############################################################################
 # ReducedExpressionIterator
 
 function Base.IteratorSize(::Type{ReducedExpressionIterator})
