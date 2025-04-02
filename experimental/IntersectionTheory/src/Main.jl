@@ -692,11 +692,48 @@ AbstractVariety of dim 2
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
+julia> chow_ring(P2)
+Quotient
+  of multivariate polynomial ring in 1 variable over QQ graded by
+    h -> [1]
+  by ideal (h^3)
+
 julia> TP2 = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
 julia> chern_character(TP2)
 3//2*h^2 + 3*h + 2
+
+```
+
+!!! note
+    Extending the coefficient ring as shown below allows one to work with parameters when using specialized constructors such as `abstract_projective_space`:
+
+
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P2 = abstract_projective_space(2, base = QT)
+AbstractVariety of dim 2
+
+julia> chow_ring(P2)
+Quotient
+  of multivariate polynomial ring in 1 variable over QT graded by
+    h -> [1]
+  by ideal (h^3)
+
+julia> TP2 = tangent_bundle(P2)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> chern_character(TP2*OO(P2, t))
+(t^2 + 3*t + 3//2)*h^2 + (2*t + 3)*h + 2
+
 ```
 """
 function abstract_variety(n::Int, R::MPolyDecRingOrQuo)
@@ -2122,6 +2159,13 @@ AbstractVariety of dim 2
 julia> degree(Z)
 4
 
+julia> chow_ring(Z)
+Quotient
+  of multivariate polynomial ring in 2 variables over QQ graded by
+    z -> [1]
+    h -> [1]
+  by ideal (2*z - 3*h, h^3)
+
 ```
 
 ```jldoctest
@@ -2182,7 +2226,7 @@ end
 
 ###############################################################################
 @doc raw"""
-    abstract_point()
+    abstract_point(; base::Ring=QQ)
 
 Return an abstract variety consisting of a point.
 
@@ -2214,6 +2258,9 @@ end
     abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
 
 Return the abstract projective space of lines in an `n+1`-dimensional vector space.
+
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 # Examples
 ```jldoctest
@@ -2281,6 +2328,9 @@ end
     abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
 
 Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
+
+!!! note
+    The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(\mathcal F)}(1)$.
 
 # Examples
 ```jldoctest
@@ -2420,6 +2470,9 @@ end
 Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an 
 `n`-dimensional vector space.
 
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
+
 # Examples
 ```jldoctest
 julia> G = abstract_grassmannian(2,4)
@@ -2481,6 +2534,9 @@ end
 Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
 return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of 
 dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
+
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 # Examples
 ```jldoctest

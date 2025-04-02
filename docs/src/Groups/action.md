@@ -69,13 +69,26 @@ orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 is_transitive(Omega::GSet)
 transitivity(Omega::GSet)
+rank_action(Omega::GSet)
+is_primitive(Omega::GSet)
+is_regular(Omega::GSet)
+is_semiregular(Omega::GSet)
+```
+
+## Block systems of a G-set
+
+If we have a G-set $\Omega$, a *block system* of $\Omega$ is a partition that is invariant under the action of the associated group.
+The group action on $\Omega$ induces a natural action on such a partition.
+
+When calling these methods with a `GSet` as the argument, we require that the group action is transitive.
+The blocks are returned as Julia `Set` objects.
+Note that this is in contrast to the return type when calling the methods with a `PermGroup` as the argument, in which case the blocks are sorted vectors of integers.
+
+```@docs
 blocks(Omega::GSet)
 maximal_blocks(Omega::GSet)
 minimal_block_reps(Omega::GSet)
 all_blocks(Omega::GSet)
-rank_action(Omega::GSet)
-is_regular(Omega::GSet)
-is_semiregular(Omega::GSet)
 ```
 
 

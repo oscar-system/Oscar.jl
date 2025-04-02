@@ -376,7 +376,7 @@ function _orbit_generic(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 #T check whether omega lies in Omega?
@@ -409,7 +409,7 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
@@ -435,7 +435,7 @@ function orbit_via_Julia(Omega::GSet, omega)
 
     res = as_gset(acting_group(Omega), action_function(Omega), orbarray)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orbarray])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
@@ -944,9 +944,9 @@ G-set of
   with seeds 1:4
 
 julia> collect(blocks(Omega))
-2-element Vector{Vector{Int64}}:
- [1, 2]
- [3, 4]
+2-element Vector{Set{Int64}}:
+ Set([2, 1])
+ Set([4, 3])
 ```
 """
 function blocks(Omega::GSet)
@@ -955,7 +955,7 @@ function blocks(Omega::GSet)
   L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
-  bl = map(A -> map(x -> Omega[x], A), bl)
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
@@ -977,9 +977,9 @@ G-set of
   with seeds 1:8
 
 julia> collect(maximal_blocks(Omega))
-2-element Vector{Vector{Int64}}:
- [1, 2, 3, 8]
- [4, 5, 6, 7]
+2-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 4, 6, 7])
 ```
 """
 function maximal_blocks(Omega::GSet)
@@ -988,7 +988,7 @@ function maximal_blocks(Omega::GSet)
   L = moved_points(G)
   bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
-  bl = map(A -> map(x -> Omega[x], A), bl)
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
 end
 
@@ -1010,10 +1010,10 @@ G-set of
   with seeds 1:8
 
 julia> minimal_block_reps(Omega)
-3-element Vector{Vector{Int64}}:
- [1, 3]
- [1, 5]
- [1, 7]
+3-element Vector{Set{Int64}}:
+ Set([3, 1])
+ Set([5, 1])
+ Set([7, 1])
 ```
 """
 function minimal_block_reps(Omega::GSet)
@@ -1022,7 +1022,7 @@ function minimal_block_reps(Omega::GSet)
   L = moved_points(G)
   bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
 
-  return map(A -> map(x -> Omega[x], A), bl)
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
 
 """
@@ -1043,13 +1043,13 @@ G-set of
   with seeds 1:8
 
 julia> all_blocks(Omega)
-6-element Vector{Vector{Int64}}:
- [1, 2, 3, 8]
- [1, 5]
- [1, 3, 5, 7]
- [1, 3]
- [1, 3, 4, 6]
- [1, 7]
+6-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 1])
+ Set([5, 7, 3, 1])
+ Set([3, 1])
+ Set([4, 6, 3, 1])
+ Set([7, 1])
 ```
 """
 function all_blocks(Omega::GSet)
@@ -1057,7 +1057,7 @@ function all_blocks(Omega::GSet)
   G = image(action_homomorphism(Omega))[1]
   bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
 
-  return map(A -> map(x -> Omega[x], A), bl)
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
 
 """
