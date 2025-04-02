@@ -20,10 +20,9 @@ end
 
 @testset "Advanced intersection theory and QSM-fluxes" begin
   for k in 1:5000
-    println("k: $k")
     qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k)) catch e continue end
     qsm_g4_flux = qsm_flux(qsm_model)
-    h22_basis = basis_of_h22_hypersurface_indices(qsm_model)
+    h22_basis = basis_of_h22_hypersurface_indices(qsm_model, check = false)
     flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
     ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
     flux_poly = Oscar.eval_poly(flux_poly_str, ring)

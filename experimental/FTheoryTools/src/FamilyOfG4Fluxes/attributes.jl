@@ -191,7 +191,7 @@ julia> d3_tadpole_constraint(fgs);
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = cox_ring(ambient_space(m))
     gS = gens(cox_ring(ambient_space(m)))
-    linear_relations = matrix(QQ, rays(ambient_space(m)))
+    linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
     scalings = [c.coeff for c in S.d]
     mnf = Oscar._minimal_nonfaces(ambient_space(m))
     sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]

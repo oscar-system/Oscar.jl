@@ -68,7 +68,8 @@ julia> length(collect(keys(cdh22)))
 
   # (3) With the linear relations, we can remove some variables. Identify these relations.
   # (3) Also, find the remaining "good" variables: good_positions encodes the variables that we keep. Note that this is a basis of H^(1,1).
-  N_lin_rel, my_mat = rref(transpose(matrix(QQ, rays(v))))
+  my_mat = matrix(QQ, transpose(matrix(ZZ, rays(v))))
+  N_lin_rel, my_mat = rref(my_mat)
   @req N_lin_rel == nrows(my_mat) "Inconsistency detected - cannot remove as many variables as there are linear relations"
   bad_positions = [findfirst(!iszero, row) for row in eachrow(my_mat)]
   lin_rels = Dict{Int, Vector{QQFieldElem}}()

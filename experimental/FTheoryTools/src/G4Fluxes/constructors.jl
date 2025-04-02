@@ -98,7 +98,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
       i2 = findfirst(x -> x != 0, my_row)
       push!(non_zero_exponents, (i1, i2))
     end
-    coeffs = collect(coefficients(lift(to_be_transformed_poly)))
+    coeffs = collect(coefficients(to_be_transformed_poly))
     @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
 
     converter_dict = converter_dict_h22_hypersurface(m, check = check)
@@ -151,12 +151,12 @@ G4-flux candidate
 function qsm_flux(qsm_model::AbstractFTheoryModel)
   @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
   divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
-  gens_strings = [string(g) for g in gens(cox_ring(ambient_space(qsm_model)))]
-  e1 = cohomology_class(divs[findfirst(x -> x == "e1", gens_strings)])
-  e2 = cohomology_class(divs[findfirst(x -> x == "e2", gens_strings)])
-  e4 = cohomology_class(divs[findfirst(x -> x == "e4", gens_strings)])
-  u = cohomology_class(divs[findfirst(x -> x == "u", gens_strings)])
-  v = cohomology_class(divs[findfirst(x -> x == "v", gens_strings)])
+  gens_strings = symbols(cox_ring(ambient_space(qsm_model)))
+  e1 = cohomology_class(divs[findfirst(x -> x == :e1, gens_strings)])
+  e2 = cohomology_class(divs[findfirst(x -> x == :e2, gens_strings)])
+  e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])
+  u = cohomology_class(divs[findfirst(x -> x == :u, gens_strings)])
+  v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
   pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
   g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
   my_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
