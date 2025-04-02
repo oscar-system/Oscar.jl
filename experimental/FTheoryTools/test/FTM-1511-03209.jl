@@ -17,10 +17,15 @@
   @test size(matrix_rational(f2)) == (629, 127)
 end
 
-
+using Test
+int_list = []
 @testset "Advanced intersection theory and QSM-fluxes" begin
   for k in 1:5000
+    print("\rk: $k")
     qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k)) catch e continue end
+    #k = 18
+    #k = 121
+    #qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k))
     h22_converter_dict = converter_dict_h22_ambient(qsm_model, check = false)
     coh_ring = cohomology_ring(ambient_space(qsm_model), check = false)
     coh_ring_gens = gens(coh_ring)
@@ -47,9 +52,16 @@ end
     @test ncols(matrix_integral(fg)) == 1
     @test nrows(matrix_integral(fg)) == nrows(matrix_rational(fg))
     @test unique(offset(fg)) == [0]
-    rhs = flux_vector - 3 * matrix_integral(fg)
-    solution = solve(matrix_rational(fg), rhs, side = :right)
-    reconstructed_flux = flux_instance(fg, matrix(ZZ, [[3]]), solution)
+    #rhs = flux_vector - 3 * matrix_integral(fg)
+    #solution = solve(matrix_rational(fg), rhs, side = :right)
+    M1 = matrix_integral(fg)
+    M2 = matrix_rational(fg)
+    large_M = hcat(M1, M2)
+    @test rank(large_M) == minimum(size(large_M))
+    solution = solve(large_M, flux_vector, side = :right)
+    @test is_integer(solution[1])
+    push!(int_list, solution[1])
+    reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end,:])
     @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
   end
 end
