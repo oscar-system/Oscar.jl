@@ -258,7 +258,9 @@ push!(upgrade_scripts_set, UpgradeScript(
             )))
           end
           if allequal(x -> x[:_type], upgraded_entries)
-            upgraded_dict[:_type][:params] = upgraded_entries[1][:_type]
+            if !isempty(upgraded_entries)
+              upgraded_dict[:_type][:params] = upgraded_entries[1][:_type]
+            end
           else
             upgraded_dict[:_type][:name] = "Tuple"
             upgraded_dict[:_type][:params] = [
