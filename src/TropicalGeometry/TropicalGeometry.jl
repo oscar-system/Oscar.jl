@@ -5,6 +5,7 @@
 ###############################################################################
 include("semiring.jl")
 include("semiring_map.jl")
+include("semiring_mpoly.jl")
 include("matrix.jl")
 include("poly.jl")
 include("homogenization.jl")
