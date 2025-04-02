@@ -333,7 +333,7 @@ julia> length(collect(keys(cdh22)))
   end
 
   # To save memory, we filter out any tuples k which map to zero
-  return Dict(k => v for (k, v) in converter_dict if !isempty(v))
+  return Dict(k => val for (k, val) in converter_dict if !isempty(val))
 
 end
 
