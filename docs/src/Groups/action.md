@@ -79,7 +79,6 @@ is_semiregular(Omega::GSet)
 
 If we have a G-set $\Omega$, a *block system* of $\Omega$ is a partition that is invariant under the action of the associated group.
 The group action on $\Omega$ induces a natural action on such a partition.
-If the action is not transitive, then the orbits naturally form a block system.
 
 When calling these methods with a `GSet` as the argument, we require that the group action is transitive.
 The blocks are returned as Julia `Set` objects.
