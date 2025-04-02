@@ -84,8 +84,42 @@ MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = Matrix
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
+"""
+    ring_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `S` of the entries of the elements of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> ring_elem_type(typeof(g)) == elem_type(typeof(base_ring(g)))
+true
+```
+"""
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
+ring_elem_type(::MatrixGroup{S,T}) where {S,T} = S
+
+"""
+    mat_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `T` of `matrix(x)`, for elements `x` of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> mat_elem_type(typeof(g)) == typeof(matrix(one(g)))
+true
+```
+"""
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
+mat_elem_type(::MatrixGroup{S,T}) where {S,T} = T
+
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
@@ -428,7 +462,23 @@ det(x::MatrixGroupElem) = det(matrix(x))
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of the underlying matrix of `x`.
+Return the base ring of the matrix group to which `x` belongs.
+This is also the base ring of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> base_ring(x) == F
+true
+
+julia> base_ring(x) == base_ring(matrix(x))
+true
+```
 """
 base_ring(x::MatrixGroupElem) = base_ring(parent(x))
 
@@ -440,6 +490,25 @@ parent(x::MatrixGroupElem) = x.parent
     matrix(x::MatrixGroupElem)
 
 Return the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> m = matrix(x)
+[o   0]
+[0   1]
+
+julia> x == m
+false
+
+julia> x == g(m)
+true
+```
 """
 function matrix(x::MatrixGroupElem)
   if !isdefined(x, :elm)
@@ -472,6 +541,21 @@ size(x::MatrixGroupElem) = size(matrix(x))
     tr(x::MatrixGroupElem)
 
 Return the trace of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> t = tr(x)
+o + 1
+
+julia> t in F
+true
+```
 """
 tr(x::MatrixGroupElem) = tr(matrix(x))
 
@@ -493,6 +577,14 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(parent(x), transpose(matrix(x)))
     base_ring(G::MatrixGroup)
 
 Return the base ring of the matrix group `G`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> base_ring(g) == F
+true
+```
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
@@ -501,7 +593,13 @@ base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 """
     degree(G::MatrixGroup)
 
-Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
+Return the degree of `G`, i.e., the number of rows of its matrices.
+
+# Examples
+```jldoctest
+julia> degree(GL(4, 2))
+4
+```
 """
 degree(G::MatrixGroup) = G.deg
 
@@ -552,7 +650,7 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldEle
     return ZZRingElem(GAPWrap.Size(GapObj(G)))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
-    GAP.Globals.SetSize(GapObj(G), GAP.Obj(n))
+    set_order(G, n)
     return n
   end
 end

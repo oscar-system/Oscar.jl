@@ -19,7 +19,8 @@
 Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
-    this is *NOT*, in general, the same output returned when `M` has type `MatElem`.
+    this is *NOT*, in general, equal to
+    `multiplicative_jordan_decomposition(matrix(M))`.
 """
 function multiplicative_jordan_decomposition(x::MatrixGroupElem)
    a = order(x)

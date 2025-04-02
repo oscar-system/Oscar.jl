@@ -210,3 +210,36 @@ cases = [
     end
   end
 end
+
+@testset "localizations and quotients" begin
+  mktempdir() do path
+    R, (x, y, z) = GF(103)[:x, :y, :z]
+    for U in [powers_of_element(x), 
+              complement_of_point_ideal(R, GF(103).([1, 2, 3])),
+              complement_of_prime_ideal(ideal(R, x))
+             ]
+      L, _ = localization(R, U)
+      Q, _ = quo(L, ideal(L, y))
+      Qz = Q(z)
+      # Test MPolyQuoLocRings and their elements
+      test_save_load_roundtrip(path, Qz; params=Q) do loaded
+        @test Qz == loaded
+      end
+      # Test ideals in these rings. 
+      J = ideal(Q, z)
+      test_save_load_roundtrip(path, J; params=Q) do loaded
+        @test J == loaded
+      end
+      # Test MPolyLocalizedRingHom
+      phi = hom(L, L, gens(L))
+      test_save_load_roundtrip(path, phi) do loaded
+        @test phi == loaded
+      end   
+      # Test MPolyQuoLocalizedRingHom
+      phi = hom(Q, Q, gens(Q))
+      test_save_load_roundtrip(path, phi) do loaded
+        @test phi == loaded
+      end
+    end
+  end
+end

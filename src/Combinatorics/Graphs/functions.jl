@@ -13,7 +13,7 @@ end
 ################################################################################
 
 @doc raw"""
-    Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
+    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
 graph should be `Directed` or `Undirected`.
@@ -21,7 +21,7 @@ graph should be `Directed` or `Undirected`.
 # Examples
 Make a directed graph with 5 vertices and print the number of nodes and edges.
 ```jldoctest
-julia> g = Graph{Directed}(5);
+julia> g = graph(Directed, 5);
 
 julia> n_vertices(g)
 5
@@ -30,9 +30,8 @@ julia> n_edges(g)
 0
 ```
 """
-function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = Polymake.Graph{T}(nverts)
-    return Graph{T}(pmg)
+function graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
+  return Graph{T}(nverts)
 end
 
 @doc raw"""
@@ -66,7 +65,7 @@ graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
 function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{T}(n)
+  g = graph(T, n)
   for i in 1:n
     for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
@@ -698,6 +697,94 @@ julia> signed_incidence_matrix(g)
 """
 signed_incidence_matrix(g::Graph) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
+# EdgeMap getters and setters for Edges
+function Base.getindex(M::Polymake.EdgeMap{TK, TV}, e::Edge) where {TK, TV}
+  return M[src(e), dst(e)]
+end
+
+function Base.setindex!(M::Polymake.EdgeMap{T, TV}, val, e::Edge) where {T, TV}
+  M[src(e), dst(e)] = val
+  return val
+end
+
+_has_vertex_map(GM::GraphMap) = !isnothing(GM.vertex_map)
+_has_edge_map(GM::GraphMap) = !isnothing(GM.edge_map)
+
+function Base.getindex(GM::GraphMap, i::Int)
+  @req _has_vertex_map(GM) "Graph map not defined for vertices"
+  @req _has_node(GM.graph, i) "Graph doesn't have vertex $i"
+  return GM.vertex_map[i]
+end
+
+function Base.getindex(GM::GraphMap, i::Int, j::Int)
+  @req has_edge(GM.graph, i, j) "Graph doesn't have edge ($i, $j) "
+  @req _has_edge_map(GM) "Graph map not defined on edges"
+  return GM.edge_map[i, j]
+end
+
+function Base.getindex(GM::GraphMap, e::Edge)
+  return GM[src(e), dst(e)]
+end
+
+function Base.setindex!(GM::GraphMap, val, i::Int)
+  @req _has_node(GM.graph, i) "Graph doesn't have vertex $i"
+  GM.vertex_map[i] = val
+  return val
+end
+
+function Base.setindex!(GM::GraphMap, val, i::Int, j::Int)
+  @req has_edge(GM.graph, i, j) "Graph doesn't have edge ($i, $j) "
+  GM.edge_map[i, j] = val
+  return val
+end
+
+function Base.setindex!(GM::GraphMap, val, indices::Tuple{Int, Int})
+  GM[indices[1], indices[2]] = val
+  return val
+end
+
+function Base.setindex!(GM::GraphMap, val, e::Edge)
+  GM[src(e), dst(e)] = val
+  return val
+end
+
+function Base.getproperty(G::Graph, p::Symbol)
+  hasfield(Graph, p) && return getfield(G, p)
+  @req has_attribute(G, p) "$G doesn't have a labeling $p"
+  return get_attribute(G, p)
+end
+
+@doc raw"""
+    labelings(G::Graph)
+
+Return the names of all labelings of a graph `G` as a `Vector{Symbol}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:color)
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> labelings(G)
+1-element Vector{Symbol}:
+ :color
+
+```
+"""
+function labelings(G::Graph)
+  attrs = AbstractAlgebra._get_attributes(G)
+  isnothing(attrs) && return Symbol[]
+  return [k for (k, v ) in attrs if v isa GraphMap]
+end
+
+function _graph_maps(G::Graph)
+  labels = tuple(labelings(G)...)
+  isempty(labels) && return Dict{Symbol, GraphMap}()
+  return Dict(l => getproperty(G, l) for l in labels)
+end
+
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
@@ -1157,11 +1244,37 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 
 Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
+
+The `backend` keyword argument allows the user to pick between a Three.js visualization by default, or passing `:tikz` for a TikZ visualization.
+The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or TikZ code for `:tikz`.
+If the graph `G` has a labeling `:color` (see [`label!`](@ref)) then the visualization will use these colors to color the graph.
+
+Possible color labelings include RGB values of the form `"255 0 255"` or `"#ff00ff"`, as well as the following named colors as strings: `polymakeorange`, `polymakegreen`,
+`white`, `purple`, `cyan`, `darkolivegreen`, `indianred`, `plum1`, `red`, `lightslategrey`, `yellow`, `orange`, `salmon1`, `azure`, `green`, `gray`, `midnightblue`, `pink`, `magenta`, `blue`, `lavenderblush`, `chocolate1`, `lightgreen`, `black`.
+
 """
-visualize
+function visualize(G::Graph{T};
+                   backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing,
+                   kwargs...) where {T <: Union{Directed, Undirected}}
+  BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
+
+  defaults = (;VertexLabels = collect(1:n_vertices(G)))
+  if has_attribute(G, :color)
+    defaults = merge(defaults,
+                     NamedTuple(k => v for (k, v) in
+                                  [(:EdgeColor, G.color.edge_map), (:VertexColor, G.color.vertex_map)] if !isnothing(v)))
+  end
+  
+  vBG = Polymake.visual(Polymake.Visual, BG; merge(defaults, kwargs)...)
+  if !isnothing(filename)
+    Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+  else
+    Polymake.call_function(Nothing, :graph, backend, vBG;)
+  end
+end
 
 
 # Some standard polytopes from graphs
@@ -1209,9 +1322,30 @@ _to_string(::Type{Polymake.Undirected}) = "Undirected"
 
 function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
   if n_edges(G) > 0
-    println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
-    for e in edges(G)
-      print(io, "($(src(e)), $(dst(e)))")
+    labels = labelings(G)
+    if !isempty(labels)
+      print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labeling(s):")
+      for label in labels
+        println(io, "")
+        print(io, "label: $label")
+        if _has_edge_map(getproperty(G, label))
+          for e in edges(G)
+            println(io, "")
+            print(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
+          end
+        end
+        if _has_vertex_map(getproperty(G, label))
+          for v in 1:n_vertices(G)
+            println(io, "")
+            print(io, "$v -> $(getproperty(G, label)[v])")
+          end
+        end
+      end
+    else
+      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
+      for e in edges(G)
+        print(io, "($(src(e)), $(dst(e)))")
+      end
     end
   else
     print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and no edges")
@@ -1220,9 +1354,11 @@ end
 
 function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Polymake.Undirected}}
   if is_terse(io)
+    !isempty(labelings(G)) && print(io, "Labeled ")
     print(io, "$(_to_string(T)) graph")
   else
     print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and $(n_edges(G)) edges")
+    !isempty(labelings(G)) && print(io, " with labeling(s) $(labelings(G))")
   end
 end
 
@@ -1232,7 +1368,7 @@ function graph_from_edges(::Type{T},
   n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]; init=[0]))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
-  g = Graph{T}(max(n_needed, n_vertices))
+  g = graph(T, max(n_needed, n_vertices))
   for e in edges
     add_edge!(g, src(e), dst(e))
   end
@@ -1265,17 +1401,133 @@ Directed graph with 4 nodes and the following edges:
 ```
 """
 function graph_from_edges(::Type{T},
-                          edges::Vector{Vector{Int}},
-                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+                          edges::Vector{S},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, S <: Union{Vector{Int}, NTuple{2, Int}}}
   return graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
-function graph_from_edges(edges::Vector{Vector{Int}},
-                          n_vertices::Int=-1)
+function graph_from_edges(edges::Vector{T},
+                          n_vertices::Int=-1) where T <: Union{Vector{Int}, NTuple{2, Int}}
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
+@doc raw"""
+    label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
+Given a graph `G`, add labels to the edges and optionally to the vertices with the given `name`.
 
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+Directed graph with 3 nodes and the following edges:
+(1, 2)(2, 3)
+
+julia> label!(G, Dict((1, 2) => 1), nothing; name=:color)
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 2) -> 1
+(2, 3) -> 0
+
+julia> G = graph_from_labeled_edges(Undirected, Dict((1, 2) => 1, (2, 3) => 2, (1, 3) => 1), nothing; name=:color)
+Undirected graph with 3 nodes and the following labeling(s):
+label: color
+(2, 1) -> 1
+(3, 1) -> 1
+(3, 2) -> 2
+
+julia> label!(G, nothing, Dict(1 => 1); name=:shading)
+Undirected graph with 3 nodes and the following labeling(s):
+label: color
+(2, 1) -> 1
+(3, 1) -> 1
+(3, 2) -> 2
+label: shading
+1 -> 1
+2 -> 0
+3 -> 0
+
+```
+"""
+function label!(G::Graph{T},
+                    edge_labels::Dict{NTuple{2, Int}, S},
+                    vertex_labels::Dict{Int, U};
+                    name::Symbol=:label) where {S <: Union{Int, String}, U <: Union{Int, String}, T <: Union{Directed, Undirected}}
+  EM = EdgeMap{T, S}(pm_object(G))
+  NM = NodeMap{T, U}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, EM, NM))
+  for (k, v) in edge_labels
+    getproperty(G,name)[k] = v
+  end
+  for (k, v) in vertex_labels
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
+    getproperty(G,name)[k] = v
+  end
+  return G
+end
+
+function label!(G::Graph{T},
+                    edge_labels::Dict{NTuple{2, Int}, S},
+                    vertex_labels::Nothing;
+                    name::Symbol=:label) where {S <: Union{Int, String}, T <: Union{Directed, Undirected}}
+  EM = EdgeMap{T, S}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, EM, nothing))
+  for (k, v) in edge_labels
+    getproperty(G,name)[k] = v
+  end
+  return G
+end
+
+function label!(G::Graph{T},
+                    edge_labels::Nothing,
+                    vertex_labels::Dict{Int, U};
+                    name::Symbol=:label) where {U <: Union{Int, String}, T <: Union{Directed, Undirected}}
+  NM = NodeMap{T, U}(pm_object(G))
+  set_attribute!(G, name, GraphMap(G, nothing, NM))
+  for (k, v) in vertex_labels
+    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
+    getproperty(G,name)[k] = v
+  end
+  return G
+end
+
+@doc raw"""
+    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
+    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+
+Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
+
+# Examples
+```jldoctest
+julia> graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
+Directed graph with 3 nodes and the following labeling(s):
+label: label
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> graph_from_labeled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
+Undirected graph with 3 nodes and the following labeling(s):
+label: label
+(2, 1) -> 1
+(3, 2) -> 4
+1 -> 0
+2 -> 3
+3 -> 0
+
+```
+"""
+function graph_from_labeled_edges(::Type{T},
+                                   edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
+                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
+                                   name::Symbol=:label, 
+                                   n_vertices::Int=-1) where T <: Union{Directed, Undirected}
+  edges = collect(keys(edge_labels))
+  G = graph_from_edges(T, edges, n_vertices)
+  label!(G, edge_labels, vertex_labels; name=name)
+end
+
+function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
+                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
+                                   name::Symbol=:label, n_vertices::Int=-1)
+  graph_from_labeled_edges(Undirected, edge_labels, vertex_labels; name=name, n_vertices=n_vertices)
+end
 
 @doc raw"""
     adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}

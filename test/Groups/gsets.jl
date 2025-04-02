@@ -153,7 +153,9 @@
   # orbit
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test length(orbit(Omega, [0,1,0,1,0,1])) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  orb = orbit(Omega, [0,1,0,1,0,1])
+  @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  @test orbits(orb) == [orb]
 
   # permutation
   G = symmetric_group(6)
@@ -403,6 +405,10 @@ end
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test length(blocks(Omega)) == 5
+  @test length(minimal_block_reps(Omega)) == 1
+  @test length(all_blocks(Omega::GSet)[1]) == 3
+
 
   @test eltype(Omega) == typeof(representative(Omega))
 
