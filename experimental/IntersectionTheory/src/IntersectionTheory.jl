@@ -46,10 +46,13 @@ export dual_basis
 export euler_number
 export euler_pairing
 export fixed_points
+export gromov_witten_invariant
 export graph
 export hom
 export hyperplane_class
 export identity_map
+export instanton_number
+export intersection_matrix
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
@@ -142,10 +145,12 @@ export euler_number
 export euler_pairing
 export fixed_points
 export graph
+export gromov_witten_invariant
 export hom
 export hyperplane_class
-export intersection_matrix
 export identity_map
+export instanton_number
+export intersection_matrix
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
