@@ -67,6 +67,26 @@ end
 # main interface for Kontsevich moduli space
 # 
 
+@doc raw"""
+     kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
+
+Return the Kontsevich moduli space $\overline{M}(\mathbb P^n, d)$ as a `TnVariety` (abstract orbifold).
+
+!!! note
+    With respect to notation, we refer to [Dan14](@cite).
+
+# Examples
+```jldoctest
+julia> K = kontsevich_moduli_space(4, 3)
+TnVariety of dim 16 with 740 fixed points
+
+julia> V = fixed_points(K);
+
+julia> mult = V[740][2]
+6
+
+```
+"""
 function kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
   N = (n+1)*(d+1) - 4
   points = [(g, c) => g.aut for g in multi_trees(d) for c in colors(g.g, n)]
@@ -458,3 +478,107 @@ function Base.show(io::IO, mi::MIME"text/html", g::MultiGraph)
   show(io, mi, gplot(g.g, edgelabel=[g[e] > 1 ? g[e] : "" for e in edges(g.g)])) #, nodelabel=collect(1:nv(g.g))))
 end
 =#
+
+################################################################
+### Gromov-Witten Invariants
+################################################################
+
+@doc raw"""
+     gromov_witten_invariant(d::Int, ns::Vector{Int})
+     gromov_witten_invariant(d::Int, ns::Int...)
+
+Return the Gromov-Witten invariant $N_d^{(d_1, \dots, d_k)}$, where $d_1, \dots, d_k$ are the integers given by `ns`.
+
+!!! note
+    We refer to [Dan14](@cite) for the definition of these numbers.
+
+# Examples
+```jldoctest
+julia> [gromov_witten_invariant(d, 5) for d = 1:3]
+3-element Vector{QQFieldElem}:
+ 2875
+ 4876875//8
+ 8564575000//27
+
+```
+
+```jldoctest
+julia> gromov_witten_invariant(2, 4, 2)
+92448
+
+julia> gromov_witten_invariant(2, 3, 3)
+423549//8
+
+julia> gromov_witten_invariant(2, 3, 2, 2)
+22518
+
+julia> gromov_witten_invariant(2, 2, 2, 2, 2)
+9792
+
+```
+"""
+function gromov_witten_invariant(d::Int, ns::Vector{Int})
+  k = length(ns)
+  K = kontsevich_moduli_space(k+3, d)
+  return integral(K, hypersurface(ns))
+end
+
+gromov_witten_invariant(d::Int, ns::Int...) = gromov_witten_invariant(d, collect(ns))
+
+@doc raw"""
+     instanton_number(d::Int, ns::Vector{Int})
+
+Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots, d_k$ are the integers given by `ns`.
+
+!!! note
+    We follow the notation in [Dan14](@cite): The numbers $\tilde{n}_d^{(d_1, \dots, d_k)}$ are defined so that the equations $N_d^{(d_1, \dots, d_k)} = \sum \frac{\tilde{n}_{\frac{d}{k}}^{(d_1, \dots, d_k)}}{k^3}$ hold true.
+
+!!! note 
+    The $\tilde{n}_d^{(d_1, \dots, d_k)}$ are of particular interest in the context of enumerating rational curves of degree $d$ on complete intersection Calaby-Yau threefolds of type $(d_1, \dots, d_k)$ in $\mathbb P^{k+3}$. By classification, in addition to the quintic threefold in $\mathbb P^{4}$, these are of type $(4,2)$,  $(3,3)$, $(3,3,2)$, and $(2, 2, 2, 2)$. For example, for $1\leq d \leq 9$, the $\tilde{n}_d^{(5)}$ are precisely the numbers of rational curves of degree $d$ on the general quintic threefold. In particular, $\tilde{n}_3^{(5)}$ gives the number of twisted cubic curves on the general quintic threefold.
+
+# Examples
+```jldoctest
+julia> [instanton_number(d, 5) for d = 1:3]
+3-element Vector{QQFieldElem}:
+ 2875
+ 609250
+ 317206375
+ 
+```
+
+```jldoctest
+julia> instanton_number(3,4,2)
+15655168
+
+julia> instanton_number(2,4,2)
+92288
+
+julia> instanton_number(2, 4, 2)
+92288
+
+julia> instanton_number(2, 3, 3)
+52812
+
+julia> instanton_number(2, 3, 2, 2)
+22428
+
+julia> instanton_number(2, 2, 2, 2, 2)
+9728
+
+```
+"""
+function instanton_number(d::Int, ns::Vector{Int})
+  V = [gromov_witten_invariant(i, ns) for i = 1:d]
+  W = [V[1]]
+  for i = 2:d
+    E = divisors(i)
+    lE = length(E)
+    push!(W, V[i] - sum(W[div(i, E[j])]//E[j]^3 for j = 2:lE))
+  end
+  return W[d]
+end
+
+instanton_number(d::Int, ns::Int...) = instanton_number(d, collect(ns))
+
+
+
