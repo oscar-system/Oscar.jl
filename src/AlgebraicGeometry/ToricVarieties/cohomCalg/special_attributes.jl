@@ -21,7 +21,7 @@ end
 @doc raw"""
     immaculate_line_bundles(variety::NormalToricVarietyType)
 
-Computes all immaculate line bundles as a toric vanishing set by
+Compute all immaculate line bundles as a toric vanishing set by
 intersecting the vanishing sets for all cohomology indices.
 
 # Examples
@@ -70,7 +70,7 @@ end
 @doc raw"""
     all_cohomologies(l::ToricLineBundle)
 
-Computes the dimension of all sheaf cohomologies of the 
+Compute the dimension of all sheaf cohomologies of the 
 toric line bundle `l` by use of the cohomCalg algorithm 
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
 [Jow11](@cite) and [BJRR12](@cite)).
@@ -196,7 +196,7 @@ end
 @doc raw"""
     cohomology(l::ToricLineBundle, i::Int)
 
-Computes the dimension of the i-th sheaf cohomology of the
+Compute the dimension of the i-th sheaf cohomology of the
 toric line bundle `l` by use of the cohomCalg algorithm
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
 [Jow11](@cite) and [BJRR12](@cite)).

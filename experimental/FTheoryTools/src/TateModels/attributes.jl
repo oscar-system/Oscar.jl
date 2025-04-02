@@ -270,9 +270,9 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
 
   # Compute parametrization of Weierstrass sections
-  parametrization = defining_section_parametrization(t)
+  parametrization = model_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_defining_section_parametrization = Dict{String, MPolyRingElem}()
+  new_model_section_parametrization = Dict{String, MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])
@@ -321,13 +321,13 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
     param_f = -1//48 * (param_b2^2 - 24 * param_b4)
     param_g = 1//864 * (param_b2^3 - 36 * param_b2 * param_b4 + 216 * param_b6)
 
-    # Compute defining_section_parametrization
-    new_defining_section_parametrization = Dict("f" => param_f, "g" => param_g)
+    # Compute model_section_parametrization
+    new_model_section_parametrization = Dict("f" => param_f, "g" => param_g)
 
   end
   
   # Compute Weierstrass model
-  model = WeierstrassModel(new_explicit_model_sections, new_defining_section_parametrization, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(new_explicit_model_sections, new_model_section_parametrization, pw, base_space(t), ambient_space(t))
 
   # Copy attributes and return model
   model_attributes = t.__attrs

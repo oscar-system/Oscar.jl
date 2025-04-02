@@ -136,6 +136,21 @@ end
 
 ###############################################################################
 #
+#   Structure constant table and change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::AbstractLieAlgebra)
+  struct_consts = map(e -> change_base_ring(R, e), structure_constant_table(L; copy=false))
+  return lie_algebra(R, struct_consts, symbols(L); check=false)
+end
+
+function structure_constant_table(L::AbstractLieAlgebra; copy::Bool=true)
+  return copy ? deepcopy(_struct_consts(L)) : _struct_consts(L)
+end
+
+###############################################################################
+#
 #   Constructor
 #
 ###############################################################################
@@ -375,6 +390,18 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
   end
 
   return struct_consts
+end
+
+# computes the maximum `p` such that `beta - p*alpha` is still a root
+# beta is assumed to be a root
+function _root_string_length_down(alpha::RootSpaceElem, beta::RootSpaceElem)
+  p = 0
+  beta_sub_p_alpha = beta - alpha
+  while is_root(beta_sub_p_alpha)
+    p += 1
+    beta_sub_p_alpha = sub!(beta_sub_p_alpha, alpha)
+  end
+  return p
 end
 
 function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})

@@ -236,14 +236,14 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   return SS
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool=false, check::Bool=true)
   C = base_ring(f)
   Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool=false, check::Bool=true)
   return number_field(f; cached, check)
 end
 

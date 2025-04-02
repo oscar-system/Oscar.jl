@@ -5,7 +5,7 @@
 @doc raw"""
     is_empty(c::ClosedSubvarietyOfToricVariety)
 
-Checks if a closed subvariety of a toric variety is empty.
+Check if a closed subvariety of a toric variety is empty.
 This check uses proposition 5.2.6 in [CLS11](@cite).
 
 # Examples

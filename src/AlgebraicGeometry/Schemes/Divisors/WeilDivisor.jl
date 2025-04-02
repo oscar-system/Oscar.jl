@@ -376,7 +376,7 @@ function _self_intersection(I::AbsIdealSheaf)
   return get_attribute(I, :_self_intersection)::Int
 end
 
-function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::AbsIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "checking triviality of $(I) on $(U)"
@@ -392,7 +392,7 @@ function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
   return false
 end
 
-function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::SumIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "triviality on $(U)"

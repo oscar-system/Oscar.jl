@@ -79,7 +79,7 @@ end
 @doc raw"""
     intersection_form(v::NormalToricVariety)
 
-Computes the intersection numbers among the cohomology classes
+Compute the intersection numbers among the cohomology classes
 associated to the torusinvariant prime divisors of the normal toric toric variety `v`.
 
 # Examples
@@ -106,7 +106,7 @@ end
 @doc raw"""
     chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
 
-Computes the `k`-th Chern class of the tangent bundle of a normal toric variety
+Compute the `k`-th Chern class of the tangent bundle of a normal toric variety
 that is both smooth and complete. Since these checks can be computationally
 very demanding, we provide an optional argument `check`. Once set to `false`,
 this method skips those tests.
@@ -184,7 +184,7 @@ end
 @doc raw"""
     chern_classes(v::NormalToricVariety; check::Bool = true)
 
-Computes all Chern classes of the tangent bundle of a normal toric variety,
+Compute all Chern classes of the tangent bundle of a normal toric variety,
 which is smooth and complete. Since those checks can be computationally
 very demanding, the optional argument `check` can be set to `false` to skip
 those tests.
@@ -215,7 +215,7 @@ end
 @doc raw"""
     basis_of_h4(v::NormalToricVariety; check::Bool = true)
 
-This method computes a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
+Compute a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
 for a toric variety $X$. The algorithm employs Theorem 12.4.1 in [CLS11](@cite),
 i.e. truncates the cohomology ring to degree $2$. By virtue of this theorem,
 this approach is supported only for toric varieties that are both complete and

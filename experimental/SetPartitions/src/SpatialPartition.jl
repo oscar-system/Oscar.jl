@@ -209,6 +209,7 @@ julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), spatial_partiti
 
 julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
 ERROR: ArgumentError: p and q have different levels
+[...]
 ```
 """
 function compose_count_loops(p::SpatialPartition, q::SpatialPartition)

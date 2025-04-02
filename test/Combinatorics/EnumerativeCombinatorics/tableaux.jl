@@ -38,7 +38,7 @@
       SST = @inferred collect(semistandard_tableaux(s))
       @test SST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
-      @test SST == unique(SST)
+      @test allunique(SST)
 
       #check that all tableaux are semistandard_tableaux
       for tab in SST
@@ -55,7 +55,7 @@
         SST = @inferred collect(semistandard_tableaux(s, w))
         @test SST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test SST == unique(SST)
+        @test allunique(SST)
         #check that all tableaux are semistandard_tableaux
         for tab in SST
           @test is_semistandard(tab)
@@ -81,7 +81,7 @@
         SST = @inferred collect(semistandard_tableaux(box_num, max_val))
         @test SST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test SST == unique(SST)
+        @test allunique(SST)
         #check that all tableaux are semistandard_tableaux
         for tab in SST
           @test is_semistandard(tab)
@@ -106,7 +106,7 @@
         ST = @inferred collect(standard_tableaux(s))
         @test ST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test ST == unique(ST)
+        @test allunique(ST)
         #check that all tableaux are standard_tableaux
         for tab in ST
           @test is_standard(tab)
@@ -123,7 +123,7 @@
       ST = @inferred collect(standard_tableaux(T(n)))
       @test ST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
-      @test ST == unique(ST)
+      @test allunique(ST)
       #check that all tableaux are standard_tableaux
       for tab in ST
         @test is_standard(tab)

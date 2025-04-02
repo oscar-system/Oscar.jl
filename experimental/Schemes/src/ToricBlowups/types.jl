@@ -3,105 +3,70 @@
 ########################################################################
 
 @attributes mutable struct ToricBlowupMorphism{
-  DomainType <: NormalToricVarietyType, 
+  DomainType <: NormalToricVarietyType,
   CodomainType <: NormalToricVarietyType,
-  CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  },
-  CenterUnnormalizedType <: Union{
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  },
 } <: AbsSimpleBlowupMorphism{DomainType, CodomainType, ToricBlowupMorphism}
-
   toric_morphism::ToricMorphism
   index_of_exceptional_ray::Integer
-  center_data::CenterDataType
-  center_unnormalized::CenterUnnormalizedType
   exceptional_prime_divisor::ToricDivisor
 
-  function _toric_blowup_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    # Compute position of exceptional ray
-    new_rays = matrix(ZZ, rays(new_variety))
-    position_exceptional_ray = findfirst(
-      i->exceptional_ray==new_rays[i,:],
-      1:n_rays(new_variety)
-    )
-    @req position_exceptional_ray !== nothing "Could not identify position of exceptional ray"
+  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::String)
+    # Construct the new variety
+    Y = normal_toric_variety(star_subdivision(X, primitive_vector))
 
-    # Set variable names of the new variety
-    old_vars = string.(symbols(cox_ring(v)))
-    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, n_rays(new_variety))
-    old_rays = matrix(ZZ, rays(v))
-    old_indices = Dict{AbstractVector, Int64}([old_rays[i,:]=>i for i in 1:n_rays(v)])
-    for i in 1:n_rays(new_variety)
-      if haskey(old_indices, new_rays[i,:])
-        new_vars[i] = old_vars[old_indices[new_rays[i,:]]]
+    # Compute position of the exceptional ray
+    rays_Y = matrix(ZZ, rays(Y))
+    index_of_exceptional_ray = findfirst(
+      i -> primitive_vector == rays_Y[i, :],
+      1:n_rays(Y),
+    )
+    @req index_of_exceptional_ray !== nothing "Could not identify position of exceptional ray"
+
+    # Set variable names of Y
+    var_names_X = string.(symbols(cox_ring(X)))
+    @req !(coordinate_name in var_names_X) "The name for the blowup coordinate is already taken"
+    var_names_Y = Vector{String}(undef, n_rays(Y))
+    rays_X = matrix(ZZ, rays(X))
+    indices_X = Dict{AbstractVector, Int64}([rays_X[i,:]=>i for i in 1:n_rays(X)])
+    for i in 1:n_rays(Y)
+      if haskey(indices_X, rays_Y[i,:])
+        var_names_Y[i] = var_names_X[indices_X[rays_Y[i,:]]]
       else
-        new_vars[i] = coordinate_name
+        var_names_Y[i] = coordinate_name
       end
     end
-    set_attribute!(new_variety, :coordinate_names, new_vars)
-    if n_rays(new_variety) > n_rays(v)
-      @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
+    set_attribute!(Y, :coordinate_names, var_names_Y)
+    if n_rays(Y) > n_rays(X)
+      @req coordinate_name in coordinate_names(Y) "Desired blowup variable name was not assigned"
     end
 
-    # Construct the toric morphism and construct the object
-    bl_toric = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return bl_toric, position_exceptional_ray, center_data
-  end
-  
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
-    bl = new{
-      typeof(domain(bl_toric)),
-      typeof(codomain(bl_toric)),
-      typeof(center_data),
-      typeof(center_unnormalized),
-    }(bl_toric, position_exceptional_ray, center_data, center_unnormalized)
-    if has_attribute(v, :has_torusfactor)
-      set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
+    # Construct the toric morphism
+    phi_toric = toric_morphism(
+      Y,
+      identity_matrix(ZZ, ambient_dim(polyhedral_fan(X))),
+      X;
+      check=false,
+    )
+
+    # Construct the object
+    phi = new{typeof(domain(phi_toric)), typeof(codomain(phi_toric))}(
+      phi_toric, index_of_exceptional_ray
+    )
+
+    # Avoid recomputation
+    if has_attribute(X, :has_torusfactor)
+      set_attribute!(Y, :has_torusfactor, has_torusfactor(X))
     end
-    if has_attribute(v, :is_orbifold)
-      set_attribute!(bl, :is_orbifold, is_orbifold(v))
+    if has_attribute(X, :is_orbifold) && is_orbifold(X)
+      set_attribute!(Y, :is_orbifold, is_orbifold(X))
     end
-    return bl
-  end
-  
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
-    bl = new{
-      typeof(domain(bl_toric)),
-      typeof(codomain(bl_toric)),
-      typeof(center_data),
-      IdealSheaf{typeof(v), AbsAffineScheme, Ideal, Map},
-    }(bl_toric, position_exceptional_ray, center_data)
-    if has_attribute(v, :has_torusfactor)
-      set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
+    if has_attribute(X, :is_smooth) && is_smooth(X)
+      if all(i -> primitive_vector[i] in [0, 1], 1:ambient_dim(X))
+        set_attribute!(Y, :is_smooth, is_smooth(X))
+      end
     end
-    if has_attribute(v, :is_orbifold)
-      set_attribute!(bl, :is_orbifold, is_orbifold(v))
-    end
-    return bl
+
+    return phi
   end
 end
 

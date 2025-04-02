@@ -16,6 +16,31 @@
     J1 = ideal(Qxy, x^2+y^2+z^2)
     @test !Oscar.is_binomial(J1)
   end
+
+  @testset "Lattice Ideals" begin
+    Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
+    I = ideal(elem_type(Qxy)[x * y - t, t^2 - z, y * x - t * z^2])
+    gb = groebner_basis(I; algorithm=:markov)
+    @test gens(gb) == [-z + t^2, z^2 - 1, x * y - t]
+
+    o = lex(Qxy)
+    gb = groebner_basis(I; ordering=o, algorithm=:markov)
+    @test gens(gb) == [t^4 - 1, z - t^2, x * y - t]
+    
+    @test_throws ArgumentError groebner_basis(ideal([x * y]); algorithm=:markov)
+    @test_throws ArgumentError groebner_basis(ideal([x * y - 2]); algorithm=:markov)
+    @test_throws ArgumentError groebner_basis(ideal([x * y + z * t]); algorithm=:markov)
+
+
+    @test gens(eliminate(I, o, 2)) == [t^4 - 1, z - t^2]
+    @test gens(eliminate(I, o, 3)) == [t^4 - 1]
+    @test isempty(gens(eliminate(I, o, 4)))
+
+    revlex = opposite_ordering(Qxy, o)
+    @test gens(eliminate(I, revlex, 2)) == [x^5 * y^5 - x * y]
+
+    @test_throws ArgumentError eliminate(I, degrevlex(Qxy), 1)
+  end
   
   @testset "Cellular decomposition" begin
   

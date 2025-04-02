@@ -25,8 +25,8 @@ include("ZeroDec.jl")
 @doc raw"""
     decomp(I::Oscar.ideal; usefglm::Bool)
 
-Computes the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
-via GTZ. Returns the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
+Compute the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
+via GTZ. Return the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
 set to 'true' then the FGLM - algorithm is used in zero-dimensional computations.
 """
 function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)

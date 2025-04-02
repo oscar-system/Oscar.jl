@@ -1079,8 +1079,8 @@ function simplify_light(M::SubquoModule)
   M_gens = ambient_representatives_generators(M)
   M_rels = relations(M)
 
-  N_rels = unique(filter(!is_zero, M_rels))
-  N_gens = unique(setdiff(filter(!is_zero, M_gens), N_rels))
+  N_rels = unique!(filter(!is_zero, M_rels))
+  N_gens = unique!(setdiff!(filter(!is_zero, M_gens), N_rels))
 
   N = length(N_rels) == 0 ? SubquoModule(ambient_free_module(M), N_gens) : SubquoModule(ambient_free_module(M), N_gens, N_rels)
 

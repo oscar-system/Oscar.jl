@@ -21,7 +21,7 @@ isless_lex(K1::ComplexOrHypergraph, K2::ComplexOrHypergraph) = isless_lex(Set(fa
 
 Given a field `F` find the vertices of the partial shift graph starting from `K`
 and discoverable from elements in `W`.
-Returns a `Vector{SimplicialCompplex}` ordered lexicographically.
+Return a `Vector{SimplicialCompplex}` ordered lexicographically.
 
 # Examples
 ```jldoctest
@@ -108,9 +108,9 @@ end
     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
 
-Constructs the partial shift graph on `complexes`.
+Construct the partial shift graph on `complexes`.
 
-Returns a tuple `(G, EL, VL)`, where `G` is a `Graph{Directed}`, `EL` is a `Dict{Tuple{Int Int}, Vector{Weylgroupelem}` and
+Return a tuple `(G, EL, VL)`, where `G` is a `Graph{Directed}`, `EL` is a `Dict{Tuple{Int Int}, Vector{Weylgroupelem}` and
 `VL` is a lexicographically sorted `complexes`, hence is either a `Vector{SimplicialComplex}` or `Vector{Uniformhypergraph}`.
 `EL` are the edges labels and `VL` are the vertex labels.
 There is an edge from the vertex labelled `K` to the vertex labelled `L` if `L` is the partial shift of `K` by some `w` in `W`.
@@ -210,21 +210,25 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
   map_function = map
   if parallel
     # setup parallel parameters
-    channels = Oscar.params_channels(Union{PermGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
+    # this should be updated to use the parallel framework at some point?
+    channels = [RemoteChannel(()->Channel{Any}(32), i) for i in workers()]
     # setup parents needed to be sent to each process
-    Oscar.put_params(channels, codomain(phi))
+    map(channel -> put_type_params(channel, codomain(phi)), channels)
     map_function = pmap
   end
-  try 
+  try
+    # here to so that this isn't applied on the worker
+    # since we cannot serialize Gap maps 
+    PG = phi.(W)
     if show_progress
       edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                            @showprogress map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Ks -> multi_edges(F, PG, Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
     else
       edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                            map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Ks -> multi_edges(F, PG, Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
     end
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
@@ -254,7 +258,7 @@ end
 @doc raw"""
     contracted_partial_shift_graph(G::Graph{Directed}, edge_labels::Dict{Tuple{Int, Int}, Vector{WeylGroupElem}})
 
-Returns a triple `(CG, S, P)`, where `CG` is a graph that contains a vertex `v` for every vertex `S[v]` in `G`.
+Return a triple `(CG, S, P)`, where `CG` is a graph that contains a vertex `v` for every vertex `S[v]` in `G`.
 `S` is a list of indices for the sinks in the original graph `G`.
 A vertex `i` is in `P[s]` if there exists an edge from `i` to `s` in `G` with `w0` in its edge label,
 in this way `P` is a partition of the vertices of the orignal graph `G`.

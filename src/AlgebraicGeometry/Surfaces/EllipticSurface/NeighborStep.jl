@@ -231,7 +231,7 @@ Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
 ``O`` is the zero section, ``P`` is any section and ``V`` is vertical.
 
-Returns a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
+Return a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
 ``D <= D1 = (n-1)O + P + n_1F_1 + ... n_k F_k`` with ``l = n_1 + ... n_k`` minimal
 and the `F_i` are some other fibers.
 The rational function `c=c(t)` has divisor of zeros and poles``

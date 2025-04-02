@@ -22,6 +22,12 @@
             @test zero(T)*one(T) == zero(T)
             @test T(0)+T(1) == (minOrMax==min ? T(0) : T(1))
         end
+
+        @testset "polynomial exponentiation" begin
+            Tx, x = polynomial_ring(T, 1)
+            f = x[1]^4 + 3*x[1]
+            @test f^3 == f*f*f
+        end
     end
 
 end

@@ -6,6 +6,8 @@ A tropical linear space is a balanced polyhedral complex supported on a finite i
 - Chapter 10 in [Jos21](@cite)
 
 #### Note:
+- Tropical linear spaces in OSCAR are polyhedral complexes in euclidean space that are invariant under translation by the ones vector.  Unlike in [MS15](@cite) and [Jos21](@cite), they are not polyhedral complexes in the tropical torus.
+- Tropical linear spaces constructed with respect to a trivial valuation are also known as Bergman fans.  Bergman fans can have several possible polyhedral structures, though their support always remains the same.  In OSCAR, which structure is being used depends on how it was constructed.
 - Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
 - The type `TropicalLinearSpace` can be thought of as subtype of `TropicalVariety` in the sense that it should have all properties and features of the latter.
 
@@ -15,9 +17,10 @@ In addition to converting from `TropicalVariety`, objects of type `TropicalLinea
 1. Pluecker vectors over a tropical semiring: uses a low-level implementation in `polymake`
 2. Pluecker vectors over a field and a tropical semiring map: computes coordinatewise valuation and uses constructor (1.)
 3. matrices over a tropical semiring: computes tropical minors and uses constructor (1.)
-4. matrices over a field and a tropical semiring map.
+4. matrices over a field and a tropical semiring map
     - if matrix over `QQ` and tropical semiring map is trivial, uses an implementation of Rincon's algorithm [Rin13](@cite) in `polymake`
     - for general input, computes minors and uses constructor (2.)
+5. graphs
 ```@docs
 tropical_linear_space
 ```

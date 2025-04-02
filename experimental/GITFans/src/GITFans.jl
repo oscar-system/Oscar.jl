@@ -507,7 +507,7 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
                       for cone in result_cones]
 
     # the set of rays
-    allrays = sort!(unique(vcat(rays_maxcones...)))
+    allrays = unique!(sort!(reduce(vcat, rays_maxcones)))
 
     # the indices of rays that belong to each maximal cone (0-based)
     index_maxcones = [sort([findfirst(==(v), allrays)-1

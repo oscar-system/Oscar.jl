@@ -24,6 +24,7 @@ Permutation group of degree 11 and order 7920
 
 julia> atlas_group("M")  # Monster group M
 ERROR: ArgumentError: the group atlas does not provide a representation for M
+[...]
 ```
 """
 function atlas_group(name::String)
@@ -305,9 +306,7 @@ function atlas_program(name, paras...)
   if length(paras) == 1 && paras[1] == :classes
     slp = GAP.Globals.AtlasProgram(GapObj(name), GapObj("classes"))::GapObj
     slp === GAP.Globals.fail && return nothing
-    gapcode = GAP.Globals.LinesOfStraightLineProgram(slp.program)::GapObj
-    juliacode = GAP.gap_to_julia(gapcode; recursive = true)
-    return Oscar.StraightLinePrograms.GAPSLProgram(juliacode)
+    return straight_line_program(slp.program)
   else
     error("not yet ...")
   end

@@ -148,7 +148,7 @@ function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
 end
 
 """
-Checks if the action maps satisfy the same relations
+Check if the action maps satisfy the same relations
 as the generators of `G`.
 """
 function is_consistent(M::GModule)
@@ -651,6 +651,11 @@ function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   return all(c(x) == d(x) for x = keys(c))
 end
 
+function Base.hash(c::CoChain{N, G, M}, h::UInt) where {N, G, M}
+  # this is a very bad hash, but it is correct
+  return hash(c.C, h)
+end
+
 function +(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   @assert c.C === d.C
   if isdefined(c, :D) && isdefined(d, :D)
@@ -971,7 +976,7 @@ end
 
 
 """
-Computes an isomorphic fp-group and a confluent system of
+Compute an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
 
 Return the new group, the isomorphism and the confluent relations.
@@ -1746,7 +1751,7 @@ end
 
 
 """
-Computes H^3 via dimension-shifting:
+Compute H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1
 thus
@@ -1904,7 +1909,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   B = pc_group(C)
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
 
-  Julia_to_gap = function(a::FinGenAbGroupElem)
+  function Julia_to_gap(a::FinGenAbGroupElem)
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
@@ -1915,7 +1920,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
   end
 
-  gap_to_julia = function(a::GapObj)
+  function Gap_to_julia(a::GapObj)
     e = GAPWrap.ExtRepOfObj(a)
     z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
@@ -1931,7 +1936,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   return B, MapFromFunc(
     codomain(mM), B,
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
-    x->image(mM, gap_to_julia(GapObj(x))))
+    x->image(mM, Gap_to_julia(GapObj(x))))
 end
 
 # `refine` is irrelevant because `M` is elementary abelian.
@@ -2123,7 +2128,6 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 
 #  z = GAP.Globals.GroupByRwsNC(CN)
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
-#  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
   mQ = hom(N, Q, gens(N), gens(Q); check = false)
@@ -2140,10 +2144,10 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
-    for i=1:2:length(wm)
-      push!(wg, wm[i]+ngens(G))
-      push!(wg, wm[i+1])
+    wm = syllables(preimage(mffM, mfM(m)))
+    for (ind, exp) in wm
+      push!(wg, ind+ngens(G))
+      push!(wg, exp)
     end
     return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
   end
@@ -2303,7 +2307,7 @@ end
 
 Tests if the domain is in the center of the codomain.    
 """
-function Oscar.is_central(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group})
+function Oscar.is_central(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group})
   E = codomain(NtoE)
   n = map(NtoE, gens(domain(NtoE)))
   return all(x->all(y->y*x == x*y, n), gens(E))
@@ -2315,7 +2319,7 @@ end
 
 Tests if the domain is in the center and the derived subgroup of the codomain.
 """
-function is_stem_extension(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group}; is_central_known::Bool = false)
+function is_stem_extension(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group}; is_central_known::Bool = false)
   E = codomain(NtoE)
   N = image(NtoE)[1]
   E = codomain(NtoE)

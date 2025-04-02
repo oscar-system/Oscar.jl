@@ -4,6 +4,7 @@
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
         @test n_edges(g) == 0
+        @test vertices(g) == 1:5
         add_edge!(g, 1, 2)
         @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
@@ -19,8 +20,10 @@
         @test !has_vertex(g, 6)
         @test add_vertices!(g, 5) == 5
         @test n_vertices(g) == 10
+        @test vertices(g) == 1:10
         @test rem_vertices!(g, [2, 4, 6, 11])
         @test n_vertices(g) == 7
+        @test vertices(g) == 1:7
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
@@ -155,7 +158,7 @@
         @test !add_edge!(g,1,2)
     end
 
-    @testset "grap_from_edges" begin
+    @testset "graph_from_edges" begin
         x1 = [[5,6],[7,8],[11,12]]
         G1 = graph_from_edges(x1)
 
@@ -177,9 +180,33 @@
 
         GG2 = graph_from_edges(Undirected, ee, 13)
         @test is_isomorphic(G2, GG2)
-
     end
 
+      @testset "graph_from_labeled_edges" begin
+        G1 = graph_from_edges([[1, 2], [3, 4]])
+        vertex_labels = Dict(1 => 2, 3 => 4)
+        label!(G1, nothing, vertex_labels; name=:color)
+        @test_throws ArgumentError G1.color[1, 2]
+        @test G1.color[1] == 2
+        
+        edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
+        G2 = graph_from_labeled_edges(edge_labels)
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
+        @test_throws ArgumentError G2.label[6, 7]
+        @test_throws ArgumentError G2.label[6]
+
+        vertex_labels = Dict(9 => 10)
+        @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
+
+        G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
+        @test_throws ArgumentError G3.label[10]
+        @test_throws ArgumentError G3.label[6, 5]
+        @test G3.label[7, 8] == 3
+        @test G3.label[9] == 10
+        @test G3.label[1] == 0
+        @test labelings(G3) == [:label]
+    end
+  
     @testset "adjacency_matrix laplacian_matrix" begin
       G0 = Graph{Directed}(3)
       add_edge!(G0,1,2)

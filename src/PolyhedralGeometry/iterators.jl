@@ -197,7 +197,7 @@ end
 #  Field access
 negbias(H::Union{AffineHalfspace,AffineHyperplane}) = H.b
 negbias(H::Union{LinearHalfspace,LinearHyperplane}) = coefficient_field(H)(0)
-normal_vector(H::Union{Halfspace,Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
+normal_vector(H::Union{Halfspace,Hyperplane}) = H.a[1, :]
 
 _ambient_dim(x::Union{Halfspace,Hyperplane}) = length(x.a)
 
@@ -231,11 +231,15 @@ Base.in(x::RayVector, y::T) where {T<:Union{AffineHalfspace,
   throw(ArgumentError("Containment of RayVector in affine spaces is not
                       well-defined."))
 
-Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
-  hash((x.a, x.b), hash(T, h))
-
-Base.hash(x::T, h::UInt) where {T<:Union{LinearHalfspace,LinearHyperplane}} =
-  hash(x.a, hash(T, h))
+function Base.hash(x::Union{<:Halfspace,<:Hyperplane}, h::UInt)
+  a = normal_vector(x)
+  f = inv(first(Iterators.filter(!is_zero, a)))
+  b = negbias(x)
+  if x isa Halfspace
+    f = abs(f)
+  end
+  hash((f .* a, f * b), h)
+end
 
 ################################################################################
 ######## SubObjectIterator

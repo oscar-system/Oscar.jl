@@ -74,11 +74,9 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   rels = Vector{Tuple{Int,Int}}[]
 
   sets  = getproperty(Oscar, structure)(M)
-  sizes = unique!(map(length, sets))
-
-
   #Computing the sizehint for the relations
   setSizes = map(length, sets)
+  sizes = unique(setSizes)
 
   sets_count = [0 for _ in 1:maximum(setSizes)]
   foreach(size->sets_count[size] += 1, setSizes)

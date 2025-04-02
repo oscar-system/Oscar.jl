@@ -164,7 +164,7 @@ end
 
 function Hecke.modular_lift(f::Vector{IdealGens{zzModMPolyRingElem}}, me::Hecke.modular_env)
   g = []
-  @assert all(x -> length(x) == length(f[1]), f)
+  @assert allequal(length, f)
   for i=1:length(f[1])
     lp = zzModMPolyRingElem[ f[j][Val(:O), i] for j=1:length(f)]
     push!(g, Hecke.modular_lift(lp, me))

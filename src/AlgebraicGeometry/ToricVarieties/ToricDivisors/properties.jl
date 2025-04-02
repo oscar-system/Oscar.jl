@@ -1,7 +1,7 @@
 @doc raw"""
     is_cartier(td::ToricDivisor)
 
-Checks if the divisor `td` is Cartier.
+Check if the divisor `td` is Cartier.
 
 # Examples
 ```jldoctest

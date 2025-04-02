@@ -240,7 +240,7 @@ end
 ## GAP straight line program
 function straight_line_program(slp::GapObj)
   @req GAP.Globals.IsStraightLineProgram(slp) "slp must be a straight line program in GAP"
-  lines = GAP.gap_to_julia(GAP.Globals.LinesOfStraightLineProgram(slp); recursive = true)
+  lines = Vector{Any}(GAP.Globals.LinesOfStraightLineProgram(slp))
   n = GAP.Globals.NrInputsOfStraightLineProgram(slp)
   return SLP.GAPSLProgram(lines, n)
 end

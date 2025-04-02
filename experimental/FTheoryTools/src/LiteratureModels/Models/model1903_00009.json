@@ -49,7 +49,7 @@
         "base_dim": 3,
         "model_sections": ["s1", "s2", "s3", "s5", "s6", "s9"],
         "base_coordinates": ["s1", "s2", "s3", "s5", "s6", "s9"],
-        "auxiliary_base_grading": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [1, 1, 1, 1, 1, 1]
         ],
     "fiber_ambient_space_rays": [[0,-1], [-1,-1], [-1,0], [-1,1], [-1,2], [0,1], [1,0]],

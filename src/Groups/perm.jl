@@ -146,7 +146,7 @@ Sym(6)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+  return PermGroupElem(_symmetric_group_cached(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
 end
 
 """
@@ -301,7 +301,7 @@ julia> x == y
 true
 ```
 """
-cperm() = one(symmetric_group(1))
+cperm() = one(_symmetric_group_cached(1))
 
 cperm(L::AbstractVector{T}, Ls::AbstractVector{T}...) where T <: IntegerUnion = _cperm((L,Ls...))
 
@@ -315,7 +315,7 @@ function _cperm(L)
   # L is something like a Vector{Vector{Int}}, describing a sequence of cycles
   # figure out the maximal entry occurring in there
   deg = mapreduce(maximum, max, L; init=1)
-  return _cperm(symmetric_group(deg), L)
+  return _cperm(_symmetric_group_cached(deg), L)
 end
 
 function _cperm(g::PermGroup, L)
@@ -341,7 +341,7 @@ end
 # fallback in case there are overlapping cycles -- we
 # then resort to multiplication, which is slower but gets the job done
 function _cperm_slow(g::PermGroup, L)
-  h = symmetric_group(degree(g))
+  h = _symmetric_group_cached(degree(g))
   x = prod(y -> cperm(h, y), L)
   @req x in g "the element does not embed in the group"
   return PermGroupElem(g, GapObj(x))
@@ -906,7 +906,7 @@ end
 
 function _perm_format(::Val{:single}, n_or_G, res)
   return quote
-    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+    let n = $(n_or_G), G = n isa Int ? _symmetric_group_cached(n) : n
       cperm(G, $(res...))
     end
   end
@@ -914,7 +914,7 @@ end
 
 function _perm_format(::Val{:vector}, n_or_G, res)
   return quote
-    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+    let n = $(n_or_G), G = n isa Int ? _symmetric_group_cached(n) : n
       [cperm(G, p...) for p in [$(res...)]]
     end
   end
@@ -922,7 +922,7 @@ end
 
 function _perm_format(::Val{:tuple}, n_or_G, res)
   return quote
-    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+    let n = $(n_or_G), G = n isa Int ? _symmetric_group_cached(n) : n
       ((cperm(G, p...) for p in [$(res...)])...,)
     end
   end
@@ -944,7 +944,7 @@ Permutation group of degree 5
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
-  return sub(symmetric_group(n), perms)[1]
+  return sub(_symmetric_group_cached(n), perms)[1]
 end
 
 @doc raw"""
@@ -970,7 +970,7 @@ macro permutation_group(n, gens...)
     end
 
     return quote
-       let g = symmetric_group($n)
+       let g = _symmetric_group_cached($n)
            sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end

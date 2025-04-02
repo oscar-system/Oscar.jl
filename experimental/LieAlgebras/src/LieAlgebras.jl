@@ -33,6 +33,7 @@ import ..Oscar:
   cartan_matrix,
   center,
   centralizer,
+  change_base_ring,
   character,
   characteristic,
   check_parent,
@@ -48,7 +49,6 @@ import ..Oscar:
   elem_type,
   expressify,
   exterior_power,
-  fp_group,
   gen,
   gens,
   hom,
@@ -58,11 +58,13 @@ import ..Oscar:
   identity_map,
   image,
   induced_map_on_exterior_power,
+  inner_direct_product,
   inv,
   is_abelian,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
+  is_semisimple,
   is_simple,
   is_solvable,
   is_welldefined,
@@ -74,9 +76,9 @@ import ..Oscar:
   number_of_generators,
   ngens,
   parent_type,
-  permutation_group,
   rank,
   root_system,
+  structure_constant_table,
   sub,
   symbols,
   symmetric_power,
@@ -106,7 +108,6 @@ include("Combinatorics.jl")
 include("Util.jl")
 
 include("CoxeterGroup.jl")
-include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
@@ -125,6 +126,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("SSLieAlgebraModule.jl")
 
 include("serialization.jl")
 

@@ -351,6 +351,32 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 
 Return the semidirect product of `N` and `H`, of type `SemidirectProductGroup{S,T}`,
 where `f` is a group homomorphism from `H` to the automorphism group of `N`.
+
+# Examples
+```jldoctest
+julia> Q = quaternion_group(8)
+Pc group of order 8
+
+julia> C = cyclic_group(2)
+Pc group of order 2
+
+julia> A = automorphism_group(Q)
+Aut( <pc group of size 8 with 3 generators> )
+
+julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
+[ x, y ] -> [ x*y2, y*y2 ]
+
+julia> f = hom(C,A,[C[1]],[au])
+Group homomorphism
+  from pc group of order 2
+  to aut( <pc group of size 8 with 3 generators> )
+
+julia> G = semidirect_product(Q,f,C)
+SemidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> )
+
+julia> derived_subgroup(G)
+(Group([ f4 ]), Hom: group([ f4 ]) -> semidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> ))
+```
 """
 function semidirect_product(
   N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T

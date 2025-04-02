@@ -73,9 +73,16 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
   gens_S = gens(cox_ring(base))
-  for k in 1:length(gens_S)
-    explicit_model_sections[string(gens_S[k])] = gens_S[k]
-  end
+
+  # The below code was removed because it is inconsistent with our standard use of explicit_model_sections. In particular,
+  # explicit_model_sections should not list base coordinates as being named sections whose value is the base coordinate
+  # For now, explicit_model_sections will be empty for hypersurface models. This will not be true ultimately, when we
+  # allow for the definition of model sections for hypersurface models
+  #
+  # for k in 1:length(gens_S)
+  #   explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  # end
+
   model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, base, ambient_space, fiber_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model

@@ -198,7 +198,7 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
                 res[i] = "-1"
               else
                 # Check whether -1 is a square in the character field.
-                if mod(p-1, 4) == 0 || mod(degree(character_field(chi)[1]), 2) == 0
+                if mod(p-1, 4) == 0 || mod(degree_of_character_field(chi), 2) == 0
                   res[i] = "O+"
                 else
                   res[i] = "O-"

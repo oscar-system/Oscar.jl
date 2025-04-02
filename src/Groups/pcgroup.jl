@@ -540,6 +540,8 @@ end
 Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
 a group generator and its exponent.
 
+See also [`letters(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
 # Examples
 
 ```jldoctest
@@ -628,6 +630,18 @@ end
 
 # Create an Oscar collector from a GAP collector.
 
+const SCP_UNDERLYING_FAMILY = GAP.Globals.SCP_UNDERLYING_FAMILY             # = 1 - the family of our free grp elms
+const SCP_RWS_GENERATORS = GAP.Globals.SCP_RWS_GENERATORS                   # = 2 - the free grp generators used
+const SCP_NUMBER_RWS_GENERATORS = GAP.Globals.SCP_NUMBER_RWS_GENERATORS     # = 3 - number of generators
+const SCP_DEFAULT_TYPE = GAP.Globals.SCP_DEFAULT_TYPE                       # = 4 - default type of the result
+const SCP_IS_DEFAULT_TYPE = GAP.Globals.SCP_IS_DEFAULT_TYPE                 # = 5 - tester for default type
+const SCP_RELATIVE_ORDERS = GAP.Globals.SCP_RELATIVE_ORDERS                 # = 6 - list of relative orders
+const SCP_POWERS = GAP.Globals.SCP_POWERS                                   # = 7 - list of power rhs
+const SCP_CONJUGATES = GAP.Globals.SCP_CONJUGATES                           # = 8 - list of list of conjugates rhs
+const SCP_INVERSES = GAP.Globals.SCP_INVERSES                               # = 9 - list of inverses of the gens
+const SCP_COLLECTOR = GAP.Globals.SCP_COLLECTOR                             # = 10 - collector to use
+const SCP_AVECTOR = GAP.Globals.SCP_AVECTOR                                 # = 11 - avector
+
 """
     collector([::Type{T} = ZZRingElem, ]G::PcGroup) where T <: IntegerUnion
 
@@ -651,12 +665,12 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
   Fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
   GapC = GAP.getbangproperty(Fam, :rewritingSystem)::GapObj
 
-  n = GAP.getbangindex(GapC, 3)::Int
+  n = GAP.getbangindex(GapC, SCP_NUMBER_RWS_GENERATORS)::Int
   c = collector(n, T)
 
-  c.relorders = Vector{T}(GAP.getbangindex(GapC, 6)::GapObj)
+  c.relorders = Vector{T}(GAP.getbangindex(GapC, SCP_RELATIVE_ORDERS)::GapObj)
 
-  Gap_powers = GAP.gap_to_julia(GAP.getbangindex(GapC, 7)::GapObj, recursive = false)
+  Gap_powers = Vector{Union{Nothing, GapObj}}(GAP.getbangindex(GapC, SCP_POWERS)::GapObj, recursive = false)
   for i in 1:length(Gap_powers)
     if Gap_powers[i] !== nothing
       l = GAPWrap.ExtRepOfObj(Gap_powers[i])
@@ -664,12 +678,11 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
     end
   end
 
-  Gap_conj = GAP.gap_to_julia(GAP.getbangindex(GapC, 8)::GapObj, recursive = false)
+  Gap_conj = Vector{Vector{Union{Nothing, GapObj}}}(GAP.getbangindex(GapC, SCP_CONJUGATES)::GapObj)
   for i in 1:length(Gap_conj)
-    Gap_conj_i = GAP.gap_to_julia(Gap_conj[i]::GapObj, recursive = false)
-    for j in 1:length(Gap_conj_i)
-      if Gap_conj_i[j] !== nothing
-        l = GAPWrap.ExtRepOfObj(Gap_conj_i[j])
+    for j in 1:length(Gap_conj[i])
+      if Gap_conj[i][j] !== nothing
+        l = GAPWrap.ExtRepOfObj(Gap_conj[i][j])
         c.conjugates[j,i] = Pair{Int,T}[l[k-1] => T(l[k]) for k in 2:2:length(l)]
       end
     end

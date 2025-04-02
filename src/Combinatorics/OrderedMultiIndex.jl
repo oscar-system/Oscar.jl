@@ -94,6 +94,10 @@ function ==(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   return bound(a) == bound(b) && indices(a) == indices(b)
 end
 
+function Base.hash(a::OrderedMultiIndex, h::UInt)
+  return hash(indices(a), hash(bound(a), h))
+end
+
 ########################################################################
 # A data type to facilitate iteration over all ordered multiindices 
 # of the form 0 < i₁ < i₂ < … < iₚ ≤ n for fixed 0 ≤ p ≤ n.

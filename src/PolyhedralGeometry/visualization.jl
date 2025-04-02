@@ -60,7 +60,6 @@ function visualize(
     PolyhedralFan{<:Union{Float64,FieldElem}},
     PolyhedralComplex{<:Union{Float64,FieldElem}},
     SubdivisionOfPoints{<:Union{Float64,FieldElem}},
-    Graph,
     SimplicialComplex,
   };
   kwargs...,

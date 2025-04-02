@@ -1,8 +1,3 @@
-function test_elem(Q::PBWAlgQuo{QQFieldElem})
-  R = base_ring(Q)
-  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
-end
-
 @testset "PBWAlgebraQuo.constructor" begin
   r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
@@ -35,14 +30,6 @@ end
   rel = @pbw_relations(e*f == f*e-h, e*h == h*e+2*e, f*h == h*f-2*f)
   R, (a, h, f, e) = pbw_algebra(r, rel, invlex(r))
   Q, _ = quo(R, two_sided_ideal(R, [h]))
-  test_NCRing_interface(Q; reps = 1)
-end
-
-@testset "PBWAlgebraQuo.conversion" begin
-  # [2023-12-21] Used to have incorrect parent object
-  E,_ = exterior_algebra(QQ,3)
-  @test  E() == E(0)
-  three = QQFieldElem(3)
-  @test  E(three) == E(3)
+  ConformanceTests.test_NCRing_interface(Q; reps = 1)
 end
 

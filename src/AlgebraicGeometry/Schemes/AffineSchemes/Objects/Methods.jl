@@ -121,7 +121,7 @@ end
 @doc raw"""
     is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
 
-Checks if a ring element is a non-zero divisor
+Check if a ring element is a non-zero-divisor
 in the coordinate ring of an affine scheme.
 
 # Examples
@@ -183,7 +183,7 @@ end
 - if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
 
 # Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the scheme ``X`` is normal.
 
 # Examples
 ```jldoctest

@@ -883,7 +883,7 @@ minimal_polynomial(x::CliffordOrderElem) = minimal_polynomial(algebra(parent(x))
 
 characteristic_polynomial(x::CliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
 
-# Computes a/b if action is :right and b\a if action is :left (and if this is possible)
+# Compute a/b if action is :right and b\a if action is :left (and if this is possible)
 function divexact(a::CliffordOrderElem, b::CliffordOrderElem, action::Symbol = :left; check::Bool=true)
   check_parent(a, b)
   CO = parent(a)
@@ -898,14 +898,14 @@ end
 @doc raw"""
     divexact_right(a::CliffordOrderElem, b::CliffordOrderElem) -> CliffordOrderElem
 
-Returns an element $c$ such that $a = c \cdot b$.
+Return an element $c$ such that $a = c \cdot b$.
 """
 divexact_right(a::CliffordOrderElem, b::CliffordOrderElem; check::Bool=true) = divexact(a, b, :right; check=check)
 
 @doc raw"""
     divexact_left(a::CliffordOrderElem, b::CliffordOrderElem) -> CliffordOrderElem
 
-Returns an element $c$ such that $a = b \cdot c$.
+Return an element $c$ such that $a = b \cdot c$.
 """
 divexact_left(a::CliffordOrderElem, b::CliffordOrderElem; check::Bool=true) = divexact(a, b, :left; check=check)
 
@@ -933,7 +933,7 @@ minimal_polynomial(x::ZZCliffordOrderElem) = minimal_polynomial(algebra(parent(x
 
 characteristic_polynomial(x::ZZCliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
 
-# Computes a/b if action is :right and b\a if action is :left (and if this is possible)
+# Compute a/b if action is :right and b\a if action is :left (and if this is possible)
 function divexact(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem, action::Symbol = :left; check::Bool=true)
   check_parent(a, b)
   CO = parent(a)
@@ -948,14 +948,14 @@ end
 @doc raw"""
     divexact_right(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem) -> ZZCliffordOrderElem
 
-Returns an element $c$ such that $a = c \cdot b$.
+Return an element $c$ such that $a = c \cdot b$.
 """
 divexact_right(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem; check::Bool=true) = divexact(a, b, :right; check=check)
 
 @doc raw"""
     divexact_left(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem) -> ZZCliffordOrderElem
 
-Returns an element $c$ such that $a = b \cdot c$.
+Return an element $c$ such that $a = b \cdot c$.
 """
 divexact_left(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem; check::Bool=true) = divexact(a, b, :left; check=check)
 
@@ -1128,7 +1128,7 @@ odd_part(x::ZZCliffordOrderElem) = parent(x)(odd_coefficients(x))
 #
 #############################################################
 
-# Computes the ideals present in the canonical pseudo-basis of the Clifford order
+# Compute the ideals present in the canonical pseudo-basis of the Clifford order
 # of the lattice 'ls' in its fixed pseudo-basis.
 function _set_coefficient_ideals!(ls::QuadLat)
   coeff_ids = coefficient_ideals(ls)

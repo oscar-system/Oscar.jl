@@ -328,7 +328,7 @@ end
 @doc raw"""
     intersect(W::AbsWeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
     
-Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
+Compute the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
 returns an `AbsAlgebraicCycle` of codimension ``2``.
 """
 function intersect(W::AbsWeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
@@ -347,7 +347,7 @@ end
 @doc raw"""
     intersect(W::AbsWeilDivisor, C::CartierDivisor; check::Bool=true)
 
-Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
+Compute the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
 returns an `AbsAlgebraicCycle` of codimension ``2``.
 """
 function intersect(W::AbsWeilDivisor, C::CartierDivisor; check::Bool=true)

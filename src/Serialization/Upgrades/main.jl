@@ -142,6 +142,7 @@ include("0.15.0.jl")
 include("1.1.0.jl")
 include("1.2.0.jl")
 include("1.3.0.jl")
+include("1.4.0.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -153,7 +154,7 @@ const backref_sym = Symbol("#backref")
 @doc raw"""
     upgrade(format_version::VersionNumber, dict::Dict)
 
-Finds the first version where an upgrade can be applied and then incrementally
+Find the first version where an upgrade can be applied and then incrementally
 upgrades to each intermediate version until the structure of the current version
 has been achieved.
 """

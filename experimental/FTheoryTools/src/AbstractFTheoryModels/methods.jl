@@ -187,27 +187,27 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
       f = tate_polynomial(m)
       new_tate_polynomial = strict_transform(bd, f)
-      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
+      model = GlobalTateModel(explicit_model_sections(m), model_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism
         new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
       else
         new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
       end
-      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
+      model = GlobalTateModel(explicit_model_sections(m), model_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
       f = weierstrass_polynomial(m)
       new_weierstrass_polynomial = strict_transform(bd, f)
-      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
+      model = WeierstrassModel(explicit_model_sections(m), model_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism
         new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
       else
         new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
       end
-      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
+      model = WeierstrassModel(explicit_model_sections(m), model_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
 
@@ -226,79 +226,76 @@ end
 
 
 ##########################################
-### (3) Tuning
+### (2) Tuning
 ##########################################
 
-@doc raw"""
-    tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
+# FIXME: The below tune function is not consistent with our other "tune" functions (it does not correspond mathematically to a tuning)
+# and produces an undesired form for explicit_model_sections. To be improved at a later date.
 
-Tune an F-theory model by replacing the hypersurface equation by a custom (polynomial)
-equation. The latter can be any type of polynomial: a Tate polynomial, a Weierstrass
-polynomial or a general polynomial. We do not conduct checks to tell which type the
-provided polynomial is. Consequently, this tuning will always return a hypersurface model.
+# @doc raw"""
+#     tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
 
-Note that there is less functionality for hypersurface models than for Weierstrass or Tate
-models. For instance, `singular_loci` can (currently) not be computed for hypersurface models.
+# Tune an F-theory model by replacing the hypersurface equation by a custom (polynomial)
+# equation. The latter can be any type of polynomial: a Tate polynomial, a Weierstrass
+# polynomial or a general polynomial. We do not conduct checks to tell which type the
+# provided polynomial is. Consequently, this tuning will always return a hypersurface model.
 
-# Examples
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
+# Note that there is less functionality for hypersurface models than for Weierstrass or Tate
+# models. For instance, `singular_loci` can (currently) not be computed for hypersurface models.
 
-julia> w = torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, prime divisor on a normal toric variety
+# # Examples
+# ```jldoctest
+# julia> B3 = projective_space(NormalToricVariety, 3)
+# Normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+# julia> w = torusinvariant_prime_divisors(B3)[1]
+# Torus-invariant, prime divisor on a normal toric variety
 
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+# julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+# Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
-julia> x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t)))
-7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x1
- x2
- x3
- x4
- x
- y
- z
+# Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
--x4^4*x*y*z + x^3 - y^2
+# julia> x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t)))
+# 7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+#  x1
+#  x2
+#  x3
+#  x4
+#  x
+#  y
+#  z
 
-julia> tuned_t = tune(t, new_tate_polynomial)
-Hypersurface model over a concrete base
+# julia> new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
+# -x4^4*x*y*z + x^3 - y^2
 
-julia> hypersurface_equation(tuned_t) == new_tate_polynomial
-true
+# julia> tuned_t = tune(t, new_tate_polynomial)
+# Hypersurface model over a concrete base
 
-julia> base_space(tuned_t) == base_space(t)
-true
-```
-"""
-function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
-  entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
-  @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
-  @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
-  if m isa GlobalTateModel
-    equation = tate_polynomial(m)
-  elseif m isa WeierstrassModel
-    equation = weierstrass_polynomial(m)
-  else
-    equation = hypersurface_equation(m)
-  end
-  @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
-  @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
-  p == equation && return m
-  explicit_model_sections = Dict{String, MPolyRingElem}()
-  gens_S = gens(parent(p))
-  for k in 1:length(gens_S)
-    explicit_model_sections[string(gens_S[k])] = gens_S[k]
-  end
-  tuned_model = HypersurfaceModel(explicit_model_sections, p, p, base_space(m), ambient_space(m), fiber_ambient_space(m))
-  set_attribute!(tuned_model, :partially_resolved, false)
-  return tuned_model
-end
+# julia> hypersurface_equation(tuned_t) == new_tate_polynomial
+# true
+
+# julia> base_space(tuned_t) == base_space(t)
+# true
+# ```
+# """
+# function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
+#   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
+#   @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
+#   @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
+#   equation = hypersurface_equation(m)
+#   @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
+#   @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
+#   p == equation && return m
+#   explicit_model_sections = Dict{String, MPolyRingElem}()
+#   gens_S = gens(parent(p))
+#   for k in 1:length(gens_S)
+#     explicit_model_sections[string(gens_S[k])] = gens_S[k]
+#   end
+#   tuned_model = HypersurfaceModel(explicit_model_sections, p, p, base_space(m), ambient_space(m), fiber_ambient_space(m))
+#   set_attribute!(tuned_model, :partially_resolved, false)
+#   return tuned_model
+# end
 
 
 
@@ -346,7 +343,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
   
   # Work out the Weierstrass/Tate sections
   new_model_secs = Dict{String, MPolyRingElem}()
-  if is_empty(defining_section_parametrization(m))
+  if is_empty(model_section_parametrization(m))
     
     # No parametrization, so simply take generic sections
     
@@ -367,7 +364,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     # Parametrization for Weierstrass/Tate sections found
 
     # Have all parametrizing sections been provided by the user?
-    polys = collect(values(defining_section_parametrization(m)))
+    polys = collect(values(model_section_parametrization(m)))
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
@@ -380,7 +377,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     end
 
     # Create ring map to evaluate Weierstrass/Tate sections
-    parametrization = defining_section_parametrization(m)
+    parametrization = model_section_parametrization(m)
     domain = parent(collect(values(parametrization))[1])
     codomain = cox_ring(concrete_data["base"])
     images = [haskey(new_model_secs, string(k)) ? new_model_secs[string(k)] : zero(codomain) for k in gens(domain)]
@@ -467,16 +464,16 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
   # Compute the new model
   if m isa WeierstrassModel
-    return weierstrass_model(concrete_data["base"], new_model_secs, defining_section_parametrization(m); completeness_check)
+    return weierstrass_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
   else
-    return global_tate_model(concrete_data["base"], new_model_secs, defining_section_parametrization(m); completeness_check)
+    return global_tate_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
   end
 end
 
 
 
 ##########################################
-### (2) Meta data setters
+### (3) Meta data setters
 ##########################################
 
 function set_arxiv_id(m::AbstractFTheoryModel, desired_value::String)
@@ -586,7 +583,7 @@ end
 
 
 ##########################################
-### (3) Meta data adders
+### (4) Meta data adders
 ##########################################
 
 function add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
@@ -622,7 +619,7 @@ end
 
 
 ##########################################
-### (4) Specialized model data setters
+### (5) Specialized model data setters
 ##########################################
 
 function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
@@ -637,7 +634,7 @@ function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}
   set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
-function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
+function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Vector{String}}, Vector{String}}})
   set_attribute!(m, :resolutions => desired_value)
 end
 
@@ -655,7 +652,7 @@ function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector
   set_attribute!(m, :resolution_zero_sections => result)
 end
 
-function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
+function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int}}}, Vector{String}}})
   set_attribute!(m, :weighted_resolutions => desired_value)
 end
 
@@ -720,7 +717,7 @@ end
 
 
 ##########################################
-### (5) Specialized model data adders
+### (6) Specialized model data adders
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
@@ -780,7 +777,7 @@ end
 
 
 ##########################################
-### (6) Specialized model methods
+### (7) Specialized model methods
 ##########################################
 
 @doc raw"""
