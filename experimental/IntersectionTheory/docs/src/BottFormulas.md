@@ -195,12 +195,13 @@ kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
 
 ## Examples: Gromov-Witten Invariants
 
-Based on the implementation of Kontsevich Moduli Spaces, we can
-compute Gromov-Witten invariants as follows:
+Based on the implementation of Kontsevich Moduli Spaces, we can compute Gromov-Witten invariants as follows:
 
 ```@docs
 gromov_witten_invariant(d::Int, ns::Vector{Int})
 ```
 
-
+```@docs
+instanton_number(d::Int, ns::Vector{Int})
+```
 
