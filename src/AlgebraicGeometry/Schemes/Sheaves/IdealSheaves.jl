@@ -882,29 +882,6 @@ function order_of_vanishing(
   # We look for the chart with the least complexity
   V = first(affine_charts(X))
   complexity = inf
-
-  # debugging code to make sure every possible outcome 
-  # of the iteration over the keys below is tested once
-  #=
-  cand = [(U, sum([total_degree(lifted_numerator(g)) for g in gens(J) if !iszero(g)])) for (U, J) in object_cache(underlying_presheaf(I)) if !is_one(J)]
-  min_comp = minimum(c for (_, c) in cand; init=inf)
-  cand = [(U, c) for (U, c) in cand if c == min_comp]
-  for (V, c) in cand
-    @show (V, c)
-    R = ambient_coordinate_ring(V)
-    J = saturated_ideal(I(V))
-    @show gens(J)
-    K = saturated_ideal(defining_ideal(V))
-    floc = f[V]
-    aR = ideal(R, numerator(floc))
-    bR = ideal(R, denominator(floc))
-
-    # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-    num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
-    den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
-  end
-  =#
-
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
     is_one(I(U)) && continue
