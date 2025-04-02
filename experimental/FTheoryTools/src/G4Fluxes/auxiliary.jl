@@ -462,7 +462,7 @@ julia> length(basis_of_h22_hypersurface_indices(qsm_model, check = false))
 """
 @attr Vector{Tuple{Int64, Int64}} function basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-  filtered_h22_basis_indices = copy(basis_of_h22_ambient_indices(m, check = check))
+  filtered_h22_basis_indices = deepcopy(basis_of_h22_ambient_indices(m, check = check))
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -589,7 +589,7 @@ julia> length(collect(keys(cdh22)))
   non_trivial_indices = basis_of_h22_hypersurface_indices(m, check = check)
   old_indices = basis_of_h22_ambient_indices(m, check = check)
   to_be_deleted = setdiff(old_indices, non_trivial_indices)
-  new_converter = copy(converter_dict_h22_ambient(m, check = check))
+  new_converter = deepcopy(converter_dict_h22_ambient(m, check = check))
   for k in 1:length(to_be_deleted)
     for (key, value) in new_converter
       tuple_list = [a[2] for a in value]
