@@ -117,6 +117,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   end
 
   # C.9 In all other cases, proceed via a rationally equivalent cycle
+  #=
   println("")
   println("FOUND CASE THAT CANNOT YET BE DECIDED!")
   println("$pt_reduced")
@@ -126,6 +127,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   println("$reduced_scaling_relations")
   println("TRYING WITH EQUIVALENT CYCLE")
   println("")
+  =#
   numb = intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data)
   s_inter_dict[string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations])] = numb
   return numb
