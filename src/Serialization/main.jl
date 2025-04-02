@@ -122,6 +122,7 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
+  println(s.obj)
   return decode_type(s.obj)
 end
 
@@ -746,7 +747,6 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   file_version = load_node(s) do obj
     serialization_version_info(obj)
   end
-
   if file_version < VERSION_NUMBER
     # we need a mutable dictionary
     jsondict = copy(s.obj)
@@ -755,6 +755,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
+    write("/tmp/blah.json", jsondict_str)
   end
   
   try
