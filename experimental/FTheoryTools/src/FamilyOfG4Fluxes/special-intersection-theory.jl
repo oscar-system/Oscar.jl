@@ -31,8 +31,13 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
 
   # (D) Deal with transverse intersection...
 
-  # D.1 Work out the intersection locus in detail.
+  # D.1 Work out the intersection locus in detail and check if this was covered before
   pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations = Oscar._reduce_hypersurface_equation(v, hypersurface_equation, indices, data)
+  if haskey(s_inter_dict, string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations]))
+    numb = s_inter_dict[string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations])]
+    inter_dict[indices] = numb
+    return numb
+  end
 
   # D.2 If pt == 0, then we are not looking at a transverse intersection. So take an equivalent cycle and try again...
   if is_zero(pt_reduced)
@@ -75,23 +80,22 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   # This only gives the solution [0:1], so one intersection point.
   if length(gs_reduced) == 1 && length(remaining_vars) == 2
     mons_list = collect(monomials(pt_reduced))
-    if length(mons_list) == 1 && collect(coefficients(pt_reduced))[1] != 0
+    if length(mons_list) == 1
       list_of_exps = collect(exponents(mons_list[1]))[1]
       number_of_zeros = count(==(0), list_of_exps)
       if number_of_zeros == length(list_of_exps) - 1
         if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-          if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
-            highest_power = list_of_exps[findfirst(x -> x > 0, list_of_exps)]
-            if highest_power == 1
-              inter_dict[indices] = highest_power
-              return highest_power
+          if (mons_list[1] == remaining_vars[1] && reduced_scaling_relations[1,2] != 0) || (mons_list[1] == remaining_vars[2] && reduced_scaling_relations[1,1] != 0)
+            if list_of_exps[findfirst(x -> x > 0, list_of_exps)] == 1
+              inter_dict[indices] = ZZ(1)
+              return ZZ(1)
             end
           end
         end
       end
     end
   end
-    
+
   # C.7 Cover a case that seems to appear frequently for our investigation. It looks as follows:
   # pt_reduced = -5700*w8*w10
   # remaining_vars = MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w8, w10]
@@ -102,22 +106,35 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
     mons_list = collect(monomials(pt_reduced))
     if length(mons_list) == 1 && mons_list[1] == remaining_vars[1] * remaining_vars[2]
       if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
-        if reduced_scaling_relations == matrix(ZZ, [[1,1]])
-          inter_dict[indices] = 2
-          return 2
+        if reduced_scaling_relations[1,1] != 0 && reduced_scaling_relations[1,2] != 0
+          inter_dict[indices] = ZZ(2)
+          return ZZ(2)
         end
       end
     end
   end
 
-  # C.8 Check if this was covered in our special cases
-  if haskey(s_inter_dict, string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations]))
-    numb = s_inter_dict[string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations])]
-    inter_dict[indices] = numb
-    return numb
+  # C.8 Cover a case that seems to appear frequently for our investigation. It looks as follows:
+  # pt_reduced = a * x1^2 + b * x1 * x2 + c * x2^2 with a,b,c != 0
+  # remaining_vars = MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2]
+  # gs_reduced = MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1*x2]
+  # reduced_scaling_relations = [u1 u2], with at least one of them being non-zero
+  # This gives exactly two solutions over the complex numbers, namely those of the p-q formula once you set one of the two variables to 1 with the scaling relation.
+  # (If one of the variables vanishes, then pt_reduced = 0 enforces that the other vanishes too. And this is forbidden by the SR-ideal.)
+  if length(gs_reduced) == 1 && length(remaining_vars) == 2
+    if gs_reduced[1] == remaining_vars[1] * remaining_vars[2]
+      mons_list = collect(monomials(pt_reduced))
+      if Set(mons_list) == Set([remaining_vars[1] * remaining_vars[2], remaining_vars[1]^2, remaining_vars[2]^2])
+        if reduced_scaling_relations[1,1] != 0 || reduced_scaling_relations[1,2] != 0
+          inter_dict[indices] = ZZ(2)
+          return ZZ(2)
+        end
+      end
+    end
   end
 
   # C.9 In all other cases, proceed via a rationally equivalent cycle
+  #=
   println("")
   println("FOUND CASE THAT CANNOT YET BE DECIDED!")
   println("$pt_reduced")
@@ -127,6 +144,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   println("$reduced_scaling_relations")
   println("TRYING WITH EQUIVALENT CYCLE")
   println("")
+  =#
   numb = intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data)
   s_inter_dict[string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations])] = numb
   return numb
@@ -224,24 +242,25 @@ end
 function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, Int64}, data::NamedTuple)
 
   # Identify positions of the single and triple variable
-  power_variable = indices[rand(1:length(indices))]
-  for k in Set(indices)
-    if count(==(k), indices) > 1
-      power_variable = k
-      break
-    end
-  end
+  positions = [i for (i, val) in pairs(indices) if count(==(val), indices) >= 2]
+  power_variable = isempty(positions) ? indices[rand(1:length(indices))] : indices[rand(positions)]
   other_variables = collect(Set(filter(!=(power_variable), indices)))
   pos_power_variable = findfirst(==(power_variable), indices)
 
   # Let us simplify the problem by extracting the entries in the columns of single_variables and double_variables of the linear relation matrix
-  simpler_matrix = data.linear_relations[[other_variables..., power_variable], :]
+  simpler_matrix = matrix(QQ, data.linear_relations[[other_variables..., power_variable], :])
   b = zero_matrix(QQ, length(other_variables) + 1, 1)
   b[nrows(b), 1] = 1
   A = solve(simpler_matrix, b; side =:right)
   
+  # On top, at a random combination of linear relations, which do not involve the variables in question
+  ker = nullspace(simpler_matrix)[2]
+  A_offset = sum(rand([-1, 0, 1]) * ker[:, my_index] for my_index in 1:ncols(ker))
+  #max_numb = 50
+  #A_offset = sum(rand(vcat(-max_numb:-1,1:max_numb)) * ker[:, my_index] for my_index in 1:ncols(ker))
+
   # Now form the relation in case...
-  employed_relation = -sum((data.linear_relations[:, k] .* A[k]) for k in 1:5)
+  employed_relation = -sum((data.linear_relations[:, k] .* (A[k,1] + A_offset[k,1])) for k in 1:nrows(A))
   employed_relation[power_variable] = 0
 
   # Populate `coeffs` and `tuples` that form rationally equivalent algebraic cycle
