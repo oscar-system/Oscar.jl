@@ -98,7 +98,10 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       #  to compute a reduced GB by default
       groebner_basis_f4(I, complete_reduction=true)
     elseif base_ring(I) isa QQMPolyRing
-      groebner_basis_modular(I, ordering=ordering)
+      groebner_basis_modular_qq(I, ordering=ordering)
+    elseif coefficient_ring(I) isa FracField{QQMPolyRingElem}
+      groebner_basis_modular_qt(I, ordering=ordering)
+      println(I.gb[ordering])
     else
       error("Modular option not applicable in this setting.")
     end
