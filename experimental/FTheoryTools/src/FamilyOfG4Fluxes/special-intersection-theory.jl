@@ -80,7 +80,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   # This only gives the solution [0:1], so one intersection point.
   if length(gs_reduced) == 1 && length(remaining_vars) == 2
     mons_list = collect(monomials(pt_reduced))
-    if length(mons_list) == 1 && collect(coefficients(pt_reduced))[1] != 0
+    if length(mons_list) == 1
       list_of_exps = collect(exponents(mons_list[1]))[1]
       number_of_zeros = count(==(0), list_of_exps)
       if number_of_zeros == length(list_of_exps) - 1
@@ -133,7 +133,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
     end
   end
 
-  # C.8 In all other cases, proceed via a rationally equivalent cycle
+  # C.9 In all other cases, proceed via a rationally equivalent cycle
   #=
   println("")
   println("FOUND CASE THAT CANNOT YET BE DECIDED!")

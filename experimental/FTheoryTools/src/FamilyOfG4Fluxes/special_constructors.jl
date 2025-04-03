@@ -132,18 +132,7 @@ true
 """
 function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
-  # (1) Consistency checks
-  if arxiv_doi(m) == "10.48550/arXiv.1511.03209" && algorithm == "default"
-    error("The default algorithm for intersection computations will likely not terminate in a reasonable time for this model and is therefore not supported")
-  end
-  @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
-  @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
-  if check
-    @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
-  end
-
-  # (2) Is result known?
+  # (1) Is result known?
   if !not_breaking
     if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse) && has_attribute(m, :offset_quant_transverse)
       fgs_m_int = matrix_integral_quant_transverse(m, check = check)
@@ -168,6 +157,17 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
     end  
   end
 
+  # (2) Consistency checks
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209" && algorithm == "default"
+    error("The default algorithm for intersection computations will likely not terminate in a reasonable time for this model and is therefore not supported")
+  end
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  if check
+    @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
+  end  
+  
   # (3) Result not known, compute it!
   final_shift = Vector{QQFieldElem}()
   res = Vector{ZZMatrix}()
