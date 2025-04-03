@@ -71,19 +71,11 @@ $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
-
-julia> e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
-
-julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
-
-julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
-
-julia> g4 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4 = qsm_flux(qsm_model)
 G4-flux candidate
-  - Elementary quantization checks: not executed
-  - Transversality checks: not executed
-  - Non-abelian gauge group: breaking pattern not analyzed
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: not broken
   - Tadpole cancellation check: not executed
 
 julia> d3_tadpole_constraint(g4, check = false)
