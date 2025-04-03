@@ -104,8 +104,6 @@ available for integer lattices with isometry.
 
 ```@docs
 Base.:^(::ZZLatWithIsom, ::Int)
-biproduct(::Vector{ZZLatWithIsom})
-direct_product(::Vector{ZZLatWithIsom})
 direct_sum(::Vector{ZZLatWithIsom})
 dual(::ZZLatWithIsom)
 lll(::ZZLatWithIsom)

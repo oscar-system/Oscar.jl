@@ -93,8 +93,10 @@ until $n$.
 In particular, the current naive approach requires to determine representatives
 for the isomorphism classes of even lattices with isometry of order dividing
 $n$, for some divisors of $n$. Hence, if $n$ has many divisors, such
-computations can be expensive. Moreover, the current implementation does not
-preserve partial results which are overwritten by the actual output.
+computations can be expensive. We do not recommend to use such a method for
+lattices of large rank or isometries of high order as the computations could
+possibly take several weeks. Interested users may look into the next section
+for more advanced methods, to be used on a larger framework.
 
 ## Underlying machinery
 

@@ -83,8 +83,6 @@ for quadratic spaces with isometry.
 
 ```@docs
 Base.:^(::QuadSpaceWithIsom, ::Int)
-biproduct(::Vector{QuadSpaceWithIsom})
-direct_product(::Vector{QuadSpaceWithIsom})
 direct_sum(::Vector{QuadSpaceWithIsom})
 rescale(::QuadSpaceWithIsom, ::RationalUnion)
 ```

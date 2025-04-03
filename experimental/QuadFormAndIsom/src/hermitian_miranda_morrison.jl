@@ -266,21 +266,14 @@ end
 #
 ###############################################################################
 
-@doc raw"""
-    _elementary_divisors(
-      L::HermLat,
-      D::RelNumFieldOrderIdeal
-    ) -> Vector{AbsSimpleNumFieldOrderIdeal}
-
-Given a hermitian lattice $L$ over a degree 2 extensions of number fields
-$E/K$, and given an $O_E$-ideal $D$, return the prime $O_K$-ideals $p$ so that
-the quotient $D^{-1}L^\#_p/L_p$ is not unimodular.
-
-According to [BH23], such a quotient is unimodular if and only if
-- either $L_p$ is unimodular, and $D$ and $p$ are coprime;
-- or $L$ is $P^{-a}$-modular where $P$ is the largest prime $O_E$-ideal over
-  $p$ which is fixed by the canonical involution, and $a = \val_P(D)$.
-"""
+# Given a hermitian lattice $L$ over a degree 2 extensions of number fields
+# $E/K$, and given an $O_E$-ideal $D$, return the prime $O_K$-ideals $p$ so that
+# the quotient $D^{-1}L^\#_p/L_p$ is not unimodular.
+#
+# According to [BH23], such a quotient is unimodular if and only if
+# * either $L_p$ is unimodular, and $D$ and $p$ are coprime;
+# * or $L$ is $P^{-a}$-modular where $P$ is the largest prime $O_E$-ideal over
+#   $p$ which is fixed by the canonical involution, and $a = \val_P(D)$.
 function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
   Ps = collect(keys(factor(D)))
   primess = AbsSimpleNumFieldOrderIdeal[]
@@ -313,18 +306,13 @@ end
 # The major part of the following algorithm follows the implementation of a
 # similar function on Magma by Tommy Hofmann. Only the last loop about
 # determinants approximations is new in this code.
-@doc raw"""
-    _local_determinants_morphism(
-      Lf::ZZLatWithIsom
-    ) -> GAPGroupHomomorphism, GAPGroupHomomorphism
-
-Given an even indefinite integer lattice with isometry $(L, f)$ of finite
-hermitian type, with $L$ of rank at least 3, compute the map $\delta$
-defined in Theorem 6.15 of [BH23]. Its kernel is precisely the image of the
-discriminant representation $O(L, f)\to O(D_L, D_f)$. The first output is
-$\delta$ seen as a map from $O(D_L, D_f)$ to a suitably chosen finite abelian
-group, and the second output is the embedding $O(D_L, D_f)\to O(D_L)$.
-"""
+#
+# Given an even indefinite integer lattice with isometry $(L, f)$ of finite
+# hermitian type, with $L$ of rank at least 3, compute the map $\delta$
+# defined in Theorem 6.15 of [BH23]. Its kernel is precisely the image of the
+# discriminant representation $O(L, f)\to O(D_L, D_f)$. The first output is
+# $\delta$ seen as a map from $O(D_L, D_f)$ to a suitably chosen finite abelian
+# group, and the second output is the embedding $O(D_L, D_f)\to O(D_L)$.
 function _local_determinants_morphism(Lf::ZZLatWithIsom)
   @hassert :ZZLatWithIsom 1 is_of_hermitian_type(Lf)
 

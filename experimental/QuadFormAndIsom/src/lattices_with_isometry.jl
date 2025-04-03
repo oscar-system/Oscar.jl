@@ -1661,17 +1661,10 @@ julia> order(G)
   end
 end
 
-@doc raw"""
-    _transfer_isometry(
-      res::AbstractSpaceRes,
-      g::T
-    ) where T <: MatElem -> QQMatrix
-
-Given an isometry $g$ of a hermitian space $W$, and given a map of
-restriction of scalars `res` from a quadratic space $V$ over $\mathbb{Q}$
-and the hermitian space $W$, return the isometry of $V$ inducing $g$ along
-`res`.
-"""
+# Given an isometry $g$ of a hermitian space $W$, and given a map of
+# restriction of scalars `res` from a quadratic space $V$ over $\mathbb{Q}$
+# and the hermitian space $W$, return the isometry of $V$ inducing $g$ along
+# `res`.
 function _transfer_isometry(
     res::AbstractSpaceRes,
     g::T
@@ -1696,16 +1689,9 @@ end
 #
 ###############################################################################
 
-@doc raw"""
-    _real_kernel_signatures(
-      L::ZZLat,
-      M::MatElem
-    ) -> Int, Int
-
-Given an integer lattice $L$ and a real matrix $M$ representing an isometry of
-$L\otimes \mathbb{R}$, return the positive and negative signatures of the real
-quadratic space $\ker(M)$.
-"""
+# Given an integer lattice $L$ and a real matrix $M$ representing an isometry of
+# $L\otimes \mathbb{R}$, return the positive and negative signatures of the real
+# quadratic space $\ker(M)$.
 function _real_kernel_signatures(
     L::ZZLat,
     M::MatElem
