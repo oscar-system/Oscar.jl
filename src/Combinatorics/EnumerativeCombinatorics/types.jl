@@ -283,6 +283,23 @@ end
 
 ################################################################################
 #
+#  Multipartition
+#
+################################################################################
+
+@doc raw"""
+    Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+
+Multipartitions are implemented as a subtype of 1-dimensional arrays of partitions. You can use smaller integer types to increase performance.
+
+See [`multipartition`](@ref) for the user-facing constructor and an example.
+"""
+struct Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+    mp::Vector{Partition{T}}
+end
+
+################################################################################
+#
 #  Young Tableaux
 #
 ################################################################################
