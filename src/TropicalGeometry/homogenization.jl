@@ -15,7 +15,7 @@ function homogenize_pre_tropicalization(I::MPolyIdeal)
     Kxhx,_ = polynomial_ring(coefficient_ring(Kx),vcat([:xh],symbols(Kx)); cached=false)
 
     # Construct homogenization
-    Gh = Vector{elem_type(Kx)}(undef,length(G))
+    Gh = Vector{elem_type(Kxhx)}(undef,length(G))
     for (i,g) in enumerate(G)
         gh = MPolyBuildCtx(Kxhx)
         d = total_degree(g)

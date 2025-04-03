@@ -1,16 +1,27 @@
 @testset "natural stabilizers in permutation groups" begin
 
   G = symmetric_group(5)
-  S = stabilizer(G, 1)
+  # stabilizer of a vector of integers
+  pt = 1
+  S = stabilizer(G, pt)
   @test order(S[1]) == 24
-  @test S[1] == stabilizer(G, 1, ^)[1]
+  @test S[1] == stabilizer(G, pt, ^)[1]
+  # stabilizer of a vector of integers
   pt = [1, 2]
   S = stabilizer(G, pt)
   @test order(S[1]) == 6
   @test S[1] == stabilizer(G, pt, on_tuples)[1]
-  S = stabilizer(G, Set(pt))
+  # stabilizer of a tuple of integers
+  pt = (1, 2)
+  S = stabilizer(G, pt)
+  @test order(S[1]) == 6
+  @test S[1] == stabilizer(G, pt, on_tuples)[1]
+  # stabilizer of a set of integers
+  pt = Set([1, 2])
+  S = stabilizer(G, pt)
   @test order(S[1]) == 12
-  @test S[1] == stabilizer(G, Set(pt), on_sets)[1]
+  @test S[1] == stabilizer(G, pt, on_sets)[1]
+  # stabilizer under permutation action on vectors
   l = [1, 1, 2, 2, 3]
   S = stabilizer(G, l, permuted)
   @test order(S[1]) == 4
@@ -44,17 +55,39 @@ end
   F = GF(2)
   G = general_linear_group(n, F)
   V = free_module(F, n)
+  # stabilizer of a vector
   v = gen(V, 1)
   S = stabilizer(G, v)
   @test order(S[1]) == 24
   @test S[1] == stabilizer(G, v, *)[1]
+  @test S[1] == Oscar._stabilizer_generic(G, v, *)[1]
+  # stabilizer of a vector of vectors
   S = stabilizer(G, gens(V))
   @test order(S[1]) == 1
   @test S[1] == stabilizer(G, gens(V), on_tuples)[1]
+  @test S[1] == Oscar._stabilizer_generic(G, gens(V), on_tuples)[1]
+  # stabilizer of a set of vectors
   S = stabilizer(G, Set(gens(V)))
   @test order(S[1]) == 6
   @test S[1] == stabilizer(G, Set(gens(V)), on_sets)[1]
-
+  @test S[1] == Oscar._stabilizer_generic(G, Set(gens(V)), on_sets)[1]
+  # stabilizer of a tuple of vectors
+  w = (gen(V, 1), gen(V, 2))
+  S = stabilizer(G, w)
+  @test order(S[1]) == 4
+  @test S[1] == stabilizer(G, w, on_tuples)[1]
+  @test S[1] == Oscar._stabilizer_generic(G, w, on_tuples)[1]
+  # stabilizer of an echelonized matrix
+  W, embW = sub(V, [gen(V,1), gen(V,3)])
+  m = matrix(embW)
+  S = stabilizer(G, m, on_echelon_form_mats)
+  @test order(S[1]) == 24
+  @test S[1] == Oscar._stabilizer_generic(G, m, on_echelon_form_mats)[1]
+  W, embW = sub(V, [])
+  m = matrix(embW)
+  S = stabilizer(G, m, on_echelon_form_mats)
+  @test S[1] == G
+  @test S[1] == Oscar._stabilizer_generic(G, m, on_echelon_form_mats)[1]
 end
 
 @testset "action on multivariate polynomials: permutations" begin

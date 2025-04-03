@@ -4,6 +4,14 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
+using Distributed: RemoteChannel, Future, remotecall
+
+if VERSION < v"1.11.0-DEV.1562"
+  using Compat: allequal, allunique
+end
+if VERSION < v"1.8.0-DEV.1494"
+  export allequal
+end
 
 # our packages
 import AbstractAlgebra
@@ -56,6 +64,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -83,10 +92,13 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  Group,
+  GroupElem,
   has_gens,
   Ideal,
   Indent,
   is_finite_order,
+  is_known,
   is_terse,
   is_trivial,
   is_unicode_allowed,
@@ -138,6 +150,7 @@ import Nemo:
   fqPolyRepFieldElem,
   fraction_field,
   height,
+  IntegerUnionOrPtr,
   is_embedded,
   is_prime,
   is_probable_prime,
@@ -145,6 +158,7 @@ import Nemo:
   is_unit,
   isqrtrem,
   jacobi_symbol,
+  mat_entry_ptr,
   matrix_space,
   moebius_mu,
   numerator,
@@ -153,6 +167,7 @@ import Nemo:
   QQField,
   QQFieldElem,
   QQMatrix,
+  RationalUnionOrPtr,
   rising_factorial,
   root,
   unit,
@@ -206,3 +221,4 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+import lib4ti2_jll

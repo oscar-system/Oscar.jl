@@ -68,8 +68,6 @@ coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
 
 base_ring(a::PBWAlgRing) = a.poly_ring
 
-base_ring(a::PBWAlgElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
   return PBWAlgElem(parent(a), deepcopy_internal(a.sdata, dict))
 end
@@ -120,16 +118,16 @@ function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
   return AbstractAlgebra.leading_exponent_vector(a.sdata)
 end
 
-function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))
+function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))::T
 end
 
-function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))
+function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))::T
 end
 
-function constant_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(constant_coefficient(a.sdata))
+function constant_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(constant_coefficient(a.sdata))::T
 end
 
 function AbstractAlgebra.leading_term(a::PBWAlgElem)

@@ -5,7 +5,11 @@ on:
     branches:
       - master
       - 'release-*'
+    paths-ignore:
+      - '*.md'
   pull_request:
+    paths-ignore:
+      - '*.md'
   workflow_dispatch:
 
 # needed to allow julia-actions/cache to delete old caches that it has created
@@ -85,19 +89,3 @@ jobs:
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
               doctest(Oscar)'
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@latest
-        with:
-          version: '1.10'
-      - name: "Symlink NoExperimental_whitelist.jl"
-        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
-      - name: Build package
-        uses: julia-actions/julia-buildpkg@v1
-      - name: Install dependencies
-        run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
-      - name: Build
-        run: julia --project=docs/ --color=yes docs/make.jl

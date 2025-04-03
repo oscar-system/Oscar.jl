@@ -5,7 +5,11 @@ on:
     branches:
       - master
       - 'release-*'
+    paths-ignore:
+      - '*.md'
   pull_request:
+    paths-ignore:
+      - '*.md'
   schedule:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
@@ -26,7 +30,7 @@ concurrency:
 jobs:
   test:
     runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", RPTU]
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -34,6 +38,7 @@ jobs:
           - '1.6'
           - '1.10'
           - '1.11'
+          - '1.12-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -55,12 +60,6 @@ jobs:
           - julia-version: '1.10'
             group: 'long'
             os: [macOS, RPTU]  # runs on self-hosted runner
-          - julia-version: '1.10'
-            group: 'book'
-            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
-          - julia-version: 'nightly'
-            group: 'book'
-            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -116,27 +115,96 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  book-tests:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 80
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.10'
+          - 'pre'
+          - 'nightly'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # For Codecov, we must also fetch the parent of the HEAD commit to
+          # be able to properly deal with PRs / merges
+          fetch-depth: 2
+      - name: "Set up Julia"
+        id: setup-julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+        if: runner.environment != 'self-hosted'
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=book" >> $GITHUB_ENV
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+        with:
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: "Process code coverage"
+        if: matrix.julia-version == '1.10'
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.10'
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  extra-long-test:
+    # Extra long tests
+    # Only happens during the daily run, triggered by schedule
+    if: github.event_name == 'schedule'
+    runs-on: [Linux, RPTU, normal-memory]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: "Set up Julia"
+        id: setup-julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.10"
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=extra_long" >> $GITHUB_ENV
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+
   doctest:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         julia-version:
           - '1.10'
           - '1.11'
+          - '1.12-nightly'
           - 'nightly'
         os:
-          - [Linux, RPTU, normal-memory]
+          - 'ubuntu-latest'
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
-            os: [Linux, RPTU, normal-memory]
+            os: 'ubuntu-latest'
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
@@ -186,6 +254,35 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+# adapted from gap-system/gap
+  slack-notification:
+    name: Send Slack notification on status change
+    needs:
+      - extra-long-test
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        id: get-branch
+        run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Determine whether CI status changed
+        uses: gap-actions/should-i-notify-action@v1
+        id: should_notify
+        with:
+          branch: ${{ steps.get-branch.outputs.branch }}
+          needs_context: ${{ toJson(needs) }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          notify_on_changed_status: true
+          event: ${{ github.event_name }}
+      - name: Send slack notification
+        uses: act10ns/slack@v2
+        if: ${{ steps.should_notify.outputs.should_send_message == 'yes' }}
+        with:
+          status: ${{ steps.should_notify.outputs.current_status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

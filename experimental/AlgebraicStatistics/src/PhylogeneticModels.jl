@@ -205,7 +205,7 @@ fourier_ring(pm::GroupBasedPhylogeneticModel) = pm.fourier_ring
 @doc raw"""
     group_of_model(pm::GroupBasedPhylogeneticModel)
 
-Returns the group the `GroupBasedPhylogeneticModel` `pm` is based on.
+Return the group the `GroupBasedPhylogeneticModel` `pm` is based on.
 
 # Examples
 ```jldoctest
@@ -229,7 +229,7 @@ group_of_model(pm::GroupBasedPhylogeneticModel) = pm.group
 @doc raw"""
     cavender_farris_neyman_model(graph::Graph{Directed})
 
-Creates a `PhylogeneticModel` based on `graph` whose transition matrices are of type Cavender-Farris-Neyman. 
+Create a `PhylogeneticModel` based on `graph` whose transition matrices are of type Cavender-Farris-Neyman. 
 
 # Examples
 ```jldoctest
@@ -268,7 +268,7 @@ end
 @doc raw"""
     jukes_cantor_model(graph::Graph{Directed})
 
-Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Jukes Cantor matrices. 
+Create a `PhylogeneticModel` based on `graph` whose transition matrices are Jukes Cantor matrices. 
 
 # Examples
 ```jldoctest
@@ -312,7 +312,7 @@ end
 @doc raw"""
     kimura2_model(graph::Graph{Directed})
 
-Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 2-parameter matrices. 
+Create a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 2-parameter matrices. 
 
 # Examples
 ```jldoctest
@@ -355,7 +355,7 @@ end
 @doc raw"""
     kimura3_model(graph::Graph{Directed})
 
-Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 3-parameter matrices. 
+Create a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 3-parameter matrices. 
 
 # Examples
 ```jldoctest
@@ -403,7 +403,7 @@ end
 @doc raw"""
     general_markov_model(graph::Graph{Directed})
 
-Creates a `PhylogeneticModel` based on `graph` whose transition matrices are stochastic with no further constraints. 
+Create a `PhylogeneticModel` based on `graph` whose transition matrices are stochastic with no further constraints. 
 
 # Examples
 ```jldoctest

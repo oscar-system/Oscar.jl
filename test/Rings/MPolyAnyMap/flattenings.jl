@@ -16,7 +16,7 @@
 
   R, _ = quo(R, ideal(R, sum(gens(R))))
   S, _ = polynomial_ring(R, [:s, :t])
-  phi = Oscar.flatten(S)
+  phi = Oscar.flatten(S; cached=true)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(S.(gens(R)))
@@ -301,7 +301,8 @@ end
 @testset "garbage collection" begin
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
   S, _ = polynomial_ring(R, [:s, :t], cached=false)
-  phi = Oscar.flatten(S)
+  S, _ = quo(S, ideal(S, elem_type(S)[]))
+  phi = Oscar.flatten(S; cached=true)
   # julia might not consider `x^2+y^2` as being unused until the end of the scope
   # see https://github.com/JuliaLang/julia/issues/51818
   # so we put this into a function

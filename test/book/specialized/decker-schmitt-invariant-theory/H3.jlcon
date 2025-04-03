@@ -45,7 +45,7 @@ julia> length(MP)
 
 julia> [[ kernel(reduce(hcat, [ K[coeff(p, x); coeff(p, y); coeff(p, z)] for p in gens(Q) ])) for Q in MP ]]
 1-element Vector{Vector{AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
- [[a+1 0 1], [-a 0 1], [-1 0 1], [0 a+1 1], [0 -a 1], [0 -1 1], [-a 1 0], [a+1 1 0], [-1 1 0]]
+ [[a+1 1 0], [-a 1 0], [-1 1 0], [a+1 0 1], [-a 0 1], [-1 0 1], [0 -a 1], [0 a+1 1], [0 -1 1]]
 
 julia> S, s = QQ["t"]; T = fraction_field(S); t = T(s);
 

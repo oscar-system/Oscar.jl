@@ -377,7 +377,7 @@ end
 
 
 @attr Int function dim(D::AlgebraicCycle)
-  result = -1
+  result = -inf
   for I in components(D)
     d = dim(I)
     if d > result
