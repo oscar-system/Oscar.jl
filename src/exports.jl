@@ -1512,6 +1512,7 @@ export scalar_product
 export scheme
 export scheme_type
 export schensted
+export show_atlas_info
 export schur_cover
 export schur_index
 export schur_multiplier
@@ -1663,6 +1664,7 @@ export transitive_group_identification, has_transitive_group_identification
 export transitivity
 export transport
 export transportation_polytope
+export triangular_decomposition
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
