@@ -677,13 +677,28 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
 end
 
 function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
+  desired_value = Symbol(desired_value)
   divs = torusinvariant_prime_divisors(ambient_space(m))
   cohomology_ring(ambient_space(m); check=false)
-  cox_gens = string.(gens(cox_ring(ambient_space(m))))
+  cox_gens = symbols(cox_ring(ambient_space(m)))
   @req desired_value in cox_gens "Specified zero section is invalid"
   index = findfirst(==(desired_value), cox_gens)
   set_attribute!(m, :zero_section_index => index::Int)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
+end
+
+function set_exceptional_classes(m::AbstractFTheoryModel, desired_value::Vector{String})
+  divs = torusinvariant_prime_divisors(ambient_space(m))
+  cohomology_ring(ambient_space(m); check=false)
+  cox_gens = symbols(cox_ring(ambient_space(m)))
+  @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
+  exceptional_divisor_indices = Vector{Int}()
+  for class in desired_value
+      index = findfirst(==(Symbol(class)), cox_gens)
+      push!(exceptional_divisor_indices, index)
+  end
+  set_attribute!(m, :exceptional_divisor_indices => exceptional_divisor_indices::Vector{Int})
+  set_attribute!(m, :exceptional_classes => [cohomology_class(divs[index]) for index in exceptional_divisor_indices])
 end
 
 function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
