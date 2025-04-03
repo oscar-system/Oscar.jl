@@ -1,13 +1,16 @@
-# An example template for the experimental section
+# Parallel, resp. distributed computations in Oscar
 
-## Aims
+## Provide simple tools to deploy embarrassingly parallel tasks to workers
 
-This is an example for a file structure to set up a new package 
-in the experimental section. All files you find here are part of the 
-minimum requirements. See also the official Oscar documentation.
+The standard julia methods for parallelization do not naturally go well together with 
+Oscar datatypes. The main reason is that the `parent` structure needs to be maintained 
+when communicating between different processes. In this experimental package we aim 
+to providing support for these things in a hopefully convenient way for the user and 
+the programmer.
 
 ## Status
 
-We plan to also provide a function to automatically copy this template 
-for you to start your own package. 
-
+This is currently work in progress with no guarantee for long term support. 
+However, if you would like to use it or should you find out that the methods 
+provided here do not fully serve your needs, feel free to reach out to 
+`@antonydellavecchia` and `@HechtiDerLachs`. 
