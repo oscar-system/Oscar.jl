@@ -517,6 +517,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         "LaurentSeriesRingElem",
         "PcGroupElem", "PermGroup", "PermGroupElem",
         "FreeAssociativeAlgebraIdeal",
+        "FracElem",
         "FreeAssociativeAlgebraElem",
         "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
         "BigInt", "Int128", "Int16", "Int32", "Int8",
@@ -548,10 +549,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         "LieAlgebraModuleElem",
         "LinearLieAlgebraElem"
         ]
-        # do nothing
-        
       else
-        #println(json(dict, 2))
         error("$type_name doesn't have upgrade")
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
