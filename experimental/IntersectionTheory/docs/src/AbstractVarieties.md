@@ -7,7 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Types
 
-AbsVariety <: Variety
+The OSCAR type for abstract varieties is `AbstractVariety`.
 
 ## Constructors
 
@@ -16,9 +16,8 @@ abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
 ```@docs
-abstract_point()
+abstract_point(; base::Ring=QQ)
 ```
-
 ### Specialized Constructors
 
 ```@docs
@@ -60,7 +59,7 @@ degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false
 ```
 
 !!! note
-    Products and blowups are described elsewhere.
+    Products and blow-ups are described elsewhere.
 
 ## Underlying Data of an Abstract Variety
 
@@ -161,9 +160,9 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 !!! note
-    Blowups are described in their own section.
+    Blow-Ups are described in their own section.
 
-## Integrate Chow Ring Elements
+## Integrating Chow Ring Elements
 
 ```@julia
 integral(x::Union{MPolyDecRingElem, MPolyQuoRingElem})
@@ -187,7 +186,45 @@ AbstractBundle of rank 2 on AbstractVariety of dim 4
 julia> E = symmetric_power(Q, 3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
 
+julia> # Lines on a general cubic hypersurface in P^3:
+
 julia> integral(top_chern_class(E))
 27
+
+```
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P3 = abstract_projective_space(3, base = QT)
+AbstractVariety of dim 3
+
+julia> h = gens(P3)[1]
+h
+
+julia> integral(t^2*h^3+t*h)
+t^2
+
+```
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4+4)
+AbstractVariety of dim 12
+
+julia> S = tautological_bundles(G)[1]
+AbstractBundle of rank 2 on AbstractVariety of dim 12
+
+julia> E = symmetric_power(S, 2)
+AbstractBundle of rank 3 on AbstractVariety of dim 12
+
+julia> # Lines on a general complete intersection Calabi-Yau threefold of type (2,2,2,2):
+
+julia> integral(top_chern_class(E)^4)
+512
 
 ```

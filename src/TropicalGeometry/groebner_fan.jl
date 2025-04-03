@@ -294,7 +294,7 @@ function interreduce(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
     # then reduce G[i] by G[1:i-1] for i=length(G),...,2
     sort!(G,
           by=g->leading_monomial(g,ordering=ord),
-          lt=(f,g)->(cmp(ord,f,g)<0))
+          order=ord)
     for i in 2:length(G)
         G[i] = reduce(G[i],G[1:i-1],ordering=ord,complete_reduction=true)
     end

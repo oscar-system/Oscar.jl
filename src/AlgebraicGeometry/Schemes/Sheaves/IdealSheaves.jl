@@ -667,13 +667,11 @@ end
 #end
 #
 
-function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
-    end
-    return all(x->isone(I(x)), covering)
-  end::Bool
+@attr Bool function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
+  end
+  return all(x->isone(I(x)), covering)
 end
 
 function is_one(I::PrimeIdealSheafFromChart; covering::Covering=default_covering(scheme(I)))
@@ -684,40 +682,38 @@ function dim(I::PrimeIdealSheafFromChart)
   return dim(I(original_chart(I)))
 end
 
-function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(I(U)) && return false
-    end
+@attr Bool function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(I(U)) && return false
+  end
 
-    J = summands(I)
-    k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
-    if k !== nothing
-      P = J[k]
-      U = original_chart(P)
-      if !is_one(cheap_sub_ideal(I, U))
-        is_one(I(U)) || return false
+  J = summands(I)
+  k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+  if k !== nothing
+    P = J[k]
+    U = original_chart(P)
+    if !is_one(cheap_sub_ideal(I, U))
+      is_one(I(U)) || return false
+    end
+  end
+  
+  if has_decomposition_info(covering)
+    dec = decomposition_info(covering)
+    for U in covering 
+      D = ideal(OO(U), dec[U])
+      K = D
+      for J in summands(I) # shortcut for trivial patches
+        if U in keys(object_cache(J))
+          K = K + J(U)
+        end 
       end
-    end
-    
-    if has_decomposition_info(covering)
-      dec = decomposition_info(covering)
-      for U in covering 
-        D = ideal(OO(U), dec[U])
-        K = D
-        for J in summands(I) # shortcut for trivial patches
-          if U in keys(object_cache(J))
-            K = K + J(U)
-          end 
-        end
-        isone(K) && continue
-        
-        isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
-      end 
-      return true
-    end
-    return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
-  end::Bool
+      isone(K) && continue
+      
+      isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
+    end 
+    return true
+  end
+  return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
 end
 
 function is_one(I::ProductIdealSheaf; covering::Covering=default_covering(scheme(I)))
@@ -795,15 +791,51 @@ end
   return is_equidimensional(pre_image_ideal(I))
 end
 
-function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+@doc raw"""
+    _minimal_power_such_that(
+        I::Ideal, P::PropertyType;
+        boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+      ) where {PropertyType}
+
+Find a minimal exponent `k` such that `P(I^k) == true` where `P` is 
+some property which can be evaluated on an ideal; return the pair 
+`(k, I^k)`.
+
+By default, this is done by bisection, i.e. first we try with powers 
+`I^0, I^1, I^2, I^4, I^8, I^16, ...` until we obtain `P(I^k) == true` 
+for the first time and then downwards bisection to find the minimal 
+exponent with this property. 
+
+As this is prone to quickly trigger Groebner basis computations of ideals 
+with generators of rather high degree, we provide the keyword argument 
+`boundary_for_incremental_strategy`. If set to some integer value `k_lim`, 
+the build up phase for finding powers `J = I^(2^r)` with `P(J) == true` 
+is aborted, once `2^r >= k_lim` and an incremental search for the lowest 
+exponent is done instead. 
+"""
+function _minimal_power_such_that(
+    I::Ideal, P::PropertyType;
+    boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+  ) where {PropertyType}
   whole_ring = ideal(base_ring(I), [one(base_ring(I))])
   P(whole_ring) && return (0, whole_ring)
   P(I) && return (1, I)
   I_powers = [(1,I)]
 
-  while !P(last(I_powers)[2])
+  # building up a cache by iterated squaring of the exponent
+  while 2*last(I_powers)[1] < boundary_for_incremental_strategy && !P(last(I_powers)[2])
     push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
   end
+
+  # if we crossed the boundary for the build up, switch to dumb iteration
+  if 2*last(I_powers)[1] >= boundary_for_incremental_strategy && !P(last(I_powers)[2])
+    while true
+      push!(I_powers, (last(I_powers)[1]+1, last(I_powers)[2]*I))
+      k, J = last(I_powers)
+      P(J) && return k, J
+    end
+  end
+
   upper = pop!(I_powers)
   lower = pop!(I_powers)
   while upper[1]!=lower[1]+1
@@ -878,8 +910,8 @@ function order_of_vanishing(
   bR = ideal(R, denominator(floc))
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
   return num_mult - den_mult
 end
 
@@ -1499,20 +1531,18 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:AbsIdealShe
   return new_cov
 end
 
-function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
-  get_attribute!(I, :small_generating_set) do
-    L = base_ring(I)
-    poly_ideal = pre_saturated_ideal(I)
-    if algorithm == :simple
-      # do nothing more
-    elseif algorithm == :with_saturation
-      poly_ideal = saturated_ideal(I)
-    else
-      error("algorithm keyword not recognized")
-    end
-    g = small_generating_set(poly_ideal)
-    unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
-  end::Vector{elem_type(base_ring(I))} 
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
+  L = base_ring(I)
+  poly_ideal = pre_saturated_ideal(I)
+  if algorithm == :simple
+    # do nothing more
+  elseif algorithm == :with_saturation
+    poly_ideal = saturated_ideal(I)
+  else
+    error("algorithm keyword not recognized")
+  end
+  g = small_generating_set(poly_ideal)
+  unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
 end
 
 function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
@@ -2264,7 +2294,7 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
   @vprintln :Divisors 2 "checking colength of $(I)"
   for U in all_patches
     dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
-    if _is_known_to_be_one(I, U; dec_inf)
+    if is_known(is_one, I, U; dec_inf)
       push!(patches_done, U)
     else
       push!(patches_todo, U)

@@ -180,9 +180,9 @@ function is_irreducible(a::AbsSimpleNumFieldOrderElem)
     return false
   end
   s, ms = Hecke.sunit_mod_units_group_fac_elem(S)
-  V = transpose(matrix(ZZ, [ZZRingElem[valuation(ms(x), y) for y = S] for x = gens(s)]))
-  b = transpose(matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]]))
-  sol = solve(V, b)
+  V = matrix(ZZ, [ZZRingElem[valuation(ms(x), y) for y = S] for x = gens(s)])
+  b = matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]])
+  sol = transpose(solve(V, b))
 
   #want to write sol = x+y where
   # Cx, Cy > 0

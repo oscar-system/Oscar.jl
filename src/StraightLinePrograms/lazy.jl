@@ -47,6 +47,12 @@ end
 # TODO: must they also have the same gens?
 Base.:(==)(x::Lazy, y::Lazy) = x.x == y.x
 
+function Base.hash(f::Lazy, h::UInt)
+  b = 0x52d4acd36d32486c % UInt
+  h = hash(f.x, h)
+  return xor(h, b)
+end
+
 compile(::Type{SLProgram}, f::Lazy) =
     compile(SLProgram{constantstype(f.x)}, f)
 
@@ -134,8 +140,6 @@ end
 
 gens(l::LazyRec) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
-Base.:(==)(k::LazyRec, l::LazyRec) = false
-
 LazyRec(x::LazyRec) = x
 LazyRec(x::AbstractSLProgram) = compile(LazyRec, x)
 LazyRec(x) = Const(x)
@@ -172,6 +176,12 @@ constantstype(l::Const{T}) where {T} = T
 
 Base.:(==)(k::Const, l::Const) = k.c == l.c
 
+function Base.hash(c::Const, h::UInt)
+  b = 0xb9478fb4c75d9934 % UInt
+  h = hash(c.c, h)
+  return xor(h, b)
+end
+
 evaluate(gs, c::Const, xs, dict) = c.c
 
 maxinput(c::Const) = 0
@@ -194,6 +204,12 @@ maxinput(i::Input) = i.n
 
 Base.:(==)(i::Input, j::Input) = i.n == j.n
 
+function Base.hash(i::Input, h::UInt)
+  b = 0xac911a7e2613a2d9 % UInt
+  h = hash(i.n, h)
+  return xor(h, b)
+end
+
 constantstype(::Input) = Union{}
 
 
@@ -215,6 +231,12 @@ pushgens!(gs, g::Gen) =
 constantstype(l::Gen) = Union{}
 
 Base.:(==)(k::Gen, l::Gen) = k.g == l.g
+
+function Base.hash(g::Gen, h::UInt)
+  b = 0xe78e0380b9819bc5 % UInt
+  h = hash(g.g, h)
+  return xor(h, b)
+end
 
 # TODO: test if dict should be used (performance only)
 evaluate(gs, g::Gen, xs, dict) = xs[findfirst(==(g.g), gs)]
@@ -243,6 +265,12 @@ constantstype(p::Plus) =
 
 Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
 
+function Base.hash(p::Plus, h::UInt)
+  b = 0x8cb89a8d4081e8e9 % UInt
+  h = hash(p.xs, h)
+  return xor(h, b)
+end
+
 _evaluate(gs, p::Plus, xs, dict) =
     mapreduce(q -> evaluate(gs, q, xs, dict), +, p.xs)
 
@@ -264,6 +292,13 @@ constantstype(m::Minus) = typejoin(constantstype(m.p), constantstype(m.q))
 
 Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
 
+function Base.hash(p::Minus, h::UInt)
+  b = 0x160e42164bba8706 % UInt
+  h = hash(p.p, h)
+  h = hash(p.q, h)
+  return xor(h, b)
+end
+
 _evaluate(gs, p::Minus, xs, dict) =
     evaluate(gs, p.p, xs, dict) - evaluate(gs, p.q, xs, dict)
 
@@ -283,6 +318,12 @@ pushgens!(gs, l::UniMinus) = pushgens!(gs, l.p)
 constantstype(p::UniMinus) = constantstype(p.p)
 
 Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
+
+function Base.hash(p::UniMinus, h::UInt)
+  b = 0xb6305a08335d8f43 % UInt
+  h = hash(p.p, h)
+  return xor(h, b)
+end
 
 _evaluate(gs, p::UniMinus, xs, dict) = -evaluate(gs, p.p, xs, dict)
 
@@ -310,6 +351,12 @@ constantstype(p::Times) =
 
 Base.:(==)(k::Times, l::Times) = k.xs == l.xs
 
+function Base.hash(p::Times, h::UInt)
+  b = 0x4b6901b552c83fa7 % UInt
+  h = hash(p.xs, h)
+  return xor(h, b)
+end
+
 _evaluate(gs, p::Times, xs, dict) =
     mapreduce(q -> evaluate(gs, q, xs, dict), *, p.xs)
 
@@ -330,6 +377,13 @@ pushgens!(gs, l::Exp) = pushgens!(gs, l.p)
 constantstype(p::Exp) = constantstype(p.p)
 
 Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
+
+function Base.hash(p::Exp, h::UInt)
+  b = 0xc2a2780e71e293a1 % UInt
+  h = hash(p.p, h)
+  h = hash(p.e, h)
+  return xor(h, b)
+end
 
 Base.literal_pow(::typeof(^), p::LazyRec, ::Val{e}) where {e} = Exp(p, e)
 
@@ -365,6 +419,12 @@ end
 
 Base.:(==)(p::Decision, q::Decision) = p.ps == q.ps
 
+function Base.hash(p::Decision, h::UInt)
+  b = 0x255d2cbcef40ae55 % UInt
+  h = hash(p.ps, h)
+  return xor(h, b)
+end
+
 function _evaluate(gs, p::Decision, xs, dict)
     (d, i), rest = Iterators.peel(p.ps) # p.ps should never be empty
     res = test(evaluate(gs, d, xs, dict), i)
@@ -399,6 +459,12 @@ pushgens!(gs, l::List) = foldl(pushgens!, l.xs, init=gs)
 
 Base.:(==)(p::List, q::List) = p.xs == q.xs
 
+function Base.hash(l::List, h::UInt)
+  b = 0xa0bd3333bab6e82f % UInt
+  h = hash(l.xs, h)
+  return xor(h, b)
+end
+
 _evaluate(gs, l::List, xs, dict) =
     list(eltype(xs)[evaluate(gs, p, xs, dict) for p in l.xs])
 
@@ -425,6 +491,13 @@ pushgens!(gs, c::Compose) = pushgens!(gs, c.q)
 
 Base.:(==)(k::Compose, l::Compose) = k.p == l.p && k.q == l.q
 
+function Base.hash(c::Compose, h::UInt)
+  b = 0xcbfd65751c7ed17a % UInt
+  h = hash(c.p, h)
+  h = hash(c.q, h)
+  return xor(h, b)
+end
+
 _evaluate(gs, p::Compose, xs, dict) =
     evaluate(gs, p.p, evaluate(gs, p.q, xs, dict), dict)
 
@@ -449,6 +522,13 @@ pushgens!(gs, l::Getindex) = foldl(pushgens!, l.is, init=pushgens!(gs, l.p))
 constantstype(m::Getindex) = mapreduce(constantstype, typejoin, m.is, init=constantstype(m.p))
 
 Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.is == l.is
+
+function Base.hash(p::Getindex, h::UInt)
+  b = 0x2bd0c58b1e2afc75 % UInt
+  h = hash(p.p, h)
+  h = hash(p.is, h)
+  return xor(h, b)
+end
 
 _evaluate(gs, p::Getindex, xs, dict) =
     evaluate(gs, p.p, xs, dict)[(evaluate(gs, i, xs, dict) for i in p.is)...]
@@ -475,6 +555,13 @@ pushgens!(gs, f::Call) = foldl(pushgens!, f.args, init=Symbol[])
 constantstype(f::Call) = mapreduce(constantstype, typejoin, f.args, init=Union{})
 
 Base.:(==)(f::Call, g::Call) = f.f == g.f && f.args == g.args
+
+function Base.hash(f::Call, h::UInt)
+  b = 0xa13a669d72547c76 % UInt
+  h = hash(f.f, h)
+  h = hash(f.args, h)
+  return xor(h, b)
+end
 
 _evaluate(gs, f::Call, xs, dict) =
     f.f(map(t -> evaluate(gs, t, xs, dict), f.args)...)

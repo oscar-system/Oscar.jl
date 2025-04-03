@@ -501,6 +501,12 @@ true
 inverse(F::AffAlgHom)
 ```
 
+## Presenting Finite Extension Rings
+
+```@docs
+present_finite_extension_ring(F::Oscar.AffAlgHom)
+```
+
 ## Algebraic Independence
 
 ```@docs

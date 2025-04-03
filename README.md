@@ -37,7 +37,7 @@ julia> using Oscar
  / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
 | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
 | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.3.0-DEV
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.4.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -114,12 +114,12 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.3.0-DEV,
-        The OSCAR Team, 2024. (https://www.oscar-system.org)
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.4.0-DEV,
+        The OSCAR Team, 2025. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, eds.
         The Computer Algebra System OSCAR: Algorithms and Examples,
-        Algorithms and Computation in Mathematics, Springer, 2024.
+        Algorithms and Computation in Mathematics, Springer, 2025.
 
 If you are using BibTeX, you can use the following BibTeX entries:
 
@@ -127,27 +127,28 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.3.0-DEV},
-      year         = {2024},
+                      Version 1.4.0-DEV},
+      year         = {2025},
       url          = {https://www.oscar-system.org},
       }
 
     @book{OSCAR-book,
       editor = {Decker, Wolfram and Eder, Christian and Fieker, Claus and Horn, Max and Joswig, Michael},
       title = {The {C}omputer {A}lgebra {S}ystem {OSCAR}: {A}lgorithms and {E}xamples},
-      year = {2024},
+      year = {2025},
       publisher = {Springer},
       series = {Algorithms and {C}omputation in {M}athematics},
       volume = {32},
       edition = {1},
       url = {https://link.springer.com/book/9783031621260},
       issn = {1431-1550},
+      doi = {10.1007/978-3-031-62127-7},
     }
 
 ## Funding
 
-The development of this Julia package is supported by the Deutsche
-Forschungsgemeinschaft DFG within the
+The development of this Julia package is supported by the
+German Research Foundation (DFG) within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg

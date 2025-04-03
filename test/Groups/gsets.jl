@@ -8,6 +8,7 @@
   @test (@inferred length(Omega)) == 6
   @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
@@ -22,6 +23,7 @@
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
@@ -42,6 +44,7 @@
   @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -51,6 +54,7 @@
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
@@ -77,8 +81,11 @@
   @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
+  @test ! is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 0
+  @test_throws ArgumentError rank_action(Omega)
   @test_throws ArgumentError gset(G, permuted, omega)
 
   R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
@@ -90,8 +97,11 @@
   @test length(orbits(Omega)) == 1
   @test order(stabilizer(Omega)[1]) * length(orbit(Omega, f)) == order(G)
   @test is_transitive(Omega)
+  @test is_primitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test transitivity(Omega) == 3
+  @test rank_action(Omega) == 2
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -143,7 +153,9 @@
   # orbit
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test length(orbit(Omega, [0,1,0,1,0,1])) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  orb = orbit(Omega, [0,1,0,1,0,1])
+  @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
+  @test orbits(orb) == [orb]
 
   # permutation
   G = symmetric_group(6)
@@ -243,7 +255,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
+  @test transitivity(gset(G8)) == 1
   @test transitivity(S4) == 4
+  @test transitivity(gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
@@ -335,8 +349,7 @@ end
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
-#     for k in 0:n   # k = 0 is a problem in GAP 4.12.0
-      for k in 1:n
+      for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
         for (U, stab) in res
@@ -392,6 +405,10 @@ end
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test length(blocks(Omega)) == 5
+  @test length(minimal_block_reps(Omega)) == 1
+  @test length(all_blocks(Omega::GSet)[1]) == 3
+
 
   @test eltype(Omega) == typeof(representative(Omega))
 
@@ -439,6 +456,29 @@ end
   @test x * rep[2] == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
 end
+
+@testset "General G-set action" begin
+  gen_up    = @perm 48 ( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19);
+  gen_left  = @perm 48 ( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35);
+  gen_front = @perm 48 (17,19,24,22)(18,21,23,20)( 6,25,43,16)( 7,28,42,13)( 8,30,41,11);
+  gen_right = @perm 48 (25,27,32,30)(26,29,31,28)( 3,38,43,19)( 5,36,45,21)( 8,33,48,24);
+  gen_back  = @perm 48 (33,35,40,38)(34,37,39,36)( 3, 9,46,32)( 2,12,47,29)( 1,14,48,27);
+  gen_down  = @perm 48 (41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40);
+  cube = permutation_group(48, [gen_up, gen_left, gen_front, gen_right, gen_back, gen_down]);
+
+  orbs = orbits(cube);
+  @test length(orbs) == 2
+  @test length(orbs[1]) == length(orbs[2]) == 24
+
+  bl = blocks(orbs[1]);
+  @test length(bl) == 8
+
+  h = action_homomorphism(bl);
+  @test order(domain(h)) == 43252003274489856000
+  @test order(image(h)[1]) == 40320
+end
+
+
 
 @testset "G-sets by left transversals" begin
   G = symmetric_group(5)

@@ -225,13 +225,13 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     d = discriminant(w)
 
     # For now, we explicitly require that the gauge ideal is principal
-    @req (length(gens(id)) == 1) "Gauge ideal is not principal"
+    @req (ngens(id) == 1) "Gauge ideal is not principal"
 
     # Over concrete bases, we randomly reduce the polynomials defining the gauge
     # divisor to only two variables so that the is_radical check is faster. This
     # could give an incorrect result (radical or not), so we actually try this
     # five times and see if we get agreement among all of the results
-    num_gens = length(gens(parent(f)))
+    num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
     if rand_seed != nothing
       Random.seed!(rand_seed)
@@ -456,50 +456,109 @@ eval_poly(n::Number, R) = R(n)
 
 
 
-##########################################
-### 10 strict_transform helpers
-##########################################
+###########################################################################
+# 10: Convenience functions for blowups
+# 10: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
+# 10: They are not in use (as of Feb 1, 2025 and PR 4523)
+# 10: Gauge in the future if they are truly needed!
+###########################################################################
 
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
+@doc raw"""
+    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
 
-function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRingIdeal)
-  center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
-  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(in(gens(base_ring(center_ideal))), gens(center_ideal)) == false)
-    return strict_transform(bd, II)
+Blow up the toric variety along a toric ideal sheaf.
+
+!!! warning
+    This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
+    Sometimes, the type of the domain will be a toric variety (meaning that `domain(f) isa NormalToricVariety` is true) if the algorithm can successfully detect this.
+    In the future, the detection algorithm may be improved so that this is successful more often.
+
+!!! warning
+    This is an internal method. It is NOT exported.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> x1, x2, x3, x4 = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> II = ideal_sheaf(P3, ideal([x1*x2]))
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1*x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (x_1_3)
+  4: Ideal (x_1_4*x_2_4)
+
+julia> f = Oscar._martins_desired_blowup(P3, II);
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(v, I)
+  if !isnothing(coords)
+    return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name) # Apply toric method
+  else
+    return blow_up(I) # Reroute to scheme theory
   end
-  S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
-  images = MPolyRingElem[]
-  g_list = gens(S)
-  g_center = [string(k) for k in symbols(ideal_in_cox_ring(center_unnormalized(bd)))]
-  for v in g_list
-    v == _e && continue
-    if string(v) in g_center
-      push!(images, v * _e)
-    else
-      push!(images, v)
-    end
-  end
-  ring_map = hom(cox_ring(codomain(bd)), S, images)
-  total_transform = ring_map(ideal_in_cox_ring(II))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  return ideal_sheaf(domain(bd), strict_transform)
 end
 
-function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
-  S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
-  g_list = string.(symbols(S))
-  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
-  position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
-  pos_of_e = findfirst(==(string(_e)), g_list)
-  C = MPolyBuildCtx(S)
-  for m in terms(tate_poly)
-    exps = collect(exponents(m))[1]
-    insert!(exps, pos_of_e, sum(exps[position_of_center_variables]))
-    push_term!(C, collect(coefficients(m))[1], exps)
-  end
-  f = finish(C)
-  return remove(f, _e)[2]
+
+@doc raw"""
+    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+
+Blow up the toric variety by subdividing the cone in the list
+of *all* cones of the fan of `v` which corresponds to the
+provided ideal `I`. Note that this cone need not be maximal.
+
+By default, we pick "e" as the name of the homogeneous coordinate for
+the exceptional prime divisor. As third optional argument one can supply
+a custom variable name.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> I = ideal([x2,x3])
+Ideal generated by
+  x2
+  x3
+
+julia> bP3 = domain(Oscar._martins_desired_blowup(P3, I))
+Normal toric variety
+
+julia> cox_ring(bP3)
+Multivariate polynomial ring in 5 variables over QQ graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [0 1]
+  x4 -> [1 0]
+  e -> [1 -1]
+
+julia> I2 = ideal([x2 * x3])
+Ideal generated by
+  x2*x3
+
+julia> b2P3 = Oscar._martins_desired_blowup(P3, I2);
+
+julia> codomain(b2P3) == P3
+true
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  return _martins_desired_blowup(v, ideal_sheaf(v, I))
 end

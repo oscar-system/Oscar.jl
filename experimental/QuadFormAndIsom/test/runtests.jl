@@ -108,7 +108,6 @@ end
   L = integer_lattice(; gram = QQ[1 2; 2 1])
   h = QQ[4 -1; 1 0]
   Lf = integer_lattice_with_isometry(L, h)
-
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
       @test Lf == loaded
@@ -424,4 +423,41 @@ end
 
   @test ok
   @test length(reps) == 9
+end
+
+@testset "Fix hermitian miranda-morrison" begin
+  B = matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]);
+  G = matrix(QQ, 4, 4, [0 0 0 4; 0 0 4 0; 0 4 0 0; 4 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 4, 4, [1 0 2 0; 0 1 0 -2; -1 0 -1 0; 0 1 0 -1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 96
+
+  B = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 1 0 0 0; 0 0 0 1 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1]);
+  G = matrix(QQ, 6, 6, [0 0 0 0 0 3; 0 0 0 0 3 0; 0 0 -6 0 0 0; 0 0 0 -6 0 0; 0 3 0 0 0 0; 3 0 0 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 6, 6, [0 1 -1 1 2 0; -1 -2 1 -1 0 -2; 0 0 0 1 2 -2; 2 2 -1 0 -2 2; -1 0 0 1 2 -1; 0 1 0 1 1 0]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 24192
+end
+
+@testset "Fix Galois action" begin
+  U = hyperbolic_plane_lattice()
+  L, _ = direct_sum(U, U)
+  reps = representatives_of_hermitian_type(L, 4, true)
+  @test length(reps) == 1
+  # The rest is for code coverage
+  Lf = first(reps)
+  Lf = rescale(Lf, 5)
+  G, _ = image_centralizer_in_Oq(Lf)
+  _, qLf = discriminant_group(Lf)
+  @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
+end
+
+@testset "Serialization.Upgrades" begin
+  @testset "< 1.4.0 Upgrade" begin
+    test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
+  end
 end

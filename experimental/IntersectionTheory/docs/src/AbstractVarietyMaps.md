@@ -5,6 +5,10 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract Variety Maps
 
+## Types
+
+The OSCAR type for abstract variety maps is `AbstractVarietyMap`.
+
 ## Constructors
 
 ```@docs

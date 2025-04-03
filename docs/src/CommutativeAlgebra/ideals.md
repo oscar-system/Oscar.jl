@@ -211,7 +211,7 @@ polynomial rings over the integers. See [DGP99](@cite) for a survey.
 ### Radical
 
 ```@docs
-radical(I::MPolyIdeal)
+radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
 ```
 
 ### Primary Decomposition
@@ -256,9 +256,16 @@ equidimensional_hull(I::MPolyIdeal)
 equidimensional_hull_radical(I::MPolyIdeal)
 ```
 
+### Triangular Decomposition
+
+```@docs
+triangular_decomposition(::MPolyIdeal)
+```
+
+
 ## Homogenization and Dehomogenization
 
-Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
+Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings.
 
 ```@docs
 homogenizer(P::MPolyRing{T}, h::VarName; pos::Int=1+ngens(P))  where T

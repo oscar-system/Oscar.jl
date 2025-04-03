@@ -45,28 +45,26 @@ struct CEChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   function CEChainFactory(c::AbsHyperComplex; is_exact::Bool=false)
     @assert dim(c) == 1 "complex must be 1-dimensional"
     #@assert has_lower_bound(c, 1) "complex must be bounded from below"
-    return new{chain_type(c)}(c, is_exact, Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplexMorphism}())
+    return new{FreeMod}(c, is_exact, Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplexMorphism}())
   end
 end
 
 function kernel_resolution(fac::CEChainFactory, i::Int)
-  if !haskey(fac.kernel_resolutions, i)
+  return get!(fac.kernel_resolutions, i) do
     Z, _ = kernel(fac.c, i)
-    fac.kernel_resolutions[i] = free_resolution(SimpleFreeResolution, Z)[1]
+    return free_resolution(SimpleFreeResolution, Z)[1]
   end
-  return fac.kernel_resolutions[i]
 end
 
 function boundary_resolution(fac::CEChainFactory, i::Int)
-  if !haskey(fac.boundary_resolutions, i)
+  return get!(fac.boundary_resolutions, i) do
     Z, _ = boundary(fac.c, i)
-    fac.boundary_resolutions[i] = free_resolution(SimpleFreeResolution, Z)[1]
+    return free_resolution(SimpleFreeResolution, Z)[1]
   end
-  return fac.boundary_resolutions[i]
 end
 
 function induced_map(fac::CEChainFactory, i::Int)
-  if !haskey(fac.induced_maps, i)
+  return get!(fac.induced_maps, i) do
     Z, inc = kernel(fac.c, i)
     B, pr = boundary(fac.c, i)
     @assert ambient_free_module(Z) === ambient_free_module(B)
@@ -81,9 +79,8 @@ function induced_map(fac::CEChainFactory, i::Int)
     psi = hom(res_B[0], res_Z[0], img_gens; check=true) # TODO: Set to false
     @assert domain(psi) === boundary_resolution(fac, i)[0]
     @assert codomain(psi) === kernel_resolution(fac, i)[0]
-    fac.induced_maps[i] = lift_map(boundary_resolution(fac, i), kernel_resolution(fac, i), psi; start_index=0)
+    return lift_map(boundary_resolution(fac, i), kernel_resolution(fac, i), psi; start_index=0)
   end
-  return fac.induced_maps[i]
 end
 
 function (fac::CEChainFactory)(self::AbsHyperComplex, I::Tuple)
@@ -198,12 +195,12 @@ end
     @assert has_lower_bound(c, 1) "complexes must be bounded from below"
     @assert direction(c, 1) == :chain "resolutions are only implemented for chain complexes"
     chain_fac = CEChainFactory(c; is_exact)
-    map_fac = CEMapFactory{MorphismType}() # TODO: Do proper type inference here!
+    map_fac = CEMapFactory{FreeModuleHom}() # TODO: Do proper type inference here!
 
     # Assuming d is the dimension of the new complex
     internal_complex = HyperComplex(2, chain_fac, map_fac, [:chain, :chain]; lower_bounds = Union{Int, Nothing}[0, lower_bound(c, 1)])
     # Assuming that ChainType and MorphismType are provided by the input
-    return new{ChainType, MorphismType}(internal_complex)
+    return new{FreeMod, FreeModuleHom}(internal_complex)
   end
 end
 

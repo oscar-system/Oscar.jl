@@ -1,4 +1,4 @@
-# Documenting OSCAR code
+# Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
 information as possible into the docstrings and only use the doc pages for
@@ -123,7 +123,7 @@ existing entries. An easy way to do that is to add your new BibTeX entry,
 then run [bibtool](http://www.gerd-neugebauer.de/software/TeX/BibTool/en/)
 by invoking it as follows from the root directory of the Oscar.jl repository:
 
-    bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+    bibtool -r .bibtoolrsc docs/oscar_references.bib -o docs/oscar_references.bib
 
 For every pull request on github, the CI checks if running `bibtool` leads to
 changes in the bibliography. If so, this test fails and indicates that the

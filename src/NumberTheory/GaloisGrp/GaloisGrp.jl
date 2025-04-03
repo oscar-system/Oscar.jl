@@ -22,8 +22,6 @@ export valuation_of_roots
 import Hecke: orbit, fixed_field, extension_field
 
 function __init__()
-  GAP.Packages.load("ferret"; install=true)
-
   Hecke.add_verbosity_scope(:GaloisGroup)
   Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
@@ -67,6 +65,9 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
 end
 
 Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
+
+Base.hash(a::BoundRingElem, h::UInt) = hash(a.val, hash(parent(a), h))
+
 function +(a::BoundRingElem, b::BoundRingElem) 
   check_parent(a, b) 
   c = BoundRingElem(a.p.add(a.val, b.val), a.p)
@@ -102,7 +103,7 @@ Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
 (R::BoundRing{T})(a::ZZRingElem) where T = BoundRingElem{T}(R.map(abs(a)), R)
 (R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(ZZRingElem(a), R)
-(R::BoundRing{T})() where T = BoundRingElem{T}(ZZRingElem(0), R)
+(R::BoundRing{T})() where T = zero(R)
 (R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
 (R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
@@ -201,7 +202,7 @@ end
 @doc raw"""
     total_degree(I::SLPoly)
 
-Determines an upper bound for the total degree of `I`.
+Determine an upper bound for the total degree of `I`.
 """
 function total_degree(I::SLPoly)
   n = ngens(parent(I))
@@ -1127,7 +1128,7 @@ end
 """
     minpoly(C::GaloisCtx, I, extra::Int = 5)
 
-Computes the minimal polynomial of `I` evaluated at the roots
+Compute the minimal polynomial of `I` evaluated at the roots
 stored in `C`.
 """
 function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
@@ -1376,14 +1377,14 @@ end
 @doc raw"""
     starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
-Finds a _starting group_, that is a group `G` as a subgroup of the
+Find a _starting group_, that is a group `G` as a subgroup of the
 symmetric group acting on the roots in the explicit ordering in the
 galois context.
 
 If the field is imprimitive, the group is derived from the subfields, otherwise
 the factorisation of the 2-sum polynomial is used.
 
-Returns a triple: 
+Return a triple: 
  - the group
  - a filter for all groups that can occur
  - a permutation representing the operation of the Frobenius automorphism
@@ -1541,7 +1542,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         #assuming wreath_product(A, B) has block system [[1..l], [l+1..2l]...]
         # the re-ordering is easy: W^s for s = vcat(bs)
         bs = map(x->findall(isequal(x), d), r)
-        @assert all(x->length(x) == length(bs[1]), bs)
+        @assert allequal(length, bs)
         W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
         W = W^symmetric_group(degree(W))(vcat(bs...))
@@ -1671,16 +1672,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #partition is the largest possible group...
     #code from Max...
 
-    #TODO: wrap this properly
-    if hasproperty(GAP.Globals, :ConStabilize)
-      tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
-      G = Oscar._as_subgroup(G, H)[1]
-    else
-      #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
-      # once we have GAP_pkg_ferret
-      G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
-    end
+    tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
+    H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
+    G = Oscar._as_subgroup(G, H)[1]
   end
 
   si = G(si)
@@ -1919,7 +1913,7 @@ end
 @doc raw"""
     galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
 
-Computes the Galois group of the splitting field of the defining polynomial of `K`.
+Compute the Galois group of the splitting field of the defining polynomial of `K`.
 Currently the polynomial needs to be monic.
 
 The group is returned as an explicit permutation group permuting the roots as contained
@@ -2224,7 +2218,7 @@ end
 
 
 @doc raw"""
-Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
+Find a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 `I` evaluated at the (roots in ) `r` does not have repetitions.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
@@ -2380,7 +2374,7 @@ end
 """
     galois_quotient(C::GaloisCtx, Q::PermGroup)
 
-Finds all(?) subfields of the splitting field s.th. the galois
+Find all(?) subfields of the splitting field s.th. the galois
 group will be permutation isomorphic to Q.
 """
 function galois_quotient(C::GaloisCtx, Q::PermGroup)
@@ -2402,7 +2396,7 @@ end
 @doc raw"""
     galois_quotient(C::GaloisCtx, d::Int)
 
-Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
+Find all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
@@ -2441,7 +2435,7 @@ end
 """
     galois_quotient(C::GaloisCtx, d::Int, n::Int)
 
-Finds all subfields of the splitting field with galois group the n-th
+Find all subfields of the splitting field with galois group the n-th
 transitive group in degree d
 """
 galois_quotient(C::GaloisCtx, d::Int, n::Int) = 
@@ -2454,7 +2448,7 @@ Equivalent to
 
     galois_quotient(galois_group(f)[2], p[1], p[2])
 
-Finds all subfields of the splitting field of f with galois group
+Find all subfields of the splitting field of f with galois group
 the p[2]-th transitive group of degree p[1]
 """
 function galois_quotient(f::PolyRingElem, p::Vector{Int})
@@ -2803,7 +2797,7 @@ end
 @doc raw"""
     galois_group(f::PolyRingElem{<:FieldElem})
 
-Computes the automorphism group of a splitting field of `f` as an explicit
+Compute the automorphism group of a splitting field of `f` as an explicit
 group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """

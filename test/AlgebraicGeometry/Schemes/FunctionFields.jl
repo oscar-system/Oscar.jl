@@ -1,4 +1,15 @@
 @testset "fraction fields of varieties" begin
+  P = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P)
+  C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
+  Ccov = covered_scheme(C)
+  KK = VarietyFunctionField(Ccov)
+
+  ConformanceTests.test_Field_interface(KK)
+  #ConformanceTests.test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
+end
+
+@testset "fraction fields of varieties" begin
   R, (x,y,z) = QQ[:x, :y, :z]
   @test is_irreducible(spec(R))
   @test is_irreducible(spec(R, ideal(R, x)))

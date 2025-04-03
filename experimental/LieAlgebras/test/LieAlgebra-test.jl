@@ -114,4 +114,20 @@
     )
     @test killing_matrix(L) == matrix(F, [0 0 4; 0 8 0; 4 0 0])
   end
+
+  @testset "Semisimplicity" begin
+    L = special_linear_lie_algebra(QQ, 3)
+    @test is_semisimple(L)
+    L = special_orthogonal_lie_algebra(QQ, 3)
+    @test is_semisimple(L)
+    L = general_linear_lie_algebra(QQ, 3)
+    @test !is_semisimple(L)
+
+    L = special_linear_lie_algebra(GF(5), 3)
+    @test is_semisimple(L)
+    L = special_orthogonal_lie_algebra(GF(5), 3)
+    @test is_semisimple(L)
+    L = general_linear_lie_algebra(GF(5), 3)
+    @test_broken !is_semisimple(L)
+  end
 end

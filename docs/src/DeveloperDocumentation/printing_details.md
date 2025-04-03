@@ -1,8 +1,64 @@
-# Printing in OSCAR
+# Printing Details
 
-The following section contains more details and examples on how to implement
-OSCAR's 2+1 printing modes. The specifications and a minimal example may be
-found in the [Developer Style Guide](@ref).
+The following section contains details and examples on how to implement
+OSCAR's 2+1 printing modes. 
+
+## The 2 + 1 print modes of Oscar
+Oscar has two user print modes `detailed` and `one line` and one internal
+print mode `terse`. The latter is for use during recursion,
+e.g. to print the `base_ring(X)` when in `one line` mode.
+It exists to make sure that `one line` stays compact and human readable.
+
+Top-level REPL printing of an object will use `detailed` mode by default
+```julia
+julia> X
+detailed
+```
+Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
+```julia
+julia> [X,X]
+3-element Vector{TypeofX{T}}
+one line
+one line
+one line
+```
+
+#### An Example for the 2 + 1 print modes
+```
+# detailed
+General linear group of degree 24
+  over Finite field of degree 7 over GF(29)
+
+# one line
+General linear group of degree 24 over GF(29^7)
+
+# terse
+General linear group
+```
+
+The print modes are specified as follows
+#### Detailed printing
+- the output must make sense as a standalone without context to non-specialists
+- the number of output lines should fit in the terminal
+- if the object is simple enough use only one line
+- use indentation and (usually) `one line` to print substructures
+#### One line printing
+- the output must print in one line
+- should make sense as a standalone without context
+- variable names/generators/relations should not be printed only their number.
+- Only the first word is capitalized e.g. `Polynomial ring`
+- one should use `terse` for nested printing in compact
+- nested calls to `one line` (if you think them really necessary) should be at the end,
+  so that one can read sequentially. Calls to `terse` can be anywhere.
+- commas must be enclosed in brackets so that printing tuples stays unambiguous
+#### Terse printing
+- a user readable version of the main (mathematical) type.
+- a single term or a symbol/letter mimicking mathematical notation
+- should usually only depend on the type and not of the type parameters or of
+  the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+- no nested printing. In particular variable names and `base_ring` must not be displayed.
+  This ensures that `one line` and `terse` stay compact even for complicated things.
+  If you want nested printing use `one line` or `detailed`.
 
 
 ## Implementing `show` functions
@@ -25,6 +81,11 @@ while on the REPL detailed printing is used to show top level objects.
     "In general, you cannot assume that `display` output goes to `stdout`
     [...]". In particular, the output of `display` will not work in the
     `jldoctest`s.
+
+!!! warning "changes on print"
+    Printing an object should not change data in any way through changing the representation
+    of the object being printed, nor by generating any cached data that will affect
+    any future computations.
 
 ### Mockup
 

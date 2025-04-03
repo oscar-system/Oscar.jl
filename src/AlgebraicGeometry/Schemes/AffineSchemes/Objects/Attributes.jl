@@ -443,11 +443,9 @@ julia> codim(Y)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
-function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
+@attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  get_attribute!(X, :degree) do
-    return vector_space_dimension(OO(X))
-  end::Int
+  return vector_space_dimension(OO(X))
 end
 
 @doc raw"""
@@ -615,7 +613,7 @@ julia> singular_locus(A3)
 (scheme(1), Hom: scheme(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z), Hom: scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z) -> scheme(x^2 - y^2 + z^2))
+(scheme(x^2 - y^2 + z^2, x, y, z), Hom: scheme(x^2 - y^2 + z^2, x, y, z) -> scheme(x^2 - y^2 + z^2))
 
 julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement

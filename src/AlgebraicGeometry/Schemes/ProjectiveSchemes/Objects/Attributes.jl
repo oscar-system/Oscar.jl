@@ -602,24 +602,22 @@ julia> geometric_genus(C)
 
 ```
 """
-function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
-  get_attribute!(X, :genus) do
-    I = defining_ideal(X)
-    I_sing = singular_generators(I)
-    if algorithm == :default
-      g = Singular.LibNormal.genus(I_sing)
-    elseif algorithm == :normalization
-      g =  Singular.LibNormal.genus(I_sing, "nor")
-    elseif algorithm == :primary_decomposition
-      g =  Singular.LibNormal.genus(I_sing, "prim")
-    else 
-      error("algorithm not recognized")
-    end
-    if g == -1
-      error("$(X) must be a geometrically integral curve")
-    end
-    return g
-  end::Int
+@attr Int function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
+  I = defining_ideal(X)
+  I_sing = singular_generators(I)
+  if algorithm == :default
+    g = Singular.LibNormal.genus(I_sing)
+  elseif algorithm == :normalization
+    g =  Singular.LibNormal.genus(I_sing, "nor")
+  elseif algorithm == :primary_decomposition
+    g =  Singular.LibNormal.genus(I_sing, "prim")
+  else 
+    error("algorithm not recognized")
+  end
+  if g == -1
+    error("$(X) must be a geometrically integral curve")
+  end
+  return g
 end
 
 

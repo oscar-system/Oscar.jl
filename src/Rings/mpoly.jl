@@ -509,56 +509,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AbsSimpleNumField)
-  minpoly = defining_polynomial(K)
-  Qa = parent(minpoly)
-  a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, _variables_for_singular(symbols(Qa)))
-  Sminpoly = SQa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SQa(coeff(minpoly, i))*Sa^i
-  end
-  SK, _ = Singular.AlgebraicExtensionField(SQa, Sminpoly)
-  return SK
-end
-
-function singular_coeff_ring(F::fqPolyRepField)
-  # TODO: the Fp(Int(char)) can throw
-  minpoly = modulus(F)
-  Fa = parent(minpoly)
-  SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    _variables_for_singular(symbols(Fa)))
-  Sminpoly = SFa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SFa(coeff(minpoly, i))*Sa^i
-  end
-  SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
-  return SF
-end
-
-# Nonsense for FqField (aka fq_default from flint)
-function singular_coeff_ring(F::FqField)
-  # we are way beyond type stability, so just do what you want
-  @assert is_absolute(F)
-  ctx = Nemo._fq_default_ctx_type(F)
-  if ctx == Nemo._FQ_DEFAULT_NMOD
-    return Singular.Fp(Int(characteristic(F)))
-  elseif nbits(characteristic(F)) <= 29
-    # TODO: the Fp(Int(char)) can throw
-    minpoly = modulus(F)
-    Fa = parent(minpoly)
-    SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                        _variables_for_singular(symbols(Fa)))
-    Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
-    for i in 1:degree(minpoly)
-      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
-    end
-    SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
-    return SF
-  else
-    return Singular.CoefficientRing(F)
-  end
-end
+singular_coeff_ring(R::Union{AbsSimpleNumField, fqPolyRepField, FqField}) = codomain(iso_oscar_singular_coeff_ring(R))
 
 function (K::FqField)(a::Singular.n_algExt)
   SK = parent(a)
@@ -577,10 +528,12 @@ end
 
 function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
   F = parent(a)
-  SFa = gen(SF)
+  Sa = gen(SF)
   res = SF(lift(ZZ, coeff(a, 0)))
+  var = one(SF)
   for i in 1:degree(F)-1
-    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+    var = mul!(var, Sa)
+    res = addmul!(res, SF(lift(ZZ, coeff(a, i))), var)
   end
   return res
 end
@@ -615,10 +568,12 @@ end
 
 function (SF::Singular.N_AlgExtField)(a::fqPolyRepFieldElem)
   F = parent(a)
-  SFa = gen(SF)
+  Sa = gen(SF)
   res = SF(coeff(a, 0))
+  var = one(SF)
   for i in 1:degree(F)-1
-    res += SF(coeff(a, i))*SFa^i
+    var = mul!(var, Sa)
+    res = addmul!(res, SF(coeff(a, i)), var)
   end
   return res
 end
@@ -1236,6 +1191,7 @@ end
 
 @doc raw"""
     divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
+
 Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
 for each polynomial in b, and a polynomial ri such that
 a[i] = sum_i b[i]*qi + ri.
@@ -1261,7 +1217,7 @@ function _is_integral_domain(R::MPolyRing)
 end
 
 @doc raw"""
-    total_degree(f::MPolyRingElem, w::Vector{Int})
+    weighted_degree(f::MPolyRingElem, w::Vector{Int})
 
 Given a multivariate polynomial `f` and a weight vector `w`
 return the total degree of `f` with respect to the weights `w`.
