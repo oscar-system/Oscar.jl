@@ -623,6 +623,13 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     D = Dict{String, Vector{Int}}()
     tun_sections = model_dict["model_data"]["model_sections"]
     M = model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]
+    if typeof(M) != Matrix{Int}
+      vars = string.(model_dict["model_data"]["model_sections"])
+      auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
+      auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
+      auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+      model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = auxiliary_base_grading
+    end
     for i in 1:length(tun_sections)
       D[tun_sections[i]] = M[:,i]
     end
@@ -657,6 +664,10 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   
   if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
     set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
+  end
+
+  if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety
+    set_exceptional_classes(model, string.(model_dict["model_data"]["exceptional_classes"]))
   end
 
   if haskey(model_dict["model_data"], "generating_sections")
