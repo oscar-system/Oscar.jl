@@ -1,4 +1,31 @@
 @doc raw"""
+    MaxContactChart{BaseRingType}
+
+Internal data type of desingularization! Do not use outside!
+
+This object comprises the local data of a chart, which arose
+by hypersurfaces of maximal contact.
+"""
+@attributes mutable struct MaxContactChart{BaseRingType}
+  U::AbsAffineScheme
+  ambient_gens::Vector{<:MPolyRingElem}                # generators chosen in sequence of max.contact steps
+  ambient_orders::Vector{Int}                          # maximal orders at which hypersurfaces have been chosen
+  dependent_vars::Vector{Int}                          # variables not used for system of parameters
+  minor_data::Vector{<:Tuple{<:RingElem, Int}}           # chart is complement of product of these minors
+                                                       #   (m,i) stands for the minor m and its size i
+                                                       #   sum over sizes is lenght(dependent_vars)
+  ambient_jacobi::Vector{<:MatrixElem}                 # jacobi-matrix*pseudoinverse for reduction
+
+  function MaxContactChart(U::AbsAffineScheme, ambient_gens::Vector{<:MPolyRingElem},
+                         ambient_orders::Vector{Int},
+                         dependent_vars::Vector{Int},
+                         minor_data::Vector{<:Tuple{<:RingElem, Int}},
+                         ambient_jacob::Vector{<:MatrixElem})
+    return new{base_ring_type(U)}(U,ambient_gens,ambient_orders,dependent_vars,minor_data,ambient_jacob)
+  end
+end
+
+@doc raw"""
     MaxContactObject{BaseRingType}
 
 Internal data type of desingularization! Do not use outside!
@@ -11,28 +38,12 @@ internal data on the maximal contact.
 @attributes mutable struct MaxContactObject{BaseRingType}
   W_orig::AbsCoveredScheme                  ## the true ambient space
   C::Covering                               ## refined covering of W allowing max contact hypersurfaces
-  max_contact_data::IdDict{<:AbsAffineScheme,
-                       <:Tuple{Vector{MPolyRingElem},Vector{Int}}}
-                                            ## first vector: generators of maximal contact ambient space
-                                            ## second vector: order in which maximal contact hypersurface
-                                            ##        max_contact_data(U)[1][i] occurred
-                                            ## note: original ambient equations are marked by order 0
-  ambient_param_data::IdDict{<:AbsAffineScheme,<:Tuple{Vector{Int},Vector{Tuple{RingElem,Int}},
-                       Vector{<:MatrixElem}}}
-                                            ## vector: indices of rows in minor i.e.dependent variables
-                                            ## ring element: data on minor selected by the row indices
-                                            ##      (minor of a single max contact step,blocksize of step)
-                                            ##      columns of minor follow order of max_contact_data(U)[1]
-                                            ## matrix: jacobian matrix * pseudoinverse
-                                            ##      for jacobian matrix of max_contact_data(U)[1]
-                                            ##      again in blocks corresponding to the steps
+  max_contact_data::IdDict{<:AbsAffineScheme,MaxContactChart}
 
   function MaxContactObject(
                W::AbsCoveredScheme,
                Cov::Covering,
-               max_contact_data::IdDict{<:AbsAffineScheme,<:Tuple{Vector{MPolyRingElem},Vector{Int}}},
-               ambient_param_data::IdDict{<:AbsAffineScheme,
-                                          <:Tuple{Vector{Int},Vector{Tuple{RingElem,Int}}, Vector{<:MatrixElem}}})
-    return new{base_ring_type(W)}(W,Cov,max_contact_data, ambient_param_data)
+               max_contact_data::IdDict{AbsAffineScheme,MaxContactChart})
+    return new{base_ring_type(W)}(W,Cov,max_contact_data)
   end
 end

@@ -660,8 +660,17 @@ function weak_to_strong_desingularization(phi::BlowUpSequence)
 end
 
 function _principalize_curve(I::AbsIdealSheaf)
-  I_bad,b = _max_locus_nu_star(I)
 
+  dim(I) == 1 || error("IdealSheaf does not describe a curve.")
+
+#  I_amb,I_bad,cod,b,MC = _nu_star_not_one(I)
+#  has_dimension_leq_zero(I_bad) || error("IdealSheaf describes non-reduced subscheme")
+#
+#  decomp = maximal_associated_points(I_bad)                
+#  cent = small_generating_set(pop!(decomp))
+#  current_blow_up = blow_up(J)
+#  initialize_embedded_blowup_sequence(current_blow_up,I,
+#HIER HIER HIER
 #  b==1 && return ... 
 
 # ADD OTHER FRAGMENT HERE IN SEPARATE PR....

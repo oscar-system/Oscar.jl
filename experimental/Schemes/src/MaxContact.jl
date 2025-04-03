@@ -7,16 +7,21 @@
 ###################################################################
 ## Getters
 ###################################################################
-original_scheme(MC::Oscar.MaxContactObject) = MC.W_orig
-covering(MC::Oscar.MaxContactObject) = MC.C
-maximal_contact_data(MC::Oscar.MaxContactObject) = MC.max_contact_data
-ambient_parameter_data(MC::Oscar.MaxContactObject) = MC.ambient_param_data
+original_scheme(MCO::Oscar.MaxContactObject) = MCO.W_orig
+covering(MCO::Oscar.MaxContactObject) = MCO.C
+maximal_contact_data(MCO::Oscar.MaxContactObject) = MCO.max_contact_data
+
+ambient_generators(MCC::Oscar.MaxContactChart) = MCC.ambient_gens
+ambient_orders(MCC::Oscar.MaxContactChart) = MCC.ambient_orders
+dependent_variables(MCC::Oscar.MaxContactChart) = MCC.dependent_vars
+max_contact_minor_data(MCC::Oscar.MaxContactChart) = MCC.minor_data
+prepared_jacobi_matrices(MCC::Oscar.MaxContactChart) = MCC.ambient_jacobi
 
 function current_hypersurface_sequences(MC::Oscar.MaxContactObject)
   max_contact_data = maximal_contact_data(MC)
   res_dict = IdDict{AbsAffineScheme,Vector{MPolyRingElem}}()
   for U in keys(max_contact_data)
-    res_dict[U] = max_contact_data[U][1]
+    res_dict[U] = ambient_generators(max_contact_data[U])
   end
   return res_dict
 end
@@ -25,16 +30,7 @@ function current_order_sequences(MC::Oscar.MaxContactObject)
   max_contact_data = maximal_contact_data(MC)
   res_dict = IdDict{AbsAffineScheme, Vector{Int}}()
   for U in keys(max_contact_data)
-    res_dict[U] = max_contact_data[U][3]
-  end
-  return res_dict
-end
-
-function restricted_ideal_data(MC::Oscar.MaxContactObject)
-  max_contact_data = maximal_contact_data(MC)
-  res_dict = IdDict{AbsAffineScheme,Vector{MPolyRingElem}}()
-  for U in keys(max_contact_data)
-    res_dict[U] = max_contact_data[U][2]
+    res_dict[U] = ambient_orders(max_contact_data[U])
   end
   return res_dict
 end
@@ -47,10 +43,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
   W = codomain(inc)
 
   ## the empty hulls for the Oscar.MaxContactObject --  to be filled in
-  max_contact_data = IdDict{AbsAffineScheme,
-                            Tuple{Vector{MPolyRingElem},Vector{Int}}}()
-  ambient_param_data = IdDict{AbsAffineScheme,
-                            Tuple{Vector{Int},Vector{Tuple{RingElem,Int}},Vector{MatrixElem}}}()
+  max_contact_data = IdDict{AbsAffineScheme,Oscar.MaxContactChart}()
   patch_list = AbsAffineScheme[]
 
   ## run through the charts and set up a complete intersection covering
@@ -60,8 +53,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
 
     if ngens(IU) == 0 
     ## trivial case -- nothing to be done
-      max_contact_data[U] = ([],[])
-      ambient_param_data[U] = ([],[],[])
+      max_contact_data[U] = Oscar.MaxContactChart(U,[],[],[],[],[])
       continue
     end
 
@@ -83,8 +75,6 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
       amb_rows = min_list[k][2]
       amb_cols = min_list[k][3]
       selected_gens = [IUgens[i] for i in amb_cols]             ## selected generators via matrix columns
-      max_contact_data[current_patch] = (selected_gens, [0 for i in 1:(nvars(RU) - dim(OO(U)))])
-                                                                ## entry 0 marks that all are from orig W
       if length(amb_cols) < ncols(JM)
         JM_essential = JM[:, amb_cols]
       else
@@ -93,39 +83,37 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
       submat_for_minor = JM[min_list[k][2], min_list[k][3]]
       Ainv, _ = pseudo_inv(submat_for_minor)
       JM_essential = JM_essential * Ainv          
-      ambient_param_data[current_patch] = (min_list[k][2], [(min_list[k][1],length(min_list[k][2]))], 
-                                           [JM_essential])
+      max_contact_data[current_patch] = Oscar.MaxContactChart(
+                            U, selected_gens, 
+                            [0 for i in 1:(nvars(RU) - dim(OO(U)))],
+                            min_list[k][2],
+                            [(min_list[k][1],length(min_list[k][2]))],
+                            [JM_essential])
     end
   end
   
   new_Cov = Covering(patch_list)
   Oscar.inherit_gluings!(new_Cov,default_covering(W))
-  return Oscar.MaxContactObject(W,new_Cov,max_contact_data, ambient_param_data)
+  return Oscar.MaxContactObject(W,new_Cov,max_contact_data)
 end
 
 function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
   Cov = covering(MC)
   max_contact_data = maximal_contact_data(MC)
-  ambient_param_data = ambient_parameter_data(MC)
 
-  new_max_contact = IdDict{AbsAffineScheme,Tuple{Vector{MPolyRingElem},Vector{Int}}}()
-  new_ambient_param_data = IdDict{AbsAffineScheme, 
-                                  Tuple{Vector{Int},Vector{Tuple{RingElem,Int}},
-                                  Vector{<:MatrixElem}}}()
+  new_max_contact = IdDict{AbsAffineScheme,Oscar.MaxContactChart}()
   patch_list = AbsAffineScheme[]
 
   for U in Cov
-
     if is_zero(I(U)) || is_one(I(U))
       ## nothing to do on this chart 
       new_max_contact[U] = max_contact_data[U]
-      new_ambient_param_data[U] = ambient_param_data[U]
       continue
     end
 
     RU = base_ring(OO(U))
     IUgens = lifted_numerator.(gens(I(U)))
-    JM = jacobian_matrix(MC, I, U)
+    JM = jacobian_matrix(max_contact_data[U], I(U))
     i = 1
 
     ## find max number of independent max contact hypersurfaces from I(U)
@@ -166,15 +154,17 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
       push!(patch_list, current_patch)
 
       ## append new hypersurface generators and their orders
-      temp_data = (copy(max_contact_data[U][1]),copy(max_contact_data[U][2]))
-      append!(temp_data[1], [IUgens[a] for a in save_list[k][2]])
-      append!(temp_data[2], [b for a in save_list[k][2]])
-      new_max_contact[current_patch] = temp_data
+      MCU = max_contact_data[U]
+      amb_gens = copy(ambient_generators(MCU))
+      append!(amb_gens, [IUgens[a] for a in save_list[k][2]])
+      amb_ord = copy(ambient_orders(MCU))
+      append!(amb_ord, [b for a in save_list[k][2]])
 
       ## append row indices, new minor 
-      temp_data = (copy(ambient_param_data[U][1]),copy(ambient_param_data[U][2]),copy(ambient_param_data[U][3]))
-      append!(temp_data[1], save_list[k][2]) 
-      push!(temp_data[2], (save_list[k][1],length(save_list[k][2])))
+      dep_vars = copy(dependent_variables(MCU))
+      append!(dep_vars,save_list[k][2])
+      minor_data = copy(max_contact_minor_data(MCU))    ## this should save MCU.minor_data from getting altered?
+      push!(minor_data,(save_list[k][1],length(save_list[k][2])))
 
       ## prepare and append relevant part of JM * pseudoinverse
       if length(save_list[k][3]) < length(IUgens)
@@ -185,9 +175,11 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
       submat_for_minor = JM[save_list[k][2], save_list[k][3]]
       Ainv, _ = pseudo_inv(submat_for_minor)
       JM_essential = JM_essential * Ainv         # appropriate submatrix transformed to h*unit_matrix
-      push!(temp_data[3], JM_essential)
+      amb_jacobi = prepared_jacobi_matrices(MCU)
+      push!(amb_jacobi, JM_essential)
 
-      new_ambient_param_data[current_patch] = temp_data
+      MCC_new = Oscar.MaxContactChart(U,amb_gens, amb_ord, dep_vars, minor_data, amb_jacobi)
+      new_max_contact[current_patch] = MCC_new
 
       ## check whether we can stop prematurely, because everything is covered
       !is_empty(subscheme(U,cover_test)) || break
@@ -199,8 +191,7 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
   newCov = Covering(patch_list)
   return Oscar.MaxContactObject(original_scheme(MC),
                             newCov,
-                            new_max_contact,
-                            new_ambient_param_data) 
+                            new_max_contact) 
 end
 
 _agnostic_complement_equation(U::PrincipalOpenSubset) = lift(complement_equation(U))
@@ -209,15 +200,12 @@ _agnostic_complement_equation(X::AbsAffineScheme) =  one(base_ring(OO(X)))
 ########################################################
 ## jacobian matrix in chart in maximal contact setting
 ########################################################
-function jacobian_matrix(MC::Oscar.MaxContactObject, I::AbsIdealSheaf, U::AbsAffineScheme)
-  U in covering(MC) || error("U is not a chart of the given maximal contact covering")
-  max_contact_data = maximal_contact_data(MC)[U]
-  amb_data = ambient_parameter_data(MC)[U]
+function jacobian_matrix(MCU::Oscar.MaxContactChart, I::Ideal)
 
-  JI = jacobi_matrix(lifted_numerator.(gens(I(U))))
-  var_indices = amb_data[1]
-  minors_and_blocks = amb_data[2]
-  reduction_matrices = amb_data[3]
+  JI = jacobi_matrix(lifted_numerator.(gens(I)))
+  var_indices = dependent_variables(MCU)
+  minors_and_blocks = max_contact_minor_data(MCU)
+  reduction_matrices = prepared_jacobi_matrices(MCU)
   
   length(minors_and_blocks) == length(reduction_matrices) || error("inconsistent ambient parameter data")
   cur_pos = 1
@@ -244,7 +232,7 @@ function jacobian_matrix(MC::Oscar.MaxContactObject, I::AbsIdealSheaf, U::AbsAff
   return(res_mat)
 end
 
-function _delta_ideal_sheaf(MC::MaxContactObject,I_sheaf::AbsIdealSheaf)
+function _delta_ideal_sheaf(MC::Oscar.MaxContactObject,I_sheaf::Oscar.AbsIdealSheaf)
   Cov = covering(MC)
   I_simple = small_generating_set(I_sheaf)
 
@@ -257,17 +245,18 @@ function _delta_ideal_sheaf(MC::MaxContactObject,I_sheaf::AbsIdealSheaf)
       continue
     end
 
-    result_mat = jacobian_matrix(MC, I_simple , U)
+    MCU = maximal_contact_data[U]
+    result_mat = jacobian_matrix(MCU, I_simple(U))
     Ivec = copy(gens(I))
-    append!(Ivec, maximal_contact_data(MC)[U][1])
+    append!(Ivec, ambient_generators(MCU))
     append!(Ivec,[a for a in collect(result_mat)])
     Delta_dict[U] = ideal(OO(U), OO(U).(Ivec))
   end
 
-  return small_generating_set(IdealSheaf(scheme(I_sheaf),Delta_dict)
+  return small_generating_set(IdealSheaf(scheme(I_sheaf),Delta_dict))
 end
 
-function _delta_list(MC::MaxContactObject,I_sheaf::AbsIdealSheaf,b::Int=0)
+function _delta_list(MC::Oscar.MaxContactObject,I_sheaf::Oscar.AbsIdealSheaf,b::Int=0)
   Delta_list = AbsIdealSheaf[]
   j = 0
   I = I_sheaf
@@ -282,7 +271,7 @@ end
 ############################################################################################
 ## Maximal contact loci -- in different context
 ############################################################################################
-function _nu_star_not_one_max(I::AbsIdealSheaf)
+function _nu_star_not_one_max(I::Oscar.AbsIdealSheaf)
   W = scheme(I)
   Cov = covering(W)
   inc_W = Oscar.CoveredClosedEmbedding(W,I)
@@ -301,29 +290,29 @@ function _nu_star_not_one_max(I::AbsIdealSheaf)
   ret_dict = IdDict{AbsAffineScheme,Ideal}()
 
   for U in covering(MC2)
-    max_contact_data = maximal_contact_data(MC2)
-    temp_len = length([a for a in max_contact_data[2] if a == 1])      ## not counting leading zeros from W
+    MC2U = maximal_contact_data(MC2)[U]
+    temp_len = length([a for a in ambient_orders(MC2U) if a == 1])     ## not counting leading zeros from W
     shortest >= temp_len || continue                                   ## not relevant for maximal value
     if shortest > temp_len
       shortest  = temp_len                                             ## new shortest one
       ret_dict = IdDict{AbsAffineScheme,Ideal}()
     end
-    ret_dict[U] = ideal(OO(U),OO(U).(max_contact_data[1]))
+    ret_dict[U] = ideal(OO(U),OO(U).(ambient_gens(MC2U)))
   end
 
   ideal_dict = IdDict{AbsAffineSchme,Ideal}()
   for U in covering(MC2)
     if U in keys(ret_dict)
+      ideal_dict[U] = I(U)
+    else
       I_one = ideal(OO(U), one(OO(U)))
       ret_dict[U] = I_one
       ideal_dict[U] = I_one
-    else
-      ideal_dict[U] = I(U))
     end
   end
 
   J = IdealSheaf(W,red_dict;check=false)
   I_new = IdealSheaf(W,ideal_dict;check=false)
   DL = _delta_list(MC2,I_new)
-  return J,DL[:end],shortest,length(DL)
+  return J,DL[:end],shortest,length(DL),MC2
 end

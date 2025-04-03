@@ -13,14 +13,12 @@
   MC2 =_max_contact_step(MC, DL[2], 2)
   U = first(covering(MC2))
   mc_data = maximal_contact_data(MC2)[U]
-  @test mc_data[2] == [0,2]
-  amb_data = ambient_parameter_data(MC2)[U]
-  @test amb_data[1] == [3,1]
-  @test amb_data[2] == [(1,1),(1,1)]
-  amb_data0 = ambient_parameter_data(MC)[U]
-  @test amb_data[3][1] == amb_data0[3][1]
+  @test ambient_orders(mc_data) == [0,2]
+  @test dependent_variables(mc_data) == [3,1]
+  @test max_contact_minor_data(mc_data) == [(1,1),(1,1)]
+  @test prepared_jacobi_matrices(mc_data)[1] == prepared_jacobi_matrices(maximal_contact_data(MC)[U])[1]
   R,(x,y,z) = polynomial_ring(QQ,3)
-  J = ideal(R,[z-x])
+  J = ideal(R,[x-z])
   S,piS = quo(R,J)
   W = AffineScheme(S)
   I=ideal(S, [x^2+z^2-y^5])
@@ -33,10 +31,19 @@
   MC2 =_max_contact_step(MC, DL[2], 2)
   U = first(covering(MC2))
   mc_data = maximal_contact_data(MC2)[U]
-  @test mc_data[2] == [0,2]
-  amb_data = ambient_parameter_data(MC2)[U]
-  @test amb_data[1] == [3,1]
-  @test amb_data[2] == [(1,1),(1,1)]
-  amb_data0 = ambient_parameter_data(MC)[U]
-  @test amb_data[3][1] == amb_data0[3][1]
+  @test ambient_orders(mc_data) == [0,2]
+  @test dependent_variables(mc_data) == [3,1]
+  @test max_contact_minor_data(mc_data) == [(-1,1),(-1,1)]
+  @test prepared_jacobi_matrices(mc_data)[1] == prepared_jacobi_matrices(maximal_contact_data(MC)[U])[1]
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  J = ideal(R,[x*y-1])
+  S,piS = quo(R,J)
+  W = AffineScheme(S)
+  I=ideal(S, [x^2+z^2-y^5])
+  IS = IdealSheaf(W,I)
+  WC = scheme(IS)
+  inc_X = Oscar.CoveredClosedEmbedding(WC,IS)
+  MC = _initialize_max_contact_object(inc_X)
+  DL = Oscar._delta_list(IS)
+  @test length(DL) == 1
 end
