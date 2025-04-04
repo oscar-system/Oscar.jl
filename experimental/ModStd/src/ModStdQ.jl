@@ -95,7 +95,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degr
       if !fl
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
-            gc[i], _ = induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
+            gc[i], _ = exp_induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
           end
         end
         d *= ZZRingElem(p)
@@ -182,7 +182,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord
       if !fl
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
-            gc[i], _ = induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
+            gc[i], _ = exp_induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
           end
         end
         d *= ZZRingElem(p)
@@ -250,10 +250,12 @@ function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem, b::Bo
   return true, finish(g)
 end
 
-function induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZRingElem, b::Bool)
+function exp_induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZRingElem, b::Bool)
   mu = MPolyBuildCtx(parent(f))
   for i=1:length(f)
     e = exponent_vector(f, i)
+    println(exponent_vector(f,i));
+    println(exponent_vector(g,i));
     @assert e == exponent_vector(g, i)
     push_term!(mu, crt(coeff(f, i), d, coeff(g, i), p, b), e)
   end
