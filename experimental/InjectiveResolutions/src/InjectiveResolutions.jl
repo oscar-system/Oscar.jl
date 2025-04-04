@@ -37,15 +37,181 @@ struct IrrSum # irreducible sum
     mod::SubquoModule
     components::Vector{IndecInj}
 end
-struct MonoidAlgebra # monoid algebra with associated data
-    algebra::Union{MPolyRing, MPolyQuoRing}
+
+mutable struct MonoidAlgebra{CoeffType, AlgebraType} <: Ring # monoid algebra with associated data
+    algebra::AlgebraType
+    pointed::Union{Nothing, Bool} #cone pointed
+    polyhedral_cone::Cone{QQFieldElem}
     cone::Polyhedron
     faces::Vector{FaceQ}
     hyperplanes::Vector{HyperplaneQ}
-    # normal::Bool
-    pointed::Bool #cone pointed
     zonotope::Tuple{Polyhedron,Vector{Int}}
+
+    function MonoidAlgebra(A::AlgebraType; check::Bool=true) where {AlgebraType <: Union{MPolyRing, MPolyQuoRing}}
+      #check if monoid algebra
+      @check is_zm_graded(A) "given algebra is not ZZ^d-graded"
+      gg_Q = grading_group(A)
+      @check is_free(gg_Q) && is_abelian(gg_Q) "given algebra is not a monoid algebra"
+      kk = coefficient_ring(A)
+      result = new{elem_type(kk), AlgebraType}(A, nothing)
+    end
 end
+
+function polyhedral_cone(A)
+  if !isdefined(A, :polyhedral_cone)
+    A.polyhedral_cone = get_polyhedral_cone(A.algebra)
+  end
+  return A.polyhedral_cone
+end
+
+function cone(A::MonoidAlgebra)
+  if !isdefined(A, :cone)
+    A.cone = polyhedron(polyhedral_cone(A))
+  end
+  return A.cone
+end
+
+function faces(A::MonoidAlgebra)
+  if !isdefined(A, :faces)
+    A.faces = get_faces_of_polyhedral_cone(A.algebra, zonotope(A)[1], cone(A))
+  end
+  return A.faces
+end
+
+function hyperplanes(A::MonoidAlgebra)
+  if !isdefined(A, :hyperplanes)
+    A.hyperplanes = get_bounding_hyperplanes(cone(A))
+  end
+  return A.hyperplanes
+end
+
+function is_pointed(A::MonoidAlgebra)
+  if isnothing(A.pointed)
+    A.pointed = is_pointed(polyhedral_cone(A))
+  end
+  return A.pointed::Bool
+end
+
+function zonotope(A::MonoidAlgebra)
+  if !isdefined(A, :zonotope)
+    A.zonotope = get_zonotope(cone(A))
+  end
+  return A.zonotope
+end
+
+coefficient_ring(A::MonoidAlgebra) = coefficient_ring(A.algebra)
+
+### Elements of MonoidAlgebras
+mutable struct MonoidAlgebraElem{CoeffType, ParentType} <: RingElem
+  parent::ParentType
+  elem::RingElem
+  # TODO: Do we want to store additional information on the elements here?
+
+  function MonoidAlgebraElem(
+      A::ParentType
+    ) where {CoeffType, ParentType <: MonoidAlgebra{CoeffType}}
+    return new{CoeffType, ParentType}(parent)
+  end
+  
+  function MonoidAlgebraElem(
+      A::ParentType,
+      a::RingElem;
+      check::Bool=true
+    ) where {CoeffType, ParentType <: MonoidAlgebra{CoeffType}}
+    @check parent(a) === A.algebra
+    return new{CoeffType, ParentType}(A, a)
+  end
+end
+
+parent(a::MonoidAlgebraElem) = a.parent
+
+elem_type(::Type{T}) where {CoeffType, T <: MonoidAlgebra{CoeffType}} = MonoidAlgebraElem{CoeffType, T}
+
+function underlying_element(a::MonoidAlgebraElem)
+  if !isdefined(a, :elem)
+    a.elem = zero(parent(a).algebra)
+  end
+  return a.elem::elem_type(parent(a).algebra)
+end
+
+### implementation of some common ring functionality
+function (A::MonoidAlgebra)()
+  return MonoidAlgebraElem(A)
+end
+
+function one(A::MonoidAlgebra)
+  return MonoidAlgebraElem(A, one(A.algebra); check=false)
+end
+
+function +(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) + underlying_element(b); check=false)
+end
+
+function -(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) - underlying_element(b); check=false)
+end
+
+function ==(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return underlying_element(a) == underlying_element(b)
+end
+
+function *(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) * underlying_element(b); check=false)
+end
+
+function *(c::CoeffType, b::MonoidAlgebraElem{CoeffType}) where {CoeffType}
+  A = parent(b)
+  @assert coefficient_ring(A) === parent(c)
+  return MonoidAlgebraElem(A, c*underlying_element(b); check=false)
+end
+
+function *(c::IntegerUnion, b::MonoidAlgebraElem)
+  A = parent(b)
+  kk = coefficient_ring(A)
+  return MonoidAlgebraElem(A, kk(c)*underlying_element(b); check=false)
+end
+
+function -(b::MonoidAlgebraElem)
+  A = parent(b)
+  return MonoidAlgebraElem(A, -underlying_element(b); check=false)
+end
+
+function (A::MonoidAlgebra{CoeffType})(c::CoeffType) where {CoeffType}
+  return MonoidAlgebraElem(A, A.algebra(c))
+end
+
+function (A::MonoidAlgebra)(c::Any)
+  return MonoidAlgebraElem(A, A.algebra(c))
+end
+
+function (A::MonoidAlgebra)(a::MonoidAlgebraElem)
+  @assert parent(a) === A
+  return a
+end
+
+# TODO: Add promote rules
+AbstractAlgebra.promote_rule(::Type{CoeffType}, ::Type{T}) where {CoeffType, T<:MonoidAlgebraElem{CoeffType}} = T
+
+AbstractAlgebra.promote_rule(::Type{Int}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
+AbstractAlgebra.promote_rule(::Type{ZZRingElem}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
+
+
+gens(A::MonoidAlgebra) = [MonoidAlgebraElem(A, x) for x in gens(A.algebra)]
+getindex(A::MonoidAlgebra, i::Int) = MonoidAlgebraElem(A, A.algebra[i])
+
+function Base.show(io::IO, ::MIME"text/plain", a::MonoidAlgebraElem)
+  print(io, underlying_element(a))
+end
+
+
 
 struct MonoidAlgebraIdeal
     monoidAlgebra::MonoidAlgebra
