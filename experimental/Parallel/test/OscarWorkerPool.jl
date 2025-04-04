@@ -9,13 +9,13 @@
       return new(a, Dict{Int, Any}())
     end
   end
+  Oscar.pop_task!(ctx::CtxIO) = is_empty(ctx.a) ? nothing : (length(ctx.a), x->x^2, pop!(ctx.a))
+  Oscar.process_result!(ctx::CtxIO, id::Int, result) = ctx.b[id] = result
 
   oscar_worker_pool(1) do wp
     @testset "compute distributed" begin
       # Implement methods for `pop_task!` and `process_result!` for this 
       # type as explained in their docstrings. 
-      Oscar.pop_task!(ctx::CtxIO) = is_empty(ctx.a) ? nothing : (length(ctx.a), x->x^2, pop!(ctx.a))
-      Oscar.process_result!(ctx::CtxIO, id::Int, result) = ctx.b[id] = result
       
       # Create a context for the computation.
       R, (x, y, z) = QQ[:x, :y, :z]
