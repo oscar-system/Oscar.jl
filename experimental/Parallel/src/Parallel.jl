@@ -12,18 +12,17 @@ and [`pmap`](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.pm
 """
 mutable struct OscarWorkerPool <: AbstractWorkerPool
   wp::WorkerPool # the plain worker pool
-  channel::Channel{Int}
-  workers::Set{Int}
-  wids::Vector{Int}
-  oscar_channels::Dict{Int, <:RemoteChannel}
+  channel::Channel{Int} # required for the `AbstractWorkerPool` interface
+  workers::Set{Int}     # same
+  wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
+  oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
 
   function OscarWorkerPool(n::Int)
     wids = addprocs(n)
     wp = WorkerPool(wids)
-    #for id in wids
+    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here. 
     remotecall_eval(Main, wids, :(using Oscar))
 
-    #@everywhere wids using Oscar
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
   end
 end
@@ -62,30 +61,39 @@ function oscar_worker_pool(f::Function, n::Int)
   return results
 end
 
-function push!(wp::OscarWorkerPool, a::Any)
+### The following implements the `AbstractWorkerPool` interface
+
+# Add a new worker to the pool
+function push!(wp::OscarWorkerPool, id::Int)
+  # Make sure the node is running Oscar
+  remotecall_eval(Main, id, :(using Oscar))
+  push!(wp.wids, id) # update the list of associated workers
   return push!(wp.wp, a)
 end
 
-function Base.put!(wp::OscarWorkerPool, a::Int)
-  return put!(wp.wp, a)
-end
-
+# Take a worker from the pool; this marks it as being busy.
 function Base.take!(wp::OscarWorkerPool)
   return take!(wp.wp)
 end
 
+# Put a formerly busy worker back into the pool.
+function Base.put!(wp::OscarWorkerPool, a::Int)
+  return put!(wp.wp, a)
+end
+
+# Get the number of all workers associated to the pool.
 function length(wp::OscarWorkerPool)
   return length(wp.wp)
 end
 
+# Return whether any worker is available for work.
 function Base.isready(wp::OscarWorkerPool)
   return isready(wp.wp)
 end
 
-# get the number of the i-th worker in the pool
-function getindex(wp::OscarWorkerPool, i::Int)
-  return wp.wids[i]
-end
+### end of implementation interface `AbstractWorkerPool`
+
+### extra functionality
 
 workers(wp::OscarWorkerPool) = wp.wids
 
@@ -94,8 +102,6 @@ function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
     RemoteChannel(()->Channel{Any}(channel_size), id)
   end
 end
-
-# extra functionality
 
 function close!(wp::OscarWorkerPool)
   for id in take!(wp)
@@ -112,44 +118,7 @@ function put_type_params(wp::OscarWorkerPool, a::Any)
   end
 end
 
-#=
-# Custom implementation of `pmap`. This is potentially deprecated since we can also overwrite `remotecall_fetch` below. 
-function pmap(f::Any, wp::OscarWorkerPool, args0::Vector; kill_workers::Bool=false, wait_period=0.1)
-  !isready(wp) && is_zero(nworkers(wp)) && error("can not do computations on empty pool")
-  args = copy(args0)
-  n = nworkers(wp)
-  futures = Dict{Int, Pair{Int, Future}}()
-  results = Dict{Int, Any}() # Results might come back in different order
-  i = length(args0) + 1
-  while !isempty(args) || !isempty(futures)
-    # distribute some new work
-    while !isempty(args) && isready(wp)
-      id = take!(wp)
-      arg = pop!(args)
-      i = i - 1
-      put_type_params(get_channel(wp, id), arg) # send the parents up front
-      futures[id] = i => remotecall(f, id, arg)
-    end
-    
-    # gather results
-    for (id, (i, fut)) in futures
-      isready(fut) || continue
-      results[i] = fetch(fut)
-      delete!(futures, id)
-      if kill_workers && isempty(args)
-        rmprocs(id)
-      else
-        put!(wp, id)
-      end
-    end
-    sleep(wait_period)
-  end
-
-  @assert is_one(i)
-  # assemble the final result
-  return [results[i] for i in 1:length(args0)]
-end
-=#
+### distributed computation with centralized data management
 
 @doc raw"""
     compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
@@ -279,3 +248,4 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
 end
 
 export oscar_worker_pool
+
