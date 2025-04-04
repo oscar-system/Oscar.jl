@@ -27,7 +27,7 @@
       
       @test κ[g] == κ_g
       @test κ[h] == κ_h
-      @test length(κ.forms) == 2
+      @test nforms(κ) == 2
     end
         
     @testset "create drinfeld-hecke form from forms input" begin
@@ -39,7 +39,7 @@
       κ = drinfeld_hecke_form(forms)
       
       @test !is_zero(κ)
-      @test length(κ.forms) == 1
+      @test nforms(κ) == 1
       
       κ_g = alternating_bilinear_form(MS([0 1;-1 0]))
       
@@ -55,7 +55,7 @@
       κ[g] = MS([0 1;-1 0])
       
       @test !is_zero(κ)
-      @test length(κ.forms) == 1
+      @test nforms(κ) == 1
       
       κ_g = alternating_bilinear_form(MS([0 1;-1 0]))
       
@@ -76,7 +76,7 @@
       set_forms(κ, forms)
       
       @test !is_zero(κ)
-      @test length(κ.forms) == 2
+      @test nforms(κ) == 2
       
       κ_g = alternating_bilinear_form(MS([0 3;-3 0]))
       κ_h = alternating_bilinear_form(MS([0 -2;2 0]))
@@ -135,7 +135,7 @@
   
       @test κ[g] == κ_g
       @test κ[h] == κ_h
-      @test length(κ.forms) == 2
+      @test nforms(κ) == 2
     end
   
     @testset "create drinfeld-hecke form from input" begin
@@ -153,7 +153,7 @@
       κ = drinfeld_hecke_form(forms)
       
       @test !is_zero(κ)
-      @test length(κ.forms) == 2
+      @test nforms(κ) == 2
       
       κ_g = alternating_bilinear_form(forms[g])
       κ_h = alternating_bilinear_form(forms[h])

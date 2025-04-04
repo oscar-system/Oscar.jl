@@ -64,12 +64,11 @@ function parametrized_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingEle
   n, kernel = nullspace(handler.relation_matrix) # TODO what if R is not a field?
   
   # There is no solution except zero
-  if n == 0 
-    return DrinfeldHeckeForm(G) 
-  end
+  if n == 0 return DrinfeldHeckeForm(G) end
 
   # For creating a parametrized solution, we work over a polynomial ring S = R[t1,...tn]
-  S, _ = polynomial_ring(R, ["t" * string(i) for i in 1:n])
+  parameters = n == 1 ? ["t"] : ["t" * string(i) for i in 1:n]
+  S, _ = polynomial_ring(R, parameters)
   
   # Use kernel basis to create a parametrized solution
   m = nrows(kernel)
@@ -96,6 +95,94 @@ function parametrized_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingEle
   end
   
   return DrinfeldHeckeForm(forms)
+end
+
+################################################################################
+# Drinfeld-Hecke form mutation
+################################################################################
+
+function Base.setindex!(κ::DrinfeldHeckeForm{T}, m::MatElem{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
+  forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
+  
+  for (h, κ_h) in κ.forms
+    forms[h] = matrix(κ_h)
+  end
+
+  forms[g] = m
+  
+  set_forms(κ, forms)
+end
+
+function substitute_parameter(κ::DrinfeldHeckeForm{T}, i::Int, c) where {T <: MPolyRingElem}
+  S = base_ring(κ)
+  n = ngens(S)
+  
+  if i > n
+    throw(ArgumentError("Index invalid, please choose an index between 1 and " * n * "."))
+  end
+
+  R = base_ring(S)
+  
+  # Check if c is in R
+  try
+    R(c)
+  catch e
+    throw(ArgumentError("The element " * string(c) * " can not be cast into an element of the base ring."))
+  end
+
+  if n == 1
+    S_new = R
+  else
+    parameters = n == 2 ? ["t"] : ["t" * string(i) for i in 1:(n-1)]
+    S_new, _ = polynomial_ring(R, parameters)
+  end
+
+  # Evaluation function
+  images = [j < i ? S_new[j] : j == i ? S_new(c) : S_new[j-1] for j in 1:n]
+  φ = hom(S, S_new, images)
+  λ = f -> φ(f)
+
+  # Move group to new ring S_new
+  G = matrix_group([λ.(matrix(g)) for g in gens(group(κ))])
+
+  # Move forms to new ring S_new
+  T_new = elem_type(typeof(S_new))
+  forms = Dict{MatrixGroupElem{T_new}, MatElem{T_new}}()
+  for (g_s, κ_g) in κ.forms
+    g = G(λ.(matrix(g_s)))
+    forms[g] = λ.(matrix(κ_g))
+  end
+  
+  return DrinfeldHeckeForm(forms)
+end
+
+function set_forms(κ::DrinfeldHeckeForm{T}, forms::Dict{MatrixGroupElem{T}, MatElem{T}}) where {T <: RingElem}
+  G = κ.group
+  R = κ.base_ring
+  map = κ.relation_handler.map
+  M = κ.relation_handler.relation_matrix
+  
+  # We need to check if forms satisfies the needed relations to define a Drinfeld-Hecke form
+  # For this we translate the forms into a vector x using the handler map
+  x = fill(R(), length(map))
+  for ((g,i,j),k) in map
+    if haskey(forms, g)
+      x[k] = forms[g][i,j]
+    end
+  end
+  
+  # Check if x satisfies the relations
+  if !is_zero(M*x)
+    throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form"))
+  end
+  
+  # Set the forms to κ
+  κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{T}}()
+  for (g, m) in forms
+    if !is_zero(m)
+      κ.forms[g] = alternating_bilinear_form(m)
+    end
+  end
 end
 
 ################################################################################
@@ -139,47 +226,6 @@ function Base.getindex(κ::DrinfeldHeckeForm{T}, g::MatrixGroupElem{T}) where {T
     d = degree(κ.group)
     m = zero_matrix(κ.base_ring, d, d)
     return alternating_bilinear_form(m)
-  end
-end
-
-function Base.setindex!(κ::DrinfeldHeckeForm{T}, m::MatElem{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
-  forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
-  
-  for (h, κ_h) in κ.forms
-    forms[h] = matrix(κ_h)
-  end
-
-  forms[g] = m
-  
-  set_forms(κ, forms)
-end
-
-function set_forms(κ::DrinfeldHeckeForm{T}, forms::Dict{MatrixGroupElem{T}, MatElem{T}}) where {T <: RingElem}
-  G = κ.group
-  R = κ.base_ring
-  map = κ.relation_handler.map
-  M = κ.relation_handler.relation_matrix
-  
-  # We need to check if forms satisfies the needed relations to define a Drinfeld-Hecke form
-  # For this we translate the forms into a vector x using the handler map
-  x = fill(R(), length(map))
-  for ((g,i,j),k) in map
-    if haskey(forms, g)
-      x[k] = forms[g][i,j]
-    end
-  end
-  
-  # Check if x satisfies the relations
-  if !is_zero(M*x)
-    throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form"))
-  end
-  
-  # Set the forms to κ
-  κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{T}}()
-  for (g, m) in forms
-    if !is_zero(m)
-      κ.forms[g] = alternating_bilinear_form(m)
-    end
   end
 end
 
