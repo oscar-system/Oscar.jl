@@ -79,6 +79,7 @@ t2 = resolve(t1, 1)
   @test base_space(t1) == base_space(t2)
   @test length(exceptional_divisor_indices(t2)) == length(exceptional_classes(t2))
   @test length(exceptional_divisor_indices(t2)) == length(exceptional_divisor_indices(t1)) + 5
+  @test length(exceptional_classes(t2)) == length(exceptional_classes(t1)) + 5
 end
 
 add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
@@ -595,7 +596,7 @@ end
 
 
 ##########################################################################################################
-# 10: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
+# 10: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
 ##########################################################################################################
 
 foah1_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass")
@@ -615,7 +616,7 @@ foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type
 foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
 foah16_weier = weierstrass_model(foah16)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
   @test dim(base_space(foah2_weier)) == 3
   @test dim(base_space(foah3_weier)) == 3
@@ -685,7 +686,7 @@ end
 
 
 ########################################################################################################
-# 11: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
+# 11: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
 ########################################################################################################
 
 B3 = projective_space(NormalToricVariety, 3)
@@ -707,7 +708,7 @@ foah14_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", t
 foah15_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
   @test dim(base_space(foah1_B3_weier)) == 3
   @test dim(base_space(foah2_B3_weier)) == 3
   @test dim(base_space(foah3_B3_weier)) == 3

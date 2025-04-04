@@ -215,7 +215,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   S = cox_ring(ambient_space(m))
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S))) # TODO: This line is a bit fragile. Fix it!
+  exceptional_divisor_positions = exceptional_divisor_indices(m)
   tds = torusinvariant_prime_divisors(ambient_space(m))
   cds = [cohomology_class(td) for td in tds]
   pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
@@ -355,7 +355,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
   ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
    # TODO: This line is a bit fragile. Fix it!
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+(_\d+)?$", x), string.(symbols(S)))
+  exceptional_divisor_positions = exceptional_divisor_indices(m)
 
 
   # (5) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) if the flux is not breaking the gauge group.
