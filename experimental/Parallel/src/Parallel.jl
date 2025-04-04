@@ -20,7 +20,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   function OscarWorkerPool(n::Int)
     wids = addprocs(n)
     wp = WorkerPool(wids)
-    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here. 
+    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     remotecall_eval(Main, wids, :(using Oscar))
 
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
@@ -118,17 +118,17 @@ end
 @doc raw"""
     compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
 
-Given an `OscarWorkerPool` `wp` and a context object `ctx`, distribute tasks 
-coming out of `ctx` to be carried out on the workers (based on availability) and 
+Given an `OscarWorkerPool` `wp` and a context object `ctx`, distribute tasks
+coming out of `ctx` to be carried out on the workers (based on availability) and
 process the result.
 
 For this to work, the following methods must be implemented for `ctx`:
-  - `pop_task!(ctx)` to either return a `Tuple` `(task_id::Int, func::Any, args)`, in which case `remotecall(func, wp, args)` will be called to deploy the task to the workers, or return `nothing` to indicate that all tasks in `ctx` have been exhausted, or return an instance of `WaitForResults` to indicate that some information on results of tasks which have already been given out is needed to proceed with giving out new tasks.  
-  - `process_result!(ctx, task_id::Int, res)` to process the result `res` of the computation of the task with id `task_id`. 
+  - `pop_task!(ctx)` to either return a `Tuple` `(task_id::Int, func::Any, args)`, in which case `remotecall(func, wp, args)` will be called to deploy the task to the workers, or return `nothing` to indicate that all tasks in `ctx` have been exhausted, or return an instance of `WaitForResults` to indicate that some information on results of tasks which have already been given out is needed to proceed with giving out new tasks.
+  - `process_result!(ctx, task_id::Int, res)` to process the result `res` of the computation of the task with id `task_id`.
 
 Note: The programmers themselves are responsible to deliver `task_id`s which are unique for the respective tasks!
 
-Deploying tasks to the workers continues until `pop_task!(ctx)` returns `nothing`. 
+Deploying tasks to the workers continues until `pop_task!(ctx)` returns `nothing`.
 Computation continues until all deployed tasks have been treated with `process_result!`.
 The return value is the `ctx` in its current state after computation.
 """
@@ -151,7 +151,7 @@ function compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
       task_id, func, args = next_task
       futures[task_id] = remotecall(func, wp, args)
     end
-    
+
     # gather results
     for (task_id, fut) in futures
       isready(fut) || continue
@@ -171,7 +171,7 @@ end
 @doc raw"""
     WaitForResults
 
-A dummy type so that `pop_task!` can return `WaitForResults()` to indicate 
+A dummy type so that `pop_task!` can return `WaitForResults()` to indicate
 that no new task can be deployed before retrieving results of those already
 given out.
 """
@@ -180,11 +180,11 @@ struct WaitForResults end
 @doc raw"""
     pop_task!(ctx::CtxType) where {CtxType}
 
-Internal function for `compute_distributed!`; to be overwritten with methods for specific `CtxType`s. 
+Internal function for `compute_distributed!`; to be overwritten with methods for specific `CtxType`s.
 
-Whatever type of object the user would like to use as context object `ctx` for `compute_distributed` 
+Whatever type of object the user would like to use as context object `ctx` for `compute_distributed`
 should implement a method of this function to do the following.
-  - If there is another task to be deployed to a worker, return a triple `(task_id, func, args)` consisting of a function `func`, a unique `task_id::Int`, and arguments `arg` so that `func(arg)` is called on some worker. 
+  - If there is another task to be deployed to a worker, return a triple `(task_id, func, args)` consisting of a function `func`, a unique `task_id::Int`, and arguments `arg` so that `func(arg)` is called on some worker.
   - If no new task can be given out with the current state of the context object `ctx` and we first need to wait for processing of some results of tasks given out already, return `WaitForResults()`.
   - If all tasks in `ctx` have been exhausted, return `nothing`.
 """
@@ -193,18 +193,18 @@ pop_task!(ctx) = nothing
 @doc raw"""
     process_result!(ctx::CtxType, id::Int, res) where {CtxType}
 
-Internal function for `compute_distributed!`; to be overwritten with methods for specific `CtxType`s. 
+Internal function for `compute_distributed!`; to be overwritten with methods for specific `CtxType`s.
 
-For a task `(task_id, func, args)` returned by a call to `pop_task!(ctx)`, the result 
-of the call `func(args)` is delivered as `res` for processing on the main process. 
+For a task `(task_id, func, args)` returned by a call to `pop_task!(ctx)`, the result
+of the call `func(args)` is delivered as `res` for processing on the main process.
 """
 process_result!(ctx, id::Int, res) = ctx
 
 #=
-# Custom versions of `remotecall` and `remotecall_fetch` for `OscarWorkerPool`s. 
+# Custom versions of `remotecall` and `remotecall_fetch` for `OscarWorkerPool`s.
 # The idea is to use this special type of worker pool to send the `type_params`
-# of the arguments to the workers up front. Then hopefully, whenever an 
-# `OscarWorkerPool` is being used, loads of other functionality like `pmap` 
+# of the arguments to the workers up front. Then hopefully, whenever an
+# `OscarWorkerPool` is being used, loads of other functionality like `pmap`
 # will run out of the box.
 =#
 function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
@@ -215,11 +215,18 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   for a in kwargs
     put_type_params(get_channel(wp, wid), a)
   end
-  fut = remotecall(f, wid, args...; kwargs...)
+
 
   # Copied from Distributed.jl/src/workerpool.jl.
-  # This puts the worker back to the pool once the future is ready 
+  # This puts the worker back to the pool once the future is ready
   # and we do not have to worry about this ourselves.
+  local fut
+  try
+    fut = remotecall(f, wid, args...; kwargs...)
+  catch
+    put!(wp, wid)
+    rethrow()
+  end
   t = Threads.@spawn Threads.threadpool() try
     wait(fut)
   catch
@@ -245,4 +252,3 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
 end
 
 export oscar_worker_pool
-
