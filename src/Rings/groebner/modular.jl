@@ -170,7 +170,7 @@ mutable struct MPolyPt{T}
         break
       end
     end
-    return new{Int}(Int[], p, Int[rand(-10000:10000) for i=1:n], 0)
+    return new{Int}(Int[], p, Int[rand(-1000:1000) for i=1:n], 0)
   end
   function MPolyPt(lp::Vector{Int}, z::AbstractVector, s::Vector{Int}, j::Int)
     r = new{Int}()
