@@ -234,6 +234,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
+    set_exceptional_classes(qsm_model, string.(model_dict["model_data"]["exceptional_classes"]))
     # Set meta data attributes
     #cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
     #cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)

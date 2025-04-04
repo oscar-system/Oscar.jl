@@ -77,6 +77,8 @@ t2 = resolve(t1, 1)
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_classes(t2))
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_divisor_indices(t1)) + 5
 end
 
 add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
