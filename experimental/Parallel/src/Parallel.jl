@@ -12,18 +12,17 @@ and [`pmap`](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.pm
 """
 mutable struct OscarWorkerPool <: AbstractWorkerPool
   wp::WorkerPool # the plain worker pool
-  channel::Channel{Int}
-  workers::Set{Int}
-  wids::Vector{Int}
-  oscar_channels::Dict{Int, <:RemoteChannel}
+  channel::Channel{Int} # required for the `AbstractWorkerPool` interface
+  workers::Set{Int}     # same
+  wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
+  oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
 
   function OscarWorkerPool(n::Int)
     wids = addprocs(n)
     wp = WorkerPool(wids)
-    #for id in wids
+    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here. 
     remotecall_eval(Main, wids, :(using Oscar))
 
-    #@everywhere wids using Oscar
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
   end
 end
@@ -37,7 +36,7 @@ There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
 
 # Example
-The following code will start up 3 processes with Oscar
+The following code will start up 3 processes with Oscar,
 run a parallel computation over each element in an array and
 then shutdown the processes.
 ```
@@ -62,30 +61,39 @@ function oscar_worker_pool(f::Function, n::Int)
   return results
 end
 
-function push!(wp::OscarWorkerPool, a::Any)
+### The following implements the `AbstractWorkerPool` interface
+
+# Add a new worker to the pool
+function push!(wp::OscarWorkerPool, id::Int)
+  # Make sure the node is running Oscar
+  remotecall_eval(Main, id, :(using Oscar))
+  push!(wp.wids, id) # update the list of associated workers
   return push!(wp.wp, a)
 end
 
-function Base.put!(wp::OscarWorkerPool, a::Int)
-  return put!(wp.wp, a)
-end
-
+# Take a worker from the pool; this marks it as being busy.
 function Base.take!(wp::OscarWorkerPool)
   return take!(wp.wp)
 end
 
+# Put a formerly busy worker back into the pool.
+function Base.put!(wp::OscarWorkerPool, a::Int)
+  return put!(wp.wp, a)
+end
+
+# Get the number of all workers associated to the pool.
 function length(wp::OscarWorkerPool)
   return length(wp.wp)
 end
 
+# Return whether any worker is available for work.
 function Base.isready(wp::OscarWorkerPool)
   return isready(wp.wp)
 end
 
-# get the number of the i-th worker in the pool
-function getindex(wp::OscarWorkerPool, i::Int)
-  return wp.wids[i]
-end
+### end of implementation interface `AbstractWorkerPool`
+
+### extra functionality
 
 workers(wp::OscarWorkerPool) = wp.wids
 
@@ -94,8 +102,6 @@ function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
     RemoteChannel(()->Channel{Any}(channel_size), id)
   end
 end
-
-# extra functionality
 
 function close!(wp::OscarWorkerPool)
   for id in take!(wp)
@@ -112,44 +118,7 @@ function put_type_params(wp::OscarWorkerPool, a::Any)
   end
 end
 
-#=
-# Custom implementation of `pmap`. This is potentially deprecated since we can also overwrite `remotecall_fetch` below. 
-function pmap(f::Any, wp::OscarWorkerPool, args0::Vector; kill_workers::Bool=false, wait_period=0.1)
-  !isready(wp) && is_zero(nworkers(wp)) && error("can not do computations on empty pool")
-  args = copy(args0)
-  n = nworkers(wp)
-  futures = Dict{Int, Pair{Int, Future}}()
-  results = Dict{Int, Any}() # Results might come back in different order
-  i = length(args0) + 1
-  while !isempty(args) || !isempty(futures)
-    # distribute some new work
-    while !isempty(args) && isready(wp)
-      id = take!(wp)
-      arg = pop!(args)
-      i = i - 1
-      put_type_params(get_channel(wp, id), arg) # send the parents up front
-      futures[id] = i => remotecall(f, id, arg)
-    end
-    
-    # gather results
-    for (id, (i, fut)) in futures
-      isready(fut) || continue
-      results[i] = fetch(fut)
-      delete!(futures, id)
-      if kill_workers && isempty(args)
-        rmprocs(id)
-      else
-        put!(wp, id)
-      end
-    end
-    sleep(wait_period)
-  end
-
-  @assert is_one(i)
-  # assemble the final result
-  return [results[i] for i in 1:length(args0)]
-end
-=#
+### distributed computation with centralized data management
 
 @doc raw"""
     compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
@@ -162,8 +131,10 @@ For this to work, the following methods must be implemented for `ctx`:
   - `pop_task!(ctx)` to either return a `Tuple` `(task_id::Int, func::Any, args)`, in which case `remotecall(func, wp, args)` will be called to deploy the task to the workers, or return `nothing` to indicate that all tasks in `ctx` have been exhausted, or return an instance of `WaitForResults` to indicate that some information on results of tasks which have already been given out is needed to proceed with giving out new tasks.  
   - `process_result!(ctx, task_id::Int, res)` to process the result `res` of the computation of the task with id `task_id`. 
 
-Note: The programmer themself is responsible to deliver `task_id`s which are unique for the respective tasks!
+Note: The programmers themselves are responsible to deliver `task_id`s which are unique for the respective tasks!
 
+Deploying tasks to the workers continues until `pop_task!(ctx)` returns `nothing`. 
+Computation continues until all deployed tasks have been treated with `process_result!`.
 The return value is the `ctx` in its current state after computation.
 """
 function compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
@@ -279,3 +250,4 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
 end
 
 export oscar_worker_pool
+
