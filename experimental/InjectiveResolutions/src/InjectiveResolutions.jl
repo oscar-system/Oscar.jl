@@ -127,6 +127,13 @@ parent(a::MonoidAlgebraElem) = a.parent
 
 elem_type(::Type{T}) where {CoeffType, T <: MonoidAlgebra{CoeffType}} = MonoidAlgebraElem{CoeffType, T}
 
+function degree(a::MonoidAlgebraElem)
+  !isdefined(a, :elem) && return zero(grading_group(parent(a)))
+  return degree(underlying_element(a))
+end
+
+grading_group(A::MonoidAlgebra) = grading_group(A.algebra)
+
 function underlying_element(a::MonoidAlgebraElem)
   if !isdefined(a, :elem)
     a.elem = zero(parent(a).algebra)
@@ -217,9 +224,9 @@ parent_type(::Type{ElemType}) where {ParentType, CoeffType, ElemType <: MonoidAl
 
 ### Ideals over `MonoidAlgebra`s
 mutable struct MonoidAlgebraIdeal{ElemType} <: Ideal{ElemType}
-  ring::MonoidAlgebra
+  monoidAlgebra::MonoidAlgebra
   gens::Vector{ElemType}
-  underlying_ideal::Ideal
+  ideal::Ideal
 
   function MonoidAlgebraIdeal(A::MonoidAlgebra, v::Vector{T}) where {T<:MonoidAlgebraElem}
     @assert all(parent(x) === A for x in v)
@@ -234,7 +241,7 @@ mutable struct MonoidAlgebraIdeal{ElemType} <: Ideal{ElemType}
 end
 
 function base_ring(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
-  return I.ring::parent_type(ElemType)
+  return I.monoidAlgebra::parent_type(ElemType)
 end
 
 function gens(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
@@ -242,10 +249,10 @@ function gens(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
 end
 
 function underlying_ideal(I::MonoidAlgebraIdeal)
-  if !isdefined(I, :underlying_ideal)
-    I.underlying_ideal = ideal(base_ring(I).algebra, [underlying_element(x) for x in gens(I)])
+  if !isdefined(I, :ideal)
+    I.ideal = ideal(base_ring(I).algebra, [underlying_element(x) for x in gens(I)])
   end
-  return I.underlying_ideal::ideal_type(base_ring(I).algebra)
+  return I.ideal::ideal_type(base_ring(I).algebra)
 end
 
 # A sample for how to extend functionality via deflection to the underlying ideal
@@ -481,7 +488,7 @@ function base_ring(M::MonoidAlgebraModule)
 end
 
 function quotient_ring_as_module(I::MonoidAlgebraIdeal)
-    return MonoidAlgebraModule(I.monoidAlgebra,quotient_ring_as_module(I.ideal))
+  return MonoidAlgebraModule(base_ring(I),quotient_ring_as_module(underlying_ideal(I)))
 end
 
 # given a face F of a the cone C = \RR_{\geq 0}Q of a monoid algebra, return the prime ideal k{Q\F}
@@ -1013,7 +1020,7 @@ julia> irreducible_dec(I)
 ```
 """
 function irreducible_dec(I::MonoidAlgebraIdeal)
-    kQ = I.monoidAlgebra
+  kQ = base_ring(I)
 
     indec_injectives, _ = irreducible_hull(quotient_ring_as_module(I.ideal),kQ.faces,kQ)
     return [_get_irreducible_ideal(kQ,I) for I in indec_injectives]
