@@ -1101,7 +1101,7 @@ end
 
 Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
 This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a blow up this information is updated.
+After a toric blow up this information is updated.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1134,7 +1134,7 @@ end
 
 Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
 This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a blow up this information is updated.
+After a toric blow up this information is updated.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)

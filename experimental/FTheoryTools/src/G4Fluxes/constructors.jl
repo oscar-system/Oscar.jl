@@ -152,9 +152,7 @@ function qsm_flux(qsm_model::AbstractFTheoryModel)
   @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
   divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
   gens_strings = symbols(cox_ring(ambient_space(qsm_model)))
-  e1 = cohomology_class(divs[findfirst(x -> x == :e1, gens_strings)])
-  e2 = cohomology_class(divs[findfirst(x -> x == :e2, gens_strings)])
-  e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])
+  e1, e2, e4 = exceptional_classes(qsm_model)[[1,2,4]]
   u = cohomology_class(divs[findfirst(x -> x == :u, gens_strings)])
   v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
   pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
