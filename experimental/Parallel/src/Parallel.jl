@@ -103,7 +103,7 @@ function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
   end
 end
 
-close!(wp::OscarWorkerPool) = map(rmproc, workers(wp))
+close!(wp::OscarWorkerPool) = map(rmprocs, workers(wp))
 
 # extend functionality so that `pmap` works with Oscar stuff
 
