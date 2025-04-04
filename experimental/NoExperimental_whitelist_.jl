@@ -6,4 +6,5 @@ whitelist = String[
   "GModule",                    # `MethodError: no method matching (::FinGenAbGroup)(::FinGenAbGroupElem)`
   "ModStd",                     # `MethodError: no method matching monomial(::QQMPolyRing, ::Vector{Int64})` and many similar errors
   "Schemes",                    # TODO: untangle src/AlgebraicGeometry/Schemes/ and experimental/Schemes/
+  "Parallel",                   # is run seperately from experimental modules since it requires multiple processes 
 ]
