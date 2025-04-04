@@ -153,9 +153,9 @@ function hom(G::GAPGroup, A::FinGenAbGroup, gensG::Vector, imgs::Vector{FinGenAb
 
   # map B to A as prescribed
   if length(gensG) == 0
-    map2 = hom([zero(B)], [zero(A)], check = check)
+    map2 = hom(B, A, [zero(B)], [zero(A)], check = check)
   else
-    map2 = hom([iso(map1(x)) for x in gensG], imgs, check = check)
+    map2 = hom(B, A, [iso(map1(x)) for x in gensG], imgs, check = check)
   end
 
   # create the composition

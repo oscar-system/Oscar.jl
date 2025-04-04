@@ -63,7 +63,7 @@ end
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
   D = W.D
   is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
+  h = hom(free_abelian_group(ngens(W)), D, W.d)
   fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
   B = Vector{Int}[]
