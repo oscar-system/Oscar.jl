@@ -207,16 +207,16 @@ process_result!(ctx, id::Int, res) = ctx
 # `OscarWorkerPool` is being used, loads of other functionality like `pmap`
 # will run out of the box.
 =#
-function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
-  wid = take!(wp)
-  for a in args
-    put_type_params(get_channel(wp, wid), a)
-  end
-  for a in kwargs
-    put_type_params(get_channel(wp, wid), a)
-  end
+@static if v"1.10" <= VERSION
+  function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
+    wid = take!(wp)
+    for a in args
+      put_type_params(get_channel(wp, wid), a)
+    end
+    for a in kwargs
+      put_type_params(get_channel(wp, wid), a)
+    end
 
-  if v"1.10" <= VERSION
     # Copied from Distributed.jl/src/workerpool.jl.
     # This puts the worker back to the pool once the future is ready
     # and we do not have to worry about this ourselves.
@@ -236,7 +236,17 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
     errormonitor(t)
 
     return fut
-  else
+  end
+else
+  function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
+    wid = take!(wp)
+    for a in args
+      put_type_params(get_channel(wp, wid), a)
+    end
+    for a in kwargs
+      put_type_params(get_channel(wp, wid), a)
+    end
+    
     try
       remotecall(f, wid, args...; kwargs...)
     finally
@@ -244,6 +254,7 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
     end
   end
 end
+
 
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)
