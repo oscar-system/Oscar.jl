@@ -83,7 +83,7 @@ Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
 
-julia> e1, e2, e4 = exceptional_classes(qsm_model)[[1,2,4]];
+julia> e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
 
 julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
 
@@ -148,7 +148,7 @@ Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
 
-julia> e1, e2, e4 = exceptional_classes(qsm_model)[[1,2,4]];
+julia> e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
 
 julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
 
@@ -196,7 +196,7 @@ Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
 
-julia> e1, e2, e4 = exceptional_classes(qsm_model)[[1,2,4]];
+julia> e1 = cohomology_class(divs[35]);e2 = cohomology_class(divs[32]);e4 = cohomology_class(divs[34]);
 
 julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:29]));
 
@@ -235,7 +235,7 @@ G4-flux candidate
 
   # Identify the cohomology classes of all exceptional divisors
   gS = gens(cox_ring(ambient_space(m)))
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+$", x), string.(symbols(cox_ring(ambient_space(m)))))
+  exceptional_divisor_positions = exceptional_divisor_indices(m)
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
   c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]
 

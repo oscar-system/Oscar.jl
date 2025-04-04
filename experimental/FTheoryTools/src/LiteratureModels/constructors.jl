@@ -627,9 +627,9 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     if typeof(M) != Matrix{Int}
       vars = string.(model_dict["model_data"]["model_sections"])
       auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
-      auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
-      auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-      model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = auxiliary_base_grading
+      M = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in M]...)))
+      M = vcat([[Int(k) for k in M[i:i,:]] for i in 1:nrows(M)]...)
+      model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = M
     end
     for i in 1:length(tun_sections)
       D[tun_sections[i]] = M[:,i]
