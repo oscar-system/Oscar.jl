@@ -180,7 +180,7 @@ end
 function Base.:+(g1::G4Flux, g2::G4Flux)
   @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
   R = parent(polynomial(cohomology_class(g1)))
-  new_poly = R(polynomial(cohomology_class(g1)).f + polynomial(cohomology_class(g2)).f)
+  new_poly = R(lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly, true)
   return G4Flux(model(g1), new_cohomology_class)
 end
@@ -191,7 +191,7 @@ Base.:-(g::G4Flux) = (-1) * g
 
 function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
   R = parent(polynomial(cohomology_class(g)))
-  new_poly = R(c * polynomial(cohomology_class(g)).f)
+  new_poly = R(c * lift(polynomial(cohomology_class(g))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly, true)
   return G4Flux(model(g), new_cohomology_class)
 end
