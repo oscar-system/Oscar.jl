@@ -36,7 +36,7 @@ There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
 
 # Example
-The following code will start up 3 processes with Oscar
+The following code will start up 3 processes with Oscar,
 run a parallel computation over each element in an array and
 then shutdown the processes.
 ```
@@ -131,8 +131,10 @@ For this to work, the following methods must be implemented for `ctx`:
   - `pop_task!(ctx)` to either return a `Tuple` `(task_id::Int, func::Any, args)`, in which case `remotecall(func, wp, args)` will be called to deploy the task to the workers, or return `nothing` to indicate that all tasks in `ctx` have been exhausted, or return an instance of `WaitForResults` to indicate that some information on results of tasks which have already been given out is needed to proceed with giving out new tasks.  
   - `process_result!(ctx, task_id::Int, res)` to process the result `res` of the computation of the task with id `task_id`. 
 
-Note: The programmer themself is responsible to deliver `task_id`s which are unique for the respective tasks!
+Note: The programmers themselves are responsible to deliver `task_id`s which are unique for the respective tasks!
 
+Deploying tasks to the workers continues until `pop_task!(ctx)` returns `nothing`. 
+Computation continues until all deployed tasks have been treated with `process_result!`.
 The return value is the `ctx` in its current state after computation.
 """
 function compute_distributed!(ctx, wp::OscarWorkerPool; wait_period=0.1)
