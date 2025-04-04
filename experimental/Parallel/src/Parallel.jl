@@ -216,26 +216,33 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
     put_type_params(get_channel(wp, wid), a)
   end
 
+  if v"1.10" <= VERSION
+    # Copied from Distributed.jl/src/workerpool.jl.
+    # This puts the worker back to the pool once the future is ready
+    # and we do not have to worry about this ourselves.
+    local fut
+    try
+      fut = remotecall(f, wid, args...; kwargs...)
+    catch
+      put!(wp, wid)
+      rethrow()
+    end
+    t = Threads.@spawn Threads.threadpool() try
+      wait(fut)
+    catch
+    finally
+      put!(wp, wid)
+    end
+    errormonitor(t)
 
-  # Copied from Distributed.jl/src/workerpool.jl.
-  # This puts the worker back to the pool once the future is ready
-  # and we do not have to worry about this ourselves.
-  local fut
-  try
-    fut = remotecall(f, wid, args...; kwargs...)
-  catch
-    put!(wp, wid)
-    rethrow()
+    return fut
+  else
+    try
+      remotecall(f, wid, args...; kwargs...)
+    finally
+      put!(wp, wid)
+    end
   end
-  t = Threads.@spawn Threads.threadpool() try
-    wait(fut)
-  catch
-  finally
-    put!(wp, wid)
-  end
-  errormonitor(t)
-
-  return fut
 end
 
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
