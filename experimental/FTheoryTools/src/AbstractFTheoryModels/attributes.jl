@@ -1097,6 +1097,72 @@ end
 
 
 @doc raw"""
+    exceptional_classes(m::AbstractFTheoryModel)
+
+Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_classes(foah11_B3)
+4-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by e1
+ Cohomology class on a normal toric variety given by e2
+ Cohomology class on a normal toric variety given by e3
+ Cohomology class on a normal toric variety given by e4
+```
+"""
+function exceptional_classes(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_classes, Vector{CohomologyClass}())
+end
+
+
+@doc raw"""
+    exceptional_divisor_indices(m::AbstractFTheoryModel)
+
+Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_divisor_indices(foah11_B3)
+4-element Vector{Int64}:
+  8
+  9
+ 10
+ 11
+```
+"""
+@attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_divisor_indices, Vector{Int}())
+end
+
+
+@doc raw"""
     torsion_sections(m::AbstractFTheoryModel)
 
 Return the torsion sections of the given model.
