@@ -10,7 +10,7 @@
   MC = Oscar._initialize_max_contact_object(inc_X)
   DL = Oscar._delta_list(IS)
   @test length(DL) == 2
-  MC2 =_max_contact_step(MC, DL[2], 2)
+  MC2 = Oscar._max_contact_step(MC, DL[2], 2)
   U = first(covering(MC2))
   mc_data = Oscar.maximal_contact_data(MC2)[U]
   @test Oscar.ambient_orders(mc_data) == [0,2]
