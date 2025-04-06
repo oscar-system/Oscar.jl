@@ -530,6 +530,25 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
+@doc raw"""
+    highest_root(R::RootSystem) -> RootSpaceElem
+
+Return the highest root of `R`.
+
+This is equivalent to `positive_root(R, number_of_positive_roots(R))`.
+
+See also: [`positive_root(::RootSystem, ::Int)`](@ref positive_root).
+
+# Examples
+```jldoctest
+julia> highest_root(root_system(:F, 4))
+2*a_1 + 3*a_2 + 4*a_3 + 2*a_4
+```
+"""
+function highest_root(R::RootSystem)
+  return positive_root(R, number_of_positive_roots(R))
+end
+
 ###############################################################################
 # coroot constructors
 
