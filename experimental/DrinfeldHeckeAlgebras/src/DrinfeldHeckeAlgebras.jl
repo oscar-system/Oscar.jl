@@ -16,5 +16,6 @@ export set_forms
 
 export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra
+export parametrized_drinfeld_hecke_algebra
 
 # Aliases

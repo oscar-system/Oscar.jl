@@ -59,7 +59,7 @@ end
 ################################################################################
 
 is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(A.drinfeld_hecke_form)
-dimension(A::DrinfeldHeckeAlgebra) = dimension(A.drinfeld_hecke_form)
+dimension(A::DrinfeldHeckeAlgebra) = degree(group(A))
 base_ring(A::DrinfeldHeckeAlgebra) = base_ring(A.drinfeld_hecke_form)
 ring(A::DrinfeldHeckeAlgebra) = ring(A.drinfeld_hecke_form)
 group(A::DrinfeldHeckeAlgebra) = group(A.drinfeld_hecke_form)
@@ -71,8 +71,8 @@ group_algebra(A::DrinfeldHeckeAlgebra) = group_algebra(A.drinfeld_hecke_form)
 
 const drinfeld_hecke_algebra = DrinfeldHeckeAlgebra
 
-function random_drinfeld_hecke_algebra(G::MatrixGroup{T}) where {T <: RingElem}
-  κ = random_drinfeld_hecke_form(G)
+function parametrized_drinfeld_hecke_algebra(G::MatrixGroup{T}) where {T <: RingElem}
+  κ = parametrized_drinfeld_hecke_form(G)
 
   return drinfeld_hecke_algebra(κ)
 end
