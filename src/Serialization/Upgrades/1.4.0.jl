@@ -510,59 +510,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           :ordering => ord_data[:data],
           :modulus => dict[:data][:modulus][:data]
         )
-      elseif type_name in [
-        "AbsPowerSeriesRingElem", "PolyRingElem", "MPolyRingElem", "MPolyDecRingElem",
-        "AbsPowerSeriesRingElem", "RelPowerSeriesRingElem",
-        "DualRootSpaceElem",
-        "RootSystem",
-        "UniversalPolyRingElem",
-        "FinGenAbGroup", "AbstractAlgebra.Generic.LaurentMPolyWrap",
-        "MPolyIdeal", "MatElem", "String", "Base.Int", "Bool", "Graph{Undirected}",
-        "LaurentMPolyIdeal", "LaurentSeriesFieldElem",
-        "Graph{Directed}", "Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}",
-        "Float64", "Float16", "Float32",
-        "FpFieldElem",
-        "fpFieldElem",
-        "Hecke.QuadSpace",
-        "LaurentSeriesRingElem",
-        "PcGroupElem", "PermGroup", "PermGroupElem",
-        "FreeAssociativeAlgebraIdeal",
-        "FreeAssociativeAlgebraElem",
-        "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
-        "BigInt", "Int128", "Int16", "Int32", "Int8",
-        "MPolyAnyMap",
-        "FPGroupElem",
-        "QQField", "QQFieldElem",
-        "QQBarField",
-        "RootSpaceElem",
-        "SubFPGroupElem",
-        "SubPcGroupElem",
-        "Matroid",
-        "SMat",
-        "SimplicialComplex",
-        "Symbol",
-        "TropicalSemiringElem",
-        "ToricDivisor",
-        "FqFieldElem",
-        "ZZModRingElem",
-        "Nemo.ZZModRing",
-        "zzModRingElem",
-        "Nemo.zzModRing",
-        "ZZRing",
-        "ZZRingElem",
-        "WeightLatticeElem",
-        "WeylGroupElem",
-        "ToricDivisorClass",
-        "AbstractLieAlgebraElem",
-        "DirectSumLieAlgebraElem",
-        "LieAlgebraModuleElem",
-        "LinearLieAlgebraElem"
-        ]
-        # do nothing
-        
-      else
-        #println(json(dict, 2))
-        error("$type_name doesn't have upgrade")
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
