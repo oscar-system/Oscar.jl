@@ -54,10 +54,10 @@ function oscar_worker_pool(f::Function, n::Int)
   try
     results = f(wp)
   catch e
-    close!(wp)
     rethrow(e)
+  finally
+    close!(wp)    
   end
-  close!(wp)
   return results
 end
 
