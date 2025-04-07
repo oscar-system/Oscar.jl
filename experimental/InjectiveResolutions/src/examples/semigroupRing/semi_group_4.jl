@@ -8,14 +8,14 @@ x, y, z = gens(R_Q)
 kQ = get_monoid_algebra(R_Q)
 
 # define ideal over monoid algebra
-I = ideal(kQ,[z^2, z*y, x^4])
+I = ideal(kQ, [z^2, z*y, x^4])
 
 # irreducible resolution of M = R/I
 M = quotient_ring_as_module(I)
 irr_res = irreducible_res(M)
 
 # injective resolution of M up to cohomological degree 3
-inj_res = injective_res(I,3)
+inj_res = injective_res(I, 3)
 
 inj_res.injMods[1].indecInjectives
 inj_res.injMods[2].indecInjectives
@@ -39,7 +39,7 @@ irr_res_3 = inj_res.irrRes
 # check if irreducible resolution
 length(irr_res_3.irrSums)
 image(irr_res_3.cochainMaps[1])[1] == kernel(irr_res_3.cochainMaps[2])[1]
-image(irr_res_3.cochainMaps[2])[1] == kernel(irr_res_3.cochainMaps[3])[1] 
+image(irr_res_3.cochainMaps[2])[1] == kernel(irr_res_3.cochainMaps[3])[1]
 image(irr_res_3.cochainMaps[3])[1] == kernel(irr_res_3.cochainMaps[4])[1]
 image(irr_res_3.cochainMaps[4])[1] == kernel(irr_res_3.cochainMaps[5])[1]
 image(irr_res_3.cochainMaps[5])[1] == kernel(irr_res_3.cochainMaps[6])[1]
@@ -55,6 +55,6 @@ is_injective(irr_res_3.inclusions[8])
 is_injective(irr_res_3.inclusions[9])
 is_surjective(irr_res_3.inclusions[9])
 
-I = ideal(kQ,[z^3,z^2*y,x^4*z,x^3*y*z])
+I = ideal(kQ, [z^3, z^2*y, x^4*z, x^3*y*z])
 _M = quotient_ring_as_module(I)
-M = shifted_module(I,[2,3])
+M = shifted_module(I, [2, 3])
