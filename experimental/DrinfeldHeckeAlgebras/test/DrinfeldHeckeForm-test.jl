@@ -138,6 +138,31 @@
       @test nforms(κ) == 2
     end
   
+    @testset "substitute parameter" begin
+      κ = parametrized_drinfeld_hecke_form(G)
+      κ = substitute_parameter(κ, 1, 2)
+  
+      g = G(matrix(QQ, [0 0 1; 1 0 0; 0 1 0]))
+      h = G(matrix(QQ, [0 1 0; 0 0 1; 1 0 0]))
+  
+      κ_g = alternating_bilinear_form(matrix(QQ, [0 -2 2; 2 0 -2; -2 2 0]))
+      κ_h = alternating_bilinear_form(matrix(QQ, [0 2 -2; -2 0 2; 2 -2 0]))
+  
+      @test κ[g] == κ_g
+      @test κ[h] == κ_h
+      @test nforms(κ) == 2
+    end
+  
+    @testset "substitute parameter index out of bounds" begin
+      κ = parametrized_drinfeld_hecke_form(G)
+      @test_throws ErrorException substitute_parameter(κ, 2, 2)
+    end
+  
+    @testset "substitute parameter wrong element type" begin
+      κ = parametrized_drinfeld_hecke_form(G)
+      @test_throws ErrorException substitute_parameter(κ, 1, "hi")
+    end
+  
     @testset "create drinfeld-hecke form from input" begin
       T = elem_type(typeof(QQ))
       forms = Dict{MatrixGroupElem{T}, MatElem{T}}()

@@ -118,7 +118,7 @@ function substitute_parameter(κ::DrinfeldHeckeForm{T}, i::Int, c) where {T <: M
   n = ngens(S)
   
   if i > n
-    throw(ArgumentError("Index invalid, please choose an index between 1 and " * n * "."))
+    throw(ArgumentError("Index invalid, please choose an index between 1 and " * string(n) * "."))
   end
 
   R = base_ring(S)
