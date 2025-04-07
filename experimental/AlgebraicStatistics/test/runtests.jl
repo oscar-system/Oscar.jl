@@ -1,3 +1,5 @@
+include("MultigradedImplicitization.jl")
+
 @testset "GaussianGraphicalModels" begin
 
   S = gaussian_ring(3)
