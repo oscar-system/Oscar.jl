@@ -1,7 +1,7 @@
 @testset "DrinfeldHeckeAlgebras.DrinfeldHeckeForm" begin
   @testset "drinfeld-hecke form over cyclic group C_2 acting on 2-dimensional QQ-VS" begin
     MS = matrix_space(QQ,2,2)
-    G = matrix_group(matrix(MS([-1 0;0 -1])))
+    G = matrix_group(MS([-1 0;0 -1]))
     
     @testset "create zero drinfeld-hecke form" begin
       κ = drinfeld_hecke_form(G)

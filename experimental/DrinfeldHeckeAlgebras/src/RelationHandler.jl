@@ -35,6 +35,7 @@ mutable struct RelationHandler{T <: RingElem}
     
     # Start collecting the rows of M
     rows = []
+    conjugates = Dict()
     
     for g in G
       A = matrix(g)
@@ -97,7 +98,14 @@ mutable struct RelationHandler{T <: RingElem}
         end
       
         B = matrix(h)
-        c = (h^-1) * g * h
+
+        if haskey(conjugates, (g,h))
+          c = conjugates[(g,h)]
+        else
+          c = inv(h) * g * h
+          conjugates[(g,h)] = c
+        end
+      
         row = fill(R(), m)
         
         # The relations translate to 

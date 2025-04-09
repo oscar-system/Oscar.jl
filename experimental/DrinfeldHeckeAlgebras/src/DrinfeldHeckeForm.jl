@@ -30,7 +30,7 @@ mutable struct DrinfeldHeckeForm{T <: RingElem}
     return κ
   end
 
-  # Creates concrete Drinfeld-Hecke form from non-empty forms input
+  # Creates Drinfeld-Hecke form from non-empty forms input
   function DrinfeldHeckeForm(forms::Dict{MatrixGroupElem{T}, MatElem{T}}) where {T <: RingElem}
     if length(forms) == 0
       throw(ArgumentError("forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatrixGroup{T})")) 
@@ -56,25 +56,37 @@ const drinfeld_hecke_form = DrinfeldHeckeForm
 function parametrized_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingElem}
   handler = RelationHandler(G)
   
-  G = handler.group
   R = base_ring(G)
   d = degree(G)
+  M = handler.relation_matrix
   
-  # Try to solve relations
-  n, kernel = nullspace(handler.relation_matrix) # TODO what if R is not a field?
-  
+  # If M is empty or zero, there are no conditions
+  if nrows(M) == 0 || is_zero(M)
+    n = ncols(M)
+    K = identity_matrix(R, n)
+  else
+    # Otherwise try to solve relations
+    n = 0
+    K = nothing
+    try
+      n, K = nullspace(M)
+    catch e
+      throw(ArgumentError("Can not solve Drinfeld-Hecke relations over given ring."))
+    end
+  end
+
   # There is no solution except zero
   if n == 0 return DrinfeldHeckeForm(G) end
 
   # For creating a parametrized solution, we work over a polynomial ring S = R[t1,...tn]
   parameters = n == 1 ? ["t"] : ["t" * string(i) for i in 1:n]
   S, _ = polynomial_ring(R, parameters)
-  
+
   # Use kernel basis to create a parametrized solution
-  m = nrows(kernel)
+  m = nrows(K)
   sol = fill(S(), m)
   for j in 1:n
-    sol = sol + [S[j] * kernel[i, j] for i in 1:m]
+    sol = sol + [S[j] * K[i, j] for i in 1:m]
   end
 
   # Cast group to new base ring S
@@ -83,8 +95,13 @@ function parametrized_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingEle
   
   # Initialize forms
   forms = Dict{MatrixGroupElem{T_S}, MatElem{T_S}}()
-  for g_S in G_S
-    forms[g_S] = zero_matrix(S,d,d)
+  try
+    for g_S in G_S
+      forms[g_S] = zero_matrix(S,d,d)
+    end
+  catch e
+    # If iteration failed, this means that groups over ring are not supported in GAP
+    throw(ArgumentError("Parametrized Drinfeld-Hecke forms are not supported over given ring."))
   end
     
   # Use handler map to convert result to matrices
