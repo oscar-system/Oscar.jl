@@ -127,6 +127,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Multipartition
 export Nemo
 export NormalToricVariety
 export OO
@@ -1179,6 +1180,8 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multipartition
+export multipartitions
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1250,6 +1253,7 @@ export number_of_factors
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
 export number_of_perfect_groups, has_number_of_perfect_groups
