@@ -159,9 +159,9 @@ by graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 2 
 ```
 """
 function zeroth_local_cohomology(M::MonoidAlgebraModule, I::MonoidAlgebraIdeal)
-  #apply gamma_I to M -> corresponds to the saturation (0_M : I^\infty)
-  zeroM = sub(M.mod, [zero(M.mod)])[1]
-  return saturation(zeroM, I.ideal)
+    #apply gamma_I to M -> corresponds to the saturation (0_M : I^\infty)
+    zeroM = sub(M.mod,[zero(M.mod)])[1]
+    return saturation(zeroM, underlying_ideal(I))
 end
 
 @doc raw"""
@@ -573,6 +573,5 @@ function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
     else
       continue
     end
-  end
-  return maps
+    return maps
 end

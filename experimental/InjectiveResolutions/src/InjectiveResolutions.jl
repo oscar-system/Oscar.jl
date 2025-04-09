@@ -36,19 +36,244 @@ struct IrrSum # irreducible sum
   mod::SubquoModule
   components::Vector{IndecInj}
 end
-struct MonoidAlgebra # monoid algebra with associated data
-  algebra::Union{MPolyRing,MPolyQuoRing}
-  cone::Polyhedron
-  faces::Vector{FaceQ}
-  hyperplanes::Vector{HyperplaneQ}
-  # normal::Bool
-  pointed::Bool #cone pointed
-  zonotope::Tuple{Polyhedron,Vector{Int}}
+
+mutable struct MonoidAlgebra{CoeffType, AlgebraType} <: Ring # monoid algebra with associated data
+    algebra::AlgebraType
+    pointed::Union{Nothing, Bool} #cone pointed
+    polyhedral_cone::Cone{QQFieldElem}
+    cone::Polyhedron
+    faces::Vector{FaceQ}
+    hyperplanes::Vector{HyperplaneQ}
+    zonotope::Tuple{Polyhedron,Vector{Int}}
+
+    function MonoidAlgebra(A::AlgebraType; check::Bool=true) where {AlgebraType <: Union{MPolyRing, MPolyQuoRing}}
+      #check if monoid algebra
+      @check is_zm_graded(A) "given algebra is not ZZ^d-graded"
+      gg_Q = grading_group(A)
+      @check is_free(gg_Q) && is_abelian(gg_Q) "given algebra is not a monoid algebra"
+      kk = coefficient_ring(A)
+      result = new{elem_type(kk), AlgebraType}(A, nothing)
+    end
 end
 
-struct MonoidAlgebraIdeal
+function polyhedral_cone(A)
+  if !isdefined(A, :polyhedral_cone)
+    A.polyhedral_cone = get_polyhedral_cone(A.algebra)
+  end
+  return A.polyhedral_cone
+end
+
+function cone(A::MonoidAlgebra)
+  if !isdefined(A, :cone)
+    A.cone = polyhedron(polyhedral_cone(A))
+  end
+  return A.cone
+end
+
+function faces(A::MonoidAlgebra)
+  if !isdefined(A, :faces)
+    A.faces = get_faces_of_polyhedral_cone(A.algebra, zonotope(A)[1], cone(A))
+  end
+  return A.faces
+end
+
+function hyperplanes(A::MonoidAlgebra)
+  if !isdefined(A, :hyperplanes)
+    A.hyperplanes = get_bounding_hyperplanes(cone(A))
+  end
+  return A.hyperplanes
+end
+
+function is_pointed(A::MonoidAlgebra)
+  if isnothing(A.pointed)
+    A.pointed = is_pointed(polyhedral_cone(A))
+  end
+  return A.pointed::Bool
+end
+
+function zonotope(A::MonoidAlgebra)
+  if !isdefined(A, :zonotope)
+    A.zonotope = get_zonotope(cone(A))
+  end
+  return A.zonotope
+end
+
+coefficient_ring(A::MonoidAlgebra) = coefficient_ring(A.algebra)
+
+### Elements of MonoidAlgebras
+mutable struct MonoidAlgebraElem{CoeffType, ParentType} <: RingElem
+  parent::ParentType
+  elem::RingElem
+  # TODO: Do we want to store additional information on the elements here?
+
+  function MonoidAlgebraElem(
+      A::ParentType
+    ) where {CoeffType, ParentType <: MonoidAlgebra{CoeffType}}
+    return new{CoeffType, ParentType}(parent)
+  end
+  
+  function MonoidAlgebraElem(
+      A::ParentType,
+      a::RingElem;
+      check::Bool=true
+    ) where {CoeffType, ParentType <: MonoidAlgebra{CoeffType}}
+    @check parent(a) === A.algebra
+    return new{CoeffType, ParentType}(A, a)
+  end
+end
+
+parent(a::MonoidAlgebraElem) = a.parent
+
+elem_type(::Type{T}) where {CoeffType, T <: MonoidAlgebra{CoeffType}} = MonoidAlgebraElem{CoeffType, T}
+
+function degree(a::MonoidAlgebraElem)
+  !isdefined(a, :elem) && return zero(grading_group(parent(a)))
+  return degree(underlying_element(a))
+end
+
+grading_group(A::MonoidAlgebra) = grading_group(A.algebra)
+
+function underlying_element(a::MonoidAlgebraElem)
+  if !isdefined(a, :elem)
+    a.elem = zero(parent(a).algebra)
+  end
+  return a.elem::elem_type(parent(a).algebra)
+end
+
+### implementation of some common ring functionality
+function (A::MonoidAlgebra)()
+  return MonoidAlgebraElem(A)
+end
+
+function one(A::MonoidAlgebra)
+  return MonoidAlgebraElem(A, one(A.algebra); check=false)
+end
+
+function +(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) + underlying_element(b); check=false)
+end
+
+function -(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) - underlying_element(b); check=false)
+end
+
+function ==(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return underlying_element(a) == underlying_element(b)
+end
+
+function *(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  A = parent(a)
+  @assert A === parent(b)
+  return MonoidAlgebraElem(A, underlying_element(a) * underlying_element(b); check=false)
+end
+
+function *(c::CoeffType, b::MonoidAlgebraElem{CoeffType}) where {CoeffType}
+  A = parent(b)
+  @assert coefficient_ring(A) === parent(c)
+  return MonoidAlgebraElem(A, c*underlying_element(b); check=false)
+end
+
+function *(c::IntegerUnion, b::MonoidAlgebraElem)
+  A = parent(b)
+  kk = coefficient_ring(A)
+  return MonoidAlgebraElem(A, kk(c)*underlying_element(b); check=false)
+end
+
+function -(b::MonoidAlgebraElem)
+  A = parent(b)
+  return MonoidAlgebraElem(A, -underlying_element(b); check=false)
+end
+
+function (A::MonoidAlgebra{CoeffType})(c::CoeffType) where {CoeffType}
+  return MonoidAlgebraElem(A, A.algebra(c))
+end
+
+function (A::MonoidAlgebra)(c::Any)
+  return MonoidAlgebraElem(A, A.algebra(c))
+end
+
+function (A::MonoidAlgebra)(a::MonoidAlgebraElem)
+  @assert parent(a) === A
+  return a
+end
+
+# TODO: Fix up promote rules?
+AbstractAlgebra.promote_rule(::Type{CoeffType}, ::Type{T}) where {CoeffType, T<:MonoidAlgebraElem{CoeffType}} = T
+
+AbstractAlgebra.promote_rule(::Type{Int}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
+AbstractAlgebra.promote_rule(::Type{ZZRingElem}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
+
+
+gens(A::MonoidAlgebra) = [MonoidAlgebraElem(A, x) for x in gens(A.algebra)]
+getindex(A::MonoidAlgebra, i::Int) = MonoidAlgebraElem(A, A.algebra[i])
+
+function Base.show(io::IO, a::MonoidAlgebraElem)
+  print(io, underlying_element(a))
+end
+
+parent_type(::Type{ElemType}) where {ParentType, CoeffType, ElemType <: MonoidAlgebraElem{CoeffType, ParentType}} = ParentType
+
+# TODO: Finish implementation of the ring interface! 
+
+### Ideals over `MonoidAlgebra`s
+mutable struct MonoidAlgebraIdeal{ElemType} <: Ideal{ElemType}
   monoidAlgebra::MonoidAlgebra
+  gens::Vector{ElemType}
   ideal::Ideal
+
+  function MonoidAlgebraIdeal(A::MonoidAlgebra, v::Vector{T}) where {T<:MonoidAlgebraElem}
+    @assert all(parent(x) === A for x in v)
+    return new{T}(A, v)
+  end
+  
+  # constructor from an `underlying_ideal`
+  function MonoidAlgebraIdeal(A::MonoidAlgebra, I::Ideal)
+    @assert base_ring(I) === A.algebra
+    return new{elem_type(A)}(A, elem_type(A)[A(x) for x in gens(I)], I)
+  end
+end
+
+function base_ring(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
+  return I.monoidAlgebra::parent_type(ElemType)
+end
+
+function gens(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
+  return I.gens::Vector{ElemType}
+end
+
+function underlying_ideal(I::MonoidAlgebraIdeal)
+  if !isdefined(I, :ideal)
+    I.ideal = ideal(base_ring(I).algebra, [underlying_element(x) for x in gens(I)])
+  end
+  return I.ideal::ideal_type(base_ring(I).algebra)
+end
+
+# A sample for how to extend functionality via deflection to the underlying ideal
+# and wrapping the result.
+function radical(I::MonoidAlgebraIdeal)
+  return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
+end
+
+# some generic functionality which should probably be elsewhere
+function is_subset(I::Ideal, J::Ideal)
+  return all(x in J for x in gens(I))
+end
+
+# user facing constructor
+ideal(A::MonoidAlgebra, v::Vector) = MonoidAlgebraIdeal(A, elem_type(A)[A(x) for x in v])
+
+function Base.in(a::MonoidAlgebraElem, I::MonoidAlgebraIdeal)
+  return underlying_element(a) in underlying_ideal(I)
+end
+
+function coordinates(a::MonoidAlgebraElem, I::MonoidAlgebraIdeal)
+  return coordinates(underlying_element(a), underlying_ideal(I))
 end
 
 struct MonoidAlgebraModule
@@ -90,40 +315,24 @@ function Base.show(io::IO, ::MIME"text/plain", M::MonoidAlgebraModule)
   )
 end
 
-function Base.show(io::IO, ::MIME"text/plain", kQ::MonoidAlgebra)
-  println(
-    io,
-    "Monoid algebra k[Q] over ",
-    lowercase(string(coefficient_ring(kQ.algebra))),
-    " generated by ",
-    join(gens(kQ.algebra), ", "),
-    " quotient by ideal (",
-    join(gens(modulus(kQ.algebra)), ", "),
-    "), ",
-  )
-  print(
-    io,
-    "where Q is a subset of ZZ^",
-    ambient_dim(kQ.cone),
-    " and the cone RR_{>= 0}Q has dimension ",
-    dim(kQ.cone),
-    ".",
-  )
+function Base.show(io::IO,::MIME"text/plain",kQ::MonoidAlgebra)
+    println(io,"monoid algebra over ", lowercase(string(coefficient_ring(kQ))), 
+            " with cone of dimension $(dim(cone(kQ)))"
+           )
+    #=
+    println(io,"Monoid algebra k[Q] over ", lowercase(string(coefficient_ring(kQ.algebra))), " generated by ", join(gens(kQ.algebra), ", "), " quotient by ideal (", join(gens(modulus(kQ.algebra)),", "),"), ")
+    print(io, "where Q is a subset of ZZ^", ambient_dim(kQ.cone)," and the cone RR_{>= 0}Q has dimension ", dim(kQ.cone), ".")
+    =#
 end
 
-function Base.show(io::IO, ::MIME"text/plain", I::MonoidAlgebraIdeal)
-  println(io, "Ideal generated by")
-  for g in gens(I.ideal)
-    println(io, " ", g)
-  end
-  println(
-    io,
-    "over monoid algebra generated by ",
-    join(gens(I.monoidAlgebra.algebra), ", "),
-    " quotient by ideal (",
-    join(gens(modulus(I.monoidAlgebra.algebra)), ", "),
-    ").",
-  )
+function Base.show(io::IO, kQ::MonoidAlgebra)
+    println(io,"monoid algebra over ", lowercase(string(coefficient_ring(kQ))), 
+            " with cone of dimension $(dim(cone(kQ)))"
+           )
+end
+
+function Base.show(io::IO,::MIME"text/plain",I::MonoidAlgebraIdeal)
+  println(io,"ideal over $(base_ring(I)) generated by "*join(["$(x)" for x in gens(I)], ", "))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
@@ -315,28 +524,12 @@ function get_monoid_algebra_ideal(kQ::MonoidAlgebra, I::Ideal)
   return MonoidAlgebraIdeal(kQ, I)
 end
 
-function base_ring(I::MonoidAlgebraIdeal)
-  return I.monoidAlgebra
-end
-
 function base_ring(M::MonoidAlgebraModule)
   return M.monoidAlgebra
 end
 
-function ideal(
-  kQ::MonoidAlgebra, gens::Vector{T}
-) where {T<:Union{MPolyRingElem,MPolyQuoRingElem}}
-  if length(gens) == 0
-    return MonoidAlgebraIdeal(kQ, ideal(kQ.algebra, elem_type(base_ring(kQ.algebra))[]))
-  end
-  for g in gens
-    kQ.algebra == parent(g) || error("Base rings do not match.")
-  end
-  return MonoidAlgebraIdeal(kQ, ideal(kQ.algebra, gens))
-end
-
 function quotient_ring_as_module(I::MonoidAlgebraIdeal)
-  return MonoidAlgebraModule(I.monoidAlgebra, quotient_ring_as_module(I.ideal))
+  return MonoidAlgebraModule(base_ring(I),quotient_ring_as_module(underlying_ideal(I)))
 end
 
 # given a face F of a the cone C = \RR_{\geq 0}Q of a monoid algebra, return the prime ideal k{Q\F}
@@ -880,7 +1073,7 @@ julia> irreducible_dec(I)
 ```
 """
 function irreducible_dec(I::MonoidAlgebraIdeal)
-  kQ = I.monoidAlgebra
+  kQ = base_ring(I)
 
   indec_injectives, _ = irreducible_hull(quotient_ring_as_module(I.ideal), kQ.faces, kQ)
   return [_get_irreducible_ideal(kQ, I) for I in indec_injectives]
@@ -890,11 +1083,12 @@ end
 function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
   B_i = []
 
-  for h in kQ.hyperplanes
-    if is_subset(J.face.poly, h.hyperplane)
-      B_h = generators_W_H(kQ, h, J.vector)
-      push!(B_i, B_h)
-    end
+  for h in hyperplanes(kQ)
+      if is_subset(J.face.poly,h.hyperplane)
+          B_h = generators_W_H(kQ,h,J.vector)
+          push!(B_i,B_h)
+      end
+  end
   end
 
   G_W = Vector{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}}()
@@ -963,37 +1157,65 @@ by graded submodule of R_Q^1 with 3 generators
 over monoid algebra generated by x, y quotient by ideal ().
 ```
 """
-function irreducible_res(M::MonoidAlgebraModule, i::Int=0)
-  kQ = M.monoidAlgebra
-  R_Q = kQ.algebra
-  Mi = M.mod # current module in resolution
-  gi = identity_map(Mi) #initilalize
-  res_Wi = Vector{IrrSum}()
-  res_Mi = [Mi] #cokernels 
-  res_hi = Vector{SubQuoHom}()
-  res_fi = Vector{SubQuoHom}()
-  res_gi = [gi] #quotient maps
+function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
+    kQ = M.monoidAlgebra
+    R_Q = kQ.algebra
+    Mi = M.mod # current module in resolution
+    gi = identity_map(Mi) #initilalize
+    res_Wi = Vector{IrrSum}()
+    res_Mi = [Mi] #cokernels 
+    res_hi = Vector{SubQuoHom}()
+    res_fi = Vector{SubQuoHom}()
+    res_gi = [gi] #quotient maps
 
-  j = 1
-  while !is_zero(Mi) #until cokernel Mi is zero
-    #compute irreducible hull
-    indec_injectives, _lambda = irreducible_hull(Mi, kQ.faces, kQ, j)
+    j = 1
+    while !is_zero(Mi) #until cokernel Mi is zero
+        #compute irreducible hull
+        indec_injectives, _lambda = irreducible_hull(Mi,faces(kQ),kQ,j)
 
-    #get the corresponding irreducible ideal for each indecomposable injective
-    irreducible_ideals = [_get_irreducible_ideal(kQ, J) for J in indec_injectives]
+        #get the corresponding irreducible ideal for each indecomposable injective
+        irreducible_ideals = [_get_irreducible_ideal(kQ,J) for J in indec_injectives]
 
-    #get irreducible sum Wi, i.e. the direct sum of all quotients k[Q]/K_i, where K_i is an irreducible ideal
-    irreducible_comp = map(I -> quotient_ring_as_module(I), irreducible_ideals)
-    d_sum(x, y) = direct_sum(x, y, task=:none)
-    Wi = foldl(d_sum, irreducible_comp)
+        #get irreducible sum Wi, i.e. the direct sum of all quotients k[Q]/K_i, where K_i is an irreducible ideal
+        irreducible_comp = map(I -> quotient_ring_as_module(I),irreducible_ideals)
+        d_sum(x,y) = direct_sum(x,y,task=:none)
+        Wi = foldl(d_sum,irreducible_comp)
 
-    #multiply rows of lambda by degrees of generators of Mi
-    m, n = size(_lambda)
-    lambda = zero(_lambda)
-    for i in 1:m
-      for j in 1:n
-        lambda[i, j] = _lambda[i, j] * monomial_basis(R_Q, degree(Mi[i]))[1]
-      end
+        #multiply rows of lambda by degrees of generators of Mi
+        m,n = size(_lambda)
+        lambda = zero(_lambda)
+        for i in 1:m
+            for j in 1:n
+                lambda[i, j] = _lambda[i, j] * monomial_basis(R_Q,degree(Mi[i]))[1]
+            end
+        end
+
+        #define injective map Mi -> Wi
+        fi = hom(Mi,Wi,matrix(lambda))
+
+        #get boundary map W{i-1} -> Wi
+        hi = gi*fi
+        
+        #compute cokernel and then simplify
+        Mi_,gi_ = quo(Wi,image(hi)[1]) #cokernel
+        Mi,ji = prune_with_map(Mi_)
+        gi = gi_*inv(ji)
+        
+        if length(filter(is_zero,relations(Mi))) > 0 # fix modules with "zero" relations
+            Mi,h = fix_module(Mi)
+            gi = gi*h
+        end
+        push!(res_Mi,Mi)
+        push!(res_gi,gi)
+        push!(res_Wi,IrrSum(Wi,indec_injectives))
+        push!(res_hi,hi)
+        push!(res_fi,fi)
+
+        # end at cohomological degree i
+        if i > 0 && j == i
+            break
+        end
+        j = j + 1
     end
 
     #define injective map Mi -> Wi
