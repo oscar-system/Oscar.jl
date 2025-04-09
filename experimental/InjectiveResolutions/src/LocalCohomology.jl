@@ -5,28 +5,46 @@ export lc_zero
 
 # data structures
 struct SectorLC
-    A::Vector{Vector{Int}}
-    sector::Polyhedron
-    indexVector::Vector{Int}
-    H::Generic.QuotientModule{QQFieldElem}
+  A::Vector{Vector{Int}}
+  sector::Polyhedron
+  indexVector::Vector{Int}
+  H::Generic.QuotientModule{QQFieldElem}
 end
 
 struct SectorPartitionLC
-    M::MonoidAlgebraModule
-    i::Int
-    I::Ideal
-    sectors::Vector{SectorLC}
-    maps::Vector{Tuple{SectorLC,SectorLC,Generic.ModuleHomomorphism}}
+  M::MonoidAlgebraModule
+  i::Int
+  I::Ideal
+  sectors::Vector{SectorLC}
+  maps::Vector{Tuple{SectorLC,SectorLC,Generic.ModuleHomomorphism}}
 end
 
-function Base.show(io::IO, ::MIME"text/plain",S::SectorLC)
-    println(io,"Sector S_A of ZZ^",ambient_dim(S.sector)," of dimension ", dim(S.sector), " with")
-    print(io,"   A = ", S.A, ", index vector ", S.indexVector, " and local cohomology of dimension ", dim(S.H),".")
+function Base.show(io::IO, ::MIME"text/plain", S::SectorLC)
+  println(
+    io, "Sector S_A of ZZ^", ambient_dim(S.sector), " of dimension ", dim(S.sector), " with"
+  )
+  print(
+    io,
+    "   A = ",
+    S.A,
+    ", index vector ",
+    S.indexVector,
+    " and local cohomology of dimension ",
+    dim(S.H),
+    ".",
+  )
 end
 
-function Base.show(io::IO,::MIME"text/plain",SP::SectorPartitionLC)
-    println(io,"Sector partition of ",SP.i,"-th local cohomology module supported on ideal (", join(gens(SP.I),", "),") of ")
-    println(io," ", SP.M.mod)
+function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
+  println(
+    io,
+    "Sector partition of ",
+    SP.i,
+    "-th local cohomology module supported on ideal (",
+    join(gens(SP.I), ", "),
+    ") of ",
+  )
+  println(io, " ", SP.M.mod)
 end
 
 @doc raw"""
@@ -70,33 +88,33 @@ by graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 2 
   2: x_1^4*x_2*e[1]
 ```
 """
-function local_cohomology(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integer)
-    @req I_M.monoidAlgebra == I.monoidAlgebra "Both ideals must be over same monoid algebra."
-    
-    #get monoid algebra 
-    kQ = I_M.monoidAlgebra
+function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
+  @req I_M.monoidAlgebra == I.monoidAlgebra "Both ideals must be over same monoid algebra."
 
-    #compute injective resolution
-    inj_res = injective_res(I_M,i+1)
+  #get monoid algebra 
+  kQ = I_M.monoidAlgebra
 
-    #get the injective modules J^{i-1} -> J^i -> J^{i+1}
-    Ji_ = inj_res.injMods[i]
-    Ji = inj_res.injMods[i+1]
-    Ji_1 = inj_res.injMods[i+2]
+  #compute injective resolution
+  inj_res = injective_res(I_M, i+1)
 
-    #get maps _phi: J^{i-1} -> J^i and _psi: J^i -> J^{i+1}
-    _phi = get_scalar_matrix(kQ.algebra,inj_res.cochainMaps[i])
-    _psi = get_scalar_matrix(kQ.algebra,inj_res.cochainMaps[i+1])
+  #get the injective modules J^{i-1} -> J^i -> J^{i+1}
+  Ji_ = inj_res.injMods[i]
+  Ji = inj_res.injMods[i + 1]
+  Ji_1 = inj_res.injMods[i + 2]
 
-    #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
-    J,phi,psi,(j,k) = apply_gamma(Ji_,Ji,Ji_1,_phi,_psi,I)
+  #get maps _phi: J^{i-1} -> J^i and _psi: J^i -> J^{i+1}
+  _phi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[i])
+  _psi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[i + 1])
 
-    #compute sector partition of J -> sector partition of H^i_I(k[Q]/I_M) (see Theorem 5.2. in HM2004)
-    H = sector_partition(kQ,phi,psi,j,k,J...)
+  #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
+  J, phi, psi, (j, k) = apply_gamma(Ji_, Ji, Ji_1, _phi, _psi, I)
 
-    #compute the needed maps in 3. of Definition 1.2 in HM2004 (uses Algorithm 6.4)
-    maps = maps_needed(kQ,H)
-    return SectorPartitionLC(quotient_ring_as_module(I_M),i,I.ideal,H,maps)
+  #compute sector partition of J -> sector partition of H^i_I(k[Q]/I_M) (see Theorem 5.2. in HM2004)
+  H = sector_partition(kQ, phi, psi, j, k, J...)
+
+  #compute the needed maps in 3. of Definition 1.2 in HM2004 (uses Algorithm 6.4)
+  maps = maps_needed(kQ, H)
+  return SectorPartitionLC(quotient_ring_as_module(I_M), i, I.ideal, H, maps)
 end
 
 @doc raw""""
@@ -189,7 +207,7 @@ julia> lc_zero(H1)
 ```
 """
 function lc_zero(H::SectorPartitionLC)
-    return length(filter(x -> dim(x.H) > 0,H.sectors)) == 0
+  return length(filter(x -> dim(x.H) > 0, H.sectors)) == 0
 end
 
 @doc raw"""
@@ -198,344 +216,362 @@ end
 For $1 \geq j \leq i $ compute sector partitions (see, e.g. $\cite{HM2004}$) of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in $\cite{HM2004}$. 
 The output consists of a list of sector partitions.
 """
-function local_cohomology_all(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integer)
-    @req I_M.monoidAlgebra == I.monoidAlgebra "Both ideals must be over same monoid algebra."
-    
-    #get monoid algebra 
-    kQ = I_M.monoidAlgebra
+function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
+  @req I_M.monoidAlgebra == I.monoidAlgebra "Both ideals must be over same monoid algebra."
 
-    #compute injective resolution
-    inj_res,_ = injective_res(I_M,i+1)
+  #get monoid algebra 
+  kQ = I_M.monoidAlgebra
 
-    #compute a sector partition of H^j_I(M) for 1 \leq j \leq i
-    H = Vector{SectorPartitionLC}()
-    for j=1:i 
-        _phi = get_scalar_matrix(kQ.algebra,inj_res.cochainMaps[j])
-        _psi = get_scalar_matrix(kQ.algebra,inj_res.cochainMaps[j+1])
-        Jj = inj_res.injMods[j]
-        Jj_1 = inj_res.injMods[j+1]
-        Jj_2 = inj_res.injMods[j+2]
-        
-        J,phi,psi,(j,k) = apply_gamma(Jj,Jj_1,Jj_2,_phi,_psi,I)
-        Hj = sector_partition(kQ,phi,psi,j,k,J...)
-        push!(H,SectorPartitionLC(quotient_ring_as_module(I_M),j,I.ideal,Hj,maps_needed(kQ,Hj)))
-    end
-    return H
+  #compute injective resolution
+  inj_res, _ = injective_res(I_M, i+1)
+
+  #compute a sector partition of H^j_I(M) for 1 \leq j \leq i
+  H = Vector{SectorPartitionLC}()
+  for j in 1:i
+    _phi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[j])
+    _psi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[j + 1])
+    Jj = inj_res.injMods[j]
+    Jj_1 = inj_res.injMods[j + 1]
+    Jj_2 = inj_res.injMods[j + 2]
+
+    J, phi, psi, (j, k) = apply_gamma(Jj, Jj_1, Jj_2, _phi, _psi, I)
+    Hj = sector_partition(kQ, phi, psi, j, k, J...)
+    push!(
+      H,
+      SectorPartitionLC(quotient_ring_as_module(I_M), j, I.ideal, Hj, maps_needed(kQ, Hj)),
+    )
+  end
+  return H
 end
 
 # given a matrix with entries in a MPolyDecRing or a MPolyQuoRing, return the matrix with the corresponding scalar coefficients 
 function get_scalar_matrix(kQ::Union{MPolyQuoRing,MPolyDecRing}, M)
-    k = coefficient_ring(kQ)
+  k = coefficient_ring(kQ)
 
-    # define map f_k:k[Q] -> k that maps element in k[Q] to their coefficient in k
-    f_k = hom(kQ,k,ones(elem_type(k),ngens(kQ)))
-    return map(x -> f_k(x),M)
+  # define map f_k:k[Q] -> k that maps element in k[Q] to their coefficient in k
+  f_k = hom(kQ, k, ones(elem_type(k), ngens(kQ)))
+  return map(x -> f_k(x), M)
 end
 
 # given a monoid algebra k[Q] compute linear functions \tau_1,...,\tau_n that define Q. 
 # there is one defining linear functional for every facet of Q and Q is the intersection of the halfspaces {\tau_i \leq 0} 
 function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
-    # get linear functionals tau_i for every hyperplane bounding Q, i.e. for every facet
-    A,_ = halfspace_matrix_pair(facets(kQ.cone))
-    H = []
-    for i=1:length(kQ.hyperplanes) 
-        push!(H,[kQ.hyperplanes[i].hyperplane,A[i,:]])
-    end
+  # get linear functionals tau_i for every hyperplane bounding Q, i.e. for every facet
+  A, _ = halfspace_matrix_pair(facets(kQ.cone))
+  H = []
+  for i in 1:length(kQ.hyperplanes)
+    push!(H, [kQ.hyperplanes[i].hyperplane, A[i, :]])
+  end
 
-    # for every indecomposable injectives J_j = k{a_j + F_j - Q} compute the vector \tau^j used in Section 6 of HM2004  
-    _tau = []
-    for J_i in J in 
-        tau_i = []
-        for h in H
-            if issubset(J_i.face.poly,h[1])
-                a_ih = dot(h[2],J_i.vector)
-                push!(tau_i,a_ih)
-            else
-                push!(tau_i,-Inf)
-            end
-        end
-        push!(_tau,tau_i)
+  # for every indecomposable injectives J_j = k{a_j + F_j - Q} compute the vector \tau^j used in Section 6 of HM2004  
+  _tau = []
+  for J_i in J
+    in
+    tau_i = []
+    for h in H
+      if issubset(J_i.face.poly, h[1])
+        a_ih = dot(h[2], J_i.vector)
+        push!(tau_i, a_ih)
+      else
+        push!(tau_i, -Inf)
+      end
     end
+    push!(_tau, tau_i)
+  end
 
-    #transform _tau consisting of length(kQ.hyperplanes)-lists into a list of length(J) (divide by coordinate index)
-    tau = []
-    for i=1:length(kQ.hyperplanes) 
-        push!(tau,[t[i] for t in _tau])
-    end
-   return tau
+  #transform _tau consisting of length(kQ.hyperplanes)-lists into a list of length(J) (divide by coordinate index)
+  tau = []
+  for i in 1:length(kQ.hyperplanes)
+    push!(tau, [t[i] for t in _tau])
+  end
+  return tau
 end
 
 function get_halfspace_eq(kQ::MonoidAlgebra)
-    A,_ = halfspace_matrix_pair(facets(kQ.cone))
-    H = []
-    for i=1:length(kQ.hyperplanes) 
-        push!(H,[kQ.hyperplanes[i].hyperplane,A[i,:]])
-    end
-    return H
+  A, _ = halfspace_matrix_pair(facets(kQ.cone))
+  H = []
+  for i in 1:length(kQ.hyperplanes)
+    push!(H, [kQ.hyperplanes[i].hyperplane, A[i, :]])
+  end
+  return H
 end
 
 # given a cochain complex of injective modules J^0 -> J^1 -> J^2 with phi: J^0 -> J^1 and psi: J^1 -> J^2
 # let J = direct_sum(J^i) and j = |J^0|, k = |J^0| + |J^1| (number of indecomposable injectives)
 # -> compute a sector partition of the local cohomology module ker(psi)/im(phi)
-function sector_partition(kQ::MonoidAlgebra,phi::Union{Vector{Any},QQMatrix},psi::Union{Vector{Any},QQMatrix},j::Integer,k::Integer, J::IndecInj...)
-    # check that kQ is compatible with the indecomposable injectives
-    # ...
+function sector_partition(
+  kQ::MonoidAlgebra,
+  phi::Union{Vector{Any},QQMatrix},
+  psi::Union{Vector{Any},QQMatrix},
+  j::Integer,
+  k::Integer,
+  J::IndecInj...,
+)
+  # check that kQ is compatible with the indecomposable injectives
+  # ...
 
-    r = length(J)
+  r = length(J)
 
-    # compute tau's
-    tau = compute_taus(kQ, J...)
+  # compute tau's
+  tau = compute_taus(kQ, J...)
 
-    #sort tau's
-    sorted_taus = []
-    for t in tau
-        pi_t = sortperm(t)
-        t_sorted = push!([],-Inf)
-        append!(t_sorted,t[pi_t])
-        push!(t_sorted,Inf)
-        push!(sorted_taus,t_sorted)
+  #sort tau's
+  sorted_taus = []
+  for t in tau
+    pi_t = sortperm(t)
+    t_sorted = push!([], -Inf)
+    append!(t_sorted, t[pi_t])
+    push!(t_sorted, Inf)
+    push!(sorted_taus, t_sorted)
+  end
+
+  # get linear functionals (one for each facet) 
+  H = get_halfspace_eq(kQ)
+
+  # compute all stripes
+  stripes = []
+  for j in 1:length(tau) # loop over all linear functionals tau_i
+    stripes_j = []
+    for i in 1:(r + 1) # loop over all indices (indecomposable injectives)
+      _A = Vector{Vector{QQFieldElem}}()
+      b = Vector{QQFieldElem}()
+
+      if sorted_taus[j][i + 1] == -Inf*one(QQ)
+        push!(stripes_j, NaN) # corresponds to empty stripe
+        continue
+      elseif sorted_taus[j][i + 1] != Inf*one(QQ)
+        push!(b, sorted_taus[j][i + 1]-1)
+        push!(_A, H[j][2])
+      end
+      if sorted_taus[j][i] != -Inf*one(QQ)
+        push!(b, -sorted_taus[j][i])
+        push!(_A, -H[j][2])
+      end
+
+      if length(b) < 1
+        push!(stripes_j, NaN) # corresponds to empty stripe
+        continue
+      end
+      A = reduce(vcat, transpose(_A))
+      push!(stripes_j, polyhedron(A, b))
     end
+    push!(stripes, stripes_j)
+  end
 
-    # get linear functionals (one for each facet) 
-    H = get_halfspace_eq(kQ)
+  # compute all sectors  \Delta(l1,...,ln) of the sector partition
+  S_A = Vector{SectorLC}()
+  for tuple in Iterators.product(ntuple(_ -> 1:(r + 1), length(tau))...) #for all tuples (l1,...,ln) where li \in {1,...,r}) and n is the number of facets
+    _delta = Vector{Polyhedron}()
+    valid = true # is one strip empty? => the intersection is empty
+    A_tuple = []
+    for i in eachindex(tau)
+      if all(x -> x == -Inf*one(QQ), tau[i])
+        continue
+      end
+      if stripes[i][tuple[i]] isa Polyhedron
+        push!(_delta, stripes[i][tuple[i]])
+      else #stripe is empty
+        valid = false
+        break
+      end
 
-    # compute all stripes
-    stripes = []
-    for j=1:length(tau) # loop over all linear functionals tau_i
-        stripes_j = []
-        for i=1:r+1 # loop over all indices (indecomposable injectives)
-            _A = Vector{Vector{QQFieldElem}}()
-            b = Vector{QQFieldElem}()
-
-            if sorted_taus[j][i + 1] == -Inf*one(QQ)
-                push!(stripes_j,NaN) # corresponds to empty stripe
-                continue
-            elseif sorted_taus[j][i + 1] != Inf*one(QQ)
-                push!(b,sorted_taus[j][i + 1]-1)
-                push!(_A,H[j][2])
-            end
-            if sorted_taus[j][i] != -Inf*one(QQ)
-                push!(b,-sorted_taus[j][i])
-                push!(_A,-H[j][2])
-            end
-
-            if length(b) < 1
-                push!(stripes_j,NaN) # corresponds to empty stripe
-                continue
-            end
-            A = reduce(vcat,transpose(_A))
-            push!(stripes_j, polyhedron(A,b))
-        end
-        push!(stripes,stripes_j)
+      # compute the set of all indices j such that the current stripe lies in J^j 
+      A_i = Vector{Int}()
+      if sorted_taus[i][tuple[i]] == -Inf*one(QQ)
+        A_i = findall(x -> x == -Inf*one(QQ), tau[i])
+      else
+        A_i = findall(x -> x == -Inf*one(QQ) || (x <= sorted_taus[i][tuple[i]]), tau[i])
+      end
+      push!(A_tuple, A_i)
     end
+    if length(_delta) > 0 && valid
+      # compute the sector \Delta(l1,...,ln)
+      poly_tuple = intersect(_delta...)
+      if dim(poly_tuple) < 0
+        continue
+      elseif dim(poly_tuple) == 0 && length(lattice_points(poly_tuple)) == 0
+        continue
+      end
 
-    # compute all sectors  \Delta(l1,...,ln) of the sector partition
-    S_A = Vector{SectorLC}()
-    for tuple in Iterators.product(ntuple(_ -> 1:r+1,length(tau))...) #for all tuples (l1,...,ln) where li \in {1,...,r}) and n is the number of facets
-        _delta = Vector{Polyhedron}()
-        valid = true # is one strip empty? => the intersection is empty
-        A_tuple = []
-        for i in eachindex(tau)
-            if all(x -> x == -Inf*one(QQ), tau[i])
-                continue
-            end
-            if stripes[i][tuple[i]] isa Polyhedron
-                push!(_delta,stripes[i][tuple[i]])
-            else #stripe is empty
-                valid = false
-                break
-            end
+      # get A \subseteeq {1,...,r} such that |Delta(l1,...,ln) \in J^j if and only if j \in A
+      A = intersect(A_tuple...)
 
-            # compute the set of all indices j such that the current stripe lies in J^j 
-            A_i = Vector{Int}()
-            if sorted_taus[i][tuple[i]] == -Inf*one(QQ)
-                A_i = findall(x -> x == -Inf*one(QQ),tau[i])
-            else
-                A_i = findall(x ->  x == -Inf*one(QQ) || (x <= sorted_taus[i][tuple[i]]),tau[i])
-            end
-            push!(A_tuple,A_i)
-        end
-        if length(_delta) > 0 && valid
-            # compute the sector \Delta(l1,...,ln)
-            poly_tuple = intersect(_delta...)
-            if dim(poly_tuple) < 0
-                continue
-            elseif dim(poly_tuple) == 0 && length(lattice_points(poly_tuple)) == 0
-                continue
-            end
-
-            # get A \subseteeq {1,...,r} such that |Delta(l1,...,ln) \in J^j if and only if j \in A
-            A = intersect(A_tuple...)
-
-            # compute local cohomology of sector
-            H_A,A_ = _local_cohomology_sector(A,j,k,phi,psi)
-            push!(S_A,SectorLC(A_,poly_tuple,collect(tuple),H_A)) # changed
-        end
+      # compute local cohomology of sector
+      H_A, A_ = _local_cohomology_sector(A, j, k, phi, psi)
+      push!(S_A, SectorLC(A_, poly_tuple, collect(tuple), H_A)) # changed
     end
-    return S_A
+  end
+  return S_A
 end
 
 # help function to compute the local cohomology of a sector
 # follows construction in proof of Theorem 5.2 in HM2004
-function _local_cohomology_sector(A::Vector{Int},j::Integer,k::Integer,phi::Union{Vector{Any},QQMatrix}, psi::Union{Vector{Any},QQMatrix})
-    # divide A into triple
-    A_0 = [a for a in A if a <= j]
-    A_1 = [a for a in A if j < a <= k]
-    A_2 = [a for a in A if k < a]
-    _A = [A_0,A_1,A_2]
+function _local_cohomology_sector(
+  A::Vector{Int},
+  j::Integer,
+  k::Integer,
+  phi::Union{Vector{Any},QQMatrix},
+  psi::Union{Vector{Any},QQMatrix},
+)
+  # divide A into triple
+  A_0 = [a for a in A if a <= j]
+  A_1 = [a for a in A if j < a <= k]
+  A_2 = [a for a in A if k < a]
+  _A = [A_0, A_1, A_2]
 
-    # define vector spaces J_{S_A0}, J_{S_A1} and J_{S_A2}
-    F_0 = free_module(QQ,length(A_0))
-    F_1 = free_module(QQ,length(A_1))
-    F_2 = free_module(QQ,length(A_2))
+  # define vector spaces J_{S_A0}, J_{S_A1} and J_{S_A2}
+  F_0 = free_module(QQ, length(A_0))
+  F_1 = free_module(QQ, length(A_1))
+  F_2 = free_module(QQ, length(A_2))
 
-    #compute the maps by deleting rows and columns in phi and psi
-    #phi
-    phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
+  #compute the maps by deleting rows and columns in phi and psi
+  #phi
+  phi_del = matrix(QQ, zeros(QQ, length(A_0), length(A_1)))
 
-    if phi != []
-        rows = []
-        for i in A_0 #delete i-th row of phi for i \notin A_0
-            push!(rows, phi[i,:])
-        end
-        _phi_del = transpose(hcat(rows...))
-
-        if all(>(0),size(_phi_del)) #not of size 0xn or nx0
-            columns = []
-            for i in A_1 #delete i-th column of phi for i \notin A_1
-                push!(columns, _phi_del[:,i-j])
-            end
-            if length(columns) > 0
-                phi_del = matrix(QQ, hcat(columns...))
-            end
-        end
+  if phi != []
+    rows = []
+    for i in A_0 #delete i-th row of phi for i \notin A_0
+      push!(rows, phi[i, :])
     end
+    _phi_del = transpose(hcat(rows...))
 
-    #psi
-    psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
-    if psi != []
-        rows = []
-        for i in A_1 #delete i-th row of psi for i \notin A_1 
-            push!(rows, psi[i-j,:])
-        end
-        _psi_del = transpose(hcat(rows...))
+    if all(>(0), size(_phi_del)) #not of size 0xn or nx0
+      columns = []
+      for i in A_1 #delete i-th column of phi for i \notin A_1
+        push!(columns, _phi_del[:, i - j])
+      end
+      if length(columns) > 0
+        phi_del = matrix(QQ, hcat(columns...))
+      end
+    end
+  end
 
-        if all(>(0),size(_psi_del)) #not of size 0xn or nx0
-            columns = []
-            for i in A_2 #delete i-th column of psi for i \notin A_2 
-                push!(columns, _psi_del[:,i-k])
-            end
-            if length(columns) > 0
-                psi_del = matrix(QQ,hcat(columns...))
-            end
-        end
-    end    
+  #psi
+  psi_del = matrix(QQ, zeros(QQ, length(A_1), length(A_2)))
+  if psi != []
+    rows = []
+    for i in A_1 #delete i-th row of psi for i \notin A_1 
+      push!(rows, psi[i - j, :])
+    end
+    _psi_del = transpose(hcat(rows...))
 
-    #define maps phi_{0,1} and psi_{1,2}
-    f0 = hom(F_0,F_1,phi_del)
-    f1 = hom(F_1,F_2,psi_del)
-    return quo(kernel(f1)[1],image(f0)[1])[1], _A
+    if all(>(0), size(_psi_del)) #not of size 0xn or nx0
+      columns = []
+      for i in A_2 #delete i-th column of psi for i \notin A_2 
+        push!(columns, _psi_del[:, i - k])
+      end
+      if length(columns) > 0
+        psi_del = matrix(QQ, hcat(columns...))
+      end
+    end
+  end
+
+  #define maps phi_{0,1} and psi_{1,2}
+  f0 = hom(F_0, F_1, phi_del)
+  f1 = hom(F_1, F_2, psi_del)
+  return quo(kernel(f1)[1], image(f0)[1])[1], _A
 end
 
 #apply the functor \Gamma_I(-) to a cochain complex of injective modules
 # -> corresponds to deleting all indecomposable injectives k{a_i + F_i - Q} with I \not\subseteq p_{F_i}.
 # -> update maps phi: J0 -> J1 and psi: J1 -> J2 by deleting corresponding rows and colunms
-function apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::QQMatrix, psi::QQMatrix,I::MonoidAlgebraIdeal)
-    @req J0.monoidAlgebra == J1.monoidAlgebra == J2.monoidAlgebra == I.monoidAlgebra "Input not over same monoid algebra!"
+function apply_gamma(
+  J0::InjMod, J1::InjMod, J2::InjMod, phi::QQMatrix, psi::QQMatrix, I::MonoidAlgebraIdeal
+)
+  @req J0.monoidAlgebra == J1.monoidAlgebra == J2.monoidAlgebra == I.monoidAlgebra "Input not over same monoid algebra!"
 
-    J_0 = J0.indecInjectives
-    J_1 = J1.indecInjectives
-    J_2 = J2.indecInjectives
+  J_0 = J0.indecInjectives
+  J_1 = J1.indecInjectives
+  J_2 = J2.indecInjectives
 
-    _J_0 = []
-    rows_phi = []
-    for i in eachindex(J_0)
-        if issubset(I.ideal,J_0[i].face.prime) 
-        # if issubset(I,J_0[i].face.prime) 
-            push!(_J_0,J_0[i])
-            push!(rows_phi,phi[i,:])
-        end
+  _J_0 = []
+  rows_phi = []
+  for i in eachindex(J_0)
+    if issubset(I.ideal, J_0[i].face.prime)
+      # if issubset(I,J_0[i].face.prime) 
+      push!(_J_0, J_0[i])
+      push!(rows_phi, phi[i, :])
     end
-    _phi = transpose(hcat(rows_phi...))
+  end
+  _phi = transpose(hcat(rows_phi...))
 
-    columns_phi = []
-    rows_psi = []
-    _J_1 = []
-    for i in eachindex(J_1)
-        if issubset(I.ideal,J_1[i].face.prime)
-        # if issubset(I,J_1[i].face.prime) 
-            push!(_J_1,J_1[i])
-            if rows_phi != []
-                push!(columns_phi,_phi[:,i] )
-            end
-            push!(rows_psi,psi[i,:])
-        end
+  columns_phi = []
+  rows_psi = []
+  _J_1 = []
+  for i in eachindex(J_1)
+    if issubset(I.ideal, J_1[i].face.prime)
+      # if issubset(I,J_1[i].face.prime) 
+      push!(_J_1, J_1[i])
+      if rows_phi != []
+        push!(columns_phi, _phi[:, i])
+      end
+      push!(rows_psi, psi[i, :])
     end
-    if columns_phi == []
-        phi = []
-    else
-        phi = matrix(QQ,hcat(columns_phi...))
-    end
-    _psi = transpose(hcat(rows_psi...))
+  end
+  if columns_phi == []
+    phi = []
+  else
+    phi = matrix(QQ, hcat(columns_phi...))
+  end
+  _psi = transpose(hcat(rows_psi...))
 
-    columns_psi = []
-    _J_2 = []
-    for i in eachindex(J_2)
-        if issubset(I.ideal,J_2[i].face.prime)
-        # if issubset(I,J_2[i].face.prime) 
-            push!(_J_2,J_2[i])
-            if rows_psi != []
-                push!(columns_psi, _psi[:,i])
-            end
-        end
+  columns_psi = []
+  _J_2 = []
+  for i in eachindex(J_2)
+    if issubset(I.ideal, J_2[i].face.prime)
+      # if issubset(I,J_2[i].face.prime) 
+      push!(_J_2, J_2[i])
+      if rows_psi != []
+        push!(columns_psi, _psi[:, i])
+      end
     end
-    if columns_psi == []
-        psi = []
-    else
-        psi = matrix(QQ,hcat(columns_psi...))
-    end
+  end
+  if columns_psi == []
+    psi = []
+  else
+    psi = matrix(QQ, hcat(columns_psi...))
+  end
 
-    return [_J_0...,_J_1...,_J_2...],phi,psi,(length(_J_0), length(_J_0) + length(_J_1))
+  return [_J_0..., _J_1..., _J_2...], phi, psi, (length(_J_0), length(_J_0) + length(_J_1))
 end
 
 #follows algorithm 6.4 in HM2004 and computes the actual maps (as described in the proof of Proposition 5.1 in HM2004) 
 function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
-    maps = []
-    for s1 in S_A, s2 in S_A # loop over all pairs
-        if s1 == s2
-            continue
+  maps = []
+  for s1 in S_A, s2 in S_A # loop over all pairs
+    if s1 == s2
+      continue
+    end
+    if issubset(s2.A, s1.A) && s1.indexVector >= s2.indexVector # check if B \subseteq A and (l_1, ..., l_n) <= (l_1', ..., l_n')
+      K = s2.sector + (-1)*s1.sector # minkowski sum (|Delta_B - \Delta_A)
+      if dim(intersect(K, kQ.cone)) > -1 # check if Q \cap (|Delta_B - \Delta_A) \neq \emptyset
+        # compute the map x^{B - A}: H_A -> H_B
+        A = vcat(s1.A...)
+        B = vcat(s2.A...)
+        H_A = free_module(QQ, length(A)) # changed
+        H_B = free_module(QQ, length(B)) # changed
+        T = elem_type(H_A)
+        V = Vector{T}()
+        for i in eachindex(A)
+          if A[i] in B
+            j = findfirst(x -> x == A[i], B)
+            push!(V, H_B[j])
+          else
+            push!(V, 0*zero(H_B))
+          end
         end
-        if issubset(s2.A,s1.A) && s1.indexVector >= s2.indexVector # check if B \subseteq A and (l_1, ..., l_n) <= (l_1', ..., l_n')
-            K = s2.sector + (-1)*s1.sector # minkowski sum (|Delta_B - \Delta_A)
-            if dim(intersect(K,kQ.cone)) > -1 # check if Q \cap (|Delta_B - \Delta_A) \neq \emptyset
-                # compute the map x^{B - A}: H_A -> H_B
-                A = vcat(s1.A...)
-                B = vcat(s2.A...)
-                H_A = free_module(QQ,length(A)) # changed
-                H_B = free_module(QQ,length(B)) # changed
-                T = elem_type(H_A)
-                V = Vector{T}()
-                for i in eachindex(A)
-                    if A[i] in B
-                        j = findfirst(x -> x == A[i], B)
-                        push!(V,H_B[j])
-                    else
-                        push!(V,0*zero(H_B))
-                    end
-                end
 
-                # define map H_A -> H_B
-                f_AB = hom(H_A,H_B,V)
+        # define map H_A -> H_B
+        f_AB = hom(H_A, H_B, V)
 
-                if is_zero(f_AB)
-                    continue
-                else
-                    push!(maps,(s1,s2,f_AB))
-                end
-            end
-        else 
-            continue
+        if is_zero(f_AB)
+          continue
+        else
+          push!(maps, (s1, s2, f_AB))
         end
+      end
+    else
+      continue
     end
     return maps
 end

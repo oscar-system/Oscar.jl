@@ -1,8 +1,8 @@
 # definition of monoid algebra as quotient of polynomial ring
-S,(x,y,z) = graded_polynomial_ring(QQ,["x","y","z"]; weights = [[0,1],[1,1],[2,1]])
-J = ideal(S,[x*z-y^2])
-R_Q,phi = quo(S,J)
-x,y,z = gens(R_Q)
+S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
+J = ideal(S, [x*z-y^2])
+R_Q, phi = quo(S, J)
+x, y, z = gens(R_Q)
 
 # get MonoidAlgebra
 kQ = Oscar.MonoidAlgebra(R_Q);
@@ -31,11 +31,11 @@ I = ideal(kQ,[x,y,z]) #maximal ideal
 M = quotient_ring_as_module(I_M)
 
 # compute local cohomology modules supported on I = (x,y,z)
-H0 = zeroth_local_cohomology(quotient_ring_as_module(I_M),I)
-H1 = local_cohomology(I_M,I,1)
-H2 = local_cohomology(I_M,I,2)
-H3 = local_cohomology(I_M,I,3)
-H4 = local_cohomology(I_M,I,4)
+H0 = zeroth_local_cohomology(quotient_ring_as_module(I_M), I)
+H1 = local_cohomology(I_M, I, 1)
+H2 = local_cohomology(I_M, I, 2)
+H3 = local_cohomology(I_M, I, 3)
+H4 = local_cohomology(I_M, I, 4)
 
 # two sectors of local_cohomology
 H1.sectors[1]
