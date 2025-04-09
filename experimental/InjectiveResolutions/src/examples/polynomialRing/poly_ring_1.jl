@@ -2,7 +2,7 @@
 R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
 
 # get MonoidAlgebra
-kQ = get_monoid_algebra(R_Q)
+kQ = Oscar.MonoidAlgebra(R_Q)
 
 # define ideal over monoid algebra
 I = ideal(kQ, [x^4, x^2*y^2, y^4])

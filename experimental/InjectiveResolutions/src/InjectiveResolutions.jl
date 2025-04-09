@@ -211,6 +211,7 @@ AbstractAlgebra.promote_rule(::Type{ZZRingElem}, ::Type{T}) where {T<:MonoidAlge
 
 
 gens(A::MonoidAlgebra) = [MonoidAlgebraElem(A, x) for x in gens(A.algebra)]
+number_of_generators(A::MonoidAlgebra) = ngens(A.algebra)
 getindex(A::MonoidAlgebra, i::Int) = MonoidAlgebraElem(A, A.algebra[i])
 
 function Base.show(io::IO, a::MonoidAlgebraElem)
@@ -728,7 +729,7 @@ end
 # function compute_shift(I::MonoidAlgebraIdeal,i::Int)
 function compute_shift(M::MonoidAlgebraModule, i::Int)
   n_bass = compute_bass_numbers(M.mod, i)
-  c = M.monoidAlgebra.zonotope[2] #sum of all primitive integer vectors along rays of Q
+  c = zonotope(M.monoidAlgebra)[2] #sum of all primitive integer vectors along rays of Q
 
   j = 0
   while !points_in_Q(n_bass, M.monoidAlgebra.cone) #loop until all degrees of bass numbers lie in Q
@@ -1089,7 +1090,6 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
           push!(B_i,B_h)
       end
   end
-  end
 
   G_W = Vector{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}}()
   for b in B_i
@@ -1217,34 +1217,6 @@ function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
         end
         j = j + 1
     end
-
-    #define injective map Mi -> Wi
-    fi = hom(Mi, Wi, matrix(lambda))
-
-    #get boundary map W{i-1} -> Wi
-    hi = gi*fi
-
-    #compute cokernel and then simplify
-    Mi_, gi_ = quo(Wi, image(hi)[1]) #cokernel
-    Mi, ji = prune_with_map(Mi_)
-    gi = gi_*inv(ji)
-
-    if length(filter(is_zero, relations(Mi))) > 0 # fix modules with "zero" relations
-      Mi, h = fix_module(Mi)
-      gi = gi*h
-    end
-    push!(res_Mi, Mi)
-    push!(res_gi, gi)
-    push!(res_Wi, IrrSum(Wi, indec_injectives))
-    push!(res_hi, hi)
-    push!(res_fi, fi)
-
-    # end at cohomological degree i
-    if i > 0 && j == i
-      break
-    end
-    j = j + 1
-  end
 
   #get cochain complex
   C = cochain_complex([identity_map(M.mod)]) # default value if sequence not exact
@@ -1507,193 +1479,6 @@ function is_normal(R::Union{MPolyRing,MPolyQuoRing})
     return false                    # S2 condition not satisfied
   end
 end
-
-# # Algorithm 3.6. in HM2004 that is not working for the general case
-# function coefficients(N::SubquoModule, p::FaceQ)
-#     R_N = base_ring(N)
-#     @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
-
-#     T = elem_type(R_N)
-#     k = coefficient_ring(R_N)
-#     Np,incl_Np = mod_quotient(N,p.prime) # quotient (0 :_N p.prime)
-#     if is_zero(Np)
-#         return Np,zeros(R_N,1,1)
-#     end
-
-#     # get socle degrees of indecomposable injectives kQ{a + F - Q}
-#     Bp = ZF_basis(Np,p.prime)
-
-#     #### (maybe) new better version
-#     _lambda = Vector{Vector}()
-#     m_g = one(R_N)
-#     for b in Bp
-#         lambda_b = []
-#         for i=1:ngens(N)
-#             m_g = monomial_basis(R_N,degree(N[i]))[1]*one(R_N)
-#             m_bg = monomial_basis(R_N,degree(b)-degree(N[i]))[1]
-#             if !is_zero(m_bg*N[i]) 
-#                 b_rest = zero(N)
-#                 for j = 1:ngens(N)
-#                     if length(coordinates(incl_Np(b)-b_rest)) == 1
-#                         break
-#                     end 
-#                     if j == i || is_zero(coordinates(ambient_representative(b))[j])
-#                         continue
-#                     end
-#                     mu_j = coordinates(ambient_representative(b))[j]
-#                     if !is_zero(mu_j)
-#                         b_rest = b_rest + mu_j*N[j]
-#                     end
-#                 end
-#                 Ni,incl_i = sub(N,[N[i]])
-#                 _b = Nothing
-#                 try
-#                     _b = preimage(incl_i, incl_Np(b) - b_rest)
-#                 catch
-#                 end
-#                 if _b != Nothing
-#                     push!(lambda_b,leading_coefficient(lift(coordinates(_b)[1])))
-#                 else
-#                     push!(lambda_b,k())
-#                 end
-#             else
-#                 push!(lambda_b,k())
-#             end
-#         end
-#         push!(_lambda,lambda_b)
-#     end
-#     return Bp, transpose(matrix(k,_lambda)), m_g
-# end
-
-# # given a fin. gen. module and a prime ideal p, compute a k[ZZF]-basis Bp of (0 :_M p) and for each generator b in Bp compute the scalar matrix lambda that defines a well-defined injective map 
-# function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra)
-#     R_N = base_ring(N)
-#     @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
-
-#     k = coefficient_ring(R_N) #get the field
-#     Np = mod_quotient(N,p.prime)[1]
-
-#     if is_zero(Np) # if Np is zero there is nothing to compute
-#         return [],zeros(R_N,1,1)
-#     end
-
-#     # get socle degrees of indecomposable injectives kQ{a + F - Q}
-#     Bp = ZF_basis(Np,p.prime)
-
-#     R = relations(N) #get all relations of N
-#     # n = ngens(N)
-#     n = ngens(ambient_free_module(N))
-
-#     lambda = []
-#     for b in Bp # for every basis vector of (0 :_M P_F) we compute a scalar vector \lambda_b 
-#         # m_b = monomial_basis(R_N,degree(b))[1]
-#         lambda_b = []
-#         b_c = dense_row(coordinates(ambient_representative(b)),n)[1,:]
-
-#         # check in which positions (i.e. coordinates of free presentation) b is non-zero
-#         m = ngens(N)
-#         s = [] #positions of non-zero terms of b
-#         for i=1:n
-#             # if is_zero(b_c[i]*N[i])
-#             # if is_zero(b_c[i]) || all((degree(Vector{Int},b_c[i]) - degree(Vector{Int},N[i])) .>= degree(Vector{Int},one(R_N))) && is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i]) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
-#             set_zero = true
-#             for j = 1:m
-#                 # if is_zero(coordinates(b)[j]) ## is this working???
-#                 #     continue
-#                 # end
-#                 if is_zero(b_c[i]) || (points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},N[j])],kQ.cone) && is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[j]))[1]*N[j])) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
-#                     # b_c[i] = zero(R_N)
-#                 else #term b[i] is non-zero
-#                     push!(s,i)
-#                     set_zero = false
-#                     break
-#                 end 
-#             end
-#             if set_zero
-#                 b_c[i] = zero(R_N)
-#             end
-#         end
-
-#         # get all relations that apply in deg(b)
-#         rels_b = [r for r in R if points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},r)],kQ.cone)]
-#         r = [] # we are only interested in non-trivial relations, i.e. not of the form x^a*N[i] = 0
-#         # also we want a reduced presentation of these relations, i.e. the coefficient of r[i] is zero if r[i] = 0  
-#         for r_b in rels_b 
-#             _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:] # get all coefficients of the relation
-#             s_r = [] #positions of non-zero terms of r_b 
-#             for i=1:n 
-#                 #check if entry is already non-zero, i.e. not relevant in the relation... 
-#                 # if !is_zero(m_b*N[i])
-#                 if !is_zero(_r[i]) ## maybe here something goes wrong!!!
-#                     if !is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[i]))[1]*N[i]) # check if term is non-zero
-#                         push!(s_r,i)
-#                     else
-#                         _r[i] = zero(R_N)
-#                     end 
-#                 end
-#             end
-#             if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0 and we only want relations that are relevant for b, i.e. that have a common non-zero term
-#                 push!(r,(r_b,_r))
-#             end
-#         end
-
-#         # compute coefficients in \lambda_b
-#         if r != []
-#             rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2] #get the relevant relation of lowest degree    
-#             last_non_zero = findlast(!is_zero,rel) #index of last non-zero term
-
-#             sum_of_coeffs = k() #needed to compute the coefficient of last non-zero entry
-#             # f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
-#             for i=1:n #set all (except the last) entry to (one if the tern r[i] is non-zero) or (zero if the term is zero)  
-#                 if i == last_non_zero #set the last entry such that rel*lambda_b = 0 (dot product of coefficients of rel with lambda_b)
-#                     coeff = -(sum_of_coeffs//_f_k(rel[i]))
-#                     push!(lambda_b,coeff)
-#                 else
-#                     if !is_zero(rel[i])
-#                         push!(lambda_b,one(R_N))
-#                         sum_of_coeffs = sum_of_coeffs + _f_k(rel[i]) #add scalar coefficient of rel[i]
-#                     else
-#                         push!(lambda_b,zero(R_N))
-#                     end 
-#                 end
-#             end
-#         else # no non-trivial relations in deg(b)
-#             l = findfirst(!is_zero,b_c) # first non-zero term of b 
-#             for i=1:n 
-#                 if i == l # alternatively check if i in s
-#                     push!(lambda_b,one(R_N)) # if suffices to set the first non-zero entry to one(R_N)
-#                 else
-#                     push!(lambda_b,zero(R_N))
-#                 end 
-#             end
-#         end
-#             push!(lambda,lambda_b)
-#         end
-#     # end
-#     if length(Bp) == 0
-#         return [],[]
-#     end
-#     return Bp, matrix(R_N,hcat(lambda...))
-# end
-
-# ## not used???
-# # checks if two ring elements are equal modulo ZF
-# # INPUT:     RingElem a
-# #            RingElem b
-# #            prime ideal p_F 
-# # OUTPUT:    true if a is congruent to b modulo ZF
-# function equal_mod_ZF(a::RingElem,b::RingElem,p_F::Ideal)
-#     # @assert parent(a) == parent(b) && parent(a) == base_ring(I) "base ring and parents must match"
-#     if degree(a) == degree(b)
-#         return true 
-#     elseif !(div(a,b) == 0)
-#         return !ideal_membership(div(a,b),p_F)
-#     elseif !(div(b,a) == 0)
-#         return !ideal_membership(div(b,a),p_F)
-#     else
-#         return false
-#     end
-# end
 
 # import local cohomology functions
 include("LocalCohomology.jl")

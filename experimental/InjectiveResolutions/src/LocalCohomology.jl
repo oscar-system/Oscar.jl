@@ -10,14 +10,18 @@ struct SectorLC
   indexVector::Vector{Int}
   H::Generic.QuotientModule{QQFieldElem}
 end
-
-struct SectorPartitionLC
+mutable struct SectorPartitionLC
   M::MonoidAlgebraModule
   i::Int
-  I::Ideal
+  I::MonoidAlgebraIdeal
   sectors::Vector{SectorLC}
   maps::Vector{Tuple{SectorLC,SectorLC,Generic.ModuleHomomorphism}}
+
+  function SectorPartitionLC(M::MonoidAlgebraModule, i::Int,I::MonoidAlgebraIdeal)
+    return new(M,i,I,Vector{SectorLC}(),Vector{Tuple{SectorLC,SectorLC,Generic.ModuleHomomorphism}}())
+  end
 end
+
 
 function Base.show(io::IO, ::MIME"text/plain", S::SectorLC)
   println(
@@ -97,24 +101,40 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
   #compute injective resolution
   inj_res = injective_res(I_M, i+1)
 
+  #initilalize sector partition
+  LC = SectorPartitionLC(quotient_ring_as_module(I_M),i, I)
+
+  if i > inj_res.upto #local cohomology zero
+    return LC
+  end
   #get the injective modules J^{i-1} -> J^i -> J^{i+1}
   Ji_ = inj_res.injMods[i]
   Ji = inj_res.injMods[i + 1]
-  Ji_1 = inj_res.injMods[i + 2]
+
+  if inj_res.upto > i # J^{i+1} ≠ 0
+    Ji_1 = inj_res.injMods[i + 2]
+  else
+    Ji_1 = InjMod(kQ,Vector{IndecInj}())
+  end
 
   #get maps _phi: J^{i-1} -> J^i and _psi: J^i -> J^{i+1}
   _phi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[i])
-  _psi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[i + 1])
+
+  if inj_res.upto > i
+    _psi = get_scalar_matrix(kQ.algebra, inj_res.cochainMaps[i + 1])
+  else # map is zero 
+    _psi = matrix(QQ,zeros(QQ,length(Ji.indecInjectives),1))
+  end
 
   #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
   J, phi, psi, (j, k) = apply_gamma(Ji_, Ji, Ji_1, _phi, _psi, I)
 
   #compute sector partition of J -> sector partition of H^i_I(k[Q]/I_M) (see Theorem 5.2. in HM2004)
-  H = sector_partition(kQ, phi, psi, j, k, J...)
+  LC.sectors = sector_partition(kQ, phi, psi, j, k, J...)
 
   #compute the needed maps in 3. of Definition 1.2 in HM2004 (uses Algorithm 6.4)
-  maps = maps_needed(kQ, H)
-  return SectorPartitionLC(quotient_ring_as_module(I_M), i, I.ideal, H, maps)
+  LC.maps = maps_needed(kQ, LC.sectors)
+  return LC
 end
 
 @doc raw""""
@@ -245,12 +265,12 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
 end
 
 # given a matrix with entries in a MPolyDecRing or a MPolyQuoRing, return the matrix with the corresponding scalar coefficients 
-function get_scalar_matrix(kQ::Union{MPolyQuoRing,MPolyDecRing}, M)
-  k = coefficient_ring(kQ)
+function get_scalar_matrix(R::Union{MPolyQuoRing,MPolyDecRing}, M)
+  k = coefficient_ring(R)
 
   # define map f_k:k[Q] -> k that maps element in k[Q] to their coefficient in k
-  f_k = hom(kQ, k, ones(elem_type(k), ngens(kQ)))
-  return map(x -> f_k(x), M)
+  f_k = hom(R, k, ones(elem_type(k), ngens(R)))
+  return map(f_k, M)
 end
 
 # given a monoid algebra k[Q] compute linear functions \tau_1,...,\tau_n that define Q. 
@@ -301,12 +321,12 @@ end
 # -> compute a sector partition of the local cohomology module ker(psi)/im(phi)
 function sector_partition(
   kQ::MonoidAlgebra,
-  phi::Union{Vector{Any},QQMatrix},
-  psi::Union{Vector{Any},QQMatrix},
+  phi::Union{Vector{Any},MatElem{T}},
+  psi::Union{Vector{Any},MatElem{T}},
   j::Integer,
   k::Integer,
   J::IndecInj...,
-)
+) where {T<:FieldElem}
   # check that kQ is compatible with the indecomposable injectives
   # ...
 
@@ -410,9 +430,9 @@ function _local_cohomology_sector(
   A::Vector{Int},
   j::Integer,
   k::Integer,
-  phi::Union{Vector{Any},QQMatrix},
-  psi::Union{Vector{Any},QQMatrix},
-)
+  phi::Union{Vector{Any},MatElem{T}},
+  psi::Union{Vector{Any},MatElem{T}},
+) where {T<:FieldElem}
   # divide A into triple
   A_0 = [a for a in A if a <= j]
   A_1 = [a for a in A if j < a <= k]
@@ -476,8 +496,13 @@ end
 # -> corresponds to deleting all indecomposable injectives k{a_i + F_i - Q} with I \not\subseteq p_{F_i}.
 # -> update maps phi: J0 -> J1 and psi: J1 -> J2 by deleting corresponding rows and colunms
 function apply_gamma(
-  J0::InjMod, J1::InjMod, J2::InjMod, phi::QQMatrix, psi::QQMatrix, I::MonoidAlgebraIdeal
-)
+  J0::InjMod,
+  J1::InjMod,
+  J2::InjMod,
+  phi::MatElem{T},
+  psi::MatElem{T},
+  I::Oscar.MonoidAlgebraIdeal
+) where {T<:FieldElem}
   @req J0.monoidAlgebra == J1.monoidAlgebra == J2.monoidAlgebra == I.monoidAlgebra "Input not over same monoid algebra!"
 
   J_0 = J0.indecInjectives
@@ -487,7 +512,7 @@ function apply_gamma(
   _J_0 = []
   rows_phi = []
   for i in eachindex(J_0)
-    if issubset(I.ideal, J_0[i].face.prime)
+    if issubset(underlying_ideal(I), J_0[i].face.prime)
       # if issubset(I,J_0[i].face.prime) 
       push!(_J_0, J_0[i])
       push!(rows_phi, phi[i, :])
@@ -499,7 +524,7 @@ function apply_gamma(
   rows_psi = []
   _J_1 = []
   for i in eachindex(J_1)
-    if issubset(I.ideal, J_1[i].face.prime)
+    if issubset(underlying_ideal(I), J_1[i].face.prime)
       # if issubset(I,J_1[i].face.prime) 
       push!(_J_1, J_1[i])
       if rows_phi != []
@@ -518,7 +543,7 @@ function apply_gamma(
   columns_psi = []
   _J_2 = []
   for i in eachindex(J_2)
-    if issubset(I.ideal, J_2[i].face.prime)
+    if issubset(underlying_ideal(I), J_2[i].face.prime)
       # if issubset(I,J_2[i].face.prime) 
       push!(_J_2, J_2[i])
       if rows_psi != []
@@ -573,5 +598,6 @@ function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
     else
       continue
     end
-    return maps
+  end
+  return maps
 end
