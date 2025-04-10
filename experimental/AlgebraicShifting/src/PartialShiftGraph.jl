@@ -1,27 +1,6 @@
 # TODO: change Vector -> Set
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
-function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
-  S_diff = collect(symdiff(S1, S2))
-  isempty(S_diff) && return false
-  set_cmp(a, b) = min(symdiff(a, b)...) in a
-  return sort(S_diff;lt=set_cmp)[1] in S1
-end
-
-function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
-  return isless_lex(Set(facets(K1)), Set(facets(K2)))
-end
-
-function isless_lex(K1::UniformHypergraph, K2::UniformHypergraph)
-  return faces(K1) < faces(K2)
-end
-
-"""
-  Given two simplicial complexes `K1`, `K2` return true if
-  `K1` is lexicographically less than `K2`
-"""
-isless_lex(K1::ComplexOrHypergraph, K2::ComplexOrHypergraph) = isless_lex(Set(facets(K1)), Set(facets(K2)))
-
 @doc raw"""
     partial_shift_graph_vertices(F::Field,K::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
     partial_shift_graph_vertices(F::Field,K::UniformHypergraph, W::Union{WeylGroup, Vector{WeylGroupElem}};)
@@ -57,36 +36,39 @@ julia> facets.(shifts)
 """
 function partial_shift_graph_vertices(F::Field,
                                       K::SimplicialComplex,
-                                      W::Union{WeylGroup, Vector{WeylGroupElem}})
+                                      W::Union{WeylGroup, Vector{WeylGroupElem}};
+                                      lt=<)
   current = K
   visited = [current]
   phi = isomorphism(PermGroup, parent(first(W)))
+  lt_complex = isless_induced(lt, SimplicialComplex)
+  #TODO label vertices according to induced ordering from lt
   # by properties of algebraic shifting
   # we know that K will be the last in this sorted list
   # sorting here should also speed up unique according to julia docs
   unvisited = unique(
     x -> Set(facets(x)),
-    sort([exterior_shift(F, K, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
+    sort([exterior_shift(F, K, phi(w); lt=lt) for w in W]; lt=lt_complex))[1:end - 1]
 
   while !isempty(unvisited)
     current = pop!(unvisited)
     push!(visited, current)
     shifts = unique(
       x -> Set(facets(x)),
-      sort([exterior_shift(F, current, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
+      sort([exterior_shift(F, current, phi(w); lt=lt) for w in W]; lt=lt_complex))[1:end - 1]
 
     # dont visit things twice
     new_facets = filter(x -> !(x in Set.(facets.(visited))), Set.(facets.(shifts)))
     unvisited = simplicial_complex.(
       union(Set.(facets.(unvisited)), new_facets))
   end
-  return sort(collect(visited); lt=isless_lex)
+  return sort(collect(visited); lt=lt_complex)
 end
 
 function partial_shift_graph_vertices(F::Field,
                                       K::UniformHypergraph,
-                                      W::Union{WeylGroup, Vector{WeylGroupElem}})
-  return partial_shift_graph_vertices(F, simplicial_complex(K), W)
+                                      W::Union{WeylGroup, Vector{WeylGroupElem}}; kwargs...)
+  return partial_shift_graph_vertices(F, simplicial_complex(K), W; kwargs...)
 end
 
 """ Compute the multi edges, that is, for each complex `K`  compute which
@@ -95,7 +77,8 @@ end
 function multi_edges(F::Field,
                      permutations::Vector{PermGroupElem},
                      complexes::Vector{Tuple{Int,T}},
-                     complex_labels::Dict{Set{Set{Int}}, Int}
+                     complex_labels::Dict{Set{Set{Int}}, Int};
+                     kwargs...
 ) where T <: ComplexOrHypergraph;
   # For each complex K with index i, compute the shifted complex delta of K by w for each w in W.
   # For nontrivial delta, place (i, delta) → w in a singleton dictionary, and eventually merge all dictionaries
@@ -104,7 +87,7 @@ function multi_edges(F::Field,
   (d1, d2) -> mergewith!(vcat, d1, d2), (
     Dict((i, complex_labels[Set(facets(delta))]) => [p])
     for (i, K) in complexes
-      for (p, delta) in ((p, exterior_shift(F, K, p)) for p in permutations)
+      for (p, delta) in ((p, exterior_shift(F, K, p; kwargs...)) for p in permutations)
         if !issetequal(facets(delta), facets(K)));
     init=Dict{Tuple{Int, Int}, Vector{PermGroupElem}}()
   ) :: Dict{Tuple{Int, Int}, Vector{PermGroupElem}}
@@ -188,6 +171,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
                              W::Union{WeylGroup, Vector{WeylGroupElem}};
                              parallel::Bool = false,
                              show_progress::Bool = true,
+                             lt=lt,
                              task_size::Int=100) where T <: ComplexOrHypergraph
   # see TODO above about changing EdgeLabels type
   # Deal with trivial case
@@ -200,6 +184,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
   end
 
   # maybe we provide a flag to skip if the complexes are already sorted?
+  #TODO us induced comparison from kw lt
   complexes = sort(complexes;lt=Oscar.isless_lex)
 
   ns_vertices = Set(n_vertices.(complexes))
@@ -225,9 +210,10 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
     map_function = pmap
   end
   try
+    PG = phi.(W)
     edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                            @showprogress enabled=show_progress map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Ks -> multi_edges(F, PG, Ks, complex_labels; lt=lt),
                              Iterators.partition(enumerate(complexes), task_size)))
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
     return (graph,

@@ -70,3 +70,55 @@ function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   return (best, i_best)
 end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
+
+################################################################################
+# linear orderings
+function isless_hasone_revlex(S1::Vector{Int}, S2::Vector{Int})
+  @req length(S1) == length(S2) "Vectors should be of same size for comparison"
+  1 in S1 && 1 in S2 && return S1 >= S2
+  1 in S1 && return true
+  1 in S2 && return false
+  return S1 >= S2
+end
+
+function isless_hasone_revlex(S1::Set{Int}, S2::Set{Int})
+  return isless_hasone_revlex(sort(collect(S1)), sort(collect(S2)))
+end
+
+function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
+  S_diff = collect(symdiff(S1, S2))
+  isempty(S_diff) && return false
+  set_cmp(a, b) = min(symdiff(a, b)...) in a
+  return sort(S_diff;lt=set_cmp)[1] in S1
+end
+
+function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
+  return isless_lex(Set(facets(K1)), Set(facets(K2)))
+end
+
+function isless_lex(K1::UniformHypergraph, K2::UniformHypergraph)
+  return faces(K1) < faces(K2)
+end
+
+"""
+  Given two simplicial complexes `K1`, `K2` return true if
+  `K1` is lexicographically less than `K2`
+"""
+isless_lex(K1::ComplexOrHypergraph, K2::ComplexOrHypergraph) = isless_lex(Set(facets(K1)), Set(facets(K2)))
+
+function isless_induced(lt::Function, ::Type{Set{Set{Int}}})
+  function induced(S1::Set{Set{Int}}, S2::Set{Set{Int}})
+    S_diff = collect(symdiff(S1, S2))
+    isempty(S_diff) && return false
+    return sort(S_diff;lt=lt)[1] in S1
+  end
+  return induced
+end
+
+function isless_induced(lt::Function, ::Type{T}) where T <: SimplicialComplex
+  f = isless_induced(lt, Set{Set{Int}})
+  function induced(K1::T, K2::T)
+    return f(Set(facets(K1)), Set(facets(K2)))
+  end
+  return induced
+end

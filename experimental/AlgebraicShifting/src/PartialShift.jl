@@ -190,16 +190,16 @@ julia> compound_matrix(M, K)
 [0         0                           1]
 ```
 """
-function compound_matrix(m::MatElem, K::UniformHypergraph)
+function compound_matrix(m::MatElem, K::UniformHypergraph; lt=<)
   @req size(m,1) == size(m,2) "Only valid for square matrices"
   n = size(m, 1)
   k = face_size(K)
   nCk = sort(subsets(n, k))
-  return matrix(base_ring(m), [det(m[row, col]) for row in faces(K), col in nCk])
+  return matrix(base_ring(m), [det(m[row, col]) for row in sort(faces(K); lt=lt), col in nCk])
 end
 
-compound_matrix(m::MatElem, k::Int) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))))
-compound_matrix(p::PermGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, p), k)
+compound_matrix(m::MatElem, k::Int; kwargs...) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))); kwargs...)
+compound_matrix(p::PermGroupElem, k::Int; kwargs...) = compound_matrix(permutation_matrix(ZZ, p), k; kwargs...)
 
 function compound_matrix(w::WeylGroupElem, k::Int)
   iso = isomorphism(PermGroup, parent(w))
@@ -226,14 +226,14 @@ _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simp
 ###############################################################################
 # Exterior shift
 ###############################################################################
-function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff_rc!)
+function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff_rc!, lt=<)
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
-  nCk = sort!(subsets(n_vertices(K), face_size(K)))
-  c = compound_matrix(g, K)
+  nCk = sort!(subsets(n_vertices(K), face_size(K)); lt=lt)
+  c = compound_matrix(g, K; lt=lt)
   if matrix_base isa MPolyRing
     ref!(c)
   elseif matrix_base isa MPolyQuoRing
