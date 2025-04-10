@@ -1,4 +1,4 @@
-kQ = get_monoid_algebra_from_lattice([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
+kQ = monoid_algebra_from_lattice([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
 R_Q = kQ.algebra
 a, b, c, d = gens(kQ.algebra)
 I = ideal(kQ, [a^2*b, c^2])
@@ -8,7 +8,7 @@ inj_res = injective_res(I, 3)
 
 # compute Hartshorne's example from section 20.5 in 24HLC
 Z = ideal(R_Q, [])
-M = get_monoid_algebra_module(kQ, quotient_ring_as_module(Z))
+M = Oscar.MonoidAlgebra(kQ, quotient_ring_as_module(Z))
 I_M = get_monoid_algebra_ideal(kQ, Z)
 inj_res = injective_res(M, 3)
 I = ideal(kQ, [a, b])

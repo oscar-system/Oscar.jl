@@ -14,21 +14,21 @@ irr_res = irreducible_res(M)
 # compute injective resolution up to cohomological degree 2
 inj_res = injective_res(I, 2)
 
-inj_res.injMods[1].indecInjectives
-inj_res.injMods[2].indecInjectives
-inj_res.injMods[3].indecInjectives
+inj_res.inj_mods[1].indec_injectives
+inj_res.inj_mods[2].indec_injectives
+inj_res.inj_mods[3].indec_injectives
 
-inj_res.cochainMaps[1]
-inj_res.cochainMaps[2]
-inj_res.cochainMaps[3]
+inj_res.cochain_maps[1]
+inj_res.cochain_maps[2]
+inj_res.cochain_maps[3]
 
 ## irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
-irr_res_2 = inj_res.irrRes
+irr_res_2 = inj_res.irr_res
 
 #check if irreducible resolution
-length(irr_res_2.irrSums)
-image(irr_res_2.cochainMaps[1])[1] == kernel(irr_res_2.cochainMaps[2])[1]
-image(irr_res_2.cochainMaps[2])[1] == kernel(irr_res_2.cochainMaps[3])[1]
+length(irr_res_2.irr_sums)
+image(irr_res_2.cochain_maps[1])[1] == kernel(irr_res_2.cochain_maps[2])[1]
+image(irr_res_2.cochain_maps[2])[1] == kernel(irr_res_2.cochain_maps[3])[1]
 is_injective(irr_res_2.inclusions[1])
 is_injective(irr_res_2.inclusions[2])
 is_injective(irr_res_2.inclusions[3])
