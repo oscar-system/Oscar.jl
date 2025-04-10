@@ -3,6 +3,8 @@
 @alias is_valid isvalid
 
 # predeclare some functions to allow defining aliases
+function n_atoms end
+function n_coatoms end
 function n_cones end
 function n_connected_components end
 function n_edges end
@@ -33,6 +35,8 @@ function primitive_generator end
 @alias nv n_vertices
 
 # aliases should (in general) also follow the usual snake case style
+@alias number_of_atoms n_atoms
+@alias number_of_coatoms n_coatoms
 @alias number_of_cones n_cones
 @alias number_of_connected_components n_connected_components
 @alias number_of_edges n_edges

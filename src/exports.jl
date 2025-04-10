@@ -297,6 +297,7 @@ export atlas_group
 export atlas_irrationality
 export atlas_program
 export atlas_subgroup
+export atoms
 export augmented_chow_ring
 export aut
 export automorphism_group
@@ -381,6 +382,7 @@ export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
 export cm_regularity
+export coatoms
 export cobases
 export cochain_complex
 export cocircuits
@@ -558,7 +560,9 @@ export ehrhart_polynomial
 export element_to_homomorphism
 export elementary_abelian_group
 export elementary_symmetric
+export element
 export elements
+export elements_of_rank
 export eliminate
 export elliptic_parameter
 export elliptic_surface
@@ -689,6 +693,7 @@ export graph_from_adjacency_matrix
 export graph_from_edges
 export graph_from_labeled_edges
 export grassmann_pluecker_ideal
+export greatest_element
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
@@ -1048,9 +1053,12 @@ export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
 export lattice_homomorphism
+export lattice_of_cyclic_flats
+export lattice_of_flats
 export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
+export least_element
 export leading_coefficient
 export leading_coefficient_and_exponent
 export leading_exponent
@@ -1193,6 +1201,8 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
+export n_atoms
+export n_coatoms
 export n_cones
 export n_connected_components
 export n_edges
@@ -1313,6 +1323,7 @@ export parametrization
 export parametrization_conic
 export parent
 export partially_ordered_set
+export partially_ordered_set_from_inclusions
 export partition
 export partitions
 export patches
