@@ -136,8 +136,8 @@ Oscar.set_lwi_level(2)
 
 Please direct questions about this part of OSCAR to the following people:
 * [Simon Brandhorst](https://www.math.uni-sb.de/ag/brandhorst/index.php?lang=en),
-* [Tommy Hofmann](https://www.thofma.com/)
-* [Stevell Muller](https://www.math.uni-sb.de/ag/brandhorst/index.php?option=com_content&view=article&id=26:muller-en-1&catid=18&lang=en&Itemid=114).
+* [Tommy Hofmann](https://www.thofma.com/),
+* [Stevell Muller](https://sites.google.com/view/stevellmuller/).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

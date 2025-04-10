@@ -556,7 +556,7 @@ with gram matrix
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj, proj = Hecke._biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), inj
+  return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
 direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))

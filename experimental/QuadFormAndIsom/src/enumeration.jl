@@ -65,6 +65,7 @@ function _find_L(
     neg::AbstractVector{Int}=0:nG,
   )
   if r == 0 && d == 1 # In this case, we return the trivial genus as default
+    (!(0 in pos) || !(0 in neg)) && return ZZGenus[]
     return ZZGenus[genus(integer_lattice(; gram=matrix(QQ, 0, 0, [])))]
   end
   gen = ZZGenus[]
@@ -74,10 +75,11 @@ function _find_L(
     s2 = r-s1
     !(s2 in In) && continue
     # We enumerate all potential genera with the given invariants
-    append!(g, integer_genera((s1, s2), d; min_scale=s, max_scale=p*l, even))
-    #filter!(G -> is_divisible_by(numerator(scale(G)), s), L)
-    #filter!(G -> is_divisible_by(p*l, numerator(level(G))), L)
-    #append!(gen, L)
+    #@show append!(gen, integer_genera((s1, s2), d; min_scale=s, max_scale=p*l, even))
+    L = integer_genera((s1, s2), d; even)
+    filter!(G -> is_divisible_by(numerator(scale(G)), s), L)
+    filter!(G -> is_divisible_by(p*l, numerator(level(G))), L)
+    append!(gen, L)
   end
   return gen
 end
@@ -596,7 +598,7 @@ Note that if `Lf` is trivial, the algorithm returns `Lf` by default.
 See also [`type(::ZZLatWithIsom)`](@ref).
 
 !!! information "For the advanced users"
-    When using this function in a larger algorithm, one can use few some keyword
+    When using this function in a larger algorithm, one can use some keyword
     arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
       positive signature, negative signature), one can control whether the
@@ -675,7 +677,7 @@ Note that if `G` is trivial, the algorithm returns the trivial lattice with
 isometry by default.
 
 !!! information "For the advanced users"
-    When using this function in a larger algorithm, one can use few some
+    When using this function in a larger algorithm, one can use some
     keyword arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
       positive signature, negative signature), one can control whether the
@@ -758,7 +760,7 @@ Note that if `G` is trivial, the algorithm returns the trivial lattice with
 isometry by default.
 
 !!! information "For the advanced users"
-    When using this function in a larger algorithm, one can use few some
+    When using this function in a larger algorithm, one can use some
     keyword arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
       positive signature, negative signature), one can control whether the
@@ -819,7 +821,6 @@ function representatives_of_hermitian_type(
   elseif nG >= 0 && signature_pair(G)[2] != nG
     return reps
   end
-
   rG = rank(G)
   dG = abs(det(G))
   pG, nG = signature_pair(G)
@@ -847,7 +848,7 @@ function representatives_of_hermitian_type(
   # Polynomial must be symmetric
   if !iseven(d_chi)
     return reps
-  elseif any(i -> coeff(chi, i) == coeff(chi, d_chi-i), 0:d_chi-1)
+  elseif any(i -> coeff(chi, i) != coeff(chi, d_chi-i), 0:d_chi-1)
     return reps
   end
 
@@ -1110,12 +1111,12 @@ function splitting_of_hermitian_type(
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
       As = representatives_of_hermitian_type(A, n, fix_root; genusDB, root_test)
-      if root_test && is_definite(As[1]) # Remove lattices with (-2)-vectors
+      if root_test && is_negative_definite(As[1]) # Remove lattices with (-2)-vectors
         filter!(LA -> rank(LA) == 0 || minimum(LA) != 2, As)
       end
       isempty(As) && continue
       Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB, root_test)
-      if root_test && is_definite(Bs[1]) # Remove lattices with (-2)-vectors
+      if root_test && is_negative_definite(Bs[1]) # Remove lattices with (-2)-vectors
         filter!(LB -> rank(LB) == 0 || minimum(LB) != 2, Bs)
       end
       isempty(Bs) && continue
@@ -1326,7 +1327,7 @@ function splitting_of_pure_mixed_prime_power(
   # function
   if length(pd) == 1
     @check is_of_hermitian_type(Lf) "Minimal polynomial is not of the correct form"
-    return representatives_of_hermitian_type(Lf, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test, check)
+    return representatives_of_hermitian_type(Lf, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test)
   end
 
   q = pd[1] == p ? pd[2] : pd[1]
@@ -2180,7 +2181,7 @@ function _test_isometry_enumeration(
   )
   r = rank(L)
   ord = filter(m -> euler_phi(m) <= r, 2:k)
-  pds = sort!(ord)
+  sort!(ord)
   D = Dict{Int, Vector{ZZLatWithIsom}}()
   D[1] = ZZLatWithIsom[integer_lattice_with_isometry(L)]
   for n in ord
