@@ -43,10 +43,10 @@ julia> blow_up(w, ["x", "y", "x1"]; coordinate_name = "e1")
 Partially resolved Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 ```
 """
-function blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+function blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e", nr_of_current_blow_up::Int = 1, nr_blowups_in_sequence::Int = 1)
   R = cox_ring(ambient_space(m))
   I = ideal([eval_poly(k, R) for k in ideal_gens])
-  return blow_up(m, I; coordinate_name = coordinate_name)
+  return blow_up(m, I; coordinate_name = coordinate_name, nr_of_current_blow_up = nr_of_current_blow_up, nr_blowups_in_sequence = nr_blowups_in_sequence)
 end
 
 
@@ -82,8 +82,8 @@ julia> blow_up(t, ideal([x, y, x1]); coordinate_name = "e1")
 Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
-function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
-  return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name)
+function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e", nr_of_current_blow_up::Int = 1, nr_blowups_in_sequence::Int = 1)
+  return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name, nr_of_current_blow_up = nr_of_current_blow_up, nr_blowups_in_sequence = nr_blowups_in_sequence)
 end
 
 function _ideal_sheaf_to_minimal_supercone_coordinates(X::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name::String = "e")
@@ -156,7 +156,7 @@ julia> blow_up(t, blowup_center; coordinate_name = "e1")
 Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
-function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e", nr_of_current_blow_up::Int = 1, nr_blowups_in_sequence::Int = 1)
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
@@ -216,8 +216,33 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   for (key, value) in model_attributes
     set_attribute!(model, key, value)
   end
+
   set_attribute!(model, :partially_resolved, true)
   set_attribute!(model, :blow_down_morphism, bd)
+
+  if ambient_space(model) isa NormalToricVariety
+    index = index_of_exceptional_ray(bd)
+    @req index == ngens(cox_ring(ambient_space(model))) "Inconsistency encountered. Contact the authors"
+    indices = exceptional_divisor_indices(model)
+    push!(indices, index)
+    set_attribute!(model, :exceptional_divisor_indices, indices)
+
+    #Update slow attributes only at the end of a blow up sequence, if possible
+    if nr_of_current_blow_up == nr_blowups_in_sequence
+      # Update exceptional classes and their indices
+      divs = torusinvariant_prime_divisors(ambient_space(model))
+
+      indets = [lift(g) for g in gens(cohomology_ring(ambient_space(model), check = false))]
+      coeff_ring = coefficient_ring(ambient_space(model))
+      new_e_classes = Vector{CohomologyClass}()
+      for i in indices
+        poly = sum(coeff_ring(coefficients(divs[i])[k]) * indets[k] for k in 1:length(indets))
+        push!(new_e_classes, CohomologyClass(ambient_space(model), cohomology_ring(ambient_space(model), check = false)(poly)))
+      end
+
+      set_attribute!(model, :exceptional_classes, new_e_classes)
+    end
+  end
 
   # Return the model
   return model
@@ -677,13 +702,28 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
 end
 
 function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
+  desired_value = Symbol(desired_value)
   divs = torusinvariant_prime_divisors(ambient_space(m))
   cohomology_ring(ambient_space(m); check=false)
-  cox_gens = string.(gens(cox_ring(ambient_space(m))))
+  cox_gens = symbols(cox_ring(ambient_space(m)))
   @req desired_value in cox_gens "Specified zero section is invalid"
   index = findfirst(==(desired_value), cox_gens)
   set_attribute!(m, :zero_section_index => index::Int)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
+end
+
+function set_exceptional_classes(m::AbstractFTheoryModel, desired_value::Vector{String})
+  divs = torusinvariant_prime_divisors(ambient_space(m))
+  cohomology_ring(ambient_space(m); check=false)
+  cox_gens = symbols(cox_ring(ambient_space(m)))
+  @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
+  exceptional_divisor_indices = Vector{Int}()
+  for class in desired_value
+      index = findfirst(==(Symbol(class)), cox_gens)
+      push!(exceptional_divisor_indices, index)
+  end
+  set_attribute!(m, :exceptional_divisor_indices => exceptional_divisor_indices::Vector{Int})
+  set_attribute!(m, :exceptional_classes => [cohomology_class(divs[index]) for index in exceptional_divisor_indices])
 end
 
 function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
@@ -849,7 +889,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   # Gather information for resolution
   centers, exceptionals = resolutions(m)[resolution_index]
   nr_blowups = length(centers)
-  
+
   # Resolve the model
   resolved_model = m
   blow_up_chain = []
@@ -868,9 +908,8 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
     # Conduct the blowup
     if ambient_space(resolved_model) isa NormalToricVariety
       # Toric case is easy...
-      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k], nr_of_current_blow_up = k, nr_blowups_in_sequence = nr_blowups)
     else
-      
       # Compute proper transform of center generated by anything but exceptional divisors
       filtered_center = [c for c in blow_up_center if !(c in exceptionals)]
       initial_ambient_space = ambient_space(m)
@@ -929,7 +968,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
     # z^2 -> z^2 * m1
     # y * z -> y * z * m1
     as = ambient_space(resolved_model);
-    bl = domain(blow_up(as, [0,0,0,1,0], coordinate_name = "m1"));
+    bl = domain(blow_up(as, [0,0,0,1,0], coordinate_name = "m1", 1, 3));
     f = hypersurface_equation(resolved_model);
     my_mons = collect(monomials(f));
     pos_1 = findfirst(k -> k == "y", [string(a) for a in gens(cox_ring(as))])
@@ -959,7 +998,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
     # x^3 -> x^3 * m2^2
     # z^3 -> z^3 * m2
     as = ambient_space(model_bl);
-    bl = domain(blow_up(as, [0,0,0,-2,1], coordinate_name = "m2"));
+    bl = domain(blow_up(as, [0,0,0,-2,1], coordinate_name = "m2", 2, 3));
     f = hypersurface_equation(model_bl);
     my_mons = collect(monomials(f));
     pos_1 = findfirst(k -> k == "x", [string(a) for a in gens(cox_ring(as))])
@@ -990,7 +1029,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
     # m2^2 -> m2^2 * m3
     # z^2 -> z^2 * m3
     as = ambient_space(model_bl2);
-    bl = domain(blow_up(as, [0,0,0,-1,1], coordinate_name = "m3"));
+    bl = domain(blow_up(as, [0,0,0,-1,1], coordinate_name = "m3", 3, 3));
     f = hypersurface_equation(model_bl2);
     my_mons = collect(monomials(f));
     pos_1 = findfirst(k -> k == "m2", [string(a) for a in gens(cox_ring(as))])

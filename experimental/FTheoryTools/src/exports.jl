@@ -62,6 +62,8 @@ export dual_graph
 export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
+export exceptional_classes
+export exceptional_divisor_indices
 export explicit_model_sections
 export family_of_g4_fluxes
 export family_of_spaces
