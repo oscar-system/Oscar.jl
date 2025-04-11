@@ -29,14 +29,14 @@ function _sum_with_embeddings_orthogonal_groups(
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
     imgf = union!(AinD.(f.(gens(A))), gensDB)
-    fD = OD(hom(D, D, gene, imgf; check=false); check=false)
+    fD = OD(hom(D, D, gene, imgf); check=false)
     push!(geneOAinOD, fD)
   end
 
   geneOBinOD = elem_type(OD)[]
   for f in gens(OB)
     imgf = union(gensDA, BinD.(f.(gens(B))))
-    fD = OD(hom(D, D, gene, imgf; check=false); check=false)
+    fD = OD(hom(D, D, gene, imgf); check=false)
     push!(geneOBinOD, fD)
   end
   OAtoOD = hom(OA, OD, geneOAinOD; check=false)
@@ -2062,8 +2062,8 @@ end
 ###############################################################################
 #
 #  Computation of O(H_B, rho_{l+1}(B))
-#  ===================================
-#  [BH23, Definition 4.16]
+#  ###################################
+#  #  [BH23, Definition 4.16]
 #
 ###############################################################################
 

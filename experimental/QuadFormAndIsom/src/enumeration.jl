@@ -75,10 +75,7 @@ function _find_L(
     s2 = r-s1
     !(s2 in In) && continue
     # We enumerate all potential genera with the given invariants
-    #@show append!(gen, integer_genera((s1, s2), d; min_scale=s, max_scale=p*l, even))
-    L = integer_genera((s1, s2), d; even)
-    filter!(G -> is_divisible_by(numerator(scale(G)), s), L)
-    filter!(G -> is_divisible_by(p*l, numerator(level(G))), L)
+    append!(gen, integer_genera((s1, s2), d; min_scale=s, max_scale=p*l, even))
     append!(gen, L)
   end
   return gen
