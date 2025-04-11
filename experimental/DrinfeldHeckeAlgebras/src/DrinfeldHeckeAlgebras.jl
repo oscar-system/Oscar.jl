@@ -11,8 +11,10 @@ export alternating_bilinear_form
 export DrinfeldHeckeForm
 export drinfeld_hecke_form
 export parametrized_drinfeld_hecke_form
-export substitute_parameter
+export evaluate_parameters
 export set_forms
+export nforms
+export is_parametrized
 
 export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra

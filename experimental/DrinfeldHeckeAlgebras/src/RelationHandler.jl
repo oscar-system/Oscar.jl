@@ -132,3 +132,7 @@ mutable struct RelationHandler{T <: RingElem}
     return handler
   end
 end
+
+relation_matrix(handler::RelationHandler) = handler.relation_matrix
+map(handler::RelationHandler) = handler.map
+group(handler::RelationHandler) = handler.group

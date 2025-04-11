@@ -8,7 +8,7 @@
   
   @test matrix(b1) == m1
   @test matrix(b2) == m2
-  @test_throws ErrorException alternating_bilinear_form(m1)
+  @test_throws ArgumentError alternating_bilinear_form(m1)
   
   v = [QQ(1), QQ(2)]
   w = [QQ(-1), QQ(3)]
