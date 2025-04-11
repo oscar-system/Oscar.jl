@@ -9,7 +9,7 @@ end
 
 @doc raw"""
     partially_ordered_set(covrels::Matrix{Int})
-￼
+
 Construct a partially ordered set from covering relations `covrels`, given in
 the form of the adjacency matrix of a Hasse diagram. The covering relations
 must be given in topological order, i.e., `covrels` must be strictly upper
@@ -37,8 +37,8 @@ end
 
 
 @doc raw"""
-￼   partially_ordered_set_from_inclusions(I::IncidenceMatrix)
-￼
+    partially_ordered_set_from_inclusions(I::IncidenceMatrix)
+
 Construct an inclusion based partially ordered with rows of `I` as co-atoms.
 
 ```jldoctest
@@ -69,8 +69,8 @@ _pmdec(elem::Int, r::Int) = Polymake.BasicDecoration(Polymake.Set{Int}(elem), r)
 _pmdec(r::Int) = Polymake.BasicDecoration(Polymake.Set{Int}(), r)
 
 @doc raw"""
-￼   partially_ordered_set(g::Graph{Directed})
-￼
+    partially_ordered_set(g::Graph{Directed})
+
 Construct a partially ordered set from a directed graph describing the Hasse diagram.
 The graph must be acyclic and have unique minimal and maximal elements. Edges must be
 directed from minimal to maximal element.
@@ -122,7 +122,7 @@ end
 
 @doc raw"""
     partially_ordered_set(g::Graph{Directed}, node_ranks::Dict{Int,Int})
-￼
+
 Construct a partially ordered set from a directed graph describing the Hasse diagram.
 The graph must be acyclic and have unique minimal and maximal elements.
 The dictionary `node_ranks` must give a valid rank for each node in the graph, strictly
@@ -314,7 +314,7 @@ The labels of the minimal and maximal element are not shown.
 The `filename` keyword argument allows writing TikZ visualization code to `filename`.
 
 !!! note
-    This will always show a unique maximal element even if it is not part of the 
+    This will always show a unique maximal element even if it is not part of the
     partially ordered set.
 """
 function visualize(p::PartiallyOrderedSet; filename::Union{Nothing, String}=nothing, kwargs...)
