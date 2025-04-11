@@ -1266,7 +1266,7 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
-export numerical_lattice 
+export numerical_lattice
 export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
@@ -1758,6 +1758,7 @@ export with_ordering
 export witt_index
 export word
 export wreath_product
+export wreath_macs
 export write_as_full
 export young_tableau
 export zero_section
