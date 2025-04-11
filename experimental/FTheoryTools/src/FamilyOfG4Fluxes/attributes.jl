@@ -19,7 +19,9 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -51,7 +53,9 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -83,7 +87,9 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -94,6 +100,39 @@ true
 ```
 """
 matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
+
+
+@doc raw"""
+    offset(gf::FamilyOfG4Fluxes)
+
+Return the vector whose entries specify the offset by which fluxes in this family
+of G4-fluxes are shifted.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> mat_int = zero_matrix(QQ, 37, 1);
+
+julia> mat_int[1,1] = 1;
+
+julia> mat_rat = zero_matrix(QQ, 37, 1);
+
+julia> mat_rat[2,1] = 1;
+
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia> offset(f_gs) == shift
+true
+```
+"""
+offset(gf::FamilyOfG4Fluxes) = gf.offset
 
 
 #####################################################
@@ -133,24 +172,14 @@ julia> d3_tadpole_constraint(fgs);
   m = model(fgs)
   @req base_space(m) isa NormalToricVariety "Computation of D3-tadpole constraint only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of D3-tadpole constraint only supported for 5-dimensional toric ambient spaces"
+  @req all(==(0), offset(fgs)) "Currently, the D3-tadpole can only be computed for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   if check
     @req is_complete(ambient_space(m)) "Computation of D3-tadpole constraint only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of D3-tadpole constraint only supported for simplicial toric ambient space"
   end
 
   # Are intersection numbers known?
-  # TODO: If available and necessary, convert inter_dict.
-  # TODO: This is necessary, because serializing and loading turns NTuple{4, Int64} into Tuple (as of March 5, 2025).
-  # TODO: Once serialization has caught up, this conversion will no longer be needed.
-  if has_attribute(m, :inter_dict) && typeof(get_attribute(m, :inter_dict)) != Dict{NTuple{4, Int64}, ZZRingElem}
-    original_dict = get_attribute(m, :inter_dict)
-    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-    for (key, value) in original_dict
-      new_key = NTuple{4, Int64}(key)
-      new_dict[new_key] = value
-    end
-    set_attribute!(model, :inter_dict, new_dict)
-  end
   inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
@@ -162,7 +191,7 @@ julia> d3_tadpole_constraint(fgs);
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = cox_ring(ambient_space(m))
     gS = gens(cox_ring(ambient_space(m)))
-    linear_relations = matrix(QQ, rays(ambient_space(m)))
+    linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
     scalings = [c.coeff for c in S.d]
     mnf = Oscar._minimal_nonfaces(ambient_space(m))
     sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -185,8 +214,8 @@ julia> d3_tadpole_constraint(fgs);
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = _ambient_space_models_of_g4_fluxes(m, check = check)
-  basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
+  basis = basis_of_h22_hypersurface(m, check = check)
+  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
   C = MPolyBuildCtx(amb_ring)

@@ -769,7 +769,6 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   file_version = load_node(s) do obj
     serialization_version_info(obj)
   end
-
   if file_version < VERSION_NUMBER
     # we need a mutable dictionary
     jsondict = copy(s.obj)

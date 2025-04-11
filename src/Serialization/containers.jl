@@ -170,7 +170,7 @@ function load_type_params(s::DeserializerState, T::Type{Tuple})
       U = decode_type(s)
       load_type_params(s, U)
     end
-    return collect(zip(tuple_params...))
+    return Tuple([x[1] for x in tuple_params]), Tuple(x[2] for x in tuple_params)
   end
   return T{subtype...}, params
 end

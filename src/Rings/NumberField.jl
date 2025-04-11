@@ -739,12 +739,12 @@ function Hecke.any_order(K::NfNSGen)
     @assert isone(denominator(b.f))
   end
 
-  O = Order(K, B)
+  O = order(K, B)
 
   return O
 end
 
-function Hecke.MaximalOrder(K::NfNSGen)
+function Hecke.maximal_order(K::NfNSGen)
   E = any_order(K)
   return Hecke._maximal_order_round_four(E)
 end

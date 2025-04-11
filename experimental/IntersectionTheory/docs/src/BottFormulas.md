@@ -18,7 +18,7 @@ Using Bott's formula in enumerative geometry goes back to [ES02](@cite). We quot
 We represent an *abstract variety with a torus action* by specifying its dimension together with the fixed points of the action and, possibly, further data.
 
 !!! note
-    In order to work with a version of Bott's formula for orbifolds, it is allowed to specify multiplicities at the fixed points. See the section on Kontsevich moduli spaces.
+    In order to work with a version of Bott's formula for orbifolds, it is allowed to specify multiplicities at the fixed points. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
 
 An *abstract equivariant vector bundle under a torus action*  is represented by its rank and its base variety, together with its localizations at the fixed points.
 
@@ -189,5 +189,19 @@ linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
 
 ## Kontsevich Moduli Spaces
 
-## Examples: Rational Curves on Complete Intersections
+```@docs
+kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
+```
+
+## Examples: Gromov-Witten Invariants
+
+Based on the implementation of Kontsevich Moduli Spaces, we can compute Gromov-Witten invariants as follows:
+
+```@docs
+gromov_witten_invariant(d::Int, ns::Vector{Int})
+```
+
+```@docs
+instanton_number(d::Int, ns::Vector{Int})
+```
 
