@@ -5,13 +5,13 @@ function pivots(M::MatElem)
   pivots = []
 
   for i in 1:nrows(R)
-      for j in 1:ncols(R)
+    for j in 1:ncols(R)
 
-          if R[i,j] != 0
-              append!(pivots, [[i,j]])
-              break
-          end
+      if R[i,j] != 0
+        append!(pivots, [[i,j]])
+        break
       end
+    end
   end
 
   return pivots
@@ -82,18 +82,21 @@ function component_of_kernel(deg::FinGenAbGroupElem,
   else
     # computes the basis for domain in degree deg but removes all monomials 
     # which correspond to previously computed relations G
-    gen_shifts = reduce(vcat, [[g*b for b in monomial_basis(domain, deg - degree(g))] for g in prev_gens])
-    mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+    gen_shifts = reduce(vcat, [
+      [g*b for b in monomial_basis(domain(phi), deg - degree(g))]
+      for g in prev_gens
+        ])
+    mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts];
+                          init=MPolyDecRingElem[]))
+    isempty(mons) && return MPolyDecRingElem[]
     
-    coeffs = matrix(QQ, [[coeff(f, mon) for f in M] for mon in mons])
+    coeffs = matrix(QQ, [[coeff(f, mon) for f in gen_shifts] for mon in mons])
     bad_monomials = [mons[p[1]] for p in pivots(coeffs)]
 
     mon_basis = [m for m in monomial_basis(domain(phi), deg) if !(m in bad_monomials)]
   end
 
-  if length(mon_basis) < 2
-    return MPolyDecRingElem[]
-  end
+  length(mon_basis) < 2 && return MPolyDecRingElem[]
 
   # find the indices of all variables involved in this component
   supp = component_support(mon_basis)
@@ -106,23 +109,13 @@ function component_of_kernel(deg::FinGenAbGroupElem,
 
   image_polys = [phi(m) for m in mon_basis]
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
-  coeffs = matrix(QQ, [[coeff(f, mon) for f in M] for mon in mons])
+  coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
   (r, K) = nullspace(coeffs)
   return mon_basis * K
 end
 
-struct KernelComponentTask <: ParallelTask
-  deg::FinGenAbGroupElem
-  phi::MPolyAnyMap
-  prev_gens::Vector{<:MPolyDecRingElem}
-  jac::MatElem
-end
-
-function _compute(kct::KernelComponentTask)
-  return component_of_kernel(kct.deg, kct.phi, kct.prev_gens, kct.jac)
-end
-
-function components_of_kernel(d::Int, phi::MPolyAnyMap; parallel::Bool=false)
+function components_of_kernel(d::Int, phi::MPolyAnyMap;
+                              wp::Union{OscarWorkerPool, Nothing}=nothing)
   # Compute a maximal grading on the domain
   A = Oscar.max_grading(phi)[:, ngens(codomain(phi)) + 1:end]
   
@@ -147,7 +140,18 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap; parallel::Bool=false)
       prev_gens = reduce(vcat, values(gens_dict))
     end
     if !isempty(all_degs)
-      results = parallel_all([KernelComponentTask(deg, graded_phi, prev_gens, jac) for deg in all_degs])
+      if isnothing(wp)
+        results = pmap(component_of_kernel, all_degs,
+                       [graded_phi for _ in all_degs],
+                       [prev_gens for _ in all_degs],
+                       [jac for _ in all_degs];
+                       distributed=false)
+      else
+        results = pmap(component_of_kernel, wp, all_degs,
+                       [graded_phi for _ in all_degs],
+                       [prev_gens for _ in all_degs],
+                       [jac for _ in all_degs])
+      end
     else
       results =[]
     end
