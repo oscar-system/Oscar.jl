@@ -11,7 +11,6 @@ include("MPolyQuo.jl")
 include("FractionalIdeal.jl")
 include("oscar_singular.jl")
 
-
 include("special_ideals.jl")
 
 include("MPolyMap/Types.jl")
