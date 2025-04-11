@@ -396,7 +396,7 @@ Return the Pluecker indices used to construct `TropL`.
 Raises an error if neither it, nor any relevant algebraic data nor a tropical matrix is cached.
 """
 @attr Vector{Vector{Int}} function pluecker_indices(TropL::TropicalLinearSpace)
-    # if any relevant algebraic data is cached, use it to construct the Pluecker indicess
+    # if any relevant algebraic data is cached, use it to construct the Pluecker indices
     if any(has_attribute.(Ref(TropL),[:algebraic_matrix, :algebraic_ideal]))
         A = algebraic_matrix(TropL)
         plueckerIndices, plueckerVector = compute_pluecker_indices_and_vector(A)
