@@ -1,3 +1,5 @@
+abstract type ParallelTask end
+
 # A generic implementation to extract all parent-like objects appearing 
 # in the fields of a concrete instance of a `ParallelTask`. Knowing these 
 # beforehand is necessary to be able to create all required parents on 
