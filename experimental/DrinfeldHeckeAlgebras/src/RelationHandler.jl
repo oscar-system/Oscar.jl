@@ -79,9 +79,9 @@ mutable struct RelationHandler{T <: RingElem}
           else  # (I)
             row = fill(R(), m)
             
-            row[handler.map[(i,j)]] = A[l,k]
-            row[handler.map[(j,k)]] = A[l,i]
-            row[handler.map[(k,i)]] = -A[l,j]
+            row[handler.map[(g,i,j)]] = A[l,k]
+            row[handler.map[(g,j,k)]] = A[l,i]
+            row[handler.map[(g,i,k)]] = -A[l,j]
           end
         
           if !is_zero(row)
