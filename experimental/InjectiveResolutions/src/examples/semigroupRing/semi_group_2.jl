@@ -10,6 +10,9 @@ kQ = Oscar.MonoidAlgebra(R_Q)
 # define ideal over monoid algebra
 I = ideal(kQ, [y^3, x^3 * z])
 
+#irreducible decomposition
+irreducible_dec(I)
+
 # compute irreducible resolution of M = kQ/I
 M = quotient_ring_as_module(I)
 irr_res = irreducible_res(M)
@@ -17,38 +20,31 @@ irr_res = irreducible_res(M)
 # compute injective resolution up to cohomological degree 3
 inj_res = injective_res(I, 3)
 
-inj_res.inj_mods[1].indec_injectives
-inj_res.inj_mods[2].indec_injectives
-inj_res.inj_mods[3].indec_injectives
-inj_res.inj_mods[4].indec_injectives
-inj_res.inj_mods[5].indec_injectives
-inj_res.inj_mods[6].indec_injectives
-inj_res.inj_mods[7].indec_injectives
+inj_res.inj_mods[1].indec_injectives #J^0
+inj_res.inj_mods[2].indec_injectives #J^1
+inj_res.inj_mods[3].indec_injectives #J^2
+inj_res.inj_mods[4].indec_injectives #J^3
 
-inj_res.cochain_maps[1]
-inj_res.cochain_maps[2]
-inj_res.cochain_maps[3]
-inj_res.cochain_maps[4]
-inj_res.cochain_maps[5]
-inj_res.cochain_maps[6]
-inj_res.cochain_maps[7]
+inj_res.cochain_maps[1] #J^0 -> J^1
+inj_res.cochain_maps[2] #J^1 -> J^2
+inj_res.cochain_maps[3] #J^2 -> J^3
 
 # irreducible resolution that is the Q-graded part of the minimal injective resolution above
-irr_res_3 = inj_res.irr_res
+inj_res_Q = inj_res.irr_res
 
 # check if irreducible resolution
-length(irr_res_3.irr_sums)
-image(irr_res_3.cochain_maps[1])[1] == kernel(irr_res_3.cochain_maps[2])[1]
-image(irr_res_3.cochain_maps[2])[1] == kernel(irr_res_3.cochain_maps[3])[1]
-image(irr_res_3.cochain_maps[3])[1] == kernel(irr_res_3.cochain_maps[4])[1]
-image(irr_res_3.cochain_maps[4])[1] == kernel(irr_res_3.cochain_maps[5])[1]
-image(irr_res_3.cochain_maps[5])[1] == kernel(irr_res_3.cochain_maps[6])[1]
-image(irr_res_3.cochain_maps[6])[1] == kernel(irr_res_3.cochain_maps[7])[1]
-is_injective(irr_res_3.inclusions[1])
-is_injective(irr_res_3.inclusions[2])
-is_injective(irr_res_3.inclusions[3])
-is_injective(irr_res_3.inclusions[4])
-is_injective(irr_res_3.inclusions[5])
-is_injective(irr_res_3.inclusions[6])
-is_injective(irr_res_3.inclusions[7])
-is_surjective(irr_res_3.inclusions[7])
+length(inj_res_Q.irr_sums)
+image(inj_res_Q.cochain_maps[1])[1] == kernel(inj_res_Q.cochain_maps[2])[1]
+image(inj_res_Q.cochain_maps[2])[1] == kernel(inj_res_Q.cochain_maps[3])[1]
+image(inj_res_Q.cochain_maps[3])[1] == kernel(inj_res_Q.cochain_maps[4])[1]
+image(inj_res_Q.cochain_maps[4])[1] == kernel(inj_res_Q.cochain_maps[5])[1]
+image(inj_res_Q.cochain_maps[5])[1] == kernel(inj_res_Q.cochain_maps[6])[1]
+image(inj_res_Q.cochain_maps[6])[1] == kernel(inj_res_Q.cochain_maps[7])[1]
+is_injective(inj_res_Q.inclusions[1])
+is_injective(inj_res_Q.inclusions[2])
+is_injective(inj_res_Q.inclusions[3])
+is_injective(inj_res_Q.inclusions[4])
+is_injective(inj_res_Q.inclusions[5])
+is_injective(inj_res_Q.inclusions[6])
+is_injective(inj_res_Q.inclusions[7])
+is_surjective(inj_res_Q.inclusions[7])
