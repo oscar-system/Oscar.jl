@@ -618,6 +618,9 @@ or its root system.
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
 
+For Demazure characters of generalized flag manifolds, as in [PS09](@cite),
+see [`demazure_character(::AbstractVector, ::PermGroupElem)`](@ref).
+
 # Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 2);

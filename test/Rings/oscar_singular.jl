@@ -12,13 +12,15 @@
     _, x = K[:x]
     number_field(x^2 - 3)[1]
   end
-  FFt, = rational_function_field(GF(2), :t);
-  QQt, = rational_function_field(QQ, :t);
+  FFt, = rational_function_field(GF(2), :t)
+  FFtuv, = rational_function_field(GF(2), [:t, :u, :v])
+  QQt, = rational_function_field(QQ, :t)
+  QQtuv, = rational_function_field(QQ, [:t, :u, :v])
 
   test_rings = (ZZ, QQ, Qx,
                 Nemo.Native.GF(2), GF(2), GF(2, 2), GF(next_prime(ZZ(2)^70)),
                 GF(next_prime(ZZ(2)^70), 2), FFrel, abelian_closure(QQ)[1],
-                K, Krel, FFt, QQt) 
+                K, Krel, FFt, QQt, FFtuv, QQtuv) 
 
   for R in test_rings
     f = Oscar.iso_oscar_singular_coeff_ring(R)
@@ -46,7 +48,7 @@
       @test preimage(g, g(h)) == h
     end
 
-    if R isa Field
+    if R isa Field && !(R isa AbstractAlgebra.Generic.RationalFunctionField)
       Q, = quo(Rx, [x^2 - 1])
       x, y = gens(Q)
       g = Oscar.iso_oscar_singular_poly_ring(Q)
@@ -61,5 +63,12 @@
         @test preimage(g, g(h)) == h
       end
     end
+  end
+
+  let
+    R, = rational_function_field(QQ, [:t, :u, :v])
+    Rx, = R[:x, :y]
+    f = Oscar.iso_oscar_singular_poly_ring(Rx)
+    @test base_ring(codomain(f)) isa Singular.N_FField
   end
 end

@@ -24,9 +24,8 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf)
 true
@@ -38,9 +37,8 @@ julia> m2 = matrix_rational(gf);
 julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf2, check = false)
 true
@@ -52,6 +50,8 @@ true
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric ambient space"
+  @req all(==(0), offset(fgs)) "Currently, is_well_quantized is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
@@ -89,9 +89,9 @@ end
 
 
 @doc raw"""
-    is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if the given family of $G_4$-fluxes is vertical.
+Check if the given family of $G_4$-fluxes passes the transversality checks.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -101,45 +101,35 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf, check = false)
-false
-
-julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> is_vertical(gf2, check = false)
+julia> passes_transversality_checks(gf, check = false)
 true
 
-julia> m1 = matrix_integral(gf2);
+julia> m1 = matrix_integral(gf);
 
-julia> m2 = matrix_rational(gf2);
+julia> m2 = matrix_rational(gf);
 
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf3)
+julia> passes_transversality_checks(gf3)
 true
 ```
 """
-@attr Bool function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verticality check only supported for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Verticality check currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Verticality check currently supported only for toric ambient space"
-  
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
+  @req all(==(0), offset(fgs)) "Currently, the transversality check is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
+
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
@@ -148,14 +138,14 @@ true
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    if !is_vertical(gen_k)
+    if !passes_transversality_checks(gen_k)
       return false
     end
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    if !is_vertical(gen_k)
+    if !passes_transversality_checks(gen_k)
       return false
     end
   end
@@ -166,7 +156,7 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if a family of G4-fluxes breaks the non-abelian
+Check if a family of G4-fluxes breaks the non-abelian
 gauge group. If so, this method returns `true` and
 otherwise `false`.
 
@@ -177,29 +167,17 @@ Hypersurface model over a concrete base
 julia> gf = special_flux_family(qsm_model, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
+  - Transversality checks: satisfied
   - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
 
-julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
+julia> gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
-
-julia> breaks_non_abelian_gauge_group(gf2)
-true
-
-julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: satisfied
+  - Transversality checks: satisfied
   - Non-abelian gauge group: not broken
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false
@@ -211,9 +189,8 @@ julia> m2 = matrix_rational(gf3);
 julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf4, check = false)
 false
@@ -225,6 +202,8 @@ false
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
+  @req all(==(0), offset(fgs)) "Currently, the check for breaking the non-abelian gauge group is only supported for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)

@@ -11,7 +11,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   @test Set(gens(R)) == Set(x)
   for i in 1:3
     for j in 1:4
@@ -23,7 +23,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   for i in 1:3
     for j in 1:4
       @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
@@ -31,7 +31,7 @@
   end
   @test y isa Vector{<: Any}
   @test length(y) == 2
-  @test length(unique(y)) == 2
+  @test allunique(y)
   for i in 1:2
     @test sprint(show, "text/plain", y[i]) == "y[$i]"
   end
@@ -43,7 +43,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   for i in 1:3
     for j in 1:4
       @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
@@ -51,7 +51,7 @@
   end
   @test y isa Vector{<: Any}
   @test length(y) == 2
-  @test length(unique(y)) == 2
+  @test allunique(y)
   for i in 1:2
     @test sprint(show, "text/plain", y[i]) == "y[$i]"
   end
@@ -664,5 +664,12 @@ end
   @test I2.dim === nothing
   @test dim(I2) == -inf
   @test I2.dim !== nothing
+end
+
+@testset "dimensions over number fields" begin
+  P, t = QQ[:t]
+  kk, i = extension_field(t^2 + 1)
+  R, (x, y) = kk[:x, :y]
+  @test dim(R) == 2
 end
 

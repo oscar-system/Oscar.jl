@@ -65,7 +65,7 @@ end
 """
     units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0) -> FinGenAbGroup, Map{Grp, AbsSimpleNumFieldOrder}
 
-Computes the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
+Compute the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
 modulo `n_quo` is computed.
 """
 function units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0)
@@ -627,7 +627,7 @@ Sort:
 
 """
 M has to be a torsion free Z module with a C_2 action by sigma.
-Returns data for the decomposition into indecomposables.
+Return data for the decomposition into indecomposables.
 They will be of type
  - Z with trivial and non-trivial action
  - Z[C_2]
@@ -1105,7 +1105,7 @@ end
 """
     galois_group(A::ClassField, ::QQField; idele_parent::IdeleParent = idele_class_gmodule(base_field(A)))
 
-Determines the Galois group (over `QQ`) of the extension parametrized by `A`.
+Determine the Galois group (over `QQ`) of the extension parametrized by `A`.
 `A` needs to be normal over `QQ`.
 
 # Examples
@@ -1614,7 +1614,7 @@ SL(2,5)
 julia> T = character_table(G);
 
 julia> R = gmodule(T[9])
-G-module for G acting on vector space of dimension 6 over abelian closure of Q
+G-module for G acting on vector space of dimension 6 over abelian closure of QQ
 
 julia> S = gmodule(CyclotomicField, R)
 G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
@@ -1993,7 +1993,7 @@ end
     shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
 
 Tries to find cohomologically trivial submodules to factor out.
-Returns a cohomologically equivalent module with fewer generators and
+Return a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
