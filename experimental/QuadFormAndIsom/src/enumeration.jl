@@ -1107,13 +1107,20 @@ function splitting_of_hermitian_type(
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
-      As = representatives_of_hermitian_type(A, n, fix_root; genusDB, root_test)
-      if root_test && is_negative_definite(As[1]) # Remove lattices with (-2)-vectors
+      if root_test
+        if rank(A) > 0 && _roger_upper_bound_test(A)
+          continue
+        elseif rank(B) > 0 && _roger_upper_bound_test(B)
+          continue
+        end
+      end
+      As = representatives_of_hermitian_type(A, n, fix_root; genusDB)
+      if root_test && !iszero(signature_tuple(A)[1]) # Remove lattices with (-2)-vectors
         filter!(LA -> rank(LA) == 0 || minimum(LA) != 2, As)
       end
       isempty(As) && continue
-      Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB, root_test)
-      if root_test && is_negative_definite(Bs[1]) # Remove lattices with (-2)-vectors
+      Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB)
+      if root_test && !iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
         filter!(LB -> rank(LB) == 0 || minimum(LB) != 2, Bs)
       end
       isempty(Bs) && continue
@@ -1978,43 +1985,122 @@ end
 #
 ###############################################################################
 
+function _roger_upper_bound_test(G::ZZGenus)
+  !iszero(signature_tuple(G)[1]) && return false
+  # Roger's upper bounds on center of density of definite lattices of rank
+  # 1 to 24 (computed by Leech)
+  bn = Float64[0.5, 0.28868, 0.1847, 0.13127, 0.09987, 0.08112, 0.06981, 0.06326,
+	     0.06007, 0.05953, 0.06136, 0.06559, 0.07253, 0.08278, 0.09735, 0.11774,
+	     0.14624, 0.18629, 0.24308, 0.32454, 0.44289, 0.61722, 0.87767, 1.27241]
+  # The center of density of a definite lattice L is defined as
+  # delta(L) = rho^n/sqrt(|det(L)|) where rho(L) = 1//2*sqrt(|min(L)|).
+  # If there exists a lattice L in a genus G with absolute minimum at least 4
+  # then rho(L) >= 1, and therefore
+  #
+  #              bn[rank(G)] >= delta(L) >= 1/sqrt(|det(G))
+  # Hence, if |det(G)| < 1//(bn[rank(G)])^2, all the lattices in G have
+  # absolute minimum equal to 2.
+  if r <= 24 && abs(det(G)) < inv(bn[Int(r)])^2
+    return true
+  end
+  return false
+end
+
 @doc raw"""
     oscar_genus_representatives(
-      G::ZZGenus;
+      G::ZZGenus,
+      algorithm::Symbol = :default;
+      rand_neigh::Int = 10,
+      invariant_function::Function=Hecke.default_invariant_function,
+      save_partial::Bool=false,
+      save_path::Union{IO, String, Nothing}=nothing,
+      stop_after::IntExt=1000,
+      max_lat::IntExt=inf
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
-    )
+    ) -> Vector{ZZLat}
 
 Return a complete list of representatives for the isometry classes in the genus
 `G`.
 
-This is a complement of the Hecke implementation for large genera of definite
-lattices.
-If `G` cannot be enumerated using the usual `line_orbits` algorithm, we
-enumerate it using random search in the corresponding neighbour graph. If after
-a certain number of vain iterations (1000 by default) the genus `G` is still
-not enumerated, we complete the enumeration by looking for lattices of
-isometries `(L, f)` so that `L` lies in `G` and `f` is of prime order. The
-latter is done using the algorithms of [BH23](@cite). The algorithm is
-recursive as it calls itself to enumerate smaller genera of definite lattices
-during the procedure.
+!!! note
+    This is a complement of the Hecke implementation for large genera of
+    definite lattices. If `G` cannot be enumerated using the usual
+    `line_orbits` algorithm, we enumerate it using random search in the
+    corresponding neighbour graph. If after a certain number of vain
+    iterations (1000 by default) the genus `G` is still not enumerated,
+    we complete the enumeration by looking for lattices of isometries `(L, f)`
+    so that `L` lies in `G` and `f` is of prime order. This is done using the
+    algorithms of [BH23](@cite). The algorithm is recursive as it calls itself
+    to enumerate smaller genera of definite lattices during the procedure.
+
+The second input `algorithm` gives the choice to which algorithm to use for the
+initial enumeration using neighbours. We currently support two algorithms:
+  * `:random` which finds new isometry classes by constructing neighbours from
+    random isotropic lines;
+  * `:orbit` which computes orbits of isotropic lines before constructing
+    neighbours.
+If `algorithm = :default`, the function chooses the most appropriate algorithm
+depending on the rank and determinant of the genus to be enumerated.
+
+There are possible extra optional arguments:
+  * `rand_neigh::Int` (default = `10`) -> for random enumeration, how many
+    random neighbours are computed at each iteration;
+  * `invariant_function::Function` (default = `default_invariant_function`) ->
+    a function to compute isometry invariants in order to avoid unnecessary
+    isometry tests;
+  * `save_partial::Bool` (default = `false`) -> whether one wants to save
+    iteratively new isometry classes;
+  * `save_path::String` (default = `nothing`) -> a path to a folder where
+    to save new lattices in the case where `save_partial` is true;
+  * `stop_after::IntExt` (default = `1000`) -> the inital enumeration algorithm
+    stops after the specified amount of vain iterations without finding a new
+    isometry class is reached;
+  * `max_lat::IntExt` (default = `inf`) -> the algorithm stops after finding
+    `max` isometry classes.
+
+!!! warning
+    The algorithm uses the mass by default, in order to use the codes of
+    [BH23](@cite). To enumerate `G` without the mass formula, please use
+    the Hecke function `enumerate_definite_genus`.
+
+If `save_partial == true`, the lattices are stored in a compact way in a `.txt`
+file. The storing only remembers the rank of a lattice, half of its Gram matrix
+(which is enough to reconstruct the lattice as a standalone object) and the
+order of the isometry group of the lattice if it has been computed.
+
+The `default_invariant_function` currently computes:
+  * the absolute length of a shortest vector in the given lattice
+    (also known as [`minimum`](@ref));
+  * an ordered list of tuples consisting of the decomposition of the root
+    sublattice of the given lattice (see [`root_lattice_recognition`](@ref));
+  * the kissing number of the given lattice, which is proportional to the
+    number of vectors of shortest length;
+  * the order of the isometry group of the given lattice.
 
 !!! information "For the advanced users"
     When using this function, one can use some extra keyword arguments
     which are be carried along the computations.
-    - if available, one can use any database of genera of definite lattices
+    * if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
-    - if `root_test` is set to true, the algorithm determines whether the genus
+    * if `root_test` is set to true, the algorithm determines whether the genus
       `G` consists of lattices of minimum 2 (which can sometimes be predicted
       using sphere packing conditions). In such a case, the enumeration is
       skipped.
 """
 function oscar_genus_representatives(
-  G::ZZGenus;
+  G::ZZGenus,
+  algorithm::Symbol = :default;
+  rand_neigh::Int=10,
+  invariant_function::Function=Hecke.default_invariant_function,
+  save_partial::Bool=false,
+  save_path::Union{IO, String, Nothing}=nothing,
+  stop_after::IntExt=1000,
+  max_lat::IntExt=inf,
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
-  root_test::Bool=false
+  root_test::Bool=false,
 )
   # We do not need anything new, Hecke can handle this perfectly
   if !is_definite(G) || rank(G) <= 2
@@ -2023,38 +2109,23 @@ function oscar_genus_representatives(
 
   # Maybe the genus `G` is already known in the datatabse genusDB
   if !isnothing(genusDB)
-    haskey(genusDB, G) && return genusDB[G]
+    haskey(genusDB, G) && return deepcopy(genusDB[G])
   end
   r = rank(G)
 
   # Here we use a sphere packing condition as used in Section 2.4 of
   # "Symplectic rigidity of O'Grady's tenfolds" by L. Giovenzana, Grossi,
   # Onorati and Veniani.
-  if root_test
-    # Roger's upper bounds on center of density of definite lattices of rank
-    # 1 to 24 (computed by Leech)
-    bn = Float64[0.5, 0.28868, 0.1847, 0.13127, 0.09987, 0.08112, 0.06981, 0.06326,
-	       0.06007, 0.05953, 0.06136, 0.06559, 0.07253, 0.08278, 0.09735, 0.11774,
-	       0.14624, 0.18629, 0.24308, 0.32454, 0.44289, 0.61722, 0.87767, 1.27241]
-    # The center of density of a definite lattice L is defined as
-    # delta(L) = rho^n/sqrt(|det(L)|) where rho(L) = 1//2*sqrt(|min(L)|).
-    # If there exists a lattice L in a genus G with absolute minimum at least 4
-    # then rho(L) >= 1, and therefore
-    #
-    #              bn[rank(G)] >= delta(L) >= 1/sqrt(|det(G))
-    # Hence, if |det(G)| < 1//(bn[rank(G)])^2, all the lattices in G have
-    # absolute minimum equal to 2. In that case, if `root_test` is true, we may
-    # return the empty list.
-    if r <= 24 && abs(det(G)) < inv(bn[Int(r)])^2
-      return ZZLat[]
-    end
+  if root_test && _roger_upper_bound_test(G)
+    return ZZLat[]
   end
   # Enumerate G using Hecke. If the rank and deteterminant of G are reasonable,
   # it will call `line_orbits` computations and the list l will be complete.
   # Otherwise, we proceed by random search, and as soon as we reach a point
   # where after 1000 vain iterations we do not find any new isometry class,
   # we stop Kneser's algorithm and we start isometry enumeration instead.
-  l = enumerate_definite_genus(G; stop_after=1000)
+  l = enumerate_definite_genus(G, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after=1000, max=max_lat)
+  length(l) == max_lat && return l
 
   # Part of the mess of G which is missing
   mm = mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
@@ -2063,10 +2134,10 @@ function oscar_genus_representatives(
   if !iszero(mm)
     # Recollect a dictionary of invariants, which should be fast to compute
     # about the lattices already known (to ease comparison of lattices)
-    inv_lat = Hecke.default_invariant_function(l[1])
+    inv_lat = invariant_function(l[1])
     inv_dict = Dict{typeof(inv_lat), Vector{ZZLat}}(inv_lat => ZZLat[l[1]])
-    for N in edg[2:end]
-      inv_lat = Hecke.default_invariant_function(N)
+    for N in l[2:end]
+      inv_lat = invariant_function(N)
       if haskey(inv_dict, inv_lat)
         push!(inv_dict[inv_lat], N)
       else
@@ -2105,31 +2176,40 @@ function oscar_genus_representatives(
         # Take care of how to distribute the signatures between invariant
         # and coinvariant sublattices
         if pos
-          Ns = splitting_of_prime_power(Lf, Int(p), 1; eiglat_cond=Dict(1=>[r-k, r-k, 0], p=>[k, k, 0]), genusDB, root_test=false, check=false)
+          Ns = splitting_of_prime_power(Lf, Int(p), 1; eiglat_cond=Dict{Int, Vector{Int}}(1=>Int[r-k, r-k, 0], p=>Int[k, k, 0]), genusDB, root_test=false, check=false)
         else
-          Ns = splitting_of_prime_power(Lf, Int(p), 1; eiglat_cond=Dict(1=>[r-k, 0, r-k], p=>[k, 0, k]), genusDB, root_test=false, check=false)
+          Ns = splitting_of_prime_power(Lf, Int(p), 1; eiglat_cond=Dict{Int, Vector{Int}}(1=>Int[r-k, 0, r-k], p=>Int[k, 0, k]), genusDB, root_test=false, check=false)
         end
         for Nf in Ns
           N = lll(lattice(Nf))
-          invN = Hecke.default_invariant_function(N)
+          invN = invariant_function(N)
           # If no other known lattices have the same invariants as N
           # then N is not isometric to any of them and we have found
           # a new isometry class
           if !haskey(inv_dict, invN)
             inv_dict[invN] = ZZLat[N]
-	          push!(edg, N)
+	          push!(l, N)
 	          s = isometry_group_order(N)
+            if save_partial
+              Hecke.save_lattice(N, save_path)
+            end
             sub!(mm, mm, 1//s)
           # Otherwise we compare N with every other lattices with the same
           # invariant as N
           elseif all(M -> !is_isometric(N, M), inv_dict[invN])
             push!(inv_dict[invN], N)
-            push!(edg, N)
+            push!(l, N)
 	          s = isometry_group_order(N)
+            if save_partial
+              Hecke.save_lattice(N, save_path)
+            end
 	          sub!(mm, mm, 1//s)
           end
+          length(l) == max_lat && return l
           is_zero(mm) && break
         end
+        @v_do :ZZLatWithIsom 1 perc = Float64(mm//mass(G)) * 100
+        @vprintln :ZZLatWithIsom 1 "Lattices: $(length(l)), Target mass: $(mass(G)). missing: $(mm) ($(perc)%)"
         is_zero(mm) && break
       end
     end
@@ -2138,7 +2218,7 @@ function oscar_genus_representatives(
   # used later... or to update the global database on
   # https://github.com/StevellM/DefLatDB
   if !isnothing(genusDB)
-    genusDB[G] = l
+    genusDB[G] = deepcopy(l)
   end
   return l
 end
