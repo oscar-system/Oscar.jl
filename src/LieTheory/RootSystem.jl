@@ -533,7 +533,7 @@ end
 @doc raw"""
     highest_root(R::RootSystem) -> RootSpaceElem
 
-Return the highest root of `R`.
+Return the highest root of `R`, where `R` is a simple root system of finite type.
 
 This is equivalent to `positive_root(R, number_of_positive_roots(R))`.
 
@@ -546,6 +546,8 @@ julia> highest_root(root_system(:F, 4))
 ```
 """
 function highest_root(R::RootSystem)
+  @req is_finite(weyl_group(R)) "Root system is not of finite type"
+  @req is_simple(R) "Root system is not simple"
   return positive_root(R, number_of_positive_roots(R))
 end
 
