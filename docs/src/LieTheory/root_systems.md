@@ -78,6 +78,7 @@ positive_root(::RootSystem, ::Int64)
 positive_roots(::RootSystem)
 negative_root(::RootSystem, ::Int64)
 negative_roots(::RootSystem)
+highest_root(::RootSystem)
 ```
 
 
