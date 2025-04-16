@@ -831,8 +831,7 @@ and `T` is a suitable group type such as
 
 !!! note
     For historical reasons and backwards compatibility, `quaternion_group` is an alias
-    of `dicyclic_group`. The two functions are fully identical. We recommend always
-    using `dicyclic_group`.
+    of `dicyclic_group`. The two functions are fully identical.
 
 # Examples
 ```jldoctest
@@ -867,6 +866,7 @@ end
 
 @doc raw"""
     is_dicyclic_group(G::GAPGroup)
+    is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic to a dicyclic group
 of order $4k, k > 1$, and `false` otherwise.
@@ -882,42 +882,35 @@ true
 """
 is_dicyclic_group(G::GAPGroup) = _is_dicyclic_group(G)
 
-@doc raw"""
-    is_quaternion_group(G::GAPGroup)
-
-Return `true` if `G` is isomorphic to a generalised quaternion group
-of order $2^{k+1}, k \geq 2$, and `false` otherwise.
-"""
-@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsGeneralisedQuaternionGroup(GapObj(G))
-
 # TODO: Remove once IsDicyclicGroup from GAP is available.
 function _is_dicyclic_group(G::GAPGroup)
   N = order(G)
   !iszero(mod(N, 4)) && return false
   
-  n = N//2
-  a = n//2
+  n = div(N, 2)
+  a = div(n, 2)
 
   G1, _ = derived_subgroup(G)
-  !(is_cyclic(G1) && order(G1) == a) && return false
+  (is_cyclic(G1) && order(G1) == a) || return false
 
   local Zn
   T = right_transversal(G, G1)
-  i = 1
-  while true
-    H = GAP.Globals.ClosureGroup(GapObj(G1), GapObj(T[i]))
+  @assert length(T) == 4
+  for x in T
+    H = GAP.Globals.ClosureGroup(GapObj(G1), GapObj(x))
     Zn, _ = Oscar._as_subgroup(G1, H)
-    i = i + 1
-    if (i > 4) || (is_cyclic(Zn) && order(Zn) == n)
+    if is_cyclic(Zn) && order(Zn) == n
       break
     end
   end
-  !(is_cyclic(Zn) && order(Zn) == n) && return false
+
+  (is_cyclic(Zn) && order(Zn) == n) || return false
 
   local t = one(G)
   while t in Zn
     t = rand(G)
   end
+
   !(order(t) == 4 && all(s -> s^t*s == s^0, gens(Zn))) && return false
 
   # Different from GAP code, here we skip finding other generator.
@@ -925,3 +918,4 @@ function _is_dicyclic_group(G::GAPGroup)
 end
 
 const quaternion_group = dicyclic_group
+const is_quaternion_group = is_dicyclic_group
