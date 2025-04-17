@@ -35,16 +35,7 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # get the prefix `Experimental/PACKAGE_NAME`.
 #
 # Example:
-# 1. cat experimental/PlaneCurve/docs/doc.main:
-# [
-#    "plane_curves.md",
-# ]
-# after `add_prefix_to_experimental_docs` becomes
-# [
-#    "Experimental/PlaneCurve/plane_curves.md",
-# ]
-#
-# 2. cat experimental/FTheoryTools/docs/doc.main 
+# cat experimental/FTheoryTools/docs/doc.main 
 # [
 #    "F-Theory Tools" => [
 #       "introduction.md",
