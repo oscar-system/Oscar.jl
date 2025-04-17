@@ -115,7 +115,15 @@ julia> t((M[1], M[2]))
 x*y*e[1] \otimes e[1]
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
+function tensor_product(G::ModuleFP...; task::Symbol = :none, check::Bool=true)
+  @check begin
+    for M in G
+      M isa FreeMod && continue
+      F = ambient_free_module(M)
+      @assert all(repres(v) == F[i] for (i, v) in enumerate(gens(M))) "tensor product is only implemented for quotient modules"
+    end
+  end
+
   F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
   # We want to store a dict where the keys are tuples of indices and the values
   # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
