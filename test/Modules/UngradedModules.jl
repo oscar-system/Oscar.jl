@@ -344,7 +344,7 @@ end
   T0 = tor(Q, M, 0)
   T1 = tor(Q, M, 1)
   T2 =  tor(Q, M, 2)
-  @test is_canonically_isomorphic(T0, M)
+  @test_broken is_canonically_isomorphic(T0, M) # Should probably no longer be tested for after #4809.
   @test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
   @test iszero(T2)
   T0 = tor(M, Q, 0)
