@@ -344,7 +344,7 @@ end
   T0 = tor(Q, M, 0)
   T1 = tor(Q, M, 1)
   T2 =  tor(Q, M, 2)
-  @test is_canonically_isomorphic(T0, M)
+  @test_broken is_canonically_isomorphic(T0, M) # Should probably no longer be tested for after #4809.
   @test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
   @test iszero(T2)
   T0 = tor(M, Q, 0)
@@ -1329,5 +1329,19 @@ end
   s3 = syzygy_generators(ambient_representatives_generators(M))
   @test s3 != s2
   @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
+end
+
+@testset "Issue #4809" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  F = free_module(R, 1)
+  M = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  MoM = tensor_product(M, M)
+  @test !is_zero(MoM)
+  decomp = Oscar.tensor_generator_decompose_function(MoM)
+  m = Oscar.tensor_pure_function(MoM)
+  b0 = (M[1], M[1])
+  a = m(b0...)
+  b = decomp(a)
+  @test b == b0
 end
 
