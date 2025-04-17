@@ -917,5 +917,5 @@ function _is_dicyclic_group(G::GAPGroup)
   return true
 end
 
-const quaternion_group = dicyclic_group
-const is_quaternion_group = is_dicyclic_group
+@alias quaternion_group dicyclic_group
+@alias is_quaternion_group is_dicyclic_group
