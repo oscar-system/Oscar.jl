@@ -43,3 +43,4 @@ end
   intersect(s[3], s[4])
   s[3] * s[4]
 end
+
