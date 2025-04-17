@@ -170,9 +170,16 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   for i in 1:length(Hecke.map_range(C))
     A = tensor_modules[i]
     B = tensor_modules[i+1]
-
+    success, A_fac = _is_tensor_product(A)
+    @assert success
+    success, B_fac = _is_tensor_product(B)
+    @assert success
+    @assert A_fac[1] === B_fac[1]
+    
     j = Hecke.map_range(C)[i]
-    push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
+    @assert domain(map(C, j)) === A_fac[2]
+    @assert codomain(map(C, j)) === B_fac[2]
+    push!(tensor_chain, hom_tensor(A,B,[identity_map(A_fac[1]), map(C,j)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
