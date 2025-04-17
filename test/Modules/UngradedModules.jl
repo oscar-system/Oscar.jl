@@ -1331,3 +1331,17 @@ end
   @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
 end
 
+@testset "Issue #4809" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  F = free_module(R, 1)
+  M = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  MoM = tensor_product(M, M)
+  @test !is_zero(MoM)
+  decomp = Oscar.tensor_generator_decompose_function(MoM)
+  m = Oscar.tensor_pure_function(MoM)
+  b0 = (M[1], M[1])
+  a = m(b0...)
+  b = decomp(a)
+  @test b == b0
+end
+
