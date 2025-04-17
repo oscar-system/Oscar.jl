@@ -94,6 +94,7 @@ function zonotope(A::MonoidAlgebra)
 end
 
 coefficient_ring(A::MonoidAlgebra) = coefficient_ring(A.algebra)
+number_of_variables(A::MonoidAlgebra) = ngens(A.algebra)
 
 ### Elements of MonoidAlgebras
 mutable struct MonoidAlgebraElem{CoeffType,ParentType} <: RingElem
@@ -144,6 +145,10 @@ end
 ### implementation of some common ring functionality
 function (A::MonoidAlgebra)()
   return MonoidAlgebraElem(A)
+end
+
+function zero(A::MonoidAlgebra)
+  return A()
 end
 
 function one(A::MonoidAlgebra)
@@ -202,6 +207,10 @@ end
 function (A::MonoidAlgebra)(a::MonoidAlgebraElem)
   @assert parent(a) === A
   return a
+end
+
+function deepcopy_internal(a::MonoidAlgebraElem, dict::IdDict)
+  return parent(a)(deepcopy_internal(underlying_element(a), dict))
 end
 
 # TODO: Fix up promote rules?
@@ -1458,3 +1467,4 @@ end
 
 # import local cohomology functions
 include("LocalCohomology.jl")
+include("ModuleFunctionality.jl")
