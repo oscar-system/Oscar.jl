@@ -754,6 +754,30 @@ function reflection(beta::RootSpaceElem)
 end
 
 ###############################################################################
+# G-set functionality
+
+function action_homomorphism(Omega::GSetByElements{WeylGroup, S}) where S
+  W = acting_group(Omega) # our base group
+  
+  # Compute a permutation group `G` isomorphic with `W`.
+  phi = isomorphism(PermGroup, W)
+  G = codomain(phi) # permutation group
+
+  # Let `G` act on `Omega` as `W` does.
+  phiinv = inv(phi)
+  actfun = action_function(Omega)
+  fun = function(omega::S, g::PermGroupElem)
+    return actfun(omega, phiinv(g))
+  end
+
+  OmegaG = GSetByElements(G, fun, Omega, closed = true, check = false)
+  
+  # Compute the permutation action on `1:length(Omega)`
+  # corresponding to the action of `W` on `Omega`.
+  return compose(phi, action_homomorphism(OmegaG))
+end
+
+###############################################################################
 # ReducedExpressionIterator
 
 function Base.IteratorSize(::Type{ReducedExpressionIterator})
