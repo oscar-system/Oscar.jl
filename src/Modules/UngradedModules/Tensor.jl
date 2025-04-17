@@ -66,6 +66,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     F.d = tensor_degrees
   end
 
+  @assert _is_tensor_product(F)[1]
   if task == :none
     return F
   end
@@ -131,6 +132,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   
   # assemble the multiplication and decomposition functions
   z = Tuple([0 for _ in 1:length(G)])
+  @assert _is_tensor_product(res_prod[z])[1]
   function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
     w = [preimage(augs[i], x) for (i, x) in enumerate(tuple_elems)]
     free_pure = tensor_pure_function(res_prod[z])
@@ -149,7 +151,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   set_attribute!(result, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
   set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
-  return result
+  @assert _is_tensor_product(result)[1]
   
   if task == :none
     return result
