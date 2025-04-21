@@ -1,99 +1,7 @@
 # I would like to credit Dario Mathiä who produced an initial version of the following code
 
 import Chevie: complex_reflection_group, charinfo, CharTable, CyclotomicNumbers
-using Oscar
-import Nemo: IntegerUnion
-
-"""
-Extracted from:
-
-https://github.com/ulthiel/JuLie.jl/blob/master/src/combinatorics/multipartitions.jl
-"""
-# Start of Multipartitions
-
-struct Multipartition{T<:IntegerUnion} <: AbstractArray{Partition{T},1}
-    mp::Array{Partition{T},1}
-end
-
-function multipartition(mp::Vector{Partition{T}}) where T <: IntegerUnion
-  return Multipartition(mp)
-end
-
-function Multipartition(mp::Vector{Vector{T}}) where T <: IntegerUnion
-  return Multipartition([partition(p) for p in mp])
-end
-
-# This is only called when the empty array is part of mp (because then it's
-# "Any" type and not of Integer type).
-function multipartition(mp::Vector{Vector{Any}})
-  return Multipartition([partition(p) for p in mp])
-end
-
-function Base.show(io::IO, ::MIME"text/plain", MP::Multipartition)
-  print(io, MP.mp)
-end
-
-function Base.size(MP::Multipartition)
-  return size(MP.mp)
-end
-
-function Base.length(MP::Multipartition)
-  return length(MP.mp)
-end
-
-function Base.getindex(MP::Multipartition, i::Int)
-  return getindex(MP.mp,i)
-end
-
-function Base.sum(P::Multipartition{T}) where T<:IntegerUnion
-  s = zero(T)
-  for i=1:length(P)
-    s += sum(P[i])
-  end
-  return s
-end
-
-function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
-  MP = Multipartition{T}[]
-
-#We will go through all compositions of n into r parts, and for each such #composition, we collect all the partitions for each of the components of
-  #the composition.
-  #We create the compositions here in place for efficiency.
-
-  #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
-  function recP!(p::Vector{T}, i::T, n::T) #where T<:IntegerUnion
-    if i==length(p) || n==0
-      p[i] = n
-      recMultipartitions!(fill(Partition(T[]),r), p, T(1))
-    else
-      for j=0:n
-        p[i] = T(j)
-        recP!(copy(p), T(i+1), T(n-j))
-      end
-    end
-  end
-
-  #recursively produces all multipartitions such that the i-th partition sums up to p[i]
-  function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:IntegerUnion
-    if i == length(p)
-      for q in partitions(p[i])
-        mp[i] = q
-        push!(MP, Multipartition{T}(copy(mp)))
-      end
-    else
-      for q in partitions(p[i])
-        mp[i] = q
-        recMultipartitions!(copy(mp), p, T(i+1))
-      end
-    end
-  end
-
-  recP!(zeros(T,r), T(1), n)
-  return MP
-end
-
-# End of Multipartitions
-
+export wreath_macs
 
 # Tools
 
@@ -107,7 +15,7 @@ function subarray_indices(sub,arr)
 end
 
 # Computes the b-invariant of a partition
-function b1(lambda)
+function b1(lambda::Partition)
   if length(lambda)==0
     return 0
   end
@@ -115,11 +23,11 @@ function b1(lambda)
 end
 
 # Computes the b-invariant of a multipartition
-function btot(lbb)
+function btot(lbb::Multipartition)
   return b1(map(lambda -> sum(lambda)[1], lbb)) + length(lbb)*sum(i -> b1(lbb[i]),1:length(lbb))
 end
 
-function beta_number_to_partition(beta)
+function beta_number_to_partition(beta::Vector{Integer})
   lb=Integer[]
   lbeta=length(beta)
   for j in 1:lbeta
@@ -131,7 +39,7 @@ function beta_number_to_partition(beta)
   return partition(lb)
 end
 
-function inv_perm(wperm,r)
+function inv_perm(wperm::PermGroupElem, r::Integer)
    res=Integer[]
    list_wperm=Vector(wperm,r)
    for i in 1:r
@@ -142,7 +50,7 @@ end
 
 # Residue notation is in terms of rows and columns
 
-function core(coroot,r)
+function core(coroot::Vector{Integer},r::Integer)
   beta=Integer[]
   m=minimum(coroot)
   M=maximum(coroot)
@@ -159,7 +67,7 @@ end
 
 #Inspired by Sagemath's algorithm to obtain a partition from core and quotient
 
-function tau_om(lbb, wperm,coroot)
+function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Integer})
    r=length(lbb)
    w0=perm([r-i for i in 0:(r-1)])
    wperm=inv_perm(wperm,r)
@@ -186,7 +94,7 @@ end
 #Note also that \alpha^{\vee}_i=e_{i-1}-e_i.
 #The coroot lattice is thus the lattice of null sum elements in Z^I.
 
-function chev_to_osc(charTirr,r,K)
+function chev_to_osc(charTirr::Matrix{Cyc{Int64}}, r::Integer, K::AbsSimpleNumField)
   l=size(charTirr)[1]
   res=AbsSimpleNumFieldElem[]
   a=gen(K)
@@ -208,7 +116,7 @@ function chev_to_osc(charTirr,r,K)
 end
 
 #Reoders the CharTable from Chevie
-function reorder(charTirr,r,n,Modules,K)
+function reorder(charTirr::Matrix{Cyc{Int64}}, r::Integer, n::Integer, Modules::Vector{Vector{Vector{Vector{Int64}}}}, K::AbsSimpleNumField)
   mps=multipartitions(n,r)
   new_ord=Int64[]
     for lbb in mps
@@ -221,7 +129,7 @@ end
 #Tools from representation theory
 
 # Computes the fake degree of a multipartition cf. Ste89 Thm 5.3 and Prop. 3.3.2 Haiman cdm
-function fake_deg(lbb,Q,var)
+function fake_deg(lbb::multipartition, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
   r=size(lbb)[1]
   n=sum(lbb)[1]
   res=Q(1)
@@ -241,7 +149,7 @@ function fake_deg(lbb,Q,var)
 end
 
 # computes C_Delta defined in PhD relation (1.45)
-function C_Delta(r,n,K,Q,var)
+function C_Delta(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
   G=complex_reflection_group(r,1,n)
   Modules=charinfo(G).charparams
   charTable=CharTable(G)
@@ -264,7 +172,7 @@ function C_Delta(r,n,K,Q,var)
 end
 
 # computes the character of the simple representations of the Cherednik algebra.
-function C_L(r,n,K,Q,var)
+function C_L(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
   mps=multipartitions(n,r)
   l=length(mps)
   C_D=C_Delta(r,n,K,Q,var)
@@ -282,7 +190,7 @@ function C_L(r,n,K,Q,var)
   return diag * C_D
 end
 
-function bigger_ord(lbb, wperm, coroot)
+function bigger_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Integer})
   r=length(lbb)
   n=sum(lbb)
   mps=multipartitions(n,r)
@@ -291,7 +199,7 @@ function bigger_ord(lbb, wperm, coroot)
   return res
 end
 
-function smaller_ord(lbb, wperm, coroot)
+function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Integer})
   r=length(lbb)
   n=sum(lbb)
   mps=multipartitions(n,r)
@@ -300,7 +208,7 @@ function smaller_ord(lbb, wperm, coroot)
   return res
 end
 
-function wreath_macs(n, r, wperm, coroot)
+function wreath_macs(n::Integer, r::Integer, wperm::PermGroupElem, coroot::Vector{Integer})
   K,_ = cyclotomic_field(r)
   R, (q,t) = polynomial_ring(K, [:q,:t])
   Q = fraction_field(R)

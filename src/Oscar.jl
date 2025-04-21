@@ -51,7 +51,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
     version_string = "Version " * version_string
   end
 
-  if displaysize(stdout)[2] >= 80
+  if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
              / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
@@ -120,7 +120,7 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
-
+  
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
@@ -156,7 +156,7 @@ function __init__()
 
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
-
+  
   add_assertion_scope(:Vinberg)
   add_verbosity_scope(:Vinberg)
 
@@ -272,7 +272,6 @@ include("Rings/lazypolys.jl") # uses StraightLinePrograms
 include("Rings/slpolys.jl") # uses StraightLinePrograms
 include("NumberTheory/GalThy.jl")
 
-include("SymmetricFunctions/wreath_macdonald_polynomials.jl")
 include("AlgebraicGeometry/AlgebraicGeometry.jl")
 
 include("TropicalGeometry/TropicalGeometry.jl")

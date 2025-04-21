@@ -1758,7 +1758,6 @@ export with_ordering
 export witt_index
 export word
 export wreath_product
-export wreath_macs
 export write_as_full
 export young_tableau
 export zero_section
