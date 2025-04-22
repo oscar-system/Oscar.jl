@@ -1,209 +1,155 @@
-# We implement the SubModuleOfFreeModule-level of the module functionality 
-# interface for modules over MPolyQuos.
+const AdmissibleSingularQuoRingElem = Union{<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
 
-########################################################################
-# The essential three functions:                                       #
-########################################################################
 @attr Any function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
-           DomainType<:FreeMod{<:MPolyQuoRingElem},
-           CodomainType<:FreeMod{<:MPolyQuoRingElem}
+           T<:AdmissibleSingularQuoRingElem,
+           DomainType<:FreeMod{T},
+           CodomainType<:FreeMod{T}
           }
-  R = base_ring(codomain(f))
-  P = base_ring(R)
-  F = _poly_module(domain(f))
-  M = _as_poly_module(codomain(f))
-  id = _iso_with_poly_module(codomain(f))
-  # Why does img_gens(f) return a list of SubQuoElems???
-  phi = _lifting_iso(codomain(f))
-  g = hom(F, M, phi.(f.(gens(domain(f)))))
-  K, inc = kernel(g)
-  tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), unique!(filter!(!iszero, tr.(gens(K)))))
-  return KK, inc2
+  is_graded(f) && return _graded_kernel(f)
+  return _simple_kernel(f)
 end
 
-function Base.in(a::FreeModElem{T}, M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
-  return _lifting_map(parent(a))(a) in _poly_module(M)
+function in(v::FreeModElem{T}, I::SubModuleOfFreeModule{T}) where {T <: AdmissibleSingularQuoRingElem}
+  F = ambient_free_module(I)
+  @assert parent(v) === F
+  return iszero(reduce(v, standard_basis(I, ordering=_default_ordering(F))))
 end
 
-function coordinates(
-    v::FreeModElem{T}, 
-    M::SubModuleOfFreeModule{T}
-  ) where {T<:MPolyQuoRingElem}
-  w = _lifting_map(parent(v))(v)
-  MP = _poly_module(M)
-  c = coordinates(w, MP)
+### missing functions which needed to be overwritten
+@attr ModuleOrdering function _default_ordering(F::FreeMod{<:AdmissibleSingularQuoRingElem})
+  R = base_ring(F)
+  # TODO: This ignores the `default_ordering` on the quotient ring. 
+  # The problem is that the latter returns a monomial ordering on the 
+  # polynomial `base_ring` and that is incompatible with the ordering 
+  # on the generators of `F`. The workaround here is to invent some 
+  # dummy ordering on the quotient ring (which maybe does not even make 
+  # sense!), just to satisfy the "generic" code for `ModuleGens`. 
+  return lex(gens(F))*Orderings.MonomialOrdering(R, Orderings.SymbOrdering(:degrevlex, collect(1:ngens(R))))
+end
+
+function singular_module(
+    F::FreeMod{<:AdmissibleSingularQuoRingElem}, 
+    ordering::ModuleOrdering
+  )
+  Sx = singular_poly_ring(base_ring(F), induced_ring_ordering(ordering))
+  return Singular.FreeModule(Sx, dim(F))
+end
+
+# Overwritten only to call `_default_ordering` instead of `default_ordering` 
+# for the reasons explained above.
+function _simple_kernel(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}}) where {T<:MPolyQuoRingElem}
+  F = domain(h)
+  G = codomain(h)
+  g = images_of_generators(h)
+  b = ModuleGens(g, G, _default_ordering(G))
+  M = syzygy_module(b)
+  v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
+  return sub(F, v)
+end
+
+# Overwritten because the original method has the restriction to be for 
+# polynomial rings only. 
+function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: AdmissibleSingularQuoRingElem}
+  singular_assure(F)
+  # TODO Obtain the Gröbner basis and cache it
+  s = Singular.syz(singular_generators(F))
+  return SubquoModule(sub, s)
+end
+
+# Called somewhere in the internals
+function default_ordering(I::SubModuleOfFreeModule{T}) where {T <: AdmissibleSingularQuoRingElem}
+  return _default_ordering(ambient_free_module(I))
+end
+
+# Overwritten only because original signature was for polynomial rings only.
+function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: AdmissibleSingularQuoRingElem}
+  R = base_ring(F)
+  @req is_exact_type(elem_type(coefficient_ring(R))) "This functionality is only supported over exact fields."
+  singular_assure(F)
+  if reduced
+    @assert Singular.has_global_ordering(base_ring(F.SF))
+  end
+  if singular_generators(F).isGB && !reduced
+    return F
+  end
+  return ModuleGens(F.F, Singular.std(singular_generators(F), complete_reduction=reduced))
+end
+
+# A hacky overwrite to just make things run.
+function Orderings.is_global(ord::MonomialOrdering{<:MPolyQuoRing})
+  return true # At the moment, it is not possible to define non-global orderings via user-facing methods.
+end
+
+# Overwritten only because the original signature was exclusively 
+# for polynomial rings.
+function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: AdmissibleSingularQuoRingElem}
+  @assert M.F === GB.F
+  @assert GB.isGB # TODO When Singular.jl can handle reduce with non-GB remove this
+
+  P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
+
+  singular_assure(P)
+  singular_assure(M)
+
+  red = _reduce(M.S, P.S)
+  res = ModuleGens(M.F, red)
+  oscar_assure(res)
+  return res
+end
+
+function lift_std(M::ModuleGens{T}) where {T <: AdmissibleSingularQuoRingElem}
+  singular_assure(M)
   R = base_ring(M)
-  entries = [(i, R(a)) for (i, a) in c if i <= ngens(M)]
-  return sparse_row(R, entries)
+  G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
+  mg = ModuleGens(M.F, G)
+  mg.isGB = true
+  mg.S.isGB = true
+  mg.ordering = _default_ordering(M.F)
+  mat = map_entries(R, transpose(Trans_mat))
+  set_attribute!(mg, :transformation_matrix => mat)
+  return mg, mat
 end
 
-########################################################################
-# Methods which should not be necessary, but the stuff doesn't work,   #
-# unless we implement them.                                            #
-########################################################################
-#=
-@attr Any function kernel(
-    f::FreeModuleHom{DomainType, CodomainType}
-  ) where {
-           DomainType<:FreeMod{<:MPolyQuoRingElem},
-           CodomainType<:SubquoModule{<:MPolyQuoRingElem}
-          }
-  R = base_ring(codomain(f))
-  P = base_ring(R)
-  F = _poly_module(domain(f))
-  M = _as_poly_module(codomain(f))
-  id = _iso_with_poly_module(codomain(f))
-  # Why does img_gens(f) return a list of SubQuoElems???
-  phi = _lifting_iso(codomain(f))
-  g = hom(F, M, phi.(f.(gens(domain(f)))))
-  K, inc = kernel(g)
-  tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
-  return KK, inc2
-end
-=#
-
-function coordinates(
-    v::FreeModElem{T}, 
-    M::SubModuleOfFreeModule{T}, 
-    task::Symbol
-  ) where {T<:MPolyQuoRingElem}
-  return coordinates(v, M)
+function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: AdmissibleSingularQuoRingElem}
+  M = ModuleGens(M.O, M.F, ordering)
+  mg, mat = lift_std(M)
+  mg.ordering = ordering
+  return mg, mat
 end
 
-#function free_resolution(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
-#  R = base_ring(M)
-#  p = presentation(M)
-#  K, inc = kernel(map(p, 1))
-#  i = 1
-#  while !iszero(K)
-#    F = FreeMod(R, ngens(K))
-#    phi = hom(F, p[i], inc.(gens(K)))
-#    p = Hecke.ComplexOfMorphisms(ModuleFP, pushfirst!(ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]], phi), check=false, seed = -2)
-#    i = i+1
-#    K, inc = kernel(phi)
-#  end
-#  #end_map = hom(FreeMod(R, 0), K, elem_type(K)[])
-#  p = Hecke.ComplexOfMorphisms(ModuleFP, vcat(ModuleFPHom[inc], ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]]), check=false, seed = -2)
-#  return p
-#end
+# TODO: This is a hotfix which does not adapt automaticall 
+# with changes to `AdmissibleSingularQuoRingElem`.
+function sparse_row(
+    A::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}},
+    svec::Singular.svector, rng::AbstractUnitRange
+  )
+  pre_res = sparse_row(base_ring(A), svec, rng)
+  return map_entries(A, pre_res)
+end
 
-
-########################################################################
-# Auxiliary helping functions to allow for the above                   #
-########################################################################
-#
-### For a free module F = R^r over R = P/I, this returns a lifting map 
-# to the module P^r/I*P^r. Note that this is an unnatural map since 
-# the latter is an R-module only by accident.
-@attr Any function _lifting_iso(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  M = _as_poly_module(F)
-  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
-    parent(v) === F || error("element does not have the right parent")
-    w = elem_type(M)[lift(a)*M[i] for (i, a) in coordinates(v)]
-    iszero(length(w)) && return zero(M)
-    return sum(w)
+# Overwritten because the caching and comparison of monomial orderings 
+# is not functional as of yet. Since there is only one monomial ordering 
+# available at the moment, we disabled this overhead completely.
+function standard_basis(
+    submod::SubModuleOfFreeModule{T}; 
+    ordering::Union{ModuleOrdering, Nothing} = nothing
+  ) where {T <: AdmissibleSingularQuoRingElem}
+  if !isempty(submod.groebner_basis)
+    for (ord, gb) in submod.groebner_basis
+      return gb
+    end
   end
-  return my_lift
+    
+  @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
+  gb = get!(submod.groebner_basis, ordering) do
+    compute_standard_basis(submod, ordering)
+  end::ModuleGens{T}
+  return gb
 end
 
-### For a free module F = R^r over R = P/I, this returns a lifting map 
-# to the module P^r. Note that this is not a homomorphism of modules. 
-@attr Any function _lifting_map(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  FP = _poly_module(F)
-  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
-    parent(v) === F || error("element does not have the right parent")
-    w = [lift(a)*FP[i] for (i, a) in coordinates(v)]
-    iszero(length(w)) && return zero(FP)
-    return sum(w)
-  end
-  return my_lift
-end
+# Should eventually go elsewhere; needed for hashing of 
+# `ModuleOrderings` for lookups of standard bases in dictionaries.
+number_of_variables(A::MPolyQuoRing) = number_of_variables(base_ring(A))
 
-### To a free module over R = P/I, return the free module over R 
-# in the same number of generators
-@attr Any function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  R = base_ring(F)
-  P = base_ring(R) # the polynomial ring
-  r = rank(F)
-  FP = FreeMod(P, r) 
-  return FP
-end
-
-### Return the canonical projection FP -> F from the P-module FP to the 
-# R-module F.
-@attr Any function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  R = base_ring(F)
-  P = base_ring(R)
-  FP = _poly_module(F)
-  return hom(FP, F, gens(F), R)
-end
-
-### Return the same module, but as a SubquoModule over the polynomial ring
-@attr Any function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  R = base_ring(F)
-  P = base_ring(R)
-  I = modulus(R)
-  FP = FreeMod(P, rank(F))
-  IFP, inc = I*FP
-  M, p = quo(FP, IFP)
-  # Manually set a groebner basis
-  # This is brittle! Please improve!
-  J = ideal(P, gens(groebner_basis(I))) # a groebner basis has already been computed.
-  JFP, _ = J*FP
-  G, _ = quo(FP, JFP)
-  gb = G.quo.gens
-  ord = default_ordering(M.quo)
-  gb.ordering = ord
-  singular_assure(gb)
-  gb.isGB = true
-  gb.S.isGB = true
-  M.quo.groebner_basis[ord] = gb
-  return M
-end
-
-### Return an isomorphism with _as_poly_module(F)
-@attr Any function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
-  M = _as_poly_module(F)
-  return hom(M, F, gens(F), base_ring(F))
-end
-
-### Return the preimage of M under the canonical projection P^r -> R^r 
-# for R^r the ambient_free_module of M.
-@attr Any function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
-  F = ambient_free_module(M) 
-  FP = _poly_module(F)
-  v = elem_type(FP)[_lifting_map(F)(g) for g in gens(M)] 
-  w = elem_type(FP)[f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
-  MP = SubModuleOfFreeModule(FP, vcat(v, w))
-  return MP
-end
-
-@attr Any function _as_poly_module(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
-  F = ambient_free_module(M) 
-  FP = _poly_module(F)
-  v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
-  w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
-  w_ext = vcat(w, elem_type(FP)[_lifting_map(F)(g) for g in relations(M)])
-  MP = SubquoModule(FP, v, w_ext)
-  return MP
-end
-
-@attr Any function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
-  M = _as_poly_module(F)
-  return hom(M, F, gens(F), base_ring(F))
-end
-
-@attr Any function _lifting_iso(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
-  M = _as_poly_module(F)
-  function my_lift(v::SubquoModuleElem{T}) where {T<:MPolyQuoRingElem}
-    parent(v) === F || error("element does not have the right parent")
-    w = elem_type(M)[lift(a)*M[i] for (i, a) in coordinates(v)]
-    iszero(length(w)) && return zero(M)
-    return sum(w)
-  end
-  return my_lift
-end
