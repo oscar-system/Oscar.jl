@@ -3,11 +3,7 @@
   I = ideal(P, x)
   R, _ = quo(P, I)
   FR = FreeMod(R, 2, cached=false)
-  M = Oscar._as_poly_module(FR)
-  @test M isa SubquoModule{<:MPolyRingElem}
   @test FR isa FreeMod{<:MPolyQuoRingElem}
-  FP = Oscar._poly_module(FR)
-  @test FP isa FreeMod{<:MPolyRingElem}
 
   M = FreeMod(R, 1, cached=false)
   psi = hom(FR, M, [2*M[1], M[1]])
