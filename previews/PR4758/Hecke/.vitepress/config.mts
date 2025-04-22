@@ -74,7 +74,7 @@ export default defineConfig({
     ],
     sidebar: {
       '/manual/': [
-        { text: 'Manual', 
+        { text: 'Manual',
           items: [
             { text: 'Introduction', link: '/manual/'},
             { text: 'Number fields',
@@ -85,7 +85,7 @@ export default defineConfig({
                 { text: 'Number field operations', link: '/manual/number_fields/fields'},
                 { text: 'Elements', link: '/manual/number_fields/elements'},
                 { text: 'Complex embeddings', link: '/manual/number_fields/complex_embeddings'},
-                { text: 'Class field theory', link: '/manual/number_fields/class_fields'}, 
+                { text: 'Class field theory', link: '/manual/number_fields/class_fields'},
                 { text: 'Internals', link: '/manual/number_fields/internal'}
               ]
             },
@@ -120,6 +120,7 @@ export default defineConfig({
                 { text: 'Basics', link: '/manual/algebras/basics'},
                 { text: 'Structure constant algebras', link: '/manual/algebras/structureconstant'},
                 { text: 'Group algebras', link: '/manual/algebras/groupalgebras'},
+                { text: 'Quaternion algebras', link: '/manual/algebras/quaternion'},
                 { text: 'Ideals', link: '/manual/algebras/ideals'},
               ]
             },
@@ -166,14 +167,14 @@ export default defineConfig({
         }
       ],
       '/tutorials/': [
-        { text: 'Tutorials', 
+        { text: 'Tutorials',
           items: [
             { text: 'Add me', link: '/tutorials/'},
           ]
         }
       ],
       '/howto/': [
-        { text: 'How-to Guides', 
+        { text: 'How-to Guides',
           items: [
             { text: 'Reduction of polynomials', link: '/howto/reduction'},
           ]

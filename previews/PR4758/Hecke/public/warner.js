@@ -40,7 +40,7 @@ function maybeAddWarning() {
   div.innerHTML =
     'This documentation is not for the latest stable release, but for either the development version or an older release.<br><a href="' +
     href +
-    '">Click here to go to the documentation for the latest stable release.</a>';
+    '" target="_top">Click here to go to the documentation for the latest stable release.</a>';
   div.appendChild(closer);
   document.body.appendChild(div);
 }
