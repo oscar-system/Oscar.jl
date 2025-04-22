@@ -59,9 +59,7 @@ end
     known_intersections = qsm_model.__attrs[:inter_dict]
     c2 = cohomology_class(anticanonical_bundle(ambient_space(qsm_model)))    
     non_zero_entries = collect(filter(x -> x[2] != 0, known_intersections))
-    n = min(200, length(non_zero_entries))
-    sampled_entries = rand(non_zero_entries, n)
-    for (k,v) in sampled_entries
+    for (k,v) in non_zero_entries
       desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]].f * gs[k[2]].f * gs[k[3]].f * gs[k[4]].f * polynomial(c2).f))
       @test v == integrate(desired_class, check = false)
     end
