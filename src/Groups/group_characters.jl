@@ -79,7 +79,7 @@ julia> K, z = abelian_closure(QQ);
 
 julia> val = z(5) + z(5)^4;
 
-julia> str = Oscar.atlas_description(val)
+julia> str = atlas_description(val)
 "b5"
 
 julia> val == atlas_irrationality(str)
@@ -3583,6 +3583,43 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
                          GapObj(characters; recursive = true), n)]
 end
 
+@doc raw"""
+    character_table_complex_reflection_group(m::Int, p::Int, n::Int)
+
+Return the character table of the complex reflection group that is given by
+the input parameters.
+
+Note that this character table does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> tbl = character_table_complex_reflection_group(3, 1, 2);
+
+julia> identifier(tbl)
+"C3wrS2"
+
+julia> order(tbl) == 3^2 * factorial(2)
+true
+
+julia> class_parameters(tbl)
+9-element Vector{Tuple{Vector{Int64}, Vector{Int64}}}:
+ ([1, 1], [])
+ ([1], [1])
+ ([1], [])
+ ([], [1, 1])
+ ([], [1])
+ ([], [])
+ ([2], [])
+ ([], [2])
+ ([], [])
+```
+
+!!! warning
+    Currently only the case `p = 1` is supported,
+    that is, the character table belongs to the wreath product
+    (see [`wreath_product`](@ref)) of the cyclic group of order `m`
+    with the symmetric group on `n` points.
+"""
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
     @req p == 1 "the case G(m,p,n) with p != 1 is not (yet) supported"
     tbl = GAPWrap.CharacterTableWreathSymmetric(
