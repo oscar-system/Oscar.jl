@@ -23,19 +23,22 @@ end
 
 function _derived_pushforward(M::FreeMod)
   S = base_ring(M)
-  n = ngens(S)-1
+  G = grading_group(M)
+  r = rank(G)
+  variables = [[x for x in gens(S) if degree(x) == G[i]] for i in 1:r]
+  dims = [length(x)-1 for x in variables]
 
-  d = Int(_regularity_bound(M)[1]) - n
-  d = (d < 0 ? 0 : d)
+  d = _regularity_bound(M) # the degrees of the generators
+  d = d - sum(n*G[i] for (i, n) in enumerate(dims); init=zero(G))
+  d = sum((d[i] < 0 ? 0 : d[i])*G[i] for i in 1:r; init=zero(G))
 
-  Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
-  v = sum(x^d*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  g = vcat([[x^(Int(d[i])) for x in v] for (i, v) in enumerate(variables)]...)
+  kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[0:length(v)-1], length(v)-1) for (i, v) in enumerate(variables)]
+  K = simplify(total_complex(tensor_product(kosz)))
 
-  KoM = hom(K, M)
-  #KoM_simp, _, _ = simplify(KoM)
-  st = strand(KoM, 0)[1]
+  delta = sum((n+1)*d[i]*G[i] for (i, n) in enumerate(dims); init=zero(G))
+  KoM = hom(K, twist(M, delta))
+  st = strand(KoM, zero(G))[1]
   return st
 end
 
