@@ -211,29 +211,6 @@ function odd_coefficients(x::CliffordAlgebraElem)
   return x.odd_coeffs
 end
 
-################################################################################
-#
-#  String I/O
-#
-################################################################################
-
-### Algebra ###
-function Base.show(io::IO, ::MIME"text/plain", C::CliffordAlgebra)
-  io = pretty(io)
-  print(io, "Clifford algebra of quadratic space with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\ndefined over $(base_ring(C))")
-end
-
-Base.show(io::IO, C::CliffordAlgebra) = print(io, "Clifford algebra over $(base_ring(C))")
-
-### Elements ###
-function Base.show(io::IO, x::CliffordAlgebraElem)
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
-end
 
 ################################################################################
 #

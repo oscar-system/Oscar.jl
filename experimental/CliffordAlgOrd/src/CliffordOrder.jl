@@ -515,42 +515,6 @@ function odd_coefficients(x::ZZCliffordOrderElem)
   return x.odd_coeffs
 end
 
-#############################################################
-#
-#  String I/O
-#
-#############################################################
-
-##### Order #####
-function Base.show(io::IO, ::MIME"text/plain", C::CliffordOrder)
-  io = pretty(io)
-  print(io, "Clifford order of even lattice over $(base_ring(C)) with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\nand coefficient ideals of the lattice\n")
-  print(io, Indent())
-  show(io, "text/plain", _coefficient_ideals_of_lattice(lattice(C)))
-  print(io, Dedent())
-end
-
-Base.show(io::IO, C::CliffordOrder) = print(io, "Clifford order over $(base_ring(C))")
-
-function Base.show(io::IO, ::MIME"text/plain", C::ZZCliffordOrder)
-  io = pretty(io)
-  print(io, "Clifford order of even integer lattice with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent())
-end
-
-Base.show(io::IO, C::Union{ZZCliffordOrder, CliffordOrder}) = print(io, "Clifford order over $(base_ring(C))")
-
-### Elements ###
-function Base.show(io::IO, x::Union{ZZCliffordOrderElem, CliffordOrderElem})
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
-end
 
 ################################################################################
 #
