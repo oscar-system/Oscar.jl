@@ -3610,16 +3610,16 @@ julia> order(tbl) == 3^2 * factorial(2)
 true
 
 julia> class_parameters(tbl)
-9-element Vector{Tuple{Vector{Int64}, Vector{Int64}}}:
- ([1, 1], [])
- ([1], [1])
- ([1], [])
- ([], [1, 1])
- ([], [1])
- ([], [])
- ([2], [])
- ([], [2])
- ([], [])
+9-element Vector{Vector{Vector{Int64}}}:
+ [[1, 1], [], []]
+ [[1], [1], []]
+ [[1], [], [1]]
+ [[], [1, 1], []]
+ [[], [1], [1]]
+ [[], [], [1, 1]]
+ [[2], [], []]
+ [[], [2], []]
+ [[], [], [2]]
 ```
 
 !!! warning
