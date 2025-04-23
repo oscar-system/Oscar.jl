@@ -1273,14 +1273,11 @@ end
     inc_I = 6
   end
   dummy2(F)
-
+  
   GC.gc()
   GC.gc()
 
-  # The inclusion map J -> I is still stored in the attributes of J as :canonical_inclusion.
-  # However, even removing that and calling gc() again does not remove the entry in J.outgoing.
-  # So there is still a memory leak somewhere!
-  @test_broken length(keys(J.outgoing)) == 0
+  @test length(keys(F.incoming)) == 0
 end
 
 
