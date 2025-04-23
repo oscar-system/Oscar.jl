@@ -1352,8 +1352,8 @@ end
 
   @test a == b
   a_alt = compose(compose(id_R1, f), compose(conj_S1_alt, id_S1))
-  @test_throws MethodError f == a # non-comparable ring_maps
-  @test_throws MethodError a_alt == a # same
+  @test_throws ErrorException f == a # non-comparable ring_maps
+  @test_throws ErrorException a_alt == a # same
   @test_throws MethodError !(conj_S1 == id_S1) # ring map vs. no ring map
   @test conj_S1 == conj_S1 # identical ring maps are OK
   @test all(a(x) == b(x) for x in gens(R1))
