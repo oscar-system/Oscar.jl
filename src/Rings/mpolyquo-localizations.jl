@@ -2723,6 +2723,10 @@ function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
 end
 
 function is_equal_as_morphism(f::Map, g::Map)
+  return f == g
+end
+
+function Base.:(==)(f::Map, g::Map)
   f === g && return true
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
