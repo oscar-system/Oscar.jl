@@ -1701,15 +1701,23 @@ function _translate_parameter(para)
 end
 
 function _translate_parameter_list(paras)
-    if all(x -> GAPWrap.IsList(x) && length(x) == 2 && x[1] == 1, paras)
-      # If all parameters are lists of length 2 with first entry `1` then
-      # take the second entry.
-      paras = [x[2] for x in paras]
-      return [_translate_parameter(x) for x in paras]
+    if all(x -> GAPWrap.IsList(x) && length(x) == 2, paras)
+      # All parameters consist of parameter type and value for this type.
+      # This happens for the generic character tables from the table library.
+      if all(x -> x[1] == 1, paras)
+        # Omit the superfluous type parameter.
+        paras = [x[2] for x in paras]
+        return [_translate_parameter(x) for x in paras]
+      else
+        # Create tuples `(t, v)` where `t` is the parameter type
+        # and `v` is the value for this type.
+        return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      end
     else
-      # Create tuples `(t, v)` where `t` is the parameter type
-      # and `v` is the value for this type.
-      return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      # There is no type parameter.
+      # This happens for example for tables constructed with
+      # `GAPWrap.CharacterTableWreathSymmetric`.
+      return [_translate_parameter(x) for x in paras]
     end
 end
 
