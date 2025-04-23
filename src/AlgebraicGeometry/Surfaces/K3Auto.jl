@@ -308,7 +308,7 @@ and takes `v` primitive in `S^\vee`.
 function walls(D::K3Chamber)
   if !isdefined(D, :walls)
     D.walls = _walls_of_chamber(D.data, D.weyl_vector)
-    @assert length(D.walls)>=rank(D.data.S) "$(D.weyl_vector)"
+    @assert length(D.walls)>=rank(D.data.S) "$(D.weyl_vector) $(D.parent_wall)"
   end
   return D.walls
 end
@@ -896,62 +896,50 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   bounds = [i for i in bounds if divides(d,denominator(i))[1]]
   mi = minimum(bounds)
   ma = maximum(bounds)
-  svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G,mi,ma, ZZRingElem)
+  svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G, mi, ma, ZZRingElem)
   result = QQMatrix[]
+  
   # treat the special case of the zero vector by copy paste.
+  # (because short_vectors returns only non-zero vectors)
+  wn = wSsquare^-1*wSL
   if QQ(0) in bounds
-    (rN,sqrN) = (zeros(Int64,rank(Ndual)),0)
-    rN1 = zero_matrix(ZZ,1,degree(Ndual))
-    found1 = false
-    found2 = false
-    sqrN = QQ(0)
+    rN1 = zero_matrix(ZZ, 1, degree(Ndual))
     for (alpha, rR, sq, si) in svp_input
-      if sqrN != sq
+      if !iszero(sq)
         continue
       end
-      rr = alpha*wSsquare^-1*wSL + si*rR
+      rr = alpha*wn + si*rR
       r = rr + rN1
-      if !found1 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
-        found1 = true
+      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         push!(result, r*data.prS)
         break
       end
       r = rr - rN1
-      if !found2 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
-        found2 = true
+      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         push!(result, r*data.prS)
-        break
-      end
-      if found1 && found2
         break
       end
     end
   end
+  
   for (rN, sqrN) in svN
     if !(sqrN in bounds)
       continue
     end
     rN1 = matrix(ZZ,1,rank(Ndual),rN)*basis_matrix(Ndual)
-    found1 = false
-    found2 = false
     sqrN = -sqrN
     for (alpha, rR, sq, si) in svp_input
       if sqrN != sq
         continue
       end
-      rr = alpha*wSsquare^-1*wSL + si*rR
+      rr = alpha*wn + si*rR
       r = rr + rN1
-      if !found1 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
-        found1 = true
+      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         push!(result, r*data.prS)
       end
-      r = rr - rN1
-      if !found2 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
-        found2 = true
+      r = rr - rN1    
+      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         push!(result, r*data.prS)
-      end
-      if found1 && found2
-        break
       end
     end
   end
@@ -1034,7 +1022,6 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   N = integer_lattice(gram=Q,check=false)
   V = ambient_space(N)
 
-  #@show sum(length.(values(cvp_inputs)))
   tmp = zero_matrix(QQ,1,rank(SSdual))
 
   B = basis_matrix(SSdual)
@@ -1112,7 +1099,9 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
   i = zero_matrix(QQ, 0, degree(data.SS))
   D = reduce(vcat, (v for v in walls1), init=i)
   P = positive_hull(D)
+  @hassert :K3Auto 1 is_pointed(P)
   r = rays(P)
+  
   d = length(r)
   walls = Vector{ZZMatrix}(undef,d)
   for i in 1:d
@@ -1209,15 +1198,13 @@ function unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
   d = gcd(_vec(vS*data.gramS))
   v = QQ(1,d)*(vS*basis_matrix(data.S))  # primitive in Sdual
   vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
-
   @hassert :K3Auto 1 vsq>=-2
-  rkR = rank(data.R)
   Pv = ZZMatrix[]
-  for alpha in 1:Int64(floor(sqrt(Float64(-2//vsq))))
+  for alpha in 1:Int64(isqrt(floor(ZZRingElem,-2//vsq)))
     c = 2 + alpha^2*vsq
     alphav = alpha*v
     for (vr,cc) in data.prRdelta
-      # probably we could speed up the for loop and compute
+      # probably we could speed up the for loop
       # and compute the result without a membership test
       # by working modulo ZZ^n directly
       if cc != c
@@ -1304,7 +1291,8 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
   end
   # both Weyl vectors should lie in the positive cone.
   @hassert :K3Auto 2 ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0
-  return chamber(D.data, w, v)
+  C = chamber(D.data, w, v;check=false)
+  return C
 end
 
 
@@ -1588,10 +1576,10 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
     return weyl,u,u
   end
   @vprint :K3Auto 1 "degeneracy dimension of the chamber $(rank(T))\n"
+  relevant_roots = [r for r in relevant_roots if inner_product(V,basis_matrix(S),r)!=0]
   @label choose_h
   h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-10:10,rank(T)))*basis_matrix(T)
   # roots orthogonal to S do not help. Therefore discard them.
-  relevant_roots = [r for r in relevant_roots if inner_product(V,basis_matrix(S),r)!=0]
   if any(inner_product(V,h,r)==0 for r in relevant_roots)
     @goto choose_h
   end
