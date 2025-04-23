@@ -21,7 +21,7 @@ end
 
 function Base.show(io::IO, dpr::DifferencePolyRing)
   if is_terse(io)
-    print(terse(io), "Difference polynomial ring")
+    print(io, "Difference polynomial ring")
   else
     print(terse(io), "Difference polynomial ring in $(nelemvars(dpr)) elementary variables over ")
     print(terse(io), base_ring(dpr))
@@ -45,7 +45,7 @@ end
 
 function Base.show(io::IO, dpr::DifferentialPolyRing)
   if is_terse(io)
-    print(terse(io), "Differential polynomial ring")
+    print(io, "Differential polynomial ring")
   end
   print(terse(io), "Differential polynomial ring in $(nelemvars(dpr)) elementary variables over ")
   print(terse(io), base_ring(dpr))
