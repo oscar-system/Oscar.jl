@@ -2700,13 +2700,15 @@ function Base.:(==)(
     if _has_coefficient_map(g) 
       return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      return is_trivial(coefficient_map(f))
+      # In this case, type casting needs to have the same result 
+      # as the coefficient map on the other end
+      return is_equal_as_morphism(coefficient_ring(codomain(g)), coefficient_map(f))
     end
   elseif _has_coefficient_map(g)
     if _has_coefficient_map(f) 
       return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      is_trivial(coefficient_map(g))
+      return is_equal_as_morphism(coefficient_ring(codomain(f)), coefficient_map(g))
     end
   end
 
