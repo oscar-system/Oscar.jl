@@ -1,6 +1,7 @@
 
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 ```
 
 # Classifier/identifier specifically for du Val singularities
