@@ -7,26 +7,26 @@
 ##### Algebra #####
 function Base.show(io::IO, ::MIME"text/plain", C::CliffordAlgebra)
   io = pretty(io)
-  print(io, "Clifford algebra of quadratic space with Gram matrix\n")
+  print(io, LowercaseOff(), "Clifford algebra of quadratic space with Gram matrix\n")
   print(io, Indent())
   show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\ndefined over $(base_ring(C))")
+  print(io, Dedent(), "\ndefined over ", base_ring(C))
 end
  
 function Base.show(io::IO, C::CliffordAlgebra)
+  io = pretty(io)
   if is_terse(io)
-    print(io,"Clifford algebra")
+    print(io, LowercaseOff(), "Clifford algebra")
   else
-    print(terse(io), "Clifford algebra over ")
-    print(terse(io), base_ring(C))
+    print(terse(io), LowercaseOff(), "Clifford algebra over ")
+    print(terse(io), Lowercase(), base_ring(C))
   end
 end
 
 ##### Elements #####
 function Base.show(io::IO, x::CliffordAlgebraElem)
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
+  cf = coefficients(x)
+  print(IOContext(io, :typeinfo => typeof(cf)), cf)
 end
 
 ##################################################
@@ -38,7 +38,9 @@ end
 ##### Order #####
 function Base.show(io::IO, ::MIME"text/plain", C::CliffordOrder)
   io = pretty(io)
-  print(io, "Clifford order of even lattice over $(base_ring(C)) with Gram matrix\n")
+  print(io, LowercaseOff(), "Clifford order of even lattice over ")
+  print(io, Lowercase(), base_ring(C))
+  print(io, LowercaseOff(), " with Gram matrix\n")
   print(io, Indent())
   show(io, "text/plain", gram_matrix(C))
   print(io, Dedent(), "\nand coefficient ideals of the lattice\n")
@@ -49,25 +51,25 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", C::ZZCliffordOrder)
   io = pretty(io)
-  print(io, "Clifford order of even integer lattice with Gram matrix\n")
+  print(io, LowercaseOff(), "Clifford order of even integer lattice with Gram matrix\n")
   print(io, Indent())
   show(io, "text/plain", gram_matrix(C))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, C::Union{ZZCliffordOrder, CliffordOrder})
+  io = pretty(io)
   if is_terse(io)
-    print(io, "Clifford order")
+    print(io, LowercaseOff(), "Clifford order")
   else
-    print(terse(io), "Clifford order over ")
-    print(terse(io), base_ring(C))
+    print(terse(io), LowercaseOff(), "Clifford order over ")
+    print(terse(io), Lowercase(), base_ring(C))
   end
 end
 
 ##### Elements #####
 function Base.show(io::IO, x::Union{ZZCliffordOrderElem, CliffordOrderElem})
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
+  cf = coefficients(x)
+  print(IOContext(io, :typeinfo => typeof(cf)), cf)
 end
 
