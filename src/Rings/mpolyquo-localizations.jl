@@ -2715,6 +2715,18 @@ function Base.:(==)(
   return all(f(x) == g(x) for x in gens(domain(f)))
 end
 
+# This rerouting is necessary as internally the function 
+# `is_equal_as_morphism` is called in several places 
+# and we wish to have the above implementation for such 
+# signatures. 
+function is_equal_as_morphism(
+    f::Map{<:MPolyAnyRing, <:MPolyAnyRing},
+    g::Map{<:MPolyAnyRing, <:MPolyAnyRing}
+   )
+  return f == g
+end
+
+
 # TODO: Move to wherever `MapFromFunc` comes from ?
 function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
   f === g && return true
@@ -2725,16 +2737,11 @@ function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
 end
 
 function is_equal_as_morphism(f::Map, g::Map)
-  return f == g
-end
-
-function Base.:(==)(f::Map, g::Map)
   f === g && return true
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   error("comparison of maps $f and $g not possible")
 end
-
 
 function Base.hash(f::MapFromFunc, h::UInt)
   h = hash(domain(f), h)
