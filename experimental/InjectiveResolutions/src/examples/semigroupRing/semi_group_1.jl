@@ -27,6 +27,12 @@ M = M_mod
 # irreducible resolution of M = kQ/I
 # M = quotient_ring_as_module(I)
 # irr_res = irreducible_res(M)
+
+#twist Bsp
+a = compute_shift(M,2)
+G = grading_group(kQ)
+M_a = twist(M,-G(a))
+
 irr_res = irreducible_res(M)
 
 # minimal injective resolution of kQ/I up to cohomological degree 3
