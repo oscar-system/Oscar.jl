@@ -244,7 +244,7 @@ end
 
 is_unit(a::MonoidAlgebraElem) = is_unit(underlying_element(a))
 
-monomial_basis(A::MonoidAlgebra,g::FinGenAbGroupElem) = monomial_basis(A.algebra,g)
+monomial_basis(A::MonoidAlgebra, g::FinGenAbGroupElem) = elem_type(A)[A(x) for x in monomial_basis(A.algebra,g)]
 
 evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),vals) 
 
