@@ -3592,6 +3592,43 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
 end
 
 @doc raw"""
+    character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+
+Return the character table of the wreath product (see [`wreath_product`](@ref))
+of the group with character table `tbl` and the symmetric group on `n` points.
+
+The implementation follows Chapter 4 of [JK81](@cite).
+In particular, the labels for the rows and columns of the result are
+multipartitions with sum `n` that consist of $s$ partitions
+such that $s$ is the number of columns of `tbl`.
+
+Note that the result does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> t = character_table_wreath_symmetric(character_table(:Cyclic, 2), 2)
+C2wrS2
+
+  2  3  2  3  2  2
+                  
+    1a 2a 2b 2c 4a
+ 2P 1a 1a 1a 1a 2b
+                  
+X_1  1  1  1 -1 -1
+X_2  2  . -2  .  .
+X_3  1 -1  1 -1  1
+X_4  1  1  1  1  1
+X_5  1 -1  1  1 -1
+```
+"""
+function character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+    @req characteristic(tbl) == 0 "tbl must be an ordinary character table"
+    @req n > 0 "n must be positive"
+    return GAPGroupCharacterTable(
+               GAPWrap.CharacterTableWreathSymmetric(GapObj(tbl), n), 0)
+end
+
+@doc raw"""
     character_table_complex_reflection_group(m::Int, p::Int, n::Int)
 
 Return the character table of the complex reflection group that is given by
@@ -3625,14 +3662,12 @@ julia> class_parameters(tbl)
 !!! warning
     Currently only the case `p = 1` is supported,
     that is, the character table belongs to the wreath product
-    (see [`wreath_product`](@ref)) of the cyclic group of order `m`
-    with the symmetric group on `n` points.
+    of the cyclic group of order `m` with the symmetric group on `n` points,
+    see [`character_table_wreath_symmetric`](@ref).
 """
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
-    @req p == 1 "the case G(m,p,n) with p != 1 is not (yet) supported"
-    tbl = GAPWrap.CharacterTableWreathSymmetric(
-            GAPWrap.CharacterTable(GapObj("Cyclic"), m), n)
-    tbl = GAPGroupCharacterTable(tbl, 0)
+    @req p == 1 "the case G(m,p,n) with p != 1 is not yet supported"
+    tbl = character_table_wreath_symmetric(character_table(:Cyclic, m), n)
     set_attribute!(tbl, :type, (m, p, n))
 
     return tbl
