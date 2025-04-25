@@ -20,6 +20,8 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
   Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
 end
 
+polyhedron(P::Polyhedron) = P
+
 # default scalar type: guess from input and fall back to `QQFieldElem`
 polyhedron(A, b) = polyhedron(_guess_fieldelem_type(A, b), A, b)
 polyhedron(A) = polyhedron(_guess_fieldelem_type(A), A)

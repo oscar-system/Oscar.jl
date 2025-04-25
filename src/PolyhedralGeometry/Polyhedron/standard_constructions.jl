@@ -33,11 +33,11 @@ birkhoff_polytope(n::Integer; even::Bool=false) =
   polyhedron(Polymake.polytope.birkhoff(n, Int(even); group=true))
 
 @doc raw"""
-    pyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1)
+    pyramid(P::Union{Cone,Polyhedron}, z::Union{Number, FieldElem} = 1)
 
-Make a pyramid over the given polyhedron `P`.
+Make a pyramid over the given cone or polyhedron `P`.
 
-The pyramid is the convex hull of the input polyhedron `P` and a point `v`
+The pyramid is the convex hull of the input cone or polyhedron `P` and a point `v`
 outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
 the affine span of `P` coincides with the vertex barycenter of `P`. The scalar `z`
 is the distance between the vertex barycenter and `v`.
@@ -69,13 +69,16 @@ function pyramid(P::Polyhedron{T}, z::FieldElem) where {T<:scalar_types}
   has_group = Polymake.exists(pm_in, "GROUP")
   return Polyhedron{U}(Polymake.polytope.pyramid(pm_in, z; group=has_group), f)
 end
+function pyramid(C::Cone,z::Union{Number, FieldElem}=1)
+  return pyramid(polyhedron(C), z)
+end
 
 @doc raw"""
-    bipyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1, z_prime::Union{Number, FieldElem} = -z)
+    bipyramid(P::Union{Cone,Polyhedron}, z::Union{Number, FieldElem} = 1, z_prime::Union{Number, FieldElem} = -z)
 
-Make a bipyramid over a pointed polyhedron `P`.
+Make a bipyramid over a pointed cone or polyhedron `P`.
 
-The bipyramid is the convex hull of the input polyhedron `P` and two apexes
+The bipyramid is the convex hull of the input cone or polyhedron `P` and two apexes
 (`v`, `z`), (`v`, `z_prime`) on both sides of the affine span of `P`. For bounded
 polyhedra, the projections of the apexes `v` to the affine span of `P` is the
 vertex barycenter of `P`.
@@ -117,9 +120,11 @@ bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::Number) where {T<:scalar_type
   bipyramid(P, z, parent(z)(z_prime))
 bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where {T<:scalar_types} =
   bipyramid(P, parent(z_prime)(z), z_prime)
+bipyramid(C::Cone,z::Union{Number, FieldElem}=1, z_prime::Union{Number, FieldElem}=-z) =
+  bipyramid(polyhedron(C), z, z_prime)
 
 @doc raw"""
-    normal_cone(P::Polyhedron, i::Int64)
+    normal_cone(P::Union{Cone,Polyhedron}, i::Int64)
 
 Construct the normal cone to `P` at the `i`-th vertex of `P`.
 
@@ -153,6 +158,7 @@ function normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types}
   bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i - 1]))
   return Cone{T}(bigobject, coefficient_field(P))
 end
+normal_cone(C::Cone, i::Int64) = normal_cone(polyhedron(C), i)
 
 @doc raw"""
     orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
@@ -328,7 +334,7 @@ polyhedron(H::Hyperplane{T}) where {T<:scalar_types} =
   polyhedron(coefficient_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
-    intersect(P::Polyhedron...)
+    intersect(P::Union{Cone,Polyhedron}...)
 
 Return the intersection $\bigcap\limits_{p \in P} p$.
 
@@ -349,15 +355,15 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron...)
+function intersect(P::Union{Cone,Polyhedron}...)
   T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
-  pmo = [pm_object(p) for p in P]
+  pmo = [ (p isa Polyhedron ? pm_object(p) : pm_object(polyhedron(p))) for p in P]
   return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
 end
-intersect(P::AbstractVector{<:Polyhedron}) = intersect(P...)
+intersect(P::AbstractVector{<:Union{Cone,Polyhedron}}) = intersect(P...)
 
 @doc raw"""
-    minkowski_sum(P::Polyhedron, Q::Polyhedron)
+    minkowski_sum(P::Union{Cone,Polyhedron}, Q::Union{Cone,Polyhedron})
 
 Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
 
@@ -390,9 +396,10 @@ function minkowski_sum(
     throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
   end
 end
+minkowski_sum(P::Union{Cone,Polyhedron},Q::Union{Cone,Polyhedron}) = minkowski_sum(polyhedron(P), polyhedron(Q))
 
 @doc raw"""
-    product(P::Polyhedron, Q::Polyhedron)
+    product(P::Union{Cone,Polyhedron}, Q::Union{Cone,Polyhedron})
 
 Return the Cartesian product of `P` and `Q`.
 
@@ -413,6 +420,7 @@ function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:s
   V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
   return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
 end
+product(P::Union{Cone,Polyhedron}, Q::Union{Cone,Polyhedron}) = product(polyhedron(P), polyhedron(Q))
 
 @doc raw"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -434,9 +442,11 @@ julia> length(vertices(T*S))
 """
 *(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types} =
   product(P, Q)
+*(P::Union{Cone{T},Polyhedron{T}}, Q::Union{Cone{U},Polyhedron{U}}) where {T<:scalar_types,U<:scalar_types} =
+  product(polyhedron(P), polyhedron(Q))
 
 @doc raw"""
-    convex_hull(P::Polyhedron, Q::Polyhedron)
+    convex_hull(P::Union{Cone,Polyhedron}, Q::Union{Cone,Polyhedron})
 
 Return the convex_hull of `P` and `Q`.
 
@@ -457,15 +467,15 @@ julia> f_vector(T)
  4
 ```
 """
-function convex_hull(P::Polyhedron...)
+function convex_hull(P::Union{Cone,Polyhedron}...)
   T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
-  pmo = [pm_object(p) for p in P]
+  pmo = [ (p isa Polyhedron ? pm_object(p) : pm_object(polyhedron(p))) for p in P]
   return Polyhedron{T}(Polymake.polytope.conv(pmo...), f)
 end
-convex_hull(P::AbstractVector{<:Polyhedron}) = convex_hull(P...)
+convex_hull(P::AbstractVector{<:Union{Cone,Polyhedron}}) = convex_hull(P...)
 
 @doc raw"""
-    +(P::Polyhedron, Q::Polyhedron)
+    +(P::Union{Cone,Polyhedron}, Q::Union{Cone,Polyhedron})
 
 Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q` (see also `minkowski_sum`).
 
@@ -484,7 +494,7 @@ julia> n_vertices(M)
 8
 ```
 """
-+(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types} =
++(P::Union{Cone{T},Polyhedron{T}}, Q::Union{Cone{U},Polyhedron{U}}) where {T<:scalar_types,U<:scalar_types} =
   minkowski_sum(P, Q)
 
 @doc raw"""
@@ -540,7 +550,7 @@ julia> volume(SC)//volume(C)
 *(P::Polyhedron{T}, k::Union{Number,FieldElem}) where {T<:scalar_types} = k * P
 
 @doc raw"""
-    +(P::Polyhedron, v::AbstractVector)
+    +(P::Union{Cone,Polyhedron}, v::AbstractVector)
 
 Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
@@ -574,9 +584,10 @@ function +(P::Polyhedron{T}, v::AbstractVector) where {T<:scalar_types}
     coefficient_field(P),
   )
 end
++(P::Cone{T}, v::AbstractVector) where {T<:scalar_types} = polyhedron(T) + v
 
 @doc raw"""
-    +(v::AbstractVector, P::Polyhedron)
+    +(v::AbstractVector, P::Union{Cone,Polyhedron})
 
 Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
@@ -601,7 +612,7 @@ julia> vertices(S)
  [0, 0, 1]
 ```
 """
-+(v::AbstractVector, P::Polyhedron{T}) where {T<:scalar_types} = P + v
++(v::AbstractVector, P::Union{Cone{T},Polyhedron{T}}) where {T<:scalar_types} = P + v
 
 @doc raw"""
     simplex([::Union{Type{T}, Field} = QQFieldElem,] d::Int [,n])
