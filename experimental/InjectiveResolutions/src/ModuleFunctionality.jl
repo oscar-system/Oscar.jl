@@ -111,3 +111,37 @@ function kernel(
   is_graded(h) && return _graded_kernel(h)
   return _simple_kernel(h)
 end
+
+### Additional adjustments to get the graded aspects to run
+function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem
+  R = base_ring(N)
+  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{elem_type(ambient_free_module(N))}())
+  A = N.sub
+  SA = singular_generators(A.gens) 
+  B = N_quo
+  SB = singular_generators(B.gens)
+  res = Singular.quotient(SB, SA)
+  return ideal(R, [R(f) for f in res])
+end
+
+function singular_generators(J::MonoidAlgebraIdeal)
+  return singular_generators(underlying_ideal(J).gens)
+end
+
+function degree(v::FreeModElem{T}; check::Bool=true) where {T <: MonoidAlgebraElem}
+  is_zero(coordinates(v)) && return zero(grading_group(parent(v)))
+  @check is_homogeneous(v) "element is not homogeneous"
+  i, c = first(coordinates(v))
+  return parent(v).d[i] + degree(c)
+end
+
+### Stuff to get `MonoidAlgebraIdeal`s to work with the modules.
+function _saturation(U::SubModuleOfFreeModule, J::MonoidAlgebraIdeal; iteration::Bool=false)
+  F = ambient_free_module(U)
+  SgU = singular_generators(U.gens)
+  SgJ = singular_generators(J)
+  SQ, _ = Singular.saturation(SgU, SgJ)
+  MG = ModuleGens(F, SQ)
+  return SubModuleOfFreeModule(F, MG)
+end
+

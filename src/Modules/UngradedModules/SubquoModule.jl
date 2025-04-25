@@ -1663,19 +1663,14 @@ function annihilator(M::SubquoModule{T}) where T
   return I
 end
 
-function annihilator(N::SubquoModule{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem, MonoidAlgebraElem}
+function annihilator(N::SubquoModule{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   R = base_ring(N)
   N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{elem_type(ambient_free_module(N))}())
   A = N.sub
   SA = singular_generators(A.gens) 
   B = N_quo
   SB = singular_generators(B.gens)
-  if R isa MonoidAlgebra
-    # return R.algebra isa MPolyQuoRing ? monoid_algebra_ideal(R,MPolyQuoIdeal(R.algebra, Singular.quotient(SB, SA))) : monoid_algebra_ideal(R, MPolyIdeal(R.algebra, Singular.quotient(SB, SA)))
-    return R.algebra isa MPolyQuoRing ? MPolyQuoIdeal(R.algebra, Singular.quotient(SB, SA)) : MPolyIdeal(R.algebra, Singular.quotient(SB, SA))
-  else
-    return R isa MPolyQuoRing ? MPolyQuoIdeal(R, Singular.quotient(SB, SA)) : MPolyIdeal(R, Singular.quotient(SB, SA))
-  end
+  return R isa MPolyQuoRing ? MPolyQuoIdeal(R, Singular.quotient(SB, SA)) : MPolyIdeal(R, Singular.quotient(SB, SA))
 end
 
 @doc raw"""
@@ -1935,10 +1930,6 @@ function _saturation(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = fa
   SQ, _ = Singular.saturation(SgU, SgJ)
   MG = ModuleGens(F, SQ)
   return SubModuleOfFreeModule(F, MG)
-end
-
-function _saturation(U::SubModuleOfFreeModule, J::MonoidAlgebraIdeal; iteration::Bool = false)
-  return _saturation(U,underlying_ideal(J))
 end
 
 @doc raw"""

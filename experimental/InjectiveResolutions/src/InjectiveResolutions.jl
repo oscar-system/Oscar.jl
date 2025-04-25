@@ -137,9 +137,12 @@ elem_type(::Type{T}) where {CoeffType,T<:MonoidAlgebra{CoeffType}} = MonoidAlgeb
   CoeffType,T
 }
 
-function degree(a::MonoidAlgebraElem)
+function degree(
+    a::MonoidAlgebraElem{<:FieldElem, PT};
+    check::Bool=true
+  ) where {RT <: MPolyRing, PT <: MonoidAlgebra{<:FieldElem, RT}}
   !isdefined(a, :elem) && return zero(grading_group(parent(a)))
-  return degree(underlying_element(a))
+  return degree(underlying_element(a); check)
 end
 
 grading_group(A::MonoidAlgebra) = grading_group(A.algebra)
@@ -200,10 +203,13 @@ function *(c::IntegerUnion, b::MonoidAlgebraElem)
   return MonoidAlgebraElem(A, kk(c)*underlying_element(b); check=false)
 end
 
+#=
+# TODO: should not be necessary! remove?
 function *(m::MPolyDecRingElem{CoeffType},a::MonoidAlgebraElem{CoeffType}) where {CoeffType}
   kQ = parent(a)
   return kQ(m*underlying_element(a))
 end
+=#
 
 function -(b::MonoidAlgebraElem)
   A = parent(b)
@@ -227,10 +233,13 @@ function deepcopy_internal(a::MonoidAlgebraElem, dict::IdDict)
   return parent(a)(deepcopy_internal(underlying_element(a), dict))
 end
 
+#=
+# TODO: should not be necessary! remove?
 function Base.in(a::MonoidAlgebraElem,M::SubquoModule{<:MonoidAlgebraElem})
   @assert parent(a) == base_ring(M)
   return underlying_element(a) in M
 end
+=#
 
 is_unit(a::MonoidAlgebraElem) = is_unit(underlying_element(a))
 
@@ -240,7 +249,11 @@ evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),va
 
 is_homogeneous(a::MonoidAlgebraElem) = is_homogeneous(underlying_element(a))
 
-function degree(a::MonoidAlgebraElem; check::Bool=true)
+function degree(
+        a::MonoidAlgebraElem{<:FieldElem, PT};
+        check::Bool=true
+    ) where {RT <: MPolyQuoRing, PT <: MonoidAlgebra{<:FieldElem, RT}}
+  !isdefined(a, :elem) && return zero(grading_group(parent(a)))
   _a = underlying_element(a)
   simplify(_a)
   @req !iszero(_a) "Element must be non-zero"
