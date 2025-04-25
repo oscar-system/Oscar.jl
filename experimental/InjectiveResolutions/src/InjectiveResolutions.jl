@@ -13,7 +13,6 @@ export injective_res
 export mod_quotient
 export mod_saturate
 export ZF_basis
-export _f_k
 export IrrSum
 export IndecInj
 export underlying_element
@@ -943,24 +942,25 @@ function ZF_basis(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
   return filter(!is_zero, B)
 end
 
-#get the coefficient of a monomial 
-@doc raw"""
-  _f_k(m::Union{MPolyDecRingElem,MPolyQuoRingElem})
-
-Evaluates a polynomial $m\in k[x_1,...,x_n]/I$ at $(1,...,1)\in k^m$.
-"""
-function _f_k(m::Union{MPolyDecRingElem,MPolyQuoRingElem})
-  R = parent(m)
-  k = coefficient_ring(R)
-  f_k = hom(R, k, ones(elem_type(k), ngens(R)))
-  return f_k(m)
+function evaluate(
+    f::MonoidAlgebraElem{<:RingElem, PT}, 
+    vals::Vector; 
+    check::Bool=true
+  ) where {PT <: MonoidAlgebra{<:RingElem, <:MPolyQuoRing}}
+  return evaluate(underlying_element(f), vals; check)
 end
 
-function _f_k(m::MonoidAlgebraElem)
-  R = parent(m).algebra
-  k = coefficient_ring(R)
-  f_k = hom(R, k, ones(elem_type(k), ngens(R)))
-  return f_k(underlying_element(m))
+function evaluate(a::MPolyQuoRingElem, vals::Vector; check::Bool=true)
+  @check all(is_zero(evaluate(f, vals)) for f in gens(modulus(parent(a))))
+  return evaluate(a.f, vals)
+end
+
+function evaluate(
+    f::MonoidAlgebraElem{<:RingElem, PT}, 
+    vals::Vector; 
+    check::Bool=true
+  ) where {PT <: MonoidAlgebra{<:RingElem, <:MPolyRing}}
+  return evaluate(underlying_element(f), vals)
 end
 
 @doc raw"""
@@ -990,7 +990,9 @@ function coefficients(N::SubquoModule, p_F::FaceQ, kQ::MonoidAlgebra)
     #get coefficient vector of w.r.t. generators of M
     b_amb = ambient_representative(b)
     _c_b = coordinates(N(b_amb)) #coordinates w.r.t. generators of M 
-    c_b = [_f_k(_c_b[i]) for i in 1:ngens(N)]
+    # old line kept. We suppose that this is only for getting the coefficient of a monomial
+    # c_b = [evaluate(_c_b[i], [1 for _ in 1:ngens(R_N)]) for i in 1:ngens(N)]
+    c_b = [only(AbstractAlgebra.coefficients(_c_b[i])) for i in 1:ngens(N)]
 
     #get all relevant generators of N, i.e., check (deg(b) + F) \cap (deg(g) + Q) ≠ ∅
     b_p = convex_hull(degree(Vector{Int}, b))
@@ -1022,7 +1024,9 @@ function coefficients(N::SubquoModule, p_F::FaceQ, kQ::MonoidAlgebra)
           for i in 1:ngens(N)
             j = findfirst(g -> g == N[i], G_b)
             if j !== nothing
-              push!(c_r, _f_k(_c_r[j]))
+              # old line kept; we suppose the new version works.
+              # push!(c_r, evaluate(_c_r[j], [1 for _ in 1:ngens(R_N)]))
+              push!(c_r, only(AbstractAlgebra.coefficients(_c_r[j])))
             else
               push!(c_r, k())
             end
