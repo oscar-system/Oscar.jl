@@ -54,5 +54,19 @@ end
     @test is_integer(solution[1])
     reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end,:])
     @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
+    coho_R = cohomology_ring(ambient_space(qsm_model), check = false)
+    gs = [gg.f for gg in gens(coho_R)]
+    known_intersections = qsm_model.__attrs[:inter_dict]
+    kbar_poly = polynomial(cohomology_class(anticanonical_bundle(ambient_space(qsm_model)))).f
+    non_zero_entries = collect(filter(x -> x[2] != 0, known_intersections))
+    sampled_dict = Dict()
+    while length(sampled_dict) < min(100, length(non_zero_entries))
+      i = rand(1:length(non_zero_entries))
+      sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
+    end
+    for (k,v) in sampled_dict
+      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly))
+      @test v == integrate(desired_class, check = false)
+    end
   end
 end
