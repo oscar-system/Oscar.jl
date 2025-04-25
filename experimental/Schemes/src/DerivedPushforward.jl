@@ -336,24 +336,114 @@ end
 
 mutable struct PushForwardCtx
   S::MPolyRing
-  pf_cache::Dict{FinGenAbGroupElem, PFComplex}
+  variable_groups::Vector{Vector{<:MPolyRingElem}}
+  var_group_indices::Vector{Vector{Int}}
+  dims::Vector{Int}
+  truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
+  inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  strands::Dict{Vector{Int}, Dict}
+  strand_inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, Dict}
+  strand_projections::Dict{Tuple{Vector{Int}, Vector{Int}}, Dict}
+  cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
+  cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
 
   function PushForwardCtx(S::MPolyRing)
-    return new(S, Dict{FinGenAbGroupElem, PFComplex}())
+    G = grading_group(S)
+    var_grp_ind = Vector{Vector{Int}}()
+    for i in 1:rank(G)
+      push!(var_grp_ind, [j for j in 1:ngens(S) if degree(S[j]) == G[i]])
+    end
+    variable_groups = [gens(S)[ind] for ind in var_grp_ind]
+    return new(S, 
+               variable_groups,
+               var_grp_ind,
+               [length(v)-1 for v in variable_groups],
+               Dict{Vector{Int}, AbsHyperComplex}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Vector{Int}, Dict}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, Dict}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, Dict}(), 
+               Dict{FinGenAbGroupElem, AbsHyperComplex}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}()
+              )
   end
 end
 
-ring(ctx::PushForwardCtx) = ctx.S
+graded_ring(ctx::PushForwardCtx) = ctx.S
+variable_groups(ctx::PushForwardCtx) = ctx.variable_groups
+variable_group_indices(ctx::PushForwardCtx, i::Int) = ctx.var_group_indices[i]
+variable_group(ctx::PushForwardCtx, i::Int) = ctx.variable_groups[i]
+number_of_factors(ctx::PushForwardCtx) = length(ctx.variable_groups)
+dimensions(ctx::PushForwardCtx) = ctx.dims
+dimension(ctx::PushForwardCtx, i::Int) = ctx.dims[i]
 
-function getindex(ctx::PushForwardCtx, d::FinGenAbGroupElem)
-  @assert parent(d) === grading_group(ring(ctx))
-  return get!(ctx.pf_cache, d) do
-    PFComplex(ring(ctx), d)
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
+  return get!(ctx.truncated_cech_complexes, alpha) do
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    kosz = [shift(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)])[0:dimension(ctx, j)], dimension(ctx, j)) for j in 1:number_of_factors(ctx)]
+    @show length(kosz)
+    @show kosz[1]
+    K = total_complex(tensor_product(kosz))
+    hom(K, graded_free_module(S, [zero(G)]))
   end
 end
 
-function getindex(ctx::PushForwardCtx, i::Int...)
-  G = grading_group(ring(ctx))
-  d = sum(a*G[k] for (k, a) in enumerate(i); init=zero(G))
-  return ctx[d]
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
+  G = parent(d)
+  S = graded_ring(ctx)
+  @assert G === grading_group(S)
+  strands = get!(ctx.strands, alpha) do 
+    Dict{typeof(d), AbsHyperComplex}()
+  end
+  return get!(strands, d) do
+    offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
+    strand(ctx[alpha], offset+d)[1]
+  end
 end
+
+function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
+  get!(ctx.cohomology_models, d) do
+    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
+  end
+end
+
+# return the minimal exponent vector `alpha` such that the whole 
+# cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
+function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
+  S = graded_ring(ctx)
+  G = grading_group(S)
+  @assert parent(d) === G
+  result = [0 for _ in 1:ngens(S)]
+  for i in 1:number_of_factors(ctx)
+    inds = variable_group_indices(ctx, i)
+    di = Int(d[i])
+    di >= 0 && continue # Nothing to do in this case
+    for j in inds
+      # TODO: This is not yet sharp!
+      result[j] = -di# + dimension(ctx, i) + 1
+    end
+  end
+  result
+end
+
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
+  @assert all(a <= b for (a, b) in zip(alpha, beta))
+  return get!(ctx.inclusions, (alpha, beta)) do
+    S = graded_ring(ctx)
+    delta = beta - alpha
+    x = prod(x^d for (x, d) in zip(gens(S), delta); init=one(S))
+    ca = ctx[alpha]
+    cb = ctx[beta]
+    mors = Dict{Tuple, ModuleFPHom}(
+                                    (i,) => hom(ca[i], cb[i], [x*g for g in gens(cb[i])])
+                                    for i in 0:prod(dimensions(ctx); init=1)
+                                   )
+    MorphismFromDict(ca, cb, mors)
+  end
+end
+
