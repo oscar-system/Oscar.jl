@@ -346,6 +346,8 @@ function radical(I::MonoidAlgebraIdeal)
   return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
 end
 
+dim(I::MonoidAlgebraIdeal) = dim(underlying_ideal(I))
+
 # some generic functionality which should probably be elsewhere
 function is_subset(I::Ideal, J::Ideal)
   return all(x in J for x in gens(I))
@@ -1469,12 +1471,14 @@ end
 ## this is needed for _is_normal() This copies the M2 implementation of isNormal in M2/Macaulay2/packages/IntegralClosure.m2
 
 #get Krull dimension of module
+# TODO: For modules over polynomial rings this should make 
+# use of the `dim` in Singular. But this does not seem 
+# to be available as of yet.
 function dim(M::ModuleFP)
   ann = annihilator(M)
   return dim(ann)
 end
 
-#get (Krull) codimension of module
 function codim(M::ModuleFP)
   R = base_ring(M)
   return dim(R) - dim(M)

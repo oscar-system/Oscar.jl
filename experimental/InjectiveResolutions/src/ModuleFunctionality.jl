@@ -121,7 +121,7 @@ function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem
   B = N_quo
   SB = singular_generators(B.gens)
   res = Singular.quotient(SB, SA)
-  return ideal(R, [R(f) for f in res])
+  return ideal(R, [R(f) for f in gens(res)])
 end
 
 function singular_generators(J::MonoidAlgebraIdeal)
