@@ -277,8 +277,20 @@ end
 
 # TODO: Fix up promote rules?
 AbstractAlgebra.promote_rule(
-  ::Type{CoeffType}, ::Type{T}
-) where {CoeffType,T<:MonoidAlgebraElem{CoeffType}} = T
+                             ::Type{CoeffType}, ::Type{T}
+                            ) where {CoeffType,T<:MonoidAlgebraElem{CoeffType}} = T
+
+# TODO: We would like to use the parametrization of the `MonoidAlgebra` 
+# with the type of its underlying ring directly. But this parameter only
+# provides the type of the ring, not its elements. So we have to work 
+# as if `MonoidAlgebra` was not parametrized.
+AbstractAlgebra.promote_rule(
+                             ::Type{MPolyDecRingElem{CoeffType, T}}, ::Type{U}
+                            ) where {CoeffType, T, U<:MonoidAlgebraElem{CoeffType}} = U
+
+AbstractAlgebra.promote_rule(
+                             ::Type{MPolyQuoRingElem{PolyType}}, ::Type{T}
+                            ) where {CoeffType, PolyType<:MPolyDecRingElem{CoeffType}, T<:MonoidAlgebraElem{CoeffType}} = T
 
 AbstractAlgebra.promote_rule(::Type{Int}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
 AbstractAlgebra.promote_rule(::Type{ZZRingElem}, ::Type{T}) where {T<:MonoidAlgebraElem} = T
