@@ -145,3 +145,119 @@ function _saturation(U::SubModuleOfFreeModule, J::MonoidAlgebraIdeal; iteration:
   return SubModuleOfFreeModule(F, MG)
 end
 
+### Speedup for free_resolution
+# Copied from `src/Modules/UngradedModules/FreeResolutions.jl` and modified. 
+# This can eventually be streamlined, but we did not want to touch the original 
+# module files at the moment.
+
+underlying_ring_type(A::MonoidAlgebra) = underlying_ring_type(typeof(A))
+underlying_ring_type(::Type{T}) where {CT, RT, T<:MonoidAlgebra{CT, RT}} = RT
+
+function free_resolution(M::SubquoModule{T}; 
+    length::Int=0,
+    algorithm::Union{Symbol, Nothing} = nothing
+  ) where {T <: MonoidAlgebraElem}
+  if isnothing(algorithm)
+    algorithm = underlying_ring_type(base_ring(M)) <: MPolyQuoRing ? :sres : :fres
+  end
+
+  coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
+      error("Must be defined over a field.")
+  
+  if underlying_ring_type(base_ring(M)) <: MPolyQuoRing
+    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  end
+
+
+  cc_complete = false
+
+  #= Start with presentation =#
+  pm = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false) : presentation(M)
+  maps = [pm.maps[j] for j in 2:3]
+
+  br = base_ring(M)
+  kernel_entry          = image(pm.maps[1])[1]
+
+  if ngens(kernel_entry) == 0
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc.fill     = _extend_free_resolution
+    cc.complete = true
+    return FreeResolution(cc)
+  end
+
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+
+  #= This is the single computational hard part of this function =#
+  if algorithm == :fres
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.fres(gbpres, length, "complete")
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+    gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
+  elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
+  elseif algorithm == :nres
+    gbpres = singular_kernel_entry
+    res = Singular.nres(gbpres, length)
+  elseif algorithm == :sres
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.sres(gbpres, length)
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  if length == 0 || slen < length
+    cc_complete = true
+  end
+
+  if length != 0
+    slen =  slen > length ? length : slen
+  end
+
+  #= Add maps from free resolution computation, start with second entry
+   = due to inclusion of presentation(M) at the beginning. =#
+  j   = 1
+  while j <= slen
+    if is_graded(M)
+      codom = domain(maps[1])
+      rk    = Singular.ngens(res[j])
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      #generator_matrix(SM)
+      #ff = graded_map(codom, SM.matrix)
+      ff = graded_map(codom, gens(SM); check=false)
+      dom = domain(ff)
+      insert!(maps, 1, ff)
+      j += 1
+    else
+      codom = domain(maps[1])
+      rk    = Singular.ngens(res[j])
+      dom   = free_module(br, rk)
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      #generator_matrix(SM)
+      insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
+      j += 1
+    end
+  end
+  if cc_complete == true
+    # Finalize maps.
+    if is_graded(domain(maps[1]))
+      Z = graded_free_module(br, 0)
+    else
+      Z = FreeMod(br, 0)
+    end
+    insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
+  end
+
+  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc.fill     = _extend_free_resolution
+  cc.complete = cc_complete
+  set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :algorithm, algorithm)
+
+  return FreeResolution(cc)
+end
+

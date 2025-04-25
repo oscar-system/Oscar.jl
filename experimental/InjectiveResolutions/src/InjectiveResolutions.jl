@@ -597,7 +597,6 @@ function base_ring(M::MonoidAlgebraModule)
 end
 
 function quotient_ring_as_module(I::MonoidAlgebraIdeal)
-  # return MonoidAlgebraModule(base_ring(I), quotient_ring_as_module(underlying_ideal(I)))
   R = base_ring(I)
   F = graded_free_module(R,1)
   e1 = F[1]
