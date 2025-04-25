@@ -135,6 +135,10 @@ function degree(v::FreeModElem{T}; check::Bool=true) where {T <: MonoidAlgebraEl
   return parent(v).d[i] + degree(c)
 end
 
+function _degree_fast(a::MonoidAlgebraElem)
+  return _degree_fast(underlying_element(a))
+end
+
 ### Stuff to get `MonoidAlgebraIdeal`s to work with the modules.
 function _saturation(U::SubModuleOfFreeModule, J::MonoidAlgebraIdeal; iteration::Bool=false)
   F = ambient_free_module(U)
