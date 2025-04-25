@@ -13,18 +13,20 @@ x, y, z = gens(kQ.algebra)
 R = quotient_ring_as_module(ideal(kQ, []))
 
 # define ideal over monoid algebra
-I = ideal(kQ.algebra, [x^2*z, x^4*y])
-J = ideal(kQ.algebra, [x^5*y, z^3])
+I = ideal(kQ, [x^2*z, x^4*y])
+J = ideal(kQ, [x^5*y, z^3])
 
 M_I = quotient_ring_as_module(I)
 M_J = quotient_ring_as_module(J)
 
 _M = direct_sum(M_I, M_J; task=:none)
-M_mod = sub(_M, [y*_M[1]+y*_M[2], x^2*_M[2]])
-M = monoid_algebra_module(kQ, M_mod[1])
+M_mod,_ = sub(_M, [y*_M[1]+y*_M[2], x^2*_M[2]])
+M = M_mod
+# M = monoid_algebra_module(kQ, M_mod[1])
 
 # irreducible resolution of M = kQ/I
 # M = quotient_ring_as_module(I)
+# irr_res = irreducible_res(M)
 irr_res = irreducible_res(M)
 
 # minimal injective resolution of kQ/I up to cohomological degree 3

@@ -581,7 +581,8 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
+# function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
+function degree(f::FreeModElem{T}; check::Bool=true) where {T<:Union{MonoidAlgebraElem,AnyGradedRingElem}}
   !isnothing(f.d) && return f.d::FinGenAbGroupElem
   @check is_graded(parent(f)) "the parent module is not graded"
   @check is_homogeneous(f) "the element is not homogeneous"
