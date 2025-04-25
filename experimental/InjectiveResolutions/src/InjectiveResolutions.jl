@@ -668,20 +668,6 @@ function prime_to_face(
   return ideal(kQ, gens)
 end
 
-@doc raw"""
-  rational_to_integer_vector(v::Union{Vector{QQFieldElem},AbstractVector{Rational},Vector{Rational}})
-
-Given $n$ rational $d$-vectors return $n$ integer $d$-vectors that generated the same polyhedral cone. 
-"""
-function rational_to_integer_vector(
-  v::Union{Vector{QQFieldElem},AbstractVector{Rational},Vector{Rational}}
-)
-  denominators = [denominator(x) for x in v]
-  lcm_denominators = lcm(denominators)
-
-  return [Int(numerator(x*lcm_denominators)) for x in v]
-end
-
 # given a monoid algebra, this function returns the corresponding polyhedral cone
 # INPUT:    monoid algebra k[Q]
 # OUTPUT:   polyhedral cone \RR_{\geq 0}Q
@@ -724,7 +710,7 @@ end
 function get_hyperplane_H_presentation(h::Polyhedron)
   aff_hull = affine_hull(h).Obj.pm_polytope.AFFINE_HULL
   _M = Matrix{Rational}(aff_hull)
-  M = hcat(map(row -> reshape(rational_to_integer_vector(row), 1, :), eachrow(_M))...)
+  M = hcat(map(row -> reshape(primitive_generator(row), 1, :), eachrow(_M))...)
   A = [M[:, 2:n_columns(M)]; -M[:, 2:n_columns(M)]]
   b = [M[:, 1]; -M[:1]]
   return A, b
@@ -735,7 +721,7 @@ end
 # OUTPUT:   zonotope, sum of primitive integer vector ong rays of C 
 function get_zonotope(P::Polyhedron)
   d = ambient_dim(P)
-  P_rays = [rational_to_integer_vector(Vector(r)) for r in rays(P)]
+  P_rays = [primitive_generator(Vector(r)) for r in rays(P)]
 
   c = zeros(Int, d)
   zonotope = convex_hull(zeros(Int, d))
