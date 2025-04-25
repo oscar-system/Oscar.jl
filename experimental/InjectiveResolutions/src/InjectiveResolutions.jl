@@ -262,10 +262,7 @@ function degree(
 end
 
 function _degree_fast(a::MonoidAlgebraElem)
-  _a = underlying_element(a)
-  simplify(_a)
-  @req !iszero(_a) "Element must be non-zero"
-  return _degree_fast(_a.f)
+  return _degree_fast(underlying_element(a))
 end
 
 function degree(::Type{Vector{Int}}, a::MonoidAlgebraElem; check::Bool=true)

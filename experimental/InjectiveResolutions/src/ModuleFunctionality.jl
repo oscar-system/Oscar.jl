@@ -135,10 +135,6 @@ function degree(v::FreeModElem{T}; check::Bool=true) where {T <: MonoidAlgebraEl
   return parent(v).d[i] + degree(c)
 end
 
-function _degree_fast(a::MonoidAlgebraElem)
-  return _degree_fast(underlying_element(a))
-end
-
 # `twist` stuff is only copy-pasted because the original signature was too narrow.
 # This should be streamlined eventually.
 function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
