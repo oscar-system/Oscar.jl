@@ -37,7 +37,7 @@ struct HyperplaneQ # a hyperplane bounding the cone RR_{\geq 0}Q
   b::Vector{Int}
 end
 
-mutable struct MonoidAlgebra{CoeffType,AlgebraType} <: Ring # monoid algebra with associated data
+@attributes mutable struct MonoidAlgebra{CoeffType,AlgebraType} <: Ring # monoid algebra with associated data
   algebra::AlgebraType
   pointed::Union{Nothing,Bool} #cone pointed
   polyhedral_cone::Cone{QQFieldElem}
@@ -1509,7 +1509,7 @@ function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing})
   return true
 end
 
-function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
+@attr Bool function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
   # Implementation adapted from 
   #
   #    M2/Macaulay2/packages/IntegralClosure.m2,
