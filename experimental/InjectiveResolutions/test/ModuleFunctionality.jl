@@ -60,3 +60,25 @@ res = free_resolution(M)
 prune_with_map(M)
 
 end
+
+@testset "monomial bases" begin
+# definition of monoid algebra as quotient of polynomial ring
+S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
+J = ideal(S, [x*z-y^2])
+R_Q, phi = quo(S, J)
+
+# get a MonoidAlgebra with a quotient ring as internal
+A = Oscar.MonoidAlgebra(R_Q)
+GA = grading_group(A)
+@test all(parent(a) === A for a in monomial_basis(A, GA[1]+5*GA[2]))
+
+# definition of polynomial ring k[x,y]
+R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
+
+# get MonoidAlgebra with a polynomial ring as internal
+B = Oscar.MonoidAlgebra(R_Q)
+GB = grading_group(B)
+@test all(parent(a) === B for a in monomial_basis(B, GB[1]+5*GB[2]))
+
+end
+
