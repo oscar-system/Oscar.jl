@@ -86,3 +86,28 @@ B.algebra[1] *B[1] # Test promotion
 
 end
 
+@testset "coefficients for SubquoModules" begin
+  # definition of monoid algebra as quotient of polynomial ring
+S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
+J = ideal(S, [x*z-y^2])
+R_Q, phi = quo(S, J)
+
+# get a MonoidAlgebra with a quotient ring as internal
+A = Oscar.MonoidAlgebra(R_Q)
+GA = grading_group(A)
+monomial_basis(A, GA[1]+5*GA[2])
+A.algebra[1]*A[1] # Test promotion
+
+F = graded_free_module(A, [zero(GA)])
+I, inc = sub(F, [x*F[1] for x in gens(A)])
+mon_base = monomial_basis(A, GA[2])
+[x*I[1] for x in mon_base]
+[x*one(A) for x in mon_base]
+[x*F[1] for x in mon_base]
+
+for f in Oscar.faces(A)
+  coefficients(I, f, A)
+end
+
+end
+
