@@ -243,6 +243,10 @@ end
 
 is_unit(a::MonoidAlgebraElem) = is_unit(underlying_element(a))
 
+function inv(a::MonoidAlgebraElem)
+  return MonoidAlgebraElem(parent(a), inv(underlying_element(a)))
+end
+
 monomial_basis(A::MonoidAlgebra, g::FinGenAbGroupElem) = monomial_basis(A.algebra, g)
 #elem_type(A)[A(x) for x in monomial_basis(A.algebra,g)]
 
@@ -1292,10 +1296,10 @@ function irreducible_res(M::SubquoModule{<:Oscar.MonoidAlgebraElem}, i::Int=0)
 
     #compute cokernel and then simplify
     Mi_, gi_ = quo(Wi, image(hi)[1]) #cokernel
-    # Mi, ji = prune_with_map(Mi_)
-    # gi = gi_*inv(ji)
-    Mi = Mi_
-    gi = gi_
+    Mi, ji = prune_with_map(Mi_)
+    gi = gi_*inv(ji)
+    #Mi = Mi_
+    #gi = gi_
 
     #fix modules with "zero" relations
     if length(filter(is_zero, relations(Mi))) > 0
@@ -1306,6 +1310,13 @@ function irreducible_res(M::SubquoModule{<:Oscar.MonoidAlgebraElem}, i::Int=0)
     push!(res_Mi, Mi)
     push!(res_gi, gi)
     push!(res_Wi, IrrSum(Wi, indec_injectives))
+    # TODO: Remove once bugs are gone!
+    if !isempty(res_hi) && !is_zero(compose(last(res_hi), hi))
+      @show length(res_hi)
+      @show last(res_hi)
+      @show hi
+      error()
+    end
     push!(res_hi, hi)
     push!(res_fi, fi)
 
