@@ -1468,7 +1468,6 @@ function fix_module(M::SubquoModule)
   end
 end
 
-## this is needed for _is_normal() This copies the M2 implementation of isNormal in M2/Macaulay2/packages/IntegralClosure.m2
 
 #get Krull dimension of module
 # TODO: For modules over polynomial rings this should make 
@@ -1477,11 +1476,6 @@ end
 function dim(M::ModuleFP)
   ann = annihilator(M)
   return dim(ann)
-end
-
-function codim(M::ModuleFP)
-  R = base_ring(M)
-  return dim(R) - dim(M)
 end
 
 function jacobian(I::Ideal)
@@ -1511,37 +1505,33 @@ function jacobian(R::Union{MPolyRing,MPolyQuoRing})
   end
 end
 
-function _is_normal(R::Union{MPolyRing,MPolyQuoRing})
-  # 1 argument: A ring - usually a quotient ring.
-  # Return: A boolean value, true if the ring is normal and false otherwise.
-  if R isa MPolyQuoRing
-    I = R.I
-    R_B = base_ring(R)
-  else
-    I = ideal(R_Q, []) #zero ideal
-    R_B = R
-  end
-  # Get the ideal associated with the ring
-  # M = cokernel(generators(I)) # Compute the cokernel of the generators of the ideal
+function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing})
+  return true
+end
+
+function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
+  # Implementation adapted from 
+  #
+  #    M2/Macaulay2/packages/IntegralClosure.m2,
+  #
+  # line 666 ff. of https://github.com/Macaulay2/M2/blob/2565455411d15a3386204aa62a00e20ee5c0e99f/M2/Macaulay2/packages/IntegralClosure.m2 
+  # on Apr 25, 2025.
+  R = A.algebra::MPolyQuoRing
+  I = modulus(R)
   M = quotient_ring_as_module(I)
   n = codim(I)                # Calculate the codimension of the ideal
 
   # Check the S2 condition
-  test = 0:(dim(R) - n - 2)
+  test_range = 0:(dim(R) - n - 2)
 
-  # test = [dim(ring(I)) - n - 1 - i for i in 0:(dim(ring(I)) - n - 1)]
+  all(dim(R) - dim(ext(M, graded_free_module(R_B, 1), j + n + 1)) >= (j + n + 3) for j in test_range) || return false # S2 condition not satisfied
 
-  if all([
-    (codim(ext(M, graded_free_module(R_B, 1), j + n + 1)) >= (j + n + 3)) for j in test
-  ])
-    Jac = ideal(R, minors(matrix(R, jacobian(R)), n))  # Compute minors of the Jacobian
-    d = dim(Jac)                   # Get dimension of the Jacobian
-    d < 0 && (d = -Inf)            # Handle negative dimensions
-    return (dim(R) - d >= 2)       # Check the condition
-  else
-    return false                    # S2 condition not satisfied
-  end
+  Jac = ideal(R, minors(matrix(R, jacobian(R)), n))  # Compute minors of the Jacobian
+  d = dim(Jac)                   # Get dimension of the Jacobian
+  d < 0 && (d = -Inf)            # Handle negative dimensions
+  return (dim(R) - d >= 2)       # Check the condition
 end
+
 
 # import local cohomology functions
 include("LocalCohomology.jl")
