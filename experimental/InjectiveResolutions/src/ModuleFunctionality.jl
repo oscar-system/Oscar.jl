@@ -139,6 +139,39 @@ function _degree_fast(a::MonoidAlgebraElem)
   return _degree_fast(underlying_element(a))
 end
 
+# `twist` stuff is only copy-pasted because the original signature was too narrow.
+# This should be streamlined eventually.
+function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
+ error("Not implemented for the given type")
+end
+
+function twist(M::SubquoModule{T}, g::FinGenAbGroupElem) where {T<:MonoidAlgebraElem}
+ R = base_ring(M)
+ @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
+ F = ambient_free_module(M)
+ FN = twist(F, g)
+ shift = hom(F, FN, gens(FN); check=false)
+ return SubquoModule(FN, shift.(ambient_representatives_generators(M)), shift.(relations(M)))
+ # The original code below was giving strange errors from somewhere in AA.
+ GN = free_module(R, ngens(M))
+ HN = free_module(R, length(relations(M)))
+ a = hom(GN, F, ambient_representatives_generators(M); check=false)
+ b = hom(HN, F, relations(M); check=false)
+ A = matrix(a)
+ B = matrix(b)
+ N = subquotient(FN, A, B)
+ return N
+end
+
+function twist(F::FreeMod{T}, g::FinGenAbGroupElem) where {T<:MonoidAlgebraElem}
+ R = base_ring(F)
+ @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
+ W = [x-g for x in F.d]
+ G = graded_free_module(R, rank(F))
+ G.d = W
+ return G
+end
+
 ### Stuff to get `MonoidAlgebraIdeal`s to work with the modules.
 function _saturation(U::SubModuleOfFreeModule, J::MonoidAlgebraIdeal; iteration::Bool=false)
   F = ambient_free_module(U)
