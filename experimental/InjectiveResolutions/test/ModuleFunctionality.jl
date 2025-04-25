@@ -71,6 +71,7 @@ R_Q, phi = quo(S, J)
 A = Oscar.MonoidAlgebra(R_Q)
 GA = grading_group(A)
 @test all(parent(a) === A for a in monomial_basis(A, GA[1]+5*GA[2]))
+A.algebra[1]*A[1] # Test promotion
 
 # definition of polynomial ring k[x,y]
 R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
@@ -79,6 +80,7 @@ R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
 B = Oscar.MonoidAlgebra(R_Q)
 GB = grading_group(B)
 @test all(parent(a) === B for a in monomial_basis(B, GB[1]+5*GB[2]))
+B.algebra[1] *B[1] # Test promotion
 
 end
 
