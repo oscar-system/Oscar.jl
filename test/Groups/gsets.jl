@@ -158,12 +158,13 @@
   @test orbits(orb) == [orb]
 
   # permutation
-  G = symmetric_group(6)
+  G = alternating_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
+  @test_throws ArgumentError permutation(Omega, cperm([2,1]))
 
   # action homomorphism
   G = symmetric_group(6)
