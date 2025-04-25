@@ -38,6 +38,20 @@ I, inc = sub(F, [x*F[1] for x in gens(kQ)])
 J = ideal(kQ, gens(kQ))
 Oscar._saturation(I.sub, J)
 
+M = quotient_ring_as_module(J)
+res = free_resolution(M; length=5)
 end
 
+@testset "quotient_ring_as_module" begin
+# definition of polynomial ring k[x,y]
+R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
 
+# get MonoidAlgebra
+kQ = Oscar.MonoidAlgebra(R_Q)
+
+# define ideal over monoid algebra
+I = ideal(kQ, [x^4, x^2*y^2, y^4])
+
+M = quotient_ring_as_module(I)
+res = free_resolution(M)
+end
