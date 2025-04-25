@@ -64,6 +64,7 @@ end
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   singular_assure(M)
   R = base_ring(M)
+  any(is_zero, oscar_generators(M)) && error("lift_std crashes for generating systems with a zero element")
   G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
   mg = ModuleGens(M.F, G)
   mg.isGB = true
