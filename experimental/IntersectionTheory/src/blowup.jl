@@ -265,3 +265,4 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
 end
 
 
+
