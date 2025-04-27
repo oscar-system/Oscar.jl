@@ -55,6 +55,7 @@ export CartierDivisor
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Combination
 export Composition
 export Cone
 export CoveredScheme
@@ -401,6 +402,7 @@ export cokernel
 export collector
 export coloops
 export column
+export combinations
 export combinatorial_symmetries
 export comm
 export comm!
@@ -717,6 +719,7 @@ export height
 export hermitian_form
 export hessian
 export hessian_matrix
+export highest_root
 export hilbert_basis
 export hilbert_function
 export hilbert_polynomial

@@ -1,24 +1,22 @@
 ```@meta
 CurrentModule = Oscar
-CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
 
-Linear quotients are orbit spaces of the action of a finite group $G$ on a finite-dimensional vector space $V$ over $\mathbb C$.
-Formally, we define $V/G := \operatorname{Spec}\mathbb C[V]^G$.
-Notice that the invariant ring $\mathbb C[V]^G$ is an affine algebra by a theorem of Hilbert-Noether.
+This project aims to demonstrate how to use the experimental folder structure in Oscar.
+We don't have any good textbook to reference here, but this would be the place to do so.
 
 ## Status
 
 This part of OSCAR is in an experimental state; please see [Adding new projects to experimental](@ref) for what this means.
-See also the dedicated `README.md` for details.
 
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Johannes Schmitt](https://joschmitt.eu/)
+* [My Name](https://my-webpage.com/)
+* [Other Devs Name](https://other-devs-webpage.com/)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
