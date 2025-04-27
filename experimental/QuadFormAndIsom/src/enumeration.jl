@@ -923,6 +923,9 @@ function representatives_of_hermitian_type(
 
     allow_info && println("Enumerate hermitian genus of rank $(rank(H))")
     gr = genus_representatives(H)
+    if is_definite(H)
+      @hassert :ZZLatWithIsom 1 mass(H) == sum(1//automorphism_group_order(HH) for HH in gr)
+    end
     for HH in gr
       M, fM = trace_lattice_with_isometry(HH)
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
