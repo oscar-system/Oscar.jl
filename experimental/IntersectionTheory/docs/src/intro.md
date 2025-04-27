@@ -84,8 +84,8 @@ AbstractVariety of dim 3
 julia> S1 = zero_locus_section(OO(P3, 3)) # cubic hypersurface in P3
 AbstractVariety of dim 2
 
-julia> basis(S1)
-3-element Vector{Vector{MPolyQuoRingElem}}: # only class in codimension 1 is hyperplane class
+julia> basis(S1)  # only class in codimension 1 is hyperplane class
+3-element Vector{Vector{MPolyQuoRingElem}}:
  [1]
  [h]
  [h^2]
@@ -112,6 +112,7 @@ julia> euler_characteristic(OO(S2, H))
 4
 
 julia> f = map(S2, S1, [H]) # is isomorphism:
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 2
 
 julia> dim(f)
 0
