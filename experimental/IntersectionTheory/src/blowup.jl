@@ -14,7 +14,7 @@ More precisely, return a tuple `(Bl, E, j)`, say, where
 
 # Examples
 
-Taken from the sage package Chow by Lehn/Sorger:
+# Taken from the sage package Chow by Lehn/Sorger:
 
 ```jldoctest
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
@@ -262,4 +262,93 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
     set_attribute!(Bl, :alg => true)
   end
   return Bl
+end
+
+###############################################################################
+#
+# given an AbsVarietyHom i:Z → X, declare that it is an inclusion and return a
+# new one where pushforward is possible, by adding the extra classes to X
+# this results in a modified X⁺ which represents the same variety X but
+# contains more classes
+# 
+#     j  X⁺ f
+#      ↗   ↘
+#    Z ——i—→ X
+# 
+# specifically,
+# AˣZ is generated as an AˣX-module by e[1],…,e[ngs], computed using `present_finite_extension_ring`
+# AˣX⁺ is generated as an AˣX-algebra by the images of these generators under jₓ
+# e[i] := jₓ(z[i])
+#
+function aaa_inclusion(i::AbstractVarietyMap; symbol::String = "e")
+  SED = symbol # SED = "e"
+  Z, X = i.domain, i.codomain
+  AX, RX = X.ring, base_ring(X.ring) 
+
+  # we write N for the normal bundle N_{ZX}
+  
+  N = -i.T # normal bundle
+  rN = rank(N) # codimension of Z in X
+  rN <= 0 && error("not a proper subvariety")
+  c = top_chern_class(N)
+  
+  ###M, x, pf = _pushfwd(i.pullback)
+  #x, M, pf = present_finite_extension_ring(i.pullback)
+  gs, PM, sect = present_finite_extension_ring(i.pullback)
+  ngs = length(gs)
+  
+  # similar to blowup: the last variable below is the class of Z in X
+
+  syms = ["$SED[$i]" for i in 1:ngs-1]
+  push!(syms, SED)
+  degs = [degree(Int, Z(gs[i])) + rN for i in 1:ngs]
+  RX⁺, ev, zv = graded_polynomial_ring(X.base, syms, symbols(RX))
+
+  RXtoRX⁺ = hom(RX, RX⁺, zv) # fˣ on polynomial ring level
+  jₓgˣ = x -> sum(ev .* RXtoRBl.(sect(x.f))) # AZ --> RBl
+
+  fˣ = Singular.AlgebraHomomorphism(RY, RY⁺, y)
+  jₓ = x -> sum(E .* fˣ.(pf(x.f)))
+  
+  Rels = elem_type(RX⁺)[]
+  
+  # we determine the relations in AˣY⁺
+  
+  # 1) relations from Y
+  
+  if isdefined(AˣY, :I)
+    for r in fˣ.(gens(AˣY.I)) push!(rels, r) end
+  end
+
+  # 2) relations for AˣX as an AˣY-module
+  
+  for r in E' * fˣ.(M) push!(rels, r) end
+
+  # 3) jₓx ⋅ jₓy = jₓ(x⋅y⋅c)
+  
+  for j in 1:n, k in j:n
+    push!(rels, E[j] * E[k] - jₓ(x[j] * x[k] * c))
+  end
+  
+  # 4) the points are the same
+  
+  if isdefined(X, :point) && isdefined(Y, :point)
+    push!(rels, fˣ(Y.point.f) - jₓ(X.point))
+  end
+  
+  AˣY⁺ = ChRing(RY⁺, vcat(degs, AˣY.w), Ideal(RY⁺, rels...))
+  Y⁺ = AbsVariety(Y.dim, AˣY⁺)
+  # trim!(Y⁺.ring) TODO is this necessary?
+  set_special(Y⁺, :description => "$Y")
+  fₓ = map_from_func(x -> error("not defined"), Y⁺.ring, Y.ring)
+  f = AbsVarietyHom(Y⁺, Y, Y⁺.(y), fₓ)
+  Y⁺.struct_map = f
+  Y⁺.T = pullback(f, Y.T)
+  f.T = AbsBundle(Y⁺, Y⁺(0)) # there is no relative tangent bundle
+  Y⁺.point = f.pullback(Y.point)
+  if isdefined(Y, :O1) Y⁺.O1 = f.pullback(Y.O1) end
+  jˣ = vcat(X.(x) .* c, [i.pullback(f) for f in gens(AˣY)])
+  j_ = map_from_func(x -> Y⁺(jₓ(x)), X.ring, Y⁺.ring)
+  j = AbsVarietyHom(X, Y⁺, jˣ, j_)
+  return j
 end

@@ -6,44 +6,134 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Introduction
 
-In this chapter, we
-- introduce OSCAR tools which support computations in intersection theory, and
+A variety in this chapter is a smooth projective variety over the complex numbers. We will
+- present OSCAR tools which support computations in the intersection theory of varieties, and
 - give examples which illustrate how intersection theory is used to solve problems from enumerative geometry.
-The varieties we are interested in are smooth projective varieties over the complex numbers.
 
 !!! note
-    Making use of OSCAR, a first version of what we present here was written by Jeiao Song as a `julia` package.
+    A first version of what we present here was written by Jeiao Song as a separate `julia` package based on OSCAR.
     This package was "heavily inspired by the Macaulay2 package `Schubert2` and the `sage` library `Chow`.
 	Some functionalities from [the `sage` library] `Schubert3` are also implemented."
-    The authors of `Schubert2` are Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman
+    The authors of `Schubert2` are Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman,
     while `Chow` is due to Manfred Lehn and Christoph Sorger. `Schubert3` as well as the `Singular` library `schubert.lib` is due
     to Dang Tuan Hiep. All this work, including ours, is inspired by the `Maple` package `Schubert` written
     by Sheldon Katz and Stein A. Strømme.
 
-The starting point of the original `Schubert` package was the problem of enumerating twisted cubic curves
-on a general quintic hypersuface in $\mathbb P^4$, see [ES02](@cite). We quote from that paper:
+The starting point for developing the `Schubert` package was the problem of enumerating twisted cubic curves
+on a general quintic hypersurface in $\mathbb P^4$, see [ES02](@cite). We quote from that paper:
 
-> One way to approach enumerative problems is to find a suitable complete parameter space for the objects that one wants to count, and express the locus of objects satisfying given conditions as a certain zero-cycle on the parameter space. For this method to yield an explicit numerical answer, one needs in particular to be able to evaluate the degree of a given zerodimensional cycle class [(integration)]. This is possible in principle whenever the numerical intersection ring (cycles modulo numerical equivalence) of the parameter space is known, say in terms of generators and relations.
+> One way to approach enumerative problems is to find a suitable complete parameter space for the objects that one wants to count, and express the locus of objects satisfying given conditions as a certain zero-cycle on the parameter space. For this method to yield an explicit numerical answer, one needs in particular to be able to evaluate the degree of a given zerodimensional cycle class. This is possible in principle whenever the numerical intersection ring (cycles modulo numerical equivalence) of the parameter space is known, say in terms of generators and relations.
 
+There are several adequate equivalence relations on algebraic cycles leading to useful cycle theories. The most common relation to
+work with is rational equivalence which yields intersection rings called Chow rings. In contrast to this usual practice, we follow
+the authors of `Schubert` and consider numerical equivalence, allowing rational coefficients of cycle classes. That is, if $N^\ast(X)$
+is the numerical intersection ring of a variety $X$, we consider the ring
+
+$N^\ast(X)_{\mathbb Q} = N^\ast(X) \otimes_{\mathbb Z} {\mathbb Q},$
+
+which is graded by the codimension of cycles. In this chapter, the name *Chow ring* always refers to a ring of this type.
 
 !!! note
-    Following the authors of `Schubert`, we work with cycles modulo numerical equivalence rather than
-    rational equivalence. Nevertheless, abusing our notation, we refer to the resulting intersection rings as
-	Chow rings. These rings are graded by the codimension of cycles.
+    TODO: Why numerical intersection rings?
 
-As in `Schubert`, our approach is abstract in the sense that we do not work with explicit
-varieties given by equations. Instead, we represent a variety by specifying its
-dimension together with its Chow ring and, possibly, further data. We refer to such
+With respect to computations, again following `Schubert`, our approach is abstract in the
+sense that we do not work with explicit varieties given by equations. Instead, we specify the
+dimension of the variety together with its Chow ring and, possibly, further data. We refer to such
 a collection of data as an *abstract variety*, and to results obtained from manipulating
 the data as results which apply to all (smooth projective complex) varieties sharing the data. 
 
-Of particular interest is the tangent bundle of a variety (recall that the Todd class of the
+Of particular interest is the tangent bundle of a variety (the Todd class of the
 tangent bundle enters the Hirzebruch-Riemann-Roch formula). As with any other vector bundle,
 the tangent bundle is represented as a collection of data referred to as an *abstract vector bundle*.
-The main data here is the Chern character polynomial of the vector bundle.
+The main data here is the Chern character of the vector bundle.
 
-In the same spirit, we introduce  *abstract variety maps*. Their key ingredient is the pullback 
-morphism between the Chow rings.
+In the same spirit, we introduce  *abstract variety maps*. Their key data is the pullback 
+morphism between the respective Chow rings.
+
+Some comments on this set-up are in order:
+
+Let $X$ be a variety. Write $K^{\circ}(X)$  for the *Grothendieck group of vector bundles on $X$*. That is,
+$K^{\circ} (X)$ is the free abelian group generated by the isomorphy classes of vector bundles on $X$,
+modulo the relations of type $[E]=[E^{\prime}]-[E^{\prime \prime}]$, where $E$, $E^\prime$, and
+$ E^{\prime \prime}$ fit into an exact sequence
+$0\rightarrow E^\prime \rightarrow E \rightarrow E^{\prime \prime} \rightarrow 0$.
+The tensor product turns $K^{\circ}(X)$ into a ring,  the *Grothendieck ring of vector bundles on $X$*.
+By Riemann-Roch, the Chern character defines a ring isomorphism $\text{ch}: K^{\circ}(X)_{\mathbb Q}
+\overset{\simeq}\longrightarrow A^*(X) _{\mathbb Q}$, where $A^*(X)$ is obtained by considering cycles
+modulo rational equivalence. Since rational equivalence is (much) finer than
+numerical equivalence, we obtain a ring epimorphism
+
+$\text{ch}: K^{\circ}(X)_{\mathbb Q}
+\overset{\simeq}\longrightarrow A^*(X) _{\mathbb Q}\twoheadrightarrow N^*(X)_{\mathbb Q}.$
+
+!!! note
+    With notation as above, write $K_{\circ} (X)$  for the *Grothendieck group of coherent sheaves on $X$*.
+    Then, since $X$ is supposed to be smooth, the natural map $K^{\circ} (X)\rightarrow K_{\circ} (X)$ is an isomorphism
+	(every coherent sheaf on $X$ has a finite resolution by locally free sheaves). We may, thus, speak of coherent sheaves
+	given by *virtual vector bundles*, that is, by elements of $K^{\circ} (X)$. Hence,  we can use the concept of abstract
+	vector bundles also to infer information on coherent sheaves, with algebraic operations such as `-` or `*` being virtual.
+
+In many cases, we won't be able to compute the entire Chow ring: We will only be able to obtain information on a certain
+subring generated by some tautological classes. Therefore, we are then actually working with the class of all varieties
+sharing the same piece of tautological ring. We illustrate this by an example:
+
+```jldoctest
+julia> P3 = abstract_projective_space(3)
+AbstractVariety of dim 3
+
+julia> S1 = zero_locus_section(OO(P2, 3)) # cubic hypersurface in P3
+AbstractVariety of dim 2
+
+julia> basis(S1)
+3-element Vector{Vector{MPolyQuoRingElem}}: # only class in codimension 1 is hyperplane class
+ [1]
+ [h]
+ [h^2]
+
+julia> P2 = abstract_projective_space(2); # construct surface S2 by blowing up P2 in 6 points:
+
+julia> S2 = blow_up_points(P2, 6)
+AbstractVariety of dim 2
+
+julia> basis(S2)
+3-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [h, e[1], e[2], e[3], e[4], e[5], e[6]]  # more classes in codimension 1 here
+ [h^2]
+
+julia> e, h = gens(S2)[1:6], gens(S2)[end];
+
+julia> H = 3h - sum(e); # embeds S2 as cubic hypersurface into P3:
+
+julia> integral(H^2)
+3
+
+julia> euler_characteristic(OO(S2, H))
+4
+
+julia> f = map(S2, S1, [H]) # is isomorphism:
+
+julia> dim(f)
+0
+
+julia> chern_character(tangent_bundle(f))
+0
+
+```
+
+Although `f` is an isomorphism, applying the constructed pushforward map to the classes `e[i]` will
+yield a warning and not give a correct answer.
+
+!!! note
+    TODO: Improve the following. 
+    For a number of varieties which are of interest to us here, numerical equivalence coincides with rational equivalence.
+    In this case, the Chow ring coincides with the rational cohomology ring and can be completely computed, so problems
+	as above disappear. A nice consequence is that the Betti numbers of the Chow ring are exactly the (even) Betti numbers
+	of the variety itself, so we have an equality `sum(betti_numbers(X)) == euler_number(X)`.
+	The class of these varieties includes projective spaces, Grassmannians, homogeneous spaces for affine algebraic
+	groups (for example, flag varieties), and in general any variety with an affine stratification. Moreover, products,
+	projective bundles, and blowups with center in this class will remain in this class. Internally, we use
+	`set_special(X, :alg => true)` to declare that X satisfies this property.
 
 General textbooks offering details on theory and algorithms include: 
 - [EH16](@cite)

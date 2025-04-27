@@ -166,31 +166,28 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ## Integrating Chow Ring Elements
 
 ```@julia
-integral(x::Union{MPolyDecRingElem, MPolyQuoRingElem})
+integral(c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
-Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
+Given an element `c` of the Chow ring of an abstract variety, return the integral of `c`.
 
 !!! note
-    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest
-    degree part of `x` is returned (geometrically, this is the 0-dimensional part of `x`).
+    If the abstract variety has been given a point class, the integral will be an element of the coefficient ring of the Chow ring.
+    That is, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
+	of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
+	part of `c` is returned.
 
 ###### Examples
 
 ```jldoctest
-julia> G = abstract_grassmannian(2, 4)
-AbstractVariety of dim 4
+julia> G = abstract_grassmannian(2, 5)
+AbstractVariety of dim 6
 
-julia> Q = tautological_bundles(G)[2]
-AbstractBundle of rank 2 on AbstractVariety of dim 4
+julia> p = point_class(G)
+c[2]^3
 
-julia> E = symmetric_power(Q, 3)
-AbstractBundle of rank 4 on AbstractVariety of dim 4
-
-julia> # Lines on a general cubic hypersurface in P^3:
-
-julia> integral(top_chern_class(E))
-27
+julia> integral(p)
+1
 
 ```
 
@@ -210,6 +207,23 @@ h
 
 julia> integral(t^2*h^3+t*h)
 t^2
+
+```
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4)
+AbstractVariety of dim 4
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> E = symmetric_power(Q, 3)
+AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> # Lines on a general cubic hypersurface in P^3:
+
+julia> integral(top_chern_class(E))
+27
 
 ```
 
