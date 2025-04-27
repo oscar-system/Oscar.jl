@@ -431,11 +431,10 @@ function _fitting_isometries(
   else
     KNhat, _ = discrep\(kernel(_actN)[1])
     _CN, _ = centralizer(_actN(stabN)[1], _imN(_fHN))
-    @vprintln :ZZLatWithIsom 1 "Centralizer fitting isometries computed"
     _CN, _ = _actN\_CN
     CN, _ = discrep\_CN
-    @hassert :ZZLatWithIsom 1 is_normal_subgroup(KNhat, CN)
-    @hassert :ZZLatWithIsom 1 all(g -> g * _fN == _fN * g, gens(CN))
+    @hassert :ZZLatWithIsom 3 is_normal_subgroup(KNhat, CN)
+    @hassert :ZZLatWithIsom 3 all(g -> g * _fN == _fN * g, gens(CN))
     fNKN = _fN*KNhat
     m = gset(CN, (a, g) -> inv(g)*a*g, fNKN)
     reporb = QQMatrix[matrix(representative(a)) for a in orbits(m)]
@@ -708,7 +707,6 @@ function _primitive_extensions_generic(
 
   for k in pos_ord
     ok, ek, pk = is_prime_power_with_data(k)
-    @vprintln :ZZLatWithIsom 1 "Glue order: $(k)"
     # If k is a prime power, then we check whether any of the pk-primary part
     # of qM or qN is elementary (to make things faster)
     if ok
@@ -793,7 +791,6 @@ function _primitive_extensions_generic(
         # primitive extensions we consider, i.e. it is in bijection with the set
         # of (equivariant) gluings.
         reps = double_cosets(codomain(iso), iso(SM)[1], iso(SN)[1])
-        @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism class(es) of primitive extensions"
 
         for _g in reps
           g = iso\(representative(_g))
@@ -1749,7 +1746,6 @@ function equivariant_primitive_extensions(
   qN = discriminant_group(N)
   discN = discriminant_representation(N, orthogonal_group(N))
   OqfN, _ = image(discN)
-  @vprintln :ZZLatWithIsom 1 "Discriminant representation computed"
 
   qM, fqM = discriminant_group(M)
   if classification == :embsub || classification == :embemb

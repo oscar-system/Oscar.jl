@@ -23,11 +23,11 @@ We introduce two new structures
 
 The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
 and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
-$L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
+$L$ is an integer quadratic form, also known as $\mathbb Z$-lattice and $f$
 is an isometry of $L$. One of the main features of this project is the
 enumeration of isomorphism classes of pairs $(L, f)$, where $f$ is an isometry
-of finite order with at most two prime divisors. The methods we resort to
-for this purpose are developed in the paper [BH23](@cite).
+of finite order. The methods we resort to for this purpose are developed
+in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of integral lattices following Nikulin's theory. More precisely, the

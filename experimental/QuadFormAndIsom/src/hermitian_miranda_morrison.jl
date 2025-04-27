@@ -252,7 +252,7 @@ function _get_product_quotient(
     return v
   end
 
-  @v_do :ZZLatWithIsom 1 for i in 1:10
+  @v_do :ZZLatWithIsom 3 for i in 1:10
       a = rand(G)
       @hassert :ZZLatWithIsom 1 dlog(exp(a)) == a
     end
