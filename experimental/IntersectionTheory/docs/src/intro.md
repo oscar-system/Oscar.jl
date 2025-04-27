@@ -81,7 +81,7 @@ sharing the same piece of tautological ring. We illustrate this by an example:
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
-julia> S1 = zero_locus_section(OO(P2, 3)) # cubic hypersurface in P3
+julia> S1 = zero_locus_section(OO(P3, 3)) # cubic hypersurface in P3
 AbstractVariety of dim 2
 
 julia> basis(S1)
@@ -90,15 +90,15 @@ julia> basis(S1)
  [h]
  [h^2]
 
-julia> P2 = abstract_projective_space(2); # construct surface S2 by blowing up P2 in 6 points:
+julia> P2 = abstract_projective_space(2);
 
-julia> S2 = blow_up_points(P2, 6)
+julia> S2 = blow_up_points(P2, 6) # construct surface S2 by blowing up P2 in 6 points
 AbstractVariety of dim 2
 
-julia> basis(S2)
+julia> basis(S2) # more classes in codimension 1 here
 3-element Vector{Vector{MPolyQuoRingElem}}:
  [1]
- [h, e[1], e[2], e[3], e[4], e[5], e[6]]  # more classes in codimension 1 here
+ [h, e[1], e[2], e[3], e[4], e[5], e[6]]
  [h^2]
 
 julia> e, h = gens(S2)[1:6], gens(S2)[end];
