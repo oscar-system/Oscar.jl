@@ -376,6 +376,10 @@ Type of left/right transversals of subgroups in groups.
 Objects of this type are created by [`right_transversal`](@ref) and
 [`left_transversal`](@ref).
 
+- [`group(T::SubgroupTransversal)`](@ref) returns $G$.
+
+- [`acting_group(T::SubgroupTransversal)`](@ref) returns $H$.
+
 # Note for developers
 
 The elements are encoded via a right transversal object in GAP.
