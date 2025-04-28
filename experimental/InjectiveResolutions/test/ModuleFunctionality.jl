@@ -111,3 +111,16 @@ end
 
 end
 
+@testset "workaround for issue 4833" begin
+# get a MonoidAlgebra with a quotient ring as internal
+A = Oscar.MonoidAlgebra(R_Q)
+G = grading_group(A)
+
+F = graded_free_module(A, [zero(G)])
+I, inc = sub(F, push!([x*F[1] for x in gens(A)], zero(F)))
+J, inc = sub(F, [x*F[1] for x in gens(A)])
+
+coordinates(repres(J[1]), J)
+coordinates(repres(I[1]), I)
+end
+
