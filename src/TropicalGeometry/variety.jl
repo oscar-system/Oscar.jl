@@ -323,7 +323,7 @@ end
 #
 ################################################################################
 
-function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,QQFieldElem,<:Union{typeof(min),typeof(max)}})
+function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}})
 
     k,(a,_) = number_field(I)
     zk = maximal_order(k)
