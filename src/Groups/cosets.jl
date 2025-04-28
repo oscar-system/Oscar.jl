@@ -373,6 +373,10 @@ end
 
 Type of left/right transversals of subgroups in groups.
 
+For a group $G$ and a subgroup $H$ of $G$, the collection of right
+(resp. left) cosets of $H$ in $G$ is called a right (resp. left)
+transversal for $H$ in $G$.
+
 Objects of this type are created by [`right_transversal`](@ref) and
 [`left_transversal`](@ref).
 
