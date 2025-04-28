@@ -7,28 +7,21 @@ export wreath_macs
 
 #gives indices of a subarray
 function subarray_indices(sub,arr)
-  res = Int[]
-  for i in 1:length(sub)
-    push!(res,findfirst(x->x==sub[i],arr))
-  end
-  return res
+  return [findfirst(==(s), arr) for s in sub]
 end
 
-# Computes the b-invariant of a partition
-function b1(lambda::Vector{Int64})
-  if length(lambda)==0
-    return 0
-  end
-  return sum(i->(i-1)*lambda[i],1:length(lambda))
+# Computes the b-invariant
+function b1(lambda::Vector{Int})
+  return sum((i-1)*l_i for (i, l_i) in enumerate(lambda); init=0)
 end
 
 # Computes the b-invariant of a multipartition
-function btot(lbb::Multipartition)
+function b_inv(lbb::Multipartition)
   return b1(map(lambda -> sum(lambda)[1], lbb)) + length(lbb)*sum(i -> b1(data(lbb[i])),1:length(lbb))
 end
 
-function beta_number_to_partition(beta::Vector{Integer})
-  lb=Integer[]
+function beta_number_to_partition(beta::Vector{Int})
+  lb=Int[]
   lbeta=length(beta)
   for j in 1:lbeta
     nbholes=beta[j]-beta[1]-(j-1)
@@ -41,14 +34,14 @@ end
 
 # Residue notation is in terms of rows and columns
 
-function core(coroot::Vector{Int64},r::Integer)
-  beta=Integer[]
+function core(coroot::Vector{Int},r::Int)
+  beta=Int[]
   m=minimum(coroot)
   M=maximum(coroot)
   for k in m:M
     for j in 1:r
        if k <= coroot[j]
-          append!(beta, k*r+(j-1))
+          push!(beta, k*r+(j-1))
        end
     end
   end
@@ -58,7 +51,7 @@ end
 
 #Inspired by Sagemath's algorithm to obtain a partition from core and quotient
 
-function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int64})
+function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
    r=length(lbb)
    w0=perm([r-i for i in 0:(r-1)])
    wperm=inv(wperm)
@@ -85,7 +78,7 @@ end
 #Note also that \alpha^{\vee}_i=e_{i-1}-e_i.
 #The coroot lattice is thus the lattice of null sum elements in Z^I.
 
-function chev_to_osc(charTirr::Matrix{Cyc{Int64}}, r::Integer, K::AbsSimpleNumField)
+function chev_to_osc(charTirr::Matrix{Cyc{Int}}, r::Int, K::AbsSimpleNumField)
   l=size(charTirr)[1]
   res=AbsSimpleNumFieldElem[]
   a=gen(K)
@@ -107,9 +100,9 @@ function chev_to_osc(charTirr::Matrix{Cyc{Int64}}, r::Integer, K::AbsSimpleNumFi
 end
 
 #Reoders the CharTable from Chevie
-function reorder(charTirr::Matrix{Cyc{Int64}}, r::Integer, n::Integer, Modules::Vector{Multipartition{Int64}}, K::AbsSimpleNumField)
-  mps=collect(multipartitions(n,r))
-  new_ord=Int64[]
+function reorder(charTirr::Matrix{Cyc{Int}}, r::Int, n::Int, Modules::Vector{Multipartition{Int}}, K::AbsSimpleNumField)
+  mps=multipartitions(n,r)
+  new_ord=Int[]
     for lbb in mps
       i=findfirst(x-> x==lbb,Modules)
       push!(new_ord,i)
@@ -135,12 +128,12 @@ function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{Abst
       end
     end
   end
-  res=res*var^btot(lbb)
+  res=res*var^b_inv(lbb)
   return res
 end
 
 # computes C_Delta defined in PhD relation (1.45)
-function C_Delta(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
+function C_Delta(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
   G=complex_reflection_group(r,1,n)
   Modules=charinfo(G).charparams
   charTable=CharTable(G)
@@ -148,14 +141,15 @@ function C_Delta(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebr
   Modules=[multipartition(map(x->partition(x),lbb[1])) for lbb in Modules]
   l=length(Modules)
   charTirr=reorder(charTirr,r,n,Modules,K)
-  mult=collect(multipartitions(n,r))
+  charTirrT=solve_init(matrix(K,transpose(charTirr)))
+  mps=collect(multipartitions(n,r))
   rows=zero_matrix(Q,l,0)
   for i in 1:l
     col=zero_matrix(Q,l,1)
     for j in 1:l
       v=matrix(K,l,1,map(k->charTirr[i,k]*charTirr[j,k],1:l))
-      x=solve(matrix(K,transpose(charTirr)),v,side=:right)
-      col=col+fake_deg(mult[j],Q,var)*x
+      x=solve(charTirrT,v,side=:right)
+      col=col+fake_deg(mps[j],Q,var)*x
     end
     rows=hcat(rows,col)
   end
@@ -163,48 +157,38 @@ function C_Delta(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebr
 end
 
 # computes the character of the simple representations of the Cherednik algebra.
-function C_L(r::Integer, n::Integer, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
-  mps=collect(multipartitions(n,r))
-  l=length(mps)
+function C_L(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
   C_D=C_Delta(r,n,K,Q,var)
-  diag=[]
-  for i in 1:l
-    for j in 1:l
-      if i==j
-        push!(diag,var^btot(mps[i])//fake_deg(mps[i],Q,var))
-      else
-        push!(diag,0)
-      end
-    end
-  end
-  diag=matrix(Q,l,l,diag)
+  mps=multipartitions(n,r)
+  d = [var^b_inv(mp)//fake_deg(mp,Q,var) for mp in mps]
+  diag=diagonal_matrix(Q,d)
   return diag * C_D
 end
 
-function bigger_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int64})
+function bigger_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
   r=length(lbb)
   n=sum(lbb)
-  mps=collect(multipartitions(n,r))
+  mps=multipartitions(n,r)
   lbbquot=tau_om(lbb,wperm,coroot)
-  res=map(x->x.mp,filter(x-> dominates(tau_om(x,wperm,coroot),lbbquot),mps))
+  res=map(x->x.mp,Iterators.filter(x-> dominates(tau_om(x,wperm,coroot),lbbquot),mps))
   return res
 end
 
-function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int64})
+function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
   r=length(lbb)
   n=sum(lbb)
-  mps=collect(multipartitions(n,r))
+  mps=multipartitions(n,r)
   lbbquot=tau_om(lbb,wperm,coroot)
-  res=map(x->x.mp,filter(x-> dominates(lbbquot,tau_om(x,wperm,coroot)),mps))
+  res=map(x->x.mp,Iterators.filter(x-> dominates(lbbquot,tau_om(x,wperm,coroot)),mps))
   return res
 end
 
-function wreath_macs(n::Integer, r::Integer, wperm::PermGroupElem, coroot::Vector{Int64})
+function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
   K,_ = cyclotomic_field(r)
   R, (q,t) = polynomial_ring(K, [:q,:t])
   Q = fraction_field(R)
 
-  mps=collect(multipartitions(n,r))
+  mps=multipartitions(n,r)
   l=length(mps)
 
   c_L=C_L(r,n,K,Q,t)
@@ -231,26 +215,18 @@ function wreath_macs(n::Integer, r::Integer, wperm::PermGroupElem, coroot::Vecto
   end
   triv=multipartition(triv)
   index_triv=findfirst(x-> x==triv,mps)
-  diag=[]
-  for i in 1:l
-    for j in 1:l
-      if i==j
-        push!(diag,1//c_L_qt[i,index_triv])
-      else
-        push!(diag,Q(0))
-      end
-    end
-  end
-  diag=matrix(Q,l,l,diag)
+  d=[1//c_L_qt[i,index_triv] for i in 1:l]
+  #diag=[]
+  #for i in 1:l
+  #  for j in 1:l
+  #    if i==j
+  #      push!(diag,1//c_L_qt[i,index_triv])
+  #    else
+  #      push!(diag,Q(0))
+  #    end
+  #  end
+  #end
+  diag=diagonal_matrix(Q,d)
   c_L_qt_H=diag*c_L_qt
   return c_L_qt_H
 end
-
-#=
-#Example:
-n = 1
-r = 3
-wperm=@perm r (3,1,2)
-println(multipartitions(n,r))
-println(wreath_macs(n,r,wperm,[1,-1,0]))
-=#
