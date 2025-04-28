@@ -611,6 +611,7 @@ function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGr
     # The following works only because GAP does not check
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
+    @req pi !== GAP.Globals.fail "no permutation is induced by $g"
 
     return group_element(action_range(Omega), pi)
 end
