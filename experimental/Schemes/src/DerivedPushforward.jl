@@ -396,11 +396,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
     G = grading_group(S)
     cod = ring_as_hypercomplex(ctx)
     kosz = [shift(hom(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)]), cod)[-dimension(ctx, j)-1:-1], -1) for j in 1:number_of_factors(ctx)]
-    #kosz = [shift(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)])[0:dimension(ctx, j)], dimension(ctx, j)) for j in 1:number_of_factors(ctx)]
-    @show length(kosz)
-    @show kosz[1]
     K = total_complex(tensor_product(kosz))
-    #hom(K, graded_free_module(S, [zero(G)]))
     return K
   end
 end
@@ -447,15 +443,28 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
   @assert all(a <= b for (a, b) in zip(alpha, beta))
   return get!(ctx.inclusions, (alpha, beta)) do
     S = graded_ring(ctx)
-    delta = beta - alpha
-    x = prod(x^d for (x, d) in zip(gens(S), delta); init=one(S))
-    ca = ctx[alpha]
-    cb = ctx[beta]
-    mors = Dict{Tuple, ModuleFPHom}(
-                                    (i,) => hom(ca[i], cb[i], [x*g for g in gens(cb[i])])
-                                    for i in 0:prod(dimensions(ctx); init=1)
-                                   )
-    MorphismFromDict(ca, cb, mors)
+    c_alpha = ctx[alpha]::TotalComplex
+    c_beta = ctx[beta]::TotalComplex
+    c_alpha_orig = original_complex(c_alpha)::HCTensorProductComplex
+    c_beta_orig = original_complex(c_beta)::HCTensorProductComplex
+    facs = AbsHyperComplexMorphism[]
+    for (a_fac, b_fac, d) in zip(factors(c_alpha_orig), factors(c_beta_orig), dimensions(ctx))
+      # both a_fac and b_fac are shifted, truncated hom-complexes of Koszul complexes
+      a_fac_unshift = original_complex(a_fac::ShiftedHyperComplex)
+      b_fac_unshift = original_complex(b_fac::ShiftedHyperComplex)
+      a_fac_untrunc = original_complex(a_fac_unshift::HyperComplexView)
+      b_fac_untrunc = original_complex(b_fac_unshift::HyperComplexView)
+      a_kosz = domain(a_fac_untrunc::HomComplex)
+      b_kosz = domain(b_fac_untrunc::HomComplex)
+      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz)
+      ind_hom = hom(ind_kosz, codomain(a_fac_untrunc); domain=a_fac_untrunc, codomain=b_fac_untrunc)
+      ind_trunc = sub(ind_hom, -d-1:-1; domain=a_fac_unshift, codomain=b_fac_unshift)
+      ind_shift = shift(ind_trunc, [-1]; domain=a_fac, codomain=b_fac)
+      push!(facs, ind_shift)
+    end
+    tensor_map = tensor_product(facs; domain=c_alpha_orig, codomain=c_beta_orig)
+    tot_map = total_complex(tensor_map; domain=c_alpha, codomain=c_beta)
+    tot_map
   end
 end
 
