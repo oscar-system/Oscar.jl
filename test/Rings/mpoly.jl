@@ -91,6 +91,10 @@ end
   @test saturation(I) == saturation(I, J)
   @test saturation_with_index(I) == (ideal(R, [x]), 2)
   @test saturation_with_index(I) == saturation_with_index(I, J)
+  # issue 4840
+  I = ideal(R, [x^5*y])
+  J = ideal(R, [x^2])
+  @test saturation(I, J) = ideal(R, [y])
 
   @test I != J
   RR, (xx, yy) = grade(R, [1, 1])
