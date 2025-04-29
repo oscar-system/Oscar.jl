@@ -162,3 +162,45 @@ mutable struct MapLifter{MorphismType} <: HyperComplexMorphismFactory{MorphismTy
   end
 end
 
+# Induced maps for Koszul complexes
+struct InducedKoszulMorFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  dom::HomogKoszulComplex
+  cod::HomogKoszulComplex
+  A::SMat # the transition matrix between the generators
+
+  function InducedKoszulMorFactory(
+      dom::HomogKoszulComplex,
+      cod::HomogKoszulComplex,
+      A::SMat
+    )
+    return new{ModuleFPHom}(dom, cod, A)
+  end
+end
+
+@attributes mutable struct InducedKoszulMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedKoszulMorphism{DomainType, CodomainType, MorphismType}}
+  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
+
+  function InducedKoszulMorphism(
+      dom::HomogKoszulComplex,
+      cod::HomogKoszulComplex;
+      transition_matrix::SMat=begin
+        S = ring(dom)
+        a = sequence(cod)
+        b = sequence(dom)
+        a_ideal = ideal(S, a)
+        c = sparse_matrix(S, 0, length(a))
+        for f in b
+          push!(c, coordinates(SRow, f, a_ideal))
+        end
+        c
+      end
+    )
+    map_factory = InducedKoszulMorFactory(dom, cod, transition_matrix)
+
+    # Assuming that the domain `dom` and the codomain `cod` have 
+    # been extracted from the input
+    internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
+    # Assuming that the types have been extracted from the input
+    return new{typeof(dom), typeof(cod), ModuleFPHom}(internal_morphism)
+  end
+end
