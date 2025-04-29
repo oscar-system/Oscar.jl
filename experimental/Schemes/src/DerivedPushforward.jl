@@ -348,6 +348,7 @@ mutable struct PushForwardCtx
   cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
   cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  S1::AbsHyperComplex
 
   function PushForwardCtx(S::MPolyRing)
     G = grading_group(S)
@@ -381,15 +382,26 @@ number_of_factors(ctx::PushForwardCtx) = length(ctx.variable_groups)
 dimensions(ctx::PushForwardCtx) = ctx.dims
 dimension(ctx::PushForwardCtx, i::Int) = ctx.dims[i]
 
+function ring_as_hypercomplex(ctx::PushForwardCtx)
+  if !isdefined(ctx, :S1)
+    S = graded_ring(ctx)
+    ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
+  end
+  return ctx.S1
+end
+
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
   return get!(ctx.truncated_cech_complexes, alpha) do
     S = graded_ring(ctx)
     G = grading_group(S)
-    kosz = [shift(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)])[0:dimension(ctx, j)], dimension(ctx, j)) for j in 1:number_of_factors(ctx)]
+    cod = ring_as_hypercomplex(ctx)
+    kosz = [shift(hom(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)]), cod)[-dimension(ctx, j)-1:-1], -1) for j in 1:number_of_factors(ctx)]
+    #kosz = [shift(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)])[0:dimension(ctx, j)], dimension(ctx, j)) for j in 1:number_of_factors(ctx)]
     @show length(kosz)
     @show kosz[1]
     K = total_complex(tensor_product(kosz))
-    hom(K, graded_free_module(S, [zero(G)]))
+    #hom(K, graded_free_module(S, [zero(G)]))
+    return K
   end
 end
 
@@ -401,8 +413,8 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
     Dict{typeof(d), AbsHyperComplex}()
   end
   return get!(strands, d) do
-    offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
-    strand(ctx[alpha], offset+d)[1]
+    #offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
+    strand(ctx[alpha], d)[1]
   end
 end
 
