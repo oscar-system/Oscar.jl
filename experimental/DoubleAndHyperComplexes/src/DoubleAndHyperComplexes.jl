@@ -31,6 +31,10 @@ include("Exports.jl")
 
 include("Morphisms/new_koszul_complexes.jl")
 include("Morphisms/induced_homs.jl")
+include("Morphisms/tensor_product.jl")
+include("Morphisms/shifted_complexes.jl")
+include("Morphisms/views.jl")
+include("Morphisms/total_complexes.jl")
 include("base_change_types.jl")
 include("base_change.jl")
 
