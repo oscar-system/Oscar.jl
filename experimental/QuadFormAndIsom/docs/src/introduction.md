@@ -115,7 +115,7 @@ Integer lattice of rank 2 and degree 2
 julia> Oscar.to_oscar(Lf)
 B = matrix(QQ, 2, 2, [1 0; 0 1]);
 G = matrix(QQ, 2, 2, [1 0; 0 1]);
-L = integer_lattice(B, gram = G);
+L = integer_lattice(B; gram=G);
 f = matrix(QQ, 2, 2, [-1 0; 0 -1]);
 Lf = integer_lattice_with_isometry(L, f);
 ```

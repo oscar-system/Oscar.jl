@@ -636,7 +636,7 @@ function _primitive_extensions_generic(
     !is_divisible_by(numerator(gcd(det(M), det(N))), glue_order) && return false, results
     if !isnothing(q)
       @req modulus_bilinear_form(q) == 1 "q does not define the discriminant form of an integral lattice"
-      glue_order^2*order(q) == det(M)*det(N) || return false, results
+      glue_order^2*order(q) == abs(det(M)*det(N)) || return false, results
       aM, _, bM = signature_tuple(M)
       aN, _, bN = signature_tuple(N)
       !is_genus(q, (aM+aN, bM+bN); parity) && return false, results
