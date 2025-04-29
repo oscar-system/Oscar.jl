@@ -22,6 +22,8 @@
   :dual_graph,
   :estimated_number_of_triangulations,
   :euler_characteristic,
+  :exceptional_classes,
+  :exceptional_divisor_indices,
   :g4_flux_tuple_list,
   :gauge_algebra,
   :generating_sections,
