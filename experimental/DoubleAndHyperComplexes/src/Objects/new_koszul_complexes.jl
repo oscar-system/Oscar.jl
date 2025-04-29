@@ -49,7 +49,7 @@ function (fac::HomogKoszulComplexMapFactory)(self::AbsHyperComplex, p::Int, I::T
   cfac = chain_factory(self)
   n = length(cfac.seq)
   dom = self[I]
-  cod = self[i+1]
+  cod = self[i-1]
   img_gens = elem_type(cod)[]
   inds = [Combination([k]) for k in 1:n]
   for omi in combinations(n, i)
@@ -67,7 +67,7 @@ end
 
 function can_compute(fac::HomogKoszulComplexMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   isone(p) || return false
-  return 0 <= first(i) < length(chain_factory(self).seq)
+  return 0 < first(i) <= length(chain_factory(self).seq)
 end
 
 ### The concrete struct
@@ -81,7 +81,7 @@ end
     map_fac = HomogKoszulComplexMapFactory(R)
 
     # Assuming d is the dimension of the new complex
-    internal_complex = HyperComplex(1, chain_fac, map_fac, [:cochain],
+    internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
                                     upper_bounds=Union{Int, Nothing}[length(seq)],
                                     lower_bounds=Union{Int, Nothing}[0]
                                    )
@@ -92,3 +92,8 @@ end
 
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::HomogKoszulComplex) = c.internal_complex
+
+# additional getters
+ring(c::HomogKoszulComplex) = chain_factory(c).S
+sequence(c::HomogKoszulComplex) = chain_factory(c).seq
+ngens(c::HomogKoszulComplex) = length(sequence(c))
