@@ -20,6 +20,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
 end
 
 function Base.show(io::IO, dpr::DifferencePolyRing)
+  io = pretty(io)
   if is_terse(io)
     print(io, "Difference polynomial ring")
   else
@@ -44,9 +45,20 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
 end
 
 function Base.show(io::IO, dpr::DifferentialPolyRing)
+  io = pretty(io)
   if is_terse(io)
     print(io, "Differential polynomial ring")
   end
   print(terse(io), "Differential polynomial ring in $(nelemvars(dpr)) elementary variables over ")
   print(terse(io), base_ring(dpr))
 end
+
+### JetVariable ###
+
+function Base.show(io::IO, jv::JetVariable)
+  io = pretty(io)
+  print(io, string(symbols(jv)) * "[")
+  join(io, index(jv))
+  print(io, "]")
+end
+
