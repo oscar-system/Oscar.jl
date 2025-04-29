@@ -29,6 +29,8 @@ include("Morphisms/methods.jl")
 include("Objects/Methods.jl")
 include("Exports.jl")
 
+include("Morphisms/new_koszul_complexes.jl")
+include("Morphisms/induced_homs.jl")
 include("base_change_types.jl")
 include("base_change.jl")
 
