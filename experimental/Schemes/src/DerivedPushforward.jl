@@ -468,3 +468,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
   end
 end
 
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
+  return strand(ctx[alpha, beta], d)
+end
+
