@@ -230,7 +230,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, h::HypersurfaceModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", h::HypersurfaceModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(h)
     push!(properties_string, "Partially resolved hypersurface model over a")
@@ -243,4 +245,9 @@ function Base.show(io::IO, h::HypersurfaceModel)
     push!(properties_string, "not fully specified base")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, h::HypersurfaceModel)
+  print(io, "Hypersurface model")
 end

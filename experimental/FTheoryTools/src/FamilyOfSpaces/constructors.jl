@@ -48,6 +48,13 @@ family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) =
 # 2: Display
 #####################################################################
 
-function Base.show(io::IO, f::FamilyOfSpaces)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", f::FamilyOfSpaces)
+  io = pretty(io)
   print(io, "A family of spaces of dimension d = $(dim(f))")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, f::FamilyOfSpaces)
+  print(io, "A family of spaces")
 end
