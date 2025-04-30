@@ -830,8 +830,9 @@ and `T` is a suitable group type such as
 `PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`.
 
 !!! note
-    For historical reasons and backwards compatibility, `quaternion_group` is an alias
-    of `dicyclic_group`. The two functions are fully identical.
+    In the literature, these groups are sometimes called dicyclic groups and
+    sometimes (generalized) quaternion groups. For user convenience we support
+    both names. However, the two functions are fully identical. 
 
 # Examples
 ```jldoctest
@@ -871,6 +872,15 @@ end
 Return `true` if `G` is isomorphic to a dicyclic group
 of order $4k, k > 1$, and `false` otherwise.
 
+!!! note
+    In the literature, these groups are sometimes called dicyclic groups and
+    sometimes (generalized) quaternion groups. For user convenience we support
+    both names. However, the two functions are fully identical.
+    
+    If you wish to check that `G` is a quaternion group in a stricter sense,
+    e.g. that its order exactly 8 resp. a power of two, you can check
+    check the order explicitly resp. use `is_pgroup`.
+
 # Examples
 ```jldoctest
 julia> is_dicyclic_group(small_group(8, 3))
@@ -882,7 +892,6 @@ true
 """
 is_dicyclic_group(G::GAPGroup) = _is_dicyclic_group(G)
 
-# TODO: Remove once IsDicyclicGroup from GAP is available.
 function _is_dicyclic_group(G::GAPGroup)
   N = order(G)
   !iszero(mod(N, 4)) && return false
