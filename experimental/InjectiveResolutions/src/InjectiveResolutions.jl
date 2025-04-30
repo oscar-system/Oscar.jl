@@ -1533,10 +1533,29 @@ end
 # TODO: For modules over polynomial rings this should make 
 # use of the `dim` in Singular. But this does not seem 
 # to be available as of yet.
-function dim(M::ModuleFP)
+@attr Int function dim(M::ModuleFP)
   ann = annihilator(M)
   return dim(ann)
 end
+
+function dim(F::FreeMod)
+  return dim(base_ring(F))
+end
+
+#= to be enabled, once #861 is merged in Singular.jl
+@attr Int function dim(M::SubquoModule{T}) where {CT<:FieldElem, T<:MPolyRingElem}
+  F = ambient_free_module(M)
+
+  if !all(repres(v) == F[i] for (i, v) in enumerate(gens(M)))
+    MM, _ = present_as_cokernel(M)
+    return dim(MM)
+  end
+
+  gb = groebner_basis(M.quo)
+  return Singular.dimension(singular_generators(gb))
+end
+=#
+
 
 function jacobian(I::Ideal)
   R = base_ring(I)
