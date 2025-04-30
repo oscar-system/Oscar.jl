@@ -356,6 +356,7 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T} = ideal(base_ring(I), gen
   # respect to principal ideals
   if is_known(is_principal, I) && is_principal(I) && is_known(is_principal, J) && is_principal(J)
     is_unit(principal_generator(I)) && return I
+    is_gen(principal_generator(I)) && ideal(remove(principal_generator(I), principal_generator(J))[2]) # catches a special case in strict transforms of toric blowups 
     return ideal(ppio(principal_generator(I), principal_generator(J))[2])
   end
 
@@ -2528,4 +2529,13 @@ function principal_generator(I::MPolyIdeal{T}) where {T}
   @req is_principal(I) "ideal is not principal" # sets the attribute in particular
   return get_attribute(I, :principal_generator)::T
 end
-
+ 
+ # This is a catchall method which should probably be moved elsewher
+ function is_gen(a::MPolyRingElem)
+   is_zero(a) && return false
+   !is_one(length(a)) && return false
+   e = only(AbstractAlgebra.exponent_vectors(a))
+   i = findfirst(is_one, e)
+   isnothing(i) && return false
+   return all(k == i || is_zero(n) for (k, n) in enumerate(e))
+ end
