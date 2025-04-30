@@ -22,7 +22,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -56,7 +56,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -90,7 +90,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -123,7 +123,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -142,7 +142,7 @@ offset(gf::FamilyOfG4Fluxes) = gf.offset
 @doc raw"""
     d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Return the d3-tapdole constraint of a family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
+Return the d3-tapdole constraint of Family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
 is $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$.
 
 Note that the family of fluxes is specified by linear combination of cohomology classes, some with rational
@@ -158,7 +158,7 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> fgs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: broken

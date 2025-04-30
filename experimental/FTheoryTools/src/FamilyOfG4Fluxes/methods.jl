@@ -24,7 +24,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -167,7 +167,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed

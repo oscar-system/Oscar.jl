@@ -32,7 +32,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -79,7 +79,7 @@ end
 # Detailed printing
 function Base.show(io::IO, ::MIME"text/plain", gf::FamilyOfG4Fluxes)
   io = pretty(io)
-  properties_string = ["A family of G4 fluxes:"]
+  properties_string = ["Family of G4 fluxes:"]
 
   # Check for elementary quantization checks
   if has_attribute(gf, :is_well_quantized) && get_attribute(gf, :is_well_quantized) !== nothing
@@ -127,5 +127,5 @@ end
 
 # Terse and one line printing
 function Base.show(io::IO, g4::FamilyOfG4Fluxes)
-  print(io, "A family of G4 fluxes")
+  print(io, "Family of G4 fluxes")
 end
