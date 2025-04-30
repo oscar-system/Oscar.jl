@@ -175,7 +175,7 @@ Relative Gröbner / standard bases are also supported.
   quo_GB::ModuleGens{T} # Pointer to the quotient GB when having a relative GB
 
   function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T <: AdmissibleModuleFPRingElem}
-    #any(is_zero, O) && error("generators must not be zero")
+    any(is_zero, O) && error("generators must not be zero")
     r = new{T}()
     r.O = O
     r.F = F

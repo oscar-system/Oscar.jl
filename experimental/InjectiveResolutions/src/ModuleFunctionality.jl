@@ -61,51 +61,26 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
   return res
 end
 
-function lift_std(MM::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  ind, M = _clean_module_gens(MM)
+function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   singular_assure(M)
   R = base_ring(M)
-  #any(is_zero, oscar_generators(M)) && error("lift_std crashes for generating systems with a zero element")
+  any(is_zero, oscar_generators(M)) && error("lift_std crashes for generating systems with a zero element")
   G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
   mg = ModuleGens(M.F, G)
   mg.isGB = true
   mg.S.isGB = true
   mg.ordering = default_ordering(M.F)
   mat = map_entries(R, transpose(Trans_mat))
-  new_mat = zero_matrix(R, nrows(mat), ngens(MM))
-  for i in 1:nrows(mat)
-    for j in 1:ncols(mat)
-      new_mat[i, ind[j]] = mat[i, j]
-    end
-  end
-  set_attribute!(mg, :transformation_matrix => new_mat)
-  return mg, new_mat
+  set_attribute!(mg, :transformation_matrix => mat)
+  return mg, mat
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
-  #M = ModuleGens(M.O, M.F, ordering)
+  M = ModuleGens(M.O, M.F, ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
 end
-
-# The following is a temporary workaround to avoid zero generators. 
-# See issue #4833: Zero generators cause `lift_std` to crash badly.
-# Once that issue is resolved, this should be removed. 
-@attr Tuple{Vector{Int}, T} function _clean_module_gens(M::T) where {T <: ModuleGens}
-  !any(is_zero, oscar_generators(M)) && return Int[i for i in 1:ngens(M)], M
-  ind = Int[]
-  F = M.F
-  clean_gens = elem_type(F)[]
-  for (i, g) in enumerate(oscar_generators(M))
-    is_zero(g) && continue
-    push!(ind, i)
-    push!(clean_gens, g)
-  end
-  return ind, ModuleGens(clean_gens, F)
-end
-
-
 
 function sparse_row(
     A::MonoidAlgebra{<:FieldElem, <:MPolyRing}, 
