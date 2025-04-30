@@ -38,7 +38,7 @@ julia> d = 3
 3
 
 julia> f = family_of_spaces(coord_ring, grading, d)
-A family of spaces of dimension d = 3
+Family of spaces of dimension d = 3
 ```
 """
 family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) = FamilyOfSpaces(coordinate_ring, grading, dim)
@@ -51,10 +51,10 @@ family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) =
 # Detailed printing
 function Base.show(io::IO, ::MIME"text/plain", f::FamilyOfSpaces)
   io = pretty(io)
-  print(io, "A family of spaces of dimension d = $(dim(f))")
+  print(io, "Family of spaces of dimension d = $(dim(f))")
 end
 
 # Terse and one line printing
 function Base.show(io::IO, f::FamilyOfSpaces)
-  print(io, "A family of spaces")
+  print(io, "Family of spaces")
 end

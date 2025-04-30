@@ -98,7 +98,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 
 julia> coordinate_ring(v)
 Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
