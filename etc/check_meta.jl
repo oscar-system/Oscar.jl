@@ -7,17 +7,18 @@ function (@main)(_)
   issues = String[]
   meta = """```@meta
   CurrentModule = Oscar
+  CollapsedDocStrings = true
   DocTestSetup = Oscar.doctestsetup()
   ```
   """
+  meta_n_lines = count('\n', meta)
   oscardir = normpath(@__DIR__, "..")
   for (dir, _, files) in walkdir(oscardir)
-    @show dir
     contains(dir, "docs/src") || continue
     for file in files
       endswith(file, ".md") || continue
       path = joinpath(dir, file)
-      if read(`head -n4 $path`, String) != meta
+      if read(`head -n$(meta_n_lines) $(path)`, String) != meta
         push!(issues, path)
       end
     end
