@@ -469,6 +469,11 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
 end
 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
-  return strand(ctx[alpha, beta], d)
+  if all(a <= b for (a, b) in zip(alpha, beta))
+    return strand(ctx[alpha, beta], d)
+  elseif all(a >= b for (a, b) in zip(alpha, beta))
+    return SummandProjection(ctx[beta, alpha, d])
+  end
+  error("neither sector is fully contained in the other")
 end
 
