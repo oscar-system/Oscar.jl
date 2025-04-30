@@ -439,8 +439,6 @@ struct IrrRes # irreducible resolution (including all computed data and the coch
   cochain_complex::ComplexOfMorphisms # if sequence not exact return trivial cochain_complex (M0 -> M0)
 end
 
-
-
 #direct sum of two injective modules over the same monoid algebra
 function +(I::InjMod, J::InjMod)
   @req I.monoid_algebra == J.monoid_algebra "monoid algebras not the same"

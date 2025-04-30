@@ -2,6 +2,8 @@ export local_cohomology
 export local_cohomology_all
 export zeroth_local_cohomology
 export lc_zero
+export SectorPartitionLC
+export get_scalar_matrix 
 
 # data structures
 struct SectorLC
@@ -11,13 +13,13 @@ struct SectorLC
   H::Generic.QuotientModule
 end
 mutable struct SectorPartitionLC
-  M::MonoidAlgebraModule
+  M::SubquoModule{<:MonoidAlgebraElem}
   i::Int
   I::MonoidAlgebraIdeal
   sectors::Vector{SectorLC}
   maps::Vector{Tuple{SectorLC,SectorLC,Generic.ModuleHomomorphism}}
 
-  function SectorPartitionLC(M::MonoidAlgebraModule, i::Int, I::MonoidAlgebraIdeal)
+  function SectorPartitionLC(M::SubquoModule{<:MonoidAlgebraElem}, i::Int, I::MonoidAlgebraIdeal)
     return new(
       M,
       i,
@@ -67,7 +69,7 @@ function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
     join(gens(SP.I), ", "),
     ") of ",
   )
-  println(io, " ", SP.M.mod)
+  println(io, " ", SP.M)
 end
 
 @doc raw"""
@@ -138,10 +140,10 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
   end
 
   #get maps _phi: J^{i-1} -> J^i and _psi: J^i -> J^{i+1}
-  _phi = get_scalar_matrix(kQ.algebra, inj_res.cochain_maps[i])
+  _phi = get_scalar_matrix(kQ, inj_res.cochain_maps[i])
 
   if inj_res.upto > i
-    _psi = get_scalar_matrix(kQ.algebra, inj_res.cochain_maps[i + 1])
+    _psi = get_scalar_matrix(kQ, inj_res.cochain_maps[i + 1])
   else # map is zero 
     _psi = matrix(k, zeros(k, length(Ji.indec_injectives), 1))
   end
@@ -193,10 +195,10 @@ by graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 2 
   2: x_1^4*x_2*e[1]
 ```
 """
-function zeroth_local_cohomology(M::MonoidAlgebraModule, I::MonoidAlgebraIdeal)
+function zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
   #apply gamma_I to M -> corresponds to the saturation (0_M : I^\infty)
-  zeroM = sub(M.mod, [zero(M.mod)])[1]
-  return saturation(zeroM, underlying_ideal(I))
+  zeroM = sub(M, [zero(M)])[1]
+  return saturation(zeroM, I)
 end
 
 @doc raw"""
@@ -260,13 +262,13 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
   kQ = I_M.monoid_algebra
 
   #compute injective resolution
-  inj_res, _ = injective_res(I_M, i+1)
+  inj_res = injective_res(I_M, i+1)
 
   #compute a sector partition of H^j_I(M) for 1 \leq j \leq i
   H = Vector{SectorPartitionLC}()
   for j in 1:i
-    _phi = get_scalar_matrix(kQ.algebra, inj_res.cochain_maps[j])
-    _psi = get_scalar_matrix(kQ.algebra, inj_res.cochain_maps[j + 1])
+    _phi = get_scalar_matrix(kQ, inj_res.cochain_maps[j])
+    _psi = get_scalar_matrix(kQ, inj_res.cochain_maps[j + 1])
     Jj = inj_res.inj_mods[j]
     Jj_1 = inj_res.inj_mods[j + 1]
     Jj_2 = inj_res.inj_mods[j + 2]
@@ -283,16 +285,13 @@ end
 
 # given a matrix with entries in a MPolyDecRing or a MPolyQuoRing, return the matrix with the corresponding scalar coefficients
 @doc raw"""
-  get_scalar_matrix(R::Union{MPolyQuoRing,MPolyDecRing}, M)
+  get_scalar_matrix(A::MonoidAlgebra, M)
 
 Given a monomial matrix, return the corresponding coefficient matrix. 
 """
-function get_scalar_matrix(R::Union{MPolyQuoRing,MPolyDecRing}, M)
-  k = coefficient_ring(R)
-
-  # define map f_k:k[Q] -> k that maps monomials in k[Q] to their coefficient in k
-  f_k = hom(R, k, ones(elem_type(k), ngens(R)))
-  return map(f_k, M)
+function get_scalar_matrix(A::MonoidAlgebra, M)
+  k = coefficient_ring(A)
+  return map(x -> evaluate(x,ones(elem_type(k),ngens(A))), M)
 end
 
 # given a monoid algebra k[Q] compute linear functions \tau_1,...,\tau_n that define Q. 
