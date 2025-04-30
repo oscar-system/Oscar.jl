@@ -51,7 +51,7 @@ function can_compute(fac::StrandMorphismFactory, c::AbsHyperComplex, p::Int, i::
 end
 
 ### User facing constructor
-function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:ModuleFP}
+function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:SparseFPModule}
   result = StrandComplex(c, d)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc

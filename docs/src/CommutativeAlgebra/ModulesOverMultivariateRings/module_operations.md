@@ -10,35 +10,35 @@ CollapsedDocStrings = true
 ### Kernel
 
 ```@docs
-kernel(a::ModuleFPHom)
+kernel(a::SparseFPModuleHom)
 ```
 
 ### Image
 
 ```@docs
-image(a::ModuleFPHom)
+image(a::SparseFPModuleHom)
 ```
 
 ### Cokernel
 
 ```@docs
-cokernel(a::ModuleFPHom)
+cokernel(a::SparseFPModuleHom)
 ```
 
 ## Direct Sums and Products
 
 ```@docs
-direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
+direct_sum(M::SparseFPModule{T}, Ms::SparseFPModule{T}...; task::Symbol = :sum) where T
 ```
 
 ```@docs
-direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+direct_product(M::SparseFPModule{T}, Ms::SparseFPModule{T}...; task::Symbol = :prod) where T
 ```
 
 ## Truncation
 
 ```@docs
-truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
+truncate(M::SparseFPModule, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 ```
 
 ## Twists
@@ -46,5 +46,5 @@ truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 In the graded case, we have:
 
 ```@docs
-twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
+twist(M::SparseFPModule{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
 ```

@@ -25,8 +25,8 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
-  projection_dictionary = IdDict{Int,ModuleFPHom}()
-  injection_dictionary = IdDict{Int,ModuleFPHom}()
+  projection_dictionary = IdDict{Int,SparseFPModuleHom}()
+  injection_dictionary = IdDict{Int,SparseFPModuleHom}()
   ranges = sizehint!(Vector{UnitRange{Int}}(), length(F))
   i=0
   for x in F
@@ -63,7 +63,7 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
 end
 
 @doc raw"""
-    direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
+    direct_product(M::SparseFPModule{T}...; task::Symbol = :prod) where T
 
 Given modules $M_1\dots M_n$, say, return the direct product $\prod_{i=1}^n M_i$.
 
@@ -73,10 +73,10 @@ Additionally, return
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+function direct_product(M::SparseFPModule{T}, Ms::SparseFPModule{T}...; task::Symbol = :prod) where T
   return direct_product([M, Ms...]; task)
 end
-function direct_product(M::Vector{<:ModuleFP{T}}; task::Symbol = :prod) where T
+function direct_product(M::Vector{<:SparseFPModule{T}}; task::Symbol = :prod) where T
   F, pro, mF = direct_product([ambient_free_module(x) for x = M], task = :both)
   s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...))
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
@@ -85,8 +85,8 @@ function direct_product(M::Vector{<:ModuleFP{T}}; task::Symbol = :prod) where T
     s, pro_quo = quo(s, q)
   end
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
-  projection_dictionary = IdDict{Int,ModuleFPHom}()
-  injection_dictionary = IdDict{Int,ModuleFPHom}()
+  projection_dictionary = IdDict{Int,SparseFPModuleHom}()
+  injection_dictionary = IdDict{Int,SparseFPModuleHom}()
   ranges = sizehint!(Vector{UnitRange{Int}}(), length(M))
   i=0
   for x in M
@@ -138,7 +138,7 @@ end
 # direct sum
 ##################################################
 @doc raw"""
-    direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where T
+    direct_sum(M::SparseFPModule{T}...; task::Symbol = :sum) where T
 
 Given modules $M_1\dots M_n$, say, return the direct sum $\bigoplus_{i=1}^n M_i$.  
  
@@ -148,10 +148,10 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
+function direct_sum(M::SparseFPModule{T}, Ms::SparseFPModule{T}...; task::Symbol = :sum) where T
   return direct_sum([M, Ms...]; task)
 end
-function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :sum) where T
+function direct_sum(M::Vector{<:SparseFPModule{T}}; task::Symbol = :sum) where T
   res = direct_product(M...; task)
   if task == :sum || task == :prod
     ds, f = res
@@ -167,29 +167,29 @@ function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :sum) where T
   end
 end
 
-⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
+⊕(M::SparseFPModule...) = direct_sum(M..., task = :none)
 
 @doc raw"""
-    canonical_injections(G::ModuleFP)
+    canonical_injections(G::SparseFPModule)
 
 Return the canonical injections from all components into $G$
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function canonical_injections(G::ModuleFP)
+function canonical_injections(G::SparseFPModule)
   H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
   return [canonical_injection(G, i) for i in 1:length(H)]
 end
 
 @doc raw"""
-    canonical_injection(G::ModuleFP, i::Int)
+    canonical_injection(G::SparseFPModule, i::Int)
 
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function canonical_injection(G::ModuleFP, i::Int)
+function canonical_injection(G::SparseFPModule, i::Int)
   H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
-  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int,ModuleFPHom}
+  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int,SparseFPModuleHom}
   return get!(injection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)
@@ -199,26 +199,26 @@ function canonical_injection(G::ModuleFP, i::Int)
 end
 
 @doc raw"""
-    canonical_projections(G::ModuleFP)
+    canonical_projections(G::SparseFPModule)
 
 Return the canonical projections from $G$ to all components
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function canonical_projections(G::ModuleFP)
+function canonical_projections(G::SparseFPModule)
   H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
   return [canonical_projection(G, i) for i in 1:length(H)]
 end
 
 @doc raw"""
-    canonical_projection(G::ModuleFP, i::Int)
+    canonical_projection(G::SparseFPModule, i::Int)
 
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function canonical_projection(G::ModuleFP, i::Int)
+function canonical_projection(G::SparseFPModule, i::Int)
   H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
-  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int,ModuleFPHom}
+  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int,SparseFPModuleHom}
   return get!(projection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)

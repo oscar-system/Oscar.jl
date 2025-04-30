@@ -1,10 +1,10 @@
 
-function length(M::ModuleFP{RingElemType}) where {RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
+function length(M::SparseFPModule{RingElemType}) where {RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   return length(composition_series(M))
 end
 
 @attr Vector{elem_type(M)} function composition_series(
-    M::ModuleFP{RingElemType}
+    M::SparseFPModule{RingElemType}
   ) where {RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   if iszero(M) 
     return Vector{elem_type(M)}()
@@ -39,7 +39,7 @@ end
 # standard-basis computations, cf. _vdim_hack(I::MPolyIdeal).
 
 function composition_series(
-        M::ModuleFP{T}
+        M::SparseFPModule{T}
     ) where {
              T<:MPolyLocRingElem{<:Field, <:FieldElem, 
                                        <:MPolyRing, <:MPolyRingElem,
@@ -50,7 +50,7 @@ function composition_series(
 end
 
 function composition_series(
-        M::ModuleFP{T}
+        M::SparseFPModule{T}
     ) where {
              T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, 
                                           <:MPolyRing, <:MPolyRingElem,
@@ -61,7 +61,7 @@ function composition_series(
 end
 
 function length(
-        M::ModuleFP{RingElemType}
+        M::SparseFPModule{RingElemType}
     ) where {
              RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, 
                                                 <:MPolyComplementOfKPointIdeal

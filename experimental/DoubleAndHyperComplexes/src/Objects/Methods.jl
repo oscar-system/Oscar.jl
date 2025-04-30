@@ -86,7 +86,7 @@ is_complete(C::ComplexOfMorphisms) = C.complete
 
 ### cached homology
 
-function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: SparseFPModule}
   if !isdefined(c, :kernel_cache) 
     c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
@@ -107,7 +107,7 @@ function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <
   return K, inc
 end
 
-function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: SparseFPModule}
   I = collect(i)
   prev = I + (direction(c, p) == :chain ? 1 : -1)*[k==p ? 1 : 0 for k in 1:dim(c)]
   Prev = Tuple(prev)
@@ -134,7 +134,7 @@ function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType
   return Im, inc
 end
 
-function homology(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function homology(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: SparseFPModule}
   if !isdefined(c, :homology_cache) 
     c.homology_cache = Dict{Tuple{Tuple, Int}, Map}()
   end

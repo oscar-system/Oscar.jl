@@ -10,15 +10,15 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod(R::AdmissibleModuleFPRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
+function FreeMod(R::AdmissibleSparseFPModuleRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
-function FreeMod(R::AdmissibleModuleFPRing, names::Vector{String}; cached::Bool=false)
+function FreeMod(R::AdmissibleSparseFPModuleRing, names::Vector{String}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
 end
 
-function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=false)
+function FreeMod(R::AdmissibleSparseFPModuleRing, names::Vector{Symbol}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
