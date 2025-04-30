@@ -519,6 +519,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
+export dicyclic_group
 export dihedral_group
 export dim
 export dim_of_torusfactor
@@ -861,6 +862,7 @@ export is_coroot_with_index
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
+export is_dicyclic_group
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_dominant
 export is_du_val_singularity
@@ -961,7 +963,7 @@ export is_pure
 export is_q_cartier
 export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
-export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_quaternion_group
 export is_quotient
 export is_radical
 export is_ready
