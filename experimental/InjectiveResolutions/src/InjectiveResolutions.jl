@@ -278,6 +278,10 @@ function degree(::Type{Vector{Int}}, a::MonoidAlgebraElem; check::Bool=true)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
+function dim(A::MonoidAlgebra)
+  return dim(A.algebra)
+end
+
 #=
 # TODO: Do we want this?
 function AbstractAlgebra.coefficients(a::MonoidAlgebraElem)
