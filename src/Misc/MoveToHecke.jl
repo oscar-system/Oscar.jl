@@ -56,12 +56,5 @@ function is_equal_as_morphism(f::MapFromFunc, g::MapFromFunc)
   f.f === g.f && return true
   error("comparison of maps $f and $g not possible")
 end
-
-function is_equal_as_morphism(f::Map, g::Map)
-  f === g && return true
-  domain(f) === domain(g) || return false
-  codomain(f) === codomain(g) || return false
-  error("comparison of maps $f and $g not possible")
-end
 # end of changes in PR #4706
 ########################################################################
