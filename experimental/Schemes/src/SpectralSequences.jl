@@ -96,3 +96,15 @@ function graded_complex(cssp::CSSPage)
   return graded_complex(spectral_sequence(cssp))
 end
 
+function page_number(cssp::CSSPage)
+  return cssp.page_number
+end
+
+function Base.show(io::IO, css::CohomologySpectralSequence)
+  print(io, "spectral sequence for the cohomology of graded complex with Betti table\n")
+  print(io, betti_table(graded_complex(css)))
+end
+
+function Base.show(io::IO, cssp::CSSPage)
+  print(io, "page $(page_number(cssp)) of $(spectral_sequence(cssp))")
+end
