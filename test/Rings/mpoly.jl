@@ -678,3 +678,20 @@ end
   @test dim(R) == 2
 end
 
+@testset "principally generated ideals" begin
+  R, (x, y) = QQ[:x, :y]
+  I1 = ideal(R, [x])
+  I2 = ideal(R, [x, x^2])
+  I3 = ideal(R, [x, y])
+  @test Oscar.is_known(is_principal, I1) # obvious to check
+  @test !Oscar.is_known(is_principal, I2) # not obvious to check, needs GB
+  g = principal_generator(I2) # computes a `small_generating_set`
+  @test Oscar.is_known(is_principal, I2) # result is cached
+  @test Oscar.is_principal(I2)
+  @test !Oscar.is_known(is_principal, I3) # not obvious to check
+  @test !Oscar.is_principal(I3) # check can be done
+  @test Oscar.is_known(is_principal, I3) # result is cached
+end
+
+  
+  
