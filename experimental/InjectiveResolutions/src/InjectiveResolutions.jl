@@ -704,13 +704,34 @@ function get_bounding_hyperplanes(P::Polyhedron)
   return hyperplanes
 end
 
+# TODO: Is this an admissible signature for a method of this function?
+# Should this be moved to the PolyhedralGeometry section?
+# This returns the primitive generator as a `Vector{Int}`.
+function primitive_generator(::Type{Int}, r::AbstractVector{T}) where {T<:RationalUnion}
+  return Vector{Int}(first(primitive_generator_with_scaling_factor(Int, r)))
+end
+
+# This method returns a triple `(v, num, den)` where `v` is a `Vector{Int}` 
+# and `num` and `den` are both `Int`s so that `num//den` is the scaling factor.
+function primitive_generator_with_scaling_factor(
+    ::Type{Int},
+    r::AbstractVector{T}
+  ) where {T<:RationalUnion}
+  @req !is_zero(r) "input must not be a zero vector"
+  first_scaling_factor = lcm(denominator.(r))
+  result = Int[Int(numerator(a)*divexact(first_scaling_factor, denominator(a))) for a in r]
+  g = gcd(result)
+  result = Int[divexact(a, g) for a in result]
+  return Tuple{Vector{Int}, Int, Int}((result, first_scaling_factor, g))
+end
+
 # given a hyperplane, return the H-presentation of it
 # INPUT:    hyperplane h
 # OUTPUT:   matrix A, vector b corresponding to Ax \leq b which defines h
 function get_hyperplane_H_presentation(h::Polyhedron)
   aff_hull = affine_hull(h).Obj.pm_polytope.AFFINE_HULL
   _M = Matrix{Rational}(aff_hull)
-  M = hcat(map(row -> reshape(primitive_generator(row), 1, :), eachrow(_M))...)
+  M = hcat(map(row -> reshape(primitive_generator(Int, row), 1, :), eachrow(_M))...)
   A = [M[:, 2:n_columns(M)]; -M[:, 2:n_columns(M)]]
   b = [M[:, 1]; -M[:1]]
   return A, b
@@ -721,7 +742,7 @@ end
 # OUTPUT:   zonotope, sum of primitive integer vector ong rays of C 
 function get_zonotope(P::Polyhedron)
   d = ambient_dim(P)
-  P_rays = [primitive_generator(Vector(r)) for r in rays(P)]
+  P_rays = [primitive_generator(Int, Vector(r)) for r in rays(P)]
 
   c = zeros(Int, d)
   zonotope = convex_hull(zeros(Int, d))
