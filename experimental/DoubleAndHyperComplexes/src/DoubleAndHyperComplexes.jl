@@ -36,6 +36,7 @@ include("Morphisms/shifted_complexes.jl")
 include("Morphisms/views.jl")
 include("Morphisms/total_complexes.jl")
 include("Morphisms/strand_morphisms.jl")
+include("Morphisms/SummandProjection.jl")
 include("base_change_types.jl")
 include("base_change.jl")
 
