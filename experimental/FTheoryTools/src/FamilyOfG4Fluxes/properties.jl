@@ -177,7 +177,7 @@ julia> gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
+  - Non-abelian gauge group: unbroken
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false

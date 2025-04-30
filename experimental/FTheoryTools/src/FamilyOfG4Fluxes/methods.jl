@@ -40,35 +40,35 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, Int[], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
@@ -177,7 +177,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -215,7 +215,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)

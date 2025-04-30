@@ -20,7 +20,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed  
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> model(g4f)
 Hypersurface model over a concrete base
@@ -47,7 +47,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f) == g4_class
 true
@@ -75,8 +75,8 @@ julia> g4 = qsm_flux(qsm_model)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 
 julia> d3_tadpole_constraint(g4, check = false)
 12
@@ -95,7 +95,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
 
@@ -108,7 +108,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> d3_tadpole_constraint(gfs, check = false);
 
@@ -170,7 +170,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> g4_flux_family(g4, check = false)
 A family of G4 fluxes:
@@ -207,7 +207,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> integral_coefficients(g4);
 ```
@@ -239,7 +239,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> rational_coefficients(g4);
 ```

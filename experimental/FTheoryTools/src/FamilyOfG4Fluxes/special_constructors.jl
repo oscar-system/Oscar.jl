@@ -51,7 +51,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
@@ -68,7 +68,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> passes_transversality_checks(qsm_g4_flux)
 true
@@ -88,14 +88,14 @@ julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
+  - Non-abelian gauge group: unbroken
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
@@ -114,8 +114,8 @@ julia> qsm_g4_flux = flux_instance(fg, matrix(ZZ, [[3]]), zero_matrix(QQ, 0, 1),
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 
 julia> is_well_quantized(qsm_g4_flux)
 true
