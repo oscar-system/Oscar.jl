@@ -8,7 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Types
 
-The OSCAR type for abstract varieties is `AbstractBundle`.
+The OSCAR type for abstract vector bundles is `AbstractBundle`.
 
 ## Constructors
 
