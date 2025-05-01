@@ -174,8 +174,8 @@ Given an element `c` of the Chow ring of an abstract variety, return the integra
 !!! note
     If the abstract variety has been given a point class, the integral will be an element of the coefficient ring of the Chow ring.
     That is, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
-	of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
-	part of `c` is returned.
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
+    part of `c` is returned.
 
 ###### Examples
 
