@@ -44,7 +44,7 @@ julia> fg = special_flux_family(qsm_model, check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
@@ -141,7 +141,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
-      set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
       return fgs
     end
   else
@@ -154,7 +153,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
       set_attribute!(fgs, :passes_transversality_checks, true)
       set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
       return fgs
-    end  
+    end
   end
 
   # (2) Consistency checks
@@ -185,7 +184,6 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
     set_attribute!(m, :matrix_integral_quant_transverse, res[1])
     set_attribute!(m, :matrix_rational_quant_transverse, res[2])
     set_attribute!(m, :offset_quant_transverse, final_shift)
-    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   else
     set_attribute!(m, :matrix_integral_quant_transverse_nobreak, res[1])
     set_attribute!(m, :matrix_rational_quant_transverse_nobreak, res[2])

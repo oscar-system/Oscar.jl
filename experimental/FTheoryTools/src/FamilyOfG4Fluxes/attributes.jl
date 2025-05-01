@@ -161,7 +161,7 @@ julia> fgs = special_flux_family(qsm_model, check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> d3_tadpole_constraint(fgs);
 ```

@@ -25,7 +25,7 @@ julia> gf = special_flux_family(qsm_model, check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> is_well_quantized(gf)
 true
@@ -102,7 +102,7 @@ julia> gf = special_flux_family(qsm_model, check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_transversality_checks(gf, check = false)
 true
@@ -168,7 +168,7 @@ julia> gf = special_flux_family(qsm_model, check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
