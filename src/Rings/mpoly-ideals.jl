@@ -356,7 +356,6 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T} = ideal(base_ring(I), gen
   # respect to principal ideals
   if base_ring(I) isa Field && is_known(is_principal, I) && is_principal(I) && is_known(is_principal, J) && is_principal(J)
     is_unit(principal_generator(I)) && return I
-    is_gen(principal_generator(I)) && return ideal(remove(principal_generator(I), principal_generator(J))[2]) # catches a special case in strict transforms of toric blowups 
     return ideal(ppio(principal_generator(I), principal_generator(J))[2])
   end
 
