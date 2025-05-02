@@ -61,11 +61,10 @@ function getindex(phi::HyperComplexMorphism{<:Any, <:Any, MorphismType}, i::Tupl
   !isdefined(phi, :map_cache) && return phi.fac(phi, i)::MorphismType
 
   # The case of cached results
-  haskey(phi.map_cache, i) && return phi.map_cache[i]
-  can_compute(phi.fac, phi, i) || error("index out of bounds")
-  result = phi.fac(phi, i)::MorphismType
-  phi.map_cache[i] = result
-  return result
+  return get!(phi.map_cache, i) do
+    can_compute(phi.fac, phi, i) || error("index out of bounds")
+    phi.fac(phi, i)
+  end::MorphismType
 end
 
 offset(phi::HyperComplexMorphism) = phi.offset
