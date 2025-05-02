@@ -391,6 +391,7 @@ function ring_as_hypercomplex(ctx::PushForwardCtx)
 end
 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
+  @assert all(>=(0), alpha)
   return get!(ctx.truncated_cech_complexes, alpha) do
     S = graded_ring(ctx)
     G = grading_group(S)
@@ -420,6 +421,22 @@ function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
   end
 end
 
+function cohomology_model_inclusion(ctx::PushForwardCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  to_orig = map_to_original_complex(h)[i]
+  @assert domain(to_orig) === h[i]
+  return to_orig
+end
+
+function cohomology_model_projection(ctx::PushForwardCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  from_orig = map_from_original_complex(h)
+  @assert codomain(from_orig) === h
+  return from_orig[i]
+end
+
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
 function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
@@ -433,7 +450,7 @@ function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
     di >= 0 && continue # Nothing to do in this case
     for j in inds
       # TODO: This is not yet sharp!
-      result[j] = -di# + dimension(ctx, i) + 1
+      result[j] = -di < dimension(ctx, i) ? 0 : -di - dimension(ctx, i)
     end
   end
   result
@@ -470,7 +487,7 @@ end
 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
   if all(a <= b for (a, b) in zip(alpha, beta))
-    return strand(ctx[alpha, beta], d)
+    return strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
   elseif all(a >= b for (a, b) in zip(alpha, beta))
     return SummandProjection(ctx[beta, alpha, d])
   end
