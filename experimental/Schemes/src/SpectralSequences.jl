@@ -34,6 +34,10 @@ function pushforward_ctx(cssp::CSSPage)
   return pushforward_ctx(spectral_sequence(cssp))
 end
 
+function graded_ring(cssp::CSSPage)
+  return graded_ring(spectral_sequence(cssp))
+end
+
 function graded_ring(css::CohomologySpectralSequence)
   return css.S
 end
@@ -67,6 +71,7 @@ end
 
 function produce_entry(cssp::CSSPage, i::Int, j::Int)
   is_one(page_number(cssp)) && return produce_entry_on_initial_page(cssp, i, j)
+  page_number(cssp) == 2 && return produce_entry_on_second_page(cssp, i, j)
   error("not implemented")
 end
 
@@ -78,6 +83,30 @@ function produce_entry_on_initial_page(cssp::CSSPage, i::Int, j::Int)
   summands = [cohomology_model(ctx, -d)[j] for d in degs]
   return direct_sum(summands)[1]
 end
+
+function can_compute_index(cssp::CSSPage, i::Int, j::Int)
+  can_compute_index(graded_complex(cssp), i) || return false
+  j <= 0 || return false
+  S = graded_ring(cssp)
+  -j <= ngens(S) - rank(grading_group(S)) || return false
+  return true
+end
+
+function can_compute_map(cssp::CSSPage, i::Int, j::Int)
+  p = page_number(cssp)
+  return can_compute_index(cssp, i, j) && can_compute_index(cssp, i-p, j-p+1)
+end
+
+function produce_entry_on_second_page(cssp::CSSPage, i::Int, j::Int)
+  css = spectral_sequence(cssp)
+  first_page = css[1]
+  F = first_page[i, j]
+  Z, inc_Z = can_compute_map(first_page, i, j) ? kernel(map(first_page, i, j)) : sub(F, gens(F))
+  B, inc_B = can_compute_map(first_page, i+1, j) ? image(map(first_page, i+1, j)) : sub(F, elem_type(F)[])
+  return SubquoModule(F, ambient_representatives_generators(Z), 
+                      ambient_representatives_generators(B))
+end
+
 
 function maps(cssp::CSSPage)
   if !isdefined(cssp, :maps)
