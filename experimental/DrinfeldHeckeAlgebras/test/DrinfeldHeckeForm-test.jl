@@ -152,6 +152,13 @@
   end
 
   @testset "parametrized drinfeld-hecke forms over various rings" begin
+    @testset "base ring algebraic closure of Q" begin
+      R = algebraic_closure(Q)
+      G = matrix_group(matrix(R, [-1 0;0 -1]))
+      κ = parametrized_drinfeld_hecke_form(G)
+      @test ngens(base_ring(κ)) == 2
+    end
+      
     @testset "base ring Z" begin
       G = matrix_group(matrix(ZZ, [-1 0;0 -1]))
       κ = parametrized_drinfeld_hecke_form(G)

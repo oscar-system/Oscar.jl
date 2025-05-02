@@ -266,6 +266,15 @@ function is_parametrized(κ::DrinfeldHeckeForm{T}) where {T <: RingElem}
   return R isa MPolyRing{T} && G isa MatrixGroup{T}
 end
 
+function parameters(κ::DrinfeldHeckeForm)
+  if !is_parametrized(κ)
+    throw(ArgumentError("Given form does not have any parameter."))
+  end
+  
+  S = base_ring(κ)
+  return gens(S)
+end
+
 function Base.getindex(κ::DrinfeldHeckeForm{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
   if haskey(κ.forms, g) 
     return κ.forms[g] 

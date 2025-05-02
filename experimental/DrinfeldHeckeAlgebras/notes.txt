@@ -1,0 +1,87 @@
+Computing in Drinfeld-Hecke algebras
+
+Papers:
+# Shepler, Witherspoon
+# Levandowsky
+
+##########################################################
+
+using Revise, Oscar
+
+n = 3
+S3 = symmetric_group(n)
+mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
+G = matrix_group(mat_gens)
+A = parametrized_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
+C = algebraic_closure(QQ)
+S3 = symmetric_group(3)
+mat_gens = [permutation_matrix(C, g) for g in gens(S3)]
+G = matrix_group(mat_gens)
+A = parametrized_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
+n = 5
+S = symmetric_group(n)
+R, _ = residue_ring(ZZ, 5)
+mat_gens = [permutation_matrix(R, g) for g in gens(S)]
+G = matrix_group(mat_gens)
+A = parametrized_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
+R = QQ
+MS = matrix_space(R,2,2)
+G = matrix_group(MS([-1 0;0 -1]))
+A = drinfeld_hecke_form(G)
+
+using Revise, Oscar
+
+R, _ = residue_ring(ZZ, 5)
+MS = matrix_space(R,2,2)
+G = matrix_group(MS([-1 0;0 -1]))
+A = parametrized_drinfeld_hecke_form(G)
+
+using Revise, Oscar
+
+R, _ = residue_ring(ZZ, 5)
+S, _ = polynomial_ring(R, ["t"])
+M = matrix(R, [1 2; 3 4])
+
+using Revise, Oscar
+Oscar.test_experimental_module("DrinfeldHeckeAlgebras")
+
+
+
+
+############## Automatic group handling ##################
+
+# Depending on the ring over which G is defined, GAP might not support iterating and computing inverses
+    # even if they exist. This is for example the case if the base ring of G is a polynomial ring but the
+    # elements of G are constants. In this case we can try working over the group in the coefficient ring
+    G_safe = G
+    R_safe = R
+        
+    if R isa MPolyRing && all(g -> all(is_constant, matrix(g)), gens(G))
+      up = f -> R(f)
+      down = f -> constant_coefficient(f)
+      
+      gens_safe = map(g -> map(f -> constant_coefficient(f), matrix(g)), gens(G))
+      G_safe = matrix_group(gens_safe)
+      R_safe = base_ring(R)
+    end
+  
+    try
+      elements(G_safe)
+    catch
+      throw(ArgumentError("Drinfeld-Hecke forms for groups over given ring are not supported."))
+    end

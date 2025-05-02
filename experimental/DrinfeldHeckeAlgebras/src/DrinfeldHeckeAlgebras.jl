@@ -15,9 +15,12 @@ export evaluate_parameters
 export set_forms
 export nforms
 export is_parametrized
+export parameters
 
 export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra
 export parametrized_drinfeld_hecke_algebra
+
+export generate_forms_for_conjugacy_classes
 
 # Aliases
