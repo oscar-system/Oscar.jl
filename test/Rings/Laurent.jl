@@ -54,6 +54,6 @@ end
   @test is_one(phi(x)^3);
   @test is_one(phi(y^3));
   @test is_one(phi(y)^3);
-  @test in(phi.section(phi(x)) - x, I);
-  @test phi.section(phi(x)) == 1+x^(-1); # would be "more natural" if underlying ring had elim order for the inverses
+  @test in(preimage(phi,phi(x)) - x, I);
+  @test preimage(phi,phi(x)) == 1+x^(-1); # would be "more natural" if underlying ring had elim order for the inverses
 end
