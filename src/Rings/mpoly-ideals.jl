@@ -2531,12 +2531,6 @@ function principal_generator(I::MPolyIdeal{T}) where {T}
 end
  
  # This is a catchall method which should probably be moved elsewher
- function is_gen(a::MPolyRingElem)
-   is_zero(a) && return false
-   !is_one(length(a)) && return false
-   e = only(AbstractAlgebra.exponent_vectors(a))
-   is_one(only(AbstractAlgebra.coefficients(a))) || return false
-   i = findfirst(is_one, e)
-   isnothing(i) && return false
-   return all(k == i || is_zero(n) for (k, n) in enumerate(e))
- end
+function is_gen(a::MPolyDecRingElem)
+  return is_gen(forget_grading(x))
+end
