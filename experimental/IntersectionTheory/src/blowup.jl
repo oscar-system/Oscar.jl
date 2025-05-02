@@ -14,7 +14,7 @@ More precisely, return a tuple `(Bl, E, j)`, say, where
 
 # Examples
 
-Taken from the sage package Chow by Lehn/Sorger:
+# Taken from the sage package Chow by Lehn/Sorger:
 
 ```jldoctest
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
