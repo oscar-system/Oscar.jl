@@ -209,7 +209,12 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
       @show cod_cplx_ext
       cod_cplx = ctx[e1, d1]
       @show cod_cplx
+      @show e0, e1, d1
       strand_reduction = ctx[e0, e1, d1]
+      @show domain(strand_reduction[j])
+      @show codomain(strand_reduction[j])
+      @show strand_reduction[j]
+      @show matrix(strand_reduction[j])
       @assert domain(strand_reduction) === cod_cplx_ext
       @assert codomain(strand_reduction) === cod_cplx
 
@@ -220,6 +225,7 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
 
       img_gens = elem_type(ext_cod_strand)[cod_str_pr(p*dom_str_inc(v)) for v in gens(dom_strand)]
       induced_map = hom(dom_strand, ext_cod_strand, img_gens)
+      @show matrix(induced_map)
 
       h_pr = cohomology_model_projection(ctx, d1, j)
       red = strand_reduction[j]
@@ -228,6 +234,12 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
                                               induced_map(
                                                 h_inj(v)
                                           ))) for v in gens(dom_coh)]
+      @show block_img_gens
+      @show matrix(cod_inj[l])
+      @show matrix(dom_proj[k])
+      @show matrix(h_inj)
+      @show matrix(red)
+      @show matrix(h_pr)
       result += compose(compose(dom_proj[k], hom(dom_coh, cod_coh, block_img_gens)), cod_inj[l])
     end
   end
