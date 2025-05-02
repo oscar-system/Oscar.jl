@@ -32,3 +32,28 @@
     end
   end
 end
+
+
+@testset "Laurent quotient" begin
+  # Quick test
+
+  # Taken from issue 4814 (suggested bu thofman)
+
+  R, (x, y) = laurent_polynomial_ring(GF(2), [:x, :y]);
+  f1 = x^2*y^3 + x*y^3 + 1;
+  f2 = y + y^2 + x^3;
+  f3 = x^9 * y^6 - 1;
+  f4 = y^15 - 1;
+  I = ideal(R, [f1, f2, f3, f4]);
+
+  Q,phi = quo(R, I); # same as R/ideal(x^2+x+1, y^2+y+1)
+
+  @test parent(phi(x)) == Q;
+  @test parent(phi(y)) == Q;
+  @test is_one(phi(x^3));
+  @test is_one(phi(x)^3);
+  @test is_one(phi(y^3));
+  @test is_one(phi(y)^3);
+  @test in(phi.section(phi(x)) - x, I);
+  @test phi.section(phi(x)) == 1+x^(-1); # would be "more natural" if underlying ring had elim order for the inverses
+end

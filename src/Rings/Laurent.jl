@@ -241,3 +241,13 @@ end
 
 
 
+function quo(R::Oscar.LaurentMPolyWrapRing, I::Oscar.LaurentMPolyIdeal)
+  poly_repr = Oscar._polyringquo(R);
+  underlying_poly_ring_quo = codomain(poly_repr);
+  II = ideal(underlying_poly_ring_quo, poly_repr.(gens(I)));
+  Q,phi = quo(underlying_poly_ring_quo, II);
+  map_down(f::AbstractAlgebra.Generic.LaurentMPolyWrap) = phi(poly_repr(f));
+  lift_up(f::MPolyQuoRingElem) = poly_repr.inv(preimage(phi,f));
+  mod_and_lift = map_with_preimage_from_func(map_down, lift_up, R,Q);
+  return Q, mod_and_lift;
+end
