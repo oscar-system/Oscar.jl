@@ -2543,7 +2543,7 @@ function principal_generator(I::MPolyIdeal{T}) where {T}
   return get_attribute(I, :principal_generator)::T
 end
  
- # This is a catchall method which should probably be moved elsewher
+ # This is a catchall method which should probably be moved elsewhere
 function is_gen(a::MPolyDecRingElem)
   return is_gen(forget_grading(x))
 end
