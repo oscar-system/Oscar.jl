@@ -551,7 +551,7 @@ function coordinates(
                                  }
           }
   phi = flatten(parent(x))
-  return change_base_ring(inverse(phi), (coordinates(phi(x), phi(I))))
+  return map_entries(inverse(phi), (coordinates(phi(x), phi(I))))
 end
 
 ########################################################################
