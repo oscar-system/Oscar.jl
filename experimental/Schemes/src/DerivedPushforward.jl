@@ -466,6 +466,9 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
     c_beta_orig = original_complex(c_beta)::HCTensorProductComplex
     facs = AbsHyperComplexMorphism[]
     for (a_fac, b_fac, d) in zip(factors(c_alpha_orig), factors(c_beta_orig), dimensions(ctx))
+        @show a_fac
+        @show b_fac
+        @show d
       # both a_fac and b_fac are shifted, truncated hom-complexes of Koszul complexes
       a_fac_unshift = original_complex(a_fac::ShiftedHyperComplex)
       b_fac_unshift = original_complex(b_fac::ShiftedHyperComplex)
@@ -473,14 +476,30 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
       b_fac_untrunc = original_complex(b_fac_unshift::HyperComplexView)
       a_kosz = domain(a_fac_untrunc::HomComplex)
       b_kosz = domain(b_fac_untrunc::HomComplex)
-      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz)
+      a_seq = sequence(a_kosz)
+      b_seq = sequence(b_kosz)
+      trans_mat = sparse_matrix(S, 0, d+1)
+      for (i, p, q) in zip(1:d+1, a_seq, b_seq)
+        push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
+      end
+      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+      @show matrix(ind_kosz[0])
+      @show matrix(ind_kosz[1])
       ind_hom = hom(ind_kosz, codomain(a_fac_untrunc); domain=a_fac_untrunc, codomain=b_fac_untrunc)
+      @show matrix(ind_hom[0])
+      @show matrix(ind_hom[-1])
       ind_trunc = sub(ind_hom, -d-1:-1; domain=a_fac_unshift, codomain=b_fac_unshift)
+      @show matrix(ind_trunc[-1])
       ind_shift = shift(ind_trunc, [-1]; domain=a_fac, codomain=b_fac)
+      @show matrix(ind_shift[0])
       push!(facs, ind_shift)
     end
     tensor_map = tensor_product(facs; domain=c_alpha_orig, codomain=c_beta_orig)
+    @show matrix(tensor_map[0, 0])
+    @show matrix(tensor_map[0, -1])
+    @show matrix(tensor_map[-1, 0])
     tot_map = total_complex(tensor_map; domain=c_alpha, codomain=c_beta)
+    @show matrix(tot_map[-1])
     tot_map
   end
 end
