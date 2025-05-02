@@ -338,7 +338,7 @@ $x_\sigma$, then $a > b.$
     Given such an ideal $I\subset C[x]=C[x_1, \ldots, x_n]$, computing a Gröbner basis of $I$ with respect
 	to an elimination ordering for $x\smallsetminus x_\sigma$ provides one way of finding the intersection $I\cap C[x_\sigma]$, that is, of
 	*eliminating the variables in $x\smallsetminus x_\sigma$ from $I$*. In fact, the Gröbner basis elements
-	which only depend on the variables in $x_\sigma$ form a Gröbner basis for
+	which only depend on the variables in $x_\sigma$ form a Gröbner basis of
     $I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomials in $I\cap C[x_\sigma]$.
 
 !!! note
