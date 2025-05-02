@@ -413,6 +413,20 @@ julia> K, m = saturation_with_index(I)
 ```
 """
 function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T} = ideal(base_ring(I), gens(base_ring(I)))) where {CT<:FieldElem, T <: MPolyRingElem{CT}}
+  # `remove` is faster than `Singular.saturation` when saturating with
+  # respect to principal ideals
+  if base_ring(I) isa Field && is_known(is_principal, I) && is_principal(I) && is_known(is_principal, J) && is_principal(J)
+    is_unit(principal_generator(I)) && return (I, base_ring(I)(0))
+
+    # We can use `remove` if its second argument is irreducible.
+    # This is true for example if the polynomial is of degree 1.
+    # This is the most important case for strict transforms in toric blowups.
+    if total_degree(principal_generator(J)) == 1
+      pair = remove(principal_generator(I), principal_generator(J))
+      return (ideal(pair[2]), pair[1])
+    end
+  end
+
   K, k = Singular.saturation(singular_generators(I), singular_generators(J))
   return (MPolyIdeal(base_ring(I), K), k)
  end
