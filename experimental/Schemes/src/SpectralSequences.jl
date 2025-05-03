@@ -62,7 +62,7 @@ function entries(cssp::CSSPage)
 end
 
 function getindex(cssp::CSSPage, i::Int, j::Int)
-  @assert has_index(graded_complex(spectral_sequence(cssp)), i) "index out of bounds"
+  @assert can_compute_index(graded_complex(spectral_sequence(cssp)), i) "index out of bounds"
   @assert j<=0 "index out of bounds"
   return get!(entries(cssp), (i, j)) do
     produce_entry(cssp, i, j)
@@ -80,7 +80,9 @@ function produce_entry_on_initial_page(cssp::CSSPage, i::Int, j::Int)
   F = c[i]
   degs = degrees_of_generators(F)
   ctx = pushforward_ctx(cssp)
-  summands = [cohomology_model(ctx, -d)[j] for d in degs]
+  kk = coefficient_ring(graded_ring(cssp))
+  summands = FreeMod{elem_type(kk)}[cohomology_model(ctx, -d)[j] for d in degs]
+  is_empty(summands) && return FreeMod(kk, 0)
   return direct_sum(summands)[1]
 end
 
@@ -127,7 +129,27 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
   @assert j <= 0 "index out of bounds"
   @assert j + page_number(cssp) - 1 <= 0 "index out of bounds"
   is_one(page_number(cssp)) && return produce_map_on_initial_page(cssp, i, j)
+  page_number(cssp) == 2 && return produce_map_on_second_page(cssp, i, j)
   error("not implemented")
+end
+
+function multiplication_map(
+    ctx::PushForwardCtx, 
+    p::MPolyDecRingElem,
+    e0::Vector{Int}, d0::FinGenAbGroupElem, 
+    j::Int
+  )
+  return get!(ctx.mult_map_cache, (p, e0, d0, j)) do
+    d1 = d0 + degree(p; check=false)
+    dom_cplx = ctx[e0, d0]
+    cod_cplx = ctx[e0, d1]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+    dom_strand_inc = inclusion_map(dom_cplx)[j]
+    cod_strand_pr = projection_map(cod_cplx)[j]
+    img_gens = elem_type(cod)[cod_strand_pr(p*dom_strand_inc(v)) for v in gens(dom)]
+    hom(dom, cod, img_gens)
+  end
 end
 
 function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
@@ -203,11 +225,14 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
       ext_cod_strand = cod_cplx_ext[j]
       @assert codomain(cod_str_pr) === ext_cod_strand
 
-      img_gens = elem_type(ext_cod_strand)[cod_str_pr(p*dom_str_inc(v)) for v in gens(dom_strand)]
-      induced_map = hom(dom_strand, ext_cod_strand, img_gens)
+      #img_gens = elem_type(ext_cod_strand)[cod_str_pr(p*dom_str_inc(v)) for v in gens(dom_strand)]
+      #induced_map = hom(dom_strand, ext_cod_strand, img_gens)
+      induced_map = multiplication_map(ctx, p, e0, d0, j)
+      @assert domain(induced_map) === dom_strand
+      @assert codomain(induced_map) === ext_cod_strand
 
       h_pr = cohomology_model_projection(ctx, d1, j)
-      @time red = strand_reduction[j]
+      red = strand_reduction[j]
       block_img_gens = elem_type(cod_coh)[h_pr(
                                             red(
                                               induced_map(
@@ -218,6 +243,123 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
   end
   return result
 end
+
+function produce_map_on_second_page(cssp::CSSPage, i::Int, j::Int)
+  css = spectral_sequence(cssp)
+  cmplx = graded_complex(css)
+  orig_dom = cmplx[i]
+  orig_inter = cmplx[i-1]
+  orig_map1 = map(cmplx, i)
+  orig_map2 = map(cmplx, i-1)
+  p1 = css[1]
+  ctx = pushforward_ctx(css)
+  dom = cssp[i, j]
+  inter = p1[i-1, j]
+  cod = cssp[i-2, j+1]
+  if is_zero(dom) || is_zero(cod)
+    return hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
+  end
+  img_gens = elem_type(cod)[]
+  map_on_first_page = map(p1, i, j)
+  inter_injs = canonical_injections(inter)
+  inter_coh_incs = [cohomology_model_inclusion(ctx, d1, j) for d1 in degrees_of_generators(orig_inter)]
+  # We need to do a knights move 
+  #
+  #     p1[i-2, j+1] <-----  p1[i-1, j+1]
+  #
+  #                          p1[i-1, j]   <------ p1[i, j] 
+  #
+  # with a double complex of free modules behind it:
+  #
+  #         D        <--ψ---       C
+  #                                ↓∂
+  #                                B      <---ϕ----   A
+  #
+  # The horizontal maps are induced from those in the `graded_complex`.
+  # The vertical maps are direct sums of the standard Cech-complexes 
+  # for either of the summands in the `graded_complex`. 
+  # We exploit this block structure and construct the induced map 
+  # term by term.
+  for (i, v) in enumerate(gens(dom))
+    @show v
+    @show is_zero(v)
+    if is_zero(v)
+      push!(img_gens, zero(cod))
+      continue
+    end
+    v1 = repres(v)::FreeModElem
+    @assert is_zero(map_on_first_page(v1))
+    @show v1
+    F = parent(v1)
+    # to hold the block-pieces of the image of v in B.
+    img_buckets = [zero(ctx[_minimal_exponent_vector(ctx, -d1), -d1][j]) for d1 in degrees_of_generators(orig_inter)]
+    # we can lift v1 blockwise
+    for (k, pr) in enumerate(canonical_projections(F))
+      @show k
+      d0 = -degree(orig_dom[k]) # the original shift 
+      v2 = pr(v1)
+      @show v2
+      is_zero(v2) && continue
+      e0 = _minimal_exponent_vector(ctx, d0)
+      coh_mod = ctx[e0, d0]
+      inc = cohomology_model_inclusion(ctx, d0, j)
+      @assert codomain(pr) === domain(inc)
+      v3 = inc(v2)
+      @show v3
+      @show j 
+      @assert codomain(inc) === coh_mod[j]
+      for (l, p) in coordinates(images_of_generators(orig_map1)[k])
+        @show l
+        d1 = d0 + degree(p; check=false)
+        @assert d1 == -degrees_of_generators(orig_inter)[l]
+        e1 = _minimal_exponent_vector(ctx, d1)
+        phi = multiplication_map(ctx, p, e0, d0, j)
+        w1 = phi(v3)
+        is_zero(w1) && continue
+        @show w1
+        str_pr = ctx[e0, e1, d1]
+        @show codomain(str_pr[j]) 
+        @show parent(img_buckets[l])
+        @assert codomain(str_pr[j]) === parent(img_buckets[l])
+        w2 = str_pr[j](w1)
+        cech_map = map(ctx[e1, d1], j+1)
+        @assert codomain(cech_map) === parent(w2)
+        @show w2
+        is_zero(w2) && continue
+        img_buckets[l] += w2
+      end
+    end
+    img_gen = zero(cod)
+    for (l, w, dd1) in zip(1:length(img_buckets), img_buckets, degrees_of_generators(orig_inter))
+      is_zero(w) && continue
+      d1 = -dd1
+      #is_zero(w) && continue
+      e1 = _minimal_exponent_vector(ctx, d1)
+      cech_map = map(ctx[e1, d1], j+1)
+      @assert codomain(cech_map) === parent(w)
+      ww = preimage(cech_map, w)
+      for (r, q) in coordinates(images_of_generators(orig_map2)[l])
+        d2 = d1 + degree(q; check=false)
+        ext_cod_strand = ctx[e1, d2][j+1]
+        mult_map = multiplication_map(ctx, q, e1, d1, j+1)
+        @assert domain(mult_map) === domain(cech_map)
+        @assert parent(ww) === domain(mult_map)
+        ww2 = mult_map(ww)
+        is_zero(ww2) && continue
+        e2 = _minimal_exponent_vector(ctx, d2)
+        ww3 = ctx[e1, e2, d2][j+1](ww2)
+        is_zero(ww3) && continue
+        ww4 = cohomology_model_projection(ctx, d2, j+1)(ww3)
+        is_zero(ww4) && continue
+        ww5 = cod(ww4)
+        img_gen += ww5
+      end
+    end
+    push!(img_gens, img_gen)
+  end
+  return hom(dom, cod, img_gens)
+end
+
 
 function stable_index(css::CohomologySpectralSequence, i::Int, j::Int)
   # return a page number k from which onwards the cohomology 

@@ -348,6 +348,7 @@ mutable struct PushForwardCtx
   cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
   cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  mult_map_cache::Dict{Tuple{MPolyDecRingElem, Vector{Int}, FinGenAbGroupElem, Int}, FreeModuleHom}
   S1::AbsHyperComplex
 
   function PushForwardCtx(S::MPolyRing)
@@ -369,7 +370,8 @@ mutable struct PushForwardCtx
                Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(), 
                Dict{FinGenAbGroupElem, AbsHyperComplex}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
-               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}()
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{MPolyDecRingElem, Vector{Int}, FinGenAbGroupElem, Int}, FreeModuleHom}()
               )
   end
 end
