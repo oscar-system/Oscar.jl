@@ -953,7 +953,7 @@ base_ring_type(::Type{SubquoModule{T}}) where {T} = base_ring_type(FreeMod{T})
 
 Return the zero element of `M`.
 """
-zero(M::SubquoModule) = SubquoModuleElem(SRow(base_ring(M)), M)
+zero(M::SubquoModule) = SubquoModuleElem(sparse_row(base_ring(M)), M)
 
 @doc raw"""
     is_zero(M::SubquoModule)
