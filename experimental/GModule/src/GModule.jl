@@ -28,7 +28,7 @@ import Hecke: data
 #   second tries to conjugate down to k
 
 import Oscar: _vec, gmodule, GAPWrap
-import Oscar: MultGrp, MultGrpElem, CoChain
+import Oscar: MultGrp, MultGrpElem, CoChain, GrpCoh
 import Oscar: local_schur_indices
 
 import AbstractAlgebra: Group, Module
@@ -926,16 +926,27 @@ Return `(R[G], f, g)`, where
   indices of the corresponding module generators.
 """
 function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
-  M = free_module(R, Int(order(G)))
-  ge = collect(G)
-  ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
-  return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))),
-    MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
-             y->ge[Int(y)])
+  M = free_module(R, order(Int, G))
+  return _regular_gmodule(G, M)
 end
 
 function regular_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
   M = free_abelian_group(order(Int, G))
+  return _regular_gmodule(G, M)
+end
+
+# return regular G-module realized as a G-module over a module implementation
+# compatible with that used by C.m
+function regular_gmodule(C::GModule)
+  G = C.G
+  M = GrpCoh._similar_free_module(C.M, order(Int, G))
+  return _regular_gmodule(G, M)
+end
+
+
+# internal helper: realize action of `G` on a "free module" `M`, where
+# we only require that M has the correct rank is free
+function _regular_gmodule(G::Group, M)
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
   return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))),
