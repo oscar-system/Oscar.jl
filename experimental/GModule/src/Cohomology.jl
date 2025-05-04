@@ -1716,6 +1716,11 @@ iszero(a) || (@show g, h, k, a ; return false)
   return true
 end
 
+# create a free module with type "compatible" with that of `M`
+_similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
+_similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n)
+_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+
 """
 Compute
   0 -> C -I-> hom(Z[G], C) -q-> B -> 0
@@ -1723,16 +1728,8 @@ To allow "dimension shifting": H^(n+1)(G, C) - H^n(G, q)
 returns (I, q), (hom(Z[G], C), B)
 """
 function dimension_shift(C::GModule)
-  G = C.G
-  if isa(C.M, FinGenAbGroup)
-    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
-    Z = Hecke.zero_obj(zg.M)
-  elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = regular_gmodule(G, base_ring(C))
-    Z = free_module(base_ring(C), 0)
-  else
-    error("unsupported module")
-  end
+  zg, _, _ = regular_gmodule(C)
+  Z = _similar_free_module(zg.M, 0)
   @assert is_consistent(zg)
   H, mH = Oscar.GModuleFromGap.ghom(zg, C)
   @assert is_consistent(H)
@@ -1740,7 +1737,7 @@ function dimension_shift(C::GModule)
   #around 29.8
   #Drew's notes.
   #the augmentation map on the (canonical) generators is 1
-  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
+  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g in 1:ngens(zg.M)])) for c in gens(C.M)])
   @assert is_G_hom(C, H, inj)
   B, q = quo(H, image(inj)[2])
 
@@ -1750,7 +1747,7 @@ function dimension_shift(C::GModule)
   #XXX: we don't have homs for GModules
   #   : sice we also don't have elements
   #   : do we need elements for homs?
-  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i = gens(Z)])
+  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i in 1:ngens(Z)])
   Z2 = hom(q.M, Z, [zero(Z) for x = gens(q.M)])
   return cochain_complex([Z1, inj, mq, Z2])
 end
