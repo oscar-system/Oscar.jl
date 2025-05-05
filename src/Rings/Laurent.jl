@@ -242,6 +242,7 @@ end
 
 
 function quo(R::Oscar.LaurentMPolyWrapRing, I::Oscar.LaurentMPolyIdeal)
+  @req R === base_ring(I) "ring and ideal do not match"
   poly_repr = Oscar._polyringquo(R);
   underlying_poly_ring_quo = codomain(poly_repr);
   II = ideal(underlying_poly_ring_quo, poly_repr.(gens(I)));
