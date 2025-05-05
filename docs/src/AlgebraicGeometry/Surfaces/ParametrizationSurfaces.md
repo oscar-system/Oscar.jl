@@ -1,6 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Rational Parametrization of Rational Surfaces
