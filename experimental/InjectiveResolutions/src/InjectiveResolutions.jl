@@ -368,8 +368,6 @@ function radical(I::MonoidAlgebraIdeal)
   return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
 end
 
-is_homogeneous(I::MonoidAlgebraIdeal) = is_homogeneous(underlying_ideal(I))
-
 dim(I::MonoidAlgebraIdeal) = dim(underlying_ideal(I))
 
 # some generic functionality which should probably be elsewhere
