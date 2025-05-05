@@ -157,6 +157,11 @@ julia> julia> L, a = number_field([x^2 - 5, x^3 - 3], "a")
 
 ```
 
+```jldoctest
+julia> K, zeta = cyclotomic_field(3) 
+(Cyclotomic field of order 3, z_3)
+```
+
 ### Finite Fields
 
 ```jldoctest
@@ -184,7 +189,7 @@ julia> K, a = finite_field(9, "a")
 julia> Kx, x = K["x"];
 
 julia> L, b = finite_field(x^3 + x^2 + x + 2, "b")
-(Finite field of degree 3 over GF(3, 2), b)
+(Finite field of degree 3 over K, b)
 
 ```
 
@@ -210,20 +215,6 @@ julia> Kxy, y = polynomial_ring(Kx, :y)
 
 julia> F, a = function_field(x^3-y^2)
 (Function Field over K with defining polynomial 100*_a^2 + x^3, _a)
-
-```
-
-### The Abelian Closure of $\mathbb{Q}$
-
-```jldoctest
-julia> K, z = abelian_closure(QQ)
-(Abelian closure of rational field, Generator of abelian closure of rational field)
-
-julia> F = algebraic_closure(QQ)
-Algebraic closure of rational field
-
-julia> z(3)*z(5)
-zeta(15)^7 - zeta(15)^5 + zeta(15)^4 - zeta(15)^3 + zeta(15) - 1
 
 ```
 
