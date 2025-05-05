@@ -1,7 +1,8 @@
 # I would like to credit Dario Mathiä who produced an initial version of the following code
 
-import Chevie: complex_reflection_group, charinfo, CharTable, CyclotomicNumbers, Cyc
-export wreath_macs
+export wreath_macs, fake_deg
+
+Oscar.canonical_unit(x::QQAbFieldElem{AbsSimpleNumFieldElem}) = x #meanwhile canonical_unit gets fixed
 
 # Tools
 
@@ -78,42 +79,22 @@ end
 #Note also that \alpha^{\vee}_i=e_{i-1}-e_i.
 #The coroot lattice is thus the lattice of null sum elements in Z^I.
 
-function chev_to_osc(charTirr::Matrix{Cyc{Int}}, r::Int, K::AbsSimpleNumField)
-  l=size(charTirr)[1]
-  res=AbsSimpleNumFieldElem[]
-  a=gen(K)
-  for j in 1:l
-    for i in 1:l
-      if r > 2
-        coeff=CyclotomicNumbers.coefficients(charTirr[i,j])
-        temp=K(0)
-        for k in 1:length(coeff)
-          temp+=coeff[k]*a^(k-1)
-        end
-        push!(res,temp)
-      else
-        push!(res,K(charTirr[i,j]))
-      end
-    end
-  end
-  return reshape(res,l,l)
-end
-
 #Reoders the CharTable from Chevie
-function reorder(charTirr::Matrix{Cyc{Int}}, r::Int, n::Int, Modules::Vector{Multipartition{Int}}, K::AbsSimpleNumField)
+function reorder(charTirr::Matrix{QQAbFieldElem{AbsSimpleNumFieldElem}}, r::Int, n::Int, Modules::Vector{Multipartition{Int}}, K::QQAbField{AbsSimpleNumField})
   mps=multipartitions(n,r)
   new_ord=Int[]
     for lbb in mps
       i=findfirst(x-> x==lbb,Modules)
       push!(new_ord,i)
     end
-  return chev_to_osc(charTirr,r,K)[new_ord,:]
+  return charTirr[new_ord,:]
 end
 
 #Tools from representation theory
 
+# NEED TO FIX THAT (issue is with the fraction_field and canonical_unit...)
 # Computes the fake degree of a multipartition cf. Ste89 Thm 5.3 and Prop. 3.3.2 Haiman cdm
-function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
+function fake_deg(lbb::Multipartition, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
   r=size(lbb)[1]
   n=sum(lbb)[1]
   res=Q(1)
@@ -133,12 +114,11 @@ function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{Abst
 end
 
 # computes C_Delta defined in PhD relation (1.45)
-function C_Delta(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
-  G=complex_reflection_group(r,1,n)
-  Modules=charinfo(G).charparams
-  charTable=CharTable(G)
-  charTirr=charTable.irr
-  Modules=[multipartition(map(x->partition(x),lbb[1])) for lbb in Modules]
+function C_Delta(r::Int, n::Int, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
+  charTable=character_table_complex_reflection_group(r,1,n)
+  Modules=class_parameters(charTable)
+  charTirr=[charTable[i,j] for i in 1:nrows(charTable), j in 1:ncols(charTable)]
+  Modules=[multipartition(map(x->partition(x),lbb)) for lbb in Modules]
   l=length(Modules)
   charTirr=reorder(charTirr,r,n,Modules,K)
   charTirrT=solve_init(matrix(K,transpose(charTirr)))
@@ -149,7 +129,7 @@ function C_Delta(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generi
     for j in 1:l
       v=matrix(K,l,1,map(k->charTirr[i,k]*charTirr[j,k],1:l))
       x=solve(charTirrT,v,side=:right)
-      col=col+fake_deg(mps[j],Q,var)*x
+      col=col+fake_deg(mps[j],K,Q,var)*x
     end
     rows=hcat(rows,col)
   end
@@ -157,10 +137,10 @@ function C_Delta(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generi
 end
 
 # computes the character of the simple representations of the Cherednik algebra.
-function C_L(r::Int, n::Int, K::AbsSimpleNumField, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, var::AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem})
+function C_L(r::Int, n::Int, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
   C_D=C_Delta(r,n,K,Q,var)
   mps=multipartitions(n,r)
-  d = [var^b_inv(mp)//fake_deg(mp,Q,var) for mp in mps]
+  d = [var^b_inv(mp)//fake_deg(mp,K,Q,var) for mp in mps]
   diag=diagonal_matrix(Q,d)
   return diag * C_D
 end
@@ -184,7 +164,7 @@ function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{I
 end
 
 function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
-  K,_ = cyclotomic_field(r)
+  K,_ = abelian_closure(QQ)
   R, (q,t) = polynomial_ring(K, [:q,:t])
   Q = fraction_field(R)
 
@@ -216,16 +196,6 @@ function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
   triv=multipartition(triv)
   index_triv=findfirst(x-> x==triv,mps)
   d=[1//c_L_qt[i,index_triv] for i in 1:l]
-  #diag=[]
-  #for i in 1:l
-  #  for j in 1:l
-  #    if i==j
-  #      push!(diag,1//c_L_qt[i,index_triv])
-  #    else
-  #      push!(diag,Q(0))
-  #    end
-  #  end
-  #end
   diag=diagonal_matrix(Q,d)
   c_L_qt_H=diag*c_L_qt
   return c_L_qt_H
