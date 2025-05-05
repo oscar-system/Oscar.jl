@@ -473,6 +473,14 @@ function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) * singular_generators(b.gens))
 end
 
+function is_homogeneous(I::Ideal)
+  all(is_homogeneous(simplify(x)) for x in gens(I)) && return true
+  # For the general check we need to decompose every generator 
+  # into its graded parts and check whether every graded piece is 
+  # itself contained in the ideal. 
+  error("check for homogenity is not implemented")
+end
+
 @doc raw"""
     intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
     intersect(V::Vector{MPolyQuoIdeal{T}}) where T
