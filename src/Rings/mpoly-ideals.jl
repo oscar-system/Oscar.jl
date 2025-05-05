@@ -418,9 +418,10 @@ function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T} = ideal(base_r
   if base_ring(I) isa Field && is_known(is_principal, I) && is_principal(I) && is_known(is_principal, J) && is_principal(J)
     is_unit(principal_generator(I)) && return (I, base_ring(I)(0))
 
-    # We can use `remove` if its second argument is irreducible.
-    # This is true for example if the polynomial is of degree 1.
-    # This is the most important case for strict transforms in toric blowups.
+    # cheap heuristic to allow a speedup by the use of 
+    # remove insted of Singular's saturation precisely in the following setting:
+    #  I, J known to be principal, J known to be irreducible (degree 1 over a field)
+    # main use-case: strict transforms in toric blow ups
     if total_degree(principal_generator(J)) == 1
       pair = remove(principal_generator(I), principal_generator(J))
       return (ideal(pair[2]), pair[1])
@@ -2524,7 +2525,7 @@ end
 
 # Recognition of principal ideals
 function is_known(::typeof(is_principal), I::MPolyIdeal)
-  is_one(length(gens(I))) && return true
+  is_one(ngens(I)) && return true
   has_attribute(I, :is_principal) && return true
   return false
 end
@@ -2538,7 +2539,7 @@ end
 end
 
 function principal_generator(I::MPolyIdeal{T}) where {T}
-  is_one(length(gens(I))) && return only(gens(I))
+  is_one(ngens(I)) && return only(gens(I))
   @req is_principal(I) "ideal is not principal" # sets the attribute in particular
   return get_attribute(I, :principal_generator)::T
 end
