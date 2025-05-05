@@ -215,7 +215,7 @@ julia> R, (x, y) = rational_function_field(QQ, [:x, :y])
 
 ```
 
-### Function Fields of Transcendency Degree 1
+### Function Fields of Transcendence Degree 1
 
 ```jldoctest
 julia> K = GF(101)
