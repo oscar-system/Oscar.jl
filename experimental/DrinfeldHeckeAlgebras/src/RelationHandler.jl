@@ -215,11 +215,11 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
   map = Dict{Tuple{Int, Int}, Int}()
   
   k = 1
-  for i in 1:d, j in (i+1):d
+  for i in 1:n, j in (i+1):n
     map[(i,j)] = k
     k = k + 1
   end
-  
+
   m = length(map)
   rows = []
   
@@ -234,8 +234,8 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
     
     # The relations translate to 
     # sum_{l < k} (bli bkj − bki blj) κ1(vl,vk) − κ1(vi,vj) = 0
-    for i in 1:d, j in (i+1):d
-      for l in 1:d, k in (l+1):d
+    for i in 1:n, j in (i+1):n
+      for l in 1:n, k in (l+1):n
         row[map[(l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
       end
     
@@ -249,20 +249,20 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
 
   # Combine collected rows to matrix
   M = matrix(R, length(rows), m, vcat(rows...))
-  
+
   # Solve the LES Mx = 0
   nullity, K = nullspace(M)
-  
+
   # From the theorem we know that the number of parameters is d + nullity
   dim = d + nullity
   parameters = dim == 1 ? ["t"] : ["t" * string(i) for i in 1:dim]
   S, _ = polynomial_ring(R, parameters)
-  
+
   # We start to build the parametrized Drinfeld-Hecke forms
   forms = Dict{MatrixGroupElem, MatElem}()
   
   # First for 1 ∈ G
-  if nullity != 0
+  if nullity > 0
     x = fill(S(), m)
     for j in 1:nullity
       x = x + [S[j] * K[i, j] for i in 1:m]
@@ -290,7 +290,7 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
 
     # Base change to the standard basis
     combined_basis = hcat(basis_Vg, basis_Vg⊥)
-    forms[g] = combined_basis * B * transpose(combined_basis)
+    forms[g] = transpose(combined_basis) * B * combined_basis
     
     # Now calculate all remaining forms for the conjugacy class
     for h in C
@@ -301,7 +301,7 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
       for i in 1:n, j in (i+1):n
         h_ei = H * I[:,i]
         h_ej = H * I[:,j]
-        D[i,j] = (transpose(matrix(h_ei)) * B * matrix(h_ej))[1,1]
+        D[i,j] = (transpose(matrix(h_ei)) * forms[g] * matrix(h_ej))[1,1]
         D[j,i] = -D[i,j]
       end
     
