@@ -162,6 +162,20 @@ julia> K, zeta = cyclotomic_field(3)
 (Cyclotomic field of order 3, z_3)
 ```
 
+### The Abelian Closure of $\mathbb{Q}$
+
+```jldoctest
+julia> K, z = abelian_closure(QQ)
+(Abelian closure of rational field, Generator of abelian closure of rational field)
+
+julia> F = algebraic_closure(QQ)
+Algebraic closure of rational field
+
+julia> z(3)*z(5)
+zeta(15)^7 - zeta(15)^5 + zeta(15)^4 - zeta(15)^3 + zeta(15) - 1
+
+```
+
 ### Finite Fields
 
 ```jldoctest
