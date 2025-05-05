@@ -18,8 +18,8 @@ triangular.
 ```jldoctest
 julia> a2_adj_cov = [
            0 1 1 0 0 0
-           0 0 0 2 1 0
-           0 0 0 1 2 0
+           0 0 0 1 1 0
+           0 0 0 1 1 0
            0 0 0 0 0 1
            0 0 0 0 0 1
            0 0 0 0 0 0
@@ -28,6 +28,8 @@ julia> a2_adj_cov = [
 julia> pa2 = partially_ordered_set(a2_adj_cov)
 Partially ordered set of rank 3 on 6 elements
 ```
+
+The construction only distinguishes zero coefficients (to indicate the absence) and nonzero coefficients (to indicate the presence of a covering relation).
 """
 function partially_ordered_set(covrels::Matrix{Int})
   pg = Polymake.Graph{Directed}(IncidenceMatrix(covrels))
@@ -40,6 +42,7 @@ end
     partially_ordered_set_from_inclusions(I::IncidenceMatrix)
 
 Construct an inclusion based partially ordered with rows of `I` as co-atoms.
+That is, the elements of the poset are the given sets and their intersections.
 
 ```jldoctest
 julia> im = vertex_indices(facets(simplex(3)))
