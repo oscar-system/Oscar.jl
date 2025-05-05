@@ -368,6 +368,8 @@ function radical(I::MonoidAlgebraIdeal)
   return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
 end
 
+is_homogeneous(I::MonoidAlgebraIdeal) = is_homogeneous(underlying_ideal(I))
+
 dim(I::MonoidAlgebraIdeal) = dim(underlying_ideal(I))
 
 # some generic functionality which should probably be elsewhere
@@ -1542,9 +1544,11 @@ end
   return dim(ann)
 end
 
+#=
 function dim(F::FreeMod)
   return dim(base_ring(F))
 end
+=#
 
 #= to be enabled, once #861 is merged in Singular.jl
 @attr Int function dim(M::SubquoModule{T}) where {CT<:FieldElem, T<:MPolyRingElem}
