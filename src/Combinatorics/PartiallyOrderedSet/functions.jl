@@ -166,7 +166,7 @@ Return an undirected graph which has an edge for each pair of comparable
 elements in a partially ordered set.
 
 ```jldoctest
-julia> p = face_lattice(simplex(2))
+julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
 
 julia> comparability_graph(p)
@@ -226,7 +226,7 @@ Base.length(p::PartiallyOrderedSet) = pm_object(p).N_NODES::Int - p.artificial_t
 Return the rank of an element in a partially ordered set.
 
 ```jldoctest
-julia> p = face_lattice(simplex(2))
+julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
 
 julia> rank(greatest_element(p))
@@ -252,7 +252,7 @@ end
 Return the rank of a partially ordered set, i.e., the rank of a maximal element.
 
 ```jldoctest
-julia> p = face_lattice(simplex(2))
+julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
 
 julia> rank(p)
@@ -269,7 +269,7 @@ end
 Return the maximal chains of a partially ordered set as a vector of sets of node ids.
 
 ```jldoctest
-julia> pos = face_lattice(cube(2))
+julia> pos = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
 
 julia> maximal_chains(pos)
@@ -313,12 +313,11 @@ The labels will be either the ids from the original input data or integer sets
 when the poset was created from inclusion relations.
 For inclusion based partially ordered sets the keyword `AtomLabels` can be used to specify
 a vector of strings with one label per atom to override the default `1:n_atoms(p)` labeling.
-The labels of the minimal and maximal element are not shown.
+The labels of the least and greatest elements are not shown.
 The `filename` keyword argument allows writing TikZ visualization code to `filename`.
 
 !!! note
-    This will always show a unique maximal element even if it is not part of the
-    partially ordered set.
+    This will always show the greatest element even if it does not correspond to an element of the partially ordered set.
 """
 function visualize(p::PartiallyOrderedSet; filename::Union{Nothing, String}=nothing, kwargs...)
   if isdefined(p, :atomlabels) && !haskey(kwargs, :AtomLabels)
@@ -334,21 +333,22 @@ function visualize(p::PartiallyOrderedSet; filename::Union{Nothing, String}=noth
 end
 
 @doc raw"""
-    face_lattice(p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex})
+    face_poset(p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex})
 
 Return a partially ordered set encoding the face inclusion relations of a polyhedral object.
 
-Note that a polyhedron has the whole polyhedron as maximal element while the normal fan
-does not have a maximal element.
+Note that a polyhedron has the entire polyhedron as the greatest element while the normal fan does not have a greatest element.
+
+# Examples
 ```jldoctest
-julia> p = face_lattice(dodecahedron())
+julia> p = face_poset(dodecahedron())
 Partially ordered set of rank 4 on 64 elements
 
-julia> pf = face_lattice(normal_fan(dodecahedron()))
+julia> pf = face_poset(normal_fan(dodecahedron()))
 Partially ordered set of rank 3 on 63 elements
 ```
 """
-function face_lattice(p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex})
+function face_poset(p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex})
   pos = partially_ordered_set(pm_object(p).HASSE_DIAGRAM)
   pos.atomlabels = collect(1:n_atoms(pos))
   pos.artificial_top = p isa Union{PolyhedralFan,PolyhedralComplex,SimplicialComplex}
@@ -393,7 +393,7 @@ end
 Return the order polytope of a poset, see [Sta86](@cite).
 
 ```jldoctest
-julia> p = face_lattice(simplex(2))
+julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
 
 julia> op = order_polytope(p)
@@ -419,7 +419,7 @@ end
 Return the chain polytope of a poset, see [Sta86](@cite).
 
 ```jldoctest
-julia> p = face_lattice(cube(2))
+julia> p = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
 
 julia> cp = chain_polytope(p)
@@ -434,7 +434,7 @@ end
     maximal_ranked_poset(v::AbstractVector{Int})
 
 Maximal ranked partially ordered set with number of nodes per rank given in
-`v`, from bottom to top and excluding the minimal and maximal elements.
+`v`, from bottom to top and excluding the least and greatest elements.
 
 See [AFJ25](@cite) for details.
 
@@ -547,15 +547,14 @@ end
     least_element(p::PartiallyOrderedSet)
 
 Return the unique minimal element in a partially ordered set.
+
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
 
-julia> coatoms(pos)
-3-element Vector{Oscar.PartiallyOrderedSetElement}:
- Poset element <[7]>
- Poset element <[8]>
- Poset element <[9]>
+julia> least_element(pos)
+Poset element <[0]>
 ```
 """
 least_element(p::PartiallyOrderedSet) = PartiallyOrderedSetElement(p, _bottom_node(p))
@@ -564,12 +563,15 @@ least_element(p::PartiallyOrderedSet) = PartiallyOrderedSetElement(p, _bottom_no
     greatest_element(p::PartiallyOrderedSet)
 
 Return the unique maximal element in a partially ordered set, if it exists.
+Throws an error otherwise.
+
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
 
-julia> least_element(pos)
-Poset element <[0]>
+julia>  greatest_element(pos)
+Poset element <[10]>
 ```
 """
 function greatest_element(p::PartiallyOrderedSet)
@@ -588,7 +590,7 @@ end
 
 Return the element in a partially ordered set with give node id.
 ```jldoctest
-julia> fl = face_lattice(cube(2))
+julia> fl = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
 
 julia> element(fl,7)

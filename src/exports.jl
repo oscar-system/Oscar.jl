@@ -589,7 +589,7 @@ export exterior_derivative
 export exterior_power
 export f_vector
 export face_fan
-export face_lattice
+export face_poset
 export faces
 export facet_degrees
 export facet_indices
