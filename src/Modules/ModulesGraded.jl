@@ -36,10 +36,14 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(
+    R::AdmissibleModuleFPRing, p::Int, 
+    W::Vector{FinGenAbGroupElem}=[zero(grading_group(R)) for i in 1:p], 
+    name::String="e"
+  )
   @assert length(W) == p
   @assert is_graded(R)
-  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  all(parent(x) === grading_group(R) for x in W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
   M.d = W
   return M
@@ -626,6 +630,8 @@ end
 # Checks for homogeneity and computes the degree. 
 # If the input is not homogeneous, this returns nothing.
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{FinGenAbGroupElem})
+    @show unit_vector_degrees::Vector
+    @show collect(coords)
   element_degree = nothing
   for (position, coordval) in coords
       if !is_homogeneous(coordval)
