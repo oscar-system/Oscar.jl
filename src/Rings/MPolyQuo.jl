@@ -1294,6 +1294,13 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
+function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
+  check_parent(a, b)
+  b, q = divides(a, b)
+  !b && error("Division is not exact in divexact")
+  return q
+end
+
 ### 
 # The following two functions below provide a hotfix to make sure that the preferred 
 # ordering provided to the constructor of the quotient ring is actually used for the 
