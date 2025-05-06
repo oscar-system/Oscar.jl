@@ -630,8 +630,6 @@ end
 # Checks for homogeneity and computes the degree. 
 # If the input is not homogeneous, this returns nothing.
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{FinGenAbGroupElem})
-    @show unit_vector_degrees::Vector
-    @show collect(coords)
   element_degree = nothing
   for (position, coordval) in coords
       if !is_homogeneous(coordval)
