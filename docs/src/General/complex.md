@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Complex Algorithms
 
 On this page we will list some of the more involved algorithmic problems of
