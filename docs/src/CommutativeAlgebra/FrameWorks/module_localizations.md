@@ -1,6 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Localizations of modules over computable rings
