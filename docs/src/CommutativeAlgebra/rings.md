@@ -139,6 +139,8 @@ Rational field
 ### Number Fields
 
 ```jldoctest
+julia> Qx, x = QQ["x"];
+
 julia> K, a = number_field(x^2 - 5, "a")
 (Number field of degree 2 over QQ, a)
 
