@@ -42,7 +42,7 @@ mutable struct DifferenceVariable{T} <: JetVariable{T}
   index::Vector{Int}
   S::Symbol
 
-  function DifferenceVariable{T}(dpr::DifferencePolyRing, elemvar::Symbol, index::Vector{Int}) where {T}
+  function DifferenceVariable{T}(dpr::DifferencePolyRing{T}, elemvar::Symbol, index::Vector{Int}) where {T}
     @req elemvar in symbols(dpr) "Invalid elementary variable"
     @req length(index) == ndiffs(dpr) "Invalid length of index vector"
     @req all(i -> i >= 0, index) "All indices must be nonnegative"
@@ -51,10 +51,14 @@ mutable struct DifferenceVariable{T} <: JetVariable{T}
 end
 
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
-  coeffs::Any
+  coeffs::Vector{DifferencePolyRingElem{T}}
   #initial::Any
-  #leader::DifferenceVariable{T}
+  leader::DifferenceVariable{T}
   parent::DifferencePolyRing{T}
+
+  function DifferencePolyRingElem{T}(ld::DifferenceVariable, cf::Vector{DifferencePolyRingElem{T}}) where {T}
+    return _helper(5) 
+  end
 end
 
 
@@ -74,7 +78,7 @@ mutable struct DifferentialVariable{T} <: JetVariable{T}
   index::Vector{Int}
   S::Symbol
 
-  function DifferentialVariable{T}(dpr::DifferentialPolyRing, elemvar::Symbol, index::Vector{Int}) where {T}
+  function DifferentialVariable{T}(dpr::DifferentialPolyRing{T}, elemvar::Symbol, index::Vector{Int}) where {T}
     @req elemvar in symbols(dpr) "Invalid elementary variable"
     @req length(index) == ndiffs(dpr) "Invalid length of index vector"
     @req all(i -> i >= 0, index) "All indices must be nonnegative"
@@ -83,9 +87,9 @@ mutable struct DifferentialVariable{T} <: JetVariable{T}
 end
 
 mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
-  coeffs::Any
+  coeffs::Vector{DifferentialPolyRingElem{T}}
   #initial::Any
-  #leader::DifferentialVariable{T}
+  leader::DifferentialVariable{T}
   parent::DifferentialPolyRing{T}
 end
 
@@ -189,4 +193,16 @@ base_ring(dv::DifferentialVariable) = dv.polyring
 index(dv::DifferentialVariable) = dv.index
 
 symbols(dv::DifferentialVariable) = dv.S
+
+#######################################
+#
+#  Auxillary functions 
+#
+#######################################
+
+_helper(n::Int) = "It worked"
+
+
+
+
 
