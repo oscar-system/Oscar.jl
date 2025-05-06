@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # [Saving and loading files](@id serialization)
 
 ## Introduction
