@@ -459,7 +459,12 @@ function sector_partition(
 
       # compute local cohomology of sector
       H_A, A_ = _local_cohomology_sector(field, A, j, k, phi, psi)
-      push!(S_A, SectorLC(A_, poly_tuple, collect(tuple), H_A)) # changed
+
+      #avoid duplicates 
+      s_A = [s for s in S_A if s.A == A_ && s.sector == poly_tuple]
+      if is_empty(s_A)
+        push!(S_A, SectorLC(A_, poly_tuple, collect(tuple), H_A)) # changed
+      end
     end
   end
   return S_A
