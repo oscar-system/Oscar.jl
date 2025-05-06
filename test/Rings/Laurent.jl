@@ -72,5 +72,5 @@ end
   @test !is_one(u^28)
   @test !is_one(u^20)
   @test is_one(u*inv(u))
-  # @test  1/u == inv(u)  # StackOverflowError
+  @test 1/u == inv(u)
 end
