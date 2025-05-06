@@ -117,20 +117,14 @@ mutable struct RelationHandler{T <: RingElem}
         # The relations translate to 
         # sum_{l < k} (bli bkj − bki blj) κg(vl,vk) − κh−1gh(vi,vj) = 0
         # where B = (b_ij) is the matrix corresponding to h
-        if g == c
-            for l in 1:d, k in (l+1):d
-              if l == i && k == j
-                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j] - R(1)
-              else
-                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
-              end
-            end
-        else
-            for l in 1:d, k in (l+1):d
-                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
-            end
-        
-            row[handler.map[(c,i,j)]] = - R(1)
+        for l in 1:d, k in (l+1):d
+          if g == c && l == i && k == j
+            row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j] - R(1)
+          else
+            row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
+            row[handler.map[(c,i,j)]] = R(-1)
+          end
+          # TODO I think this is not correct yet
         end
       
         if !is_zero(row)
