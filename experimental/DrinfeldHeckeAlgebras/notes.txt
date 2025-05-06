@@ -13,6 +13,7 @@ S3 = symmetric_group(n)
 mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
 G = matrix_group(mat_gens)
 A = parametrized_drinfeld_hecke_form(G)
+generate_forms_for_conjugacy_classes(G)
 
 ##########################################################
 
@@ -39,10 +40,18 @@ A = parametrized_drinfeld_hecke_form(G)
 
 using Revise, Oscar
 
-R = QQ
-MS = matrix_space(R,2,2)
-G = matrix_group(MS([-1 0;0 -1]))
-A = drinfeld_hecke_form(G)
+G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+parametrized_drinfeld_hecke_form(G)
+generate_forms_for_conjugacy_classes(G)
+
+using Revise, Oscar
+
+S3 = symmetric_group(3)
+mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
+G = matrix_group(mat_gens)
+parametrized_drinfeld_hecke_form(G)
+generate_forms_for_conjugacy_classes(G)
+
 
 using Revise, Oscar
 

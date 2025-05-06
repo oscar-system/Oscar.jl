@@ -2,6 +2,12 @@
 # Struct for relation handling of Drinfeld-Hecke forms
 ################################################################################
 
+# TODO: Haben diese Elemente einen Namen? 1.9 Ram Shepler
+# TODO: Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
+# TODO: Gibt es Drinfeld-Hecke algebren die keine Rational-Cherednik algebren sind für complexe Spiegelungsgruppe?
+# TODO: Gibt es DH algebren die keine Symplectic reflection algebras sind?
+# TODO. generic instead of parametrized
+
 # Handles the relations below by translating them into a matrix M defining an LES of the form Mx = 0
 # κg(u, v)(gw − w) + κg(v, w)(gu − u) + κg(w, u)(gv − v) = 0 for all g ∈ G and u, v, w ∈ V
 # κg(hu, hv) = κh^-1gh(u, v) for all g, h ∈ G and u, v ∈ V
@@ -111,14 +117,20 @@ mutable struct RelationHandler{T <: RingElem}
         # The relations translate to 
         # sum_{l < k} (bli bkj − bki blj) κg(vl,vk) − κh−1gh(vi,vj) = 0
         # where B = (b_ij) is the matrix corresponding to h
-        for l in 1:d, k in (l+1):d
-          if g == c && l == i && k == j
-            row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j] - R(1)
-          else
-            row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
-            row[handler.map[(c,i,j)]] = R(-1)
-          end
-          # TODO I think this is not correct yet
+        if g == c
+            for l in 1:d, k in (l+1):d
+              if l == i && k == j
+                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j] - R(1)
+              else
+                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
+              end
+            end
+        else
+            for l in 1:d, k in (l+1):d
+                row[handler.map[(g,l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
+            end
+        
+            row[handler.map[(c,i,j)]] = - R(1)
         end
       
         if !is_zero(row)
@@ -236,10 +248,12 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
     # sum_{l < k} (bli bkj − bki blj) κ1(vl,vk) − κ1(vi,vj) = 0
     for i in 1:n, j in (i+1):n
       for l in 1:n, k in (l+1):n
-        row[map[(l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
+        if l == i && k == j
+          row[map[(l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j] - R(1)
+        else
+          row[map[(l,k)]] = B[l,i] * B[k,j] - B[k,i] * B[l,j]
+        end
       end
-    
-      row[map[(i,j)]] = - R(1)
     end
   
     if !is_zero(row)
@@ -267,9 +281,9 @@ function generate_forms_for_conjugacy_classes(G::MatrixGroup{T}) where {T <: Rin
     for j in 1:nullity
       x = x + [S[j] * K[i, j] for i in 1:m]
     end
-  
+
     # Convert to a matrix
-    B = zero_matrix(R, n, n)
+    B = zero_matrix(S, n, n)
     for ((i,j),k) in map
       B[i,j] = x[k]
       B[j,i] = -x[k]
