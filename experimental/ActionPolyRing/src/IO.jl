@@ -29,36 +29,3 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   end
 end
 
-### Differential ###
-function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
-  io = pretty(io)
-  n = nelemvars(dpr)
-  print(io, "Differential polynomial ring in $n elementary variables ")
-  for i in 1:n-1
-    print(io, string(symbols(dpr)[i]) * ", ")
-  end
-  print(io, string(symbols(dpr)[n])*"\n")
-  print(io, "with $(ndiffs(dpr)) commuting differential operators\n")
-  print(io, Indent())
-  print(io, "over $(base_ring(dpr))")
-  print(io, Dedent())
-end
-
-function Base.show(io::IO, dpr::DifferentialPolyRing)
-  io = pretty(io)
-  if is_terse(io)
-    print(io, "Differential polynomial ring")
-  end
-  print(terse(io), "Differential polynomial ring in $(nelemvars(dpr)) elementary variables over ")
-  print(terse(io), base_ring(dpr))
-end
-
-### JetVariable ###
-
-function Base.show(io::IO, jv::JetVariable)
-  io = pretty(io)
-  print(io, string(symbols(jv)) * "[")
-  join(io, index(jv))
-  print(io, "]")
-end
-
