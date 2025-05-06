@@ -71,7 +71,6 @@ end
   @test !is_one(u^70)
   @test !is_one(u^28)
   @test !is_one(u^20)
-  # Known problems:
-  # u^(-1)   # printed form is ugly
-  # 1/u      # StackOverflowError
+  @test is_one(u*inv(u))
+  # @test  1/u == inv(u)  # StackOverflowError
 end

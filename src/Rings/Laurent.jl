@@ -61,7 +61,8 @@ function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
     C = base_ring(R)
-    Cx, x, xinv = polynomial_ring(C,"x#" => 1:n, "x#^-1" => 1:n; cached = false)
+    var_names = R.mpolyring.S
+    Cx, x, xinv = polynomial_ring(C, var_names, [Symbol("inv(", name, ")")  for name in var_names]; cached = false)
     I = ideal(Cx, [x[i]*xinv[i] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
