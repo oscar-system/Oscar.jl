@@ -27,7 +27,7 @@ function (fac::InducedENCChainFactory)(self::AbsHyperComplex, ind::Tuple)
   end
   Ip, _ = sub(amb_ext_power, new_gens)
   fac.ext_powers[i] = Ip
-  result = tensor_product(_symmetric_power(enc, i), Ip)
+  result = tensor_product(_symmetric_power(enc, i), Ip; ambient_tensor_product=enc[i])
   return result
 end
 
@@ -62,6 +62,10 @@ function (fac::InducedENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   # TODO: This can probably be sped up by lifting directly on the exterior powers.
   img_gens = elem_type(cod)[]
   ambient_map = map(enc, i)
+  @show i
+  @show domain(ambient_map)
+  @show ambient_free_module(dom)
+  @assert domain(ambient_map) === ambient_free_module(dom)
   for g in gens(dom)
     rep = repres(g)
     image_g = ambient_map(rep)
