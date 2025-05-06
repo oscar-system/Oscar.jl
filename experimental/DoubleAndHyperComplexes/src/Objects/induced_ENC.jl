@@ -126,3 +126,4 @@ end
 
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::InducedENC) = c.internal_complex
+
