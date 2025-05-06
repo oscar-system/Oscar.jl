@@ -139,8 +139,8 @@ Rational field
 ### Number Fields
 
 ```jldoctest
-julia> K, a = quadratic_field(5)
-(Real quadratic field defined by x^2 - 5, sqrt(5))
+julia> K, a = number_field(x^2 - 5, "a")
+(Number field of degree 2 over QQ, a)
 
 julia> Kt, t = K["t"];
 
@@ -158,8 +158,14 @@ julia> julia> L, a = number_field([x^2 - 5, x^3 - 3], "a")
 ```
 
 ```jldoctest
+julia> K, a = quadratic_field(5)
+(Real quadratic field defined by x^2 - 5, sqrt(5))
+```
+
+```jldoctest
 julia> K, zeta = cyclotomic_field(3) 
 (Cyclotomic field of order 3, z_3)
+
 ```
 
 ### The Abelian Closure of $\mathbb{Q}$
