@@ -404,7 +404,7 @@ function intersect(a::MonoidAlgebraIdeal, b::MonoidAlgebraIdeal...)
   return MonoidAlgebraIdeal(kQ, [kQ(x) for x in gens(as)])
 end
 
-function intersect(V::Vector{MonoidAlgebraIdeal})
+function Base.intersect(V::Vector{T}) where {T <: MonoidAlgebraIdeal}
   @assert length(V) != 0
   length(V) == 1 && return V[1]
 
