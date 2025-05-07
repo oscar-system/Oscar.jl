@@ -67,3 +67,5 @@ end
 function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:PolyRingElem}, a::RingElem)
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
+
+number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
