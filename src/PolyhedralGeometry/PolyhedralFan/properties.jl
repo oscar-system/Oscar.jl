@@ -252,8 +252,7 @@ _incidencematrix(::Val{_cone_of_dim}) = _ray_indices
 @doc raw"""
     cones(PF::PolyhedralFan)
 
-Return the ray indices of all non-zero-dimensional
-cones in a polyhedral fan.
+Return the ray indices of all cones in a polyhedral fan.
 
 # Examples
 ```jldoctest
@@ -261,7 +260,7 @@ julia> PF = face_fan(cube(2))
 Polyhedral fan in ambient dimension 2
 
 julia> cones(PF)
-8×4 IncidenceMatrix
+9×4 IncidenceMatrix
  [1, 3]
  [2, 4]
  [1, 2]
@@ -270,13 +269,15 @@ julia> cones(PF)
  [3]
  [2]
  [4]
+ []
 ```
 """
 function cones(PF::_FanLikeType)
   pmo = pm_object(PF)
+  n_maximal_cones(PF) == 0 && return IncidenceMatrix(0, 0)
   ncones = pmo.HASSE_DIAGRAM.N_NODES
   cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:(ncones - 1)]
-  cones = filter(x -> !(-1 in x) && length(x) > 0, cones)
+  cones = filter(x -> !(-1 in x), cones)
   cones = [Polymake.to_one_based_indexing(x) for x in cones]
   return IncidenceMatrix([Vector{Int}(x) for x in cones])
 end
@@ -600,7 +601,7 @@ julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> n_cones(PF)
-4
+5
 ```
 """
 n_cones(PF::_FanLikeType) = nrows(cones(PF))
