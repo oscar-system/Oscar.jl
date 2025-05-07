@@ -698,7 +698,7 @@ function monoid_algebra_ideal(kQ::MonoidAlgebra, I::Ideal)
   return MonoidAlgebraIdeal(kQ, I)
 end
 
-function quotient_ring_as_module(I::MonoidAlgebraIdeal)
+function Oscar.quotient_ring_as_module(I::MonoidAlgebraIdeal)
   R = base_ring(I)
   F = graded_free_module(R,1)
   e1 = F[1]
@@ -1619,37 +1619,6 @@ end
 end
 =#
 
-
-function jacobian(I::Ideal)
-  R = base_ring(I)
-  gens_I = gens(I)
-
-  if is_zero(I)
-    return Matrix{elem_type(R)}(undef, 0, 0)
-  else
-    jacobian = Matrix{elem_type(R)}(undef, length(gens_I), length(gens(R)))
-
-    for i in eachindex(gens_I)
-      for j in eachindex(gens(R))
-        jacobian[i, j] = derivative(gens_I[i], j)
-      end
-    end
-
-    return jacobian
-  end
-end
-
-function jacobian(R::Union{MPolyRing,MPolyQuoRing})
-  if R isa MPolyQuoRing
-    return jacobian(modulus(R))
-  else
-    return Matrix{elem_type(R)}(undef, 0, 0)
-  end
-end
-
-function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing})
-  return true
-end
 
 @attr Bool function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
   # Implementation adapted from 
