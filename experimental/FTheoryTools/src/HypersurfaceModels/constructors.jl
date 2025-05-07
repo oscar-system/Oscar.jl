@@ -61,7 +61,11 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
-  
+  @req length(fiber_twist_divisor_classes) <= n_rays(fiber_ambient_space) "Number of fiber twist divisor classes must not exceed number of rays in fiber ambient space"
+  if length(fiber_twist_divisor_classes) < n_rays(fiber_ambient_space)
+    fiber_twist_divisor_classes = vcat(fiber_twist_divisor_classes, [trivial_divisor_class(base) for k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))])
+  end
+
   # Compute an ambient space
   ambient_space = _ambient_space(base, fiber_ambient_space, fiber_twist_divisor_classes)
 
@@ -87,6 +91,7 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   set_attribute!(model, :partially_resolved, false)
   return model
 end
+
 
 
 
