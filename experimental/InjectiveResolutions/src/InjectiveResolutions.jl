@@ -395,6 +395,23 @@ function coordinates(a::MonoidAlgebraElem, I::MonoidAlgebraIdeal)
   return coordinates(underlying_element(a), underlying_ideal(I))
 end
 
+function intersect(a::MonoidAlgebraIdeal, b::MonoidAlgebraIdeal...)
+  kQ = base_ring(a)
+  for g in b
+    @req base_ring(g) == kQ "base rings must match"
+  end
+  as = Singular.intersection(singular_generators(a), [singular_generators(g) for g in b]...)
+  return MonoidAlgebraIdeal(kQ, [kQ(x) for x in gens(as)])
+end
+
+function intersect(V::Vector{MonoidAlgebraIdeal})
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return intersect(V[1], V[2:end]...)
+end
+
+
 #module (SubquoModule) over `MonoidAlgebra`
 struct MonoidAlgebraModule
   monoid_algebra::MonoidAlgebra
@@ -454,7 +471,7 @@ struct InjRes #ZZ^d-graded injective resolution
   inj_mods::Vector{InjMod}
   cochain_maps::Vector{MatElem}
   upto::Int
-  irr_res::IrrRes
+  Q_graded_part::IrrRes
   shift::Vector{Int} #not needed
 end
 
