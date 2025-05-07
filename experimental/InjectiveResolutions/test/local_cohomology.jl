@@ -21,21 +21,21 @@ M = Oscar.quotient_ring_as_module(I_M)
 #compute local cohomology
 H0 = Oscar.zeroth_local_cohomology(quotient_ring_as_module(I_M),m)
 @test !is_zero(H0)
-H2 = 
+
 H1 = Oscar.local_cohomology(I_M,m,1)
-@test !Oscar.lc_zero(H1)
+@test !is_zero(H1)
 H1_sectors = [h for h in H1.sectors if dim(h.H) > 0]
 @test all([dim(h.H) == 1 for h in H1_sectors])
 @test all([ambient_dim(h.sector) == 2 for h in H1.sectors])
 
-Oscar.local_cohomology(I_M,m,2)
-@test Oscar.lc_zero(H2)
+H2 = Oscar.local_cohomology(I_M,m,2)
+@test Oscar.is_zero(H2)
 
 H3 = Oscar.local_cohomology(I_M,m,3)
-@test Oscar.lc_zero(H3)
+@test Oscar.is_zero(H3)
 
 H4 = Oscar.local_cohomology(I_M,m,4)
-@test Oscar.lc_zero(H4)
+@test Oscar.is_zero(H4)
 end
 
 @testset "hartshorne example" begin
@@ -57,16 +57,16 @@ H0 = Oscar.zeroth_local_cohomology(quotient_ring_as_module(I_M), I)
 # cohomological degree 1
 H1 = Oscar.local_cohomology(I_M, I, 1)
 H1_sectors = [h for h in H1.sectors if dim(h.H)>0] #sectors with non-zero local cohomomology
-@test !Oscar.lc_zero(H1)
+@test !Oscar.is_zero(H1)
 @test length(H1_sectors) == 1 
 
 # cohomological degree 2 
 H2 = Oscar.local_cohomology(I_M, I, 2)
 H2_sectors = [h for h in H2.sectors if dim(h.H)>0] #sectors with non-zero local cohomology
-@test !Oscar.lc_zero(H2)
+@test !Oscar.is_zero(H2)
 @test length(H2_sectors) == 1
 
 #cohomological degree 3
 H3 = Oscar.local_cohomology(I_M, I, 3)
-@test Oscar.lc_zero(H3)
+@test Oscar.is_zero(H3)
 end
