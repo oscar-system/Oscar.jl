@@ -234,8 +234,6 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
-    set_exceptional_classes(qsm_model, string.(model_dict["model_data"]["exceptional_classes"]))
-    #_set_all_attributes(qsm_model, model_dict, model_parameters)
     return qsm_model
   end
 
