@@ -14,9 +14,9 @@ function getindex(r::Hecke.SRow, u::AbstractUnitRange)
   return s
 end
 
-Oscar.canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
+canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
 
-function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
+function numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   g = parent()
   ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
   return g
