@@ -11,30 +11,25 @@ kQ = Oscar.MonoidAlgebra(R_Q)
 I = ideal(kQ, [x^2*z])
 
 #irreducible decomposition
-irreducible_dec(I)
+W = irreducible_dec(I)
+@test I == intersect(W...)
 
 # compute irreducible resolution of M = kQ/I
 M = quotient_ring_as_module(I)
 irr_res = irreducible_res(M)
+@test is_exact(irr_res.cochain_complex)
 
 # compute injective resolution of kQ/I up to cohomological degree 3
 inj_res = injective_res(I, 3)
-inj_res.upto
-
-inj_res.inj_mods[1].indec_injectives #J^0
-inj_res.inj_mods[2].indec_injectives #J^1
-inj_res.inj_mods[3].indec_injectives #J^2
-
-inj_res.cochain_maps[1] #J^0 -> J^1
-inj_res.cochain_maps[2] #J^1 -> J^2
+@test inj_res.upto == 2
 
 # get irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
-irr_res_Q = inj_res.irr_res
+irr_res_Q = inj_res.Q_graded_part
+@test is_exact(irr_res_Q.cochain_complex)
 
 # check if irreducible resolution
-length(irr_res_Q.irr_sums)
-image(irr_res_Q.cochain_maps[1])[1] == kernel(irr_res_Q.cochain_maps[2])[1]
-is_injective(irr_res_Q.inclusions[1])
-is_injective(irr_res_Q.inclusions[2])
-is_injective(irr_res_Q.inclusions[3])
-is_surjective(irr_res_Q.inclusions[3])
+@test image(irr_res_Q.cochain_maps[1])[1] == kernel(irr_res_Q.cochain_maps[2])[1]
+@test is_injective(irr_res_Q.inclusions[1])
+@test is_injective(irr_res_Q.inclusions[2])
+@test is_injective(irr_res_Q.inclusions[3])
+@test is_surjective(irr_res_Q.inclusions[3])
