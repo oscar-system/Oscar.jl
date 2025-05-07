@@ -215,6 +215,17 @@ julia> L, b = finite_field(x^3 + x^2 + x + 2, "b")
 
 ```
 
+### Algebraic Closures of Prime Fields
+
+```jldoctest
+julia> K = algebraic_closure(GF(3))
+Algebraic closure of prime field of characteristic 3
+
+julia> L = algebraic_closure(QQ)
+Algebraic closure of rational field
+
+```
+
 ### Rational Function Fields
 
 ```jldoctest

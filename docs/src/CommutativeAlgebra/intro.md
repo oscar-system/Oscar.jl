@@ -27,7 +27,7 @@ a *Gröbner basis*. We refer to the corresponding [section](@ref gb_fields) in t
     the scenes when needed. Once computed, each such basis is cached for later reuse.
 
 !!! note
-    Our main focus in this chapter is on Gröbner (standard) basis methods for computations in multivariate polynomial rings over fields (exact fields supported by OSCAR). Where not indicated otherwise, such methods apply to polynomial rings over $\mathbb Z$, too. Similarly for polynomial rings over rings of type $\mathbb Z/ m\mathbb Z$. Note, however, that computing radicals and primary decompositions requires in addition methods for sqarefree decomposition and polynomial factorization, respectively. In the case of coefficient rings (fields) for which such methods are not implemented, an error will be thrown.
+    Our main focus in this chapter is on Gröbner (standard) basis methods for computations in multivariate polynomial rings over fields (exact fields supported by OSCAR). Where not indicated otherwise, such methods apply to polynomial rings over $\mathbb Z$, too. Similarly for polynomial rings over rings of type $\mathbb Z/ m\mathbb Z$. Note, however, that some commutative algebra functions rely in addition on methods for sqarefree decomposition and polynomial factorization, respectively. In the case of coefficient rings (fields) for which such methods are not implemented, an error will be thrown. This applies, in particular, in the context of computing radicals and primary decompositions.
 	
 !!! note
     In Oscar, it is possible to equip multivariate polynomial rings with gradings by finitely presented groups. 
