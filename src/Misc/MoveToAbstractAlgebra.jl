@@ -59,3 +59,11 @@ end
 function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
   return divexact(numerator(a)(b), denominator(a)(b))
 end
+
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
+end
+
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:PolyRingElem}, a::RingElem)
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
+end
