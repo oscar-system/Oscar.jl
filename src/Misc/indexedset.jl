@@ -36,11 +36,11 @@ Indexed set ["ball", "flower", "house", "stone"]
 struct IndexedSet{T}
   data::Vector{T}
   pos::Dict{T,Int}
-  
-  IndexedSet{T}() where T = new{T}(Vector{T}(),Dict{T,Int}())
+
+  IndexedSet{T}() where {T} = new{T}(Vector{T}(), Dict{T,Int}())
 end
 
-function IndexedSet(v::Vector{T}) where T
+function IndexedSet(v::Vector{T}) where {T}
   s = IndexedSet{T}()
   for x in v
     push!(s, x)
@@ -53,7 +53,7 @@ function Base.show(io::IO, s::IndexedSet)
 end
 
 function Base.push!(s::IndexedSet, x)
-  n = length(s.data)+1
+  n = length(s.data) + 1
   i = get!(s.pos, x, n)
   n == i && push!(s.data, x)
   return s
@@ -73,8 +73,9 @@ Base.isequal(a::IndexedSet, b::IndexedSet) = a.data == b.data
 Base.getindex(s::IndexedSet, i::Int) = s.data[i]
 
 # lookup index via object
-(s::IndexedSet{T})(x::T) where T = get(s, x, 0)
-Base.get(s::IndexedSet, x::T, def::Int) where T = get(s.pos, x, def)
+(s::IndexedSet{T})(x::T) where {T} = get(s, x, 0)
+Base.get(s::IndexedSet, x::T, def::Int) where {T} = get(s.pos, x, def)
+Base.collect(s::IndexedSet) = s.data
 
 Base.iterate(s::IndexedSet) = iterate(s.data)
 Base.iterate(s::IndexedSet, state) = iterate(s.data, state)
@@ -84,75 +85,4 @@ Base.length(s::IndexedSet) = length(s.data)
 
 Base.IteratorSize(::Type{<:IndexedSet}) = Base.HasShape{1}()
 Base.size(s::IndexedSet) = size(s.data)
-Base.eltype(s::IndexedSet{T}) where T = T
-
-#=
-module Orbit
-import ..Foo: IndexedSet
-import ..Nemo: Group, gens
-
-function orbit_1(generators, pt::T, action = ^; maxlen = nothing) where T
-    orb = IndexedSet([pt])
-    for b in orb
-        for g in generators
-            c = action(b, g)::T
-            pos = orb(c)
-            if pos === 0
-                push!(orb, c)
-                if maxlen !== nothing
-                  if length(orb) > maxlen
-                    println("aborting after reaching orbit of length $maxlen")
-                    return orb
-                  end
-                end
-            end
-        end
-    end
-    return orb
-end
-
-function orbit_2(G::Group, pt::T, action = ^) where T
-    gg = gens(G)
-    orb = IndexedSet([pt])
-    for b in orb
-        for g in gg
-            c = action(b, g)::T
-            pos = orb(c)
-            if pos === 0
-                push!(orb, c)
-            end
-        end
-    end
-    return orb
-end
-
-function orbit_3(pt::T, generators, action) where T
-    orb = IndexedSet([pt])
-    for b in orb
-        for g in generators
-            c = action(b, g)::T
-            if !(c in orb)
-                push!(orb, c)
-            end
-        end
-    end
-    return orb
-end
-
-function orbit_4(pt::T, generators) where T
-    orb = IndexedSet([pt])
-    schreier = Int[0]
-    for b in orb
-        for (i,g) in enumerate(generators)
-            c = (b^g)::T
-            if !(c in orb)
-                push!(orb, c)
-                push!(schreier, i)
-            end
-        end
-    end
-    return orb, schreier
-end
-
-end # Orbit
-=#
+Base.eltype(::IndexedSet{T}) where {T} = T
