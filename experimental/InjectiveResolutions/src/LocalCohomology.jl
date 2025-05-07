@@ -127,7 +127,7 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
   k = coefficient_ring(kQ)
 
   #compute injective resolution
-  inj_res = injective_res(I_M, i+1)
+  inj_res = injective_resolution(I_M, i+1)
 
   #initilalize sector partition
   LC = SectorPartitionLC(quotient_ring_as_module(I_M), i, I)
@@ -224,7 +224,7 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
   kQ = I_M.monoid_algebra
 
   #compute injective resolution
-  inj_res = injective_res(I_M, i+1)
+  inj_res = injective_resolution(I_M, i+1)
 
   #compute a sector partition of H^j_I(M) for 1 \leq j \leq i
   H = Vector{SectorPartitionLC}()
