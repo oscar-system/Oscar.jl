@@ -294,3 +294,8 @@ function free_resolution(M::SubquoModule{T};
   return FreeResolution(cc)
 end
 
+# We need to overwrite this for the `ComplexOfMorphism`s to work.
+function Hecke.is_eq(A::SubquoModule{T}, B::SubquoModule{T}) where {T <: MonoidAlgebraElem}
+  return A == B
+end
+
