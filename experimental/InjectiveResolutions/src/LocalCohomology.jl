@@ -120,17 +120,30 @@ by graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 2 
 ```
 """
 function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
-  @req I_M.monoid_algebra == I.monoid_algebra "ideals must be over same monoid algebra"
+  return local_cohomology(quotient_ring_as_module(I_M),I,i)
+end
 
-  #get monoid algebra 
-  kQ = I_M.monoid_algebra
+@doc raw"""
+    local_cohomology(M::SubquoModule{<:MonoidAlgebraElem},I::MonoidAlgebraIdeal,i::Integer)
+
+Compute a sector partition (see, e.g. $\cite{HM05}$ or $\cite{MS05}$) of the local cohomology module $H^i_I(M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
+The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in $\cite[Definition 1.2]{HM05}$.
+
+!!! note
+The monoid algebra $k[Q]$ must be normal. 
+"""
+function local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+  kQ = base_ring(M)
   k = coefficient_ring(kQ)
 
+  @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
+  @req is_normal(kQ) "monoid algebra must be normal"
+
   #compute injective resolution
-  inj_res = injective_resolution(I_M, i+1)
+  inj_res = injective_resolution(M, i+1)
 
   #initilalize sector partition
-  LC = SectorPartitionLC(quotient_ring_as_module(I_M), i, I)
+  LC = SectorPartitionLC(M, i, I)
 
   if i > inj_res.upto #local cohomology zero
     return LC
@@ -158,7 +171,7 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
   #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
   J, phi, psi, (j, k) = apply_gamma(Ji_, Ji, Ji_1, _phi, _psi, I)
 
-  #compute sector partition of J -> sector partition of H^i_I(k[Q]/I_M) (see Theorem 5.2. in HM05)
+  #compute sector partition of J -> sector partition of H^i_I(M) (see Theorem 5.2. in HM05)
   LC.sectors = sector_partition(kQ, phi, psi, j, k, J...)
 
   #compute the needed maps in 3. of Definition 1.2 in HM05 (uses Algorithm 6.4)
@@ -209,7 +222,7 @@ function zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::Monoid
 end
 
 @doc raw"""
-    local_cohomology_all(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integer)
+    local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 
 For $1 \geq j \leq i $ compute sector partitions (see, e.g. $\cite{HM05}$) of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
 The output consists of a list of sector partitions. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$. 
@@ -218,13 +231,26 @@ The output consists of a list of sector partitions. This function only computes 
 The monoid algebra $k[Q]$ must be normal.  
 """
 function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
-  @req I_M.monoid_algebra == I.monoid_algebra "ideals must be over same monoid algebra"
+  @req I_M.algebra == I.algebra "ideals must be over same monoid algebra"
+  return local_cohomology_all(quotient_ring_as_module(M),I,i)
+end
 
-  #get monoid algebra 
-  kQ = I_M.monoid_algebra
+@doc raw"""
+    local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+
+For $1 \geq j \leq i $ compute sector partitions (see, e.g. $\cite{HM05}$) of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
+The output consists of a list of sector partitions. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
+
+!!! note
+The monoid algebra $k[Q]$ must be normal.  
+"""
+function local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+  kQ = base_ring(M)
+  @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
+  @req is_normal(kQ) "monoid algebra must be normal"
 
   #compute injective resolution
-  inj_res = injective_resolution(I_M, i+1)
+  inj_res = injective_resolution(M, i+1)
 
   #compute a sector partition of H^j_I(M) for 1 \leq j \leq i
   H = Vector{SectorPartitionLC}()
@@ -239,7 +265,7 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
     Hj = sector_partition(kQ, phi, psi, j, k, J...)
     push!(
       H,
-      SectorPartitionLC(quotient_ring_as_module(I_M), j, I.ideal, Hj, maps_needed(kQ, Hj)),
+      SectorPartitionLC(M, j, I.ideal, Hj, maps_needed(kQ, Hj)),
     )
   end
   return H

@@ -46,7 +46,7 @@ a, b, c, d = gens(kQ)
 # M = k[Q] (as a k[Q]-module)
 I_M = ideal(kQ, [])
 M = Oscar.quotient_ring_as_module(I_M)
-inj_res = Oscar.injective_res(M, 3)
+inj_res = Oscar.injective_resolution(M, 3)
 
 I = ideal(kQ, [a, b])
 
@@ -69,4 +69,28 @@ H2_sectors = [h for h in H2.sectors if dim(h.H)>0] #sectors with non-zero local 
 #cohomological degree 3
 H3 = Oscar.local_cohomology(I_M, I, 3)
 @test Oscar.is_zero(H3)
+end
+
+@testset "local cohomology of module" begin
+    # definition of monoid algebra as quotient of polynomial ring
+S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
+J = ideal(S, [x*z-y^2])
+R_Q,_ = quo(S, J)
+
+# get MonoidAlgebra
+kQ = monoid_algebra(R_Q)
+
+# define ideals over monoid algebra
+I = ideal(kQ, [x^2*z, x^4*y])
+J = ideal(kQ, [x^5*y, z^3])
+
+M_I = quotient_ring_as_module(I)
+M_J = quotient_ring_as_module(J)
+
+_M = direct_sum(M_I, M_J; task=:none)
+M,_ = sub(_M, [y*_M[1]+y*_M[2], x^2*_M[2]])
+
+m = ideal(kQ,[x,z])
+H1 = Oscar.local_cohomology(M,m,1)
+@test !is_zero(H1)
 end
