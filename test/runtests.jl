@@ -22,6 +22,8 @@ if numprocs >= 2
   println("Adding worker processes")
   addprocs(numprocs)
 end
+# keep custom worker pool to avoid issues from extra processes in parallel tests
+worker_pool = WorkerPool(workers())
 
 if haskey(ENV, "JULIA_PKGEVAL") ||
   get(ENV, "CI", "") == "true" ||
@@ -167,7 +169,7 @@ end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-merge!(stats, reduce(merge, pmap(testlist) do x
+merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
                               Oscar.test_module(x; new=false, timed=true, tempproject=false)
                             end))
