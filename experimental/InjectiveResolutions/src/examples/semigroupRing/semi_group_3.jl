@@ -5,7 +5,7 @@ R_Q, phi = quo(S, J)
 x, y, z = gens(R_Q)
 
 # get MonoidAlgebra 
-kQ = Oscar.MonoidAlgebra(R_Q)
+kQ = monoid_algebra(R_Q)
 
 # define ideal over monoid algebra
 I = ideal(kQ, [x^2*z])
