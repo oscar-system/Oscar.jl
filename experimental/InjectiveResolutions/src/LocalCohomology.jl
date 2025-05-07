@@ -88,7 +88,7 @@ monoid algebra over rational field with cone of dimension 2
 
 
 julia> x,y,z = gens(kQ)
-3-element Vector{Oscar.MonoidAlgebraElem{QQFieldElem, Oscar.MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
+3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
  x_2
  x_3
@@ -172,7 +172,7 @@ monoid algebra over rational field with cone of dimension 2
 
 
 julia> x,y,z = gens(kQ)
-3-element Vector{Oscar.MonoidAlgebraElem{QQFieldElem, Oscar.MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
+3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
  x_2
  x_3
@@ -213,7 +213,7 @@ monoid algebra over rational field with cone of dimension 2
 
 
 julia> x,y,z = gens(kQ)
-3-element Vector{Oscar.MonoidAlgebraElem{QQFieldElem, Oscar.MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
+3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
  x_2
  x_3
@@ -544,7 +544,7 @@ function _local_cohomology_sector(
 end
 
 @doc raw"""
-  apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::Oscar.MonoidAlgebraIdeal) where {T<:FieldElem}
+  apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::MonoidAlgebraIdeal) where {T<:FieldElem}
 
 Apply the functor $\Gamma_I(-)$ to a cochain complex of injective modules $J_0 \xrightarrow{phi} J_1 \xrightarrow{\psi} J_2$. It maps a $\mathbb{Z}^d$-graded $k[Q]$-momdule $M$
 to the submodule $\Gamma_I(M) = \{m \in M \mid m \cdot I^n = 0 \text{ for some }n>0\}$. Applying the functor corresponds to deleting all indecomposable injectives
@@ -556,7 +556,7 @@ function apply_gamma(
   J2::InjMod,
   phi::MatElem{T},
   psi::MatElem{T},
-  I::Oscar.MonoidAlgebraIdeal,
+  I::MonoidAlgebraIdeal,
 ) where {T<:FieldElem}
   @assert J0.monoid_algebra == J1.monoid_algebra == J2.monoid_algebra == I.monoid_algebra
 
