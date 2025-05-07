@@ -6,7 +6,7 @@
     is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
 Executes elementary tests (they are necessary but not sufficient)
-to tell if a family of $G_4$-fluxes is well-quantized. In case
+to tell if Family of $G_4$-fluxes is well-quantized. In case
 any of these tests fails, we know that this family of $G_4$-fluxes
 is definitely not well-quantized. This method then returns `false`.
 
@@ -22,10 +22,10 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> is_well_quantized(gf)
 true
@@ -35,7 +35,7 @@ julia> m1 = matrix_integral(gf);
 julia> m2 = matrix_rational(gf);
 
 julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -99,10 +99,10 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_transversality_checks(gf, check = false)
 true
@@ -112,7 +112,7 @@ julia> m1 = matrix_integral(gf);
 julia> m2 = matrix_rational(gf);
 
 julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -156,7 +156,7 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if a family of G4-fluxes breaks the non-abelian
+Check if Family of G4-fluxes breaks the non-abelian
 gauge group. If so, this method returns `true` and
 otherwise `false`.
 
@@ -165,19 +165,19 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
 
 julia> gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
+  - Non-abelian gauge group: unbroken
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false
@@ -187,7 +187,7 @@ julia> m1 = matrix_integral(gf3);
 julia> m2 = matrix_rational(gf3);
 
 julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
