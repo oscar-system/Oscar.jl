@@ -45,3 +45,5 @@ end
 function (F::FqField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{FqFieldElem})
   return F(x.d)
 end
+
+^(a::MatElem, b::ZZRingElem) = Nemo._generic_power(a, b)
