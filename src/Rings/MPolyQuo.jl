@@ -694,7 +694,7 @@ end
 
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  @req parent(a) == parent(b) "parents must match"
+  @req parent(a) === parent(b) "parents must match"
   return true
 end
 
