@@ -158,11 +158,9 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
   prs = canonical_projections(dom)
   rngs = get_attribute(dom, :ranges)::Vector{UnitRange{Int}}
   for (v_num, v) in enumerate(gens(dom))
-    @show v_num
     buckets = Tuple{Int, FreeModElem}[]
     e = Int[]
     ind, _ = only(coordinates(v))
-    @show ind
     k = findfirst(ind in r for r in rngs)
     #for (k, pr) in enumerate(prs)
       vv = prs[k](v)
@@ -172,14 +170,11 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
       vv2 = cohomology_model_inclusion(ctx, d, j)(vv)
       @assert !is_zero(vv2)
       e = _minimal_exponent_vector(ctx, d)
-      @show e
       for (l, p) in coordinates(images_of_generators(orig_map)[k])
-        @show l, p
         phi = multiplication_map(ctx, p, e, d, j)
         vvv = phi(vv2)
         @assert !is_zero(vvv)
         ind = findfirst(ll == l for (ll, _) in buckets)
-        @show vvv
         if isnothing(ind)
           push!(buckets, (l, vvv))
         else
@@ -197,7 +192,7 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
 end
 
 function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
-  @show "production of lifted kernel generators on page $(page_number(cssp)) at place $i, $j"
+  #@show "production of lifted kernel generators on page $(page_number(cssp)) at place $i, $j"
   @assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
   @assert j <= 0 "index out of bounds"
 
@@ -249,7 +244,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
   ii = i + 1
   jj = j - 1
 
-  @show page_number(prev_page), ii, jj
   v = lifted_kernel_generators(prev_page, ii, jj) # lifts of the kernel generators on the previous page
 
   # The generators of the kernel Zₚ = ker ∂ₚ₋₁ are extracted from this page.
@@ -275,28 +269,21 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
   new_lifted_kernel_gens = Tuple{Vector{Int}, Vector{Tuple{Int, <:FreeModElem}}}[]
 
   for (u_num, u) in enumerate(u_next)
-    @show u_num
-    @show u
     # We write `u` in the generators of `Zₚ₋₁` on which the previous 
     # map ∂ₚ₋₁ is defined.
     u_coords = p == 2 ? coordinates(u) : coordinates(u, prev_page[i0, j0])
-    @show u_coords
 
     # To bring everything to the same denominator in the Cech complex 
     # we need to find a common exponent.
     exps = Vector{Int}[v[i][1] for (i, c) in u_coords]
     sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:n]
-    @show exps
-    @show sup_exp
 
     buckets = Tuple{Int, FreeModElem}[]
     # ∂ₚ₋₁(u) = 0, so the linear combination for `u` in the generators of `Zₚ₋₁` 
     # applied to the `lifted_kernel_generators` for ψₚ₋₁ gives us elements 
     # which can be lifted further
     for (l, c) in u_coords
-      @show l, c
       e, g = v[l]
-      @show e, g
       # bring everything to the same denominators
       if e != sup_exp
         g = Tuple{Int, <:FreeModElem}[(j, ctx[e, sup_exp, -inter_degs[j]][jj](v)) for (j, v) in g]
@@ -316,34 +303,43 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     # We need to lift them once more through the double complex.
     lifted_buckets = Tuple{Int, FreeModElem}[]
     for (i, v) in buckets
-      @show "lifting $i, $v"
       is_zero(v) && continue
-      @show sup_exp
-      @show _minimal_exponent_vector(ctx, -inter_degs[i])
-      @show -inter_degs[i]
-      @show ctx[sup_exp, -inter_degs[i]]
-      @show jj+1
       cech_map = map(ctx[sup_exp, -inter_degs[i]], jj+1)
+      @assert parent(v) === codomain(cech_map)
+      e0 = _minimal_exponent_vector(ctx, -inter_degs[i])
+      pr1 = ctx[sup_exp, e0, -inter_degs[i]][jj]
+      @assert parent(v) === domain(pr1)
+      pr2 = cohomology_model_projection(ctx, -inter_degs[i], jj)
+      @assert domain(pr2) === codomain(pr1)
+      inc2 = cohomology_model_inclusion(ctx, -inter_degs[i], jj)
+      @assert codomain(pr2) === domain(inc2)
+      inc1 = ctx[e0, sup_exp, -inter_degs[i]][jj]
+      @assert codomain(inc2) === domain(inc1)
+      @assert codomain(inc1) === parent(v)
+      v_red = v - inc1(inc2(pr2(pr1(v))))
+      @show matrix(compose(compose(pr1, pr2), compose(inc2, inc1)))
       @show matrix(cech_map)
+      @show v_red[11]
+      @show v[11]
+      cech_map2 = map(ctx[sup_exp, -inter_degs[i]], jj)
+      @show cech_map2(v)
+      @show [!is_zero(v_red[i]) for i in 1:ngens(parent(v_red))]
+      push!(lifted_buckets, (i, preimage(cech_map, v_red)))
+      continue
       # We would like to lift via the Cech map, but modulo 
       # the image of previous differentials. 
       # In principal, this can be done with the following code, 
       # but that computes a Groebner basis every single time. 
-      e0 = _minimal_exponent_vector(ctx, -inter_degs[i])
       H = prev_page[ii, jj]
       F = ambient_free_module(H)
       pr = canonical_projection(F, i)
       coh_inc = cohomology_model_inclusion(ctx, -inter_degs[i], jj)
       mult = ctx[e0, sup_exp, -inter_degs[i]][jj]
       I, inc = sub(parent(v), [mult(coh_inc(pr(v))) for v in relations(H)])
-      @show gens(I)
       M, pro = quo(parent(v), I)
       psi = compose(cech_map, pro)
-      @show v
-      @show pro(v)
       vv = preimage(psi, pro(v))
-      @show vv
-      @show cech_map(vv) - v
+      @assert vv == preimage(cech_map, v_red)
       # Instead, we would like to make use of the rather simple form 
       # of the Cech map (whose image is a primitive direct summand 
       # of its codomain) and lift with that via some brute force. 
@@ -372,9 +368,9 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     # store the result
     push!(new_lifted_kernel_gens, (sup_exp, mapped_buckets))
   end
-  for (v, (e, b)) in zip(u_next, new_lifted_kernel_gens)
-    println("$(coordinates(v)) -> $e : $b")
-  end
+# for (v, (e, b)) in zip(u_next, new_lifted_kernel_gens)
+#   println("$(coordinates(v)) -> $e : $b")
+# end
   return new_lifted_kernel_gens
 end
 
@@ -558,7 +554,12 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
-  return get!(ctx.mult_map_cache, (p, e0, d0, j)) do
+  dd = get!(ctx.mult_map_cache, (e0, d0, j)) do
+    WeakKeyDict{typeof(p), FreeModuleHom}()
+  end
+  q = -p
+  haskey(dd, q) && return -dd[q]
+  return get!(dd, p) do
     d1 = d0 + degree(p; check=false)
     dom_cplx = ctx[e0, d0]
     cod_cplx = ctx[e0, d1]
@@ -700,50 +701,38 @@ function produce_map_on_second_page(cssp::CSSPage, i::Int, j::Int)
   # We exploit this block structure and construct the induced map 
   # term by term.
   for (ii, v) in enumerate(gens(dom))
-    @show v
-    @show is_zero(v)
     if is_zero(v)
       push!(img_gens, zero(cod))
       continue
     end
     v1 = repres(v)::FreeModElem
     @assert is_zero(map_on_first_page(v1))
-    @show v1
     F = parent(v1)
     # to hold the block-pieces of the image of v in B.
     img_buckets = [zero(ctx[_minimal_exponent_vector(ctx, -d1), -d1][j]) for d1 in degrees_of_generators(orig_inter)]
     # we can lift v1 blockwise
     for (k, pr) in enumerate(canonical_projections(F))
-      @show k
       d0 = -degree(orig_dom[k]) # the original shift 
       v2 = pr(v1)
-      @show v2
       is_zero(v2) && continue
       e0 = _minimal_exponent_vector(ctx, d0)
       coh_mod = ctx[e0, d0]
       inc = cohomology_model_inclusion(ctx, d0, j)
       @assert codomain(pr) === domain(inc)
       v3 = inc(v2)
-      @show v3
-      @show j 
       @assert codomain(inc) === coh_mod[j]
       for (l, p) in coordinates(images_of_generators(orig_map1)[k])
-        @show l
         d1 = d0 + degree(p; check=false)
         @assert d1 == -degrees_of_generators(orig_inter)[l]
         e1 = _minimal_exponent_vector(ctx, d1)
         phi = multiplication_map(ctx, p, e0, d0, j)
         w1 = phi(v3)
         is_zero(w1) && continue
-        @show w1
         str_pr = ctx[e0, e1, d1]
-        @show codomain(str_pr[j]) 
-        @show parent(img_buckets[l])
         @assert codomain(str_pr[j]) === parent(img_buckets[l])
         w2 = str_pr[j](w1)
         cech_map = map(ctx[e1, d1], j+1)
         @assert codomain(cech_map) === parent(w2)
-        @show w2
         is_zero(w2) && continue
         img_buckets[l] += w2
       end
@@ -771,14 +760,9 @@ function produce_map_on_second_page(cssp::CSSPage, i::Int, j::Int)
         ww4 = cohomology_model_projection(ctx, d2, j+1)(ww3)
         is_zero(ww4) && continue
         ww5 = canonical_injection(ambient_free_module(cod), r)(ww4)
-        @show ww5
-        @show i-2, j+1
         if i > 2
           bb = map(p1, i-2, j+1)
-          @show ambient_free_module(domain(bb)) 
-          @show parent(ww5)
           @assert ambient_free_module(domain(bb)) === parent(ww5)
-          @show is_zero(bb(ww5))
         end
         img_gen += ww5
       end
