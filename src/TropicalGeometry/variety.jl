@@ -323,7 +323,7 @@ end
 #
 ################################################################################
 
-function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; precision::Int=64)
+function tropical_variety_zero_dimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; precision::Int=64)
     # Construct the representation matrices of the multiplications by xi in K[x]/I
     _,x = number_field(I)
     mx = representation_matrix.(x)
