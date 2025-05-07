@@ -756,9 +756,13 @@ end
 ###############################################################################
 # G-set functionality
 
-function action_homomorphism(Omega::GSetByElements{WeylGroup, S}) where S
+function gset(G::WeylGroup; closed::Bool=false, check::Bool=true)
+  return GSetByElements(G, *, roots(root_system(G)); closed=closed, check=check)
+end
+
+function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
   W = acting_group(Omega) # our base group
-  
+
   # Compute a permutation group `G` isomorphic with `W`.
   phi = isomorphism(PermGroup, W)
   G = codomain(phi) # permutation group
@@ -766,16 +770,24 @@ function action_homomorphism(Omega::GSetByElements{WeylGroup, S}) where S
   # Let `G` act on `Omega` as `W` does.
   phiinv = inv(phi)
   actfun = action_function(Omega)
-  fun = function(omega::S, g::PermGroupElem)
+  fun = function (omega::S, g::PermGroupElem)
     return actfun(omega, phiinv(g))
   end
 
-  OmegaG = GSetByElements(G, fun, Omega, closed = true, check = false)
-  
+  OmegaG = GSetByElements(G, fun, Omega; closed=true, check=false)
+
   # Compute the permutation action on `1:length(Omega)`
   # corresponding to the action of `W` on `Omega`.
   return compose(phi, action_homomorphism(OmegaG))
 end
+
+# Currently implemented to allow gset computations that require image.
+function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
+  return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
+end
+
+# Required for blocks computation.
+on_sets(set::T, x::WeylGroupElem) where {T<:AbstractSet} = T(pnt * x for pnt in set)
 
 ###############################################################################
 # ReducedExpressionIterator
