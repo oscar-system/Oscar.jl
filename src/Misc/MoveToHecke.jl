@@ -16,6 +16,14 @@ end
 
 Oscar.canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
 
+function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
+  g = parent()
+  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
+  return g
+end
+
+Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+
 ###############################################################################
 # Part of https://github.com/thofma/Hecke.jl/pull/1800, but breaking for OSCAR 1.3.1.
 # To allow progress, we include it here until a future breaking Hecke release.
