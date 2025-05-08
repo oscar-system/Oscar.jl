@@ -1,3 +1,7 @@
+@testset "test is_normal" begin
+kQ = monoid_algebra_from_lattice([[3,0,0,3],[2,1,0,3],[0,3,0,3],[3,0,1,0],[2,1,1,0],[0,3,1,0]],QQ)
+is_normal(kQ)
+end
 @testset "constuct MonoidAlgebras" begin
 # definition of monoid algebra as quotient of polynomial ring
 S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])

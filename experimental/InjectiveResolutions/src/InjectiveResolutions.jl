@@ -52,7 +52,6 @@ grading_group,
   _simple_kernel,
   _extend_free_resolution, 
   free_show
-  R_B
 
 
 import ..Oscar.Singular: 
@@ -1594,7 +1593,7 @@ end
 # TODO: For modules over polynomial rings this should make 
 # use of the `dim` in Singular. But this does not seem 
 # to be available as of yet.
-@attr Int function dim(M::ModuleFP)
+@attr Union{Int,NegInf} function dim(M::ModuleFP)
   ann = annihilator(M)
   return dim(ann)
 end
@@ -1628,6 +1627,7 @@ end
   # line 666 ff. of https://github.com/Macaulay2/M2/blob/2565455411d15a3386204aa62a00e20ee5c0e99f/M2/Macaulay2/packages/IntegralClosure.m2 
   # on Apr 25, 2025.
   R = A.algebra::MPolyQuoRing
+  R_B = base_ring(R)
   I = modulus(R)
   M = quotient_ring_as_module(I)
   n = codim(I)                # Calculate the codimension of the ideal
