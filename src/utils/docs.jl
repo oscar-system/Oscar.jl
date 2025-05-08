@@ -19,6 +19,13 @@ function doctestsetup()
   return :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
 end
 
+function doctestfilters()
+  # this returns a list of doctest filters that should be passed to all doctest invocations
+  return [
+    r"0-element SubObjectIterator{(.*)}" => s"\1[]", # due to JuliaLang/julia#57898, oscar-system/Oscar.jl#4872
+  ]
+end
+
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
   global docsproject = path
@@ -46,7 +53,7 @@ function get_document(set_meta::Bool)
     error("you need to use Documenter.jl version 1.0.0 or later")
   end
 
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = :fix, doctestfilters=Oscar.doctestfilters())
 
   if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
