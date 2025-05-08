@@ -116,7 +116,7 @@ x*y*e[1] \otimes e[1]
 ```
 """
 function tensor_product(G::ModuleFP...; 
-    ambient_tensor_product::FreeMod=tensor_product([ambient_free_module(x) for x = G]..., task = :none),
+    ambient_tensor_product::FreeMod=tensor_product((ambient_free_module(x) for x in G)..., task = :none),
     task::Symbol = :none
   )
   F = ambient_tensor_product

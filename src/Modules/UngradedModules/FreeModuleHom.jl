@@ -75,7 +75,7 @@ function matrix(f::FreeModuleHom)
 end
 
 function (h::FreeModuleHom)(a::AbstractFreeModElem)
-  @assert parent(a) === domain(h)
+  @req parent(a) === domain(h) "invalid input"
   image(h, a)
 end
 
