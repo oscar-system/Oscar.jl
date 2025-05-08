@@ -54,7 +54,7 @@ end
   @test is_one(phi(x)^3)
   @test is_one(phi(y^3))
   @test is_one(phi(y)^3)
-  @test preimage(phi,phi(x)) - x in I;
+  @test preimage(phi,phi(x)) - x in I
   @test phi(x) == phi(1+x^(-1))
 
 
