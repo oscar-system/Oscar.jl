@@ -7,12 +7,12 @@
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   io = pretty(io)
-  n = nelemvars(dpr)
-  print(io, "Difference polynomial ring in $n elementary variables ")
+  n = nelementary_symbols(dpr)
+  print(io, "Difference polynomial ring in $n elementary symbols ")
   for i in 1:n-1
-    print(io, string(symbols(dpr)[i]) * ", ")
+    print(io, string(elementary_symbols(dpr)[i]) * ", ")
   end
-  print(io, string(symbols(dpr)[n])*"\n")
+  print(io, string(elementary_symbols(dpr)[n])*"\n")
   print(io, "with $(ndiffs(dpr)) commuting endomorphisms\n")
   print(io, Indent())
   print(io, "over $(base_ring(dpr))")
@@ -24,8 +24,12 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   if is_terse(io)
     print(io, "Difference polynomial ring")
   else
-    print(terse(io), "Difference polynomial ring in $(nelemvars(dpr)) elementary variables over ")
+    print(terse(io), "Difference polynomial ring in $(nelementary_symbols(dpr)) elementary symbols over ")
     print(terse(io), base_ring(dpr))
   end
 end
 
+function Base.show(io::IO, apre::ActionPolyRingElem)
+  io = pretty(io)
+  show(io, apre.upoly_ring_elem)
+end
