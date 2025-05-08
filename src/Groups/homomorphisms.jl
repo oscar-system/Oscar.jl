@@ -1164,7 +1164,7 @@ can be used instead.
 # Examples
 ```jldoctest
 julia> G = dihedral_group(6)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
@@ -1172,7 +1172,9 @@ Group homomorphism
   to permutation group of degree 3 and order 6
 
 julia> permutation_group(G)
-Permutation group of degree 3 and order 6
+Permutation group of degree 3 and order 6 with 2 generators
+  (2,3)
+  (1,2,3)
 
 julia> codomain(iso) === ans
 true

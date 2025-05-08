@@ -287,7 +287,8 @@ in `H`, together with its embedding morphism into `G`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(5);  h = sylow_subgroup(g, 3)[1]
-Permutation group of degree 5 and order 3
+Permutation group of degree 5 and order 3 with 1 generator
+  (1,2,3)
 
 julia> centralizer(g, h)
 (Permutation group of degree 5 and order 6, Hom: permutation group -> g)
