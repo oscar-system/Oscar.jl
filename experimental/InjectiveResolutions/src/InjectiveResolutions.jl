@@ -52,6 +52,7 @@ grading_group,
   _simple_kernel,
   _extend_free_resolution, 
   free_show
+  R_B
 
 
 import ..Oscar.Singular: 
@@ -1672,6 +1673,8 @@ export irreducible_hull
 #export compute_shift
 #export Q_graded_part # should be renamed?
 #export compute_Q_graded_part
+export local_cohomology
+export zeroth_local_cohomology
 
 export MonoidAlgebra
 export MonoidAlgebraElem
