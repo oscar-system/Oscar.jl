@@ -62,9 +62,6 @@ function (fac::InducedENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   # TODO: This can probably be sped up by lifting directly on the exterior powers.
   img_gens = elem_type(cod)[]
   ambient_map = map(enc, i)
-  @show i
-  @show domain(ambient_map)
-  @show ambient_free_module(dom)
   @assert domain(ambient_map) === ambient_free_module(dom)
   for g in gens(dom)
     rep = repres(g)
