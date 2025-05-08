@@ -679,7 +679,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
-    set_global_gauge_quotients(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
+    set_global_gauge_group_quotient(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
   end
   
   if haskey(model_dict, "birational_models")

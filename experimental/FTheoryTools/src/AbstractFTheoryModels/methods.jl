@@ -751,7 +751,7 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
   set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
 end
 
-function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+function set_global_gauge_group_quotient(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
  set_attribute!(m, :global_gauge_quotients => quotients)
 end
 
