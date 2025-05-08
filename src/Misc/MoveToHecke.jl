@@ -22,7 +22,7 @@ function numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   return g
 end
 
-Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
 
 function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
   ext_dom = fraction_field(domain(phi))
