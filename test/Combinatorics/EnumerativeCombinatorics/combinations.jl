@@ -47,13 +47,6 @@
     n = 5
     k = 3
 
-    I = Combination([1, 2, 5])
-    I1 = Combination([1])
-    I2 = Combination([2])
-    I5 = Combination([5])
-    J = Combination([3, 4])
-    K = Combination([2, 4])
-
     c = collect(combinations(n,k))
     @test length(c) == binomial(n,k)
     @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
