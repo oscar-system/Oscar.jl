@@ -19,7 +19,7 @@ Return a tuple `M`, `v`, `M2`, `m` where
 !!! note
   The intersection matrix referred to in textbooks is `M2`, as these usually restrict to the case of algebraically closed fields, but computations are usually performed over suitable subfields, e.g. `QQ` instead of `CC`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y,z) = polynomial_ring(QQ,3);
 
@@ -57,7 +57,7 @@ julia> L[4]
 
 ```
 """
-@attr function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
+@attr Any function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
   phi.resolves_sing || error("intersection_matrix not available for partial desingularizations")
   !isdefined(phi, :is_embedded) || !phi.is_embedded || error("not available yet for embedded desingularization of curves")
   dim(domain(phi))==2 || error("not a surface -- exceptional locus not a graph")
@@ -74,7 +74,7 @@ julia> L[4]
 
 ## keep only non-empty exceptional curves
   ex_divs, dont_meet, caution_multi_charts = _cleanup_ex_div(phi)
-## first determin intersection matrix: over given field
+## first determine intersection matrix: over given field
   inter_mat_k = zero_matrix(ZZ,length(ex_divs),length(ex_divs))
 
   # fill in the pairwise intersections
@@ -108,7 +108,7 @@ julia> L[4]
 
 ## get ready to compute self intersection numbers:
 ## choose curve passing through component of singular locus and decompose its full preimage
-## (we need the strict transform and the exceptional multiplicites... --> ex_mult_dict )
+## (we need the strict transform and the exceptional multiplicities... --> ex_mult_dict )
   decomp_sl_orig = maximal_associated_points(sl_orig)   # we might have several singular points
 
   # we need a curve passing through a component of the singular locus, to find the self intersection numbers
@@ -200,7 +200,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
     ## first check, whether we can deduce that it is absolutely reducible
     b = findfirst(c -> (M[c,a] > 1 || M[a,c] > 1), abs_irred_list)
     if b !== nothing
-      ## inferrable from other data
+      ## inferable from other data
       if has_attribute(ex_divs[a],:A1count)
         ## we already counted A1s
         c = get_attribute(ex_divs[a],:A1count)
@@ -213,7 +213,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
       end
       continue
     end
-    ## we ended up in the default: not inferrable, fill in A1s, but postpone absolute primary decomp.
+    ## we ended up in the default: not inferable, fill in A1s, but postpone absolute primary decomp.
     worse_sing,A1count = curve_sing_A1_or_beyond(ex_divs[a])
     is_one(worse_sing) || error("original desingularization was not strong desingularization")
     push!(abs_data, (a,-1,A1count))   ## negative number to be corrected later
@@ -350,8 +350,8 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
 
   if length(ret_divs) > length(div_list_raw)
     for (i,j) in dont_meet_raw
-      append!(dont_meet,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
-      append!(caution_multi_charts,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(dont_meet,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(caution_multi_charts,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
     end
   end
 

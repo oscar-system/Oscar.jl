@@ -1,6 +1,3 @@
-
-
-
 ########################################################################
 #
 # AbsAlgebraicCycle
@@ -20,17 +17,15 @@ scheme_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = S
 scheme_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = S
 coefficient_ring_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = U
 coefficient_ring_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = U
-coefficient_ring_elem_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = elem_type(U)
-coefficient_ring_elem_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = elem_type(U)
 
 ### essential getters and functionality
 
 @doc raw"""
-    scheme(D::AbsAlgebraicCycle)
+    ambient_scheme(D::AbsAlgebraicCycle)
 
 Return the `CoveredScheme` ``X`` on which `D` is defined.
 """
-scheme(D::AbsAlgebraicCycle) = scheme(underlying_cycle(D))
+ambient_scheme(D::AbsAlgebraicCycle) = ambient_scheme(underlying_cycle(D))
 
 # For an element `I` of `components(D)`, this returns the coefficient 
 # of `I` in the formal sum for `D`.
@@ -39,25 +34,44 @@ getindex(D::AbsAlgebraicCycle, I::AbsIdealSheaf) = getindex(underlying_cycle(D),
 @doc raw"""
     components(D::AbsAlgebraicCycle)
 
-Return the irreducible components ``Eⱼ`` of the divisor 
-``D = Σⱼ aⱼ ⋅ Eⱼ``.
+Return a list of ideal sheaves such that `D` is a linear combination of
+the corresponding cycles.
+
+!!! note
+    The order of the components may change in different julia sessions.
+    It is however consistent with the printing.
+
+!!! note
+    The ideal sheaves are only guaranteed equidimensional and may carry multiplicities.
+    See [`irreducible_decomposition(::AbsAlgebraicCycle)`](@ref)
+    for the more conventional decomposition. 
+
 """
 components(D::AbsAlgebraicCycle) = components(underlying_cycle(D))
 
 # Return the coefficient ring over which the cycle is defined
 coefficient_ring(D::AbsAlgebraicCycle) = coefficient_ring(underlying_cycle(D))
 
-# All `components` of a cycle `D` must be prime. This returns the supremum 
-# of their dimensions.
+
+@doc raw"""
+    dim(D::AbsAlgebraicCycle)
+    
+Return the dimension of the support of the cycle `D`.
+"""
 dim(D::AbsAlgebraicCycle) = dim(underlying_cycle(D))
 
 set_name!(X::AbsAlgebraicCycle, name::String) = set_attribute!(X, :name, name)
 name(X::AbsAlgebraicCycle) = get_attribute(X, :name)::String
 has_name(X::AbsAlgebraicCycle) = has_attribute(X, :name)
 
-function setindex!(D::AbsAlgebraicCycle, c::RingElem, I::AbsIdealSheaf)
+@doc raw"""
+    setindex!(D::AbsAlgebraicCycle, c::RingElem, I::AbsIdealSheaf)
+    
+Set the coefficient of `D` at `I` to `c`.
+"""
+function setindex!(D::AbsAlgebraicCycle, c::RingElem, I::AbsIdealSheaf; check::Bool=true)
   parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
-  return setindex!(underlying_cycle(D), c, I)
+  return setindex!(underlying_cycle(D), c, I; check)
 end
 
 # Non user-facing getters
@@ -76,10 +90,39 @@ function coeff(D::AbsAlgebraicCycle, I::AbsIdealSheaf)
   end
 end
 
+@doc raw"""
+    is_effective(A::AbsAlgebraicCycle)
+    
+Return whether all the coefficients are non-negative.
+"""
 function is_effective(A::AbsAlgebraicCycle)
   return all(coeff(A, I)>=0 for I in components(A))
 end
 
+# Prime cycles are those written as 1*Sheaf of prime ideals
+@doc raw"""
+    is_prime(D::AbsAlgebraicCycle)
+    
+An algebraic cycle is called prime if it consists of a single irreducible subvariety.
+  
+Note that this property is not stable under base extension. 
+"""
+@attr Bool function is_prime(D::AbsAlgebraicCycle)
+  length(components(D)) == 0 && return false # Cannot be prime if there are no components
+  E = irreducible_decomposition(D)
+  C = coefficient_dict(E)
+  length(C)>1 && return false
+  return isone(first(values(C))) 
+end
+
+is_irreducible(D::AbsAlgebraicCycle) = is_prime(D)
+
+  
+@doc raw"""
+    Base.:<=(A::AbsAlgebraicCycle, B::AbsAlgebraicCycle)
+    
+$A \leq B$ if and only if $B - A$ is effective.
+"""
 function Base.:<=(A::AbsAlgebraicCycle,B::AbsAlgebraicCycle)
   for I in components(A)
     coeff(A, I) <= coeff(B, I) || return false
@@ -96,7 +139,7 @@ function underlying_cycle(D::AbsAlgebraicCycle)
 end
 
 ### implementation of the essential functionality
-scheme(D::AlgebraicCycle) = D.X
+ambient_scheme(D::AlgebraicCycle) = D.X
 getindex(D::AlgebraicCycle, I::AbsIdealSheaf) = (D.coefficients)[I]
 
 components(D::AlgebraicCycle) = collect(keys(D.coefficients))
@@ -107,8 +150,9 @@ set_name!(X::AlgebraicCycle, name::String) = set_attribute!(X, :name, name)
 name(X::AlgebraicCycle) = get_attribute(X, :name)::String
 has_name(X::AlgebraicCycle) = has_attribute(X, :name)
 
-function setindex!(D::AlgebraicCycle, c::RingElem, I::AbsIdealSheaf)
+function setindex!(D::AlgebraicCycle, c::RingElem, I::AbsIdealSheaf; check::Bool=true)
   parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
+  @check is_equidimensional(I)
   coefficient_dict(D)[I] = c
 end
 
@@ -118,13 +162,13 @@ end
 Return the zero `AlgebraicCycle` over `X` with coefficients 
 in `R`.
 """
-function AlgebraicCycle(X::AbsCoveredScheme, R::Ring)
+function AlgebraicCycle(X::AbsCoveredScheme, R::Ring; check::Bool=true)
   D = IdDict{AbsIdealSheaf, elem_type(R)}()
-  return AlgebraicCycle(X, R, D)
+  return AlgebraicCycle(X, R, D; check)
 end
 
-function zero(D::AbsAlgebraicCycle) 
-  return AlgebraicCycle(scheme(D), coefficient_ring(D))
+function zero(D::AbsAlgebraicCycle; check::Bool=true) 
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D); check)
 end
 
 # provide non-camelcase methods
@@ -152,16 +196,16 @@ Zero algebraic cycle
 with coefficients in integer ring
 ```
 """
-algebraic_cycle(X::AbsCoveredScheme, R::Ring) = AlgebraicCycle(X, R)
+algebraic_cycle(X::AbsCoveredScheme, R::Ring; check::Bool=true) = AlgebraicCycle(X, R; check)
 
 @doc raw"""
     AlgebraicCycle(I::AbsIdealSheaf, R::Ring)
 
-Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients 
-in ``R`` for a sheaf of prime ideals ``I``.
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``R`` for a sheaf of equidimensional ideals ``I``.
 """
-function AlgebraicCycle(I::AbsIdealSheaf, R::Ring)
-  D = AlgebraicCycle(space(I), R)
+function AlgebraicCycle(I::AbsIdealSheaf, R::Ring; check::Bool=true)
+  D = AlgebraicCycle(space(I), R; check)
   D[I] = one(R)
   return D
 end
@@ -169,9 +213,11 @@ end
 @doc raw"""
     algebraic_cycle(I::AbsIdealSheaf, R::Ring) -> AlgebraicCycle
 
-Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
-in ``R`` for a sheaf of prime ideals ``I``.
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``R`` for a sheaf of equidimensional ideals ``I``.
 
+Note that ``I`` must be equidimensional.
+  
 # Examples
 ```jldoctest
 julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
@@ -193,16 +239,16 @@ given as the formal sum of
 
 ```
 """
-algebraic_cycle(I::AbsIdealSheaf, R::Ring) = AlgebraicCycle(I, R)
+algebraic_cycle(I::AbsIdealSheaf, R::Ring; check::Bool=true) = AlgebraicCycle(I, R; check)
 
 @doc raw"""
     AlgebraicCycle(I::AbsIdealSheaf)
 
-Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
-in ``ℤ`` for a sheaf of prime ideals ``I``.
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``ℤ`` for a sheaf of equidimensional ideals ``I``.
 """
-function AlgebraicCycle(I::AbsIdealSheaf)
-  D = AlgebraicCycle(space(I), ZZ)
+function AlgebraicCycle(I::AbsIdealSheaf; check::Bool=true)
+  D = AlgebraicCycle(space(I), ZZ; check)
   D[I] = one(ZZ)
   return D
 end
@@ -210,8 +256,8 @@ end
 @doc raw"""
     algebraic_cycle(I::AbsIdealSheaf) -> AlgebraicCycle
 
-Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
-in ``ℤ`` for a sheaf of prime ideals ``I``.
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``ℤ`` for a sheaf of equidimensional ideals ``I``.
 
 # Examples
 ```jldoctest
@@ -233,7 +279,7 @@ given as the formal sum of
   1 * sheaf of ideals
 ```
 """
-algebraic_cycle(I::AbsIdealSheaf) = AlgebraicCycle(I)
+algebraic_cycle(I::AbsIdealSheaf; check::Bool=true) = AlgebraicCycle(I; check)
 
 ### copy constructor
 function copy(D::AlgebraicCycle) 
@@ -241,7 +287,7 @@ function copy(D::AlgebraicCycle)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return AlgebraicCycle(scheme(D), coefficient_ring(D), new_dict)
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), new_dict)
 end
 
 ###############################################################################
@@ -258,12 +304,12 @@ end
 # needs to take care about some left offsets.
 function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   # If the IO context knows about a covering to be used, we use this one.
   # Otherwise, we check whether X has a simplified covering. If not, we use the
   # default covering of X
   cov = Oscar._covering_for_printing(io, X)
-  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  eff = all(i >= 0 for i in values(D.coefficients))
   if length(components(D)) == 0
     print(io, "Zero algebraic cycle")
   else
@@ -305,8 +351,8 @@ end
 
 function Base.show(io::IO, D::AlgebraicCycle)
   io = pretty(io)
-  X = scheme(D)
-  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  X = ambient_scheme(D)
+  eff = all(i >= 0 for i in values(D.coefficients))
   if length(components(D)) == 1
     prim = D[components(D)[1]] == 1 ? true : false
   else
@@ -317,21 +363,21 @@ function Base.show(io::IO, D::AlgebraicCycle)
   elseif is_terse(io)
     print(io, "Algebraic cycle")
   elseif length(components(D)) == 0
-    print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))
+    print(io, "Zero algebraic cycle on ", Lowercase(), ambient_scheme(D))
   elseif eff
     if prim
-      print(io, "Irreducible algebraic cycle on ", Lowercase(), scheme(D))
+      print(io, "Irreducible algebraic cycle on ", Lowercase(), ambient_scheme(D))
     else
-      print(io, "Effective algebraic cycle on ", Lowercase(), scheme(D))
+      print(io, "Effective algebraic cycle on ", Lowercase(), ambient_scheme(D))
     end
   else
-    print(io, "Algebraic cycle on ", Lowercase(), scheme(D))
+    print(io, "Algebraic cycle on ", Lowercase(), ambient_scheme(D))
   end
 end
 
 
-@attr Any function dim(D::AlgebraicCycle)
-  result = -1
+@attr Int function dim(D::AlgebraicCycle)
+  result = -inf
   for I in components(D)
     d = dim(I)
     if d > result
@@ -347,9 +393,9 @@ end
 # Note that we need one minimal concrete type for the return values, 
 # so the implementation can not be truly generic. 
 
-function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
-  X = scheme(D)
-  X === scheme(E) || error("divisors do not live on the same scheme")
+function +(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
+  X = ambient_scheme(D)
+  X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("coefficient rings do not coincide")
   dict = IdDict{AbsIdealSheaf, elem_type(R)}()
@@ -376,7 +422,7 @@ function -(D::T) where {T<:AbsAlgebraicCycle}
   for I in keys(coefficient_dict(D))
     dict[I] = -D[I]
   end
-  return AlgebraicCycle(scheme(D), coefficient_ring(D), dict, check=false)
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), dict, check=false)
 end
 
 -(D::T, E::T) where {T<:AbsAlgebraicCycle} = D + (-E)
@@ -391,7 +437,7 @@ function *(a::RingElem, E::AbsAlgebraicCycle)
       dict[I] = c
     end
   end
-  return AlgebraicCycle(scheme(E), coefficient_ring(E), dict, check=false)
+  return AlgebraicCycle(ambient_scheme(E), coefficient_ring(E), dict, check=false)
 end
 
 *(a::Int, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
@@ -402,22 +448,53 @@ end
 @doc raw"""
     irreducible_decomposition(D::AbsAlgebraicCycle)
 
-Return a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
-where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
+Return a cycle ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
+where the `components` ``Iₖ`` of ``E`` are pairwise distinct sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  all(I->is_prime(I), keys(coefficient_dict(D))) && return D
+  @vprint :Divisors 4 "computing irreducible decomposition for $D"
   result = zero(D)
   for (I, a) in coefficient_dict(D)
+    if is_prime(I)
+      result[I] = a
+      continue
+    end
     next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
     decomp = maximal_associated_points(I)
     for P in decomp
       k = _colength_in_localization(I, P)
       next_dict[P] = coefficient_ring(D)(k)
     end
-    result = result + a * AlgebraicCycle(scheme(D), coefficient_ring(D), next_dict, check=false)
+    result = result + a * AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), next_dict, check=false)
   end
-  return result
+  return _unique_prime_components(result)
+end
+
+# Given a cycle `D` with only prime components, compare the components
+# and gather the coefficients of equal ones so that the result has 
+# pairwise distinct components.
+function _unique_prime_components(D::AbsAlgebraicCycle)
+  @hassert :Divisors 2 all(is_prime, keys(coefficient_dict(D))) 
+  buckets = Vector{Vector{AbsIdealSheaf}}()
+  for P in keys(coefficient_dict(D))
+    found = false
+    for bucket in buckets
+      if P == first(bucket)
+        push!(bucket, P)
+        found = true
+        break
+      end
+    end
+    !found && push!(buckets, [P])
+  end
+  R = coefficient_ring(D)
+  coeff_dict = IdDict{AbsIdealSheaf, elem_type(R)}()
+  for bucket in buckets
+    c = sum(D[P] for P in bucket; init=zero(R))
+    is_zero(c) && continue
+    coeff_dict[first(bucket)] = c
+  end
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), coeff_dict; check=false)
 end
 
 function _colength_in_localization(Q::AbsIdealSheaf, P::AbsIdealSheaf; covering=simplified_covering(scheme(P)))
@@ -436,7 +513,7 @@ function _colength_in_localization(Q::AbsIdealSheaf, P::AbsIdealSheaf; covering=
 end
 
 function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle) 
-  if all(k->k in keys(coefficient_dict(D)), keys(coefficient_dict(E))) && all(k->k in keys(coefficient_dict(E)), keys(coefficient_dict(D))) 
+  if all(k -> haskey(coefficient_dict(D), k), keys(coefficient_dict(E))) && all(k -> haskey(coefficient_dict(E), k), keys(coefficient_dict(D))) 
     for I in keys(coefficient_dict(D))
       if haskey(coefficient_dict(E), I)
         D[I] == E[I] || return false
@@ -455,13 +532,13 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
     keys_D = collect(keys(coefficient_dict(D)))
     keys_E = collect(keys(coefficient_dict(E)))
     for I in keys(coefficient_dict(D))
-      I_cand = findall(x->(x==I), keys_D)
-      J_cand = findall(x->(x==I), keys_E)
+      I_cand = findall(==(I), keys_D)
+      J_cand = findall(==(I), keys_E)
       sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
     end
     for J in keys(coefficient_dict(E))
-      I_cand = findall(x->(x==J), keys_D)
-      J_cand = findall(x->(x==J), keys_E)
+      I_cand = findall(==(J), keys_D)
+      J_cand = findall(==(J), keys_E)
       sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
     end
   end
@@ -476,7 +553,7 @@ the lengths of all the components of dimension `0` of ``W``.
 """
 function integral(W::AbsAlgebraicCycle; check::Bool=true)
   result = zero(coefficient_ring(W))
-  X = scheme(W)
+  X = ambient_scheme(W)
   for I in components(W)
     @check begin
       dim(I) == 0 || continue
@@ -484,5 +561,28 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
     result = result + W[I]*colength(I)
   end
   return result
+end
+
+# Getters for the components as honest algebraic cycles, not ideal sheaves.
+function components(::Type{T}, D::AbsAlgebraicCycle) where {T <: AbsAlgebraicCycle}
+  X = scheme(D)
+  R = coefficient_ring(D)
+  return [AlgebraicCycle(X, R, IdDict{AbsIdealSheaf, elem_type(R)}([I=>one(R)]); check=false)::T for I in components(D)]
+end
+
+function components(::Type{T}, D::AbsWeilDivisor) where {T <: AbsWeilDivisor}
+  X = scheme(D)
+  R = coefficient_ring(D)
+  return [WeilDivisor(X, R, IdDict{AbsIdealSheaf, elem_type(R)}([I=>one(R)]); check=false)::T for I in components(D)]
+end
+
+function getindex(D::AbsAlgebraicCycle, C::AbsAlgebraicCycle)
+  comps = components(C)
+  @req isone(length(comps)) "$(C) must consist of a single component only"
+  return D[first(comps)]
+end
+
+function Base.hash(X::AbsAlgebraicCycle, u::UInt)
+  return u
 end
 

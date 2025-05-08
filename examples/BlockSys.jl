@@ -315,7 +315,7 @@ Also TODO:
 # TEST PART
 function timetest(TESTFIELDS)
   #where Testfields is a List of defining polynomial
-  Zx, x = ZZ["x"];
+  Zx, x = ZZ[:x];
   for polynom in TESTFIELDS
     d = discriminant(polynom[2])
     p = 17 

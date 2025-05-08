@@ -94,12 +94,12 @@ AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAs
 @doc raw"""
     ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
 
-Returns `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
+Return `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
 Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_bound`s give more confidence in a negative answer. 
 If `deg_bound` is not specified, the default value is `-1`, which means that no degree bound is imposed,
 resulting in a calculation using a much slower algorithm that may not terminate, but will return a full Groebner basis if it does.
 ```jldoctest
-julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
+julia> free, (x,y,z) = free_associative_algebra(QQ, [:x, :y, :z]);
 
 julia> f1 = x*y + y*z;
 
@@ -133,7 +133,7 @@ function is_subset(I1::FreeAssociativeAlgebraIdeal, I2::FreeAssociativeAlgebraId
   I1 === I2 && return true
   gens(I1) == gens(I2) && return true
   isdefined(I1, :gb) && isdefined(I2, :gb) && I1.gb == I2.gb && return true
-  return all(x -> in(x, I2), gens(I1))
+  return all(in(I2), gens(I1))
 end
 
 function (R::Singular.LPRing)(a::FreeAssociativeAlgebraElem)
@@ -163,7 +163,7 @@ The default value of `deg_bound` is `-1`, which means that no degree bound is
 imposed, resulting in a computation that is usually slower, but will return a
 full Groebner basis if there exists a finite one.
 ```jldoctest
-julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
+julia> free, (x,y,z) = free_associative_algebra(QQ, [:x, :y, :z]);
 
 julia> f1 = x*y + y*z;
 
@@ -173,10 +173,10 @@ julia> I = ideal([f1, f2]);
 
 julia> gb = groebner_basis(I, 3; protocol=false)
 Ideal generating system with elements
-  1 -> x*y + y*z
-  2 -> x^2 + y^2
-  3 -> y^3 + y*z^2
-  4 -> y^2*x + y*z*y
+  1: x*y + y*z
+  2: x^2 + y^2
+  3: y^3 + y*z^2
+  4: y^2*x + y*z*y
 ```
 """
 function groebner_basis(I::FreeAssociativeAlgebraIdeal,

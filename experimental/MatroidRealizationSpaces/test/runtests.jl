@@ -55,17 +55,17 @@
         @test B3 == [1,2,3,5]
     end
     
-    R, (x,y,z) = QQ["x", "y", "z"]
+    R, (x,y,z) = QQ[:x, :y, :z]
     f = 2*(x^2+y)^2*(x+y*z)^4
     
     @testset "poly_2_prime_divisors" begin
-      @test all(e -> e in [x^2+y, x+y*z], Oscar.poly_2_prime_divisors(f))
+      @test all(in([x^2+y, x+y*z]), Oscar.poly_2_prime_divisors(f))
     end
 
     Sgens = [2*(x^2+y)^2*(x+y*z)^4, 3*x^2*(x+y*z)^5] 
 
     @testset "gens_2_prime_divisors" begin
-      @test all(e-> e in Oscar.gens_2_prime_divisors(Sgens), [x^2+y, x+y*z, x])
+      @test all(in(Oscar.gens_2_prime_divisors(Sgens)), [x^2+y, x+y*z, x])
     end
     
     I = ideal(R, [x^2*(y+z), y^3*(y+z), z*(y+z)])

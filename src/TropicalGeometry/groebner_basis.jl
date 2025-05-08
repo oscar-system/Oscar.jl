@@ -138,7 +138,7 @@ Given a polynomial `f` in the simulation ring, "replace" the uniformizer with th
 julia> nu_2 = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
-julia> Rtx,(p,x1,x2,x3) = Oscar.valued_ring(nu_2)["p","x1","x2","x3"]
+julia> Rtx,(p,x1,x2,x3) = Oscar.valued_ring(nu_2)[:p,:x1,:x2,:x3]
 (Multivariate polynomial ring in 4 variables over ZZ, ZZMPolyRingElem[p, x1, x2, x3])
 
 julia> f = x1+p*x1+p^2*x1+2^2*x2+p*x2+p^2*x2+x3
@@ -207,9 +207,9 @@ end
 @doc raw"""
     simulate_valuation(w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}, nu::TropicalSemiringMap{K,p,<:Union{typeof(min),typeof(max)}) where {K,p}
 
-Return an integer vector `wSim` so that the (tropical) Groebner basis of an ideal `I` with respect to `w` corresponds to the standard basis of its simulation with respect to `wSim`.  If `pertubation!=nothing`, also returns a corresponding `perturbationSim`.
+Return an integer vector `wSim` so that the (tropical) Groebner basis of an ideal `I` with respect to `w` corresponds to the standard basis of its simulation with respect to `wSim`.  If `perturbation!=nothing`, also returns a corresponding `perturbationSim`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nuMin = tropical_semiring_map(QQ,2);
 
@@ -286,7 +286,7 @@ function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalS
 
     # map everything from simulation ring to the specified polynomial ring
     # whilst substituting first variable tsim by uniformizer
-    desimulation_map = hom(S,R,c->valued_field(nu)(c),vcat(uniformizer_field(nu),gens(R)))
+    desimulation_map = hom(S, R, valued_field(nu), vcat(uniformizer_field(nu),gens(R)))
     G = desimulation_map.(sG)
     # filter for nonzero elements
     G = filter(!iszero,G)
@@ -305,7 +305,7 @@ end
 
 Given a weight vector `wSim` on the simulation ring, return weight vector `w` on the original polynomial ring so that a standard basis with respect to `wSim` corresponds to a (tropical) Groebner basis with respect to `w`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nuMin = tropical_semiring_map(QQ,2);
 
@@ -363,7 +363,7 @@ Return a (tropical) Groebner basis of `I` with respect to the tropical semiring 
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y]);
 
@@ -373,15 +373,15 @@ julia> w = [0,0];
 
 julia> groebner_basis(I,nu,w)
 2-element Vector{QQMPolyRingElem}:
- x^3 - 5*x^2*y
  -2*x^2*y + 3*y^3
+ 2*x^3 - 2*x^2*y - 12*y^3
 
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
     G = gens(I)
-    # Principal and binomial ideal shortcut, return G
-    if isone(length(G)) || all(isequal(2),length.(G))
+    # Principal ideal shortcut, return G
+    if isone(length(G))
         return G
     end
 

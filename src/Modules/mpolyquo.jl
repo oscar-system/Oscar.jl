@@ -139,7 +139,7 @@ end
   R = base_ring(F)
   P = base_ring(R)
   FP = _poly_module(F)
-  return hom(FP, F, gens(F), x->R(x))
+  return hom(FP, F, gens(F), R)
 end
 
 ### Return the same module, but as a SubquoModule over the polynomial ring
@@ -168,7 +168,7 @@ end
 ### Return an isomorphism with _as_poly_module(F)
 @attr Any function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
-  return hom(M, F, gens(F), x->(base_ring(F)(x)))
+  return hom(M, F, gens(F), base_ring(F))
 end
 
 ### Return the preimage of M under the canonical projection P^r -> R^r 
@@ -194,7 +194,7 @@ end
 
 @attr Any function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
-  return hom(M, F, gens(F), x->(base_ring(F)(x)))
+  return hom(M, F, gens(F), base_ring(F))
 end
 
 @attr Any function _lifting_iso(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}

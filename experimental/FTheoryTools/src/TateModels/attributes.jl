@@ -162,7 +162,7 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> tate_ideal_sheaf(t)
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal with 1 generator
    2: Ideal with 1 generator
@@ -270,9 +270,9 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
 
   # Compute parametrization of Weierstrass sections
-  parametrization = defining_section_parametrization(t)
+  parametrization = model_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_defining_section_parametrization = Dict{String, MPolyRingElem}()
+  new_model_section_parametrization = Dict{String, MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])
@@ -321,13 +321,13 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
     param_f = -1//48 * (param_b2^2 - 24 * param_b4)
     param_g = 1//864 * (param_b2^3 - 36 * param_b2 * param_b4 + 216 * param_b6)
 
-    # Compute defining_section_parametrization
-    new_defining_section_parametrization = Dict("f" => param_f, "g" => param_g)
+    # Compute model_section_parametrization
+    new_model_section_parametrization = Dict("f" => param_f, "g" => param_g)
 
   end
   
   # Compute Weierstrass model
-  model = WeierstrassModel(new_explicit_model_sections, new_defining_section_parametrization, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(new_explicit_model_sections, new_model_section_parametrization, pw, base_space(t), ambient_space(t))
 
   # Copy attributes and return model
   model_attributes = t.__attrs
@@ -366,7 +366,7 @@ end
     singular_loci(t::GlobalTateModel)
 
 Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)``` at each locus and the refined Tate fiber type.
+vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
 
 For the time being, we either explicitly or implicitly focus on toric varieties
 as base spaces. Explicitly, in case the user provides such a variety as base space,
@@ -397,7 +397,7 @@ we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, whi
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
 
 ```jldoctest
-julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; -1 -1 -1 -1 -2 1];
 
@@ -421,8 +421,10 @@ Global Tate model over a not fully specified base
 julia> length(singular_loci(t))
 2
 
-julia> singular_loci(t)[2]
-(Ideal (w), (1, 2, 3), "III")
+julia> sort([k[2:3] for k in singular_loci(t)])
+2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
+ ((0, 0, 1), "I_1")
+ ((1, 2, 3), "III")
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)

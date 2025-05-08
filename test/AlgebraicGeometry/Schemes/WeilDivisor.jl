@@ -2,7 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
+  S, (s, t) = graded_polynomial_ring(kk, [:s, :t])
 
   base_P1 = proj(S)
 
@@ -103,7 +103,7 @@ end
 
 @testset "orders on divisors" begin
   kk = QQ
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, [:s, :t])
   X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
@@ -123,11 +123,10 @@ end
   KK = function_field(X)
   R = ambient_coordinate_ring(representative_patch(KK))
   x = gens(R)
-  @test in_linear_system(KK(x[1]), D)
-  @test !in_linear_system(KK(x[1]^2), D)
-  @test in_linear_system(KK(x[1]^2), 2*D)
-  # Not running at the moment; work in progress
-  #@test !in_linear_system(KK(x[1], x[2]), D)
+  @test is_in_linear_system(KK(x[1]), D)
+  @test !is_in_linear_system(KK(x[1]^2), D)
+  @test is_in_linear_system(KK(x[1]^2), 2*D)
+  @test !is_in_linear_system(KK(x[1], x[2]), D)
 
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
@@ -160,7 +159,7 @@ end
   U = X[1][2]
   u, v = gens(OO(U))
   f = KK(u, v)
-  @test !in_linear_system(f, D)
+  @test !is_in_linear_system(f, D)
 end
 
 @testset "intersections of weil divisors on surfaces" begin

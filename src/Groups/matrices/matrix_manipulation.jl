@@ -56,11 +56,11 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 end
 
 
-# computes a complement for W in V (i.e. a subspace U of V such that V is direct sum of U and W)
 """
     complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 
-Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is direct sum of `U` and `W`.
+Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is
+the direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
    @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
@@ -116,8 +116,6 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
-^(a::MatElem, b::ZZRingElem) = Nemo._generic_power(a, b)
-
 ########################################################################
 #
 # New properties
@@ -170,17 +168,7 @@ end
 #
 ########################################################################
 
-
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
-Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)
-
-# evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*x*transpose(u.v))[1]
-
-
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
-Base.:*(x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = matrix(x)*transpose(u.v)
-
 
 Base.:*(v::Vector{T}, x::MatrixGroupElem{T}) where T <: RingElem = v*matrix(x)
 Base.:*(x::MatrixGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
@@ -193,8 +181,3 @@ Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) wher
 function Base.:^(V::AbstractAlgebra.Generic.Submodule{T}, x::MatrixGroupElem{T}) where T <: RingElem
   return sub(V.m, [v^x for v in V.gens])[1]
 end
-
-# evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*matrix(x)*transpose(u.v))[1]
-
-map(f::Function, v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = v.parent(map(f,v.v))

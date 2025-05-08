@@ -1,7 +1,13 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Tropical semiring maps
 
 ## Introduction
-In OSCAR, a `TropicalSemiringMap` is a map $\nu: K\to\mathbb{T}$ from a field $K$ to a tropical semiring $\mathbb{T}$ satisfing
+In OSCAR, a `TropicalSemiringMap` is a map $\nu: K\to\mathbb{T}$ from a field $K$ to a tropical semiring $\mathbb{T}$ satisfying
 1. finiteness: $\nu(a)=\pm\infty$ if and only if $a=0$,
 2. multiplicativity: $\nu(a\cdot b)=\nu(a)+\nu(b)$,
 3. superadditivity: $\nu(a\cdot b)\geq\min(\nu(a),\nu(b))$ (in the order defined in Section 2.7 of [Jos21](@cite)).

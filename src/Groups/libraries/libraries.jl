@@ -1,5 +1,6 @@
 
 include("atlasgroups.jl")
+include("fewclassesgroups.jl")
 include("perfectgroups.jl")
 include("primitivegroups.jl")
 include("smallgroups.jl")
@@ -55,6 +56,7 @@ function __init_group_libraries()
 
   copy!(_ctbl_filter_attrs, _group_filter_attrs)
   _add_bool_attr(_ctbl_filter_attrs, is_duplicate_table, GAP.Globals.IsDuplicateTable)
+  _add_bool_attr(_ctbl_filter_attrs, is_atlas_character_table, GAP.Globals.IsAtlasCharacterTable)
 
   empty!(_atlas_group_filter_attrs)
   _atlas_group_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
@@ -66,8 +68,6 @@ function __init_group_libraries()
   _atlas_group_filter_attrs[character] = (Oscar.GroupClassFunction, GAP.Globals.Character, nothing)
   _atlas_group_filter_attrs[characteristic] = (_IntOrIntVec, GAP.Globals.Characteristic, nothing)
   _atlas_group_filter_attrs[dim] = (_IntOrIntVec, GAP.Globals.Dimension, nothing)
-
-  __init_extraperfect()
 end
 
 # return the output of the function f and the corresponding GAP function

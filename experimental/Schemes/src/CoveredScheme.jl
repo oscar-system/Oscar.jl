@@ -115,8 +115,8 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   r = relative_ambient_dimension(X)
   s = symbols(S)
   for i in 0:r
-    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
+    R, gens_R = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
+    phi = hom(S, R, vcat(gens_R[1:i], [one(R)], gens_R[i+1:r]); check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     if !isone(I) # return the non-empty charts only
       chart_dict[i+1] = spec(quo(R, I)[1])
@@ -133,7 +133,7 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
   r = relative_ambient_dimension(X)
   s = symbols(S)
   for i in 0:r
-    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R, x = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     chart_dict[i+1] = spec(R)
   end
   return chart_dict
@@ -159,10 +159,10 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyQuoRing}) 
 
   r = relative_ambient_dimension(X)
   for i in 0:r
-    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R_fiber, gens_R_fiber = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     F = spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
-    fiber_vars = pullback(pF).(gens(R_fiber))
+    fiber_vars = pullback(pF).(gens_R_fiber)
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
     patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     chart_dict[i+1] = patch
@@ -184,10 +184,10 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyDecRing}) 
 
   r = relative_ambient_dimension(X)
   for i in 0:r
-    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R_fiber, gens_R_fiber = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     F = spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
-    fiber_vars = pullback(pF).(gens(R_fiber))
+    fiber_vars = pullback(pF).(gens_R_fiber)
     chart_dict[i+1] = ambient_space
     pU[ambient_space] = pY
   end

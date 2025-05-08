@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Developer Style Guide
 
 In general we aim to follow the [Julia Style Guide](https://docs.julialang.org/en/v1/manual/style-guide/)
@@ -30,13 +36,18 @@ deviate from them in some cases; in that case just do so.
   should be indicated in the function name, for example `automorphism_group` vs
   `automorphism_group_generators` vs `automorphism_list`.
 - Whenever functions expect a ring, field, algebra, etc. as input they should
-  be passed as the first argument, for example, `polynomial_ring(QQ, "x")`.
+  be passed as the first argument, for example, `polynomial_ring(QQ, :x)`.
 - Follow the mathematics. If your function needs a list of points, you should
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
+- All user-facing functions that expect some kind of indeterminant name etc.
+  (like `polynomial_ring(QQ, <indeterminant_name>)`) should accept a
+  `VarName = Union{Symbol, Char, String}`, and convert it to a symbol for internal
+  handling. Library and test code should (if possible) call such functions with
+  `Symbol` arguments, as this is the most efficient way.
 
 
 ## Naming conventions
@@ -161,6 +172,35 @@ end
 
 ## Code structure
 
+- use logical operations (`&&`/`||`) instead of bitwise operations (`&`/`|`) for conditional statements
+  ```julia
+  if f(x) == 1 && g(y) >= 2
+      bla
+  end
+  ```
+  instead of
+  ```julia
+  if (f(x) == 1) & (g(y) >= 2)
+      bla
+  end
+  ```
+
+- use short-circuiting only for control flow
+  ```julia
+  for i in 1:10
+      fl = ...
+      fl && continue
+  end
+  ```
+  or
+  ```julia
+  fl && return bla
+  ```
+  is fine. The following is not:
+  ```julia
+  fl && (x = false) || (y = f(1, x))
+  ```
+
 - do not nest loops and `if` clauses too deeply; if you are using 5 or more
   levels, then in general that's a hint that you should refactor; e.g.
   - by moving parts of the code into a separate function
@@ -235,7 +275,7 @@ polynomial of a matrix. You could do it as follows:
 ```julia
 function characteristic_polynomial(A::MatrixElem)
   kk = base_ring(A)
-  P, x = kk["x"]
+  P, x = kk[:x]
   AP = change_base_ring(P, A)
   return det(AP - x*one(AP))
 end
@@ -285,69 +325,6 @@ matrix `A`, write `Oscar.parent(A)`.
 
  - Via the MathJax integration it is possible to use LaTeX code, and this is the
    preferred way to denote the mathematical symbols in the docstrings.
-
-
-## Printing in Oscar
-
-### The 2 + 1 print modes of Oscar
-Oscar has two user print modes `detailed` and `one line` and one internal
-print mode `terse`. The latter is for use during recursion,
-e.g. to print the `base_ring(X)` when in `one line` mode.
-It exists to make sure that `one line` stays compact and human readable.
-
-Top-level REPL printing of an object will use `detailed` mode by default
-```julia
-julia> X
-detailed
-```
-Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
-```julia
-julia> [X,X]
-3-element Vector{TypeofX{T}}
-one line
-one line
-one line
-```
-
-##### An Example for the 2 + 1 print modes
-```
-# detailed
-General linear group of degree 24
-  over Finite field of degree 7 over GF(29)
-
-# one line
-General linear group of degree 24 over GF(29^7)
-
-# terse
-General linear group
-```
-
-The print modes are specified as follows
-#### Detailed printing
-- the output must make sense as a standalone without context to non-specialists
-- the number of output lines should fit in the terminal
-- if the object is simple enough use only one line
-- use indentation and (usually) `one line` to print substructures
-#### One line printing
-- the output must print in one line
-- should make sense as a standalone without context
-- variable names/generators/relations should not be printed only their number.
-- Only the first word is capitalized e.g. `Polynomial ring`
-- one should use `terse` for nested printing in compact
-- nested calls to `one line` (if you think them really necessary) should be at the end,
-  so that one can read sequentially. Calls to `terse` can be anywhere.
-- commas must be enclosed in brackets so that printing tuples stays unambiguous
-#### Terse printing
-- a user readable version of the main (mathematical) type.
-- a single term or a symbol/letter mimicking mathematical notation
-- should usually only depend on the type and not of the type parameters or of
-  the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
-- no nested printing. In particular variable names and `base_ring` must not be displayed.
-  This ensures that `one line` and `terse` stay compact even for complicated things.
-  If you want nested printing use `one line` or `detailed`.
-
-For further information and examples we refer you to our section [Details on
-printing in Oscar](@ref).
 
 
 ## Deprecating functions

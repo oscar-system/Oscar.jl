@@ -1,7 +1,7 @@
 @doc raw"""
     is_cartier(td::ToricDivisor)
 
-Checks if the divisor `td` is Cartier.
+Check if the divisor `td` is Cartier.
 
 # Examples
 ```jldoctest
@@ -92,7 +92,7 @@ julia> is_effective(td2)
 true
 ```
 """
-@attr Bool is_effective(td::ToricDivisor) = all(c -> (c >= 0), coefficients(td))
+@attr Bool is_effective(td::ToricDivisor) = all(>=(0), coefficients(td))
 
 
 @doc raw"""
@@ -218,6 +218,6 @@ true
     if sum(coefficients(td)) != 1
         return false
     else
-        return all(y -> (y == 1 || y == 0), coefficients(td))
+        return all(y -> is_zero(y) || is_one(y), coefficients(td))
     end
 end

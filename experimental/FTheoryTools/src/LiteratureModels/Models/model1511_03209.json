@@ -29,7 +29,7 @@
         "authors": ["Washington Taylor", "Yi-Nan Wang"],
         "title": "The F-theory geometry with the most flux vacua",
         "description": "The F-theory geometry with most flux vacua",
-        "buzzwords": ["GUT model", "Tate", "U(1)", "SU(5)"]
+        "buzzwords": ["Tate", "Most flux vacua"]
     },
     "model_descriptors": {
         "type": "tate",
@@ -44,11 +44,11 @@
         "a3": "a3",
         "a4": "a4",
         "a6": "a6",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [1, 2, 3, 4, 6]
         ],
         "zero_section_class": "z",
-        "zero_section": ["1", "1", "0"]
+        "zero_section": ["1", "1", "0"],
         "resolutions": [
             [
                 [
@@ -289,11 +289,8 @@
                 ["e99_4", "e99_8"],
                 ["e99_4", "e99_9"],
                 ["e99_8", "e99_9"],
-                ["e99_9", "e99_11"],
+                ["e99_9", "e99_11"]
 
-                ["y", "z"],
-                ["x", "ea_1"],
-                ["z", "ea_2"]
                 ],
                 [
                 "e9_1", "e9_2", "e9_3", "e9_4",
@@ -328,8 +325,7 @@
                 "e63_1", "e63_2", "e63_3", "e63_4", "e63_5", "e63_6", "e63_7", "e63_8", "e63_9", "e63_10", "e63_11", "e63_12", "e63_13", "e63_14",
                 "e75_1", "e75_2", "e75_3", "e75_4", "e75_5", "e75_6", "e75_7", "e75_8", "e75_9", "e75_10", "e75_11", "e75_12", "e75_13", "e75_14",
                 "e87_1", "e87_2", "e87_3", "e87_4", "e87_5", "e87_6", "e87_7", "e87_8", "e87_9", "e87_10", "e87_11", "e87_12", "e87_13", "e87_14",
-                "e99_1", "e99_2", "e99_3", "e99_4", "e99_5", "e99_6", "e99_7", "e99_8", "e99_9", "e99_10", "e99_11", "e99_12", "e99_13", "e99_14",
-                "ea_1", "ea_2", "ea_3"
+                "e99_1", "e99_2", "e99_3", "e99_4", "e99_5", "e99_6", "e99_7", "e99_8", "e99_9", "e99_10", "e99_11", "e99_12", "e99_13", "e99_14"
                 ]
             ]
         ]

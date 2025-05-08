@@ -1,12 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
 
 This project aims to provide functionality for Lie algebras and their representations.
-It aims to provide the computational tools to work with the concepts defined in [Hum72](@cite).
+It aims to provide the computational tools to work with the concepts defined in [Hum72](@cite) and [Bou02](@cite).
 
 ## Status
 
@@ -16,7 +17,7 @@ This part of OSCAR is in an experimental state; please see [Adding new projects 
 
 Please direct questions about this part of OSCAR to the following people:
 * [Lars Göttgens](https://lgoe.li/)
-* [Laura Voggesberger](https://www.ruhr-uni-bochum.de/ffm/Lehrstuehle/Lehrstuhl-VI/voggesberger.html)
+* [Felix Röhrich](https://www.art.rwth-aachen.de/cms/~xlgua)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

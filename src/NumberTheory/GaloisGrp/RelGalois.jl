@@ -8,7 +8,7 @@ function galois_group(mkK::Map{AbsSimpleNumField, AbsSimpleNumField})
   f = parent(defining_polynomial(K))(mkK(gen(k)))
   s = map(f, rt)
   @assert length(Set(s)) == degree(k)
-  b = findall(x->x == s[1], s)
+  b = findall(==(s[1]), s)
   H = stabilizer(G, b, on_sets)[1]
   h = action_homomorphism(H, b)
   return image(h)[1]

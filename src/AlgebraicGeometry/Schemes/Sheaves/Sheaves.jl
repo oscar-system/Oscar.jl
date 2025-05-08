@@ -58,9 +58,6 @@ function produce_object(F::AbsPreSheaf, U)
   error("method for `produce_object` must be overwritten for sheaves of type $(typeof(F))")
 end
 
-### temporary workaround
-produce_object(F::AbsPreSheaf, U::AbsAffineScheme) = production_func(F)(F, U)
-
 @doc raw"""
     restriction_map(F::AbsPreSheaf, U, V)
 
@@ -125,9 +122,6 @@ function object_cache(F::AbsPreSheaf)
   return object_cache(underlying_presheaf(F))
 end
 
-production_func(F::AbsPreSheaf) = production_func(underlying_presheaf(F))
-restriction_func(F::AbsPreSheaf) = restriction_func(underlying_presheaf(F))
-
 ########################################################################
 # Implementation of PreSheafOnScheme                                   #
 ########################################################################
@@ -137,19 +131,10 @@ space(F::PreSheafOnScheme) = F.X
 object_cache(F::PreSheafOnScheme) = F.obj_cache # an IdDict caching the values of F on open subsets
 #restriction_cache(F::PreSheafOnScheme) = F.res_cache # Caching is now done via attributes in the objects
 is_open_func(F::PreSheafOnScheme) = F.is_open_func
-production_func(F::PreSheafOnScheme) = F.production_func
-restriction_func(F::PreSheafOnScheme) = F.restriction_func
 
 ### Production and caching of the values of F on admissible open sets
 function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=false) where {OpenType, OutputType, T<:OpenType}
-  #First look whether or not the asked for result has been computed before
-  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType
-
-  # Testing openness might be expensive, so it can be skipped
-  check && (is_open_func(F)(U, space(F)) || error("the given set is not open or admissible"))
-  G = production_func(F)(F, U)
-  cached && (object_cache(F)[U] = G)
-  return G::OutputType
+  error("execution should never get here; please implement `produce_object` for your type of sheaf!")
 end
 
 ### Production and caching of the restriction maps

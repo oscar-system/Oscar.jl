@@ -17,7 +17,7 @@ function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check
   if check
     inradical(d, I) || return false, zero(R), zero_matrix(R, 1, ngens(I))
   end
-  (k, f) = _minimal_power_such_that(d, (x->x in I))
+  (k, f) = _minimal_power_such_that(d, in(I))
   return true, f, coordinates(f, I)
 end
 

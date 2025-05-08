@@ -29,14 +29,14 @@ The only difference is that the Weierstrass sections ``f`` and ``g`` can be spec
 
 # Examples
 ```jldoctest
-julia> base = sample_toric_variety()
+julia> chosen_base = sample_toric_variety()
 Normal toric variety
 
-julia> f = generic_section(anticanonical_bundle(base)^4);
+julia> f = generic_section(anticanonical_bundle(chosen_base)^4);
 
-julia> g = generic_section(anticanonical_bundle(base)^6);
+julia> g = generic_section(anticanonical_bundle(chosen_base)^6);
 
-julia> w = weierstrass_model(base, f, g; completeness_check = false)
+julia> w = weierstrass_model(chosen_base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
@@ -46,17 +46,17 @@ end
 
 function weierstrass_model(base::NormalToricVariety,
                            explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
-                           defining_section_parametrization::Dict{String, <:MPolyRingElem};
+                           model_section_parametrization::Dict{String, <:MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
   @req all(x -> parent(x) == cox_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
   @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
   @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
-  vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["f", "g"], vs2) "Only the Weierstrass sections f, g must be parametrized"
+  vs2 = collect(keys(model_section_parametrization))
+  @req all(in(("f", "g")), vs2) "Only the Weierstrass sections f, g must be parametrized"
 
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+  gens_base_names = symbols(cox_ring(base))
+  if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
@@ -74,7 +74,7 @@ function weierstrass_model(base::NormalToricVariety,
   
   # construct the model
   pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
-  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base, ambient_space)
+  model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -109,7 +109,7 @@ The following example illustrates this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ["f", "g", "Kbar", "u"]
+julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
 julia> auxiliary_base_grading = [4 6 1 0]
@@ -125,7 +125,7 @@ Weierstrass model over a not fully specified base
 function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
   # Execute consistency checks
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  gens_base_names = [string(g) for g in symbols(auxiliary_base_ring)]
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -148,17 +148,17 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
   end
 
-  # Compute defining_section_parametrization
-  defining_section_parametrization = Dict{String, MPolyRingElem}()
-  vars_S = [string(k) for k in gens(S)]
+  # Compute model_section_parametrization
+  model_section_parametrization = Dict{String, MPolyRingElem}()
+  vars_S = [string(k) for k in symbols(S)]
   if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
-    defining_section_parametrization["f"] = f
+    model_section_parametrization["f"] = f
   end
   if !("g" in vars_S) || (g != eval_poly("g", parent(g)))
-    defining_section_parametrization["g"] = g
+    model_section_parametrization["g"] = g
   end
   
-  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, auxiliary_base_space, auxiliary_ambient_space)
+  model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -168,7 +168,9 @@ end
 # 4: Display
 #####################################################################
 
-function Base.show(io::IO, w::WeierstrassModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(w)
     push!(properties_string, "Partially resolved Weierstrass model over a")
@@ -193,4 +195,9 @@ function Base.show(io::IO, w::WeierstrassModel)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, w::WeierstrassModel)
+  print(io, "Weierstrass model")
 end

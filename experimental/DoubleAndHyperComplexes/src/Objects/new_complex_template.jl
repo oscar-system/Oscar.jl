@@ -3,7 +3,7 @@
 # present with proper julia code inside, the code below is commented out. 
 #
 # If you want to implement your own hyper complex class, you may start with 
-# the template below and replace every occurence of `MyNew` with your favourite 
+# the template below and replace every occurrence of `MyNew` with your favourite
 # name for your new class. Then you have to fill in the gaps according to your 
 # needs. We provide a sample implementation below.
 =#

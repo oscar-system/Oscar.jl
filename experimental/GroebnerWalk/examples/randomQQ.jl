@@ -1,6 +1,6 @@
 #random polynomial system in 4 variables over Q, computed in M2 
 using Oscar
-R, (a, b, c, d)  = polynomial_ring(QQ, ["a", "b", "c", "d"])
+R, (a, b, c, d)  = polynomial_ring(QQ, [:a, :b, :c, :d])
 
 
 f1 = 15013d^3 + 5213*c*d^2 + 15893*c^2*d - 2837*b*d^2 - 10238*c^3 + 13538*b*c*d - 4578*a*d^2 + 5035*b*c^2 +
@@ -26,6 +26,3 @@ t_b = @elapsed Gb = groebner_basis(I, ordering = lex(R), complete_reduction = tr
 t_s = @elapsed Gs = groebner_walk(I, lex(R), algorithm =:standard) #11.3, one conversion
 
 t_g = @elapsed Gg = groebner_walk(I, lex(R), algorithm =:generic) #14.4
-
-t_p = @elapsed Gp = groebner_walk(I, lex(R), algorithm =:perturbed) #11.49
-

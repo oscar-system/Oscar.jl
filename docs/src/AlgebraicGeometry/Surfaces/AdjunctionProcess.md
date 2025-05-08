@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Adjunction Process for Surfaces
@@ -40,8 +42,20 @@ exceptional cases. In particular, if  $X$ has non-negative Kodaira dimension, th
 !!! note
     The surfaces in the examples below are taken from the OSCAR data base of nongeneral type surfaces in $\mathbb P^4$. To ease subsequent computations, the surfaces in the data base where constructed over finite fields. Note, however, that the recipes used in the constructions also work in characteristic zero. So all computations can be confirmed in characteristic zero, although this may be time consuming.
 
+## Adjunction Process
+
+What we describe here goes back to joint work of Wolfram Decker and Frank-Olaf Schreyer. See [DES93](@cite),  [DS00](@cite).
+
 ```@docs
 adjunction_process(X::AbsProjectiveVariety, steps::Int=0)
 ```
 
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker).
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 

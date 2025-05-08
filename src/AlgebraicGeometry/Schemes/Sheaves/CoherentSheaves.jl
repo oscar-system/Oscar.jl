@@ -175,6 +175,14 @@ identifications given by the gluings in the `default_covering`.
                                                                OutputType, RestrictionType
                                                               }
   ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
+  MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
+  # `affine_charts` of `X` such that
+  # A = MG[(U, V)] has entries aᵢⱼ with
+  # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
+  # restrictions of the generators of M[U]
+  # and fⱼ the restrictions of the generators
+  # of MD[V]. The aᵢⱼ are elements of 𝒪(U ∩ V)
+  # represented as a subset of V.
   OOX::StructureSheafOfRings # the structure sheaf on X
   M::PreSheafOnScheme # the underlying presheaf of modules for caching
   C::Covering # The covering of X on which the modules had first been described, a.k.a. the
@@ -209,474 +217,19 @@ identifications given by the gluings in the `default_covering`.
     all(x->haskey(MG, x), keys(gluings(default_cov))) || error("all gluings in the default covering must have a prescribed transition")
     all(x->any(y->(x===y), keys(gluings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to gluings in the default covering")
 
-    ### Lookup and production pattern for sheaves of modules
-    #
-    # When asked to produce a module on an open affine U, the functions
-    # below lead to the following behavior.
-    #
-    #                     U₁                    an `affine_chart` of `X`
-    #           _________/|\______________      (`patches` of `default_covering(X)`)
-    #          /          |               \
-    #          V₁         V₂______        |     two `PrincipalOpenSubset`s of U₁
-    #         /|\        /|\      \       |     covering the latter
-    #        / | \      / | \     |       |
-    #       W₁ W₂ W₃   A₁ A₂ A₃   C₁      D₁    `PrincipalOpenSubset`s of, respectively,
-    #                        |                  V₁, V₂, and U₁
-    #                        |
-    #                        E
-    #
-    #  Figure 1: A sample tree in one `affine_chart` of a `CoveredScheme`
-    #
-    #  Suppose the patches of the `default_covering` of ℱ (i.e. now the local variable
-    #  `default_cov`) are V₁ together with A₁, A₂, and A₃.
-    #
-    # 1) Look up whether U is in the list of patches of `default_cov`, e.g. U = V₁
-    #    or U = A₂. If yes, return the value of the dictionary.
-    #
-    # 2) See whether U hangs below some V in the ancestry tree with V
-    #    in `default_cov`; e.g. U = E or U = W₃. If yes, restrict from V.
-    #
-    # 3) Otherwise, U is covered by patches {Aᵢ}, i ∈ I, from `default_cov` and
-    #    contained in one affine chart U₁ of X
-    #      U₁ ⊃ U ⊃ Aᵢ.
-    #    We distinguish two sub-cases.
-    #
-    #    3.1) U appears in the refinement tree T of W whose leafs consist
-    #    entirely of the Aᵢs and the latter cover U. For instance, this
-    #    could be the case for U = V₂ with the Aᵢ covering it.
-    #    Let T' be the subtree starting from U and let {Aⱼ}, j ∈ J be the
-    #    leafs of this subtree. We then recursively build up the modules on
-    #    the nodes in T'. Note that this requires some further obvious
-    #    covering properties on the subtree T'.
-    #
-    #    3.2) U does not appear in the refinement tree T above; e.g.
-    #    when U = C₁ or U = D₁. Then we first have to build the module on
-    #    U₁ and restrict from there.
-    #
-    # The point 3) is not implemented, yet. Instead, the current code
-    # requires to take refinements hanging under nodes in `default_cov`.
-
-    ### Production of the modules on open sets; to be cached
-    function production_func(
-        F::AbsPreSheaf,
-        U::AbsAffineScheme
-      )
-      # Since the other cases are caught by the methods below,
-      # U can only be an affine_chart of X.
-      #
-      # See whether we have anything cached for U
-      haskey(MD, U) && return MD[U]
-
-      # If not, we are in case 3) above.
-      error("production of modules not implemented in this case")
-    end
-
-    function production_func(
-        F::AbsPreSheaf,
-        U::PrincipalOpenSubset
-      )
-      # Check whether we can directly produce the module
-      haskey(MD, U) && return MD[U]
-
-      # If not: See whether we are below a prescribed module in the
-      # refinement tree
-      if has_ancestor(x->haskey(MD, x), U)
-        V = ambient_scheme(U)
-        MV = F(V)
-        rho = OOX(V, U)
-        MU, phi = change_base_ring(rho, MV)
-        add_incoming_restriction!(F, V, MU, phi)
-        return MU
-      end
-      # We are in case 3) above
-      error("production of modules not implemented in this case")
-    end
-
-    function production_func(
-        F::AbsPreSheaf,
-        U::SimplifiedAffineScheme
-      )
-      # Check whether we can directly produce the module
-      haskey(MD, U) && return MD[U]
-
-      # If not: See whether we are below a prescribed module in the
-      # refinement tree
-      if has_ancestor(x->haskey(MD, x), U)
-        V = original(U)
-        MV = F(V)
-        rho = OOX(V, U)
-        MU, phi = change_base_ring(rho, MV)
-        add_incoming_restriction!(F, V, MU, phi)
-        return MU
-      end
-      # We are in case 3) above
-      error("production of modules not implemented in this case")
-    end
-
-    ### Production of the restriction maps; to be cached
-    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      # Since the other cases are caught by the methods below, both U and V
-      # must be `affine_chart`s of X with U contained in V along some gluing.
-      if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
-        MV = F(V)
-        MU = F(U)
-        A = MG[(V, U)] # The transition matrix
-        UU, _ = gluing_domains(default_covering(X)[U, V])
-        psi = OOX(UU, U) # Needs to exist by the checks of is_open_func, even though
-        # in general UU ⊂ U!
-        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)], init=zero(MU)) for i in 1:ngens(MV)], OOX(V, U))
-      else
-        error("invalid input")
-      end
-    end
-
-    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::PrincipalOpenSubset)
-      # If V was not an affine_chart of X, some other function would have
-      # been triggered.
-
-      # First the easy case: Inheritance from an ancestor in the tree.
-      if ambient_scheme(U) === V
-        # If the restriction was more complicated than what follows, then
-        # it would have been cached earlier and this call would not have happened
-        # This is the end of the recursion induced in the next elseif below.
-        res = hom(F(V), F(U), gens(F(U)), OOX(W, U))
-        return res
-      elseif has_ancestor(W->(W === V), U)
-        W = ambient_scheme(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Now we know we have a transition across charts
-      W = __find_chart(U, default_covering(X))
-      A = MG[(V, W)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[W, V])
-      # From W to U (and hence also from WW to U) the generators of the modules
-      # in F might have changed. Thus, we have to expect a non-trivial transition
-      # from the top-level down to U. The transition matrix A is only given with
-      # respect to the generators of F(W), so we have to map them manually down.
-      # The call to F(W, U) will be handled by the above if-clauses.
-      return hom(F(V), F(U),
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))], init=zero(F(U)))
-                  for i in 1:ngens(F(V))],
-                 OOX(V, U)
-                )
-    end
-
-    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::SimplifiedAffineScheme)
-      # If V was not an affine_chart of X, some other function would have
-      # been triggered.
-      @assert any(x->x===V, affine_charts(X)) "first argument must be an affine chart"
-
-      # First the easy case: Inheritance from an ancestor in the tree.
-      if original(U) === V
-        # If the restriction was more complicated than what follows, then
-        # it would have been cached earlier and this call would not have happened
-        # This is the end of the recursion induced in the next elseif below.
-        W = original(U)
-        res = hom(F(W), F(U), gens(MU), OOX(W, U))
-        return res
-      elseif has_ancestor(W->(W === V), U)
-        W = original(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Now we know we have a transition across charts
-      W = __find_chart(U, default_covering(X))
-      A = MG[(V, W)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[W, V])
-      # From W to U (and hence also from WW to U) the generators of the modules
-      # in F might have changed. Thus, we have to expect a non-trivial transition
-      # from the top-level down to U. The transition matrix A is only given with
-      # respect to the generators of F(W), so we have to map them manually down.
-      # The call to F(W, U) will be handled by the above if-clauses.
-      return hom(F(V), F(U),
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))], init=zero(F(U)))
-                  for i in 1:ngens(F(V))],
-                 OOX(V, U)
-                )
-    end
-    function restriction_func(F::AbsPreSheaf,
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
-        U::AbsAffineScheme
-      )
-      # We know that V can not be an ancestor of U, but U must be an affine chart.
-      # Probably even an ancestor of V itself.
-      W = __find_chart(V, default_covering(X))
-      if W === U
-        # U and V must actually be isomorphic, but the modules of F might be
-        # represented in different ways. We have to construct the inverse of
-        # the restriction map from U to V.
-        gens_U = F(U, V).(gens(F(U)))
-        M, inc = sub(F(V), gens_U)
-        img_gens = elem_type(F(U))[]
-        for v in gens(F(V))
-          w = preimage(inc, v)
-          c = coordinates(w)
-          push!(img_gens,
-                sum(OOX(V, U)(c[i])*gens(F(U), i) for i in 1:ngens(F(U)))
-               )
-        end
-        return hom(F(V), F(U), img_gens, OOX(V, U))
-      else
-        # U must be properly contained in the gluing domains of the
-        # gluing of the affine chart of V with U.
-        error("case not implemented")
-      end
-      # Problem: We can assume that we know how to pass from generators
-      # of W = __find_chart(V, default_covering(X)) to those on V, but we do not
-      # know the inverse to this. But the transition matrix to U is given
-      # with respect to the generators on W.
-      error("case not implemented")
-    end
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::PrincipalOpenSubset)
-      V === U && return identity_map(F(U))
-
-      if V === ambient_scheme(U)
-        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif has_ancestor(W->W===V, U)
-        W = ambient_scheme(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Below follow the more complicated cases.
-      success, _ = _have_common_ancestor(U, V)
-      if success
-        W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-        gens_V = F(W, V).(gens(F(W)))
-        sub_V, inc = sub(F(V), gens_V)
-        img_gens = elem_type(F(U))[]
-        for v in gens(F(V))
-          w = preimage(inc, v) # We know that inc is actually an isomorphism
-          c = coordinates(w)
-          w = sum(OOX(V, U)(c[i])*gens_U[i]
-                  for i in 1:length(gens_U)
-                 )
-          push!(img_gens, w)
-        end
-        return hom(F(V), F(U), img_gens, OOX(V, U))
-      end
-
-      # Now we know we have a transition between different charts.
-      inc_U = _flatten_open_subscheme(U, default_covering(X))
-      inc_V = _flatten_open_subscheme(V, default_covering(X))
-      U_flat = codomain(inc_U)
-      V_flat = codomain(inc_V)
-      WU = ambient_scheme(U_flat)
-      WV = ambient_scheme(V_flat)
-      WU = __find_chart(U, default_covering(X))
-      WV = __find_chart(V, default_covering(X))
-      # The problem is: The generators of F(WU) may be different from
-      # those of F(U) and similarly for V. But the transition matrices
-      # are only described for those on WU and WV. Thus we need to
-      # implicitly do a base change. This is done by forwarding the generators
-      # of F(WU) to F(U) and expressing it in terms of the generators there.
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
-      gens_V = F(WV, V).(gens(F(WV)))
-      sub_V, inc = sub(F(V), gens_V)
-      img_gens = elem_type(F(U))[]
-      A = MG[(WV, WU)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[WU, WV])
-      for v in gens(F(V))
-        w = preimage(inc, v) # We know that inc is actually an isomorphism
-        c = coordinates(w)
-        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j]
-                    for i in 1:length(gens_V))
-                for j in 1:length(gens_U)
-               )
-        push!(img_gens, w)
-      end
-      return hom(F(V), F(U), img_gens, OOX(V, U))
-    end
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedAffineScheme)
-      if V === original(U)
-        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif has_ancestor(W->W===V, U)
-        W = original(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Below follow the more complicated cases.
-      success, _ = _have_common_ancestor(U, V)
-      if success
-        W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-        gens_V = F(W, V).(gens(F(W)))
-        sub_V, inc = sub(F(V), gens_V)
-        img_gens = elem_type(F(U))[]
-        for v in gens(F(V))
-          w = preimage(inc, v) # We know that inc is actually an isomorphism
-          c = coordinates(w)
-          w = sum(OOX(V, U)(c[i])*gens_U[i]
-                  for i in 1:length(gens_U)
-                 )
-          push!(img_gens, w)
-        end
-        return hom(F(V), F(U), img_gens, OOX(V, U))
-      end
-
-      # Now we know we have a transition between different charts.
-      inc_U = _flatten_open_subscheme(U, default_covering(X))
-      inc_V = _flatten_open_subscheme(V, default_covering(X))
-      U_flat = codomain(inc_U)
-      V_flat = codomain(inc_V)
-      WU = ambient_scheme(U_flat)
-      WV = ambient_scheme(V_flat)
-      WU = __find_chart(U, default_covering(X))
-      WV = __find_chart(V, default_covering(X))
-      # The problem is: The generators of F(WU) may be different from
-      # those of F(U) and similarly for V. But the transition matrices
-      # are only described for those on WU and WV. Thus we need to
-      # implicitly do a base change. This is done by forwarding the generators
-      # of F(WU) to F(U) and expressing it in terms of the generators there.
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
-      gens_V = F(WV, V).(gens(F(WV)))
-      sub_V, inc = sub(F(V), gens_V)
-      img_gens = elem_type(F(U))[]
-      A = MG[(WV, WU)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[WU, WV])
-      for v in gens(F(V))
-        w = preimage(inc, v) # We know that inc is actually an isomorphism
-        c = coordinates(w)
-        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j]
-                    for i in 1:length(gens_V))
-                for j in 1:length(gens_U)
-               )
-        push!(img_gens, w)
-      end
-      return hom(F(V), F(U), img_gens, OOX(V, U))
-    end
-    function restriction_func(F::AbsPreSheaf, V::SimplifiedAffineScheme, U::PrincipalOpenSubset)
-      if V === ambient_scheme(U)
-        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif has_ancestor(W->W===V, U)
-        W = ambient_scheme(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Below follow the more complicated cases.
-      success, _ = _have_common_ancestor(U, V)
-      if success
-        W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-        gens_V = F(W, V).(gens(F(W)))
-        sub_V, inc = sub(F(V), gens_V)
-        img_gens = elem_type(F(U))[]
-        for v in gens(F(V))
-          w = preimage(inc, v) # We know that inc is actually an isomorphism
-          c = coordinates(w)
-          w = sum(OOX(V, U)(c[i])*gens_U[i]
-                  for i in 1:length(gens_U)
-                 )
-          push!(img_gens, w)
-        end
-        return hom(F(V), F(U), img_gens, OOX(V, U))
-      end
-
-      # Now we know we have a transition between different charts.
-      inc_U = _flatten_open_subscheme(U, default_covering(X))
-      inc_V = _flatten_open_subscheme(V, default_covering(X))
-      U_flat = codomain(inc_U)
-      V_flat = codomain(inc_V)
-      WU = ambient_scheme(U_flat)
-      WV = ambient_scheme(V_flat)
-      WU = __find_chart(U, default_covering(X))
-      WV = __find_chart(V, default_covering(X))
-      # The problem is: The generators of F(WU) may be different from
-      # those of F(U) and similarly for V. But the transition matrices
-      # are only described for those on WU and WV. Thus we need to
-      # implicitly do a base change. This is done by forwarding the generators
-      # of F(WU) to F(U) and expressing it in terms of the generators there.
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
-      gens_V = F(WV, V).(gens(F(WV)))
-      sub_V, inc = sub(F(V), gens_V)
-      img_gens = elem_type(F(U))[]
-      A = MG[(WV, WU)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[WU, WV])
-      for v in gens(F(V))
-        w = preimage(inc, v) # We know that inc is actually an isomorphism
-        c = coordinates(w)
-        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j]
-                    for i in 1:length(gens_V))
-                for j in 1:length(gens_U)
-               )
-        push!(img_gens, w)
-      end
-      return hom(F(V), F(U), img_gens, OOX(V, U))
-    end
-    function restriction_func(F::AbsPreSheaf, V::SimplifiedAffineScheme, U::SimplifiedAffineScheme)
-      V === U && return identity_map(F(U))
-
-      if V === original(U)
-        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif has_ancestor(W->W===V, U)
-        W = original(U)
-        return compose(F(V, W), F(W, U))
-      end
-
-      # Below follow the more complicated cases.
-      success, _ = _have_common_ancestor(U, V)
-      if success
-        W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-        gens_V = F(W, V).(gens(F(W)))
-        sub_V, inc = sub(F(V), gens_V)
-        img_gens = elem_type(F(U))[]
-        for v in gens(F(V))
-          w = preimage(inc, v) # We know that inc is actually an isomorphism
-          c = coordinates(w)
-          w = sum(OOX(V, U)(c[i])*gens_U[i]
-                  for i in 1:length(gens_U)
-                 )
-          push!(img_gens, w)
-        end
-        return hom(F(V), F(U), img_gens, OOX(V, U))
-      end
-
-      # Now we know we have a transition between different charts.
-      inc_U = _flatten_open_subscheme(U, default_covering(X))
-      inc_V = _flatten_open_subscheme(V, default_covering(X))
-      U_flat = codomain(inc_U)
-      V_flat = codomain(inc_V)
-      WU = ambient_scheme(U_flat)
-      WV = ambient_scheme(V_flat)
-      WU = __find_chart(U, default_covering(X))
-      WV = __find_chart(V, default_covering(X))
-      # The problem is: The generators of F(WU) may be different from
-      # those of F(U) and similarly for V. But the transition matrices
-      # are only described for those on WU and WV. Thus we need to
-      # implicitly do a base change. This is done by forwarding the generators
-      # of F(WU) to F(U) and expressing it in terms of the generators there.
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
-      gens_V = F(WV, V).(gens(F(WV)))
-      sub_V, inc = sub(F(V), gens_V)
-      img_gens = elem_type(F(U))[]
-      A = MG[(WV, WU)] # The transition matrix
-      WW, _ = gluing_domains(default_covering(X)[WU, WV])
-      for v in gens(F(V))
-        w = preimage(inc, v) # We know that inc is actually an isomorphism
-        c = coordinates(w)
-        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j]
-                    for i in 1:length(gens_V))
-                for j in 1:length(gens_U)
-               )
-        push!(img_gens, w)
-      end
-      return hom(F(V), F(U), img_gens, OOX(V, U))
-    end
-
-    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+    Mpre = PreSheafOnScheme(X,
                       OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                       #is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(MD, OOX, Mpre, default_cov)
-    if check
+    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(MD, MG, OOX, Mpre, default_cov)
+    @check begin
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is
       # given on one dense open subset.
+      true
     end
     return M
   end
@@ -711,10 +264,10 @@ Coherent sheaf of modules
     3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
     4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
-  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
@@ -772,10 +325,10 @@ Coherent sheaf of modules
     3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
     4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
-  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
@@ -788,6 +341,37 @@ end
 For an `AbsCoveredScheme` ``X``, return the sheaf ``Ω¹(X)`` of Kaehler-differentials
 on ``X`` as a `CoherentSheaf`.
 
+# Examples
+```jldoctest
+julia> IP1 = projective_space(QQ, 1);
+
+julia> X = covered_scheme(IP1)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 1-space
+    2: affine 1-space
+  in the coordinate(s)
+    1: [(s1//s0)]
+    2: [(s0//s1)]
+
+julia> Omega = cotangent_sheaf(X);
+
+julia> U, V = affine_charts(X);
+
+julia> UV, VU = gluing_domains(default_covering(X)[U, V]);
+
+julia> dx = Omega(U)[1]
+d(s1//s0)
+
+julia> Omega(V)
+Free module of rank 1 over multivariate polynomial ring in 1 variable over QQ
+
+julia> Omega(U, VU)(dx)
+-1/(s0//s1)^2*d(s0//s1)
+
+```
 """
 @attr SheafOfModules function cotangent_sheaf(X::AbsCoveredScheme)
   MD = IdDict{AbsAffineScheme, ModuleFP}()
@@ -866,6 +450,53 @@ end
   in the constructor.
 =#
 
+@doc raw"""
+    HomSheaf
+    
+For two `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X` 
+this computes the sheaf associated to `U -> Hom(F(U), G(U))`.
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP1);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> T = Oscar.HomSheaf(Omega, F)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+  2: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+
+julia> typeof(T)
+Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+
+```
+"""
 @attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
                                     RestrictionType
                                    } <: AbsCoherentSheaf{
@@ -883,35 +514,7 @@ end
     OOX = sheaf_of_rings(F)
     OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
 
-    ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
-      return hom(F(U), G(U))[1]
-    end
-
-    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      MV = FF(V)
-      MU = FF(U)
-      dom_res = F(V, U)
-      cod_res = G(V, U)
-      f = gens(F(V))
-      rf = dom_res.(f)
-      # The following two lines will work, because a set of generators for ℱ(V)
-      # always restricts to a set of generators for ℱ(U). Due to changes of
-      # charts, this might be a non-trivial change of bases, however.
-      dom_sub, inc = sub(F(U), rf)
-      B = [coordinates(e, dom_sub) for e in ambient_representatives_generators(F(U))]
-      images = elem_type(MU)[]
-      for phi in gens(MV)
-        phi_map = element_to_homomorphism(phi)
-        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f)], init=zero(G(U))) for i in 1:length(B)]
-        psi = hom(F(U), G(U), images_f)
-        push!(images, homomorphism_to_element(MU, psi))
-      end
-
-      return hom(MV, MU, images, OOX(V, U)) # TODO: Set check=false?
-    end
-
-    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+    Mpre = PreSheafOnScheme(X,
                       OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
@@ -932,6 +535,53 @@ codomain(M::HomSheaf) = M.codomain
 ########################################################################
 # Sheaves of direct sums                                               #
 ########################################################################
+@doc raw"""
+    DirectSumSheaf
+
+Given two or more `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X`, 
+this holds the sheaf associated to the direct sum of `F` and `G`
+
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP1);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> W = Oscar.DirectSumSheaf(Y, [Omega, F])
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+  2: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+
+julia> typeof(W)
+DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct DirectSumSheaf{SpaceType, OpenType, OutputType,
                                           RestrictionType
                                          } <: AbsCoherentSheaf{
@@ -949,33 +599,7 @@ codomain(M::HomSheaf) = M.codomain
     OOX = OO(X)
     all(x->(sheaf_of_rings(x)===OOX), summands) || error("summands must be defined over the same sheaves of rings")
 
-    ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
-      result, inc, pr = direct_sum([F(U) for F in summands]..., task=:both)
-      set_attribute!(result, :inclusions, inc) # TODO: Workaround as long as the maps are not cached.
-      set_attribute!(result, :projections, pr)
-      return result
-    end
-
-    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      MV = FF(V)
-      MU = FF(U)
-      inc_V = get_attribute(MV, :inclusions)::Vector
-      pr_V = get_attribute(MV, :projections)::Vector
-      inc_U = get_attribute(MU, :inclusions)::Vector
-      pr_U = get_attribute(MU, :projections)::Vector
-
-      parts = [] # TODO: Can we do better with type annotation?
-      for i in 1:length(inc_V)
-        push!(parts, hom(MV, MU,
-                         inc_U[i].(summands[i](V, U).(pr_V[i].(gens(MV)))),
-                         OOX(V, U)
-                        ))
-      end
-      return sum(parts)
-    end
-
-    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+    Mpre = PreSheafOnScheme(X, 
                       OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
@@ -1055,7 +679,7 @@ end
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return
 the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
 """
-@attr Any function dual(M::SheafOfModules)
+@attr AbsCoherentSheaf function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
   F = free_module(OOX, ["1"])
   return HomSheaf(M, F)
@@ -1088,6 +712,91 @@ end
 # It is clear that this can and should be made lazy.
 #                                                                     =#
 
+@doc raw"""
+    PushforwardSheaf
+    
+For a `CoveredClosedEmbedding` `i : X -> Y` and an `AbsCoherentSheaf` `F`
+on `X` this computes the coherent sheaf `i_* F` on `Y`.
+
+# Examples
+```jldoctest
+julia> IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
+
+julia> x, y, z = gens(S);
+
+julia> I = ideal(S, x^3 - y*z^2);
+
+julia> II = ideal_sheaf(IP2, I);
+
+julia> X, inc_X = sub(II);
+
+julia> F = cotangent_sheaf(X)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 1 generator
+    1: 3*x_1_1^2*dx_1_1 - dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 1 generator
+    1: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 1 generator
+    1: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+
+julia> inc_F = Oscar.PushforwardSheaf(inc_X, F)
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 5 generators
+    1: (x_1_1^3 - x_2_1)*dx_1_1
+    2: (x_1_1^3 - x_2_1)*dx_2_1
+    3: 3*x_1_1^2*dx_1_1 - dx_2_1
+    4: (x_1_1^3 - x_2_1)*dx_1_1
+    5: (x_1_1^3 - x_2_1)*dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 5 generators
+    1: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    2: (x_1_2^2*x_2_2 - 1)*dx_2_2
+    3: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+    4: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    5: (x_1_2^2*x_2_2 - 1)*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 5 generators
+    1: (x_1_3^3 - x_2_3^2)*dx_1_3
+    2: (x_1_3^3 - x_2_3^2)*dx_2_3
+    3: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+    4: (x_1_3^3 - x_2_3^2)*dx_1_3
+    5: (x_1_3^3 - x_2_3^2)*dx_2_3
+
+julia> typeof(inc_F)
+PushforwardSheaf{NormalToricVariety, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct PushforwardSheaf{SpaceType, OpenType, OutputType,
                                             RestrictionType
                                            } <: AbsCoherentSheaf{
@@ -1108,73 +817,9 @@ end
     Y = codomain(inc)
     OOY = OO(Y)
 
-    ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
-      # In case X was empty, return the zero module and store nothing in the identifications.
-      if isempty(X)
-        ident[U] = nothing
-        return FreeMod(OOY(U), 0)
-      end
-
-      # Check whether U ⊂ Y has a nontrivial preimage in X
-      f = maps_with_given_codomain(inc, U) # there should be at most one!
-      if iszero(length(f))
-        ident[U] = nothing
-        return FreeMod(OOY(U), 0)
-      end
-      ff = first(f)
-      UX = domain(ff)
-      MU, ident_map = _pushforward(pullback(ff), image_ideal(ff), M(UX))
-      ident[U] = ident_map
-      return MU
-    end
-    function production_func(FF::AbsPreSheaf, U::PrincipalOpenSubset)
-      # In case X was empty, return the zero module and store nothing in the identifications.
-      if isempty(X)
-        ident[U] = nothing
-        return FreeMod(OOY(U), 0)
-      end
-
-      # Check whether U ⊂ Y has a nontrivial preimage in X
-      f = maps_with_given_codomain(inc, U) # there should be at most one!
-      if !iszero(length(f))
-        # in this case, we can produce directly from the source
-        ff = first(f)
-        UX = domain(ff)
-        MU, ident_map = _pushforward(pullback(ff), image_ideal(ff), M(UX))
-        ident[U] = ident_map
-        return MU
-      end
-
-      # We need to restrict from the parent
-      W = ambient_scheme(U)
-      MW = FF(W)
-      MU, res = change_base_ring(OOY(W, U), MW)
-      add_incoming_restriction!(FF, W, MU, res)
-      return MU
-    end
-
-
-    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      MYV = FF(V)
-      MYU = FF(U)
-      incV_list = maps_with_given_codomain(inc, V)
-      incU_list = maps_with_given_codomain(inc, U)
-      # return the zero homomorphism in case one of the two sets has
-      # empty preimage.
-      if iszero(length(incV_list)) || iszero(length(incU_list))
-        return hom(MYV, MYU, elem_type(MYU)[zero(MYU) for i in 1:ngens(MYV)], OOY(V, U))
-      end
-      incV = first(incV_list)
-      incU = first(incU_list)
-      res_orig = M(domain(incV), domain(incU))
-      img_gens = res_orig.(gens(M(domain(incV))))
-      return hom(MYV, MYU, (x->preimage(ident[U], x)).(img_gens), OOY(V, U))
-    end
-
     ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
-    Blubber = PreSheafOnScheme(Y, production_func, restriction_func,
+    Blubber = PreSheafOnScheme(Y, 
                       OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(Y)
@@ -1189,10 +834,11 @@ end
 underlying_presheaf(M::PushforwardSheaf) = M.F
 sheaf_of_rings(M::PushforwardSheaf) = M.OOY
 original_sheaf(M::PushforwardSheaf) = M.M
-map(M::PushforwardSheaf) = M.inc
+morphism(M::PushforwardSheaf) = M.inc
+identification_dict(M::PushforwardSheaf) = M.ident
 
 function Base.show(io::IO, M::PushforwardSheaf)
-  print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
+  print(io, "pushforward of $(original_sheaf(M)) along $(morphism(M))")
 end
 
 ########################################################################
@@ -1219,7 +865,7 @@ end
 #
 # is a local affine representative of the map f. But then the Uᵢ might
 # not be `affine_charts` of X, anymore. Thus, we can a priori only
-# construct the modules locally on X and the `production_func` has
+# construct the modules locally on X and `produce_object` has
 # to take care of extending them to the `affine_charts` if necessary.
 #
 # Again, it is clear that this can and should be made lazy.
@@ -1234,6 +880,73 @@ end
 #    to create a module for ℳ (U) when U ⊂ X is an `affine_chart` of X.
 #    The user is hence forced to work in the refinement only.
 
+
+@doc raw"""
+    PullbackSheaf
+    
+For a morphism `f : X -> Y` of `AbsCoveredScheme`s and a coherent 
+sheaf `F` on `Y` this computes the pullback `f^* F` on `X`.
+# Examples
+```jldoctest
+julia> IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
+
+julia> x, y, z = gens(S);
+
+julia> I = ideal(S, x^3 - y*z^2);
+
+julia> II = ideal_sheaf(IP2, I);
+
+julia> X, inc_X = sub(II);
+
+julia> F = cotangent_sheaf(codomain(inc_X))
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia> inc_F = Oscar.PullbackSheaf(inc_X, F)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia> typeof(inc_F)
+PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
                                          RestrictionType
                                         } <: AbsCoherentSheaf{
@@ -1259,104 +972,9 @@ end
     CY = codomain(fcov)::Covering
     pullbacks = IdDict{AbsAffineScheme, Map}()
 
-    ### Production of the modules on open sets.
-    #
-    # Since the morphism f might have an underlying CoveringMorphism ϕ with
-    # a non-trivial refinement of the `default_covering` of X as a domain,
-    # we can not expect to easily produce f^*(M) on the `affine_charts` of X.
-    # Instead, we can produce it on affine opens U ⊂ X which are hanging
-    # below the patches in `domain(ϕ)`.
-    #
-    # For everything else, we proceed as in case 3) of the general
-    # SheafOfModules, see above.
-    #
-    # Again, this case is not implemented for the time being.
-
-    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
-      # See whether U is a patch of the domain covering and pull back directly
-      if haskey(morphisms(fcov), U)
-        floc = morphisms(fcov)[U]
-        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-        pullbacks[U] = map
-        return MU
-      end
-
-      # We are in case 3).
-      error("case not implemented")
-    end
-
-    function production_func(FF::AbsPreSheaf,
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
-      )
-      # See whether U is a patch of the domain covering and pull back directly
-      if haskey(morphisms(fcov), U)
-        floc = morphisms(fcov)[U]
-        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-        pullbacks[U] = map
-        return MU
-      end
-
-      # If not, check whether we are hanging below such a patch in the
-      # refinement tree.
-      if has_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
-        V = __find_chart(U, domain(fcov))
-        MU, res = change_base_ring(OOX(V, U), FF(V))
-        add_incoming_restriction!(FF, V, MU, res)
-        return MU
-      end
-
-      # We are in case 3)
-      error("case not implemented")
-    end
-
-    ### Restriction for pulled back sheaves of modules
-    #
-    # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following
-    # to compute the restriction morphism F(V) → F(U).
-    # Let ϕ be the `covering_morphism` behind f.
-    #
-    #             f : X   →    Y
-    #
-    #                 ∪        ∪
-    #                    ϕ[V]
-    #    f*ℱ (V)      V   →    V' ↦ ℱ (V')
-    #
-    #      ↓ f*ρ      ∪        ∪      ↓ ρ
-    #                    ϕ[U]
-    #    f*ℱ (U)      U   →    U' ↦ ℱ (U')
-    #
-    # 1) If both U and V are in the `Covering` `domain(ϕ)` induce the restriction
-    #    f*ρ from ρ on Y.
-    # 2) If V is in `domain(ϕ)` and U is a node hanging below V in
-    #    the refinement tree, restrict from V.
-    # 3) If V is in `domain(ϕ)` and U is a subset of V, restrict as usual.
-    # 4) If V is a node hanging below some patch in `domain(ϕ)` and
-    #    U is a subset, restrict as usual.
-
-    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      if haskey(morphisms(fcov), V)
-        if haskey(morphisms(fcov), U)
-          # case 1)
-          f_V = morphisms(fcov)[V]
-          f_U = morphisms(fcov)[U]
-          MYV = M(codomain(f_V))
-          MYU = M(codomain(f_U))
-          res_Y = M(codomain(f_V), codomain(f_U))
-          result = hom(F(V), F(U),
-                       (pullbacks[U]).(res_Y.(gens(MYV))),
-                       OOX(V, U))
-          return result
-        end
-
-        # case 2)
-        error("restriction map should have been cached by production")
-      end
-      error("case not implemented")
-    end
-
     ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
-    Blubber = PreSheafOnScheme(X, production_func, restriction_func,
+    Blubber = PreSheafOnScheme(X, 
                       OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
@@ -1369,11 +987,11 @@ end
 underlying_presheaf(M::PullbackSheaf) = M.F
 sheaf_of_rings(M::PullbackSheaf) = M.OOX
 original_sheaf(M::PullbackSheaf) = M.M
-map(M::PullbackSheaf) = M.f
+morphism(M::PullbackSheaf) = M.f
 pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
 
 function Base.show(io::IO, M::PullbackSheaf)
-  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
+  print(io, "pullback of $(original_sheaf(M)) along $(morphism(M))")
 end
 
 
@@ -1421,7 +1039,7 @@ end
 end
 
 #@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
-@attr Any function trivializing_covering(M::AbsCoherentSheaf)
+@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
   X = scheme(M)
   OOX = OO(X)
   patch_list = Vector{AbsAffineScheme}()
@@ -1443,20 +1061,7 @@ end
   return C
 end
 
-function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
-  D = default_covering(X)
-  OOX = OO(X)
-  if has_decomposition_info(D)
-    for U in patches(C)
-      V = __find_chart(U, D)
-      phi = OOX(V, U)
-      set_decomposition_info!(C, U, phi.(decomposition_info(D)[V]))
-    end
-  end
-  return C
-end
-
-@attr Any function trivializing_covering(M::HomSheaf)
+@attr Covering function trivializing_covering(M::HomSheaf)
   X = scheme(M)
   OOX = OO(X)
   # The problem is that every module of a HomSheaf must know that it is
@@ -1690,7 +1295,7 @@ rings can be provided with `var_names`.
 can be computed. The check for this can be turned off by setting `check=false`.
 """
 function projectivization(E::AbsCoherentSheaf;
-    var_names::Vector{String}=Vector{String}(),
+    var_names::Vector{<:VarName}=Vector{Symbol}(),
     check::Bool=true
   )
   X = scheme(E)
@@ -1708,7 +1313,7 @@ function projectivization(E::AbsCoherentSheaf;
       F isa FreeMod || error("modules must locally be free")
       r = (rank(F) > r ? rank(F) : r)
     end
-    var_names = ["s$i" for i in 0:r-1]
+    var_names = [Symbol(:s, i) for i in 0:r-1]
   end
 
   for U in patches(C)
@@ -1716,7 +1321,7 @@ function projectivization(E::AbsCoherentSheaf;
     F isa FreeMod || error("modules must locally be free")
     r = rank(F)
     length(var_names) >= r || error("number of names for the variables must greater or equal to the local rank of the module")
-    RU = rees_algebra(E(U), var_names=var_names[1:r])
+    RU = rees_algebra(E(U); var_names=var_names[1:r])
     algebras[U] = RU
     SU, _ = grade(RU)
     PU = proj(SU)
@@ -1788,4 +1393,7 @@ function projectivization(E::AbsCoherentSheaf;
   return CoveredProjectiveScheme(X, C, on_patches, projective_gluings, check=false)
 end
 
+function Base.hash(X::AbsCoherentSheaf, u::UInt)
+  return u
+end
 

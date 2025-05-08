@@ -46,7 +46,7 @@ Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplici
 
 # Examples
 ```jldoctest
-julia> Sigma = polyhedral_complex(IncidenceMatrix([[1],[2]]), [[0],[1]])
+julia> Sigma = polyhedral_complex(incidence_matrix([[1],[2]]), [[0],[1]])
 Polyhedral complex in ambient dimension 1
 
 julia> tropical_variety(Sigma)
@@ -148,7 +148,7 @@ If `skip_primary_decomposition==true`, will not decompose `I`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([(x^2+y)*(x+y^2)*(x+y)]);
 
@@ -351,7 +351,7 @@ end
 function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     f = charpoly(M)
     lf = Hecke.slope_factorization(f)
-    # @req all(x->x==1, values(lf))
+    # @req all(==(1), values(lf))
 
     se = Dict{typeof(f), typeof(M)}()
     k = base_ring(M)
@@ -490,7 +490,7 @@ end
 #       end
 
 #       # if (w,C,G) already is in working_list_todo, skip
-#       i = searchsortedfirst(working_list_todo,(w,C,G),by=x->x[1])
+#       i = searchsortedfirst(working_list_todo,(w,C,G),by=first)
 #       if i<=length(working_list_todo) && working_list_todo[i][1]==w
 #         continue
 #       end
@@ -510,7 +510,7 @@ end
 
 #     # pick a groebner polyhedron from todo list, add it to the done list, and compute its facet points
 #     (w,C,G) = popfirst!(working_list_todo)
-#     i = searchsortedfirst(working_list_done,(w,C,G),by=x->x[1])
+#     i = searchsortedfirst(working_list_done,(w,C,G),by=first)
 #     insert!(working_list_done, i, (w,C,G))
 
 #     points_to_traverse = facet_points(C)
@@ -535,14 +535,14 @@ end
 #         # if neighbor is already in done list, skip
 #         i = searchsortedfirst(working_list_done,
 #                               (w_neighbor,C_neighbor,G_neighbor),
-#                               by=x->x[1])
+#                               by=first)
 #         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
 #           continue
 #         end
 #         # if neighbor is already in todo list, skip
 #         i = searchsortedfirst(working_list_todo,
 #                               (w_neighbor,C_neighbor,G_neighbor),
-#                               by=x->x[1])
+#                               by=first)
 #         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
 #           continue
 #         end
@@ -628,7 +628,7 @@ end
 #   verts_rays_perm  = collect(vertices_and_rays(PC))
 #   verts_rays_perm = Vector{Int64}.(verts_rays_perm)
 #   permutation = [findfirst(isequal(l), verts_rays_perm) for l in verts_rays]
-# #  inc = [findall(c -> c, incidence_matrix[i, :]) for i in 1:size(incidence_matrix, 1)]
+# #  inc = [findall(incidence_matrix[i, :]) for i in 1:size(incidence_matrix, 1)]
 #   new_incidence = [permutation[incidence] for incidence in incidence_matrix]
 #   mults = Dict(new_incidence[i] => multiplicities[i] for i in 1:length(working_list_done))
 

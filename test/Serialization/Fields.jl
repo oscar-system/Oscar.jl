@@ -1,6 +1,6 @@
 @testset "Fields" begin
   mktempdir() do path
-    Qx, x = QQ["x"]
+    Qx, x = QQ[:x]
     K1, _ = number_field(x^2 + 5)
     K2, _ = number_field([x^2 + 5, x^2 + 7])
     K3, _ = number_field(x^2 + 7)

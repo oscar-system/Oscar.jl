@@ -18,6 +18,7 @@
     @test_throws ArgumentError toric_divisor(F5, [0, 0, 0])
     @test_throws ArgumentError D+D3
     @test_throws ArgumentError D-D3
+    @test_throws ArgumentError D==D3
   end
   
   @testset "Basic properties" begin

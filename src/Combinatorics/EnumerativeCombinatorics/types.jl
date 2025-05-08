@@ -179,7 +179,7 @@ function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::In
 end
 
 # Iterator type: partitions of n into k parts with values in v and every value
-# occuring according to the multiplicities in mu
+# occurring according to the multiplicities in mu
 struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
   n::T
   k::Int
@@ -283,6 +283,23 @@ end
 
 ################################################################################
 #
+#  Multipartition
+#
+################################################################################
+
+@doc raw"""
+    Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+
+Multipartitions are implemented as a subtype of 1-dimensional arrays of partitions. You can use smaller integer types to increase performance.
+
+See [`multipartition`](@ref) for the user-facing constructor and an example.
+"""
+struct Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+    mp::Vector{Partition{T}}
+end
+
+################################################################################
+#
 #  Young Tableaux
 #
 ################################################################################
@@ -377,3 +394,21 @@ struct StandardTableauxFixedBoxNum{T<:IntegerUnion}
     return new{T}(box_num)
   end
 end
+
+################################################################################
+#
+#  Combination(s)
+#
+################################################################################
+
+struct Combinations{T}
+  v::T
+  n::Int
+  k::Int
+end
+
+struct Combination{T} <: AbstractVector{T}
+  v::Vector{T} 
+end
+
+

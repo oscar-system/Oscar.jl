@@ -53,33 +53,45 @@ end
 
 function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   # Consistency checks
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
-  if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
+  gens_base_names = symbols(cox_ring(base))
+  gens_fiber_names = symbols(cox_ring(fiber_ambient_space))
+  if !isdisjoint(gens_base_names, gens_fiber_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
-  
+  @req length(fiber_twist_divisor_classes) <= n_rays(fiber_ambient_space) "Number of fiber twist divisor classes must not exceed number of rays in fiber ambient space"
+  if length(fiber_twist_divisor_classes) < n_rays(fiber_ambient_space)
+    fiber_twist_divisor_classes = vcat(fiber_twist_divisor_classes, [trivial_divisor_class(base) for k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))])
+  end
+
   # Compute an ambient space
   ambient_space = _ambient_space(base, fiber_ambient_space, fiber_twist_divisor_classes)
 
   # Construct the model
   hypersurface_equation = eval_poly(p, cox_ring(ambient_space))
   @req is_homogeneous(hypersurface_equation) "Given hypersurface equation is not homogeneous"
-  ds = [x.coeff for x in collect(keys(homogeneous_components(hypersurface_equation)))]
+  ds = [x.coeff for x in keys(homogeneous_components(hypersurface_equation))]
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
-  gens_S = gens(cox_ring(ambient_space))
-  for k in 1:length(gens_S)
-    explicit_model_sections[string(gens_S[k])] = gens_S[k]
-  end
+  gens_S = gens(cox_ring(base))
+
+  # The below code was removed because it is inconsistent with our standard use of explicit_model_sections. In particular,
+  # explicit_model_sections should not list base coordinates as being named sections whose value is the base coordinate
+  # For now, explicit_model_sections will be empty for hypersurface models. This will not be true ultimately, when we
+  # allow for the definition of model sections for hypersurface models
+  #
+  # for k in 1:length(gens_S)
+  #   explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  # end
+
   model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, base, ambient_space, fiber_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
+
 
 
 
@@ -157,7 +169,7 @@ Normal toric variety
 
 julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
-julia> auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ["a1", "a21", "a32", "a43", "a65", "w", "x", "y", "z"]
+julia> auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ[:a1, :a21, :a32, :a43, :a65, :w, :x, :y, :z]
 (Multivariate polynomial ring in 9 variables over QQ, QQMPolyRingElem[a1, a21, a32, a43, a65, w, x, y, z])
 
 julia> p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
@@ -183,7 +195,7 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
-  @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
+  @req isdisjoint(set_base_vars, set_fiber_vars) "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
@@ -223,7 +235,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, h::HypersurfaceModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", h::HypersurfaceModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(h)
     push!(properties_string, "Partially resolved hypersurface model over a")
@@ -236,4 +250,9 @@ function Base.show(io::IO, h::HypersurfaceModel)
     push!(properties_string, "not fully specified base")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, h::HypersurfaceModel)
+  print(io, "Hypersurface model")
 end

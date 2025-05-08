@@ -82,7 +82,7 @@
 
   @testset "PolyhedralComplex" begin
     VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0]
-    IM = IncidenceMatrix([[1, 2, 3], [1, 3, 4]])
+    IM = incidence_matrix([[1, 2, 3], [1, 3, 4]])
     far_vertices = [2, 3, 4]
     L = [0 0 1]
     PC = polyhedral_complex(IM, VR, far_vertices, L)

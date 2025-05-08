@@ -110,7 +110,7 @@ Weierstrass model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> weierstrass_ideal_sheaf(w)
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal with 1 generator
    2: Ideal with 1 generator
@@ -244,6 +244,31 @@ julia> length(singular_loci(w))
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
   @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
+  B = irrelevant_ideal(base_space(w))
+  d_primes = factor(discriminant(w))
+  nontrivial_d_primes = [k for k in d_primes if _is_nontrivial(ideal([k[1]]), B)]
+  kodaira_types = Vector{Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}}(undef, length(nontrivial_d_primes))
+  f = weierstrass_section_f(w)
+  g = weierstrass_section_g(w)
+  for (i, (p, d_order)) in enumerate(nontrivial_d_primes)
+    f_order = valuation(f, p)
+    g_order = valuation(g, p)
+    ords = (f_order, g_order, d_order)
+    I = ideal([p])
+    kodaira_types[i] = (I, ords, _kodaira_type(I, ords, w))
+  end
+  sort!(kodaira_types, by = x -> (x[2][2], x[2][3]))
+  return kodaira_types
+end
+
+# Below is the original version of the above function singular_loci.
+# The above method only applies to models defined by a single equation, i.e. hypersurface models.
+# In contrast, the method below works more generally, but consumes more resources.
+# In an attempt to reduce the resource consumption of F-theory tools, I have thus specialized into the above method.
+# However, we keep the original code below in case we want to generalize at some point in the future.
+#=
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
+  @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   
   B = irrelevant_ideal(base_space(w))
   
@@ -271,3 +296,4 @@ julia> length(singular_loci(w))
   
   return kodaira_types
 end
+=#

@@ -132,8 +132,7 @@ function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_gro
                 # computing rays and facets.
                 facets(cone)
                 rays(cone)
-                if ! any(j -> j == cone,
-                      collector_cones)
+                if !any(==(cone), collector_cones)
                     push!(collector_cones, cone)
                 end
             end
@@ -333,7 +332,7 @@ function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) w
         # the heavy lifting of computing rays and facets.
         rays(c)
         facets(c)
-        if all(o -> all(x -> c != x, o), result)
+        if all(o -> all(!=(c), o), result)
             push!(result, orbit(c, matgens, act, Base.:(==)))
         end
     end
@@ -472,7 +471,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         for i in neighbor_hashes
             if i in hash_list
                 # perhaps we have found a new incidence
-                push!(edges, sort!([findfirst(x->x == i, hash_list), current_pos]))
+                push!(edges, sort!([findfirst(==(i), hash_list), current_pos]))
             else
                 # new representative found
                 push!(hash_list, i)
@@ -508,15 +507,15 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
                       for cone in result_cones]
 
     # the set of rays
-    allrays = sort!(unique(vcat(rays_maxcones...)))
+    allrays = unique!(sort!(reduce(vcat, rays_maxcones)))
 
     # the indices of rays that belong to each maximal cone (0-based)
-    index_maxcones = [sort([findfirst(x -> x == v, allrays)-1
+    index_maxcones = [sort([findfirst(==(v), allrays)-1
                             for v in rays])
                       for rays in rays_maxcones]
 
     # the indices of rays that belong to each repres. cone
-    index_result_cones = [sort([findfirst(x -> x == v, allrays)
+    index_result_cones = [sort([findfirst(==(v), allrays)
                             for v in rays])
                       for rays in rays_result_cones]
 

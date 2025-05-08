@@ -79,7 +79,7 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP
     res = pure_N(image_as_tuple)
     return res
   end
-  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))); check=false)
 end
 
 # the case of a non-trivial base change
@@ -218,7 +218,7 @@ Return $\text{Tor}_i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y];
 
@@ -231,27 +231,27 @@ julia> F = free_module(R, 1);
 julia> Q, _ = quo(F, [x*F[1]]);
 
 julia> T0 = tor(Q, M, 0)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1] \otimes e[1]
-2 -> y*e[1] \otimes e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1] \otimes e[1]
-2 -> y^3*e[1] \otimes e[1]
-3 -> z^4*e[1] \otimes e[1]
-4 -> x*y*e[1] \otimes e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1] \otimes e[1]
+  2: y*e[1] \otimes e[1]
+by submodule with 4 generators
+  1: x^2*e[1] \otimes e[1]
+  2: y^3*e[1] \otimes e[1]
+  3: z^4*e[1] \otimes e[1]
+  4: x*y*e[1] \otimes e[1]
 
 julia> T1 = tor(Q, M, 1)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1] \otimes e[1]
-2 -> x*y*e[1] \otimes e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1] \otimes e[1]
-2 -> y^3*e[1] \otimes e[1]
-3 -> z^4*e[1] \otimes e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1] \otimes e[1]
+  2: x*y*e[1] \otimes e[1]
+by submodule with 3 generators
+  1: x^2*e[1] \otimes e[1]
+  2: y^3*e[1] \otimes e[1]
+  3: z^4*e[1] \otimes e[1]
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators
-represented as subquotient with no relations.
+represented as subquotient with no relations
 ```
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
@@ -357,7 +357,7 @@ If `C` is a cochain complex, return a chain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -415,7 +415,7 @@ If `C` is a cochain complex, return a cochain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -471,7 +471,7 @@ Return the homology of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -487,20 +487,20 @@ julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C)
 3-element Vector{SubquoModule{QQMPolyRingElem}}:
- Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
- Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
- Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
+ Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 1 generator
+  1: x^4*e[1]
+ Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
+ Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
 ```
 """
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
@@ -519,7 +519,7 @@ Return the `i`-th homology module of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -534,11 +534,11 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C, 1)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 2 generators
-1 -> x^3*e[1]
-2 -> x^2*e[1]
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 2 generators
+  1: x^3*e[1]
+  2: x^2*e[1]
 ```
 """
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
@@ -571,46 +571,46 @@ Return $\text{Ext}^i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 1);
 
 julia> V = [x*F[1], y*F[1]];
 
 julia> M = quo_object(F, V)
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
 
 julia> ext(M, M, 0)
-Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
-by Submodule with 2 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
+Subquotient of submodule with 1 generator
+  1: (e[1] -> e[1])
+by submodule with 2 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
 
 julia> ext(M, M, 1)
-Subquotient of Submodule with 2 generators
-1 -> (e[1] -> e[1])
-2 -> (e[2] -> e[1])
-by Submodule with 4 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
-3 -> y*(e[2] -> e[1])
-4 -> x*(e[2] -> e[1])
+Subquotient of submodule with 2 generators
+  1: (e[1] -> e[1])
+  2: (e[2] -> e[1])
+by submodule with 4 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
+  3: y*(e[2] -> e[1])
+  4: x*(e[2] -> e[1])
 
 julia> ext(M, M, 2)
-Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
-by Submodule with 2 generators
-1 -> y*(e[1] -> e[1])
-2 -> x*(e[1] -> e[1])
+Subquotient of submodule with 1 generator
+  1: (e[1] -> e[1])
+by submodule with 2 generators
+  1: y*(e[1] -> e[1])
+  2: x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
-represented as subquotient with no relations.
+represented as subquotient with no relations
 ```
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)

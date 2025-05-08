@@ -1,7 +1,7 @@
 #smallknap
 
 using Oscar 
-R, (t, x1, x2, x3) = polynomial_ring(QQ, ["t","x1", "x2", "x3"])
+R, (t, x1, x2, x3) = polynomial_ring(QQ, [:t,:x1, :x2, :x3])
 
 f1 = x1 - t^5
 f2 = x2 - t^12

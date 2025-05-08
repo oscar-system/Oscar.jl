@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Advice for the programmer
 
 ## How to implement my custom double complex?
@@ -142,7 +148,7 @@ is not streamlined throughout OSCAR (and there is little hope to achieve this).
 One example for this are direct sums: For finitely generated modules, the 
 function takes a special keyword argument `task` to indicate whether the inclusion 
 and projection maps should also be returned, while for `TorQuadModule`s, this keyword argument 
-is not even available. To potentially accomodate all these different types in our 
+is not even available. To potentially accommodate all these different types in our
 double complexes, the generic code uses an internal method
 ```julia
     _direct_sum(u::Vector{T}) where {T}

@@ -139,3 +139,17 @@ Base.@deprecate_binding QQAbElem QQAbFieldElem
 
 Base.@deprecate_binding FreeAssAlgIdeal FreeAssociativeAlgebraIdeal
 
+Base.@deprecate_binding in_linear_system is_in_linear_system
+@deprecate scheme(W::AbsAlgebraicCycle) ambient_scheme(W)
+@deprecate scheme(W::CartierDivisor) ambient_scheme(W)
+@deprecate scheme(W::EffectiveCartierDivisor) ambient_scheme(W)
+
+@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X) 
+@deprecate minimal_generating_set(G::GAPGroup) minimal_size_generating_set(G)
+@deprecate has_minimal_generating_set(G::GAPGroup) has_minimal_size_generating_set(G)
+@deprecate set_minimal_generating_set(G::GAPGroup, v) set_minimal_size_generating_set(G, v)
+
+# deprecated for 1.3
+@deprecate acting_domain(C::GroupCoset) acting_group(C)
+@deprecate acting_domain(Omega::GSet) acting_group(Omega)
+@deprecate grid_morphism lattice_homomorphism

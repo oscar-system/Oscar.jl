@@ -847,7 +847,7 @@ end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
   @req length(v) == length(w) "Tensor must have the same number of components"
-  return all(cv -> any(cw -> cv == cw, w), v)
+  return issetequal(v, w)
 end
 
 function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
@@ -855,7 +855,7 @@ function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
   if symmetric
     return 1
   else
-    return sign(perm(Int[findfirst(vv -> vv == ww, v) for ww in w]))
+    return sign(perm(Int[findfirst(==(ww), v) for ww in w]))
   end
 end
 
@@ -888,7 +888,7 @@ space `V`, return an induced action on Sym^d V.
 function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{S}}, d::Int) where S
   n = ncols(mr[1])
   F = base_ring(mr[1])
-  R, _ = graded_polynomial_ring(F, "x"=>1:n; cached=false)
+  R, _ = graded_polynomial_ring(F, :x=>1:n; cached=false)
   R1, R1toR = homogeneous_component(R, 1)
   Rd, RdtoR = homogeneous_component(R, d)
   bsp = reverse!(RdtoR.(gens(Rd)))

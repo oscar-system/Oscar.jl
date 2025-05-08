@@ -4,7 +4,6 @@
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = ngens(base_ring(I)),
       algorithm::Symbol = :standard
     )
 
@@ -15,30 +14,28 @@ from a Groebner basis with respect to the ordering `start` using the Groebner Wa
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
 - `target::MonomialOrdering=:lex`: monomial ordering one wants to compute a Groebner basis for.
 - `start::MonomialOrdering=:degrevlex`: monomial ordering to begin the conversion.
-- `perturbationDegree::Int=2`: the perturbation degree for the perturbed Walk.
 - `algorithm::Symbol=:standard`: strategy of the Groebner Walk. One can choose between:
     - `standard`: Standard Walk [CLO05](@cite),
     - `generic`: Generic Walk [FJLT07](@cite),
-    - `perturbed`: Perturbed Walk [AGK96](@cite).
 
 # Examples
 
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ, [:x,:y]);
 
 julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
 julia> groebner_walk(I, lex(R))
 Gröbner basis with elements
-  1 -> x + y^12 - y^8 + y^4
-  2 -> y^16
+  1: x + y^12 - y^8 + y^4
+  2: y^16
 with respect to the ordering
   lex([x, y])
 
 julia> groebner_walk(I, lex(R); algorithm=:generic)
 Gröbner basis with elements
-  1 -> y^16
-  2 -> x + y^12 - y^8 + y^4
+  1: y^16
+  2: x + y^12 - y^8 + y^4
 with respect to the ordering
   lex([x, y])
 
@@ -46,15 +43,15 @@ julia> set_verbosity_level(:groebner_walk, 1);
 
 julia> groebner_walk(I, lex(R))
 Results for standard_walk
-Crossed Cones in: 
+Crossed Cones in:
 ZZRingElem[1, 1]
 ZZRingElem[4, 3]
 ZZRingElem[4, 1]
 ZZRingElem[12, 1]
 Cones crossed: 4
 Gröbner basis with elements
-  1 -> x + y^12 - y^8 + y^4
-  2 -> y^16
+  1: x + y^12 - y^8 + y^4
+  2: y^16
 with respect to the ordering
   lex([x, y])
 
@@ -64,15 +61,12 @@ function groebner_walk(
   I::MPolyIdeal, 
   target::MonomialOrdering = lex(base_ring(I)),
   start::MonomialOrdering = default_ordering(base_ring(I));
-  perturbation_degree = ngens(base_ring(I)), # meaning, n=#gens(R)
   algorithm::Symbol = :standard
 )
   if algorithm == :standard
     walk = (x) -> standard_walk(x, target)
   elseif algorithm == :generic
     walk = (x) -> generic_walk(x, start, target)
-  elseif algorithm == :perturbed
-    walk = (x) -> perturbed_walk(x, start, target, perturbation_degree)
   else
     throw(NotImplementedError(:groebner_walk, algorithm))
   end
@@ -86,7 +80,7 @@ end
 @doc raw"""
     is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering)
 
-Checks whether the leading terms of G with respect to the matrix ordering given by T agree 
+Check whether the leading terms of G with respect to the matrix ordering given by T agree 
 with the leading terms of G with respect to the current ordering.
 This means they are in the same cone of the Groebner fan. (cf. Lemma 2.2, Collart, Kalkbrener and Mall 1997)
 """
@@ -96,7 +90,7 @@ is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_ter
 @doc raw"""
     convert_bounding_vector(w::Vector{T})
 
-Scales a rational weight vector to have co-prime integer weights.
+Scale a rational weight vector to have co-prime integer weights.
 """
 convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
@@ -109,7 +103,7 @@ create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} =
 @doc raw"""
     autoreduce(G::Oscar.IdealGens)
 
-Replaces every element of G by the normal form with respect to the remaining elements of G and the current monomial ordering.
+Replace every element of G by the normal form with respect to the remaining elements of G and the current monomial ordering.
 """
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
@@ -136,7 +130,7 @@ insert_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = vcat(w', M[1:end-1, :
 @doc raw"""
     add_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix)
 
-Prepends the weight vector `w` as row to the matrix `M`.
+Prepend the weight vector `w` as row to the matrix `M`.
 
 """
 add_weight_vector(w::Vector{Int}, M::Matrix{Int}) = vcat(w', M)

@@ -75,7 +75,7 @@ Return the projective variety defined by the homogeneous polynomial `f`.
 This checks that `f` is absolutely irreducible.
 """
 function variety(f::MPolyDecRingElem; check::Bool=true, is_radical::Bool=false)
-  if check
+  @check begin
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(forget_decoration(f))[2]
     # deal with weird type instability in factor_absolute
@@ -83,6 +83,7 @@ function variety(f::MPolyDecRingElem; check::Bool=true, is_radical::Bool=false)
     @assert ff[2] == 1
     g = ff[1]
     (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
+    true
   end
   return variety(ideal([f]), check=false, is_radical=is_radical)
 end

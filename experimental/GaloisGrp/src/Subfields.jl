@@ -5,9 +5,13 @@ using Oscar.GaloisGrp
 import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
                         primitive_by_shape, bound_to_precision
 
+if isdefined(Oscar, :subfield)
+  import Oscar: subfield
+end
+
 
 function embedding_hom(k, K)
-  return MapFromFunc(k, K, x->K(x))
+  return MapFromFunc(k, K, K)
 end
 
 const BlockSystem_t = Vector{Vector{Int}}
@@ -104,6 +108,12 @@ function ==(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   return P.can_cmp(bs, cs) && P.cmp(bs, cs) == 0
 end
 
+# very weak, but correct hash
+function Base.hash(A::SubfieldLatticeElem, h::UInt)
+  h = hash(parent(A).K, h)
+  return h
+end
+
 function Base.:*(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   S = parent(A)
   @assert parent(A).K == parent(B).K
@@ -124,7 +134,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   while true
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), cs)
+      i = findall(x->any(in(d), x), cs)
       x = Set(d)
       union!(x, cs[i]...)
       empty!(d)
@@ -137,7 +147,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     end
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), bs)
+      i = findall(x->any(in(d), x), bs)
       x = Set(d)
       union!(x, bs[i]...)
       empty!(d)
@@ -259,7 +269,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   # beta = 1/f'(alpha) sum b_i alpha^i
   # f(alpha)/(t-alpha) = sum g_i(alpha) t^i
   # Tr(beta * g_i(alpha)/f'(alpha)) = b_i (dual basis)
-  Kt, t = polynomial_ring(K, "t", cached = false)
+  Kt, t = polynomial_ring(K, :t, cached = false)
   Gk = divexact(map_coefficients(K, defining_polynomial(K), parent = Kt), t-gen(K))
   Qt = parent(defining_polynomial(K))
   Gt = [Qt(x) for x = coefficients(Gk)]
@@ -362,7 +372,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   r = roots(G, 1, raw = true)
 
   d = map(frobenius, r)
-  si = symmetric_group(degree(K))([findfirst(y->y==x, r) for x = d])
+  si = symmetric_group(degree(K))([findfirst(==(x), r) for x = d])
 
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)

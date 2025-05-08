@@ -88,6 +88,53 @@ function pullback(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
   return PullbackIdealSheaf(f, II)
 end
 
+@doc raw"""
+    total_transform(f::AbsSimpleBlowupMorphism, II::IdealSheaf)
+
+Compute the total transform of an ideal sheaf along a blowup.
+
+In particular, this applies in the toric setting. However, note that
+currently (October 2023), ideal sheaves are only supported on smooth
+toric varieties.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> bl = blow_up(P2, [1, 1])
+Toric blowup morphism
+
+julia> S = cox_ring(P2);
+
+julia> x, y, z = gens(S);
+
+julia> I = ideal_sheaf(P2, ideal([x*y]))
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1*x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (x_1_3)
+
+julia> total_transform(bl, I)
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1*x_2_1^2)
+  2: Ideal (x_1_2^2*x_2_2)
+  3: Ideal (x_2_3)
+  4: Ideal (x_1_4)
+```
+"""
+function total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
+  return pullback(f, II)
+end
+
+function total_transform(f::AbsBlowupMorphism, II::AbsIdealSheaf)
+  return pullback(f, II)
+end
+
 function pullback(f::CompositeCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   result = C
   for g in reverse(maps(f))
@@ -99,7 +146,7 @@ end
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
-  Y === scheme(C) || error("divisor must be defined on the codomain of the map")
+  Y === ambient_scheme(C) || error("divisor must be defined on the codomain of the map")
   # The challenge is that phi has two coverings cov1 → cov2 on which it is defined. 
   # The covering cov3 on which C is principalized might be different from cov2. 
   # Thus, we need to first pass to a common refinement cov' of cov2 and cov3, 
@@ -128,12 +175,11 @@ end
 
 function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
   R = coefficient_ring(C)
-  C = CartierDivisor(domain(f), R)
-  pb = pullback(f)
-  for (c,D) in coefficient_dict(C)
-    C += c*pb(C)
+  result = CartierDivisor(domain(f), R)
+  for (D, c) in coefficient_dict(C)
+    result += c*pullback(f, D)
   end
-  return C
+  return result
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
@@ -383,13 +429,13 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
   kk = coefficient_ring(R)
   result = SRow(kk)
   iszero(v) && return result
-  pos = [findfirst(k->k==m, b) for m in monomials(v)]
+  pos = [findfirst(==(m), b) for m in monomials(v)]
   vals = collect(coefficients(v))
   return SRow(kk, pos, vals)
 end
 
 ### Take a complex of graded modules and twist all 
-# modules so that the (co-)boundary maps become homogenous 
+# modules so that the (co-)boundary maps become homogeneous
 # of degree zero. 
 function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])

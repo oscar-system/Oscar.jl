@@ -1,6 +1,0 @@
-export AbsProjectiveScheme
-export EmptyScheme
-export ProjectiveScheme
-export ProjectiveSchemeMor
-export VarietyFunctionField
-export VarietyFunctionFieldElem

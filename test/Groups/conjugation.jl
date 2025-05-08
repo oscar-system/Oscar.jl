@@ -104,7 +104,7 @@
   @test length(CC)==3
   @test Set([order(Int, representative(l)) for l in CC])==Set([6,8,12])
 
-  x = G(cperm([1,2,3,4]))
+  x = cperm(G,[1,2,3,4])
   H = sub(G,[x])[1]
   @test normalizer(G,H)==normalizer(G,x)
 
@@ -192,7 +192,7 @@ end
    G = GL(8,25)
    S = SL(8,25)
    l = gen(base_ring(G))
-   R,t = polynomial_ring(base_ring(G),"t")
+   R,t = polynomial_ring(base_ring(G),:t)
 
    x = generalized_jordan_block(t-1,8)
    y = generalized_jordan_block(t-1,8)
@@ -211,7 +211,7 @@ end
 
    G = GL(8,5)
    S = SL(8,5)
-   R,t = polynomial_ring(base_ring(G),"t")
+   R,t = polynomial_ring(base_ring(G),:t)
    x = cat(generalized_jordan_block(t-1,4), generalized_jordan_block(t-1,2), identity_matrix(base_ring(G),2), dims=(1,2))
    C = centralizer(G,G(x))[1]
    @test order(C) == order(GL(2,5))*4^2*5^16
@@ -257,9 +257,9 @@ end
       @test x*y==y*x
    end
 
-   F,t = polynomial_ring(GF(3),"t")
+   F,t = polynomial_ring(GF(3),:t)
    F,z = finite_field(t^2+1,"z")
-   _,t = polynomial_ring(F,"t")
+   _,t = polynomial_ring(F,:t)
    G = GL(8,F)
    x = cat(generalized_jordan_block(t^2+t+z,2), generalized_jordan_block(t^2+z+1,2); dims=(1,2))
    C = centralizer(G,G(x))[1]

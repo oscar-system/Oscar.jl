@@ -308,9 +308,9 @@ This method is cheap in the sense that it simply inverts all representatives of
 the denominators occurring in the `realization_preview(Phi, U, V)`.
 """
 function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-  if haskey(cheap_realizations(Phi), (U, V))
-    return cheap_realizations(Phi)[(U, V)]
-  end
+ #if haskey(cheap_realizations(Phi), (U, V))
+ #  return cheap_realizations(Phi)[(U, V)]
+ #end
   img_gens_frac = realization_preview(Phi, U, V)
   # Try to cancel the fractions heuristically; turns out it was too expensive in some applications due to slow divide
 # for (k, f) in enumerate(img_gens_frac)
@@ -368,7 +368,7 @@ end
 @doc raw"""
     realize(Phi::MorphismFromRationalFunctions)
 
-Computes a full realization of `Phi` as a `CoveredSchemeMorphism`. Note 
+Compute a full realization of `Phi` as a `CoveredSchemeMorphism`. Note 
 that this computation is very expensive and usage of this method should 
 be avoided.
 """
@@ -574,7 +574,7 @@ function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   error("not implemented")
 end
 
-function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
+function pushforward(Phi::MorphismFromRationalFunctions, D::AbsWeilDivisor)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
   all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
@@ -593,13 +593,15 @@ end
 # But they can be set by the user so that certain checks of other methods 
 # are satisfied; i.e. the user has to take responsibility and confirm that 
 # they know what they're doing through these channels. 
-@attr Any function is_proper(phi::AbsCoveredSchemeMorphism)
+@attr Bool function is_proper(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check properness")
 end
 
-@attr Any function is_isomorphism(phi::AbsCoveredSchemeMorphism)
+@attr Bool function is_isomorphism(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check for being an isomorphism")
 end
+  
+is_known(::typeof(is_isomorphism), phi::AbsCoveredSchemeMorphism) = has_attribute(phi, :is_isomorphism)
 
 ### Pullback of algebraic cycles along an isomorphism. 
 function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
@@ -639,7 +641,7 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
   function complexity_codomain(V::AbsAffineScheme)
     return sum(total_degree.(lifted_numerator.(gens(I(V)))); init=0)
   end
-  sort!(all_V, lt=(x,y)->complexity_codomain(x)<complexity_codomain(y))
+  sort!(all_V; by=complexity_codomain)
   for V in all_V
 
     # Find a patch in X in which the pullback is visible
@@ -649,7 +651,7 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
       a = realization_preview(phi, U, V)
       return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
     end
-    sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+    sort!(all_U; by=complexity)
 
     # First try to get hold of the component via cheap realizations 
     pullbacks = IdDict{AbsAffineScheme, Ideal}()
@@ -815,7 +817,7 @@ function _pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
     a = realization_preview(phi, U, V)
     return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
   end
-  sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+  sort!(all_U; by=complexity)
 
   for U in all_U
     psi_loc = realize_maximally_on_open_subset(phi, U, V)
@@ -839,7 +841,7 @@ function _pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   error("ideal sheaf could not be pulled back")
 end
 
-function pullback(phi::MorphismFromRationalFunctions, D::WeilDivisor)
+function pullback(phi::MorphismFromRationalFunctions, D::AbsWeilDivisor)
   return WeilDivisor(pullback(phi)(underlying_cycle(D)), check=false) 
 end
 
@@ -872,7 +874,7 @@ end
 function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   # We assume that I is prime
   # TODO: Make this an hassert?
-  @assert is_prime(I)
+  @hassert :IdealSheaves 2 is_prime(I)
   X = scheme(I)
 
   # Some heuristics to choose a reasonably "easy" chart
@@ -890,7 +892,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=de
   if !is_empty(cand)
     c = complexity.(cand)
     m = minimum(c)
-    i = findfirst(x->x==m, c)
+    i = findfirst(==(m), c)
     return cand[i]
   end
 
@@ -905,6 +907,7 @@ function _prepare_pushforward_prime_divisor(
     domain_chart::AbsAffineScheme = _find_good_representative_chart(I),
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
+  @assert !is_one(I(domain_chart))
   U = domain_chart
   X = domain(phi)
   Y = codomain(phi)
@@ -933,8 +936,7 @@ function _prepare_pushforward_prime_divisor(
     return result
   end
 
-  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
-  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  sort!(sorted_charts; by=compl)
 
   bad_charts = Int[]
   for (i, V) in enumerate(sorted_charts)
@@ -959,8 +961,7 @@ function _prepare_pushforward_prime_divisor(
   end
 
   sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
-  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
-  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  sort!(sorted_charts; by=compl)
   
   # try random realizations second
   loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
@@ -1074,6 +1075,7 @@ function _pushforward_prime_divisor(
   return PrimeIdealSheafFromChart(codomain(phi), cod_chart, JJ)
 end
 
+
 function compose(
     f::MorphismFromRationalFunctions,
     g::MorphismFromRationalFunctions
@@ -1089,7 +1091,13 @@ function compose(
   imgs_V = [b[V] for b in imgs]
   U = domain_chart(f)
   imgs_U = [evaluate(numerator(h), coordinate_images(f))//evaluate(denominator(h), coordinate_images(f)) for h in imgs_V]
-  return morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
+  fg =  morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
+  if is_known(is_isomorphism, f) && is_known(is_isomorphism, g)
+    if is_isomorphism(f) && is_isomorphism(g)
+      set_attribute!(fg, :is_isomorphism=>true)
+    end 
+  end
+  return fg 
 end
 
 #=

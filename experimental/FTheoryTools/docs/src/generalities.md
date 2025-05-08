@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Functionality for all F-theory models
@@ -53,9 +55,12 @@ More information is available [here](http://www.thofma.com/Hecke.jl/dev/features
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
+model_sections(m::AbstractFTheoryModel)
+tunable_sections(m::AbstractFTheoryModel)
 explicit_model_sections(m::AbstractFTheoryModel)
-defining_section_parametrization(m::AbstractFTheoryModel)
+model_section_parametrization(m::AbstractFTheoryModel)
 classes_of_model_sections(m::AbstractFTheoryModel)
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
 global_gauge_quotients(m::AbstractFTheoryModel)
@@ -81,6 +86,5 @@ verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::B
 blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
 blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
 blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
-tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
 put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
 ```

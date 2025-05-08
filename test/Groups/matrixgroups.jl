@@ -30,7 +30,7 @@
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
-   T,t = polynomial_ring(GF(3) ,"t")
+   T,t = polynomial_ring(GF(3) ,:t)
    F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
    #@test isdefined(G,:X)
@@ -123,9 +123,9 @@ end
      G0 = matrix_group(mats)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
 
-     @test !has_order(G0)
-     order(G0)
+     @test has_order(G)
      @test has_order(G0)
+     @test order(G0) == order(G)
 
      for i in 1:10
        x, y = rand(G), rand(G)
@@ -137,6 +137,13 @@ end
      f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
+
+     Gap_G0 = GapObj(G0)
+     @test GAP.Globals.HasNiceMonomorphism(GapObj(G0))
+     iso = GAP.Globals.NiceMonomorphism(Gap_G0)
+     x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
+     img = GAP.Globals.ImagesRepresentative(iso, x)
+     @test x == GAP.Globals.PreImagesRepresentative(iso, img)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -150,6 +157,16 @@ end
      @test characteristic(base_ring(G7)) == 7
      G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
      @test G === G3
+   end
+
+   @testset "membership test" begin
+     K, a = cyclotomic_field(12, "a")
+     M = K[a^3 0; 0 a^-3]
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test !(M in G)
+     G = matrix_group([K[a^2 0; 0 inv(a^2)], K[0 -1; 1 0]])
+     @test order(G) == 12
+     @test !(M in G)
    end
 end
 
@@ -240,7 +257,7 @@ end
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -463,7 +480,7 @@ end
   end
 
   F = GF(2)
-  mp = MapFromFunc(ZZ, F, x -> F(x))
+  mp = MapFromFunc(ZZ, F, F)
   red = map_entries(mp, G)
   @test red == map_entries(F, G)
   red = map_entries(mp, T)
@@ -494,7 +511,7 @@ end
 end
 
 @testset "Membership" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -545,7 +562,7 @@ end
 end
 
 @testset "Methods on elements" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -588,7 +605,7 @@ end
 end
 
 @testset "Subgroups" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -613,7 +630,7 @@ end
 end
 
 @testset "Cosets and conjugacy classes" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -622,7 +639,7 @@ end
    lc = x*H
    @test order(lc)==order(H)
    @test representative(lc)==x
-   @test acting_domain(lc)==H
+   @test acting_group(lc)==H
    @test x in lc
    C = centralizer(G,x)[1]
    @test order(C)==64
@@ -656,7 +673,7 @@ end
 
 @testset "Jordan structure" begin
    F = GF(3, 1)
-   R,t = polynomial_ring(F,"t")
+   R,t = polynomial_ring(F,:t)
    G = GL(9,F)
 
    L_big = [
@@ -693,7 +710,7 @@ end
 
    F,z = finite_field(5,3,"z")
    G = GL(6,F)
-   R,t = polynomial_ring(F,"t")
+   R,t = polynomial_ring(F,:t)
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
    @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
@@ -718,7 +735,7 @@ end
       L = Oscar._gens_for_GL(5,GF(2, 1))
       @test length(L)==2
       @test matrix_group(L...)==GL(5,GF(2, 1))
-      _,t = polynomial_ring(GF(3, 1),"t")
+      _,t = polynomial_ring(GF(3, 1),:t)
       f = t^2+t-1
       L = Oscar._gens_for_GL_matrix(f,2,GF(3, 1); D=2)
       @test length(L)==2
@@ -752,7 +769,7 @@ end
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 
-   Qx, x = polynomial_ring(FlintQQ, "x", cached = false)
+   Qx, x = polynomial_ring(QQ, :x, cached = false)
    f = x^2-2;
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);

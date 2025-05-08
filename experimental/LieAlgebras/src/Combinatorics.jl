@@ -2,33 +2,6 @@
 # Most implementations here are quite slow and should be replaced by a
 # more efficient implementation.
 
-function combinations(n::Integer, k::Integer)
-  return sort(AbstractAlgebra.combinations(n, k))
-end
-
-@doc raw"""
-    Oscar.LieAlgebras.combinations(v::AbstractVector{T}, k::Integer) where {T}
-
-Return an iterator over all combinations of `k` elements of `v`.
-In each iteration, the elements are returned in the order they appear in `v`.
-The order of the combinations is lexicographic.
-
-```jldoctest
-julia> collect(Oscar.LieAlgebras.combinations([1, 2, 3, 4], 2))
-6-element Vector{Vector{Int64}}:
- [1, 2]
- [1, 3]
- [1, 4]
- [2, 3]
- [2, 4]
- [3, 4]
-```
-"""
-function combinations(v::AbstractVector{T}, k::Integer) where {T}
-  reorder(v, inds) = [v[i] for i in inds]
-  return (reorder(v, inds) for inds in combinations(length(v), k))
-end
-
 function multicombinations(n::Integer, k::Integer)
   return sort!(
     reverse.(
@@ -67,7 +40,7 @@ function multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 end
 
 function permutations(n::Integer)
-  return map(p -> Vector{Int}(p), AbstractAlgebra.SymmetricGroup(n))
+  return map(Vector{Int}, AbstractAlgebra.SymmetricGroup(n))
 end
 
 @doc raw"""

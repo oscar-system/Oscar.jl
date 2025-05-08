@@ -238,26 +238,26 @@ function SLP.combine!(op::SLP.Op, p::SLPoly, q::SLPoly)
     p
 end
 
-addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.plus, p, q)
+add!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.plus, p, q)
 
 function add!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
     copy!(r.slprogram, p.slprogram)
-    addeq!(r, q)
+    add!(r, q)
     r
 end
 
-SLP.subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.minus, p, q)
+sub!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.minus, p, q)
 
-function SLP.subeq!(p::SLPoly)
+function neg!(p::SLPoly)
     SLP.combine!(SLP.uniminus, p.slprogram)
     p
 end
 
-SLP.muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.times, p, q)
+mul!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.times, p, q)
 
 function mul!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
     copy!(r.slprogram, p.slprogram)
-    SLP.muleq!(r, q)
+    mul!(r, q)
     r
 end
 
@@ -275,19 +275,19 @@ end
 
 ## unary/binary ops
 
-+(p::SLPoly{T}, q::SLPoly{T}) where {T} = addeq!(copy(p), q)
++(p::SLPoly{T}, q::SLPoly{T}) where {T} = add!(copy(p), q)
 
-*(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.muleq!(copy(p), q)
+*(p::SLPoly{T}, q::SLPoly{T}) where {T} = mul!(copy(p), q)
 
--(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.subeq!(copy(p), q)
+-(p::SLPoly{T}, q::SLPoly{T}) where {T} = sub!(copy(p), q)
 
--(p::SLPoly) = SLP.subeq!(copy(p))
+-(p::SLPoly) = SLP.neg!(copy(p))
 
 ^(p::SLPoly, e::Base.Integer) = SLP.expeq!(copy(p), e)
 
 # should be AbstractPerm instead of GroupElem, but we need to support GAP's
 # permutations as provided in Oscar
-^(p::SLPoly, perm::AbstractAlgebra.GroupElem) = permutegens!(copy(p), perm)
+^(p::SLPoly, perm::GroupElem) = permutegens!(copy(p), perm)
 
 
 ## adhoc ops
@@ -331,6 +331,13 @@ end
 function Base.:(==)(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
     p.slprogram == q.slprogram
+end
+
+function Base.hash(p::SLPoly, h::UInt)
+    b = 0xb6bfa3424d08236f % UInt
+    h = hash(parent(p), h)
+    h = hash(p.slprogram, h)
+    return xor(h, b)
 end
 
 

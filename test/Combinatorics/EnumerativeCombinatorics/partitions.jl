@@ -47,7 +47,7 @@
     @test length(P) == number_of_partitions(T(n))
 
     # Check that all partitions are distinct
-    @test P == unique(P)
+    @test allunique(P)
 
     # Check that partitions are really partitions of n
     for lambda in P
@@ -137,11 +137,11 @@
       # Create the same by filtering all partitions
       Q = @inferred collect(partitions(T(n), T(k), T(lb), T(ub)))
       @test Q isa Vector{Oscar.Partition{T}}
-      filter!( Q->Q==unique(Q), Q )
+      filter!(allunique, Q)
 
       # Check that P and Q coincide (up to reordering)
       @test length(P) == length(Q)
-      @test Set(P) == Set(Q)
+      @test issetequal(P, Q)
     end
   end
 

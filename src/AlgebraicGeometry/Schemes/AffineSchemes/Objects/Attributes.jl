@@ -234,7 +234,7 @@ Affine scheme morphism
   from [x, y]  scheme(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
-  x -> 0
+  x -> x
   y -> y
 
 julia> inc == inclusion_morphism(Y, X)
@@ -399,52 +399,14 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-dim(X::AbsAffineScheme)
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  # Spec (R / I)_P
-  R = OO(X)
-  P = prime_ideal(inverted_set(R))
-  I = saturated_ideal(modulus(R))
-  return dim(I) - dim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  # zariski open subset of A^n
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  P = prime_ideal(inverted_set(OO(X)))
-  return codim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
-  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
-  return dim(modulus(OO(X)))
-end
+dim(X::AbsAffineScheme) = dim(OO(X))
 
 @doc raw"""
     codim(X::AbsAffineScheme)
 
 Return the codimension of ``X`` in its ambient affine space.
 
-Throws and error if ``X`` does not have an ambient affine space.
+Throws an error if ``X`` does not have an ambient affine space.
 
 # Examples
 ```jldoctest
@@ -477,15 +439,13 @@ julia> codim(Y)
 1
 ```
 """
-@attr Any function codim(X::AbsAffineScheme)
+@attr Union{Int, NegInf} function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
-function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
+@attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  get_attribute!(X, :degree) do
-    return vector_space_dimension(OO(X))
-  end::Int
+  return vector_space_dimension(OO(X))
 end
 
 @doc raw"""
@@ -537,7 +497,7 @@ This command relies on [`radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
@@ -630,7 +590,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
@@ -653,7 +613,7 @@ julia> singular_locus(A3)
 (scheme(1), Hom: scheme(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(scheme(x^2 - y^2 + z^2, z, y, x), Hom: scheme(x^2 - y^2 + z^2, z, y, x) -> scheme(x^2 - y^2 + z^2))
+(scheme(x^2 - y^2 + z^2, x, y, z), Hom: scheme(x^2 - y^2 + z^2, x, y, z) -> scheme(x^2 - y^2 + z^2))
 
 julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement
@@ -715,7 +675,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])
@@ -902,9 +862,6 @@ ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineS
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
 base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
-base_ring_type(X::AbsAffineScheme) = base_ring_type(typeof(X))
-base_ring_elem_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(BRT)
-base_ring_elem_type(X::AbsAffineScheme) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
 poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
@@ -915,5 +872,4 @@ poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::AffineScheme) = ring_type(typeof(X))
 base_ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = BRT
-base_ring_type(X::AffineScheme) = base_ring_type(typeof(X))
 

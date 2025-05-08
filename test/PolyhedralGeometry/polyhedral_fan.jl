@@ -10,8 +10,8 @@
   @test polyhedral_fan([Cone4, Cone5]) isa PolyhedralFan{T}
   F0 = polyhedral_fan([Cone4, Cone5])
   I3 = [1 0 0; 0 1 0; 0 0 1]
-  incidence1 = IncidenceMatrix([[1, 2], [2, 3]])
-  incidence2 = IncidenceMatrix([[1, 2]])
+  incidence1 = incidence_matrix([[1, 2], [2, 3]])
+  incidence2 = incidence_matrix([[1, 2]])
   @test polyhedral_fan(f, incidence1, I3) isa PolyhedralFan{T}
   F1 = polyhedral_fan(f, incidence1, I3)
   F1NR = polyhedral_fan(f, incidence1, I3; non_redundant=true)
@@ -28,10 +28,10 @@
     if T == QQFieldElem
       @test is_smooth(NFsquare)
     end
-    @test vector_matrix(rays(NFsquare)) == matrix(f, [1 0; -1 0; 0 1; 0 -1])
     @test rays(NFsquare) isa SubObjectIterator{RayVector{T}}
     @test length(rays(NFsquare)) == 4
-    @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    @test issetequal(rays(NFsquare), ray_vector.(Ref(f), [[1, 0], [-1, 0], [0, 1], [0, -1]]))
+    @test vector_matrix(rays(NFsquare)) == _oscar_matrix_from_property(f, rays(NFsquare))
     @test is_regular(NFsquare)
     @test is_complete(NFsquare)
     @test !is_complete(F0)
@@ -45,25 +45,31 @@
     @test length(RMLF2[:rays_modulo_lineality]) == 2
     @test maximal_cones(F1) isa SubObjectIterator{Cone{T}}
     @test dim.(maximal_cones(F1)) == [2, 2]
-    @test ray_indices(maximal_cones(F1)) == incidence1
-    @test IncidenceMatrix(maximal_cones(F1)) == incidence1
-    @test maximal_cones(IncidenceMatrix, F1) == incidence1
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F1)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F1)), incidence1)
+    @test _check_im_perm_rows(maximal_cones(IncidenceMatrix, F1), incidence1)
     @test number_of_maximal_cones(F1) == 2
     @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
-    @test generator_matrix(lineality_space(F2)) == matrix(f, L)
-    if T == QQFieldElem
-      @test matrix(QQ, lineality_space(F2)) == matrix(QQ, L)
-    end
     @test length(lineality_space(F2)) == 1
     @test lineality_space(F2) == [L[:]]
+    @test generator_matrix(lineality_space(F2)) == matrix(f, L)
+    @test matrix(f, lineality_space(F2)) == matrix(f, L)
     @test cones(F2, 2) isa SubObjectIterator{Cone{T}}
     @test size(cones(F2, 2)) == (2,)
     @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
     @test rays.(cones(F2, 2)) == [[], []]
-    @test isnothing(cones(F2, 1))
-    @test ray_indices(cones(F1, 2)) == incidence1
-    @test IncidenceMatrix(cones(F1, 2)) == incidence1
-    @test cones(IncidenceMatrix, F1, 2) == incidence1
+    @test _check_im_perm_rows(ray_indices(cones(F1, 2)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(cones(F1, 2)), incidence1)
+    @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
+
+    # Construct a fan that describes affine 3-space
+    A3 = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
+    @test length(cones(A3, 1)) == 3
+    @test length(cones(A3, 0)) == 1
+    @test length(cones(A3, -1)) == 0
+    @test cones(A3, 1) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, 0) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, -1) isa SubObjectIterator{Cone{QQFieldElem}}
 
     II = ray_indices(maximal_cones(NFsquare))
     NF0 = polyhedral_fan(II, rays(NFsquare))
@@ -75,16 +81,16 @@
     end
     @test f_vector(NFsquare) == [4, 4]
     @test rays(F1NR) == collect(eachrow(I3))
-    @test ray_indices(maximal_cones(F1NR)) == incidence1
-    @test IncidenceMatrix(maximal_cones(F1NR)) == incidence1
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F1NR)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F1NR)), incidence1)
     @test n_rays(F2NR) == 0
     @test lineality_dim(F2NR) == 1
     RMLF2NR = rays_modulo_lineality(F2NR)
     @test length(RMLF2NR[:rays_modulo_lineality]) == 2
     @test RMLF2NR[:rays_modulo_lineality] == collect(eachrow(R))
     @test lineality_space(F2NR) == collect(eachrow(L))
-    @test ray_indices(maximal_cones(F2NR)) == incidence2
-    @test IncidenceMatrix(maximal_cones(F2NR)) == incidence2
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F2NR)), incidence2)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F2NR)), incidence2)
 
     C = positive_hull(f, identity_matrix(ZZ, 0))
     pf = polyhedral_fan(C)
@@ -114,6 +120,56 @@
   end
 end
 
+@testset "minimal supercone" begin
+  # Construct a fan that describes affine 3-space
+  PF = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [2//5, 3, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [2//5, 3, 0]) == [2//5, 3, 0]
+
+  # Construct a fan that describes projective 3-space
+  PF = normal_fan(Oscar.simplex(3))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [-1, 1, 1]), [2, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, 1, 1]) == [0, 2, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-1, -1, 1]), [3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, -1, 1]) == [0, 0, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-2//3, QQFieldElem(-4//3), 1]), [1, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-2//3, -4//3, 1]) == [2//3, 0, 7//3, 4//3]
+  
+  @test is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 0])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 1])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, -1, 0])
+  
+  @test standard_coordinates(PF, [1, 2, 3, 0]) == [1, 2, 3]
+  @test standard_coordinates(PF, [1, 1, 0, 1]) == [0, 0, -1]
+  @test standard_coordinates(PF, [1, 0, 0, 1]) == [0, -1, -1]
+
+  # Construct a nonsimplicial fan
+  PF = face_fan(cube(3))
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [0, 0, 0, 1//2, 0, 1//2, 0, 0]
+
+  # Construct a fan of the 1/2(1, 1) singularity
+  ray_generators = [[2, -1], [0, 1]]
+  max_cones = IncidenceMatrix([[1, 2]])
+  PF = polyhedral_fan(max_cones, ray_generators)
+  @test minimal_supercone_coordinates(PF, [1, 0]) == [1//2, 1//2]
+end
+
 @testset "Transform{$T}" for (f, T) in _prepare_scalar_types()
   square = cube(f, 2)
   nf_square = normal_fan(square)
@@ -140,7 +196,7 @@ end
 end
 
 @testset "Star Subdivision" begin
-  f = polyhedral_fan(IncidenceMatrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
+  f = polyhedral_fan(incidence_matrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
   @test is_pure(f)
   @test is_fulldimensional(f)
   v0 = [1; 0; 0]
@@ -153,7 +209,7 @@ end
   @test number_of_maximal_cones(sf1) == 3
   @test number_of_maximal_cones(sf2) == 4
 
-  ff = polyhedral_fan(IncidenceMatrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
+  ff = polyhedral_fan(incidence_matrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
   @test !is_fulldimensional(ff)
   w0 = [1; 0; 0]
@@ -169,7 +225,7 @@ end
   L = arrangement_polynomial(A)
   x = gens(parent(L))
   @test L  == x[1]*x[2]*x[3]
-  R,y = polynomial_ring(QQ,["x", "y", "z"])
+  R,y = polynomial_ring(QQ,[:x, :y, :z])
   LL = arrangement_polynomial(R, A)
   @test  LL == y[1]*y[2]*y[3]
   A = identity_matrix(QQ, 2)

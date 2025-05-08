@@ -14,7 +14,7 @@ Given a quadratic space with isometry $(V, f)$, return the underlying space $V$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> space(Vf) === V
 true
@@ -32,7 +32,7 @@ $f$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> isometry(Vf)
 [-1    0]
@@ -51,7 +51,7 @@ underlying isometry $f$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> order_of_isometry(Vf) == 2
 true
@@ -71,11 +71,13 @@ order_of_isometry(Vf::QuadSpaceWithIsom) = Vf.n
 Given a quadratic space with isometry $(V, f)$, return the rank of the underlying
 space $V$.
 
+See [`rank(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V);
 
 julia> rank(Vf) == 2
 true
@@ -89,11 +91,13 @@ rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return the dimension of the
 underlying space of $V$.
 
+See [`dim(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V);
 
 julia> dim(Vf) == 2
 true
@@ -111,7 +115,7 @@ polynomial of the underlying isometry $f$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> characteristic_polynomial(Vf)
 x^2 + 2*x + 1
@@ -129,13 +133,13 @@ polynomial of the underlying isometry $f$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> minimal_polynomial(Vf)
 x + 1
 ```
 """
-minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))
+minimal_polynomial(Vf::QuadSpaceWithIsom) = minimal_polynomial(isometry(Vf))
 
 @doc raw"""
     gram_matrix(Vf::QuadSpaceWithIsom) -> QQMatrix
@@ -147,7 +151,7 @@ of the underlying space $V$ with respect to its standard basis.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> is_one(gram_matrix(Vf))
 true
@@ -161,11 +165,13 @@ gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return the determinant
 of the underlying space $V$.
 
+See [`det(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> is_one(det(Vf))
 true
@@ -179,11 +185,13 @@ det(Vf::QuadSpaceWithIsom) = det(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return the discriminant
 of the underlying space $V$.
 
+See [`discriminant(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> discriminant(Vf)
 -1
@@ -197,11 +205,13 @@ discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space $V$ is positive definite.
 
+See [`is_positive_definite(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> is_positive_definite(Vf)
 true
@@ -215,11 +225,13 @@ is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space $V$ is negative definite.
 
+See [`is_negative_definite(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> is_negative_definite(Vf)
 false
@@ -233,11 +245,13 @@ is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space $V$ is definite.
 
+See [`is_definite(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> is_definite(Vf)
 true
@@ -251,11 +265,13 @@ is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))
 Given a quadratic space with isometry $(V, f)$, return the diagonal of the
 underlying space $V$.
 
+See [`diagonal(::AbstractSpace)`](@ref).
+
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> diagonal(Vf)
 2-element Vector{QQFieldElem}:
@@ -275,7 +291,7 @@ tuple of the underlying space $V$.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V; neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg=true);
 
 julia> signature_tuple(Vf)
 (2, 0, 0)
@@ -290,8 +306,8 @@ signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))
 ###############################################################################
 
 @doc raw"""
-    quadratic_space_with_isometry(V:QuadSpace, f::QQMatrix; check::Bool = false)
-                                                            -> QuadSpaceWithIsom
+    quadratic_space_with_isometry(V:QuadSpace, f::QQMatrix; check::Bool=false)
+                                                           -> QuadSpaceWithIsom
 
 Given a quadratic space $V$ and a matrix $f$, if $f$ defines an isometry of $V$
 of order $n$ (possibly infinite), return the corresponding quadratic space with
@@ -321,7 +337,7 @@ Quadratic space of dimension 2
 ```
 """
 function quadratic_space_with_isometry(V::Hecke.QuadSpace, f::QQMatrix;
-                                                           check::Bool = true)
+                                                           check::Bool=true)
   if rank(V) == 0
     return QuadSpaceWithIsom(V, zero_matrix(QQ, 0, 0), -1)
   end
@@ -337,7 +353,7 @@ function quadratic_space_with_isometry(V::Hecke.QuadSpace, f::QQMatrix;
 end
 
 @doc raw"""
-    quadratic_space_with_isometry(V::QuadSpace; neg::Bool = false) -> QuadSpaceWithIsom
+    quadratic_space_with_isometry(V::QuadSpace; neg::Bool=false) -> QuadSpaceWithIsom
 
 Given a quadratic space $V$, return the quadratic space with isometry pair $(V, f)$
 where $f$ is represented by the identity matrix.
@@ -362,10 +378,10 @@ Quadratic space of dimension 2
   [0   1]
 ```
 """
-function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool = false)
+function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool=false)
   f = identity_matrix(QQ, dim(V))
   f = neg ? -f : f
-  return quadratic_space_with_isometry(V, f; check = false)
+  return quadratic_space_with_isometry(V, f; check=false)
 end
 
 ###############################################################################
@@ -413,7 +429,7 @@ with gram matrix
 ```
 """
 function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
-  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf); check = false)
+  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf); check=false)
 end
 
 @doc raw"""
@@ -453,7 +469,7 @@ Quadratic space of dimension 2
 ```
 """
 function Base.:^(Vf::QuadSpaceWithIsom, n::Int)
-  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n; check = false)
+  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n; check=false)
 end
 
 @doc raw"""
@@ -482,7 +498,7 @@ with gram matrix
 [2   5]
 [5   6]
 
-julia> Vf1 = quadratic_space_with_isometry(V1, neg=true)
+julia> Vf1 = quadratic_space_with_isometry(V1; neg=true)
 Quadratic space of dimension 2
   with isometry of finite order 2
   given by
@@ -534,7 +550,7 @@ with gram matrix
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj = direct_sum(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check = false), inj
+  return quadratic_space_with_isometry(V, f; check=false), inj
 end
 
 direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
@@ -565,7 +581,7 @@ with gram matrix
 [2   5]
 [5   6]
 
-julia> Vf1 = quadratic_space_with_isometry(V1, neg=true)
+julia> Vf1 = quadratic_space_with_isometry(V1; neg=true)
 Quadratic space of dimension 2
   with isometry of finite order 2
   given by
@@ -617,7 +633,7 @@ with gram matrix
 function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, proj = direct_product(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check = false), proj
+  return quadratic_space_with_isometry(V, f; check=false), proj
 end
 
 direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
@@ -649,7 +665,7 @@ with gram matrix
 [2   5]
 [5   6]
 
-julia> Vf1 = quadratic_space_with_isometry(V1, neg=true)
+julia> Vf1 = quadratic_space_with_isometry(V1; neg=true)
 Quadratic space of dimension 2
   with isometry of finite order 2
   given by
@@ -709,7 +725,7 @@ julia> matrix(compose(inj[1], proj[2]))
 function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj, proj = biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check = false), inj, proj
+  return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
 biproduct(x::Vararg{QuadSpaceWithIsom}) = biproduct(collect(x))
@@ -737,7 +753,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int = -1) -> QQFieldElem
+    rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int=-1) -> QQFieldElem
 
 Given a rational quadratic space with isometry $(V, b, f)$, return the rational
 spinor norm of $f$.
@@ -745,7 +761,7 @@ spinor norm of $f$.
 If $\Phi$ is the form on $V$, then the spinor norm is computed with respect to
 $b\Phi$.
 """
-function rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int = -1)
+function rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int=-1)
   @req dim(Vf) > 0 "V must have positive dimension"
   D, U = Hecke._gram_schmidt(gram_matrix(Vf), QQ)
   fD = U*isometry(Vf)*inv(U)

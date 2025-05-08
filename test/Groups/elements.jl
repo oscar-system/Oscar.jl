@@ -50,6 +50,13 @@
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
   @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
+
+  G=alternating_group(6)
+  @test_throws ArgumentError cperm(G, [1,2])
+  @test cperm(G, [1,2],[3,4]) == perm(G,[2,1,4,3,5,6])
+  @test cperm(G, [1,2],[2,3]) == cperm(G, [1,3,2])
+  @test cperm(G, [1,2],[2,3]) == perm(G,[3,1,2,4,5,6])
+
 end
 
 @testset "Change of parent" begin

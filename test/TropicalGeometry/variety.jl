@@ -3,7 +3,7 @@
     # constructing various tropicalizations two ways
     # and comparing their results
     @testset "hypersurface and linear spaces" begin
-        R,(x,y,z) = QQ["x","y","z"]
+        R,(x,y,z) = QQ[:x, :y, :z]
         f = x+2*y+4*z
         nu = tropical_semiring_map(QQ,2)
         TropH = tropical_hypersurface(f,nu)
@@ -16,7 +16,7 @@
     end
 
     @testset "binomial ideals and linear spaces" begin
-        R,(x,y,z,w) = QQ["x","y","z","w"]
+        R,(x,y,z,w) = QQ[:x, :y, :z, :w]
         I = ideal(R,[x+2*y,z+4*w])
         nu = tropical_semiring_map(QQ,2)
         TropV = first(tropical_variety(I,nu))
@@ -29,7 +29,7 @@
     end
 
     @testset "hypersurface and binomial ideals" begin
-        R,(x,y,z) = QQ["x","y","z"]
+        R,(x,y,z) = QQ[:x, :y, :z]
         f = x*y*z+2
         nu = tropical_semiring_map(QQ,2)
         TropH = tropical_hypersurface(f,nu)
@@ -40,5 +40,23 @@
         TropH = tropical_hypersurface(f,nu)
         @test issetequal(maximal_polyhedra(TropH),maximal_polyhedra(TropV))
     end
-
+   
+    @testset "tropical prevarieties" begin
+      G = grassmann_pluecker_ideal(2,4)
+      f = gens(G)[1]
+      T = tropical_hypersurface(f)
+      TP = polyhedral_complex(T)
+      TT = tropical_prevariety([f])
+      @test rays_modulo_lineality(TP) == rays_modulo_lineality(TT)
+      @test incidence_matrix(maximal_polyhedra(TP)) == incidence_matrix(maximal_polyhedra(TT))
+      G = grassmann_pluecker_ideal(2,5)
+      T = tropical_prevariety(gens(G))
+      @test length(rays_modulo_lineality(T)[1]) == 10
+      nu = tropical_semiring_map(QQ,max)
+      T = tropical_prevariety(gens(G),nu)
+      @test length(rays_modulo_lineality(T)[1]) == 10
+      TG = tropical_hypersurface.(gens(G))
+      T = tropical_prevariety(TG)
+      @test length(rays_modulo_lineality(T)[1]) == 10
+    end
 end

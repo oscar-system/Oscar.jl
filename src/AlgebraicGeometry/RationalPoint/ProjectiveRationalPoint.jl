@@ -23,7 +23,7 @@ function dehomogenization(p::AbsProjectiveRationalPoint, i::Int)
   c = coordinates(p)
   s = inv(c[i])
   w = weights(codomain(p))
-  any(x->!isone(x), w) && error("cannot dehomogenize with weights")
+  any(!is_one, w) && error("cannot dehomogenize with weights")
   return [s*c[j] for j in 1:length(c) if j!=i]
 end
 
@@ -196,7 +196,7 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
   ca = inv(a[i])
   a[i] = one(coefficient_ring(a))
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
+  any(!is_one, w) && error("cannot normalize with weights")
   i += 1
   l = length(w)
   while i <= l
@@ -219,7 +219,7 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
     i += 1
   end
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
+  any(!is_one, w) && error("cannot normalize with weights")
   ca = sign(a[i])
   while i <= dim(codomain(a))
     a[i] = ca*a[i]  #TODO: weights

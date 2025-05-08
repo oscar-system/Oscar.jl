@@ -230,7 +230,13 @@ function base_change(phi::Any, G::AbsGluing;
     patch_change1::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[1])[2], # The base change morphism for 
     patch_change2::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[2])[2]  # the two gluing patches
   )
+  @assert _has_coefficient_map(pullback(patch_change1))
+  @assert _has_coefficient_map(pullback(patch_change2))
   gd = BaseChangeGluingData{typeof(phi), typeof(G)}(phi, G, patch_change1, patch_change2)
   return LazyGluing(domain(patch_change1), domain(patch_change2), gd)
+end
+
+function Base.hash(X::AbsGluing, u::UInt)
+  return u
 end
 

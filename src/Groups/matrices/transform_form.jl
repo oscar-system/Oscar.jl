@@ -374,15 +374,15 @@ end
 """
     is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
-If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a
+If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
+matrix `C` such that `f^C = ag` for some scalar `a`. If such `C` does not
+exist, then return (`false`, `nothing`).
+
+Otherwise return (`true`, `C`) if there exists a
 matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
 are the Gram matrices of `f` and `g` respectively, and `C*` is the
 transpose-conjugate matrix of `C`. If such `C` does not exist, then return
 (`false`, `nothing`).
-
-If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
-matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not
-exist, then return (`false`, `nothing`).
 """
 function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
@@ -394,8 +394,8 @@ function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <:
 
    if f.descr==:quadratic
       if iseven(characteristic(F))            # in this case we use the GAP algorithms
-         Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(g.X))
-         Bf = preimage_matrix(_ring_iso(f), GAP.Globals.BaseChangeToCanonical(f.X))
+         Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(GapObj(g)))
+         Bf = preimage_matrix(_ring_iso(f), GAP.Globals.BaseChangeToCanonical(GapObj(f)))
 
          UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
          UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))

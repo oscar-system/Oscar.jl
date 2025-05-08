@@ -131,7 +131,7 @@ Simplify the vector representation of a `LinearPartition` in terms of distributi
 
 # Examples
 ```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
+julia> S, d = polynomial_ring(QQ, :d)
 (Univariate polynomial ring in d over QQ, d)
 
 julia> Oscar.SetPartitions.simplify_operation([(set_partition([1, 1], [1, 1]), S(10)), (set_partition([1, 1], [1, 1]), 4*d)])

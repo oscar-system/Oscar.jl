@@ -127,7 +127,7 @@ julia> inc_E = Oscar.CoveredClosedEmbedding(domain(pr), JJ);
 julia> comp = Oscar.composite_map(inc_E, pr)
 Composite morphism of
   Hom: scheme over QQ covered with 2 patches -> scheme over QQ covered with 2 patches
-  Blow-down: scheme over QQ covered with 2 patches -> scheme over QQ covered with 1 patch
+  Blow-up: scheme over QQ covered with 2 patches -> scheme over QQ covered with 1 patch
 
 julia> Oscar.maps(comp)[1] === inc_E
 true

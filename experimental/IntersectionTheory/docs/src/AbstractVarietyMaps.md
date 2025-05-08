@@ -1,13 +1,23 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Variety Maps
 
+## Types
+
+The OSCAR type for abstract variety maps is `AbstractVarietyMap`.
+
 ## Constructors
 
 ```@docs
-hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+```
+
+```@docs
+identity_map(X::AbstractVariety)
 ```
 
 ## Underlying Data of an Abstract Variety Map
@@ -27,7 +37,7 @@ dim(f::AbstractVarietyMap)
 ```
 
 ```@docs
-pullback(f::AbstractVarietyMap, x::MPolyDecRingElem)
+pullback(f::AbstractVarietyMap, y::MPolyDecRingElem)
 ```
 
 ```@docs

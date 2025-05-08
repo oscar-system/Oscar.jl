@@ -159,16 +159,13 @@ end
 @doc raw"""
     is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
 
-# Input:
-- a reduced scheme ``X``,
-- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
-
-# Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the given reduced scheme ``X`` is normal.
+By default this verifies that `X` is reduced; this expensive test
+can be avoided by setting `check` to `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> X = covered_scheme(spec(R));
 
@@ -204,7 +201,7 @@ of non-integral schemes.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal(R, z*x^2 + y^3);
 

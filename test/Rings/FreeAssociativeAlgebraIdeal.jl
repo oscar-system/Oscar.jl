@@ -1,6 +1,6 @@
 @testset "FreeAssociativeAlgebraIdeal.basic" begin
-  Zt = polynomial_ring(ZZ, "t")[1]
-  R, (x, y, z) = free_associative_algebra(Zt, ["x", "y", "z", "w"])
+  Zt = polynomial_ring(ZZ, :t)[1]
+  R, (x, y, z) = free_associative_algebra(Zt, [:x, :y, :z, :w])
   I = ideal(R, [x*y*x, y*z^2])
   @test base_ring(I) == R
   for p in gens(R)
@@ -9,13 +9,13 @@
 end
 
 @testset "FreeAssociativeAlgebraIdeal.printing" begin
-  R, (x, y, z) = free_associative_algebra(GF(5), ["x", "y", "z", "w"])
+  R, (x, y, z) = free_associative_algebra(GF(5), [:x, :y, :z, :w])
   I = ideal(R, [x*y*x, y*z^2])
   @test length(string(I)) > 3
 end
 
 @testset "FreeAssociativeAlgebraIdeal.membership" begin
-  R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
+  R, (x, y, z) = free_associative_algebra(QQ, [:x, :y, :z])
   I = ideal(R, [x*y - y*x, x*z - z*x])
   @test !ideal_membership(x, I, 5)
   @test !ideal_membership(x, I, 10)
@@ -34,7 +34,7 @@ end
 end
 
 @testset "FreeAssociativeAlgebraIdeal.utils" begin
-  R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
+  R, (x, y, z) = free_associative_algebra(QQ, [:x, :y, :z])
   I = ideal(R, [x*y - y*x, x*z - z*x])
   @test base_ring(I) == R
   @test isa(ngens(I),Int)
@@ -46,7 +46,7 @@ end
   @test isa(lpring,NCRing)
 
   _, (x, y, z) = Singular.FreeAlgebra(QQ, ["x", "y","z"],6)
-  free, _ = free_associative_algebra(QQ, ["x", "y", "z"])
+  free, _ = free_associative_algebra(QQ, [:x, :y, :z])
   f1 = x*y + y*z
 
   F1 = free(f1)
@@ -54,7 +54,7 @@ end
 end 
 
 @testset "FreeAssociativeAlgebraIdeal.groebner_basis" begin
-    free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
+    free, (x,y,z) = free_associative_algebra(QQ, [:x, :y, :z])
     f1 = x*y + y*z
     f2 = x^2 + y^2
     I = ideal([f1, f2])

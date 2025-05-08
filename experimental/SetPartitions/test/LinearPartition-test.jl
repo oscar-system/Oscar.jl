@@ -1,6 +1,6 @@
 @testset "LinearCombinations of SetPartitions" begin
     @testset "LinearPartition Constructor" begin
-        S, d = polynomial_ring(QQ, "d")
+        S, d = polynomial_ring(QQ, :d)
         @test coefficients(linear_partition(S, Dict(set_partition([1, 2], [1, 1]) => 4, set_partition([1, 1], [1, 1]) => 8*d))) == Dict(set_partition([1, 2], [1, 1]) => 4, set_partition([1, 1], [1, 1]) => 8*d)
         @test coefficients(linear_partition(S, Dict(set_partition([1, 2], [1, 1]) => 0, set_partition([1, 1], [1, 1]) => 8*d))) == Dict(set_partition([1, 1], [1, 1]) => 8*d)
         @test coefficients(linear_partition(S, [(set_partition([1, 1], [1, 1]), 5), (set_partition([1, 1], [1, 1]), 4*d)])) == Dict(set_partition([1, 1], [1, 1]) => 5 + 4*d)
@@ -9,7 +9,7 @@
     end
 
     @testset "LinearPartition Operations" begin
-        S, d = polynomial_ring(QQ, "d")
+        S, d = polynomial_ring(QQ, :d)
         a = linear_partition(S, [(set_partition([1, 2], [1, 1]), 5), (set_partition([1, 1], [1, 1]), 5*d)])
         @test a + a == linear_partition(S, Dict(set_partition([1, 2], [1, 1]) => 10, set_partition([1, 1], [1, 1]) => 10*d))
         @test a + linear_partition(S, [(set_partition([1, 1], [1, 1]), 1), (set_partition([1, 1], [1, 1]), 2*d)]) == linear_partition(S, [(set_partition([1, 2], [1, 1]), 5), (set_partition([1, 1], [1, 1]), 7*d + 1)])

@@ -2,13 +2,13 @@
     # small (GAP) integer
     x = ZZRingElem(17)
     val = 17
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # large GAP integer
     x = ZZRingElem(2)^65
     val = GAP.evalstr("2^65")
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 end
 
@@ -16,25 +16,25 @@ end
     # small (GAP) integer
     x = ZZRingElem(17)
     val = 17
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # large GAP integer
     x = ZZRingElem(2)^65
     val = GAP.evalstr("2^65")
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # non-integer rational, small numerator and denominator
     x = QQFieldElem(2, 3)
     val = GAP.evalstr("2/3")
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # non-integer rational, large numerator and denominator
     x = QQFieldElem(ZZRingElem(2)^65, ZZRingElem(3)^40)
     val = GAP.evalstr("2^65/3^40")
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 end
 
@@ -42,13 +42,13 @@ end
     # matrix of small (GAP) integers
     x = Nemo.ZZ[1 2; 3 4]
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # matrix containing small and large integers
     x = Nemo.ZZ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 end
 
@@ -56,25 +56,25 @@ end
     # matrix of small (GAP) integers
     x = Nemo.QQ[1 2; 3 4]
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # matrix containing small and large integers
     x = Nemo.QQ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # matrix containing non-integer rationals, small numerator and denominator
     x = Nemo.QQ[QQFieldElem(1, 2) 2; 3 4]
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 
     # matrix containing non-integer rationals, large numerator and denominator
     x = Nemo.QQ[QQFieldElem(ZZRingElem(2)^65, ZZRingElem(3)^40) 2; 3 4]
     val = GAP.evalstr( "[ [ 2^65/3^40, 2 ], [ 3, 4 ] ]" )
-    @test GAP.julia_to_gap(x) == val
+    @test GapObj(x) == val
     @test GAP.Obj(x) == val
 end
 

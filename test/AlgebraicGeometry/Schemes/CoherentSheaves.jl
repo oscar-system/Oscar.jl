@@ -44,7 +44,7 @@
 end
 
 @testset "Pushforward of modules" begin
-  IP = projective_space(QQ, ["x", "y", "z"])
+  IP = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(IP)
   (x,y,z) = gens(S)
   f = z^2 - x*y
@@ -119,7 +119,7 @@ end
 end
 
 @testset "projectivization of vector bundles" begin
-  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  IP = projective_space(QQ, [:x, :y, :z, :w])
   S = homogeneous_coordinate_ring(IP)
   (x,y,z,w) = gens(S)
   f = x^4 + y^4 + z^4 + w^4
@@ -138,7 +138,7 @@ end
 end
 
 @testset "projectivization of vector bundles with several components" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
 
   I = ideal(R, [x-1, y]) * ideal(R, [x]) # A line and a plane, disjoint.
 
@@ -155,7 +155,7 @@ end
 end
 
 @testset "direct sums of sheaves" begin
-  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  IP = projective_space(QQ, [:x, :y, :z, :w])
   S = homogeneous_coordinate_ring(IP)
   (x, y, z, w) = gens(S)
   f = x^4 + y^4 + z^4 + w^4

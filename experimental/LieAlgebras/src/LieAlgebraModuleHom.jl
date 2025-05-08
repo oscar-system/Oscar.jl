@@ -189,7 +189,7 @@ Lie algebra module morphism
   to direct sum module of dimension 5 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
-2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}}:
  (v_1, v_1^(1))
  (v_2, v_2^(1))
 ```
@@ -227,7 +227,7 @@ Lie algebra module morphism
   to abstract Lie algebra module of dimension 1 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
-3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}}:
  (v_1, 0)
  (v_2, 0)
  (v_3, 0)

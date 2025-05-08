@@ -401,15 +401,16 @@ function Base.:(^)(a::TropicalSemiringElem, n::Integer)
 end
 
 
-
 ################################################################################
 #
-#  Unsafe operations
+#  Properties
 #
 ################################################################################
 
-Oscar.mul!(x::TropicalSemiringElem, y::TropicalSemiringElem, z::TropicalSemiringElem) = y * z
-Oscar.addeq!(y::TropicalSemiringElem, z::TropicalSemiringElem) = y + z
+function characteristic(::TropicalSemiring)
+    error("characteristic of tropical semirings not supported")
+end
+
 
 
 ################################################################################

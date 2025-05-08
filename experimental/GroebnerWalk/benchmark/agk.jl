@@ -1,7 +1,7 @@
 using Oscar
 
 function agk4(k::Field)
-    R, (x,y,z,u,v) = polynomial_ring(k, ["x","y","z","u","v"])
+    R, (x,y,z,u,v) = polynomial_ring(k, [:x,:y,:z,:u,:v])
 
     o1 = weight_ordering([1,1,1,0,0], degrevlex(R))
     o2 = weight_ordering([0,0,0,1,1], degrevlex(R))

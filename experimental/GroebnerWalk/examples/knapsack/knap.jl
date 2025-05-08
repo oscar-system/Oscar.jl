@@ -1,6 +1,6 @@
 using Oscar 
 
-R, (t, x1, x2, x3, x4, x5, x6) = polynomial_ring(QQ, ["t","x1", "x2", "x3", "x4", "x5", "x6"])
+R, (t, x1, x2, x3, x4, x5, x6) = polynomial_ring(QQ, [:t,:x1, :x2, :x3, :x4, :x5, :x6])
 
 f1 = x1 - t^53725
 f2 = x2 - t^61919

@@ -4,7 +4,7 @@
 #
 module BuildDoc
 
-using Documenter, DocumenterCitations
+using Documenter, DocumenterCitations, JSON
 
 include("documenter_helpers.jl")
 include("citation_style.jl")
@@ -35,16 +35,7 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # get the prefix `Experimental/PACKAGE_NAME`.
 #
 # Example:
-# 1. cat experimental/PlaneCurve/docs/doc.main:
-# [
-#    "plane_curves.md",
-# ]
-# after `add_prefix_to_experimental_docs` becomes
-# [
-#    "Experimental/PlaneCurve/plane_curves.md",
-# ]
-#
-# 2. cat experimental/FTheoryTools/docs/doc.main 
+# cat experimental/FTheoryTools/docs/doc.main 
 # [
 #    "F-Theory Tools" => [
 #       "introduction.md",
@@ -210,6 +201,56 @@ function doit(
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
+  
+  # postprocessing, for the search index
+  docspath = normpath(joinpath(Oscar.oscardir, "docs"))
+  @info "Patching search index."
+  # extract valid json from search_index.js
+  run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it
+  
+  # extract paths from doc
+  filelist=String[]
+  docmain = doc
+  while !isempty(docmain)
+    n = pop!(docmain)
+    if n isa Pair
+      push!(docmain, last(n))
+    elseif n isa String
+      push!(filelist, n)
+    elseif n isa Array{String}
+      append!(filelist,n)
+    elseif n isa Array
+      append!(docmain,n)
+    else
+      error("err: $(typeof(n))")
+    end
+  end
+  suffix = local_build ? ".html" : "/"
+  filelist = replace.(filelist, r"\.md$"=>suffix)
+
+  # read these files
+  iosearchindex = open(joinpath(docspath, "build", "search_index.json"), "r")
+  searchindex = JSON.parse(iosearchindex)
+  close(iosearchindex)
+  
+  newsearchindex = []
+  
+  for item in searchindex
+    if split(item["location"], "#")[1] in filelist
+      push!(newsearchindex, item)
+    end
+  end
+  
+  
+  # combine this to valid javascript again, and overwrite input
+  ionewsearchindex = open(joinpath(docspath, "build", "search_index.js"), "w")
+  write(ionewsearchindex, """var documenterSearchIndex = {"docs":\n""")
+  JSON.print(ionewsearchindex, newsearchindex)
+  write(ionewsearchindex, "\n}")
+  close(ionewsearchindex)
+
+  # clean up
+  rm(joinpath(docspath, "build", "search_index.json"))
 end
 
 end # module BuildDoc

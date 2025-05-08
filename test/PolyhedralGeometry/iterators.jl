@@ -41,4 +41,9 @@
     soi2 = SubObjectIterator{PointVector{QQFieldElem}}(c, _testSOI, 4)
     @test_throws ArgumentError point_matrix(soi2)
   end
+  @testset "RayVector" begin
+    rv = ray_vector([1,0,0])
+    F = facets(cube(3))
+    @test_throws ArgumentError rv in F[1]
+  end
 end

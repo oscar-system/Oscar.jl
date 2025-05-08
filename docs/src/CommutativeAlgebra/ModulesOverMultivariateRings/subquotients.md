@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -80,7 +81,7 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -96,13 +97,13 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> base_ring(M)
 Multivariate polynomial ring in 3 variables x, y, z
@@ -134,12 +135,12 @@ julia> relations(M)
  z^4*e[1]
 
 julia> ambient_module(M)
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 ```
 
 In the graded case, we also have:
@@ -175,7 +176,7 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -191,13 +192,13 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> m = M(sparse_row(R, [(1,z),(2,one(R))]))
 (x*z + y)*e[1]
@@ -231,7 +232,7 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -247,25 +248,25 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
 julia> parent(m)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> coordinates(m)
 Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
@@ -353,6 +354,27 @@ sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 ```@docs
 intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
+
+```@docs
+annihilator(N::SubquoModule{T}) where T
+```
+
+```@docs
+quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```
+
+```@docs
+quotient(M::SubquoModule, J::Ideal)
+```
+
+```@docs
+saturation(M:: SubquoModule, J::Ideal)
+```
+
+```@docs
+saturation_with_index(M:: SubquoModule, J::Ideal)
+```
+
 
 ## Submodules and Quotients
 

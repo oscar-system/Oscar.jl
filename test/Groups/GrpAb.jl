@@ -29,7 +29,7 @@ end
     G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
-    primes = [p for (p, e) in collect(factor(order(G1)))]
+    primes = [p for (p, e) in factor(order(G1))]
 
     # elements
     @test [order(iso(x)) for x in gens(G1)] == [order(x) for x in gens(G1)]

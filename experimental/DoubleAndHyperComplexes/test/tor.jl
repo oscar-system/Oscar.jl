@@ -1,5 +1,5 @@
 @testset "tor for modules over localizations at prime ideals" begin
-  R, (x0, x1, x2, x3) = polynomial_ring(QQ, ["x0", "x1", "x2", "x3"])
+  R, (x0, x1, x2, x3) = polynomial_ring(QQ, [:x0, :x1, :x2, :x3])
   p = ideal(R, [x0-x1,x2,x3])
   Rp, _ = localization(R, complement_of_prime_ideal(p))
   I = ideal(Rp, [x0-x1,x2-x3])
@@ -12,7 +12,7 @@
   H0, _ = tor(M1, M2, 0)
   @test length(H0) == 3
 
-  R, (x_0, x_1, x_2, x_3) = polynomial_ring(QQ, ["x0", "x1", "x2", "x3"]);
+  R, (x_0, x_1, x_2, x_3) = polynomial_ring(QQ, [:x0, :x1, :x2, :x3]);
   p = ideal(R, [x_0-x_1,x_2,x_3]);
   Rp, _ = localization(R, complement_of_prime_ideal(p););
   I = ideal(Rp, [x_0-x_1,x_2-x_3]);

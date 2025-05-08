@@ -88,7 +88,7 @@ for analysis of the denominator and the infinite valuations
 function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   f = defining_polynomial(F)
   @assert is_monic(f)
-  Zxy, (x, y) = polynomial_ring(FlintZZ, 2, cached = false)
+  Zxy, (x, y) = polynomial_ring(ZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
   df = f*d
@@ -101,7 +101,7 @@ function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   for i=0:degree(f)
     c = coeff(df, i)
     if !iszero(c)
-      ff += map_coefficients(FlintZZ, numerator(c))(y)*x^i
+      ff += map_coefficients(ZZ, numerator(c))(y)*x^i
     end
   end
   _subfields(F, ff, tStart = tStart)
@@ -190,7 +190,7 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
     _rC = map(x->mG(mF(x)), rC)
     _rS = map(x->mp(mH(x)), rS)
     @assert Set(_rC) == Set(_rS)
-    prm = [findfirst(x->x == y, _rS) for y = _rC]
+    prm = [findfirst(==(y), _rS) for y in _rC]
     pr = symmetric_group(length(prm))(prm)
 
     # need to verify the starting group
@@ -283,7 +283,7 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
                         #      (might be pointless: if U descents, then
                         #      all conjugates also do, hence this is automatic)
                         #      (it might save a cheap evaluation)
-      descent(C, C.G, F, one(C.G), grp_id = x->order(x))
+      descent(C, C.G, F, one(C.G), grp_id=order)
       return C.G, C, fixed_field(S, C.G^pr)
     end
     return C.G, C
@@ -298,7 +298,7 @@ function to_uni(f::MPolyRingElem, trans::Int = 1)
   @assert nvars(parent(f)) == 2
   k = base_ring(f)
   Qs, s = rational_function_field(k, "s", cached = false)
-  Qst, t = polynomial_ring(Qs, "t", cached = false)
+  Qst, t = polynomial_ring(Qs, :t, cached = false)
   if trans == 1
     ev = [Qst(s), t]
   else
@@ -380,7 +380,7 @@ function Hecke.subfields(FF::Generic.FunctionField{QQFieldElem})
     while true
       b = map(map_coefficients(Fq, A), r)
       bs = Hecke.MPolyFact.block_system(b)
-      if length(bs) == degree(k) && all(x->length(x) == length(bs[1]), bs)
+      if length(bs) == degree(k) && allequal(length, bs)
         break
       end
       @vprint :Subfields 2 "need tschirni\n"
@@ -582,7 +582,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
     ff = (ff*derivative(fff)) % fff
     # step 3: lift (and put the denominator back in)
     em = map(x->isinteger(C, B_emb, x), coefficients(ff))
-    if any(x->!x[1], em)
+    if any(!first, em)
       return nothing
     end
     emb = parent(defining_polynomial(FF))([x[2](gen(base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
@@ -667,10 +667,6 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
-end
-
-function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
-  return divexact(numerator(a)(b), denominator(a)(b))
 end
 
 function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{QQFieldElem}})

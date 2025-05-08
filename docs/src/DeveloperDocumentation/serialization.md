@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # [Serialization](@id dev_serialization)
 This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
@@ -109,20 +115,32 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_object`, `load_object`
-3. `save_type_params`, `load_type_params`
+2. `save_type_params`, `load_type_params`
+3. `save_object`, `load_object`
+
 
 #### `save_type_object` / `load_type_object`
 
-For the most part these functions should not be touched, they are high level
+These functions should not be touched, they are high level
 functions and are used to (de)serialize the object with its
 type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
-The usage of these functions can be used inside `save_object` / `load_object`
-and `save_type_params` / `load_type_params`. However using `save_typed_object` inside
-a `save_object` implementation will lead to a verbose format and should at some
-point be moved to `save_type_params`. Their implemention can be found in the
-`main.jl` file.
+
+
+#### `save_type_params` / `load_type_params`
+
+The serialization mechanism stores data in the format of a tree, with the
+exception that some nodes may point to a shared reference. The "data branch"
+is anything that is a child node of a data node, whereas the "type branch" is
+any information that is stored in a node that is a child of a type node.
+
+These functions should also not be touched, however they expect an implementation
+of `type_params` whenever saving a type `T`. By default `type_params` will return
+`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+`T` gathering the necessary parameters for serializing `obj`.
+In most cases these parameters are the parameters of the `obj` that uses references.
+For example if `obj` is of type `RingElem` than it is expected that `type_params`
+should contain at least 
 
 #### `save_object` / `load_object`
 
@@ -265,24 +283,6 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
-#### `save_type_params` / `load_type_params`
-
-The serialization mechanism stores data in the format of a tree, with the
-exception that some nodes may point to a shared reference. The "data branch"
-is anything that is a child node of a data node, whereas the "type branch" is
-any information that is stored in a node that is a child of a type node.
-Avoiding type information inside the data branch will lead to a more
-efficient serialization format. When the `uses_params` is set when
-registering the type with [`@register_serialization_type`](@ref)
-(de)serialization will use `save_type_params` / `load_type_params`
-to format the type information.
-In general we expect that implementing a `save_type_params` and
-`load_type_params` should not always be necessary. Many types
-will serialize their types in a similar fashion for example serialization
-of a `FieldElem` will use the `save_type_params` / `load_type_params` from
-`RingElem` since in both cases the only parameter needed for such types
-is their parent.
-
 ### Import helper
 
 When implementing the serialization of a new type in a module that is not
@@ -297,7 +297,7 @@ Oscar.@import_all_serialization_functions
 
 The code for the different types of serializers and their states is found in the
 `serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writting to a file. Currently
+default serializer `JSONSerializer` is used for writing to a file. Currently
 the only other serializer is the `IPCSerializer` which at the moment is
 quite similar to the `JSONSerializer` except that it does not store the refs of
 any types that are registered with the `uses_id` flag. When using the `IPCSerializer`

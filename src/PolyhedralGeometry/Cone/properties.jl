@@ -379,7 +379,7 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 Facet degrees of the cone. The degree of a facet is the number of adjacent facets. 
 In particular a general $2$-dimensional cone has two facets (rays) that meet at the origin. 
 
-# Example
+# Examples
 Produce the facet degrees of a cone over a square and a cone over a square pyramid. 
 ```jldoctest
 julia> c = positive_hull([1 1 0; 1 -1 0; 1 0 1; 1 0 -1])
@@ -534,7 +534,8 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspace`,
+* `Halfspace` (or its subtype `LinearHalfspace`),
+* `Hyperplane` (or its subtype `LinearHyperplane1),
 * `Cone`.
 
 # Examples
@@ -543,19 +544,25 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 Polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_3 <= 0
 -x_1 + x_3 <= 0
 -x_2 + x_3 <= 0
 ```
 """
-facets(as::Type{<:Union{LinearHalfspace{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types} =
+facets(
+  as::Type{<:Union{LinearHalfspace{T},LinearHyperplane{T},Cone{T}}}, C::Cone{T}
+) where {T<:scalar_types} =
   SubObjectIterator{as}(C, _facet_cone, n_facets(C))
 
 _facet_cone(
   U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer
 ) where {T<:scalar_types} =
   linear_halfspace(coefficient_field(C), -pm_object(C).FACETS[[i], :])::U
+_facet_cone(
+  U::Type{LinearHyperplane{T}}, C::Cone{T}, i::Base.Integer
+) where {T<:scalar_types} =
+  linear_hyperplane(coefficient_field(C), -pm_object(C).FACETS[[i], :])::U
 
 _facet_cone(::Type{Cone{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   Cone{T}(Polymake.polytope.facet(pm_object(C), i - 1), coefficient_field(C))
@@ -572,6 +579,8 @@ facets(C::Cone{T}) where {T<:scalar_types} = facets(LinearHalfspace{T}, C)
 
 facets(::Type{<:Halfspace}, C::Cone{T}) where {T<:scalar_types} =
   facets(LinearHalfspace{T}, C)
+facets(::Type{<:Hyperplane}, C::Cone{T}) where {T<:scalar_types} =
+  facets(LinearHyperplane{T}, C)
 
 facets(::Type{Cone}, C::Cone{T}) where {T<:scalar_types} = facets(Cone{T}, C)
 
@@ -616,7 +625,7 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = positive_hull([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
+1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the hyperplanes of R^3 described by:
 x_3 = 0
 ```
 """

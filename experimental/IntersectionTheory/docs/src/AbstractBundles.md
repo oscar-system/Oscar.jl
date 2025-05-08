@@ -1,8 +1,14 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Bundles
+
+## Types
+
+The OSCAR type for abstract vector bundles is `AbstractBundle`.
 
 ## Constructors
 
@@ -17,11 +23,11 @@ parent(F::AbstractBundle)
 ```
 
 ```@docs
-rank(F::AbstractBundle)
+chern_character(F::AbstractBundle)
 ```
 
 ```@docs
-chern_character(F::AbstractBundle)
+rank(F::AbstractBundle)
 ```
 
 ```@docs
@@ -39,7 +45,7 @@ top_chern_class(F::AbstractBundle)
 ```
 
 ```@docs
-segre_class(F::AbstractBundle)
+total_segre_class(F::AbstractBundle)
 ```
 
 ```@docs
@@ -66,7 +72,6 @@ euler_characteristic(F::AbstractBundle)
 hilbert_polynomial(F::AbstractBundle)
 ```
 
-
 ## Operations on Abstract Bundles
 
 ```@docs
@@ -87,4 +92,18 @@ exterior_power(F::AbstractBundle, k::Int)
 
 ```@docs
 symmetric_power(F::AbstractBundle, k::Int)
+```
+
+```@docs
+pullback(f::AbstractVarietyMap, F::AbstractBundle)
+```
+
+```@docs
+pushforward(f::AbstractVarietyMap, F::AbstractBundle)
+```
+
+## Tests on Abstract Bundles
+
+```@docs
+==(F::AbstractBundle, G::AbstractBundle)
 ```

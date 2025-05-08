@@ -57,13 +57,11 @@ in the sense that the maximal extension of its restriction
 to ``U`` returns ``a``.
 """
 function generic_fraction(a::MPolyLocRingElem, U::PrincipalOpenSubset)
-  X = ambient_scheme(U)
   parent(a) == OO(U) || error("domains are not compatible")
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
 function generic_fraction(a::MPolyQuoLocRingElem, U::PrincipalOpenSubset)
-  X = ambient_scheme(U)
   parent(a) == OO(U) || error("domains are not compatible")
   return lifted_numerator(a)//lifted_denominator(a)
 end
@@ -79,6 +77,7 @@ function base_change(phi::Any, U::PrincipalOpenSubset;
   pbf = pullback(ambient_map)
   h = pbf(complement_equation(U))
   UU = PrincipalOpenSubset(Y, h)
+  @assert _has_coefficient_map(pullback(ambient_map))
   res_map = restrict(ambient_map, UU, U, check=false)
   #@assert _has_coefficient_map(pullback(res_map))
   return UU, res_map

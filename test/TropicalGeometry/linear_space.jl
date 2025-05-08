@@ -15,7 +15,7 @@
     end
 
     @testset "tropical linear space attributes" begin
-        R,(w,x,y,z) = QQ["w","x","y","z"]
+        R,(w,x,y,z) = GF(2)[:w, :x, :y, :z]
         I = ideal([w+x+y+z])
         TropL = tropical_linear_space(I)
         @test has_attribute(TropL, :tropical_pluecker_vector)
@@ -30,6 +30,12 @@
         plueckerVector = tropical_pluecker_vector(TropL)
         delete!(TropL.__attrs, :tropical_pluecker_vector)
         @test issetequal(plueckerVector,tropical_pluecker_vector(TropL))
+    end
+
+    @testset "tropical linear space from graphs" begin
+        G = complete_graph(3)
+        TropG = tropical_linear_space(G)
+        @test f_vector(TropG) == [0,1,3]
     end
 
 end

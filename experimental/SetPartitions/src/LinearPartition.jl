@@ -28,7 +28,7 @@ Construct a linear partition over `ring` with coefficients `coeffs`.
 
 # Examples
 ```jldoctest
-julia> S, d = polynomial_ring(QQ, "d") 
+julia> S, d = polynomial_ring(QQ, :d) 
 (Univariate polynomial ring in d over QQ, d)
 
 julia> linear_partition(S, Dict(set_partition([1, 2], [1, 1]) => 4, set_partition([1, 1], [1, 1]) => 4*d))
@@ -51,7 +51,7 @@ the `LinearPartition` object with the corresponding dict.
 
 # Examples
 ```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
+julia> S, d = polynomial_ring(QQ, :d)
 (Univariate polynomial ring in d over QQ, d)
 
 julia> linear_partition(S, [(set_partition([1, 1], [1, 1]), 4), (set_partition([1, 1], [1, 1]), 4*d)])
@@ -139,7 +139,7 @@ composition.
 
 # Examples
 ```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
+julia> S, d = polynomial_ring(QQ, :d)
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition(S, [(set_partition([1, 2], [1, 1]), 4), (set_partition([1, 1], [1, 1]), 4*d)])
@@ -171,7 +171,7 @@ Return the tensor product of `p` and `q`.
 
 # Examples
 ```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
+julia> S, d = polynomial_ring(QQ, :d)
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition(S, [(set_partition([1, 2], [1, 1]), 4), (set_partition([1, 1], [1, 1]), 4*d)])

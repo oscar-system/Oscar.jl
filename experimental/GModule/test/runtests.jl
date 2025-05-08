@@ -38,7 +38,7 @@ end
   @test length(z) == 5
 
   z = irreducible_modules(ZZ, G)
-  @test length(z) == 5
+  @test length(z) == 3
 
   l = irreducible_modules(AbsSimpleNumField, small_group(48, 17), minimal_degree = true)
   ds = degree.(base_ring.(l))
@@ -130,7 +130,7 @@ end
   H2 = Oscar.GrpCoh.cohomology_group(M, 2)
   x = collect(H2[1])[1]
   c = H2[2](x)
-  e = extension(c)
+  e = extension(FPGroup, c)
   GG = e[1]
   @test order(GG) == 216
   @test GG isa FPGroup
@@ -189,7 +189,7 @@ end
   X = cyclic_group(4)
   M, _ = sub(X, [X[1]^2])
   C, c = extension_with_abelian_kernel(X, M)
-  @test is_isomorphic(extension(c)[1], X)
+  @test is_isomorphic(extension(FPGroup, c)[1], X)
 end
 
 @testset "Experimental Schur" begin
@@ -203,12 +203,12 @@ end
   M = trivial_gmodule(G, Z2)
   h, mh = cohomology_group(M, 2)
   @test Set(is_stem_extension(Oscar.GrpExt(mh(x))) for x = h) == Set([0,1]) 
-  @test Set(is_stem_extension(extension(mh(x))[2]) for x = h) == Set([0,1]) 
+  @test Set(is_stem_extension(extension(mh(x))) for x = h) == Set([0,1])
 
 
 end
 @testset "Experimental LocalH2" begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   k, a = number_field(x^6+108, cached = false)
 
   G, mG = automorphism_group(k)
@@ -220,8 +220,8 @@ end
 
   l2 = prime_decomposition(maximal_order(k), 2)
   k2, _ = Hecke.completion(k, l2[1][1], 120)
-  z = Hecke.local_fundamental_class_serre(k2, prime_field(k2))
-  C, mG, mU = Oscar.GrpCoh.gmodule(k2, prime_field(k2))
+  z = Hecke.local_fundamental_class_serre(k2, absolute_base_field(k2))
+  C, mG, mU = Oscar.GrpCoh.gmodule(k2, absolute_base_field(k2))
   G = domain(mG)
 
   pe = gen(k2)

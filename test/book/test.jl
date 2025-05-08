@@ -32,7 +32,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             #"specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+
+             # not a proper julia input file
+             "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
+             "specialized/fang-fourier-monomial-bases/gap.jlcon",
             ]
 
   dispsize = (40, 130)
@@ -49,7 +52,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       result = strip(result)
       result = replace(result, r"julia>$"s => "")
       # canonicalize numbered anonymous functions
-      result = replace(result, r"^\s*(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
+      result = replace(result, r"^\s*(?:#[a-z_]+#)?(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
       # remove timings
       result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
       # this removes the package version slug, filename and linenumber
@@ -120,7 +123,8 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       sym = Symbol("__", lstrip(string(gensym()), '#'))
       mockdule = Module(sym)
       # make it accessible from Main
-      setproperty!(Main, sym, mockdule)
+      @eval Main global $sym::Module
+      invokelatest(setproperty!, Main, sym, mockdule)
       Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
       Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
 
@@ -165,7 +169,18 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     if jlcon_mode
       input_string = "\e[200~$s\e[201~"
     end
+    haderror = false
     REPL.activate(mockrepl.mockdule)
+    # this allows us to detect errors in the middle of non-jlcon files
+    if !jlcon_mode
+      od = Base.active_repl.interface.modes[1].on_done
+      Base.active_repl.interface.modes[1].on_done = function (x...)
+                if Base.active_repl.waserror
+                  haderror = true
+                end
+                od(x...)
+              end
+    end
     result = redirect_stdout(mockrepl.out_stream) do
       input_task = @async begin
         write(mockrepl.stdin_write, input_string)
@@ -174,14 +189,23 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       wait(input_task)
       readuntil(mockrepl.output.out, "\nEND_BLOCK")
     end
+    if !jlcon_mode
+      # restore on-done
+      Base.active_repl.interface.modes[1].on_done=od
+    end
     REPL.activate(Main)
-    return sanitize_output(result)
+    output = sanitize_output(result)
+    if !jlcon_mode && haderror
+      error("ERROR in jl-mode:\n", output)
+    end
+    return output
   end
 
   function test_chapter(chapter::String="")
     # add overlay project for plots
     custom_load_path = []
     old_load_path = []
+    oldrepl = isdefined(Base, :active_repl) ? Base.active_repl : nothing
     copy!(custom_load_path, LOAD_PATH)
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
@@ -211,7 +235,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             println("  created mockrepl: $(mockrepl.mockdule)")
 
             # clear verbosity levels before each chapter
-            empty!(Hecke.VERBOSE_LOOKUP)
+            empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
             auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
@@ -268,7 +292,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       end
     finally
       # restore some state
-      Main.REPL.activate(Main)
+      isnothing(oldrepl) || Main.REPL.activate(Main)
       Pkg.activate("$act_proj"; io=devnull)
       cd(curdir)
       copy!(LOAD_PATH, old_load_path)

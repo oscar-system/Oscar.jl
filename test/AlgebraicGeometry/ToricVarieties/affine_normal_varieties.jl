@@ -5,7 +5,7 @@
   antv3 = affine_normal_toric_variety(antv2)
   antv4 = affine_normal_toric_variety(Oscar.positive_hull([1 0]))
   antv5 = affine_space(NormalToricVariety, 2)
-  antv6 = normal_toric_variety(IncidenceMatrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
+  antv6 = normal_toric_variety(incidence_matrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
   
   @testset "Basic properties" begin
     @test is_smooth(antv) == false

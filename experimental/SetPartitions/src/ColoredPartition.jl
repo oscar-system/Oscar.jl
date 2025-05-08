@@ -13,9 +13,9 @@ struct ColoredPartition <: AbstractPartition
                               color_upper_points::Vector{Int},
                               color_lower_points::Vector{Int})
 
-        @req all(x -> x in (0, 1), color_upper_points) "upper coloring has to be binary in {0, 1}"
+        @req all(in((0, 1)), color_upper_points) "upper coloring has to be binary in {0, 1}"
         @req number_of_upper_points(partition) == length(color_upper_points) "upper coloring format does not match upper points format"
-        @req all(x -> x in (0, 1), color_lower_points) "lower coloring has to be binary in {0, 1}"
+        @req all(in((0, 1)), color_lower_points) "lower coloring has to be binary in {0, 1}"
         @req number_of_lower_points(partition) == length(color_lower_points) "lower coloring format does not match and lower points format"
 
         return new(partition, color_upper_points, color_lower_points)
@@ -250,6 +250,7 @@ julia> compose_count_loops(colored_partition([1, 1], [2], [1, 1], [0]), colored_
 
 julia> compose_count_loops(colored_partition([1], [1, 2], [0], [1, 0]), colored_partition([1], [2, 2], [0], [0, 1]))
 ERROR: ArgumentError: upper and lower colors are different
+[...]
 ```
 """
 function compose_count_loops(p::ColoredPartition, q::ColoredPartition)

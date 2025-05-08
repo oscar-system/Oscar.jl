@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -70,7 +71,7 @@ Given a PBW-algebra `A` over a field `K`,
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -110,7 +111,7 @@ from the generators of `A` using basic arithmetic as shown below:
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -134,7 +135,7 @@ the elements of `cs` as coefficients, and the elements of `es` as exponents.
 ###### Examples
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
@@ -156,7 +157,7 @@ true
 An often more effective way to create elements is to use the corresponding build context as indicated below:
 
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 

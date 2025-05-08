@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -66,4 +68,5 @@ volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
 chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
 chern_classes(v::NormalToricVariety; check::Bool = true)
+basis_of_h4(v::NormalToricVariety; check::Bool = true)
 ```

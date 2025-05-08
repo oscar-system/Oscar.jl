@@ -1,4 +1,5 @@
 include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
+include(joinpath(Oscar.oscardir, "test", "Serialization", "upgrades", "setup_tests.jl"))
 
 if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
@@ -16,19 +17,20 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
       @test L isa parentT
       @test x isa elemT
 
-      @test parent_type(elemT) == parentT
-      @test elem_type(parentT) == elemT
+      @test (@inferred parent_type(elemT)) == parentT
+      @test (@inferred elem_type(parentT)) == elemT
 
-      @test parent(x) === L
+      @test (@inferred parent(x)) === L
 
-      @test coefficient_ring(x) === coefficient_ring(L)
-      @test elem_type(coefficient_ring(L)) == C
+      @test (@inferred coefficient_ring(x)) === (@inferred coefficient_ring(L))
+      @test (@inferred elem_type(coefficient_ring(L))) == C
 
-      @test characteristic(L) == characteristic(coefficient_ring(L))
+      @test (@inferred characteristic(L)) == characteristic(coefficient_ring(L))
 
       # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
-      @test dim(L) == ngens(L)
-      @test basis(L) == gens(L)
+      @test (@inferred dim(L)) == (@inferred ngens(L))
+      @test (@inferred basis(L)) == (@inferred gens(L))
+      dim(L) >= 1 && @test (@inferred basis(L, 1)) == (@inferred gen(L, 1))
       @test all(i -> basis(L, i) == gen(L, i), 1:dim(L))
 
       @test dim(L) == length(basis(L))
@@ -36,9 +38,10 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
       @test dim(L) == length(symbols(L))
 
-      @test iszero(zero(L))
+      z = @inferred zero(L)
+      @test @inferred iszero(z)
 
-      @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
+      @test (@inferred coefficients(x)) == [@inferred coeff(x, i) for i in 1:dim(L)]
       @test all(i -> coeff(x, i) == x[i], 1:dim(L))
       @test sum(x[i] * basis(L, i) for i in 1:dim(L); init=zero(L)) == x
 
@@ -52,11 +55,11 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(L))
-        x1 = L(coeffs)
-        x2 = L(coefficient_ring(L).(coeffs))
-        x3 = L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
-        x4 = L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
-        x5 = L(x1)
+        x1 = @inferred L(coeffs)
+        x2 = @inferred L(coefficient_ring(L).(coeffs))
+        x3 = @inferred L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
+        x4 = @inferred L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
+        x5 = @inferred L(x1)
         @test x1 == x2
         @test x1 == x3
         @test x1 == x4
@@ -111,8 +114,10 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
     @testset "Root systems" begin
       if !(L isa DirectSumLieAlgebra) # TODO: make root_system work for DirectSumLieAlgebra
+        root_system_succeeded = false
         try
           root_system(L)
+          root_system_succeeded = true
         catch e
           e isa ArgumentError || rethrow()
           @test any(
@@ -120,17 +125,82 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
             ["Killing form is degenerate", "Cartan subalgebra is not split"],
           )
         end
-        if has_root_system(L)
+        if root_system_succeeded
+          @test has_root_system(L)
           rs = root_system(L)
           @test rs isa RootSystem
-          @test dim(L) == n_roots(rs) + n_simple_roots(rs)
           chev = @inferred chevalley_basis(L)
           @test length(chev) == 3
-          @test length(chev[1]) == length(chev[2])
-          @test dim(L) == sum(length, chev; init=0)
+          es, fs, hs = chev
+          @test length(es) == length(fs) == n_positive_roots(rs)
+          @test length(hs) == rank(rs)
+
+          # Cartan subalgebra matches third Chevalles basis part
           H = cartan_subalgebra(L)
-          @test all(h -> h in H, chev[3])
-          @test all(xs -> bracket(xs...) in H, zip(chev[1], chev[2]))
+          @test all(in(H), hs)
+
+          # Chevalley basis is a basis
+          @test length(es) + length(fs) + length(hs) == dim(L)
+          base_change_mat = matrix(
+            coefficient_ring(L),
+            permutedims(
+              reduce(
+                hcat,
+                [coefficients.(es); coefficients.(fs); coefficients.(hs)];
+                init=zeros(coefficient_ring(L), dim(L), 0),
+              ),
+            ),
+          )
+          @test is_invertible(base_change_mat)
+
+          # Chevalley basis properties (see [Hum72; Thm. 25.2])
+          # a) [h_i, h_j] = 0, for 1 <= i,j <= rank(L)
+          for hi in hs, hj in hs
+            @test is_zero(hi * hj)
+          end
+          # b) [h_i, x_a] = <a,a_i> x_a, for 1 <= i <= rank(L), a some root
+          for (alpha_i, hi) in zip(simple_roots(rs), hs),
+            (alpha, x_alpha) in zip(roots(rs), [es; fs])
+
+            @test hi * x_alpha ==
+              Int(2 * dot(alpha, alpha_i)//dot(alpha_i, alpha_i)) * x_alpha
+          end
+          # c) [x_a, x_-a] = h_a is a ZZ-linear combination of hs
+          # We test something stronger here, namely that the ZZ-coefficients of h_a in the hs
+          # are given by the coefficients of a^v in the simple coroots (and thus in particular integral)
+          for (alpha_v, e_alpha, f_alpha) in zip(positive_coroots(rs), es, fs)
+            @test e_alpha * f_alpha ==
+              sum(Int(c) * h for (c, h) in zip(coefficients(alpha_v), hs); init=zero(L))
+          end
+          # d) If a,b are independent roots, b-ra,...,b+qa the a-string through b,
+          #    then [x_a, x_b] = 0 if q = 0, while [x_a, x_b] = +- (r+1)x_{a+b} if a+b is a root
+          for (alpha, x_alpha) in zip(roots(rs), [es; fs]),
+            (beta, x_beta) in zip(roots(rs), [es; fs])
+
+            alpha == beta && continue
+            alpha == -beta && continue
+            r = 0
+            while is_root(beta - (r + 1) * alpha)
+              r += 1
+            end
+            q = 0
+            while is_root(beta + (q + 1) * alpha)
+              q += 1
+            end
+            if q == 0
+              @test is_zero(x_alpha * x_beta)
+            else # q >= 1
+              alpha_plus_beta = alpha + beta
+              if ((fl, k) = is_positive_root_with_index(alpha_plus_beta); fl)
+                rhs = (r + 1) * es[k]
+              else
+                fl, k = is_negative_root_with_index(alpha_plus_beta)
+                @assert fl # alpha_plus_beta is some root as q >= 1
+                rhs = (r + 1) * fs[k]
+              end
+              @test x_alpha * x_beta in (rhs, -rhs)
+            end
+          end
         end
       end
     end
@@ -190,8 +260,8 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
   function lie_algebra_module_conformance_test(
     L::LieAlgebra{C},
     V::LieAlgebraModule{C},
-    parentT::DataType=LieAlgebraModule{C},
-    elemT::DataType=LieAlgebraModuleElem{C};
+    parentT::DataType=LieAlgebraModule{C,elem_type(L)},
+    elemT::DataType=LieAlgebraModuleElem{C,elem_type(L)};
     num_random_tests::Int=10,
   ) where {C<:FieldElem}
     @testset "basic manipulation" begin
@@ -202,27 +272,29 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
       @test V isa parentT
       @test v isa elemT
 
-      @test parent_type(elemT) == parentT
-      @test elem_type(parentT) == elemT
+      @test (@inferred parent_type(elemT)) == parentT
+      @test (@inferred elem_type(parentT)) == elemT
 
-      @test parent(v) === V
+      @test (@inferred parent(v)) === V
 
-      @test coefficient_ring(v) === coefficient_ring(V)
-      @test elem_type(coefficient_ring(V)) == C
+      @test (@inferred coefficient_ring(v)) === (@inferred coefficient_ring(V))
+      @test (@inferred elem_type(coefficient_ring(V))) == C
 
-      @test base_lie_algebra(V) === L
+      @test (@inferred base_lie_algebra(V)) === L
 
       # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebra modules
-      @test dim(V) == ngens(V)
-      @test basis(V) == gens(V)
+      @test (@inferred dim(V)) == (@inferred ngens(V))
+      @test (@inferred basis(V)) == (@inferred gens(V))
+      dim(V) >= 1 && @test (@inferred basis(V, 1)) == (@inferred gen(V, 1))
       @test all(i -> basis(V, i) == gen(V, i), 1:dim(V))
 
       @test dim(V) == length(basis(V))
       @test all(i -> basis(V, i) == basis(V)[i], 1:dim(V))
 
-      @test iszero(zero(V))
+      z = @inferred zero(V)
+      @test @inferred iszero(z)
 
-      @test coefficients(v) == [coeff(v, i) for i in 1:dim(V)]
+      @test (@inferred coefficients(v)) == [@inferred coeff(v, i) for i in 1:dim(V)]
       @test all(i -> coeff(v, i) == v[i], 1:dim(V))
       @test sum(v[i] * basis(V, i) for i in 1:dim(V); init=zero(V)) == v
 
@@ -236,11 +308,11 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(V))
-        v1 = V(coeffs)
-        v2 = V(coefficient_ring(V).(coeffs))
-        v3 = V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
-        v4 = V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
-        v5 = V(v1)
+        v1 = @inferred V(coeffs)
+        v2 = @inferred V(coefficient_ring(V).(coeffs))
+        v3 = @inferred V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
+        v4 = @inferred V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
+        v5 = @inferred V(v1)
         @test v1 == v2
         @test v1 == v3
         @test v1 == v4
@@ -298,15 +370,6 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
           test_save_load_roundtrip(
             path,
             V;
-            with_attrs=false,
-          ) do loaded
-            # nothing, cause `V === loaded` anyway
-          end
-
-          test_save_load_roundtrip(
-            path,
-            V;
-            with_attrs=true,
             check_func=loaded -> all((
               sprint(show, "text/plain", loaded) == sprint(show, "text/plain", V) ||
                 occursin(

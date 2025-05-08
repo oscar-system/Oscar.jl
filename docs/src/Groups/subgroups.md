@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -45,7 +46,7 @@ normal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
-derived_series
+derived_series(G::GAPGroup)
 sylow_system
 hall_system
 complement_system
@@ -53,7 +54,7 @@ chief_series
 composition_series
 jennings_series
 p_central_series
-lower_central_series
+lower_central_series(G::GAPGroup)
 upper_central_series
 ```
 
@@ -112,24 +113,31 @@ subgroup_classes(G::GAPGroup)
 
 ```@docs
 GroupCoset
+group(C::GroupCoset)
+acting_group(C::GroupCoset)
+representative(C::GroupCoset)
 right_coset(H::GAPGroup, g::GAPGroupElem)
 left_coset(H::GAPGroup, g::GAPGroupElem)
-is_right(c::GroupCoset)
-is_left(c::GroupCoset)
-is_bicoset(C::GroupCoset)
-acting_domain(C::GroupCoset)
-representative(C::GroupCoset)
+is_right(C::GroupCoset)
+is_left(C::GroupCoset)
 right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+is_bicoset(C::GroupCoset)
+```
+
+```@docs
 GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
-double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
+group(C::GroupDoubleCoset)
 left_acting_group(C::GroupDoubleCoset)
 right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)
+double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
+```
+
+```@docs
 order(C::Union{GroupCoset,GroupDoubleCoset})
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset})
-intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
 ```

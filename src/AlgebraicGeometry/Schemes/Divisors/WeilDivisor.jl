@@ -4,18 +4,11 @@ underlying_cycle(D::AbsWeilDivisor) = underlying_cycle(underlying_divisor(D))
 ### forwarding of all essential functionality
 underlying_cycle(D::WeilDivisor) = D.C
 
-@attr Any function dim(I::AbsIdealSheaf)
-  dims = [dim(I(U)) for U in affine_charts(scheme(I))]
-  return maximum(dims)
-end
-
 ### type getters 
-scheme_type(D::WeilDivisor{S, U, V}) where{S, U, V} = S
-scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = S
-coefficient_ring_type(D::WeilDivisor{S, U, V}) where{S, U, V} = U
-coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
-coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
-coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
+scheme_type(D::AbsWeilDivisor{S, U}) where{S, U} = S
+scheme_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = S
+coefficient_ring_type(D::AbsWeilDivisor{S, U}) where{S, U} = U
+coefficient_ring_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = U
 
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
@@ -29,7 +22,7 @@ function WeilDivisor(X::AbsCoveredScheme, R::Ring)
 end
 
 function zero(W::WeilDivisor)
-  return WeilDivisor(scheme(W), coefficient_ring(W))
+  return WeilDivisor(ambient_scheme(W), coefficient_ring(W))
 end
 
 # provide non-camelcase methods
@@ -59,8 +52,8 @@ weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 @doc raw"""
     WeilDivisor(I::AbsIdealSheaf)
 
-Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
-in ``ℤ`` for a sheaf of prime ideals ``I``.
+Return the `WeilDivisor` ``D = 1 ⋅ I`` with coefficients
+in ``ℤ`` for a sheaf of ideals ``I`` of pure codimension `1`.
 """
 function WeilDivisor(I::AbsIdealSheaf; check::Bool=true)
   WeilDivisor(I, ZZ, check=check)
@@ -69,16 +62,16 @@ end
 @doc raw"""
     weil_divisor(I::AbsIdealSheaf) -> WeilDivisor
 
-Given an ideal sheaf `I`, return the prime weil divisor $D = 1 ⋅ V(I)$ with
+Given an ideal sheaf `I` of pure codimension ``1``, return the weil divisor $D = 1 ⋅ I$ with
 coefficients in the integer ring.
 
-# Example
+# Examples
 ```jldoctest
 julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> I = ideal([x^3-y^2*z]);
-
 julia> Y = proj(P);
+
+julia> I = ideal([(x^3-y^2*z)]);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -88,6 +81,23 @@ Effective weil divisor
 with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
+  
+julia> JJ = II^2;
+
+julia> D = weil_divisor(JJ)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  1 * product of 2 ideal sheaves
+
+julia> irreducible_decomposition(D)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  2 * sheaf of prime ideals
+
 ```
 """
 weil_divisor(I::AbsIdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
@@ -96,10 +106,16 @@ function WeilDivisor(I::AbsIdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check is_equidimensional(I) "ideal sheaf must be equidimensional"
   @check dim(space(I)) - dim(I) == 1 "components of a divisor must be of codimension one"
-  D[I] = one(R)
+  setindex!(D, one(R), I; check)
   return D
 end
 
+@doc raw"""
+    weil_divisor(I::AbsIdealSheaf, R::Ring; check::Bool=true)
+    
+Given an ideal sheaf `I` of pure codimension ``1`` and a ring `R`, return the weil divisor $D = 1 ⋅ I$ with
+coefficients in `R`.
+"""
 weil_divisor(I::AbsIdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
 
 ### copy constructor
@@ -108,25 +124,25 @@ function copy(D::AbsWeilDivisor)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
+  return WeilDivisor(ambient_scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
 function irreducible_decomposition(D::AbsWeilDivisor)
-  decomp = irreducible_decomposition(underlying_cycle(D))
-  return WeilDivisor(decomp, check=false)
+  E = irreducible_decomposition(underlying_cycle(D))
+  return WeilDivisor(E; check=false)
 end
 
 # If we know something about the Weil divisor, we write it! Always good to have
 # relevant information for free
 function Base.show(io::IO, D::AbsWeilDivisor)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   if get(io, :show_semi_compact, false)
     cov = Oscar._covering_for_printing(io, X)
     _show_semi_compact(io, D, cov)
   else
     C = underlying_cycle(D)
-    eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
+    eff = all(i >= 0 for i in values(coefficient_dict(C)))
     prim = eff && get_attribute(D, :is_prime, false)
     if has_name(D)
       print(io, name(D))
@@ -156,9 +172,9 @@ end
 # everything consistently.
 function _show_semi_compact(io::IO, D::AbsWeilDivisor, cov::Covering)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   C = underlying_cycle(D)
-  eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
+  eff = all(i >= 0 for i in values(coefficient_dict(C)))
   prim = eff && get_attribute(D, :is_prime, false)
   if has_name(D)
     print(io, name(D))
@@ -180,10 +196,10 @@ end
 # on the right.
 function Base.show(io::IO, ::MIME"text/plain", D::AbsWeilDivisor)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   cov = Oscar._covering_for_printing(io, X)
   C = underlying_cycle(D)
-  eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
+  eff = all(i >= 0 for i in values(coefficient_dict(C)))
   prim = eff && get_attribute(D, :is_prime, false)
   if length(components(C)) == 0
     print(io, "Zero weil divisor")
@@ -293,34 +309,22 @@ function ==(D::WeilDivisor, E::WeilDivisor)
 end
 
 @doc raw"""
-    intersect(D::AbsWeilDivisor, E::AbsWeilDivisor)
+    intersect(D::AbsWeilDivisor, E::AbsWeilDivisor; covering::Covering=default_covering(ambient_scheme(D)))
 
-For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
-as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
+Return the intersection number of the the Weil divisors `D` and `E`
+on a complete smooth surface as defined in [Har77](@cite).
+
+# Input 
+The optional keyword argument `covering` specifies the covering to be used for the computation.
 """
 function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
-    covering::Covering=default_covering(scheme(D))
+    covering::Covering=default_covering(ambient_scheme(D))
   )
-  X = scheme(D)
-  @assert dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
-  X === scheme(E) || error("divisors do not live on the same scheme")
+  X = ambient_scheme(D)
+  @req dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
+  X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("divisors do not have the same coefficient ring")
-#  # prepare a copy of the divisors
-#  D_copy = WeilDivisor(X, R)
-#  E_copy = WeilDivisor(X, R)
-#  # check whether a common refinement of the covering is necessary
-#  CD = covering(D)
-#  CE = covering(E)
-#  if CD != CE
-#    CC, f, g = common_refinement(X, CD, CE)
-#    D_copy = pullback(f, D)
-#    E_copy = pullback(g, E)
-#  else
-#    D_copy = D
-#    E_copy = E
-#  end
-  # TODO: Work out the intersection
   result = zero(R)
   for c1 in components(D)
     a1 = D[c1]
@@ -332,7 +336,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
         I = c1 + c2
         if !has_dimension_leq_zero(I) # potentially faster for localized ideals
           if c1 == c2
-            result = result + a1*a2*_self_intersection(c1)
+            result = result + a1*a2* (has_attribute(c1, :_self_intersection) ? _self_intersection(c1) : _self_intersection(c2))
           else
             error("self intersection unknown")
           end
@@ -345,131 +349,21 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
   return result
 end
 
-@attr Any function has_dimension_leq_zero(I::Ideal)
-  is_one(I) && return true
-  return dim(I) <= 0
-end
 
-@attr Any function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
-  R = base_ring(I)
-  P = base_ring(R)::MPolyRing
-  J = ideal(P, numerator.(gens(I)))
-  has_dimension_leq_zero(J) && return true
-  is_one(I) && return true
-  return dim(I) <= 0
-end
-
-@attr Any function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
-  R = base_ring(I)
-  P = base_ring(R)::MPolyRing
-  J = ideal(P, lifted_numerator.(gens(I)))
-  has_dimension_leq_zero(J) && return true
-  is_one(I) && return true
-  return dim(I) <= 0
+function pushforward(inc::CoveredClosedEmbedding, W::AbsWeilDivisor)
+  X = domain(inc)
+  Y = codomain(inc)
+  X === ambient_scheme(W) || error("divisor not defined on the domain")
+  kk = coefficient_ring(W)
+  ideal_dict = IdDict{AbsIdealSheaf, elem_type(kk)}()
+  for I in components(W)
+    pfI = pushforward(inc)(I)
+    ideal_dict[pfI] = W[I]
+  end
+  return WeilDivisor(Y, kk, ideal_dict, check=false)
 end
 
 
-function has_dimension_leq_zero(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  for U in keys(object_cache(I))
-    has_dimension_leq_zero(I(U)) || return false
-  end
-
-  all_patches = patches(covering)
-  for U in all_patches
-    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-      has_dimension_leq_zero(I(U)) || return false
-    end
-  end
-  return true
-end
-
-function has_dimension_leq_zero(I::SumIdealSheaf; 
-    covering::Covering=default_covering(scheme(I)),
-    use_decomposition_info::Bool=true
-  )
-  J = summands(I)
-
-# k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
-# if k !== nothing 
-#   P = J[k]
-#   U = original_chart(P)
-#   if has_decomposition_info(covering) && use_decomposition_info
-#     K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-#     if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
-#       has_dimension_leq_zero(I(U) + K) || return false
-#     end
-#   else
-#     if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-#       has_dimension_leq_zero(I(U)) || return false
-#     end
-#   end
-# end
-
-  common_patches = keys(object_cache(first(J)))
-  for JJ in J[2:end]
-    common_patches = [U for U in common_patches if U in keys(object_cache(JJ))]
-  end
-
-  for U in common_patches
-    has_dimension_leq_zero(I(U)) || return false
-  end
-
-  all_patches = patches(covering)
-  for U in all_patches
-    patch_ok = false
-    # go through the object cache of the summands
-    if U in keys(object_cache(I))
-      i = I(U)
-      if has_decomposition_info(covering) && use_decomposition_info
-        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-        has_dimension_leq_zero(K + i) && (patch_ok = true)
-      else
-        has_dimension_leq_zero(i) && (patch_ok = true)
-      end
-      patch_ok && continue
-    end
-
-    # Do the same for the summands
-    for j in summands(I)
-      if U in keys(object_cache(j))
-        j_loc = j(U)
-        if has_decomposition_info(covering) && use_decomposition_info
-          K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-          has_dimension_leq_zero(K + j_loc) && (patch_ok = true)
-        else
-          has_dimension_leq_zero(j_loc) && (patch_ok = true)
-        end
-        patch_ok && break
-      end
-    end
-    patch_ok && continue
-
-    # repeat with cheap sub-ideals
-    for j in summands(I)
-      j_cheap = cheap_sub_ideal(j, U)
-      if has_decomposition_info(covering) && use_decomposition_info
-        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-        has_dimension_leq_zero(K + j_cheap) && (patch_ok = true)
-      else
-        has_dimension_leq_zero(j_cheap) && (patch_ok = true)
-      end
-      patch_ok && break
-    end
-    patch_ok && continue
-
-    if has_decomposition_info(covering) && use_decomposition_info
-      K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-      if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
-        has_dimension_leq_zero(I(U) + K) || return false
-      end
-    else
-      if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-        has_dimension_leq_zero(I(U)) || return false
-      end
-    end
-  end
-  return true
-end
 
 """
     _self_intersection(I::AbsIdealSheaf) -> Integer
@@ -482,7 +376,7 @@ function _self_intersection(I::AbsIdealSheaf)
   return get_attribute(I, :_self_intersection)::Int
 end
 
-function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::AbsIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "checking triviality of $(I) on $(U)"
@@ -498,7 +392,7 @@ function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
   return false
 end
 
-function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::SumIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "triviality on $(U)"
@@ -523,93 +417,16 @@ function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
 end
 
 
-function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  X = scheme(I)
-  all_patches = copy(patches(covering))
-  patches_done = AbsAffineScheme[]
-  patches_todo = AbsAffineScheme[]
-  @vprintln :Divisors 2 "checking colength of $(I)"
-  for U in all_patches
-    dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
-    if _is_known_to_be_one(I, U; dec_inf)
-      push!(patches_done, U)
-    else
-      push!(patches_todo, U)
-    end
-  end
-
-  result = 0
-  while length(patches_todo) != 0
-    U = pop!(patches_todo)
-
-    # First do a cheaper test whether this chart needs to be looked at
-    J_cheap = cheap_sub_ideal(I, U)
-    if has_decomposition_info(covering)
-      h = decomposition_info(covering)[U]
-      if isone(J_cheap + ideal(OO(U), elem_type(OO(U))[OO(U)(a) for a in h])) # R(a) is not type stable for R::MPolyQuoRing
-        # push!(patches_done, U)
-        continue
-      end
-    end
-
-    J = I(U)
-    if has_decomposition_info(covering)
-      h = decomposition_info(covering)[U]
-      # The elements in h indicate where components must 
-      # be located so that they can not be spotted in other charts.
-      # We iteratively single out these components by adding a sufficiently high 
-      # power of the equation to the ideal.
-      for f in h
-        g = f
-        while !(g in ideal(OO(U), g*f) + J)
-          g = g * g
-        end
-        J = J + ideal(OO(U), g)
-        if isone(J)
-          push!(patches_done, U)
-          continue
-        end
-      end
-    else
-      # To avoid overcounting, throw away all components that 
-      # were already visible in other charts.
-      for V in patches_done
-        if !haskey(gluings(covering), (U, V))
-          continue
-        end
-        G = covering[U, V]
-        (UV, VU) = gluing_domains(G)
-        UV isa PrincipalOpenSubset || error("method is only implemented for simple gluings")
-        f = complement_equation(UV)
-        # Find a sufficiently high power of f such that it throws
-        # away all components away from the horizon, but does not affect
-        # those on the horizon itself.
-        g = f
-        while !(g in ideal(OO(U), g*f) + J)
-          g = g * g
-        end
-        J = J + ideal(OO(U), g)
-        isone(J) && break
-      end
-    end
-    if !isone(J)
-      JJ = leading_ideal(saturated_ideal(J))
-      A, _ = quo(base_ring(JJ), JJ)
-      result = result + ngens(vector_space(coefficient_ring(base_ring(A)), A)[1])
-    end
-    push!(patches_done, U)
-  end
-  return result
-end
-
-
 @doc raw"""
-    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=true) -> Bool
+    is_in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=true, check::Bool=true) -> Bool
 
-Check if the rational function `f` is in the linear system ``|D|``.
+Return whether the rational function `f` is in the linear system ``|D|``, i.e. if $(f) + D \geq 0$.
+
+# Input 
+- `regular_on_complement` -- set to `true` if `f` is regular on the complement of the support of `D`. 
 """
-function in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
-  X = scheme(D) 
+function is_in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
+  X = ambient_scheme(D) 
   X === variety(parent(f)) || error("schemes not compatible")
   C = simplified_covering(X)
   for I in components(D)
@@ -675,21 +492,22 @@ linear_system(f::Vector, D::AbsWeilDivisor; check::Bool=true) = LinearSystem(f, 
 @doc raw"""
     weil_divisor(L::LinearSystem)
 
-Return the divisor `D` of the linear system `L = |D|`.
+Return the divisor $D$ of the linear system $L = |D|$.
 """
 function weil_divisor(L::LinearSystem) 
   return L.D
 end
+
 gens(L::LinearSystem) = L.f
 number_of_generators(L::LinearSystem) = length(L.f)
-gen(L::LinearSystem,i::Int) = L.f[i]
+gen(L::LinearSystem, i::Int) = L.f[i]
 
 @doc raw"""
     variety(L::LinearSystem)
 
 Return the variety on which `L` is defined.
 """
-variety(L::LinearSystem) = scheme(weil_divisor(L))
+variety(L::LinearSystem) = ambient_scheme(weil_divisor(L))
 # an alias for the user's convenience 
 scheme(L::LinearSystem) = variety(L)
 
@@ -775,7 +593,7 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
   A = zero_matrix(kk, ngens(L), length(all_mons))
   for i in 1:ngens(L)
     for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
-      k = findfirst(x->(x==m), all_mons)
+      k = findfirst(==(m), all_mons)
       A[i, k] = c
     end
   end
@@ -795,26 +613,12 @@ function subsystem(L::LinearSystem, P::AbsWeilDivisor, n::Int; check::Bool=true)
   return subsystem(L, I, n)
 end
 
-# Prime Weil divisor are those written as 1*Sheaf of prime ideals
-@attr Bool function is_prime(D::AbsWeilDivisor)
-  length(components(D)) == 0 && return false # Cannot be prime if there are no components
-  # Two cases:
-  # - D is a sum of at least 2 disinct sheaf of prime ideals -> not prime
-  # - D is not, we then compute an irreducible decomposition as sum of distinct
-  # sheaf of prime ideals, with some coefficients, and we check whether this
-  # irreducible decomposition is prime
-  if length(components(D))>1
-    all(I -> is_prime(I), components(D)) && return false
-    return is_prime(irreducible_decomposition(D))
-  end
-  # If D = a*C, then D is prime if and only if C is prime and a == 1
-  C = components(D)[1]
-  !is_prime(C) && return false
-  return coefficient_dict(D)[C] == 1
-end
 
-is_irreducible(D::AbsWeilDivisor) = is_prime(D)
+@doc raw"""
+    order_of_vanishing(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; check::Bool=true)
 
+Return the order of vanishing of the rational function `f` on the prime divisor `D`.
+"""
 function order_of_vanishing(
     f::VarietyFunctionFieldElem,
     D::AbsWeilDivisor;
@@ -824,3 +628,243 @@ function order_of_vanishing(
   I = components(D)[1]
   return order_of_vanishing(f, I, check=false)
 end
+
+# Compute the colength of I_P in the localization R_P.
+# This assumes that R itself is a domain and that I is of height 1. 
+# Then there exists a regular 
+# point on Spec(R) and hence R_P is also regular and a UFD. 
+# Being of height 1, I_P must then be principal.
+function _colength_in_localization(I::Ideal, P::Ideal)
+  R = base_ring(I)
+  @assert R === base_ring(P)
+  U = MPolyComplementOfPrimeIdeal(saturated_ideal(P); check=false)
+  L, loc = localization(R, U)
+  I_loc = loc(I)
+  @assert base_ring(I_loc) === L
+  P_loc = loc(P)
+  x = _find_principal_generator(P_loc)
+  y = one(L)
+  k = 0
+  while true
+    (y in I_loc) && return k
+    y = y*x
+    k += 1
+  end
+end
+
+# same assumptions as above apply.
+function _find_principal_generator(I::Union{<:MPolyLocalizedIdeal, <:MPolyQuoLocalizedIdeal})
+  L = base_ring(I)
+  g = gens(I)
+  g = sort!(g, by=x->total_degree(lifted_numerator(x)))
+  for x in g
+    is_zero(x) && continue
+    ideal(L, x) == I && return x
+  end
+  error("no principal generator found")
+end
+
+# produce the principal divisor associated to a rational function
+principal_divisor(::Type{WeilDivisor}, f::VarietyFunctionFieldElem; 
+    ring::Ring=ZZ, covering::Covering=default_covering(scheme(f))
+  ) = weil_divisor(f; ring, covering)
+  
+function weil_divisor(
+    f::VarietyFunctionFieldElem; 
+    ring::Ring=ZZ, covering::Covering=default_covering(scheme(f))
+  )
+  @vprint :Divisors 4 "calculating principal divisor for $f\n"
+  X = scheme(f)
+  ideal_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
+  for U in patches(covering)
+    # TODO: We compute the dimensions again and again. 
+    # Instead we should store these things in some matured version of `decomposition_info`!
+    has_dec_inf = has_decomposition_info(covering)
+    dec_inf_id = has_dec_inf ? ideal(OO(U), decomposition_info(covering)[U]) : ideal(OO(U), elem_type(OO(U))[])
+    has_dec_inf && (dim(dec_inf_id) <= dim(X) - 2) && continue
+
+    # covering to take a shortcut in the
+    @vprint :Divisors 4 "doing patch $U\n"
+    inc_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
+    f_loc = f[U]
+    num = numerator(f_loc)
+    den = denominator(f_loc)
+
+    # If present, we can exploit the decomposition info here, too.
+    # The point is the following: In a new chart, we only need to 
+    # deal with scheme theoretic points (of codimension 1) which 
+    # are not visible in the other charts. Algebraically this means 
+    # that we can add the local generators of the decomposition 
+    # info to the numerator- and denominator ideals and only work 
+    # with the minimal associated primes (of codimension one) of 
+    # those ideals.
+    num_ideal = ideal(OO(U), num)
+    den_ideal = ideal(OO(U), den)
+
+    num_dec = minimal_primes(num_ideal + dec_inf_id)
+    den_dec = minimal_primes(den_ideal + dec_inf_id)
+    @vprint :Divisors 4 "  numerator:\n"
+    for P in num_dec
+      # In case of use of decomposition info, we need to discard primes of 
+      has_dec_inf && (dim(P) < dim(X) - 1) && continue
+      @vprint :Divisors 4 "    $P\n"
+      # If this component was already seen in another patch, skip it.
+      new_comp = PrimeIdealSheafFromChart(X, U, P)
+      @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
+      !has_dec_inf && any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      c = _colength_in_localization(num_ideal, P)
+      @vprint :Divisors 4 "    multiplicity $c\n"
+      inc_dict[new_comp] = c
+    end
+    @vprint :Divisors 4 "  denominator:\n"
+    for P in den_dec
+      # In case of use of decomposition info, we need to discard primes of 
+      has_dec_inf && (dim(P) < dim(X) - 1) && continue
+      # If this component was already seen in another patch, skip it.
+      new_comp = PrimeIdealSheafFromChart(X, U, P)
+      @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
+      !has_dec_inf && any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      c = _colength_in_localization(den_ideal, P)
+      @vprint :Divisors 4 "    multiplicity $c\n"
+      key_list = collect(keys(inc_dict))
+      k = findfirst(==(new_comp), key_list)
+      if k === nothing
+        is_zero(c) && continue
+        inc_dict[new_comp] = -c
+      else
+        d = inc_dict[key_list[k]]
+        if c == d
+          delete!(inc_dict, key_list[k])
+          continue
+        end
+        inc_dict[key_list[k]] = d - c
+      end
+    end
+    for (pp, c) in inc_dict
+      ideal_dict[pp] = c
+    end
+  end
+  return WeilDivisor(X, ring, ideal_dict; check=false)
+end
+
+@doc raw"""
+    move_divisor(D::AbsWeilDivisor; check::Bool=false)
+
+Given an `AbsWeilDivisor` `D` on a scheme `X`, apply a heuristic attempt 
+to create a principal divisor `div(f)` for some rational function, 
+so that `supp(D - div(f)) ∩ supp(D)` has codimension greater or equal to `2`. In other words: We try to move `D` away from its original position as much as possible within its rational equivalence class.
+
+Note that `supp(D - div(f)) ∩ supp(D)` need not be empty! The point is that 
+the minimal associated primes of the support of `D - div(f)` should be different 
+from the minimal associated primes of `D`. This is experimental and might not 
+always succeed.
+
+Keyword arguments:
+  * `randomization`: By default, the choices made to create `f` keep it as simple as possible. However, one might encounter constellations where this will just swap two components of `D`. In order to avoid this, one can then switch on randomization here. 
+  * `is_prime`: Set this to `true` if you know your divisor `D` to already be prime and avoid expensive internal checks.
+"""
+function move_divisor(
+    D::AbsWeilDivisor; 
+    check::Bool=false,
+    randomization::Bool=false,
+    is_prime::Bool=false,
+    rec_depth::Int=0
+  )
+  rec_depth > 5 && error("the current constellation seems to lead to infinite loops for the current implementation")
+  X = ambient_scheme(D)
+  @check is_irreducible(X) && is_reduced(X) "scheme must be irreducible and reduced"
+  is_zero(D) && return D
+
+  if !is_prime && !Oscar.is_prime(D)
+    R = coefficient_ring(D)
+    return sum(a*move_divisor(WeilDivisor(D, R; check=false); rec_depth) for (D, a) in coefficient_dict(irreducible_decomposition(D)); init=WeilDivisor(X, R))
+  end
+
+  # We may assume that `D` is prime.
+  P = first(components(D))
+  # find a chart where the support is visible
+  i = findfirst(U->!isone(P(U)), affine_charts(X))
+  i === nothing && error("divisor is trivial")
+  U = affine_charts(X)[i]
+  I = P(U)
+  L, loc = localization(OO(U), complement_of_prime_ideal(I))
+  LP = loc(I)
+  # Find a principal generator for the local ideal.
+  # This works, because we assume that `X` is irreducible and reduced.
+  # Then there is at least one smooth point on `U` and therefore `LP` 
+  # is regular. Regular domains are UFD and an ideal of height 1 is 
+  # principal there. 
+  g = gens(saturated_ideal(I))
+  g = sort!(g, by=total_degree)
+  x = zero(base_ring(I))
+  kk = base_ring(X)
+  RP = ambient_coordinate_ring(U)
+  if randomization
+    x = sum(rand(kk, 1:10)*x for x in g; init=zero(RP))
+    while !(ideal(L, x) == LP)
+      # try again.
+      x = sum(rand(kk, 1:10)*x for x in g; init=zero(RP))
+    end
+  else
+    i = findfirst(f->(ideal(L, f) == LP), g)
+    x = g[i]
+  end
+  f = function_field(X; check)(x)
+  if randomization
+    y = rand(kk, 1:10) + sum(rand(kk, 1:10)*a for a in gens(RP); init=zero(RP))
+    f = f*inv(parent(f)(y))
+  end
+  result = irreducible_decomposition(D - weil_divisor(f))
+  # Check whether the supports are really different
+  if any(any(P == Q for Q in components(D)) for P in components(result))
+    return move_divisor(D; randomization=true, check, is_prime, rec_depth=rec_depth+1)
+  end
+  return result
+end
+
+function is_zero(D::AbsAlgebraicCycle)
+  all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(D)) && return true
+  return all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(irreducible_decomposition(D))) && return true
+end
+
+# Internal method which performs an automated move of the second argument
+# if things are not in sufficiently general position. 
+# The problem is: We have no way to check whether a variety is proper over 
+# its base field. But the output is only valid if that is true. 
+# Therefore, we have no choice, but to hide it from the user for now.
+function _intersect(C::CartierDivisor, D::AbsWeilDivisor)
+  X = ambient_scheme(C)
+  @assert X === ambient_scheme(D)
+  R = coefficient_ring(C)
+  @assert R === coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  for (E, c) in coefficient_dict(C)
+    result = result + c*_intersect(E, D)
+  end
+  return result
+end
+
+function _intersect(E::EffectiveCartierDivisor, D::AbsWeilDivisor; check::Bool=true)
+  X = ambient_scheme(E)
+  @assert X === ambient_scheme(D)
+  R = coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  cpcd = copy(coefficient_dict(D))
+  DD = irreducible_decomposition(D)
+  cpcd = copy(coefficient_dict(DD))
+  for (P, a) in coefficient_dict(DD)
+    _, inc_P = sub(P)
+    # WARNING: The heuristic implemented below might still run into an infinite loop!
+    # We have to think about how this can effectively be avoided. See the test file 
+    # for an example.
+    if is_zero(pullback(inc_P, ideal_sheaf(E)))
+      P_moved = move_divisor(weil_divisor(P, R; check=false); randomization=false, is_prime=true)
+      result = result + a*_intersect(E, P_moved)
+    else
+      result = result + a*algebraic_cycle(P + ideal_sheaf(E), R; check=false)
+    end
+  end
+  return result
+end
+
+

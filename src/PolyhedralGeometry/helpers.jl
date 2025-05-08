@@ -6,9 +6,9 @@ import Polymake: IncidenceMatrix
 A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
 
 # Examples
-Note that the input and print of an `IncidenceMatrix` lists the non-zero indices for each row.
+Note that the input of this example and the print of an `IncidenceMatrix` list the non-zero indices for each row.
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
@@ -27,6 +27,109 @@ julia> IM[:, 4]
 """
 IncidenceMatrix
 
+@doc raw"""
+    incidence_matrix(r::Base.Integer, c::Base.Integer)
+
+Return an `IncidenceMatrix` of size r x c whose entries are all `false`.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix(8, 5)
+8×5 IncidenceMatrix
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+
+```
+"""
+incidence_matrix(r::Base.Integer, c::Base.Integer) = IncidenceMatrix(undef, r, c)
+
+@doc raw"""
+    incidence_matrix(mat::Union{AbstractMatrix{Bool}, IncidenceMatrix})
+
+Convert `mat` to an `IncidenceMatrix`.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix([true false true false true false; false true false true false true])
+2×6 IncidenceMatrix
+[1, 3, 5]
+[2, 4, 6]
+
+```
+"""
+incidence_matrix(mat::Union{AbstractMatrix{Bool},IncidenceMatrix}) = IncidenceMatrix(mat)
+
+@doc raw"""
+    incidence_matrix(mat::AbstractMatrix)
+
+Convert the `0`/`1` matrix `mat` to an `IncidenceMatrix`. Entries become `true` if the initial entry is `1` and `false` if the initial entry is `0`.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix([1 0 1 0 1 0; 0 1 0 1 0 1])
+2×6 IncidenceMatrix
+[1, 3, 5]
+[2, 4, 6]
+
+```
+"""
+function incidence_matrix(mat::AbstractMatrix)
+  m, n = size(mat)
+  for i in 1:m
+    for j in 1:n
+      iszero(mat[i, j]) || isone(mat[i, j]) ||
+        throw(
+          ArgumentError("incidence_matrix requires matrices with 0/1 or boolean entries.")
+        )
+    end
+  end
+  return IncidenceMatrix(mat)
+end
+
+@doc raw"""
+    incidence_matrix(r::Base.Integer, c::Base.Integer, incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
+
+Return an `IncidenceMatrix` of size r x c. The i-th element of `incidenceRows` lists the indices of the `true` entries of the i-th row.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
+3×4 IncidenceMatrix
+[2, 3]
+[1]
+[]
+
+```
+"""
+incidence_matrix(
+  r::Base.Integer,
+  c::Base.Integer,
+  incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}},
+) = IncidenceMatrix(r, c, incidenceRows)
+
+@doc raw"""
+    incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
+
+Return an `IncidenceMatrix` where the i-th element of `incidenceRows` lists the indices of the `true` entries of the i-th row. The dimensions of the result are the smallest possible row and column count that can be deduced from the input.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix([[2, 3], [1]])
+2×3 IncidenceMatrix
+[2, 3]
+[1]
+
+```
+"""
+incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) =
+  IncidenceMatrix(incidenceRows)
+
 number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
 number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
 
@@ -40,7 +143,7 @@ Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
@@ -62,7 +165,7 @@ Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
@@ -136,7 +239,7 @@ linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix
   assure_matrix_polymake(x)
 
 linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) =
-  assure_matrix_polymake(stack(x...))
+  assure_matrix_polymake(stack(x))
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
   assure_matrix_polymake(x)
@@ -238,7 +341,7 @@ Base.convert(
 ) where {T<:Union{Directed,Undirected}} = Oscar.pm_object(g)
 
 function remove_zero_rows(A::AbstractMatrix)
-  A[findall(x -> !iszero(x), collect(eachrow(A))), :]
+  A[findall(!iszero, collect(eachrow(A))), :]
 end
 function remove_zero_rows(A::AbstractMatrix{Float64})
   A[
@@ -292,7 +395,7 @@ homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
   homogenize(x, val)
 homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
-  stack((homogenize(x[i], val) for i in 1:length(x))...)
+  stack([homogenize(x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
@@ -300,7 +403,7 @@ unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
 unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
 unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) =
-  unhomogenized_matrix(stack(x...))
+  unhomogenized_matrix(stack(x))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -345,21 +448,16 @@ stack(A::AbstractVector, B::AbstractVector) =
   isempty(A) ? B : [permutedims(A); permutedims(B)]
 stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
-stack(x, y, z...) = stack(stack(x, y), z...)
-stack(x) = stack(x, nothing)
-# stack(x::Union{QQMatrix, ZZMatrix}, ::Nothing) = x
-#=
-function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
-    if length(A)==2
-        return stack(A[1],A[2])
-    end
-    M=stack(A[1],A[2])
-    for i in 3:length(A)
-        M=stack(M,A[i])
-    end
-    return M
+function stack(VV::AbstractVector{<:AbstractVector})
+  @req length(VV) > 0 "at least one vector required"
+  if VERSION >= v"1.9"
+    permutedims(Base.stack(VV))
+  else
+    permutedims(reshape(collect(Iterators.flatten(VV)), length(VV[1]), length(VV)))
+  end
 end
-=#
+stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
+stack(x) = stack(x, nothing)
 
 _ambient_dim(x::AbstractVector) = length(x)
 _ambient_dim(x::AbstractMatrix) = size(x, 2)
@@ -460,12 +558,13 @@ _find_elem_type(x::Type) = x
 _find_elem_type(x::Polymake.Rational) = QQFieldElem
 _find_elem_type(x::Polymake.Integer) = ZZRingElem
 _find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
-_find_elem_type(x::Tuple) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::AbstractArray{<:AbstractArray}) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::MatElem) = elem_type(base_ring(x))
+_find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
+_find_elem_type(x::AbstractArray{<:AbstractArray}) =
+  reduce(vcat, _find_elem_type.(x); init=[])
+_find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
 
 function _guess_fieldelem_type(x...)
-  types = filter(!=(Any), vcat(_find_elem_type.(x)...))
+  types = filter(!=(Any), _find_elem_type(x))
   T = QQFieldElem
   for t in types
     if t == Float64
@@ -506,6 +605,10 @@ function _parent_or_coefficient_field(::Type{T}, x, y...) where {T<:scalar_types
     end
   end
   missing
+end
+
+function _parent_or_coefficient_field(::Type{T}, c::Tuple) where {T<:FieldElem}
+  return _parent_or_coefficient_field(T, c...)
 end
 
 function _determine_parent_and_scalar(f::Union{Field,ZZRing}, x...)
@@ -734,8 +837,10 @@ end
 # Cone -> Polyhedron
 # PolyhedralFan -> PolyhedralComplex
 # for transforming coordinate matrices.
-function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
-  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+function embed_at_height_one(M::AbstractMatrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{Polymake.convert_to_pm_type(T)}(
+    add_vert + size(M)[1], size(M)[2] + 1
+  )
   if add_vert
     result[1, 1] = 1
   end

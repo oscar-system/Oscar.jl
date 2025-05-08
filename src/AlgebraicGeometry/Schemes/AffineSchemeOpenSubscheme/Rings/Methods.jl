@@ -6,6 +6,12 @@ function ==(R::AffineSchemeOpenSubschemeRing, S::AffineSchemeOpenSubschemeRing)
   return scheme(R)==scheme(S) && domain(R)==domain(S)
 end
 
+function Base.hash(R::AffineSchemeOpenSubschemeRing, h::UInt)
+  h = hash(scheme(R), h)
+  h = hash(domain(R), h)
+  return h
+end
+
 ########################################################################
 # Methods for AffineSchemeOpenSubschemeRingElem                                         #
 ########################################################################
@@ -132,6 +138,14 @@ function ==(a::T, b::T) where {T<:AffineSchemeOpenSubschemeRingElem}
   return true
 end
 
+function Base.hash(a::AffineSchemeOpenSubschemeRingElem, h::UInt)
+  h = hash(parent(a), h)
+  for f in restrictions(a)
+    h = hash(f, h)
+  end
+  return h
+end
+
 function ^(a::AffineSchemeOpenSubschemeRingElem, i::Int64)
   return AffineSchemeOpenSubschemeRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
 end
@@ -148,7 +162,7 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:AffineSchemeOpenSubsc
 end
 
 function is_unit(a::AffineSchemeOpenSubschemeRingElem)
-  return all(x->is_unit(x), restrictions(a))
+  return all(is_unit, restrictions(a))
 end
 
 inv(a::AffineSchemeOpenSubschemeRingElem) = AffineSchemeOpenSubschemeRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
@@ -206,9 +220,10 @@ function restriction_map(
   )
   Y = ambient_scheme(U)
 
+  
   # handle the shortcut
-  if any(x->(x===X), affine_patches(U))
-    i = findfirst(x->(x === X), affine_patches(U))
+  i = findfirst(x->(x === X), affine_patches(U))
+  if !isnothing(i)
     function mymap(f::AffineSchemeOpenSubschemeRingElem)
       return f[i]
     end
@@ -243,7 +258,7 @@ function restriction_map(
   # the terms accordingly, we derive the desired expressions for the cᵢ's.
   #W = localized_ring(OO(Y))
   W = OO(Y)
-  S, t = polynomial_ring(W, ["t$i" for i in 1:r]; cached=false)
+  S, t = polynomial_ring(W, "t#" => 1:r; cached=false)
   ta = length(a) == 0 ? zero(S) : sum([t*a for (t, a) in zip(t, a)])
   function mysecondmap(f::AffineSchemeOpenSubschemeRingElem)
     sep = [pull_from_denominator(f[i], d[i]) for i in 1:r]
@@ -469,7 +484,7 @@ end
 
 function Base.show(io::IO, a::AffineSchemeOpenSubschemeRingElem)
   if is_terse(io)
-    print(io, "Reguler function")
+    print(io, "Regular function")
   else
     io = pretty(io)
     print(io, "Regular function on ", Lowercase(), domain(parent(a)))
@@ -505,3 +520,7 @@ function Base.show(io::IO, ::MIME"text/plain", a::AffineSchemeOpenSubschemeRingE
   end
 end
 
+# overwrite a method for mapping of rings which would throw otherwise
+function _allunique(lst::Vector{T}) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:AffineSchemeOpenSubschemeRingElem}}}
+  return false
+end

@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Welcome to FTheoryTools
@@ -65,7 +67,8 @@ Still, the total number of papers in our database is at this point limited to ab
 
 ## Tutorial
 
-We provide a [tutorial for FTheoryTools in OSCAR](https://www.oscar-system.org/tutorials/).
+We encourage you to take a look at the tutorials on FTheoryTools, which can be found
+[here](https://www.oscar-system.org/tutorials/FTheoryTools/).
 
 
 ## Possible future extensions

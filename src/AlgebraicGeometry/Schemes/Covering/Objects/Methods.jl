@@ -77,7 +77,7 @@ end
 ## the gluing graph afterwards
 ## (relevant data for connectedness of gluing)
 function pruned_gluing_graph(C::Covering)
-  v = findall(U->!is_empty(U), C.patches)
+  v = findall(!is_empty, C.patches)
   m = length(v)
   gt = Graph{Undirected}(m)
   for (X, Y) in keys(gluings(C))
@@ -190,7 +190,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = AbsAffineScheme
+Base.eltype(::Type{<:Covering}) = AbsAffineScheme
 
 ########################################################################
 # Building a Covering                                                  #
@@ -204,9 +204,9 @@ The `patches` of `G` must be among the `affine_charts` of `C`.
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 
@@ -351,8 +351,8 @@ function common_refinement(C::Covering, D::Covering)
     end
   end
 
-  dirty_C = filter!(x->!(x in keys(map_dict_C)), dirty_C)
-  dirty_D = filter!(x->!(x in keys(map_dict_D)), dirty_D)
+  dirty_C = filter!(x -> !haskey(map_dict_C, x), dirty_C)
+  dirty_D = filter!(x -> !haskey(map_dict_D, x), dirty_D)
 
   #TODO: Check that all leftover dirty patches are already
   #covered by those in the keysets. What if this is not the case?
@@ -369,6 +369,18 @@ function has_ancestor_in(L::Vector, U::AbsAffineScheme)
 end
 
 function is_refinement(D::Covering, C::Covering)
+  # catch the case that `C` is a simplification of `D`
+  if all(x isa SimplifiedAffineScheme for x in patches(C)) && all(y->any(x->original(x)===y, patches(C)), patches(D))
+    map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+    for U in patches(C)
+      f, g = identification_maps(U)
+      V = domain(g)
+      map_dict[V] = g
+    end
+    return true, CoveringMorphism(D, C, map_dict, check=false)
+    # TODO: Catch the more complicated case where `D` is a proper 
+    # refinement of the original covering for `C`.
+  end
   if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
     return false, nothing
   end

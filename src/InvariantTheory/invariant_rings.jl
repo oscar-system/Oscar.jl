@@ -167,7 +167,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
       if iszero(M[i, j])
         continue
       end
-      vars[i] = addeq!(vars[i], M[i, j] * x[j])
+      vars[i] = add!(vars[i], M[i, j] * x[j])
     end
   end
 
@@ -214,7 +214,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for action in actions
-      g = addeq!(g, action(f))
+      g = add!(g, action(f))
     end
     return g * base_ring(f)(1//order(group(IR)))
   end
@@ -344,7 +344,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for (action, val) in actions_and_values
-      g = addeq!(g, action(f) * val)
+      g = add!(g, action(f) * val)
     end
     return g * base_ring(f)(1//order(group(IR)))
   end
@@ -573,7 +573,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   G = group(I)
   n = degree(G)
   K = coefficient_ring(I)
-  Kt, _ = polynomial_ring(K, "t"; cached=false)
+  Kt, _ = polynomial_ring(K, :t; cached=false)
   C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
@@ -718,12 +718,12 @@ function molien_series(
 )
   if chi === nothing
     if !isdefined(I, :molien_series)
-      S, t = polynomial_ring(QQ, "t"; cached=false)
+      S, t = polynomial_ring(QQ, :t; cached=false)
       I.molien_series = molien_series(S, I)
     end
     return I.molien_series
   else
-    S, t = polynomial_ring(QQ, "t"; cached=false)
+    S, t = polynomial_ring(QQ, :t; cached=false)
     return molien_series(S, I, chi)
   end
 end

@@ -22,8 +22,6 @@ export valuation_of_roots
 import Hecke: orbit, fixed_field, extension_field
 
 function __init__()
-  GAP.Packages.load("ferret"; install=true)
-
   Hecke.add_verbosity_scope(:GaloisGroup)
   Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
@@ -67,6 +65,9 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
 end
 
 Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
+
+Base.hash(a::BoundRingElem, h::UInt) = hash(a.val, hash(parent(a), h))
+
 function +(a::BoundRingElem, b::BoundRingElem) 
   check_parent(a, b) 
   c = BoundRingElem(a.p.add(a.val, b.val), a.p)
@@ -102,7 +103,7 @@ Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
 (R::BoundRing{T})(a::ZZRingElem) where T = BoundRingElem{T}(R.map(abs(a)), R)
 (R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(ZZRingElem(a), R)
-(R::BoundRing{T})() where T = BoundRingElem{T}(ZZRingElem(0), R)
+(R::BoundRing{T})() where T = zero(R)
 (R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
 (R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
@@ -118,14 +119,14 @@ Operations are:
  - `ab  := a+b`
 """
 function max_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
+  return BoundRing{ZZRingElem}(+, max, (x,y) -> y*x, identity, "max-ring")
 end
 
 """
 Normal ring
 """
 function add_ring(;type::Type=ZZRingElem)
-  return BoundRing{type}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
+  return BoundRing{type}(*, +, ^, abs, "add-ring")
 end
 
 #roots rt are power series sum a_n x^n
@@ -164,7 +165,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function cost_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
+  return BoundRing{ZZRingElem}( (x,y) -> x+y+1, +, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
 end
 
 """
@@ -178,7 +179,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function degree_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
+  return BoundRing{ZZRingElem}( +, max, (x,y) -> y*x, x->0, "degree-ring")
 end
 
 @doc raw"""
@@ -201,16 +202,13 @@ end
 @doc raw"""
     total_degree(I::SLPoly)
 
-Determines an upper bound for the total degree of `I`.
+Determine an upper bound for the total degree of `I`.
 """
 function total_degree(I::SLPoly)
   n = ngens(parent(I))
   C = degree_ring()
   return value(evaluate(I, [C(1) for i = 1:n]))
 end
-
-Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
-Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
 #my 1st invariant!!!
 @doc raw"""
@@ -412,13 +410,13 @@ mutable struct GaloisCtx{T}
     F, mF = residue_field(Qq)
     H = Hecke.MPolyFact.HenselCtxFqRelSeries(f, F)
     SQq, _ = power_series_ring(Qq, 2, "s", cached = false)
-    SQqt, _ = polynomial_ring(SQq, "t", cached = false)
+    SQqt, _ = polynomial_ring(SQq, :t, cached = false)
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{QadicFieldElem}}}()
     r.prime = (shft, p)
     Qt, t = rational_function_field(QQ, "t", cached = false)
-    Qts, s = polynomial_ring(Qt, "s", cached = false)
+    Qts, s = polynomial_ring(Qt, :s, cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
     r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
@@ -533,7 +531,7 @@ function Hecke.MPolyFact.block_system(a::Vector{AcbFieldElem}, eps = 1e-9)
       push!(b[cb[fl]], i)
     end
   end
-  bs = sort(collect(values(b)), lt = (a,b) -> isless(a[1], b[1]))
+  bs = sort(collect(values(b)); by=first)
   return bs
 end
 
@@ -582,7 +580,7 @@ end
 
 function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   @assert nvars(parent(f)) == 2
-  Qs, s = rational_function_field(FlintQQ, "t", cached = false)
+  Qs, s = rational_function_field(QQ, "t", cached = false)
   Qsx, x = polynomial_ring(Qs, cached = false)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
@@ -898,7 +896,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   l = representative.(low_index_subgroup_classes(H, 2*degree(G)^2))
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
-  sort!(l, lt = (a,b) -> isless(order(b), order(a)))
+  sort!(l; by=order, rev=true)
   for U = l
     O = orbits(U)
     for o in O
@@ -1130,7 +1128,7 @@ end
 """
     minpoly(C::GaloisCtx, I, extra::Int = 5)
 
-Computes the minimal polynomial of `I` evaluated at the roots
+Compute the minimal polynomial of `I` evaluated at the roots
 stored in `C`.
 """
 function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
@@ -1166,7 +1164,7 @@ Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C,
 
 struct GroupFilter
   f::Vector{Tuple{Function, String}}
-  GroupFilter() = new([(x->true, "")])
+  GroupFilter() = new([(_ -> true, "")])
 end
 
 #TODO: Max: rank the filter function by cost, cheapest first...
@@ -1363,10 +1361,10 @@ end
 
 """
 Maps elements of the base ring into the completion (the splitting field).
-FOr computations over QQ this does not matter as QQ just coerces into
+For computations over QQ this does not matter as QQ just coerces into
 any q/p-adic field.
 
-FOr computations over number fields this is not true, here an explciti map
+For computations over number fields this is not true, here an explicit map
 is needed.
 
 TODO: check and add a precision parameter
@@ -1379,14 +1377,14 @@ end
 @doc raw"""
     starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
-Finds a _starting group_, that is a group `G` as a subgroup of the
+Find a _starting group_, that is a group `G` as a subgroup of the
 symmetric group acting on the roots in the explicit ordering in the
 galois context.
 
 If the field is imprimitive, the group is derived from the subfields, otherwise
 the factorisation of the 2-sum polynomial is used.
 
-Returns a triple: 
+Return a triple: 
  - the group
  - a filter for all groups that can occur
  - a permutation representing the operation of the Frobenius automorphism
@@ -1441,7 +1439,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # - one of them should be (Sl wr Sk) meet A(lk))
     #   disc(K) is a square
     # - see below in starting_group
-    sort!(v, lt = (x,y) -> minimum(x) < minimum(y))
+    sort!(v; by=minimum)
     push!(bs, v)
     fld[v] = (s, ms)
   end
@@ -1509,12 +1507,12 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       if isa(r[1], AbsSimpleNumFieldElem)
         @assert parent(r[1]) == parent(R[1])
         f = _F = parent(r[1])
-        mf = mF = x->x
-        mfF = x->x
+        mf = mF = identity
+        mfF = identity
       elseif isa(r[1], AcbFieldElem)
         f = _F = parent(r[1])
-        mf = mF = x->x
-        mfF = x->x
+        mf = mF = identity
+        mfF = identity
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
@@ -1544,7 +1542,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         #assuming wreath_product(A, B) has block system [[1..l], [l+1..2l]...]
         # the re-ordering is easy: W^s for s = vcat(bs)
         bs = map(x->findall(isequal(x), d), r)
-        @assert all(x->length(x) == length(bs[1]), bs)
+        @assert allequal(length, bs)
         W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
         W = W^symmetric_group(degree(W))(vcat(bs...))
@@ -1566,7 +1564,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     si = collect(1:length(c))
   else
     d = map(frobenius, c)
-    si = [findfirst(y->y==x, c) for x = d]
+    si = [findfirst(==(x), c) for x = d]
   end
 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
@@ -1660,10 +1658,10 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     pc = parent(c[1])
     if isa(pc, NumField)
       k = pc
-      mk = x->x
+      mk = identity
     elseif isa(c[1], AcbFieldElem)
       k = pc
-      mk = x->x
+      mk = identity
     else
       k, mk = residue_field(pc)
     end
@@ -1674,16 +1672,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #partition is the largest possible group...
     #code from Max...
 
-    #TODO: wrap this properly
-    if hasproperty(GAP.Globals, :ConStabilize)
-      tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
-      G = Oscar._as_subgroup(G, H)[1]
-    else
-      #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
-      # once we have GAP_pkg_ferret
-      G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
-    end
+    tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
+    H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
+    G = Oscar._as_subgroup(G, H)[1]
   end
 
   si = G(si)
@@ -1701,7 +1692,7 @@ Starts searching at `pStart`, returns the prime as well as the cycle types ident
 
 If `prime` is given, no search is performed.
 """
-function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
+function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = _->true, filter_pattern = _->true)
   if prime != 0
     p = prime
     lf = factor(GF(p), f)
@@ -1734,7 +1725,7 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
       continue
     end
     lf = factor(GF(p), f)
-    if any(x->x>1, values(lf.fac))
+    if any(>(1), values(lf.fac))
       continue
     end
     filter_pattern(lf) || continue
@@ -1788,7 +1779,7 @@ function order_from_shape(ct::Set{CycleType}, n)
            init = ZZRingElem(1))
   #Lemma 16:         
   for p = PrimesSet(1, n)
-    #find cycletypes that would correpond to elt of order a multiple of p
+    #find cycletypes that would correspond to elt of order a multiple of p
     #the exact order is lcm(x) for x in ct
     ct_p = [x for x = ct if any(t->t[1] % p == 0, x)]
     #so ct_t contains all cycle types belonging to elements where the
@@ -1808,7 +1799,7 @@ function order_from_shape(ct::Set{CycleType}, n)
     # the plan is to take to 2 different largest ones
 
     mu = [(y.s[end][1], y.s[end][1]*y.s[end][2]) for y = ct_pp]
-    sort!(mu, lt = (a,b) -> a[1] < b[1])
+    sort!(mu,; by=first)
     if length(mu) == 1
       p_part = mu[1][1]
       o1 *= p_part
@@ -1922,7 +1913,7 @@ end
 @doc raw"""
     galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
 
-Computes the Galois group of the splitting field of the defining polynomial of `K`.
+Compute the Galois group of the splitting field of the defining polynomial of `K`.
 Currently the polynomial needs to be monic.
 
 The group is returned as an explicit permutation group permuting the roots as contained
@@ -2227,7 +2218,7 @@ end
 
 
 @doc raw"""
-Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
+Find a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 `I` evaluated at the (roots in ) `r` does not have repetitions.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
@@ -2383,7 +2374,7 @@ end
 """
     galois_quotient(C::GaloisCtx, Q::PermGroup)
 
-Finds all(?) subfields of the splitting field s.th. the galois
+Find all(?) subfields of the splitting field s.th. the galois
 group will be permutation isomorphic to Q.
 """
 function galois_quotient(C::GaloisCtx, Q::PermGroup)
@@ -2405,12 +2396,12 @@ end
 @doc raw"""
     galois_quotient(C::GaloisCtx, d::Int)
 
-Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
+Find all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
 ```jldoctest; filter = r"Galois context\(.*\]\)"
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-2);
 
@@ -2444,7 +2435,7 @@ end
 """
     galois_quotient(C::GaloisCtx, d::Int, n::Int)
 
-Finds all subfields of the splitting field with galois group the n-th
+Find all subfields of the splitting field with galois group the n-th
 transitive group in degree d
 """
 galois_quotient(C::GaloisCtx, d::Int, n::Int) = 
@@ -2457,7 +2448,7 @@ Equivalent to
 
     galois_quotient(galois_group(f)[2], p[1], p[2])
 
-Finds all subfields of the splitting field of f with galois group
+Find all subfields of the splitting field of f with galois group
 the p[2]-th transitive group of degree p[1]
 """
 function galois_quotient(f::PolyRingElem, p::Vector{Int})
@@ -2486,7 +2477,7 @@ coefficients.
 
 # Examples
 ```jldoctest
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> cauchy_ideal(x^4-2)
 Ideal generated by
@@ -2519,7 +2510,7 @@ functions and the coefficients of the polynomial.
 
 # Examples
 ```jldoctest
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
 Ideal generated by
@@ -2670,6 +2661,10 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
 end
 
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
+  #TODO: currently con is useless here, the cluster detection and the reduce
+  #      tree is re-arranging the factors in lf randomly
+  #      one would need to trace the re-arranged lf as well
+  #      Since we don't, we have to compute roots and evaluate
   
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2681,28 +2676,53 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector{Int}, gens(G))
+  rr = roots(C, 2; raw = true)
+  renum = Int[]
   for (g, k) = lf
+    l = findall(iszero, map(g, rr))
+    append!(renum, l)
+  end
+  re = inv(symmetric_group(degree(G))(renum))
+
+  gs = map(Vector{Int}, gens(G))
+
+  # G is a sub group of prod G_i <= prod sym(n_i) the galois groups
+  # of the factors
+  # con describes the current ordering of the roots in so G^con <= prod G_i
+  #for the factors with multiplicity > 1, we need to append more factors
+  H = [G]
+  mps = [gens(G)]
+  n = degree(G)
+  for (g,k) = lf
+    if k == 1
+      st += degree(g)
+      continue
+    end
+    S = symmetric_group(degree(g))
+    #need proj G -> G_i, so need a subset of the points (st+1:st+deg(g))
+    # moved by re, then mapped to 1:deg(g)
+    h = [S([(i+st)^(gg^re)-st for i=1:degree(g)]) for gg = gens(G)]
     for j=2:k
-      for i=1:degree(g)
-        mp[n+i] = (st+i)^con
-      end
-      for h = gs
-        for i=1:degree(g)
-          push!(h, h[(st+i)^con]^icon-st+n)
-        end
+      S = symmetric_group(degree(g))
+      push!(H, S)
+      push!(mps, h)
+      for i = 1:degree(g)
+        mp[n+i] = (st+i)^icon
       end
       n += degree(g)
     end
     st += degree(g)
   end
 
+  D, emb, pro = inner_direct_product(H; morphisms = true)
+  h = hom(G, D, [prod(emb[i](mps[i][j]) for i=1:length(H)) for j=1:ngens(G)])
+
   C.rt_num = mp
-  S = symmetric_group(n)
-  GG, _ = sub(S, map(S, gs))
+  GG, _ = image(h)
 
   h = hom(G, GG, gens(G), gens(GG))
   @assert is_injective(h) && is_surjective(h)
+  C.G = GG
   return GG, C
 end
 
@@ -2777,7 +2797,7 @@ end
 @doc raw"""
     galois_group(f::PolyRingElem{<:FieldElem})
 
-Computes the automorphism group of a splitting field of `f` as an explicit
+Compute the automorphism group of a splitting field of `f` as an explicit
 group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """
@@ -2828,6 +2848,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
   @vprint :GaloisGroup 1 "found $(length(cl)) connected components\n"
 
   res = Vector{Tuple{typeof(C[1]), PermGroupElem}}()
+  llf = Int[]
   function setup(C::Vector{<:GaloisCtx})
     G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
     g = prod(x.f for x = C)
@@ -2839,7 +2860,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     @assert length(Set(rr)) == length(rr)
 
     d = map(frobenius, rr)
-    si = [findfirst(y->y==x, rr) for x = d]
+    si = [findfirst(==(x), rr) for x = d]
 
     @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
@@ -2851,7 +2872,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
       K, mK = residue_field(parent(r[1]))
       r = map(mK, r)
       phi = Hecke.find_morphism(K, k)
-      po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
+      po = vcat(po, [findfirst(==(phi(y)), rr) for y = r])
     end
 
     con = (symmetric_group(length(po))(po))

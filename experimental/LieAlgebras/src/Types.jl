@@ -1,143 +1,5 @@
 ###############################################################################
 #
-#   Root systems, root space elements, weight lattice elements
-#
-###############################################################################
-
-@attributes mutable struct RootSystem
-  cartan_matrix::ZZMatrix # (generalized) Cartan matrix
-  positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
-  positive_roots_map::Dict{QQMatrix,Int}
-  positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
-  positive_coroots_map::Dict{QQMatrix,Int}
-  weyl_group::Any #::WeylGroup (cyclic reference)
-
-  # optional:
-  type::Vector{Tuple{Symbol,Int}}
-  type_ordering::Vector{Int}
-
-  function RootSystem(mat::ZZMatrix; check::Bool=true, detect_type::Bool=true)
-    @req !check || is_cartan_matrix(mat) "Requires a generalized Cartan matrix"
-
-    pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
-    finite = count(refl .== 0) == nrows(mat)
-
-    R = new(mat)
-    R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
-    R.positive_roots_map = Dict(
-      (coefficients(root), ind) for
-      (ind, root) in enumerate(R.positive_roots::Vector{RootSpaceElem})
-    )
-    R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
-    R.positive_coroots_map = Dict(
-      (coefficients(root), ind) for
-      (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
-    )
-    R.weyl_group = WeylGroup(finite, refl, R)
-
-    detect_type &&
-      is_finite(weyl_group(R)) &&
-      set_root_system_type!(R, cartan_type_with_ordering(mat)...)
-    return R
-  end
-end
-
-mutable struct RootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
-
-  function RootSpaceElem(root_system::RootSystem, vec::QQMatrix)
-    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
-    return new(root_system, vec)
-  end
-end
-
-mutable struct DualRootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
-
-  function DualRootSpaceElem(root_system::RootSystem, vec::QQMatrix)
-    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
-    return new(root_system, vec)
-  end
-end
-
-mutable struct WeightLatticeElem
-  root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
-
-  function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
-    @req size(vec) == (rank(root_system), 1) "Invalid dimension"
-    return new(root_system, vec)
-  end
-end
-
-###############################################################################
-#
-#   Weyl groups
-#
-###############################################################################
-
-@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
-  finite::Bool              # finite indicates whether the Weyl group is finite
-  refl::Matrix{UInt}        # see positive_roots_and_reflections
-  root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
-
-  function WeylGroup(finite::Bool, refl::Matrix{UInt}, root_system::RootSystem)
-    return new(finite, refl, root_system)
-  end
-end
-
-struct WeylGroupElem <: AbstractAlgebra.GroupElem
-  parent::WeylGroup     # parent group
-  word::Vector{UInt8}   # short revlex normal form of the word
-
-  function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
-    if !normalize
-      if word isa Vector{UInt8}
-        return new(W, word)
-      else
-        return new(W, UInt8.(word))
-      end
-    end
-
-    @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
-    x = new(W, sizehint!(UInt8[], length(word)))
-    for s in Iterators.reverse(word)
-      lmul!(x, s)
-    end
-
-    return x
-  end
-end
-
-const WeylIteratorNoCopyState = Tuple{WeightLatticeElem,WeylGroupElem}
-
-struct ReducedExpressionIterator
-  el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
-  #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
-  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
-end
-
-struct WeylIteratorNoCopy
-  weight::WeightLatticeElem # dominant weight
-  weyl_group::WeylGroup
-
-  function WeylIteratorNoCopy(wt::WeightLatticeElem)
-    return new(conjugate_dominant_weight(wt), weyl_group(root_system(wt)))
-  end
-end
-
-struct WeylOrbitIterator
-  nocopy::WeylIteratorNoCopy
-
-  function WeylOrbitIterator(wt::WeightLatticeElem)
-    return new(WeylIteratorNoCopy(wt))
-  end
-end
-
-###############################################################################
-#
 #   Lie algebras
 #
 ###############################################################################
@@ -180,11 +42,19 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
       ) "Not anti-symmetric."
       @req all(
         iszero,
-        sum(
-          struct_consts[i, j][k] * struct_consts[k, l] +
-          struct_consts[j, l][k] * struct_consts[k, i] +
-          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL; init=sparse_row(R)
-        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
+        begin
+          row = sparse_row(R)
+          for (k, k_val) in struct_consts[i, j]
+            row = addmul!(row, k_val, struct_consts[k, l])
+          end
+          for (k, k_val) in struct_consts[j, l]
+            row = addmul!(row, k_val, struct_consts[k, i])
+          end
+          for (k, k_val) in struct_consts[l, i]
+            row = addmul!(row, k_val, struct_consts[k, j])
+          end
+          row
+        end for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
@@ -203,7 +73,7 @@ end
   R::Field
   n::Int  # the n of the gl_n this embeds into
   dim::Int
-  basis::Vector{MatElem{C}}
+  basis::Vector{<:MatElem{C}}
   s::Vector{Symbol}
 
   # only set if known
@@ -219,6 +89,7 @@ end
   ) where {C<:FieldElem}
     @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
     @req length(s) == length(basis) "Invalid number of basis element names."
+    @req eltype(basis) == dense_matrix_type(R) "Invalid basis element type."
     L = new{C}(R, n, length(basis), basis, s)
     if check
       @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
@@ -286,7 +157,7 @@ end
     L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
   ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
-    L::parent_type(LieT)
+    @req L isa parent_type(LieT) "Parent type mismatch."
     if is_basis
       basis_elems = gens
       basis_matrix = if length(gens) == 0
@@ -302,14 +173,14 @@ end
       while !isempty(left)
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for i in 1:nrows(basis_matrix)
-          push!(left, g * L(basis_matrix[i, :]))
+        for row in eachrow(basis_matrix)
+          push!(left, g * L(row))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -355,9 +226,9 @@ end
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -413,8 +284,9 @@ end
 #
 ###############################################################################
 
-@attributes mutable struct LieAlgebraModule{C<:FieldElem} <: AbstractAlgebra.Set
-  L::LieAlgebra{C}
+@attributes mutable struct LieAlgebraModule{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
+                           AbstractAlgebra.Set
+  L::LieAlgebra{C} # parent_type(LieT)
   dim::Int
   transformation_matrices::Vector{<:MatElem{C}} # Vector{dense_matrix_type(C)}
   s::Vector{Symbol}
@@ -430,7 +302,7 @@ end
     @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
     @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
 
-    V = new{C}(L, dimV, transformation_matrices, s)
+    V = new{C,elem_type(L)}(L, dimV, transformation_matrices, s)
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
       for xi in basis(L), xj in basis(L), v in basis(V)
@@ -441,8 +313,8 @@ end
   end
 end
 
-struct LieAlgebraModuleElem{C<:FieldElem} <: AbstractAlgebra.SetElem
-  parent::LieAlgebraModule{C}
+struct LieAlgebraModuleElem{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: AbstractAlgebra.SetElem
+  parent::LieAlgebraModule{C,LieT}
   mat::MatElem{C}
 end
 

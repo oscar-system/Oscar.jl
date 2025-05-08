@@ -296,7 +296,7 @@ end
 @doc raw"""
     is_open_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
-Checks whether ``X`` is openly embedded in ``Y``.
+Check whether ``X`` is openly embedded in ``Y``.
 
 # Examples
 ```jldoctest
@@ -372,7 +372,7 @@ end
 @doc raw"""
     is_closed_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
-Checks whether ``X`` is closed embedded in ``Y``.
+Check whether ``X`` is closed embedded in ``Y``.
 
 # Examples
 ```jldoctest
@@ -537,7 +537,7 @@ This command relies on [`equidimensional_decomposition_radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
@@ -644,7 +644,7 @@ is locally free over 𝒪(X).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
@@ -699,9 +699,9 @@ true
   L = localized_ring(OO(X))
   I = modulus(OO(X))
   f = gens(saturated_ideal(I))
-  is_zero(length(f)) && return true
+  is_empty(f) && return true
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
@@ -711,7 +711,7 @@ end
   I = modulus(OO(X))
   f = gens(I)
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end

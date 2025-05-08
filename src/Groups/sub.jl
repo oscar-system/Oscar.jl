@@ -33,8 +33,7 @@ julia> H == alternating_group(4)
 true
 ```
 """
-function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
-  @assert elem_type(G) == S
+function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = true)
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
@@ -46,7 +45,7 @@ end
 function sub(gens::GAPGroupElem...)
    @req length(gens) > 0 "Empty list"
    l = collect(gens)
-   @assert all(x -> parent(x) == parent(l[1]), l)
+   @assert allequal(parent, l)
    return sub(parent(l[1]), l, check = false)
 end
 
@@ -68,7 +67,7 @@ false
 """
 function is_subset(H::GAPGroup, G::GAPGroup)
    _check_compatible(H, G, error = false) || return false
-   return all(h -> h in G, gens(H))
+   return all(in(G), gens(H))
 end
 
 """
@@ -158,15 +157,7 @@ end
 
 # convert a GAP list of subgroups into a vector of Julia groups objects
 function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
-  res = Vector{T}(undef, length(subs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
-  end
-  return res
-end
-
-function _as_subgroups(G::PcGroup, subs::GapObj)
-  res = Vector{SubPcGroup}(undef, length(subs))
+  res = Vector{sub_type(T)}(undef, length(subs))
   for i = 1:length(res)
     res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
   end
@@ -292,6 +283,15 @@ julia> center(quaternion_group(8))
 Return the centralizer of `H` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
 in `H`, together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  h = sylow_subgroup(g, 3)[1]
+Permutation group of degree 5 and order 3
+
+julia> centralizer(g, h)
+(Permutation group of degree 5 and order 6, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, H::GAPGroup)
   _check_compatible(G, H)
@@ -304,6 +304,15 @@ end
 Return the centralizer of `x` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
 together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  x = gen(g, 2)
+(1,2)
+
+julia> centralizer(g, x)
+(Permutation group of degree 4 and order 4, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
@@ -393,6 +402,7 @@ julia> jennings_series(dihedral_group(16))
 
 julia> jennings_series(dihedral_group(10))
 ERROR: ArgumentError: group must be a p-group
+[...]
 ```
 """
 @gapattribute function jennings_series(G::GAPGroup)
@@ -421,6 +431,7 @@ julia> p_central_series(alternating_group(4), 3)
 
 julia> p_central_series(alternating_group(4), 4)
 ERROR: ArgumentError: p must be a prime
+[...]
 ```
 """
 function p_central_series(G::GAPGroup, p::IntegerUnion)
@@ -517,6 +528,7 @@ julia> nilpotency_class(dihedral_group(8))
 
 julia> nilpotency_class(dihedral_group(12))
 ERROR: ArgumentError: The group is not nilpotent.
+[...]
 ```
 """
 @gapattribute function nilpotency_class(G::GAPGroup)
@@ -555,6 +567,7 @@ false
 
 julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
@@ -655,6 +668,7 @@ false
 
 julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
@@ -744,9 +758,13 @@ false
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
   Q = FPGroup(GapObj(G)/elems_in_gap)
-  function proj(x::FPGroupElem)
-    return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
-             GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
+  Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+  Qgens = GAPWrap.GeneratorsOfGroup(GapObj(Q))
+  if length(Ggens) == 0
+    proj = x::FPGroupElem -> one(Q)
+  else
+    proj = x::FPGroupElem -> group_element(Q, GAPWrap.MappedWord(GapObj(x),
+                                                  Ggens, Qgens))
   end
   return Q, hom(G, Q, proj)
 end

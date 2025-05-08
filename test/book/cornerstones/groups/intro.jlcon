@@ -26,7 +26,7 @@ julia> @perm (1,2)(4,5)     # cycle notation via macro
 (1,2)(4,5)
 
 julia> K = algebraic_closure(QQ)
-Field of algebraic numbers
+Algebraic closure of rational field
 
 julia> e = one(K)
 Root 1.00000 of x - 1
@@ -40,7 +40,7 @@ julia> mat_sigma1 = matrix(K, [ -1 0 ; 0 1 ]);
 
 julia> G_mat = matrix_group(mat_rot, mat_sigma1)
 Matrix group of degree 2
-  over field of algebraic numbers
+  over algebraic closure of rational field
 
 julia> is_isomorphic(G_mat, G_perm)
 true
@@ -62,13 +62,7 @@ julia> pts = collect(orb)
 
 julia> visualize(convex_hull(pts))
 
-julia> R2 = free_module(K, 2) # the "euclidean" plane over K
-Vector space of dimension 2 over QQBar
-
-julia> A = R2([0,1])
-(Root 0 of x, Root 1.00000 of x - 1)
-
-julia> pts = [A*mat_rot^i for i in 0:4];
+julia> R2 = vector_space(K, 2); # the "euclidean" plane over K
 
 julia> sigma_1 = hom(R2, R2, [-R2[1], R2[2]])
 Module homomorphism

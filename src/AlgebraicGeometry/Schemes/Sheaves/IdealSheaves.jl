@@ -339,6 +339,121 @@ function subscheme(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(
 end
 
 
+@attr Union{Int, NegInf} function dim(I::AbsIdealSheaf)
+  dims = [dim(I(U)) for U in affine_charts(scheme(I))]
+  return maximum(dims)
+end
+  
+@attr Bool function has_dimension_leq_zero(I::Ideal)
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+@attr Bool function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
+  R = base_ring(I)
+  P = base_ring(R)::MPolyRing
+  J = ideal(P, numerator.(gens(I)))
+  has_dimension_leq_zero(J) && return true
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+@attr Bool function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
+  R = base_ring(I)
+  P = base_ring(R)::MPolyRing
+  J = pre_saturated_ideal(pre_image_ideal(I))
+  has_dimension_leq_zero(J) && return true
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+
+function has_dimension_leq_zero(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    has_dimension_leq_zero(I(U)) || return false
+  end
+
+  all_patches = patches(covering)
+  for U in all_patches
+    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+      has_dimension_leq_zero(I(U)) || return false
+    end
+  end
+  return true
+end
+
+function has_dimension_leq_zero(I::SumIdealSheaf; 
+    covering::Covering=default_covering(scheme(I)),
+    use_decomposition_info::Bool=true
+  )
+  J = summands(I)
+
+  common_patches = keys(object_cache(first(J)))
+  for JJ in J[2:end]
+    common_patches = [U for U in common_patches if U in keys(object_cache(JJ))]
+  end
+
+  for U in common_patches
+    has_dimension_leq_zero(I(U)) || return false
+  end
+
+  all_patches = patches(covering)
+  for U in all_patches
+    patch_ok = false
+    # go through the object cache of the summands
+    if U in keys(object_cache(I))
+      i = I(U)
+      if has_decomposition_info(covering) && use_decomposition_info
+        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+        has_dimension_leq_zero(K + i) && (patch_ok = true)
+      else
+        has_dimension_leq_zero(i) && (patch_ok = true)
+      end
+      patch_ok && continue
+    end
+
+    # Do the same for the summands
+    for j in summands(I)
+      if U in keys(object_cache(j))
+        j_loc = j(U)
+        if has_decomposition_info(covering) && use_decomposition_info
+          K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+          has_dimension_leq_zero(K + j_loc) && (patch_ok = true)
+        else
+          has_dimension_leq_zero(j_loc) && (patch_ok = true)
+        end
+        patch_ok && break
+      end
+    end
+    patch_ok && continue
+
+    # repeat with cheap sub-ideals
+    for j in summands(I)
+      j_cheap = cheap_sub_ideal(j, U)
+      if has_decomposition_info(covering) && use_decomposition_info
+        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+        has_dimension_leq_zero(K + j_cheap) && (patch_ok = true)
+      else
+        has_dimension_leq_zero(j_cheap) && (patch_ok = true)
+      end
+      patch_ok && break
+    end
+    patch_ok && continue
+
+    if has_decomposition_info(covering) && use_decomposition_info
+      K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+      if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
+        has_dimension_leq_zero(I(U) + K) || return false
+      end
+    else
+      if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+        has_dimension_leq_zero(I(U)) || return false
+      end
+    end
+  end
+  return true
+end
+  
 @doc raw"""
     extend!(C::Covering, D::Dict{AffineSchemeType, IdealType}) where {AffineSchemeType<:AffineScheme, IdealType<:Ideal}
 
@@ -447,9 +562,12 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
-  fac = factor(f)
+  return _iterative_saturation(I, typeof(f)[u for (u, _) in factor(f)])
+end
+
+function _iterative_saturation(I::Ideal, f::Vector{T}) where{T<:RingElem}
   R = base_ring(I)
-  for (u, k) in fac
+  for u in f
     I = saturation(I, ideal(R, u))
   end
   return I
@@ -467,6 +585,11 @@ function ==(I::AbsIdealSheaf, J::AbsIdealSheaf)
     is_subset(I(U), J(U)) && is_subset(J(U), I(U)) || return false
   end
   return true
+end
+
+function Base.hash(I::AbsIdealSheaf, h::UInt)
+  h = hash(scheme(I), h)
+  return h
 end
 
 function is_subset(I::AbsIdealSheaf, J::AbsIdealSheaf)
@@ -544,13 +667,11 @@ end
 #end
 #
 
-function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
-    end
-    return all(x->isone(I(x)), covering)
-  end::Bool
+@attr Bool function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
+  end
+  return all(x->isone(I(x)), covering)
 end
 
 function is_one(I::PrimeIdealSheafFromChart; covering::Covering=default_covering(scheme(I)))
@@ -561,44 +682,42 @@ function dim(I::PrimeIdealSheafFromChart)
   return dim(I(original_chart(I)))
 end
 
-function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return get_attribute!(I, :is_one) do
-    for U in keys(object_cache(I))
-      !is_one(I(U)) && return false
-    end
+@attr Bool function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    !is_one(I(U)) && return false
+  end
 
-    J = summands(I)
-    k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
-    if k !== nothing
-      P = J[k]
-      U = original_chart(P)
-      if !is_one(cheap_sub_ideal(I, U))
-        is_one(I(U)) || return false
+  J = summands(I)
+  k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+  if k !== nothing
+    P = J[k]
+    U = original_chart(P)
+    if !is_one(cheap_sub_ideal(I, U))
+      is_one(I(U)) || return false
+    end
+  end
+  
+  if has_decomposition_info(covering)
+    dec = decomposition_info(covering)
+    for U in covering 
+      D = ideal(OO(U), dec[U])
+      K = D
+      for J in summands(I) # shortcut for trivial patches
+        if U in keys(object_cache(J))
+          K = K + J(U)
+        end 
       end
-    end
-    
-    if has_decomposition_info(covering)
-      dec = decomposition_info(covering)
-      for U in covering 
-        D = ideal(OO(U), dec[U])
-        K = D
-        for J in summands(I) # shortcut for trivial patches
-          if U in keys(object_cache(J))
-            K = K + J(U)
-          end 
-        end
-        isone(K) && continue
-        
-        isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
-      end 
-      return true
-    end
-    return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
-  end::Bool
+      isone(K) && continue
+      
+      isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
+    end 
+    return true
+  end
+  return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
 end
 
 function is_one(I::ProductIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return all(x->is_one(x), factors(I))
+  return all(is_one, factors(I))
 end
 
 @doc raw"""
@@ -639,11 +758,11 @@ is_locally_prime(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
   has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)::Bool
-  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)::Bool
+  has_attribute(I, :is_prime) && get_attribute(I, :is_prime)::Bool && return true
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
-  if !all(x->x==d, local_dims) ||
+  if !all(==(d), local_dims) ||
      !all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering))
     set_attribute!(I, :is_equidimensional=>false)
     return false
@@ -672,15 +791,51 @@ end
   return is_equidimensional(pre_image_ideal(I))
 end
 
-function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+@doc raw"""
+    _minimal_power_such_that(
+        I::Ideal, P::PropertyType;
+        boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+      ) where {PropertyType}
+
+Find a minimal exponent `k` such that `P(I^k) == true` where `P` is 
+some property which can be evaluated on an ideal; return the pair 
+`(k, I^k)`.
+
+By default, this is done by bisection, i.e. first we try with powers 
+`I^0, I^1, I^2, I^4, I^8, I^16, ...` until we obtain `P(I^k) == true` 
+for the first time and then downwards bisection to find the minimal 
+exponent with this property. 
+
+As this is prone to quickly trigger Groebner basis computations of ideals 
+with generators of rather high degree, we provide the keyword argument 
+`boundary_for_incremental_strategy`. If set to some integer value `k_lim`, 
+the build up phase for finding powers `J = I^(2^r)` with `P(J) == true` 
+is aborted, once `2^r >= k_lim` and an incremental search for the lowest 
+exponent is done instead. 
+"""
+function _minimal_power_such_that(
+    I::Ideal, P::PropertyType;
+    boundary_for_incremental_strategy::Union{Int, PosInf}=inf
+  ) where {PropertyType}
   whole_ring = ideal(base_ring(I), [one(base_ring(I))])
   P(whole_ring) && return (0, whole_ring)
   P(I) && return (1, I)
   I_powers = [(1,I)]
 
-  while !P(last(I_powers)[2])
+  # building up a cache by iterated squaring of the exponent
+  while 2*last(I_powers)[1] < boundary_for_incremental_strategy && !P(last(I_powers)[2])
     push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
   end
+
+  # if we crossed the boundary for the build up, switch to dumb iteration
+  if 2*last(I_powers)[1] >= boundary_for_incremental_strategy && !P(last(I_powers)[2])
+    while true
+      push!(I_powers, (last(I_powers)[1]+1, last(I_powers)[2]*I))
+      k, J = last(I_powers)
+      P(J) && return k, J
+    end
+  end
+
   upper = pop!(I_powers)
   lower = pop!(I_powers)
   while upper[1]!=lower[1]+1
@@ -703,7 +858,7 @@ Return the order of the rational function `f` on the prime divisor `D`.
 function order_of_vanishing(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
   @check is_prime(D) "divisor must be prime for the order of vanishing to be defined"
   P = components(D)[1]
-  return order_of_vanishing(f, P)
+  return order_of_vanishing(f, P; check=false)
 end 
 
 @doc raw"""
@@ -721,14 +876,11 @@ function order_of_vanishing(
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
 
-  #order_dict = Dict{AbsAffineScheme, Int}()
-
   # Since X is integral and I is a sheaf of prime ideals,
   # it suffices to find one chart in which I is non-trivial.
 
   # We look for the chart with the least complexity
   V = first(affine_charts(X))
-  #complexity = Vector{Tuple{AbsAffineScheme, Int}}()
   complexity = inf
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
@@ -758,30 +910,9 @@ function order_of_vanishing(
   bR = ideal(R, denominator(floc))
 
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)); boundary_for_incremental_strategy=4)[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)); boundary_for_incremental_strategy=4)[1]-1
   return num_mult - den_mult
-#    # Deprecated code computing symbolic powers explicitly:
-#    L, map = localization(OO(U),
-#                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
-#                         )
-#    L isa Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-#                                        <:MPolyComplementOfPrimeIdeal},
-#                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-#                                           <:MPolyComplementOfPrimeIdeal}
-#                    } || error("localization was not successful")
-#
-#    floc = f[U]
-#    a = numerator(floc)
-#    b = denominator(floc)
-#    # TODO: cache groebner bases in a reasonable way.
-#    P = L(prime_ideal(inverted_set(L)))
-#    if one(L) in P
-#      continue # the multiplicity is -∞ in this case and does not count
-#    end
-#    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
-#    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
-#    order_dict[U] = upper-lower
 end
 
 @doc raw"""
@@ -897,7 +1028,7 @@ function maximal_associated_points(
     loc_primes = minimal_primes(I(U); algorithm)
 
     # Take only those not visible in other charts 
-    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(g->g in p, loc_dec), loc_primes) 
+    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(in(p), loc_dec), loc_primes) 
     for p in loc_primes
       P = PrimeIdealSheafFromChart(X, U, p)
       P in comps && continue
@@ -940,6 +1071,29 @@ function maximal_associated_points(
   return comps
 end
 
+@doc raw"""
+    minimal_primes(I::AbsIdealSheaf; kwargs...)
+
+Return the minimal prime ideal sheaves of ``I``.
+
+These are the ideal sheaves of the maximal associated points of ``I``.
+
+See [`maximal_associated_points`](@ref) for possible keyword arguments.
+"""
+minimal_primes(I::AbsIdealSheaf; kwargs...) = maximal_associated_points(I; kwargs...)
+
+@doc raw"""
+    associated_primes(I::AbsIdealSheaf; kwargs...)
+
+Return the prime ideal sheaves associated to``I``.
+
+These are the ideal sheaves of the associated points of ``I``.
+
+See [`associated_points`](@ref) for possible keyword arguments.
+"""
+associated_primes(I::AbsIdealSheaf; kwargs...) = associated_points(I; kwargs...)
+  
+  
 @doc raw"""
     associated_points(I::AbsIdealSheaf)
 
@@ -1034,7 +1188,7 @@ function match_on_intersections(
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
         if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
-          match_found = !all(I->is_one(I), I_res)                               ## count only non-trivial matches
+          match_found = !all(is_one, I_res)                               ## count only non-trivial matches
           check || break
         else
           match_contradicted = true
@@ -1192,9 +1346,7 @@ function Base.show(io::IO, ::MIME"text/plain", I::SumIdealSheaf)
   io = pretty(io)
   print(io, "Sum of \n")
   print(io, Indent())
-  for J in summands(I)
-    print(io, J, "\n")
-  end
+  join(io, summands(I), "\n")
   print(io, Dedent())
 end
 
@@ -1202,30 +1354,18 @@ function Base.show(io::IO, ::MIME"text/plain", I::ProductIdealSheaf)
   io = pretty(io)
   print(io, "Product of \n")
   print(io, Indent())
-  for J in factors(I)
-    print(io, J, "\n")
-  end
+  join(io, factors(I), "\n")
   print(io, Dedent())
 end
 
 function Base.show(io::IO, I::SumIdealSheaf)
   io = pretty(io)
-  print(io, "Sum of \n")
-  print(io, Indent())
-  for J in summands(I)
-    print(io, J, "\n")
-  end
-  print(io, Dedent())
+  print(io, "Sum of $(length(summands(I))) ideal sheaves")
 end
 
 function Base.show(io::IO, I::ProductIdealSheaf)
   io = pretty(io)
-  print(io, "Product of \n")
-  print(io, Indent())
-  for J in factors(I)
-    print(io, J, "\n")
-  end
-  print(io, Dedent())
+  print(io, "Product of $(length(factors(I))) ideal sheaves")
 end
 
 function Base.show(io::IO, I::PrimeIdealSheafFromChart)
@@ -1391,20 +1531,18 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:AbsIdealShe
   return new_cov
 end
 
-function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
-  get_attribute!(I, :small_generating_set) do
-    L = base_ring(I)
-    poly_ideal = pre_saturated_ideal(I)
-    if algorithm == :simple
-      # do nothing more
-    elseif algorithm == :with_saturation
-      poly_ideal = saturated_ideal(I)
-    else
-      error("algorithm keyword not recognized")
-    end
-    g = small_generating_set(poly_ideal)
-    unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
-  end::Vector{elem_type(base_ring(I))} 
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
+  L = base_ring(I)
+  poly_ideal = pre_saturated_ideal(I)
+  if algorithm == :simple
+    # do nothing more
+  elseif algorithm == :with_saturation
+    poly_ideal = saturated_ideal(I)
+  else
+    error("algorithm keyword not recognized")
+  end
+  g = small_generating_set(poly_ideal)
+  unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
 end
 
 function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
@@ -1590,6 +1728,7 @@ function produce_object(
     algorithm::Symbol=:pullback # Either :pushforward or :pullback
                                    # This determines how to extend through the gluings.
   )
+  U2 === original_chart(F) && return F.P
   # Initialize some local variables
   X = scheme(F)
   OOX = OO(X)
@@ -1885,9 +2024,7 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     return init + 1000
   end
 
-  ext = [(U, complexity(U)) for U in fat]
-  sort!(ext, by=x->x[2])
-  fat = [U for (U, _) in ext]
+  sort!(fat; by=complexity)
   count = 0
   for W in fat
     glue = default_covering(X)[W, V2]
@@ -2141,4 +2278,98 @@ end
 is_one(II::SingularLocusIdealSheaf) = all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in affine_charts(scheme(II)))
 
 in_radical(J::AbsIdealSheaf, II::SingularLocusIdealSheaf) = all(all(radical_membership(g, produce_non_radical_ideal_of_singular_locus(II, U)) for g in gens(J(U))) for U in affine_charts(scheme(J)))
+
+@doc raw"""
+    colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+    
+Return the colength of `I`.
+
+
+"""
+function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  X = scheme(I)
+  all_patches = copy(patches(covering))
+  patches_done = AbsAffineScheme[]
+  patches_todo = AbsAffineScheme[]
+  @vprintln :Divisors 2 "checking colength of $(I)"
+  for U in all_patches
+    dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
+    if is_known(is_one, I, U; dec_inf)
+      push!(patches_done, U)
+    else
+      push!(patches_todo, U)
+    end
+  end
+
+  result = 0
+  while length(patches_todo) != 0
+    U = pop!(patches_todo)
+
+    # First do a cheaper test whether this chart needs to be looked at
+    J_cheap = cheap_sub_ideal(I, U)
+    if has_decomposition_info(covering)
+      h = decomposition_info(covering)[U]
+      if isone(J_cheap + ideal(OO(U), elem_type(OO(U))[OO(U)(a) for a in h])) # R(a) is not type stable for R::MPolyQuoRing
+        # push!(patches_done, U)
+        continue
+      end
+    end
+
+    J = I(U)
+    if has_decomposition_info(covering)
+      h = decomposition_info(covering)[U]
+      # The elements in h indicate where components must 
+      # be located so that they can not be spotted in other charts.
+      # We iteratively single out these components by adding a sufficiently high 
+      # power of the equation to the ideal.
+      for f in h
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        if isone(J)
+          push!(patches_done, U)
+          continue
+        end
+      end
+    else
+      # To avoid overcounting, throw away all components that 
+      # were already visible in other charts.
+      for V in patches_done
+        if !haskey(gluings(covering), (U, V))
+          continue
+        end
+        G = covering[U, V]
+        (UV, VU) = gluing_domains(G)
+        UV isa PrincipalOpenSubset || error("method is only implemented for simple gluings")
+        f = complement_equation(UV)
+        # Find a sufficiently high power of f such that it throws
+        # away all components away from the horizon, but does not affect
+        # those on the horizon itself.
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        isone(J) && break
+      end
+    end
+    if !isone(J)
+      JJ = leading_ideal(saturated_ideal(J))
+      A, _ = quo(base_ring(JJ), JJ)
+      result = result + ngens(vector_space(coefficient_ring(base_ring(A)), A)[1])
+    end
+    push!(patches_done, U)
+  end
+  return result
+end
+
+function is_zero(II::AbsIdealSheaf)
+  return all(iszero(II(U)) for U in affine_charts(scheme(II)))
+end
+
+function is_zero(II::PrimeIdealSheafFromChart)
+  return is_zero(II(original_chart(II)))
+end
 

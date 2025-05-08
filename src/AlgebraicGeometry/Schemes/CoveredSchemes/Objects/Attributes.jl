@@ -7,7 +7,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
-base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 
 ########################################################################
 # Basic getters                                                        #
@@ -166,28 +165,27 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 # Auxiliary attributes                                                 #
 ########################################################################
-function dim(X::AbsCoveredScheme)
-  if !has_attribute(X, :dim)
-    d = -1
-    is_equidimensional=true
-    for U in patches(default_covering(X))
-      e = dim(U)
-      if e > d
-        d == -1 || (is_equidimensional=false)
-        d = e
+@attr Union{Int, NegInf} function dim(X::AbsCoveredScheme)
+  d = -inf
+  is_equidimensional=true
+  for U in patches(default_covering(X))
+    e = dim(U)
+    if e > d
+      if d !== -inf
+        is_equidimensional = false
       end
-    end
-    set_attribute!(X, :dim, d)
-    if !is_equidimensional
-      # the above is not an honest check for equidimensionality,
-      # because in each chart the output of `dim` is only the
-      # supremum of all components. Thus we can only infer
-      # non-equidimensionality in case this is already visible
-      # from comparing the different charts
-      set_attribute!(X, :is_equidimensional, false)
+      d = e
     end
   end
-  return get_attribute(X, :dim)::Int
+  if !is_equidimensional
+    # the above is not an honest check for equidimensionality,
+    # because in each chart the output of `dim` is only the
+    # supremum of all components. Thus we can only infer
+    # non-equidimensionality in case this is already visible
+    # from comparing the different charts
+    set_attribute!(X, :is_equidimensional, false)
+  end
+  return d
 end
 
 @attr Any function singular_locus_reduced(X::AbsCoveredScheme)
@@ -239,14 +237,14 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1: scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
 julia> s
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
@@ -271,21 +269,11 @@ given by the pullback function
   return domain(inc), inc
 end
 
-function ideal_sheaf_of_singular_locus(
+@attr SingularLocusIdealSheaf function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
     focus=zero_ideal_sheaf(X) # This should really be an AbsIdealSheaf, but the inclusion order forbids mentioning this here.
   )
-  return get_attribute!(X, :ideal_sheaf_of_singular_locus) do
-    SingularLocusIdealSheaf(X; focus)
-  end::SingularLocusIdealSheaf
-  D = IdDict{AbsAffineScheme, Ideal}()
-  covering = get_attribute(X, :simplified_covering, default_covering(X))
-  for U in covering
-    _, inc_sing = singular_locus(U)
-    D[U] = radical(image_ideal(inc_sing))
-  end
-  Ising = IdealSheaf(X, D, check=false)
-  return Ising
+  return SingularLocusIdealSheaf(X; focus)
 end
 
 function simplified_covering(X::AbsCoveredScheme)

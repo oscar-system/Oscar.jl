@@ -47,7 +47,7 @@ end
 #
 ## Examples
 #```jldoctest
-#julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+#julia> R, (x,y) = polynomial_ring(QQ, [:x, :y])
 #(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 #
 #julia> F = FreeMod(R,3)
@@ -87,7 +87,7 @@ Return the entries (with respect to the standard basis) of `v` as a sparse row.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)

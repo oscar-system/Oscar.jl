@@ -1,13 +1,7 @@
-function test_elem(K::QQAbField)
-  ns = rand(1:8, 3)
-  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
-  return sum(zs)
-end
-
 @testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation" begin
@@ -59,7 +53,14 @@ end
 
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
-    @test sprint(show, "text/plain", K) == "Abelian closure of Q"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(K) == "Abelian closure of QQ"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(z) == "Generator of abelian closure of QQ"
 
     orig = get_variable(K)
     @test orig == "zeta"
@@ -113,9 +114,9 @@ end
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
-  @testset "Conversion" begin
+  @testset "Conversion to ZZRingElem and QQFieldElem" begin
     K, z = abelian_closure(QQ)
-    x  = z(5)
+    x = z(5)
     y = ZZ(x^5)
     @test y isa ZZRingElem
     @test y == 1
@@ -124,6 +125,46 @@ end
     @test y == 1
     @test_throws ErrorException ZZ(x)
     @test_throws ErrorException QQ(x)
+  end
+
+  @testset "Conversion to QQBarFieldElem" begin
+    K, z = abelian_closure(QQ)
+    F = QQBarField()
+    x = z(5)
+    y = F(x)
+    @test F(x) == QQBarFieldElem(x)
+    @test F(x^2) == y^2
+    @test y == root_of_unity(F, 5)
+    @test is_one(y^5)
+    a = x + x^4
+    b = x^2 + x^3
+    n = zero(K)
+    @test a > n && F(a) > F(n)
+    @test a > 0
+    @test a > BigInt(0)
+    @test a > 0 // 1
+    @test a > ZZ(0)
+    @test a > QQ(0)
+    @test b < n && F(b) < F(n)
+    @test b < 0
+    @test b < BigInt(0)
+    @test b < 0 // 1
+    @test b < ZZ(0)
+    @test b < QQ(0)
+    @test b < a && F(b) < F(a)
+    @test is_positive(a)
+    @test is_negative(b)
+    @test_throws DomainError x < n
+    @test_throws DomainError y < F(n)
+  end
+
+  @testset "Conversion to Float64 and ComplexF64" begin
+    K, z = abelian_closure(QQ)
+    x = z(5)
+    a = x + x^4
+    @test Float64(a) > 0
+    @test_throws InexactError Float64(x)
+    @test is_one(ComplexF64(one(K)))
   end
 
   @testset "Promote rule" begin
@@ -194,7 +235,7 @@ end
       c = rand_elem()
       aa = deepcopy(a)
       bb = deepcopy(b)
-      @test addeq!(a, b) == aa + bb
+      @test add!(a, b) == aa + bb
       @test b == bb
       aa = deepcopy(a)
       @test Oscar.AbelianClosure.neg!(a) == -aa
@@ -223,7 +264,19 @@ end
         @test a - b == a - K(b)
         @test b - a == K(b) - a
         if !iszero(b)
-          @test //(a * b, b) == a
+          @test (a * b) // b == a
+          @test (a // b) * b == a
+
+          @test (a * b) / b == a
+          @test (a / b) * b == a
+        end
+
+        if !iszero(a)
+          @test (b * a) // a == b
+          @test (b // a) * a == b
+
+          @test (b * a) / a == b
+          @test (b / a) * a == b
         end
       end
     end
@@ -276,6 +329,10 @@ end
     f = hom(K, K, 3)
     @test f(a) == a^3
     @test f(z(9)) == z(9)
+
+    @test isone(conj(a)*a)
+    @test !isreal(a)
+    @test isreal(a+conj(a))
   end
 
   @testset "Square roots" begin
@@ -340,7 +397,7 @@ end
 
   @testset "Polynomial" begin
     K, z = abelian_closure(QQ)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(z(4)) == z(4)^2 + 1
   end
 

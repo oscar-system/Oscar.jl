@@ -1,7 +1,7 @@
 @testset "src/TropicalGeometry/groebner_basis.jl" begin
 
     @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector)" begin
-        R,(x,y) = QQ["x","y"]
+        R,(x,y) = QQ[:x, :y]
         I = ideal(R,[x^2+x*y+8*y^2,x+y])
         w = [1,-1]
         nuMin = tropical_semiring_map(QQ)
@@ -19,7 +19,7 @@
         @test issetequal(groebner_basis(I,nuMax,w),[y^2,x+y]) # padic, max
 
         K,t = rational_function_field(GF(2),"t")
-        R,(x,y) = K["x","y"]
+        R,(x,y) = K[:x, :y]
         I = ideal(R,[x^2+x*y+t^3*y^2,x+y])
         nuMin = tropical_semiring_map(K,t)
         nuMax = tropical_semiring_map(K,t,max)
@@ -28,17 +28,9 @@
     end
 
     @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector) - principal ideals" begin
-        R,(x,y) = QQ["x","y"]
+        R,(x,y) = QQ[:x, :y]
         I = ideal(R,[x^1+8*y^2])
         w = [-1,-1]
-        nu = tropical_semiring_map(QQ)
-        @test issetequal(groebner_basis(I,nu,w),gens(I))
-    end
-
-    @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector) - binomial ideals" begin
-        R,(x,y) = QQ["x","y"]
-        I = ideal(R,[x^1+8*y^2,x^2+y^4])
-        w = [-2,-1]
         nu = tropical_semiring_map(QQ)
         @test issetequal(groebner_basis(I,nu,w),gens(I))
     end

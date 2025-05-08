@@ -82,6 +82,7 @@ option is set in suitable functions.
   n::Int
   S::Vector{Symbol}
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
+  default_ordering::ModuleOrdering
 
   # We register the incoming and outgoing natural morphisms.
   # This must be done in a way that objects can be collected by the 
@@ -119,7 +120,7 @@ which specifies its coordinates with respect to the basis of standard unit vecto
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
@@ -279,7 +280,7 @@ combination of the generators of $M$ which defines $f$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -293,14 +294,14 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 
 julia> f = SubquoModuleElem(sparse_row(R, [(1,z),(2,one(R))]),M)
 (x*z + y)*e[1]
@@ -582,7 +583,14 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
-      return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      # The following code is a slight manual speedup of the following original line:
+      # return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      cod_ring = base_ring(G)
+      res_coord = sparse_row(cod_ring)
+      for (i, b) in coordinates(x)
+        Hecke.add_scaled_row!(coordinates(a[i]), res_coord, b)
+      end
+      return G(res_coord)
     end
     function pr_func(x)
       @assert parent(x) === G

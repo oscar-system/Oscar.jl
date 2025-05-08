@@ -1,29 +1,41 @@
 @testset "Subgroups" begin
+   S = symmetric_group(7)
+   Sx = cperm(S, [1, 2, 3, 4, 5, 6, 7])
+   Sy = cperm(S, [1, 2, 3])
+   Sz = cperm(S, [1, 2])
+
+   for T in [PermGroup, FPGroup]
+     iso = isomorphism(T, S)
+     G = codomain(iso)
+     x = iso(Sx)
+     y = iso(Sy)
+     z = iso(Sz)
+
+     H, f = sub(G, [x, y])
+     K, g = sub(x, y)
+     @test H isa Oscar.sub_type(T)
+     @test domain(f) == H
+     @test codomain(f) == G
+     @test [f(x) for x in gens(H)] == gens(H)
+     @test (H, f) == (K, g)
+     @test is_subset(K, G)
+     flag, emb = is_subgroup(K, G)
+     @test flag
+     @test g == emb
+     @test g == embedding(K, G)
+     @test K === domain(emb)
+     @test G === codomain(emb)
+     @test is_normal_subgroup(H, G)
+     H, f = sub(G, [x, z])
+     @test H == G
+     @test f == id_hom(G)
+   end
+
    G = symmetric_group(7)
-   x = cperm(G,[1,2,3,4,5,6,7])
-   y = cperm(G,[1,2,3])
-   z = cperm(G,[1,2])
-
-   H,f=sub(G,[x,y])
-   K,g=sub(x,y)
-   @test H isa PermGroup
-   @test H==alternating_group(7)
-   @test domain(f)==H
-   @test codomain(f)==G
-   @test [f(x) for x in gens(H)]==gens(H)
-   @test (H,f)==(K,g)
-   @test is_subset(K, G)
-   flag, emb = is_subgroup(K, G)
-   @test flag
-   @test g == emb
-   @test g == embedding(K, G)
-   @test K === domain(emb)
-   @test G === codomain(emb)
-   @test is_normal_subgroup(H, G)
-   H,f=sub(G,[x,z])
-   @test H==G
-   @test f==id_hom(G)
-
+   x = cperm(G, [1, 2, 3, 4, 5, 6, 7])
+   y = cperm(G, [1, 2, 3])
+   H, f = sub(G, [x, y])
+   @test H == alternating_group(7)
    @test !is_subset(symmetric_group(8), G)
    @test_throws ArgumentError embedding(symmetric_group(8), G)
 
@@ -155,6 +167,10 @@ end
    @test index(G, H) == 4
   
    C = right_coset(H, G[1])
+   @test group(C) == G
+   @test acting_group(C) == H
+   @test representative(C) in C
+   @test all(x -> x/G[1] in H, C)
    @test is_right(C)
    @test order(C) == length(collect(C))
    @test order(C) isa ZZRingElem
@@ -185,8 +201,8 @@ end
       @test rc==H*x
       @test lc==x*H
       @test dc==H*x*K
-      @test acting_domain(rc) == H
-      @test acting_domain(lc) == H
+      @test acting_group(rc) == H
+      @test acting_group(lc) == H
       @test left_acting_group(dc) == H
       @test right_acting_group(dc) == K
       @test representative(rc) == x
@@ -206,6 +222,10 @@ end
       @test issubset(rc,dc)
       @test issubset(left_coset(K,x),dc)
       @test !is_bicoset(rc)
+
+      @inferred GapObj(rc)
+      @inferred GapObj(lc)
+      @inferred GapObj(dc)
 
       @test rc == H*x
       @test lc == x*H
@@ -259,6 +279,7 @@ end
    x = G([2,3,4,5,1])
    dc = double_coset(H,x,K)
    dc1 = double_coset(H, H[1]*x, K)
+   @test group(dc) == G
    @test representative(dc) != representative(dc1)
    @test dc == dc1
    L = double_cosets(G,H,K)

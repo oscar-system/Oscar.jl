@@ -1,7 +1,7 @@
 @testset "src/TropicalGeometry/initial.jl" begin
 
     @testset "initial(::MPolyRingElem,::TropicalSemiringMap,::Vector)" begin
-        R,(x,y) = QQ["x","y"]
+        R,(x,y) = QQ[:x, :y]
         f = x^2+y^2+2*x+2*y
         w = [-1,-1]
         nuMin = tropical_semiring_map(QQ)
@@ -19,7 +19,7 @@
         @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
 
         K,t = rational_function_field(GF(2),"t")
-        R,(x,y) = K["x","y"]
+        R,(x,y) = K[:x, :y]
         f = x^2+y^2+t*x+t*y
         w = [-1,-1]
         nuMin = tropical_semiring_map(K,t)

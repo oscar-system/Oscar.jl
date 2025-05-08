@@ -177,6 +177,7 @@ include("Sheaves/Sheaves.jl")
 include("Sheaves/CoherentSheaves.jl")
 include("Sheaves/StructureSheaf.jl")
 include("Sheaves/IdealSheaves.jl")
+include("Sheaves/Methods.jl")
 
 ########################################################################
 # Rational functions
@@ -189,3 +190,12 @@ include("FunctionField/FunctionFields.jl")
 include("Divisors/AlgebraicCycles.jl")
 include("Divisors/WeilDivisor.jl")
 include("Divisors/CartierDivisor.jl")
+include("Divisors/base_change.jl")
+
+########################################################################
+# Blowups
+########################################################################
+include("CoveredProjectiveScheme/Types.jl")
+include("CoveredProjectiveScheme/CoveredProjectiveScheme.jl")
+include("BlowupMorphism/Types.jl")
+include("BlowupMorphism/BlowupMorphism.jl")
