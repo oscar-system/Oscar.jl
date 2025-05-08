@@ -108,13 +108,13 @@ julia> C = clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0]))
 Clifford algebra of quadratic space with Gram matrix
   [0   1]
   [1   0]
-defined over Rational field
+defined over rational field
 
 julia> K, a = quadratic_field(-5); C = clifford_algebra(quadratic_space(K, K[2 a; a 2]))
 Clifford algebra of quadratic space with Gram matrix
   [       2   sqrt(-5)]
   [sqrt(-5)          2]
-defined over Imaginary quadratic field defined by x^2 + 5
+defined over imaginary quadratic field defined by x^2 + 5
 ```
 """
 clifford_algebra(qs::Hecke.QuadSpace) =
