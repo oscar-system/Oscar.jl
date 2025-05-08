@@ -14,7 +14,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(m)
-A family of spaces of dimension d = 3
+Family of spaces of dimension d = 3
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -35,7 +35,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(m)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)

@@ -941,12 +941,17 @@ end
 @doc raw"""
     absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
 
-Given an ideal `I` in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of `I`.
+    absolute_primary_decomposition(I::MPolyIdeal{T}) where 
+        {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
+
+Given an ideal `I` in a multivariate polynomial ring over a field, say, `K` as indicated above,
+return an absolute minimal primary decomposition of `I`.
 
 Return the decomposition as a vector of tuples $(Q_i, P_i, P_{ij}, d_{ij})$, say,
 where $(Q_i, P_i)$ is a (primary, prime) tuple as returned by `primary_decomposition(I)`,
 and $P_{ij}$ represents a corresponding class of conjugated absolute associated primes
-defined over a number field of degree $d_{ij}$ whose generator prints as `_a`.
+defined over a finite extension field of degree $d_{ij}$ of `K` whose generator over `K`
+prints as `_a`.
 
 # Implemented Algorithms
 
@@ -1276,7 +1281,8 @@ end
 @doc raw"""
     equidimensional_decomposition_weak(I::MPolyIdeal)
 
-Return a vector of equidimensional ideals where the last entry is the
+Given an ideal `I` in a multivariate polynomial ring over a perfect field, 
+return a vector of equidimensional ideals where the last entry is the
 equidimensional hull of `I`, that is, the intersection of the primary
 components of `I` of maximal dimension. Each of the previous entries
 is an ideal of lower dimension whose associated primes are exactly the associated
@@ -1352,13 +1358,14 @@ end
 @doc raw"""
     equidimensional_decomposition_radical(I::MPolyIdeal)
 
-Return a vector of equidimensional radical ideals increasingly ordered by dimension.
+Given an ideal `I` in a multivariate polynomial ring over a perfect field,
+return a vector of equidimensional radical ideals increasingly ordered by dimension.
 For each dimension, the returned radical ideal is the intersection of the associated primes
 of `I` of that dimension.
 
 # Implemented Algorithms
 
-The implementation combines the algorithms of Krick and Logar (with modifications by Laplagne) and Kemper. See [KL91](@cite) and [Kem02](@cite).
+The implementation relies on ideas of Eisenbud, Huneke, and Vasconcelos. See [EHV92](@cite).
 
 # Examples
 ```jldoctest
