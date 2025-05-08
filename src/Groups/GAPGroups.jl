@@ -1927,7 +1927,7 @@ julia> rank(free_group(5))
 5
 
 julia> G = pc_group(abelian_group(5,0))
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> rank(G)
 2
