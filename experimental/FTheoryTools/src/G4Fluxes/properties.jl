@@ -32,7 +32,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> is_well_quantized(g4)
 true
@@ -42,7 +42,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 @attr Bool function is_well_quantized(g4::G4Flux)
@@ -94,7 +94,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> passes_transversality_checks(g4)
 true
@@ -104,7 +104,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 @attr Bool function passes_transversality_checks(g4::G4Flux)
@@ -159,7 +159,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> passes_tadpole_cancellation_check(g4)
 true
@@ -207,7 +207,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> breaks_non_abelian_gauge_group(g4)
 false
@@ -216,8 +216,8 @@ julia> g4
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 ```
 """
 @attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux)
