@@ -79,7 +79,7 @@ end
 
 ################################################################################
 #
-#  Array-like functionality
+#  Array-like functionality for Combination
 #
 ################################################################################
 
@@ -92,24 +92,64 @@ function Base.show(io::IO, ::MIME"text/plain", P::Combination)
   print(io, p)
 end
 
-data(P::Combination) = P.v
+data(C::Combination) = C.v
 
-function Base.size(P::Combination)
-  return size(data(P))
+function Base.size(C::Combination)
+  return size(data(C))
 end
 
-function Base.length(P::Combination)
-  return length(data(P))
+function Base.length(C::Combination)
+  return length(data(C))
 end
 
-function Base.getindex(P::Combination, i::IntegerUnion)
-  return getindex(data(P), Int(i))
+function Base.getindex(C::Combination, i::IntegerUnion)
+  return getindex(data(C), Int(i))
 end
 
-function Base.setindex!(P::Combination, x::IntegerUnion, i::IntegerUnion)
-  return setindex!(data(P), x, i)
+function Base.setindex!(C::Combination, x::IntegerUnion, i::IntegerUnion)
+  return setindex!(data(C), x, i)
 end
 
-function Base.copy(P::Combination)
-  return Combination(copy(data(P)))
+function Base.copy(C::Combination)
+  return Combination(copy(data(C)))
+end
+
+
+################################################################################
+#
+#  Ranking / unranking combinations
+#
+################################################################################
+
+# For a combination C containing k elements from 1:n,
+# return the index i so that C occurs as the ith element in the
+# iteration over all such combinations (which are lexicographically ordered).
+# NOTE currently adapted directly from OderedMultiIndex version
+# NOTE we have added an extra argument, since this info is not stored with
+# a Combination as it is with an OrderedMultiIndex
+function linear_index(C::Combination, n::IntegerUnion)
+  k = length(C)
+  iszero(k) && return 1
+  isone(k) && return Int(C[1])
+  return binomial(n, k) - binomial(n - first(C) + 1, k) + linear_index(Combination(C[2:end].-first(C)), n-first(C))
+end
+
+# Return the ith combination in the iteration over combinations(n,k)
+# NOTE currently adapted directly from OrderedMultiIndex version
+# NOTE arguments are reordered to match combinatorial conventions
+function combination(n::Int, k::Int, i::Int)
+  (i < 1 || i > binomial(n, k)) && error("index out of range")
+  iszero(k) && return Combination(Int[])
+  isone(k) && return Combination([i])
+  n == k && return Combination(collect(1:n))
+  bin = binomial(n, k)
+  c1 = findfirst(j->(bin - binomial(n - j, k) > i - 1), 1:n-k)
+  if c1 === nothing
+    prev_res = combination(k-1, k-1, i - bin + 1)
+    k2 = n-k+1
+    return Combination(pushfirst!(data(prev_res).+k2, k2))
+  else
+    prev_res = combination(n - c1, k-1, i - bin + binomial(n - c1 + 1, k))
+    return Combination(pushfirst!(data(prev_res).+i1, i1))
+  end
 end

@@ -42,4 +42,35 @@
   @test allunique(v)
 
   @test collect(combinations(0, 0)) == [Int[]]
+
+  @testset "ranking/unranking" begin
+    n = 5
+    k = 3
+
+    I = Combination([1, 2, 5])
+    I1 = Combination([1])
+    I2 = Combination([2])
+    I5 = Combination([5])
+    J = Combination([3, 4])
+    K = Combination([2, 4])
+
+    c = collect(combinations(n,k))
+    @test length(c) == binomial(n,k)
+    @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
+    @test all(i->combinations(n,k,i) == c[i], 1:length(c))
+
+  end
+
+  # @testset "wedge products" begin
+  #   n = 5
+  #   k = 3
+  #
+  #   I = Combination([1, 2, 5])
+  #   I1 = Combination([1])
+  #   I2 = Combination([2])
+  #   I5 = Combination([5])
+  #   J = Combination([3, 4])
+  #   K = Combination([2, 4])
+  # end
+
 end
