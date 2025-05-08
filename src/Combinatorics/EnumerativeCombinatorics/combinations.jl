@@ -150,6 +150,6 @@ function combination(n::Int, k::Int, i::Int)
     return Combination(pushfirst!(data(prev_res).+k2, k2))
   else
     prev_res = combination(n - c1, k-1, i - bin + binomial(n - c1 + 1, k))
-    return Combination(pushfirst!(data(prev_res).+i1, i1))
+    return Combination(pushfirst!(data(prev_res).+c1, c1))
   end
 end
