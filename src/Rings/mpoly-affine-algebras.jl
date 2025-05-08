@@ -290,10 +290,6 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   return numer,denom
 end
 
-# TODO: The method below is missing. It should be made better and put to the correct place (AA).
-number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-
-
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
