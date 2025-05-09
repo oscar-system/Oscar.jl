@@ -100,9 +100,9 @@ ideal over monoid algebra over rational field with cone of dimension 2 generated
 
 julia> local_cohomology(I_M,m,1)
 sector partition of 1-th local cohomology module supported on ideal (x_1, x_2, x_3) of 
- Graded subquotient of graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 1 generator
-  1: e[1]
-by graded submodule of Quotient of multivariate polynomial ring^1([0 0]) with 2 generators
+ Graded subquotient of graded submodule of kQ^1 with 1 generator
+  1: 1*e[1]
+by graded submodule of kQ^1 with 2 generators
   1: x_1^2*x_3*e[1]
   2: x_1^4*x_2*e[1]
 ```
@@ -334,8 +334,8 @@ and j = |J^0|, k = |J^0| + |J^1|. This function computes a sector partition of t
 """
 function sector_partition(
   kQ::MonoidAlgebra,
-  phi::Union{Vector{Any},MatElem{T}},
-  psi::Union{Vector{Any},MatElem{T}},
+  phi::Union{Vector{Any},MatElem{<:T}},
+  psi::Union{Vector{Any},MatElem{<:T}},
   j::Integer,
   k::Integer,
   J::IndecInj...,
@@ -454,8 +454,8 @@ function _local_cohomology_sector(
   A::Vector{Int},
   j::Integer,
   k::Integer,
-  phi::Union{Vector{Any},MatElem{T}},
-  psi::Union{Vector{Any},MatElem{T}},
+  phi::Union{Vector{Any},MatElem{<:T}},
+  psi::Union{Vector{Any},MatElem{<:T}},
 ) where {T<:FieldElem}
   @assert elem_type(field) == T
   # divide A into triple
