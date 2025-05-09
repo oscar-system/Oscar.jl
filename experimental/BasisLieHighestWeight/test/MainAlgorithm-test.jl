@@ -621,11 +621,10 @@ end
     ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
       
       type, rank, highest_weight = case
-      weyl_group_elem = convert(Vector{Int64}, word(longest_element(weyl_group(type, rank))))
 
       # longest weyl group element leads to the same result as a simple module
       mb1 = basis_lie_highest_weight(type, rank, highest_weight; monomial_ordering)
-      mb2 = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
+      mb2 = basis_lie_demazure(type, rank, highest_weight, letters(longest_element(weyl_group(type, rank))); monomial_ordering)
       @test monomials(mb1) == monomials(mb2)
 
       # empty weyl group element leads to a monomialbasis with only the one element
@@ -661,6 +660,7 @@ end
       @test dict == char
     end
   end
+
   @testset "Hand Computed Case" begin
     # Test for a specific case in which dependent on the order there are two out of three monomials in a weight space
     type = :A
@@ -679,7 +679,7 @@ end
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
     
       R = root_system(birational_sequence(mb))
-      w = WeightLatticeElem(R, highest_weight) - 2 * WeightLatticeElem(simple_root(R, 1)) - 2 * WeightLatticeElem(simple_root(R, 2))
+      w = WeightLatticeElem(R, highest_weight) - WeightLatticeElem(2 * simple_root(R, 1) - 2 * simple_root(R, 2))
 
       monomials_for_weight_w = Set{ZZMPolyRingElem}([mon for mon in monomials(mb) if WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w])
 
