@@ -382,7 +382,7 @@ Objects of this type are created by [`right_transversal`](@ref) and
 
 - [`group(T::SubgroupTransversal)`](@ref) returns $G$.
 
-- [`acting_group(T::SubgroupTransversal)`](@ref) returns $H$.
+- [`subgroup(T::SubgroupTransversal)`](@ref) returns $H$.
 
 # Note for developers
 
@@ -470,7 +470,7 @@ true
 group(T::SubgroupTransversal) = T.G
 
 """
-    acting_group(T::SubgroupTransversal)
+    subgroup(T::SubgroupTransversal)
 
 Return the group `H` such that `T` is a (left or right)
 transversal of `H`.
@@ -488,11 +488,11 @@ Right transversal of length 20 of
   Sym(3) in
   Sym(5)
 
-julia> acting_group(T) == H
+julia> subgroup(T) == H
 true
 ```
 """
-acting_group(T::SubgroupTransversal) = T.H
+subgroup(T::SubgroupTransversal) = T.H
 
 """
     right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
