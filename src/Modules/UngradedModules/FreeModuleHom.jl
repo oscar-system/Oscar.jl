@@ -584,7 +584,7 @@ represented as subquotient with no relations -> G)
 
 ```
 """
-function image(h::FreeModuleHom)
+@attr Tuple{<:SubquoModule, <:SubQuoHom} function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
   s = sub_object(codomain(h), si)
   phi = hom(s, codomain(h), si, check=false)
