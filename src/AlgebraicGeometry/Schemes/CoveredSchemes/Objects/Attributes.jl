@@ -165,28 +165,27 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 # Auxiliary attributes                                                 #
 ########################################################################
-function dim(X::AbsCoveredScheme)
-  if !has_attribute(X, :dim)
-    d = -inf
-    is_equidimensional=true
-    for U in patches(default_covering(X))
-      e = dim(U)
-      if e > d
-        d == -inf || (is_equidimensional=false)
-        d = e
+@attr Union{Int, NegInf} function dim(X::AbsCoveredScheme)
+  d = -inf
+  is_equidimensional=true
+  for U in patches(default_covering(X))
+    e = dim(U)
+    if e > d
+      if d !== -inf
+        is_equidimensional = false
       end
-    end
-    set_attribute!(X, :dim, d)
-    if !is_equidimensional
-      # the above is not an honest check for equidimensionality,
-      # because in each chart the output of `dim` is only the
-      # supremum of all components. Thus we can only infer
-      # non-equidimensionality in case this is already visible
-      # from comparing the different charts
-      set_attribute!(X, :is_equidimensional, false)
+      d = e
     end
   end
-  return get_attribute(X, :dim)::Union{Int, NegInf}
+  if !is_equidimensional
+    # the above is not an honest check for equidimensionality,
+    # because in each chart the output of `dim` is only the
+    # supremum of all components. Thus we can only infer
+    # non-equidimensionality in case this is already visible
+    # from comparing the different charts
+    set_attribute!(X, :is_equidimensional, false)
+  end
+  return d
 end
 
 @attr Any function singular_locus_reduced(X::AbsCoveredScheme)

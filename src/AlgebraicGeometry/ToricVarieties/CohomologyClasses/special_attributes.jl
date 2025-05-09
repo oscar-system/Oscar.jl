@@ -79,7 +79,7 @@ end
 @doc raw"""
     intersection_form(v::NormalToricVariety)
 
-Computes the intersection numbers among the cohomology classes
+Compute the intersection numbers among the cohomology classes
 associated to the torusinvariant prime divisors of the normal toric toric variety `v`.
 
 # Examples
@@ -106,7 +106,7 @@ end
 @doc raw"""
     chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
 
-Computes the `k`-th Chern class of the tangent bundle of a normal toric variety
+Compute the `k`-th Chern class of the tangent bundle of a normal toric variety
 that is both smooth and complete. Since these checks can be computationally
 very demanding, we provide an optional argument `check`. Once set to `false`,
 this method skips those tests.
@@ -133,11 +133,6 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(v) "Chern class index must not exceed dimension of the toric variety"
 
-  # Check if we can compute the Chern classes for this toric variety
-  if check
-    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
-  end
-
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(v, :chern_classes)
     cs = Vector{Union{Nothing, CohomologyClass}}(nothing, dim(v) + 1)
@@ -152,6 +147,11 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
     return cs[k+1]::CohomologyClass
   end
 
+  # Check if we can compute the Chern classes for this toric variety
+  if check
+    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  end
+  
   # Preparation to check if we can discard a set in the following iteration that computes the Chern class
   mnf = _minimal_nonfaces(v)
   indices = [Set(Vector{Int}(Polymake.row(mnf,i))) for i in 1:Polymake.nrows(mnf)]
@@ -164,18 +164,21 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
     return false
   end
 
-  # Ensure that we compute the cohomology ring with the desired by-pass of checks.
-  # Coefficients of the cohomology ring inherited from NormalToricVariety.
-  cohomology_ring(v, check = check)
-
   # Compute, set and return the desired Chern class
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(v)];
-  desired_class = zero(parent(c_ds[1]))
-  for t in subsets(Set([i for i in 1:length(c_ds)]), k)
+  c_ring = cohomology_ring(v, check = check)
+  b_ring = base_ring(c_ring)
+  number_of_my_gens = ngens(b_ring)
+  my_builder = MPolyBuildCtx(b_ring)
+  for t in subsets(Set([i for i in 1:ngens(b_ring)]), k)
     can_be_ignored(t) && continue
-    desired_class += prod(i -> c_ds[i], t)
+    exps = zeros(Int64, number_of_my_gens)
+    for a in t
+      exps[a] = 1
+    end
+    push_term!(my_builder, one(QQ), exps)
   end
-  cs[k+1] = cohomology_class(v, desired_class)
+  desired_class = finish(my_builder)
+  cs[k+1] = CohomologyClass(v, cohomology_ring(v, check = check)(desired_class))
   set_attribute!(v, :chern_classes, cs)
   return cs[k+1]
 end
@@ -184,7 +187,7 @@ end
 @doc raw"""
     chern_classes(v::NormalToricVariety; check::Bool = true)
 
-Computes all Chern classes of the tangent bundle of a normal toric variety,
+Compute all Chern classes of the tangent bundle of a normal toric variety,
 which is smooth and complete. Since those checks can be computationally
 very demanding, the optional argument `check` can be set to `false` to skip
 those tests.
@@ -198,7 +201,7 @@ julia> cs = chern_classes(F3)
 3-element Vector{CohomologyClass}:
  Cohomology class on a normal toric variety given by 1
  Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
- Cohomology class on a normal toric variety given by 4//3*x2^2
+ Cohomology class on a normal toric variety given by t1*x1 + t1*x2 + x1*t2 + t2*x2
 
 julia> integrate(cs[3])
 4
@@ -215,7 +218,7 @@ end
 @doc raw"""
     basis_of_h4(v::NormalToricVariety; check::Bool = true)
 
-This method computes a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
+Compute a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
 for a toric variety $X$. The algorithm employs Theorem 12.4.1 in [CLS11](@cite),
 i.e. truncates the cohomology ring to degree $2$. By virtue of this theorem,
 this approach is supported only for toric varieties that are both complete and

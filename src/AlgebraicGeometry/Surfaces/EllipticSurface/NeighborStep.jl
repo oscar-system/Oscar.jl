@@ -57,7 +57,7 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   B = coefficient_ring(Bt)
 
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
-  Rt, t1 = polynomial_ring(R,:t)
+  Rt, t1 = polynomial_ring(R, :t, cached=false)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
   b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)
@@ -231,7 +231,7 @@ Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
 ``O`` is the zero section, ``P`` is any section and ``V`` is vertical.
 
-Returns a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
+Return a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
 ``D <= D1 = (n-1)O + P + n_1F_1 + ... n_k F_k`` with ``l = n_1 + ... n_k`` minimal
 and the `F_i` are some other fibers.
 The rational function `c=c(t)` has divisor of zeros and poles``

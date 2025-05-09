@@ -19,12 +19,13 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes:
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> model(f_gs) == qsm_model
 true
@@ -52,12 +53,13 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes:
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> matrix_integral(f_gs) == mat_int
 true
@@ -85,18 +87,52 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes:
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
-  - Verticality checks: not executed
+  - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole constraint: not analyzed
 
 julia> matrix_rational(f_gs) == mat_rat
 true
 ```
 """
 matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
+
+
+@doc raw"""
+    offset(gf::FamilyOfG4Fluxes)
+
+Return the vector whose entries specify the offset by which fluxes in this family
+of G4-fluxes are shifted.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> mat_int = zero_matrix(QQ, 37, 1);
+
+julia> mat_int[1,1] = 1;
+
+julia> mat_rat = zero_matrix(QQ, 37, 1);
+
+julia> mat_rat[2,1] = 1;
+
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia> offset(f_gs) == shift
+true
+```
+"""
+offset(gf::FamilyOfG4Fluxes) = gf.offset
 
 
 #####################################################
@@ -106,7 +142,7 @@ matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
 @doc raw"""
     d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Return the d3-tapdole constraint of a family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
+Return the d3-tapdole constraint of Family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
 is $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$.
 
 Note that the family of fluxes is specified by linear combination of cohomology classes, some with rational
@@ -122,20 +158,12 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> fgs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
-  - Verticality checks: failed
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: not analyzed
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> d3_tadpole_constraint(fgs);
-
-julia> fgs
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Verticality checks: failed
-  - Non-abelian gauge group: broken
-  - Tadpole constraint: evaluated
 ```
 """
 @attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -144,6 +172,8 @@ A family of G4 fluxes:
   m = model(fgs)
   @req base_space(m) isa NormalToricVariety "Computation of D3-tadpole constraint only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of D3-tadpole constraint only supported for 5-dimensional toric ambient spaces"
+  @req all(==(0), offset(fgs)) "Currently, the D3-tadpole can only be computed for flux families with trivial offset"
+  # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   if check
     @req is_complete(ambient_space(m)) "Computation of D3-tadpole constraint only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of D3-tadpole constraint only supported for simplicial toric ambient space"
@@ -161,7 +191,7 @@ A family of G4 fluxes:
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = cox_ring(ambient_space(m))
     gS = gens(cox_ring(ambient_space(m)))
-    linear_relations = matrix(QQ, rays(ambient_space(m)))
+    linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
     scalings = [c.coeff for c in S.d]
     mnf = Oscar._minimal_nonfaces(ambient_space(m))
     sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -184,8 +214,8 @@ A family of G4 fluxes:
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = _ambient_space_models_of_g4_fluxes(m, check = check)
-  basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
+  basis = basis_of_h22_hypersurface(m, check = check)
+  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
   C = MPolyBuildCtx(amb_ring)

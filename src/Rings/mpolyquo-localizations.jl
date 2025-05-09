@@ -128,9 +128,6 @@ localized_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT
 localized_ring_type(L::MPolyQuoLocRing) = localized_ring_type(typeof(L))
 
 ideal_type(::Type{MPolyQuoLocalizedRingType}) where {MPolyQuoLocalizedRingType<:MPolyQuoLocRing} = MPolyQuoLocalizedIdeal{MPolyQuoLocalizedRingType, elem_type(MPolyQuoLocalizedRingType), ideal_type(localized_ring_type(MPolyQuoLocalizedRingType))}
-ideal_type(W::MPolyQuoLocRing) = ideal_type(typeof(W))
-
-
 
 
 
@@ -993,15 +990,14 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 
 @doc raw"""
     MPolyQuoLocalizedRingHom{
-      BaseRingType, 
-      BaseRingElemType, 
-      RingType, 
-      RingElemType, 
-      DomainMultSetType, 
-      CodomainMultSetType
-    } <: AbsLocalizedRingHom{
-      RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-    }
+         DomainType<:MPolyQuoLocRing, 
+         CodomainType<:Ring, 
+         RestrictedMapType<:Map
+        } <: AbsLocalizedRingHom{
+                                 DomainType, 
+                                 CodomainType, 
+                                 RestrictedMapType
+                                }
 
 Homomorphisms of localizations of affine algebras 
 
@@ -1381,7 +1377,7 @@ end
                    <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyPowersOfElement}})
   A = domain(f)
-  R = base_ring(f)
+  R = base_ring(A)
   g = hom(R, codomain(f), f.(gens(A)); check=false)
   K = kernel(g)
   return ideal(A, elem_type(A)[h for h in A.(gens(K)) if !is_zero(h)])
@@ -2825,7 +2821,8 @@ function _evaluate_plain(
   ) where {CT <: Union{<:MPolyLocRing, <:MPolyQuoLocRing}}
   W = codomain(F)::MPolyLocRing
   S = base_ring(W)
-  isdefined(F, :variable_indices) && return W(_build_poly(u, F.variable_indices, S))
+  fl, var_ind = _maps_variables_to_variables(F)
+  fl && return W(_build_poly(u, var_ind, S))
   return evaluate(u, F.img_gens)
 end
 
@@ -2833,23 +2830,24 @@ function _evaluate_general(
     F::MPolyAnyMap{<:MPolyRing, CT}, u
   ) where {CT <: Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   S = temp_ring(F)
+  fl, var_ind = _maps_variables_to_variables(F)
   if S !== nothing
-    if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+    if !fl || coefficient_ring(S) !== codomain(F)
       return evaluate(map_coefficients(coefficient_map(F), u,
                                        parent = S), F.img_gens)
     else
       tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-      return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+      return _evaluate_with_build_ctx(tmp_poly, var_ind, codomain(F))
     end
   else
-    if !isdefined(F, :variable_indices)
+    if !fl
       return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
     else
       # For the case where we can recycle the method above, do so.
       tmp_poly = map_coefficients(coefficient_map(F), u)
       coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
                                                                                             tmp_poly,
-                                                                                            F.variable_indices,
+                                                                                            var_ind,
                                                                                             codomain(F)
                                                                                            )
       # Otherwise default to the standard evaluation for the time being.

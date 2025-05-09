@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -84,14 +85,35 @@ helping to reconstruct your example. This can help the reviewers to understand
 your issue and assist you. We have implemented a method `to_oscar` which
 prints few lines of codes for reconstructing your example.
 
-```@repl 2
-using Oscar # hide
-V = quadratic_space(QQ, 2);
-Vf = quadratic_space_with_isometry(V, neg = true)
-Oscar.to_oscar(Vf)
+```jldoctest
+julia> V = quadratic_space(QQ, 2);
 
-Lf = lattice(Vf)
-Oscar.to_oscar(Lf)
+julia> Vf = quadratic_space_with_isometry(V, neg = true)
+Quadratic space of dimension 2
+  with isometry of finite order 2
+  given by
+  [-1    0]
+  [ 0   -1]
+
+julia> Oscar.to_oscar(Vf)
+G = matrix(QQ, 2, 2, [1 0; 0 1]);
+V = quadratic_space(QQ, G);
+f = matrix(QQ, 2, 2, [-1 0; 0 -1]);
+Vf = quadratic_space_with_isometry(V, f);
+
+julia> Lf = lattice(Vf)
+Integer lattice of rank 2 and degree 2
+  with isometry of finite order 2
+  given by
+  [-1    0]
+  [ 0   -1]
+
+julia> Oscar.to_oscar(Lf)
+B = matrix(QQ, 2, 2, [1 0; 0 1]);
+G = matrix(QQ, 2, 2, [1 0; 0 1]);
+L = integer_lattice(B, gram = G);
+f = matrix(QQ, 2, 2, [-1 0; 0 -1]);
+Lf = integer_lattice_with_isometry(L, f);
 ```
 
 ## Make the code more talkative

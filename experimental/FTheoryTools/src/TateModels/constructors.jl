@@ -49,7 +49,7 @@ end
 
 function global_tate_model(base::NormalToricVariety,
                            explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
-                           defining_section_parametrization::Dict{String, MPolyRingElem};
+                           model_section_parametrization::Dict{String, MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
   @req all(k -> parent(k) == cox_ring(base), vs) "All Tate sections must reside in the Cox ring of the base toric variety"
@@ -58,7 +58,7 @@ function global_tate_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "a3") "Tate section a3 must be specified"
   @req haskey(explicit_model_sections, "a4") "Tate section a4 must be specified"
   @req haskey(explicit_model_sections, "a6") "Tate section a6 must be specified"
-  vs2 = collect(keys(defining_section_parametrization))
+  vs2 = collect(keys(model_section_parametrization))
   @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
   gens_base_names = symbols(cox_ring(base))
@@ -81,7 +81,7 @@ function global_tate_model(base::NormalToricVariety,
   # construct the model
   ais = [explicit_model_sections["a1"], explicit_model_sections["a2"], explicit_model_sections["a3"], explicit_model_sections["a4"], explicit_model_sections["a6"]]
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
-  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base, ambient_space)
+  model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -168,27 +168,27 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
   end
 
-  # Compute defining_section_parametrization
-  defining_section_parametrization = Dict{String, MPolyRingElem}()
+  # Compute model_section_parametrization
+  model_section_parametrization = Dict{String, MPolyRingElem}()
   vars_S = [string(k) for k in symbols(S)]
   if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
-    defining_section_parametrization["a1"] = a1
+    model_section_parametrization["a1"] = a1
   end
   if !("a2" in vars_S) || (a2 != eval_poly("a2", parent(a2)))
-    defining_section_parametrization["a2"] = a2
+    model_section_parametrization["a2"] = a2
   end
   if !("a3" in vars_S) || (a3 != eval_poly("a3", parent(a3)))
-    defining_section_parametrization["a3"] = a3
+    model_section_parametrization["a3"] = a3
   end
   if !("a4" in vars_S) || (a4 != eval_poly("a4", parent(a4)))
-    defining_section_parametrization["a4"] = a4
+    model_section_parametrization["a4"] = a4
   end
   if !("a6" in vars_S) || (a6 != eval_poly("a6", parent(a6)))
-    defining_section_parametrization["a6"] = a6
+    model_section_parametrization["a6"] = a6
   end
 
   # Compute model and return it
-  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, auxiliary_base_space, auxiliary_ambient_space)
+  model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -199,7 +199,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, t::GlobalTateModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(t)
     push!(properties_string, "Partially resolved global Tate model over a")
@@ -224,4 +226,9 @@ function Base.show(io::IO, t::GlobalTateModel)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, t::GlobalTateModel)
+  print(io, "Global Tate model")
 end

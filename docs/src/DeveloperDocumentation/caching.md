@@ -1,9 +1,10 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Caching parent objects in OSCAR
+# Caching Parent Objects
 
 Many functions in OSCAR that construct parent objects (such as rings, modules,
 groups, etc.) have an optional keyword argument `cached::Bool`. If set to

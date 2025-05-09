@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Auxiliary functions
@@ -55,6 +57,7 @@ all_triangulations
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
 Base.in(v::AbstractVector, P::Polyhedron)
 Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 h_star_polynomial(P::Polyhedron{QQFieldElem})

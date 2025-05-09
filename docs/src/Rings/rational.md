@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -66,6 +67,7 @@ julia> QQ(2//3)
 
 julia> ZZ(3)//0
 ERROR: DivideError: integer division error
+[...]
 
 ```
 One can also construct the rational number ``0`` with the empty constructor:
@@ -222,6 +224,7 @@ julia> divexact(QQ(2, 3), QQ(3, 5))
 
 julia> divexact(QQ(1, 3), ZZ(0))
 ERROR: DivideError: integer division error
+[...]
 
 julia> divexact(QQ(3, 4), ZZ(5))
 3//20
@@ -265,6 +268,7 @@ julia> QQ(0)^0
 ```jldoctest
 julia> QQ(0)^-2
 ERROR: DivideError: integer division error
+[...]
 
 ```
 

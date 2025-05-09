@@ -123,14 +123,14 @@ InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
         Assert(0, ForAll(gens, IsJuliaMatrixRep));
         
         ele := gens[1];
-        hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(ele!.m));
+        hom := Oscar_jl.iso_oscar_gap(Julia.base_ring(ele!.m));
 
-        GAPGenerators := List(gens, g -> Julia.Oscar.map_entries(hom, g!.m));
+        GAPGenerators := List(gens, g -> Oscar_jl.map_entries(hom, g!.m));
         
         GAPGroup := GroupByGenerators(GAPGenerators);
         
-        f := m -> Julia.Oscar.map_entries(hom,m!.m);
-        f_inv := m -> MakeJuliaMatrixRep(Julia.Oscar.preimage_matrix(hom,m));
+        f := m -> Oscar_jl.map_entries(hom,m!.m);
+        f_inv := m -> MakeJuliaMatrixRep(Oscar_jl.preimage_matrix(hom,m));
 
         JuliaGAPMap := GroupHomomorphismByFunction(G,GAPGroup,f,f_inv);
         SetNiceMonomorphism(G,JuliaGAPMap);
@@ -145,17 +145,17 @@ InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         Error("comparing IsJuliaMatrixRep not supported");
     end);
 
-InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.minpoly(m!.m));
-InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.charpoly(m!.m));
-#InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], m -> Julia.Oscar.is_symmetric(m!.m));
-InstallOtherMethod(IsMonomialMatrix, [IsJuliaMatrixRep], m -> Julia.Oscar.is_monomial(m!.m));
-InstallOtherMethod(RankMat, [IsJuliaMatrixRep], m -> Julia.Oscar.rank(m!.m));
-InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Julia.Oscar.tr(m!.m));
+InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], m -> Oscar_jl.minpoly(m!.m));
+InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], m -> Oscar_jl.charpoly(m!.m));
+#InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], m -> Oscar_jl.is_symmetric(m!.m));
+InstallOtherMethod(IsMonomialMatrix, [IsJuliaMatrixRep], m -> Oscar_jl.is_monomial(m!.m));
+InstallOtherMethod(RankMat, [IsJuliaMatrixRep], m -> Oscar_jl.rank(m!.m));
+InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Oscar_jl.tr(m!.m));
 
 BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
     local x, hom, res, i;
 
-        hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(pol.parent));
+        hom := Oscar_jl.iso_oscar_gap(Julia.base_ring(pol.parent));
         x := Indeterminate(Julia.codomain(hom),"x");
         
         res := Zero(hom.header.codomain);

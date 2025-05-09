@@ -530,6 +530,27 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
+@doc raw"""
+    highest_root(R::RootSystem) -> RootSpaceElem
+
+Return the highest root of `R`, where `R` is a simple root system of finite type.
+
+This is equivalent to `positive_root(R, number_of_positive_roots(R))`.
+
+See also: [`positive_root(::RootSystem, ::Int)`](@ref positive_root).
+
+# Examples
+```jldoctest
+julia> highest_root(root_system(:F, 4))
+2*a_1 + 3*a_2 + 4*a_3 + 2*a_4
+```
+"""
+function highest_root(R::RootSystem)
+  @req is_finite(weyl_group(R)) "Root system is not of finite type"
+  @req is_simple(R) "Root system is not simple"
+  return positive_root(R, number_of_positive_roots(R))
+end
+
 ###############################################################################
 # coroot constructors
 
@@ -830,33 +851,65 @@ function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
   return rr
 end
 
-function mul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+function mul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = mul!(rr.vec, r.vec, q)
   return rr
 end
 
-function mul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+function mul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = mul!(rr.vec, q, r.vec)
   return rr
 end
 
-function addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+function addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = addmul!(rr.vec, r.vec, q)
   return rr
 end
 
-function addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+function addmul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = addmul!(rr.vec, q, r.vec)
   return rr
 end
 
 # ignore temp storage
-addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion, t) = addmul!(rr, r, q)
-addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem, t) = addmul!(rr, q, r)
+addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr, t) = addmul!(rr, r, q)
+addmul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem, t) = addmul!(rr, q, r)
+
+function submul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = submul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function submul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = submul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+submul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr, t) = submul!(rr, r, q)
+submul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem, t) = submul!(rr, q, r)
+
+function mat_entry_ptr(r::RootSpaceElem, i::Int)
+  return mat_entry_ptr(r.vec, 1, i)
+end
+
+function is_zero_entry(r::RootSpaceElem, i::Int)
+  return is_zero_entry(r.vec, 1, i)
+end
+
+function is_positive_entry(r::RootSpaceElem, i::Int)
+  return is_positive_entry(r.vec, 1, i)
+end
+
+function is_negative_entry(r::RootSpaceElem, i::Int)
+  return is_negative_entry(r.vec, 1, i)
+end
 
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
@@ -1096,9 +1149,9 @@ Reflect `r` in the hyperplane orthogonal to the `s`-th simple root, and return i
 This is a mutating version of [`reflect(::RootSpaceElem, ::Int)`](@ref).
 """
 function reflect!(r::RootSpaceElem, s::Int)
-  sub!(
-    Nemo.mat_entry_ptr(r.vec, 1, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec)
-  )
+  GC.@preserve r begin
+    sub!(mat_entry_ptr(r, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec))
+  end
   return r
 end
 
@@ -1136,6 +1189,8 @@ Return the root system `r` belongs to.
 function root_system(r::RootSpaceElem)
   return r.root_system
 end
+
+ConformanceTests.equality(a::RootSpaceElem, b::RootSpaceElem) = a == b
 
 ###############################################################################
 #
@@ -1212,35 +1267,69 @@ function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceEle
   return rr
 end
 
-function mul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+function mul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = mul!(rr.vec, r.vec, q)
   return rr
 end
 
-function mul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+function mul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = mul!(rr.vec, q, r.vec)
   return rr
 end
 
-function addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+function addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = addmul!(rr.vec, r.vec, q)
   return rr
 end
 
-function addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+function addmul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   rr.vec = addmul!(rr.vec, q, r.vec)
   return rr
 end
 
 # ignore temp storage
-addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion, t) =
+addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) =
   addmul!(rr, r, q)
-addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem, t) =
+addmul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) =
   addmul!(rr, q, r)
+
+function submul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = submul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function submul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = submul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+submul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnionOrPtr, t) =
+  submul!(rr, r, q)
+submul!(rr::DualRootSpaceElem, q::RationalUnionOrPtr, r::DualRootSpaceElem, t) =
+  submul!(rr, q, r)
+
+function mat_entry_ptr(r::DualRootSpaceElem, i::Int)
+  return mat_entry_ptr(r.vec, 1, i)
+end
+
+function is_zero_entry(r::DualRootSpaceElem, i::Int)
+  return is_zero_entry(r.vec, 1, i)
+end
+
+function is_positive_entry(r::DualRootSpaceElem, i::Int)
+  return is_positive_entry(r.vec, 1, i)
+end
+
+function is_negative_entry(r::DualRootSpaceElem, i::Int)
+  return is_negative_entry(r.vec, 1, i)
+end
 
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
@@ -1281,7 +1370,7 @@ end
 @doc raw"""
     coeff(r::DualRootSpaceElem, i::Int) -> QQFieldElem
 
-Returns the coefficient of the `i`-th simple coroot in `r`.
+Return the coefficient of the `i`-th simple coroot in `r`.
 
 This can be also accessed via `r[i]`.
 """
@@ -1460,6 +1549,8 @@ Return the root system `r` belongs to.
 function root_system(r::DualRootSpaceElem)
   return r.root_system
 end
+
+ConformanceTests.equality(a::DualRootSpaceElem, b::DualRootSpaceElem) = a == b
 
 ###############################################################################
 # more functions

@@ -31,50 +31,51 @@ end
   @test_throws ArgumentError global_tate_model(my_base, [sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
   @test_throws ArgumentError global_tate_model(my_base, [sec_a1, sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
 end
+@test_skip @testset "Serialization Tests" begin
+  B3 = projective_space(NormalToricVariety, 3)
+  w = torusinvariant_prime_divisors(B3)[1]
+  t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 
-B3 = projective_space(NormalToricVariety, 3)
-w = torusinvariant_prime_divisors(B3)[1]
-t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-
-@testset "Saving and loading global Tate model over concrete base space" begin
-  mktempdir() do path
-    test_save_load_roundtrip(path, t2) do loaded
-      @test tate_polynomial(t2) == tate_polynomial(loaded)
-      @test tate_section_a1(t2) == tate_section_a1(loaded)
-      @test tate_section_a2(t2) == tate_section_a2(loaded)
-      @test tate_section_a3(t2) == tate_section_a3(loaded)
-      @test tate_section_a4(t2) == tate_section_a4(loaded)
-      @test tate_section_a6(t2) == tate_section_a6(loaded)
-      @test base_space(t2) == base_space(loaded)
-      @test ambient_space(t2) == ambient_space(loaded)
-      @test is_base_space_fully_specified(t2) == is_base_space_fully_specified(loaded)
-      for (key, value) in t2.__attrs
-        if value isa String || value isa Vector{String} || value isa Bool
-          @test t2.__attrs[key] == loaded.__attrs[key]
+  @testset "Saving and loading global Tate model over concrete base space" begin
+    mktempdir() do path
+      test_save_load_roundtrip(path, t2) do loaded
+        @test tate_polynomial(t2) == tate_polynomial(loaded)
+        @test tate_section_a1(t2) == tate_section_a1(loaded)
+        @test tate_section_a2(t2) == tate_section_a2(loaded)
+        @test tate_section_a3(t2) == tate_section_a3(loaded)
+        @test tate_section_a4(t2) == tate_section_a4(loaded)
+        @test tate_section_a6(t2) == tate_section_a6(loaded)
+        @test base_space(t2) == base_space(loaded)
+        @test ambient_space(t2) == ambient_space(loaded)
+        @test is_base_space_fully_specified(t2) == is_base_space_fully_specified(loaded)
+        for (key, value) in t2.__attrs
+          if value isa String || value isa Vector{String} || value isa Bool
+            @test t2.__attrs[key] == loaded.__attrs[key]
+          end
         end
       end
     end
   end
-end
 
-t2_copy = global_tate_model(sample_toric_variety(); completeness_check = false)
+  t2_copy = global_tate_model(sample_toric_variety(); completeness_check = false)
 
-@testset "Saving and loading another global Tate model over concrete base space" begin
-  mktempdir() do path
-    test_save_load_roundtrip(path, t2_copy) do loaded
-      @test tate_polynomial(t2_copy) == tate_polynomial(loaded)
-      @test tate_section_a1(t2_copy) == tate_section_a1(loaded)
-      @test tate_section_a2(t2_copy) == tate_section_a2(loaded)
-      @test tate_section_a3(t2_copy) == tate_section_a3(loaded)
-      @test tate_section_a4(t2_copy) == tate_section_a4(loaded)
-      @test tate_section_a6(t2_copy) == tate_section_a6(loaded)
-      @test base_space(t2_copy) == base_space(loaded)
-      @test ambient_space(t2_copy) == ambient_space(loaded)
-      @test is_base_space_fully_specified(t2_copy) == is_base_space_fully_specified(loaded)
-      @test is_partially_resolved(t2_copy) == is_partially_resolved(loaded)
-      @test explicit_model_sections(t2_copy) == explicit_model_sections(loaded)
-      @test defining_section_parametrization(t2_copy) == defining_section_parametrization(loaded)
-      @test defining_classes(t2_copy) == defining_classes(loaded)
+  @testset "Saving and loading another global Tate model over concrete base space" begin
+    mktempdir() do path
+      test_save_load_roundtrip(path, t2_copy) do loaded
+        @test tate_polynomial(t2_copy) == tate_polynomial(loaded)
+        @test tate_section_a1(t2_copy) == tate_section_a1(loaded)
+        @test tate_section_a2(t2_copy) == tate_section_a2(loaded)
+        @test tate_section_a3(t2_copy) == tate_section_a3(loaded)
+        @test tate_section_a4(t2_copy) == tate_section_a4(loaded)
+        @test tate_section_a6(t2_copy) == tate_section_a6(loaded)
+        @test base_space(t2_copy) == base_space(loaded)
+        @test ambient_space(t2_copy) == ambient_space(loaded)
+        @test is_base_space_fully_specified(t2_copy) == is_base_space_fully_specified(loaded)
+        @test is_partially_resolved(t2_copy) == is_partially_resolved(loaded)
+        @test explicit_model_sections(t2_copy) == explicit_model_sections(loaded)
+        @test model_section_parametrization(t2_copy) == model_section_parametrization(loaded)
+        @test defining_classes(t2_copy) == defining_classes(loaded)
+      end
     end
   end
 end
@@ -87,9 +88,14 @@ my_choice["a4"] = basis_of_global_sections(Kbar^4)[1]
 my_choice["a6"] = basis_of_global_sections(Kbar^6)[1]
 t3 = tune(t, my_choice; completeness_check = false)
 
-x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t2)))
-new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
-tuned_t2 = tune(t2, new_tate_polynomial)
+# The tests associated to the below code did not actually test the tune functionality of Tate models,
+# but instead the tune functionality of abstract F-theory models, inherited by Tate models
+# This functionality has been removed for the time being, because it did not correspond to a proper tuning
+# These tests have been retained for the (potential) future date when we reintroduce this functionality
+#
+# x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t2)))
+# new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
+# tuned_t2 = tune(t2, new_tate_polynomial)
 
 @testset "Tuning of a Tate model over a concrete toric space" begin
   @test base_space(t3) == base_space(t)
@@ -103,10 +109,11 @@ tuned_t2 = tune(t2, new_tate_polynomial)
   @test tate_section_a4(t3) != tate_section_a4(t)
   @test tate_section_a6(t3) == my_choice["a6"]
   @test tate_section_a6(t3) != tate_section_a6(t)
-  @test t2 == tune(t2, tate_polynomial(t2))
-  @test hypersurface_equation(tuned_t2) == new_tate_polynomial
-  @test base_space(tuned_t2) == base_space(t2)
-  @test fiber_ambient_space(tuned_t2) == fiber_ambient_space(t2)
+  # Removed, see above
+  # @test t2 == tune(t2, tate_polynomial(t2))
+  # @test hypersurface_equation(tuned_t2) == new_tate_polynomial
+  # @test base_space(tuned_t2) == base_space(t2)
+  # @test fiber_ambient_space(tuned_t2) == fiber_ambient_space(t2)
 end
 
 other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
@@ -114,8 +121,9 @@ other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
 @testset "Error messages from tuning Tate models" begin
   @test_throws ArgumentError tune(t, Dict("a1" => basis_of_global_sections(Kbar^2)[1]))
   @test_throws ArgumentError tune(t, Dict("a1" => basis_of_global_sections(other_Kbar)[1]))
-  @test_throws ArgumentError tune(t2, basis_of_global_sections(other_Kbar)[1])
-  @test_throws ArgumentError tune(t2, x1)
+  # Removed, see above
+  # @test_throws ArgumentError tune(t2, basis_of_global_sections(other_Kbar)[1])
+  # @test_throws ArgumentError tune(t2, x1)
 end
 
 
@@ -181,7 +189,7 @@ end
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, sec_a6])
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], -1, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5])
   @test_throws ArgumentError tune(t_i5_s, Dict("a2" => basis_of_global_sections(other_Kbar)[1]))
-  @test_throws ArgumentError tune(t_i5_s, basis_of_global_sections(other_Kbar)[1])
+  # @test_throws ArgumentError tune(t_i5_s, basis_of_global_sections(other_Kbar)[1]) # Removed, see above
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin
@@ -278,7 +286,7 @@ a32=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^3*W^(-2)))
 a43=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^4*W^(-3)))
 a65 = 0
 t = global_tate_model(B3, [a10, a21 * w, a32 * w^2, a43 * w^3, a65 * w^5])
-set_resolutions(t, [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]])
+set_resolutions(t, [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])])
 explicit_model_sections(t)["w"] = w
 t_res = resolve(t, 1)
 

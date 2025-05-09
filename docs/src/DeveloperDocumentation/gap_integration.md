@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # GAP Integration
 
 This section explains how Oscar interacts with GAP.
@@ -61,7 +67,7 @@ GAP.jl cannot provide utility functions such as conversions to and from GAP.
   In order to access variables from the `Oscar` module,
   it is not safe to use `Julia.Oscar`
   because the module `Oscar` is not always defined in `Main`.
-  Instead, there is the global GAP variable `Oscar`.
+  Instead, there is the global GAP variable `Oscar_jl`.
 
 ```@docs
 Oscar.iso_oscar_gap

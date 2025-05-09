@@ -55,7 +55,7 @@ function basis_lie_highest_weight_compute(
     calc_highest_weight,
     no_minkowski,
   )
-  # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+  # monomials = sort(collect(monomials); order=monomial_ordering)
   minkowski_gens = sort(
     collect(no_minkowski);
     by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
@@ -135,7 +135,7 @@ function basis_coordinate_ring_kodaira_compute(
       monomials_new = setdiff(monomials, monomials_minkowski_sum)
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we added $(length(monomials_new)) monomials "
 
-      # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+      # monomials = sort(collect(monomials); order=monomial_ordering)
       minkowski_gens = sort(
         collect(no_minkowski);
         by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
@@ -148,7 +148,7 @@ function basis_coordinate_ring_kodaira_compute(
     )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
     monomials_new_sorted = sort(
-      collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
+      collect(monomials_new); order=monomial_ordering
     )
     if isempty(monomials_new)
       set_attribute!(
@@ -294,9 +294,7 @@ function add_new_monomials!(
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
-  poss_mon_in_weightspace = sort(
-    poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
-  )
+  poss_mon_in_weightspace = sort(poss_mon_in_weightspace; order=monomial_ordering)
 
   # check which monomials should get added to the basis
   i = 0

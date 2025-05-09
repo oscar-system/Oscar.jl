@@ -5,6 +5,10 @@ using Oscar.GaloisGrp
 import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
                         primitive_by_shape, bound_to_precision
 
+if isdefined(Oscar, :subfield)
+  import Oscar: subfield
+end
+
 
 function embedding_hom(k, K)
   return MapFromFunc(k, K, K)
@@ -102,6 +106,12 @@ function ==(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   bs = A.b
   cs = B.b
   return P.can_cmp(bs, cs) && P.cmp(bs, cs) == 0
+end
+
+# very weak, but correct hash
+function Base.hash(A::SubfieldLatticeElem, h::UInt)
+  h = hash(parent(A).K, h)
+  return h
 end
 
 function Base.:*(A::SubfieldLatticeElem, B::SubfieldLatticeElem)

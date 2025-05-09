@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Borcherds' method for Enriques surfaces
@@ -23,6 +25,7 @@ See [BS22](@cite), [BS22*1](@cite), [BRS23](@cite) for the underlying algorithms
 ## Automorphisms
 The two main entry points are the following:
 ```@docs
+generic_enriques_surface(n::Int)
 enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
 ```
 ## The surface
@@ -32,6 +35,9 @@ borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
 splitting_roots_mod2(Y::EnriquesBorcherdsCtx)
 root_invariant(Y::EnriquesBorcherdsCtx)
 mass(ECtx::EnriquesBorcherdsCtx)
+numerical_lattice(Y::EnriquesBorcherdsCtx)
+numerical_lattice_of_K3_cover(Y::EnriquesBorcherdsCtx)
+invariant_lattice_of_K3_cover(Y::EnriquesBorcherdsCtx)
 ```
 ## Chambers
 ```@docs

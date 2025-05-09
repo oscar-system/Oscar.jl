@@ -380,7 +380,7 @@ function Hecke.subfields(FF::Generic.FunctionField{QQFieldElem})
     while true
       b = map(map_coefficients(Fq, A), r)
       bs = Hecke.MPolyFact.block_system(b)
-      if length(bs) == degree(k) && all(x->length(x) == length(bs[1]), bs)
+      if length(bs) == degree(k) && allequal(length, bs)
         break
       end
       @vprint :Subfields 2 "need tschirni\n"
@@ -667,10 +667,6 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
-end
-
-function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
-  return divexact(numerator(a)(b), denominator(a)(b))
 end
 
 function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{QQFieldElem}})
