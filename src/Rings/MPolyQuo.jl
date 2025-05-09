@@ -1294,6 +1294,14 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
+function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
+  return divides(a, b)[2]
+end
+
+function is_nilpotent(a::MPolyQuoRingElem)
+  return radical_membership(a.f, modulus(parent(a)))
+end
+
 ### 
 # The following two functions below provide a hotfix to make sure that the preferred 
 # ordering provided to the constructor of the quotient ring is actually used for the 
