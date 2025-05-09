@@ -93,7 +93,6 @@ import Base:
 export monoid_algebra_from_lattice
 export monoid_algebra
 export monoid_algebra_ideal
-export monoid_algebra_module
 
 export irreducible_resolution
 export irreducible_decomposition
