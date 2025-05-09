@@ -96,7 +96,7 @@ export monoid_algebra_ideal
 export monoid_algebra_module
 
 export irreducible_resolution
-export irreducible_dec
+export irreducible_decomposition
 
 export injective_resolution
 
@@ -551,7 +551,7 @@ function Base.show(io::IO, ::MIME"text/plain", kQ::MonoidAlgebra)
 end
 
 function Base.show(io::IO, kQ::MonoidAlgebra)
-  println(io, "monoid algebra over ", lowercase(string(coefficient_ring(kQ))),
+  print(io, "monoid algebra over ", lowercase(string(coefficient_ring(kQ))),
     " with cone of dimension $(dim(cone(kQ)))",
   )
 end
@@ -564,6 +564,12 @@ end
 
 function Base.show(io::IO,I::MonoidAlgebraIdeal)
   print(io,underlying_ideal(I))
+end
+
+function Base.show(io::IO,J::InjMod)
+print(
+  io, "injective module given by direct sum of ", length(J.indec_injectives)," indecomposable injectives"
+)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
@@ -589,8 +595,6 @@ function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
       println(io, "    k{", Ji.vector, " + F - Q}, where p_F = ", Ji.face.prime)
     end
   end
-  println(io, "with maps")
-  println(io, " J^{j-1} -> J^j for 1 <= j <= ", res.upto)
   println(io, "of ", res.mod)
   println(
     io,
@@ -610,8 +614,6 @@ function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
       println(io, "    k{", Ji.vector, " + F - Q}_Q, where p_F = ", Ji.face.prime)
     end
   end
-  println(io, "with maps")
-  println(io, " W^{i-1} -> W^i for 1 <= i <= ", length(res.irr_sums)-1)
   println(io, "of ", res.mod)
   println(
     io,
@@ -627,13 +629,9 @@ function Base.show(io::IO, ::MIME"text/plain", Ji::IndecInj)
 end
 
 function Base.show(io::IO, Ji::IndecInj)
-  if is_terse(io)
-    print(io, "k{", Ji.vector, " + F - Q}, where p_F = ", Ji.face.prime)
-  else
-    print(
+  print(
       io, "indecomposable injective k{", Ji.vector, " + F - Q}, where p_F = ", Ji.face.prime
     )
-  end
 end
 
 function monoid_algebra(A::Union{MPolyRing,MPolyQuoRing})
