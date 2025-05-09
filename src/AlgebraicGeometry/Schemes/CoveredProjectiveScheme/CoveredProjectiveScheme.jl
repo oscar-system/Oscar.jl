@@ -236,7 +236,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     R = base_ring(I)
     x = gens(R)
     kk = coefficient_ring(R)
-    A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
+    A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]), cached=false)
     t = last(x_ext)
     inc = hom(R, A, x_ext[1:end-1], check=false)
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
@@ -291,7 +291,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
 
   # It follows the generic Proj construction
   R = OO(W)
-  T, (t,) = polynomial_ring(R, [:t])
+  T, (t,) = polynomial_ring(R, [:t], cached=false)
   S, s = graded_polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
@@ -384,7 +384,7 @@ end
 #
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
-#    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v))
+#    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v), cached=false)
 #    n = ngens(R)
 #    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
 #    return ext_R, phi, gens(ext_R)[(ngens(R)+1):ngens(ext_R)]

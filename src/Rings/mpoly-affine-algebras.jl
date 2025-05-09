@@ -686,7 +686,7 @@ end
 #   else
 #      VAR = ["t[$i]" for i = 1:m]
 #   end
-#   S, _ = polynomial_ring(ZZ, VAR)
+#   S, _ = polynomial_ring(ZZ, VAR, cached=false)
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -1383,7 +1383,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = polynomial_ring(br, symbols(newSR))
+      newOR, _ = polynomial_ring(br, symbols(newSR), cached=false)
       newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))

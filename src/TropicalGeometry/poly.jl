@@ -251,7 +251,7 @@ function tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem}, nu::Union
     isnothing(nu) && (nu = tropical_semiring_map(coefficient_ring(f)))
 
     T = tropical_semiring(nu)
-    Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
+    Tx,x = polynomial_ring(T, [repr(x) for x in gens(parent(f))], cached=false)
     tropf = inf(T)
 
     for (c,alpha) in zip(coefficients(f), exponents(f))
@@ -385,7 +385,7 @@ end
 #     s=-1
 #   end
 
-#   Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
+#   Tx,x = polynomial_ring(T, [repr(x) for x in gens(parent(f))], cached=false)
 #   tropf = inf(T)
 
 #   if base_ring(parent(f)) isa NonArchLocalField
