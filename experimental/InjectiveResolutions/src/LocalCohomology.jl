@@ -1,9 +1,3 @@
-export local_cohomology
-export local_cohomology_all
-export zeroth_local_cohomology
-export SectorPartitionLC
-export get_scalar_matrix 
-
 # data structures
 struct SectorLC
   A::Vector{Vector{Int}}
