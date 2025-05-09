@@ -7,9 +7,13 @@ on:
       - 'release-*'
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   schedule:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
