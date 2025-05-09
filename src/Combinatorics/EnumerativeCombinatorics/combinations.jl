@@ -124,32 +124,45 @@ end
 # For a combination C containing k elements from 1:n,
 # return the index i so that C occurs as the ith element in the
 # iteration over all such combinations (which are lexicographically ordered).
-# NOTE currently adapted directly from OderedMultiIndex version
+# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
 # NOTE we have added an extra argument, since this info is not stored with
 # a Combination as it is with an OrderedMultiIndex
 function linear_index(C::Combination, n::IntegerUnion)
   k = length(C)
   iszero(k) && return 1
   isone(k) && return Int(C[1])
-  return binomial(n, k) - binomial(n - first(C) + 1, k) + linear_index(Combination(C[2:end].-first(C)), n-first(C))
+
+  r = binomial(n,k)
+  i = 1
+  while i < k+1
+    r -= binomial(n-C[i], k-i+1)
+    i += 1
+    k-i+1 == n-C[i-1] && return r
+  end
+  return r
 end
 
-# Return the ith combination in the iteration over combinations(n,k)
-# NOTE currently adapted directly from OrderedMultiIndex version
+# Return the rth combination in the iteration over combinations(n,k)
+# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
 # NOTE arguments are reordered to match combinatorial conventions
-function combination(n::Int, k::Int, i::Int)
-  (i < 1 || i > binomial(n, k)) && error("index out of range")
+function combination(n::Int, k::Int, r::Int)
+  (r < 1 || r > binomial(n, k)) && error("index out of range")
   iszero(k) && return Combination(Int[])
-  isone(k) && return Combination([i])
+  isone(k) && return Combination([r])
   n == k && return Combination(collect(1:n))
-  bin = binomial(n, k)
-  c1 = findfirst(j->(bin - binomial(n - j, k) > i - 1), 1:n-k)
-  if c1 === nothing
-    prev_res = combination(k-1, k-1, i - bin + 1)
-    k2 = n-k+1
-    return Combination(pushfirst!(data(prev_res).+k2, k2))
-  else
-    prev_res = combination(n - c1, k-1, i - bin + binomial(n - c1 + 1, k))
-    return Combination(pushfirst!(data(prev_res).+c1, c1))
+
+  C = zeros(Int, k)
+  r = binomial(n,k) - r
+  j = 1
+  for i in 1:k
+    b = binomial(n - j, k - i + 1)
+    while b > r - 1
+      j += 1
+      b = binomial(n - j, k - i _ 1)
+    end
+    C[i] = j
+    j += 1
+    r -= b
   end
+  return Combination(C)
 end
