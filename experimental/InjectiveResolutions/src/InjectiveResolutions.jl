@@ -1661,20 +1661,9 @@ export irreducible_decomposition
 
 export injective_resolution
 
-#export mod_quotient
-#export mod_saturate
-#export ZF_basis # should be renamed ?
-export InjMod
-export IndecInj
-#export underlying_element
-#export underlying_ideal
-export irreducible_hull
-#export _get_irreducible_ideal
-#export compute_shift
-#export Q_graded_part # should be renamed?
-#export compute_Q_graded_part
 export local_cohomology
 export zeroth_local_cohomology
 
 export MonoidAlgebra
 export MonoidAlgebraElem
+
