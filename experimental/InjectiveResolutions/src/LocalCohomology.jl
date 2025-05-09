@@ -48,17 +48,13 @@ function Base.show(io::IO, ::MIME"text/plain", S::SectorLC)
   )
   print(io, "   A = ")
   print_A_vector(io, S.A)
-  print(io, ", index vector ",
-    S.index_vector,
-    " and local cohomology of dimension ",
+  print(io, " and local cohomology of dimension ",
     dim(S.H),
   )
 end
 
 function Base.show(io::IO, S::SectorLC)
-  print(io, "sector S_A of ZZ^", ambient_dim(S.sector), " with A = ")
-  print_A_vector(io, S.A)
-  print(io, " and local cohomology of dimension ", dim(S.H))
+  print(io, "sector of ZZ^", ambient_dim(S.sector), " with local cohomology of dimension ", dim(S.H))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
@@ -89,7 +85,7 @@ monoid algebra over rational field with cone of dimension 2
 
 
 julia> x,y,z = gens(kQ)
-3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
+3-element Vector{Oscar.InjectiveResolutions.MonoidAlgebraElem{QQFieldElem, Oscar.InjectiveResolutions.MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
  x_2
  x_3
