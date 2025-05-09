@@ -1370,6 +1370,7 @@ base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+is_gen(a::MPolyDecRingElem) = is_gen(forget_grading(a))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
@@ -1430,7 +1431,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
   @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   D = W.D
   is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
+  h = hom(free_abelian_group(ngens(W)), D, W.d)
   fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
   B = elem_type(W)[]

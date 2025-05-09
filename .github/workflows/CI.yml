@@ -81,6 +81,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
@@ -88,7 +89,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        if: runner.os == 'macOS'
+        # if: runner.os == 'macOS' # commented out as bandaid for #4806
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Use multiple processes for self-hosted macOS runners"
@@ -118,6 +119,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v4
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   book-tests:
     runs-on: 'ubuntu-latest'
@@ -141,6 +150,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
@@ -165,6 +175,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v4
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   extra-long-test:
     # Extra long tests
@@ -221,6 +239,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
@@ -228,7 +247,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        if: runner.os == 'macOS'
+        # if: runner.os == 'macOS' # commented out as bandaid for #4806
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Setup package"
@@ -257,6 +276,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v4
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
 # adapted from gap-system/gap
   slack-notification:

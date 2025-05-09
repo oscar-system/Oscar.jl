@@ -58,14 +58,14 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f2)
 Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w + 8*x8*x23 + 4*x10*x23 - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 22*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 + 7//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 88//3*x20*x21 - 7*x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 11//3*x21^2 - 77//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w + 31//3*x22^2 + 5//3*x22*x23 + 97//6*x22*x25 + 4*x23^2 - 8*x24^2 - 17//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w + 7//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 - 7//3*x29^2 + 5*e1*w
@@ -75,10 +75,10 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f3)
-Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 8*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w - 1//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w
+Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 6*x6*e4 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 6*x16*e4 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 16*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 12*x21*e4 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 6*x24*e4 + 2*x24*w - 1//2*x25^2 + 6*x25*e4 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 6*x27*e4 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true, convert::Bool = false)
@@ -87,11 +87,10 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
 
   # If conversion to internally chosen basis desired, then modify the cohomology class
+  converted_class = g4_class
   if convert == true
-    internal_basis = basis_of_h22(ambient_space(m), check = check)
-    converter_dict = get_attribute(ambient_space(m), :converter_dict_h22)
     to_be_transformed_poly = lift(polynomial(g4_class))
-    M = collect(exponents(lift(to_be_transformed_poly)))
+    M = collect(exponents(to_be_transformed_poly))
     non_zero_exponents = Vector{Tuple{Int64, Int64}}()
     for my_row in M
       i1 = findfirst(x -> x != 0, my_row)
@@ -99,12 +98,25 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
       i2 = findfirst(x -> x != 0, my_row)
       push!(non_zero_exponents, (i1, i2))
     end
-    coeffs = collect(coefficients(lift(to_be_transformed_poly)))
+    coeffs = collect(coefficients(to_be_transformed_poly))
     @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
-    converted_poly = cohomology_ring(ambient_space(m), check = check)(sum(coeffs[l] * lift(polynomial(converter_dict[non_zero_exponents[l]])) for l in 1:length(coeffs)))
+
+    converter_dict = converter_dict_h22_hypersurface(m, check = check)
+    b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+    b_ring_gens = gens(b_ring)
+    new_converter_dict = Dict{Tuple{Int64, Int64}, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+    for (key, value) in converter_dict
+      new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+    end
+    converted_poly = zero(b_ring)
+    for l in 1:length(coeffs)
+      if haskey(new_converter_dict, non_zero_exponents[l])
+        converted_poly += coeffs[l] * new_converter_dict[non_zero_exponents[l]]
+      end
+    end
+    converted_poly = cohomology_ring(ambient_space(m), check = check)(converted_poly)
     converted_class = CohomologyClass(ambient_space(m), converted_poly)
-  else
-    converted_class = g4_class
+    
   end
 
   # Build the G4-flux candidate
@@ -115,6 +127,43 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
     error("Given G4-flux candidate found to violate quantization and/or transversality condition")
   end
   return g4_candidate
+end
+
+
+@doc raw"""
+    qsm_flux(qsm_model::AbstractFTheoryModel)
+
+For an F-theory QSM [CHLLT19](@cite), this method creates the particularly chosen G4-flux in these models.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> qsm_flux(qsm_model)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
+```
+"""
+function qsm_flux(qsm_model::AbstractFTheoryModel)
+  @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
+  divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
+  gens_strings = symbols(cox_ring(ambient_space(qsm_model)))
+  e1 = cohomology_class(divs[findfirst(x -> x == :e1, gens_strings)])
+  e2 = cohomology_class(divs[findfirst(x -> x == :e2, gens_strings)])
+  e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])
+  u = cohomology_class(divs[findfirst(x -> x == :u, gens_strings)])
+  v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
+  pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
+  g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
+  my_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+  set_attribute!(my_flux, :is_well_quantized, true)
+  set_attribute!(my_flux, :passes_transversality_checks, true)
+  set_attribute!(my_flux, :breaks_non_abelian_gauge_group, false)
+  return my_flux
 end
 
 
@@ -179,7 +228,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, g4::G4Flux)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
+  io = pretty(io)
   properties_string = ["G4-flux candidate"]
 
   # Check for elementary quantization checks
@@ -187,7 +238,7 @@ function Base.show(io::IO, g4::G4Flux)
     if is_well_quantized(g4)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
-      push!(properties_string, "  - Elementary quantization checks: failed")
+      push!(properties_string, "  - Elementary quantization checks: violated")
     end
   else
     push!(properties_string, "  - Elementary quantization checks: not executed")
@@ -198,7 +249,7 @@ function Base.show(io::IO, g4::G4Flux)
     if passes_transversality_checks(g4)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
-      push!(properties_string, "  - Transversality checks: failed")
+      push!(properties_string, "  - Transversality checks: violated")
     end
   else
     push!(properties_string, "  - Transversality checks: not executed")
@@ -209,7 +260,7 @@ function Base.show(io::IO, g4::G4Flux)
     if breaks_non_abelian_gauge_group(g4)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
-      push!(properties_string, "  - Non-abelian gauge group: not broken")
+      push!(properties_string, "  - Non-abelian gauge group: unbroken")
     end
   else
     push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
@@ -220,10 +271,10 @@ function Base.show(io::IO, g4::G4Flux)
     if passes_tadpole_cancellation_check(g4)
       push!(properties_string, "  - Tadpole cancellation check: satisfied")
     else
-      push!(properties_string, "  - Tadpole cancellation check: failed")
+      push!(properties_string, "  - Tadpole cancellation check: violated")
     end
   else
-    push!(properties_string, "  - Tadpole cancellation check: not executed")
+    push!(properties_string, "  - Tadpole cancellation check: not computed")
   end
 
   # Print each line separately, to avoid extra line break at the end
@@ -234,4 +285,9 @@ function Base.show(io::IO, g4::G4Flux)
       println(io, line) # Print all other lines with line break
     end
   end
+end
+
+# Terse and one line printing
+function Base.show(io::IO, g4::G4Flux)
+  print(io, "G4-flux candidate")
 end

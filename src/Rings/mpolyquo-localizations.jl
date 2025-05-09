@@ -128,9 +128,6 @@ localized_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT
 localized_ring_type(L::MPolyQuoLocRing) = localized_ring_type(typeof(L))
 
 ideal_type(::Type{MPolyQuoLocalizedRingType}) where {MPolyQuoLocalizedRingType<:MPolyQuoLocRing} = MPolyQuoLocalizedIdeal{MPolyQuoLocalizedRingType, elem_type(MPolyQuoLocalizedRingType), ideal_type(localized_ring_type(MPolyQuoLocalizedRingType))}
-ideal_type(W::MPolyQuoLocRing) = ideal_type(typeof(W))
-
-
 
 
 
@@ -993,15 +990,14 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 
 @doc raw"""
     MPolyQuoLocalizedRingHom{
-      BaseRingType, 
-      BaseRingElemType, 
-      RingType, 
-      RingElemType, 
-      DomainMultSetType, 
-      CodomainMultSetType
-    } <: AbsLocalizedRingHom{
-      RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-    }
+         DomainType<:MPolyQuoLocRing, 
+         CodomainType<:Ring, 
+         RestrictedMapType<:Map
+        } <: AbsLocalizedRingHom{
+                                 DomainType, 
+                                 CodomainType, 
+                                 RestrictedMapType
+                                }
 
 Homomorphisms of localizations of affine algebras 
 

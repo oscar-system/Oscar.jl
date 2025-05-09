@@ -1295,7 +1295,10 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
 end
 
 function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
-  return divides(a, b)[2]
+  check_parent(a, b)
+  b, q = divides(a, b)
+  !b && error("Division is not exact in divexact")
+  return q
 end
 
 function is_nilpotent(a::MPolyQuoRingElem)

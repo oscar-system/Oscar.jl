@@ -604,24 +604,24 @@ Sym(2)
 acting_subgroup(W::WreathProductGroup) = W.H
 
 """
-    homomorphism_of_wreath_product(G::WreathProductGroup)
+    homomorphism_of_wreath_product(W::WreathProductGroup)
 
 If `W` is the wreath product of `G` and `H`, then return the homomorphism `f`
 from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 """
-homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
+homomorphism_of_wreath_product(W::WreathProductGroup) = W.a
 
 """
-    is_full_wreath_product(G::WreathProductGroup)
+    is_full_wreath_product(W::WreathProductGroup)
 
-Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
+Return whether `W` is a wreath product of two groups, instead of a proper subgroup.
 """
-is_full_wreath_product(G::WreathProductGroup) = G.isfull
+is_full_wreath_product(W::WreathProductGroup) = W.isfull
 
 """
-    canonical_projection(G::WreathProductGroup)
+    canonical_projection(W::WreathProductGroup)
 
-Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
+If `W` is the wreath product of `G` and `H`, then return the projection of `W` onto the permutation group `H`.
 """
 function canonical_projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
@@ -631,9 +631,9 @@ function canonical_projection(W::WreathProductGroup)
 end
 
 """
-    canonical_injection(G::WreathProductGroup, n::Int)
+    canonical_injection(W::WreathProductGroup, n::Int)
 
-Return the injection of the `n`-th component of `G` into `G`.
+Return the injection of the `n`-th component of `W` into `W`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injection(W::WreathProductGroup, n::Int)
@@ -649,9 +649,9 @@ function canonical_injection(W::WreathProductGroup, n::Int)
 end
 
 """
-    canonical_injections(G::WreathProductGroup)
+    canonical_injections(W::WreathProductGroup)
 
-Return the injection of the `n`-th component of `G` into `G` for all `n`.
+Return the injection of the `n`-th component of `W` into `W` for all `n`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injections(W::WreathProductGroup)

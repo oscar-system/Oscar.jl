@@ -142,6 +142,29 @@ type(tp::TypeParams) = tp.type
 
 type_params(obj::T) where T = TypeParams(T, nothing)
 
+function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
+  if is_terse(io)
+    print(io, "Type parameters for $T")
+  else
+    io = pretty(io)
+    print(io, "Type parameters for $T")
+    for param in params(tp)
+      println(io, "")
+      print(terse(io), Lowercase(), param)
+    end
+  end
+end
+
+function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
+  if is_terse(io)
+    print(io, "Type parameters for $T")
+  else
+    io = pretty(io)
+    print(io, "Type parameter for $T ")
+    print(terse(io), Lowercase(), params(tp))
+  end
+end
+
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
@@ -746,7 +769,6 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   file_version = load_node(s) do obj
     serialization_version_info(obj)
   end
-
   if file_version < VERSION_NUMBER
     # we need a mutable dictionary
     jsondict = copy(s.obj)

@@ -33,7 +33,10 @@ export arxiv_model_section
 export arxiv_version
 export associated_literature_models
 export base_space
-export basis_of_h22
+export basis_of_h22_ambient
+export basis_of_h22_ambient_indices
+export basis_of_h22_hypersurface
+export basis_of_h22_hypersurface_indices
 export birational_literature_models
 export blow_up
 export breaks_non_abelian_gauge_group
@@ -45,6 +48,8 @@ export classes_of_model_sections
 export classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes
 export components_of_dual_graph
 export components_of_simplified_dual_graph
+export converter_dict_h22_ambient
+export converter_dict_h22_hypersurface
 export coordinate_ring
 export defining_classes
 export model_section_parametrization
@@ -57,6 +62,8 @@ export dual_graph
 export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
+export exceptional_classes
+export exceptional_divisor_indices
 export explicit_model_sections
 export family_of_g4_fluxes
 export family_of_spaces
@@ -69,7 +76,7 @@ export genera_of_ci_curves
 export genera_of_components_of_dual_graph
 export genera_of_components_of_simplified_dual_graph
 export generating_sections
-export global_gauge_quotients
+export global_gauge_group_quotient
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
 export global_tate_model_over_hirzebruch_surface
@@ -84,7 +91,7 @@ export has_arxiv_version
 export has_associated_literature_models
 export has_gauge_algebra
 export has_generating_sections
-export has_global_gauge_quotients
+export has_global_gauge_group_quotient
 export has_journal_doi
 export has_journal_link
 export has_journal_model_equation_number
@@ -141,12 +148,19 @@ export literature_identifier
 export literature_model
 export matrix_integral
 export matrix_rational
+export matrix_integral_quant_transverse
+export matrix_rational_quant_transverse
+export matrix_integral_quant_transverse_nobreak
+export matrix_rational_quant_transverse_nobreak
 export max_lattice_pts_in_facet
 export model
 export model_description
 export model_index
 export model_parameters
 export model_sections
+export offset
+export offset_quant_transverse
+export offset_quant_transverse_nobreak
 export paper_authors
 export paper_buzzwords
 export paper_description
@@ -155,6 +169,7 @@ export passes_tadpole_cancellation_check
 export passes_transversality_checks
 export polytope_index
 export put_over_concrete_base
+export qsm_flux
 export random_flux
 export random_flux_instance
 export rational_coefficients
@@ -173,7 +188,7 @@ export set_arxiv_version
 export set_associated_literature_models
 export set_gauge_algebra
 export set_generating_sections
-export set_global_gauge_quotients
+export set_global_gauge_group_quotient
 export set_global_tate_model
 export set_journal_doi
 export set_journal_link

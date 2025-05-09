@@ -55,6 +55,7 @@ export CartierDivisor
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Combination
 export Composition
 export Cone
 export CoveredScheme
@@ -127,6 +128,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Multipartition
 export Nemo
 export NormalToricVariety
 export OO
@@ -357,6 +359,8 @@ export character_field
 export character_lattice
 export character_parameters
 export character_table
+export character_table_complex_reflection_group
+export character_table_wreath_symmetric
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
@@ -400,6 +404,7 @@ export cokernel
 export collector
 export coloops
 export column
+export combinations
 export combinatorial_symmetries
 export comm
 export comm!
@@ -516,6 +521,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
+export dicyclic_group
 export dihedral_group
 export dim
 export dim_of_torusfactor
@@ -716,6 +722,7 @@ export height
 export hermitian_form
 export hessian
 export hessian_matrix
+export highest_root
 export hilbert_basis
 export hilbert_function
 export hilbert_polynomial
@@ -857,6 +864,7 @@ export is_coroot_with_index
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
+export is_dicyclic_group
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_dominant
 export is_du_val_singularity
@@ -957,7 +965,7 @@ export is_pure
 export is_q_cartier
 export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
-export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_quaternion_group
 export is_quotient
 export is_radical
 export is_ready
@@ -1179,6 +1187,8 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multipartition
+export multipartitions
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1250,6 +1260,7 @@ export number_of_factors
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
 export number_of_perfect_groups, has_number_of_perfect_groups
@@ -1348,6 +1359,7 @@ export positive_coroots
 export positive_hull
 export positive_root
 export positive_roots
+export positive_tropical_variety
 export possible_class_fusions
 export power_map
 export power_sum

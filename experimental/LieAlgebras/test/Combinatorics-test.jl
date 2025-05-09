@@ -1,22 +1,4 @@
 @testset "LieAlgebras.Combinatorics" begin
-  @testset "combinations" begin
-    combinations = Oscar.LieAlgebras.combinations
-
-    for n in 1:8, k in 1:n
-      @test collect(combinations(n, k)) == collect(combinations(1:n, k))
-    end
-
-    @test collect(combinations(["1", "2", "3", "4"], 0)) == [String[]]
-    @test collect(combinations(["1", "2", "3", "4"], 1)) == [["1"], ["2"], ["3"], ["4"]]
-    @test collect(combinations(["1", "2", "3", "4"], 2)) ==
-      [["1", "2"], ["1", "3"], ["1", "4"], ["2", "3"], ["2", "4"], ["3", "4"]]
-    @test collect(combinations(["1", "2", "3", "4"], 3)) ==
-      [["1", "2", "3"], ["1", "2", "4"], ["1", "3", "4"], ["2", "3", "4"]]
-    @test collect(combinations(["1", "2", "3", "4"], 4)) == [["1", "2", "3", "4"]]
-    @test collect(combinations(["1", "2", "3", "4"], 5)) == String[]
-    @test collect(combinations(["1", "2", "3", "4"], 6)) == String[]
-  end
-
   @testset "multicombinations" begin
     multicombinations = Oscar.LieAlgebras.multicombinations
 
