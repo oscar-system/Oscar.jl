@@ -1,6 +1,6 @@
 # I would like to credit Dario Mathiä who produced an initial version of the following code
 
-export wreath_macs, wreath_mac
+export wreath_macs, wreath_mac, tau_om, core
 
 # Tools
 
@@ -37,10 +37,10 @@ function core(coroot::Vector{Int},r::Int)
 end
 
 #Inspired by Sagemath's algorithm to obtain a partition from core and quotient
+#Be careful: it is not the usual quotient but the one defined in [Gordon 2008]
 function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
    r=length(lbb)
    w0=perm([r-i for i in 0:(r-1)])  #cf Remark 3.5 Orr and Shimozono
-   wperm=wperm
    lbb_perm=multipartition(permuted(lbb.mp,wperm*w0))
    gamma=core(coroot,r)
    lg=length(gamma)
