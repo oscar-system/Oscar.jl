@@ -22,8 +22,11 @@ end
 function doctestfilters()
   # this returns a list of doctest filters that should be passed to all doctest invocations
   return [
-    r"0-element SubObjectIterator{RayVector{QQFieldElem}}|RayVector{QQFieldElem}\[\]" => "RayVector{QQFieldElem}[]", # due to JuliaLang/julia#57898, oscar-system/Oscar.jl#4872
-    r"0-element SubObjectIterator{PointVector{QQFieldElem}}|PointVector{QQFieldElem}\[\]" => "PointVector{QQFieldElem}[]", # due to JuliaLang/julia#57898, oscar-system/Oscar.jl#4872
+    # due to JuliaLang/julia#57898, oscar-system/Oscar.jl#4872:
+    r"^0-element SubObjectIterator{RayVector{QQFieldElem}}|^RayVector{QQFieldElem}\[\]"m => "RayVector{QQFieldElem}[]",
+    r"^0-element SubObjectIterator{PointVector{QQFieldElem}}|^PointVector{QQFieldElem}\[\]"m => "PointVector{QQFieldElem}[]",
+    r"^ 0-element SubObjectIterator{RayVector{QQFieldElem}}|^ \[\]"m => " []",
+    r"^ 0-element SubObjectIterator{PointVector{QQFieldElem}}|^ \[\]"m => " []",
   ]
 end
 
