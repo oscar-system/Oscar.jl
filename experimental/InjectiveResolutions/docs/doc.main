@@ -1,6 +1,9 @@
-# The documentation
-
-```@docs
-irreducible_res(M::SubquoModule,P::Vector{FaceQ},P_Q::Polyhedron,G::Polyhedron,F::Vector{Polyhedron{QQFieldElem}},H::Vector{FaceQ})
-```
+[
+  "Local Cohomology" => [
+    "introduction.md",
+    "monoid_algebras.md",
+    "injective_resolutions.md",
+    "local_cohomology.md"
+  ]
+]
 
