@@ -1737,7 +1737,7 @@ julia> f = matrix(QQ, 2, 2, [1 1; 0 -1]);
 julia> Lf = integer_lattice_with_isometry(L, f);
 
 julia> G, _ = image_centralizer_in_Oq(Lf)
-(Group of isometries of finite quadratic module: Z/3 -> Q/2Z with 2 generators, Hom: group of isometries of finite quadratic module with 2 generators -> group of isometries of finite quadratic module with 1 generator)
+(Group of isometries of finite quadratic module: Z/3 -> Q/2Z, Hom: group of isometries of finite quadratic module -> group of isometries of finite quadratic module)
 
 julia> order(G)
 2
