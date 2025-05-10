@@ -840,3 +840,16 @@ end
   @test !is_archimedean_solid(prism)
   @test !is_johnson_solid(prism)
 end
+
+
+@testset "cone / polyhedron interoperability" begin
+  c = positive_hull(matrix(QQ,[1 0; 0 1]))
+  p = cube(2)
+  @test n_vertices(pyramid(c)) == 2
+  @test n_vertices(bipyramid(c)) == 3
+  @test n_rays(normal_cone(c,1)) == 2
+  @test n_vertices(intersect(c,p)) == 4
+  @test n_vertices(c*p) == 4
+  @test n_vertices(convex_hull(c,p)) == 1
+  @test n_rays(c+p) == 2
+end
