@@ -79,7 +79,7 @@ end
 
 ################################################################################
 #
-#  Array-like functionality
+#  Array-like functionality for Combination
 #
 ################################################################################
 
@@ -92,24 +92,77 @@ function Base.show(io::IO, ::MIME"text/plain", P::Combination)
   print(io, p)
 end
 
-data(P::Combination) = P.v
+data(C::Combination) = C.v
 
-function Base.size(P::Combination)
-  return size(data(P))
+function Base.size(C::Combination)
+  return size(data(C))
 end
 
-function Base.length(P::Combination)
-  return length(data(P))
+function Base.length(C::Combination)
+  return length(data(C))
 end
 
-function Base.getindex(P::Combination, i::IntegerUnion)
-  return getindex(data(P), Int(i))
+function Base.getindex(C::Combination, i::IntegerUnion)
+  return getindex(data(C), Int(i))
 end
 
-function Base.setindex!(P::Combination, x::IntegerUnion, i::IntegerUnion)
-  return setindex!(data(P), x, i)
+function Base.setindex!(C::Combination, x::IntegerUnion, i::IntegerUnion)
+  return setindex!(data(C), x, i)
 end
 
-function Base.copy(P::Combination)
-  return Combination(copy(data(P)))
+function Base.copy(C::Combination)
+  return Combination(copy(data(C)))
+end
+
+
+################################################################################
+#
+#  Ranking / unranking combinations
+#
+################################################################################
+
+# For a combination C containing k elements from 1:n,
+# return the index i so that C occurs as the ith element in the
+# iteration over all such combinations (which are lexicographically ordered).
+# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
+# NOTE we have added an extra argument, since this info is not stored with
+# a Combination as it is with an OrderedMultiIndex
+function linear_index(C::Combination, n::IntegerUnion)
+  k = length(C)
+  iszero(k) && return 1
+  isone(k) && return Int(C[1])
+
+  r = binomial(n,k)
+  i = 1
+  while i < k+1
+    r -= binomial(n-C[i], k-i+1)
+    i += 1
+    k-i+1 == n-C[i-1] && return r
+  end
+  return r
+end
+
+# Return the rth combination in the iteration over combinations(n,k)
+# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
+# NOTE arguments are reordered to match combinatorial conventions
+function combination(n::Int, k::Int, r::Int)
+  (r < 1 || r > binomial(n, k)) && error("index out of range")
+  iszero(k) && return Combination(Int[])
+  isone(k) && return Combination([r])
+  n == k && return Combination(collect(1:n))
+
+  C = zeros(Int, k)
+  r = binomial(n,k) - r
+  j = 1
+  for i in 1:k
+    b = binomial(n - j, k - i + 1)
+    while b > r - 1
+      j += 1
+      b = binomial(n - j, k - i _ 1)
+    end
+    C[i] = j
+    j += 1
+    r -= b
+  end
+  return Combination(C)
 end
