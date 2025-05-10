@@ -115,8 +115,12 @@ julia> t((M[1], M[2]))
 x*y*e[1] \otimes e[1]
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
+function tensor_product(G::ModuleFP...; 
+    ambient_tensor_product::FreeMod=tensor_product((ambient_free_module(x) for x in G)..., task = :none),
+    task::Symbol = :none
+  )
+  F = ambient_tensor_product
+  mF = tensor_pure_function(ambient_tensor_product)
   # We want to store a dict where the keys are tuples of indices and the values
   # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
   # 2nd, 1st and 5th generator of the 1st, 2nd and 3rd module, which we are 
