@@ -68,8 +68,8 @@ order_of_isometry(Vf::QuadSpaceWithIsom) = Vf.n
 @doc raw"""
     rank(Vf::QuadSpaceWithIsom) -> Integer
 
-Given a quadratic space with isometry $(V, f)$, return the rank of the underlying
-space $V$.
+Given a quadratic space with isometry $(V, f)$, return the rank of the
+underlying space $V$.
 
 See [`rank(::AbstractSpace)`](@ref).
 
@@ -306,8 +306,11 @@ signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))
 ###############################################################################
 
 @doc raw"""
-    quadratic_space_with_isometry(V:QuadSpace, f::QQMatrix; check::Bool=false)
-                                                           -> QuadSpaceWithIsom
+    quadratic_space_with_isometry(
+      V:QuadSpace,
+      f::QQMatrix;
+      check::Bool=false
+    ) -> QuadSpaceWithIsom
 
 Given a quadratic space $V$ and a matrix $f$, if $f$ defines an isometry of $V$
 of order $n$ (possibly infinite), return the corresponding quadratic space with
@@ -336,8 +339,11 @@ Quadratic space of dimension 2
   [0   -1]
 ```
 """
-function quadratic_space_with_isometry(V::Hecke.QuadSpace, f::QQMatrix;
-                                                           check::Bool=true)
+function quadratic_space_with_isometry(
+    V::Hecke.QuadSpace,
+    f::QQMatrix;
+    check::Bool=true
+  )
   if rank(V) == 0
     return QuadSpaceWithIsom(V, zero_matrix(QQ, 0, 0), -1)
   end
@@ -353,12 +359,16 @@ function quadratic_space_with_isometry(V::Hecke.QuadSpace, f::QQMatrix;
 end
 
 @doc raw"""
-    quadratic_space_with_isometry(V::QuadSpace; neg::Bool=false) -> QuadSpaceWithIsom
+    quadratic_space_with_isometry(
+      V::QuadSpace;
+      neg::Bool=false
+    ) -> QuadSpaceWithIsom
 
-Given a quadratic space $V$, return the quadratic space with isometry pair $(V, f)$
-where $f$ is represented by the identity matrix.
+Given a quadratic space $V$, return the quadratic space with isometry pair
+$(V, f)$ where $f$ is represented by the identity matrix.
 
-If `neg` is set to `true`, then the isometry $f$ is negative the identity on $V$.
+If `neg` is set to `true`, then the isometry $f$ is negative the identity on
+$V$.
 
 # Examples
 ```jldoctest
@@ -393,8 +403,9 @@ end
 @doc raw"""
     rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
 
-Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$) where
-$V^a$ is the same space as $V$ with the associated quadratic form rescaled by $a$.
+Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$)
+where $V^a$ is the same space as $V$ with the associated quadratic form rescaled
+by $a$.
 
 # Examples
 ```jldoctest
@@ -435,8 +446,8 @@ end
 @doc raw"""
     ^(Vf::QuadSpaceWithIsom, n::Int) -> QuadSpaceWithIsom
 
-Given a quadratic space with isometry $(V, f)$ and an integer $n$, return the pair
-$(V, f^n)$.
+Given a quadratic space with isometry $(V, f)$ and an integer $n$, return the
+pair $(V, f^n)$.
 
 # Examples
 ```jldoctest
@@ -473,20 +484,16 @@ function Base.:^(Vf::QuadSpaceWithIsom, n::Int)
 end
 
 @doc raw"""
-    direct_sum(x::Vector{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
-    direct_sum(x::Vararg{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
+    direct_sum(
+      x::Union{Vector{QuadSpaceWithIsom}, Vararg{QuadSpaceWithIsom}}
+    ) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
 
-Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
-return the quadratic space with isometry $(V, f)$ together with the injections
-$V_i \to V$, where $V$ is the direct sum $V := V_1 \oplus \ldots \oplus V_n$ and
+Given a finite collection of quadratic spaces with isometries
+$(V_1, f_1), \ldots, (V_n, f_n)$, return the quadratic space with isometry
+$(V, f)$ together with the embeddings of space $V_i \to V$ and the projections,
+of $\mathbb{Q}$-vector spaces, $V\to V_i$.
+Here $V$ is the direct sum of spaces $V := V_1 \oplus \ldots \oplus V_n$ and
 $f$ is the isometry of $V$ induced by the diagonal actions of the $f_i$'s.
-
-For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products
-agree and they are therefore called biproducts.
-If one wants to obtain $(V, f)$ as a direct product with the projections $V \to V_i$,
-one should call `direct_product(x)`.
-If one wants to obtain $(V, f)$ as a biproduct with the injections $V_i \to V$ and
-the projections $V \to V_i$, one should call `biproduct(x)`.
 
 # Examples
 ```jldoctest
@@ -525,8 +532,7 @@ Quadratic space of dimension 2
   [1    1]
   [0   -1]
 
-julia> Vf3, inj = direct_sum(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
+julia> Vf3, _, _ = direct_sum(Vf1, Vf2);
 
 julia> Vf3
 Quadratic space of dimension 4
@@ -548,187 +554,12 @@ with gram matrix
 ```
 """
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, inj = direct_sum(space.(x))
-  f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), inj
-end
-
-direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
-
-@doc raw"""
-    direct_product(x::Vector{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
-    direct_product(x::Vararg{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
-
-Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
-return the quadratic space with isometry $(V, f)$ together with the projections
-$V \to V_i$, where $V$ is the direct product $V := V_1 \times \ldots \times V_n$ and
-$f$ is the isometry of $V$ induced by the diagonal actions of the $f_i$'s.
-
-For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products
-agree and they are therefore called biproducts.
-If one wants to obtain $(V, f)$ as a direct sum with the injections $V_i \to V$,
-one should call `direct_sum(x)`.
-If one wants to obtain $(V, f)$ as a biproduct with the injections $V_i \to V$ and
-the projections $V \to V_i$, one should call `biproduct(x)`.
-
-# Examples
-```jldoctest
-julia> V1 = quadratic_space(QQ, QQ[2 5;
-                                   5 6])
-Quadratic space of dimension 2
-  over rational field
-with gram matrix
-[2   5]
-[5   6]
-
-julia> Vf1 = quadratic_space_with_isometry(V1; neg=true)
-Quadratic space of dimension 2
-  with isometry of finite order 2
-  given by
-  [-1    0]
-  [ 0   -1]
-
-julia> V2 = quadratic_space(QQ, QQ[ 2 -1;
-                                   -1  2])
-Quadratic space of dimension 2
-  over rational field
-with gram matrix
-[ 2   -1]
-[-1    2]
-
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
-[1    1]
-[0   -1]
-
-julia> Vf2 = quadratic_space_with_isometry(V2, f)
-Quadratic space of dimension 2
-  with isometry of finite order 2
-  given by
-  [1    1]
-  [0   -1]
-
-julia> Vf3, proj = direct_product(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
-
-julia> Vf3
-Quadratic space of dimension 4
-  with isometry of finite order 2
-  given by
-  [-1    0   0    0]
-  [ 0   -1   0    0]
-  [ 0    0   1    1]
-  [ 0    0   0   -1]
-
-julia> space(Vf3)
-Quadratic space of dimension 4
-  over rational field
-with gram matrix
-[2   5    0    0]
-[5   6    0    0]
-[0   0    2   -1]
-[0   0   -1    2]
-```
-"""
-function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, proj = direct_product(space.(x))
-  f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), proj
-end
-
-direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
-
-@doc raw"""
-    biproduct(x::Vector{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
-    biproduct(x::Vararg{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
-
-Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
-return the quadratic space with isometry $(V, f)$ together with the injections
-$V_i \to V$ and the projections $V \to V_i$, where $V$ is the biproduct
-$V := V_1 \oplus \ldots \oplus V_n$ and $f$ is the isometry of $V$ induced by the
-diagonal actions of the $f_i$'s.
-
-For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products
-agree and they are therefore called biproducts.
-If one wants to obtain $(V, f)$ as a direct sum with the injections $V_i \to V$,
-one should call `direct_sum(x)`.
-If one wants to obtain $(V, f)$ as a direct product with the projections $V \to V_i$,
-one should call `direct_product(x)`.
-
-# Examples
-```jldoctest
-julia> V1 = quadratic_space(QQ, QQ[2 5;
-                                   5 6])
-Quadratic space of dimension 2
-  over rational field
-with gram matrix
-[2   5]
-[5   6]
-
-julia> Vf1 = quadratic_space_with_isometry(V1; neg=true)
-Quadratic space of dimension 2
-  with isometry of finite order 2
-  given by
-  [-1    0]
-  [ 0   -1]
-
-julia> V2 = quadratic_space(QQ, QQ[ 2 -1;
-                                   -1  2])
-Quadratic space of dimension 2
-  over rational field
-with gram matrix
-[ 2   -1]
-[-1    2]
-
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
-[1    1]
-[0   -1]
-
-julia> Vf2 = quadratic_space_with_isometry(V2, f)
-Quadratic space of dimension 2
-  with isometry of finite order 2
-  given by
-  [1    1]
-  [0   -1]
-
-julia> Vf3, inj, proj = biproduct(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
-
-julia> Vf3
-Quadratic space of dimension 4
-  with isometry of finite order 2
-  given by
-  [-1    0   0    0]
-  [ 0   -1   0    0]
-  [ 0    0   1    1]
-  [ 0    0   0   -1]
-
-julia> space(Vf3)
-Quadratic space of dimension 4
-  over rational field
-with gram matrix
-[2   5    0    0]
-[5   6    0    0]
-[0   0    2   -1]
-[0   0   -1    2]
-
-julia> matrix(compose(inj[1], proj[1]))
-[1   0]
-[0   1]
-
-julia> matrix(compose(inj[1], proj[2]))
-[0   0]
-[0   0]
-```
-"""
-function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, inj, proj = biproduct(space.(x))
+  V, inj, proj = Hecke._biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
   return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
-biproduct(x::Vararg{QuadSpaceWithIsom}) = biproduct(collect(x))
+direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
 
 ###############################################################################
 #

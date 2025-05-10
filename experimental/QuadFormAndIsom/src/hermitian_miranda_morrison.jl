@@ -178,8 +178,11 @@ end
 
 # We obtain the quotient here: we first check what the ramification type of p
 # in O is, in order to distribute to the appropriate function above.
-
-function _get_quotient(O::Hecke.RelNumFieldOrder, p::Hecke.AbsSimpleNumFieldOrderIdeal, i::Int)
+function _get_quotient(
+    O::Hecke.RelNumFieldOrder,
+    p::Hecke.AbsSimpleNumFieldOrderIdeal,
+    i::Int
+  )
   @hassert :ZZLatWithIsom 1 is_prime(p)
   @hassert :ZZLatWithIsom 1 is_maximal(order(p))
   @hassert :ZZLatWithIsom 1 order(p) === base_ring(O)
@@ -206,7 +209,10 @@ end
 # abelian group where one do the local determinants computations
 # for the hermitian version of Miranda-Morrison theory
 
-function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{AbsSimpleNumFieldOrderIdeal, Int}})
+function _get_product_quotient(
+    E::Hecke.RelSimpleNumField, 
+    Fac::Vector{Tuple{AbsSimpleNumFieldOrderIdeal, Int}}
+  )
   OE = maximal_order(E)
   groups = FinGenAbGroup[]
   exps = Function[]
@@ -246,7 +252,7 @@ function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{Abs
     return v
   end
 
-  @v_do :ZZLatWithIsom 1 for i in 1:10
+  @v_do :ZZLatWithIsom 3 for i in 1:10
       a = rand(G)
       @hassert :ZZLatWithIsom 1 dlog(exp(a)) == a
     end
@@ -260,15 +266,14 @@ end
 #
 ###############################################################################
 
-# We collect all the prime ideals p for which the local quotient
-# (D^{-1}L^#/L)_p is not unimodular.
+# Given a hermitian lattice $L$ over a degree 2 extensions of number fields
+# $E/K$, and given an $O_E$-ideal $D$, return the prime $O_K$-ideals $p$ so that
+# the quotient $D^{-1}L^\#_p/L_p$ is not unimodular.
 #
-# According to [BH23], the quotient D^{-1}L^#/L is unimodular at p
-# if and only if
-#  - either L is unimodular at p, and D and p are coprime
-#  - or L is P^{-a}-modular where P is largest prime ideal
-#    over p fixed by the canonical involution, and a is the P-valuation of D.
-
+# According to [BH23], such a quotient is unimodular if and only if
+# * either $L_p$ is unimodular, and $D$ and $p$ are coprime;
+# * or $L$ is $P^{-a}$-modular where $P$ is the largest prime $O_E$-ideal over
+#   $p$ which is fixed by the canonical involution, and $a = \val_P(D)$.
 function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
   Ps = collect(keys(factor(D)))
   primess = AbsSimpleNumFieldOrderIdeal[]
@@ -286,12 +291,8 @@ function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
   return unique!(primess)
 end
 
-# We compute here the map delta from Theorem 6.15 of [BH23]. Its kernel is
-# precisely the image of the map O(L, f) \to O(D_L, D_f).
-#
-# This map is defined on the centralizer O(D_L, D_f) of D_f in O(D_L). For
-# each generator g, we find a good enough approximation on the ambient space
-# of L restricting g, which we transport by the trace construction on the
+# For each generator g, we find a good enough approximation on the ambient space
+# of L restricting to g, which we transport by the trace construction on the
 # hermitian structure of (L, f), and we create a better approximation of the
 # new isometry of D^{-1}L^#/L on the hermitian ambient space of L, up to the
 # valuation given by Theorem 6.25 in [BH23].
@@ -305,7 +306,13 @@ end
 # The major part of the following algorithm follows the implementation of a
 # similar function on Magma by Tommy Hofmann. Only the last loop about
 # determinants approximations is new in this code.
-
+#
+# Given an even indefinite integer lattice with isometry $(L, f)$ of finite
+# hermitian type, with $L$ of rank at least 3, compute the map $\delta$
+# defined in Theorem 6.15 of [BH23]. Its kernel is precisely the image of the
+# discriminant representation $O(L, f)\to O(D_L, D_f)$. The first output is
+# $\delta$ seen as a map from $O(D_L, D_f)$ to a suitably chosen finite abelian
+# group, and the second output is the embedding $O(D_L, D_f)\to O(D_L)$.
 function _local_determinants_morphism(Lf::ZZLatWithIsom)
   @hassert :ZZLatWithIsom 1 is_of_hermitian_type(Lf)
 
@@ -484,15 +491,14 @@ end
 # We check whether for the prime ideal p: E_O(L_p) != F(L_p).
 #
 # There exist some prime ideals p which are elementary divisors for the
-# quotients D^{-1}L^#/L and, according to Kirschmer, for which the above quotient
-# can still be trivial. We call special those which do not satisfy this second
-# property: considering them, we can actually reduce the size of the finite
-# abelian group in which we will perform our local approximate determinants
-# computations.
+# quotients D^{-1}L^#/L and, according to Kirschmer, for which the above
+# quotient can still be trivial. We call special those which do not satisfy
+# this second property: considering them, we can actually reduce the size of
+# the finite abelian group in which we will perform our local approximate
+# determinants computations.
 #
 # This function is an import of a function written by Markus Kirschmer in the
 # Magma package about hermitian lattices.
-
 function _is_special(L::HermLat, p::AbsSimpleNumFieldOrderIdeal)
   OE = base_ring(L)
   E = number_field(OE)
@@ -523,7 +529,7 @@ end
 
 ###############################################################################
 #
-#  Local hermitian lifting - path to algorithm 8 of [BH23]
+#  Local hermitian lifting --- path to algorithm 8 of [BH23]
 #
 ###############################################################################
 
@@ -532,11 +538,13 @@ end
 # (fixed by res). The new map we obtain should be a local invertible map with
 # integer (for the given local field at p) entries which defines an isometry of
 # D^{-1}H^# modulo H.
-function _transfer_discriminant_isometry(res::AbstractSpaceRes,
-                                         g::AutomorphismGroupElem{TorQuadModule},
-                                         Bp::T,
-                                         Bp2::T,
-                                         pr::T) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+function _transfer_discriminant_isometry(
+    res::AbstractSpaceRes,
+    g::AutomorphismGroupElem{TorQuadModule},
+    Bp::T,
+    Bp2::T,
+    pr::T
+  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   q = domain(g)
   @hassert :ZZLatWithIsom 1 ambient_space(cover(q)) === domain(res)
 
@@ -556,7 +564,10 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes,
 end
 
 # the minimum P-valuation among all the non-zero entries of M
-function _scale_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+function _scale_valuation(
+    M::T,
+    P::Hecke.RelNumFieldOrderIdeal
+  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   OE = order(P)
   E = number_field(OE)
   @hassert :ZZLatWithIsom 1 base_ring(M) === E
@@ -572,7 +583,10 @@ function _scale_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: Matri
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
-function _norm_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+function _norm_valuation(
+    M::T,
+    P::Hecke.RelNumFieldOrderIdeal
+  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   E = number_field(order(P))
   @hassert :ZZLatWithIsom 1 base_ring(M) === E
   iszero(M) && return inf
@@ -585,10 +599,21 @@ end
 # given precision and the new matrix defines also an isometry up to a finer
 # precision than the initial matrix.
 #
-# We use this method iteratively to lift isometries (along a surjective map), by
-# looking at better representatives until we reach a good enough precision for
-# our purpose (i.e. computing its determinant).
-function _local_hermitian_lifting(G::T, F::T, rho::Hecke.RelSimpleNumFieldElem, l::Int, P::Hecke.RelNumFieldOrderIdeal, P2::Hecke.RelNumFieldOrderIdeal, split::Bool, e::Int, a::Int; check = true) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+# We use this method iteratively to lift isometries (along a surjective map),
+# by looking at better representatives until we reach a good enough precision
+# for our purpose (i.e. computing its determinant).
+function _local_hermitian_lifting(
+    G::T,
+    F::T,
+    rho::Hecke.RelSimpleNumFieldElem,
+    l::Int,
+    P::Hecke.RelNumFieldOrderIdeal,
+    P2::Hecke.RelNumFieldOrderIdeal,
+    split::Bool,
+    e::Int,
+    a::Int;
+    check = true
+  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   @hassert :ZZLatWithIsom 1 trace(rho) == 1
   E = base_ring(G)
   s = involution(E)
@@ -658,7 +683,16 @@ end
 #  - g is the torsion quadratic module automorphism, which centralizes D_f in
 #    D_L (H is the hermitian structure associated to (L, f) along res) which
 #    aims to approximately transfer to H2 along res at P
-function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.RelNumFieldOrderIdeal, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
+function _approximate_isometry(
+    H::HermLat,
+    H2::HermLat,
+    g::AutomorphismGroupElem{TorQuadModule},
+    P::Hecke.RelNumFieldOrderIdeal,
+    e::Int,
+    a::Int,
+    k::Int,
+    res::AbstractSpaceRes
+  )
   E = base_field(H)
   s = involution(E)
   P2 = s(P)
@@ -688,23 +722,28 @@ function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem
   return Fp
 end
 
-# We use this function to compute a local basis matrix of Hv at p, whose integral
-# span defines a sublattice of Hv. If H has a P^{-a}-modular block at p, we remove
-# the corresponding basis vector(s) from the output to only keep the Jordan
-# blocks of Hv_p which are of P-valuation different from -a.
+# We use this function to compute a local basis matrix of Hv at p, whose
+# integral span defines a sublattice of Hv. If H has a P^{-a}-modular block
+# at p, we remove the corresponding basis vector(s) from the output to only
+# keep the Jordan blocks of Hv_p which are of P-valuation different from -a.
 #
 # In our context of use, -a is actually the biggest scale valuation for
 # Hv. Since we took care earlier to discard the cases where Hv = D^{-1}H^# is
-# P^{-a}=modular locally at p, we just have to remove the last Jordan block from
-# the Jordan decomposition of Hv at p. From that point, we massage a bit
+# P^{-a}=modular locally at p, we just have to remove the last Jordan block
+# from the Jordan decomposition of Hv at p. From that point, we massage a bit
 # the basis matrices of the other Jordan blocks to obtain local basis matrices
 # which span sublattices of Hv.
 #
 # If Hv is locally U + R where U if a Jordan block of scale P^{-a}, the matrix
 # pr in output is the projection onto R. We multiply our local basis for R by
-# pr to remove all residue from U: we use this map also to compute approximation
-# of local isometries later.
-function _local_basis_matrix_and_projection(Hv::HermLat, p::AbsSimpleNumFieldOrderIdeal, a::Int, res::AbstractSpaceRes)
+# pr to remove all residue from U: we use this map also to compute
+# approximation of local isometries later.
+function _local_basis_matrix_and_projection(
+    Hv::HermLat,
+    p::AbsSimpleNumFieldOrderIdeal,
+    a::Int,
+    res::AbstractSpaceRes
+  )
   Bv, Gv , expsv = jordan_decomposition(Hv, p)
   pr = identity_matrix(base_field(Hv), rank(Hv))
   # If the last Jordan block U is P^{-a}-modular, then this part will
@@ -780,7 +819,7 @@ function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
     nug = valuation(g, Pabs)
     if nu == nug
       d = denominator(g+1, OEabs)
-      rt = roots(t^2 - (g+1)*d^2; max_roots = 1, ispure = true, is_normal = true)
+      rt = roots(t^2 - (g+1)*d^2; max_roots=1, ispure=true, is_normal=true)
       if !is_empty(rt)
         rho = (1+rt[1])//2
         @hassert :ZZLatWithIsom 1 valuation(EabstoE(rho), P) == 1-e
