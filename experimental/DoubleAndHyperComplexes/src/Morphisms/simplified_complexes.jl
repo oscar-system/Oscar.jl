@@ -364,7 +364,7 @@ function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType,
 end
 
 ### Helper functions
-function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
+function _make_free_module(M::SparseFPModule, g::Vector{T}) where {T<:SparseFPModuleElem}
   if is_graded(M)
     w = _degree_fast.(g)
     return graded_free_module(base_ring(M), w)
@@ -637,7 +637,7 @@ function simplify(M::SubquoModule)
 end
 
 # Some special shortcuts
-function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:SparseFPModule}
   # try to find the boundary already computed
   und = underlying_complex(c)::HyperComplex
   if !isdefined(und, :boundary_cache) 
@@ -659,7 +659,7 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   return result, inc
 end
 
-function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:SparseFPModule}
   c = underlying_complex(simp)::HyperComplex
 
   if !isdefined(c, :kernel_cache) 
@@ -684,7 +684,7 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   return K, inc
 end
 
-function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: SparseFPModule}
   c = underlying_complex(simp)::HyperComplex
   
   if !isdefined(c, :homology_cache) 
@@ -700,4 +700,4 @@ function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {C
   return H, pr
 end
 
-homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))
+homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: SparseFPModule} = homology(simp, 1, (i,))

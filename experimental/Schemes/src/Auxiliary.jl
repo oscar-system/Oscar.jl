@@ -437,7 +437,7 @@ end
 ### Take a complex of graded modules and twist all 
 # modules so that the (co-)boundary maps become homogeneous
 # of degree zero. 
-function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
+function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:SparseFPModule}
   R = base_ring(C[first(range(C))])
   is_standard_graded(R) || error("ring must be standard graded")
   all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")
@@ -472,7 +472,7 @@ end
 ### Take a complex of free ℤ-graded modules with (co-)boundary 
 # maps of degree zero and return the complex given by all the 
 # degree d parts.
-function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
+function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:SparseFPModule}
   R = base_ring(C[first(range(C))])
   is_standard_graded(R) || error("ring must be standard graded")
   all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")

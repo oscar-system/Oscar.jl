@@ -21,11 +21,11 @@ img_gens(f::FreeModuleHom) = images_of_generators(f)
 images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
 image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
-function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:SparseFPModule, Nothing})
   return nothing
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+function base_ring_map(f::SubQuoHom{<:SubquoModule, <:SparseFPModule, Nothing})
   return nothing
 end
 
@@ -77,13 +77,13 @@ end
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
 
 @doc raw"""
-    hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+    hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}) where T
 
 Given a vector `V` of `rank(F)` elements of `M`, 
 return the homomorphism `F` $\to$ `M` which sends the `i`-th
 basis vector of `F` to the `i`-th entry of `V`.
 
-    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T
+    hom(F::FreeMod, M::SparseFPModule{T}, A::MatElem{T}) where T
 
 Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
 homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
@@ -197,17 +197,17 @@ julia> a2 == b
 true
 ```
 """
-function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
+function hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}; check::Bool=true) where T
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M); check)
   return FreeModuleHom(F, M, V; check)
 end
-function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}; check::Bool=true) where T 
+function hom(F::FreeMod, M::SparseFPModule{T}, A::MatElem{T}; check::Bool=true) where T 
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M); check)
   return FreeModuleHom(F, M, A; check)
 end
 
 @doc raw"""
-    hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+    hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::RingMapType) where {T, RingMapType}
 
 Given a vector `V` of `rank(F)` elements of `M` and a ring map `h`
 from `base_ring(F)` to `base_ring(M)`, return the 
@@ -215,7 +215,7 @@ from `base_ring(F)` to `base_ring(M)`, return the
 basis vector of `F` to the `i`-th entry of `V`, and the scalars in 
 `base_ring(F)` to their images under `h`.
 
-    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+    hom(F::FreeMod, M::SparseFPModule{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType}
 
 Given a matrix `A` over `base_ring(M)` with `rank(F)` rows and `ngens(M)` columns
 and a ring map `h` from `base_ring(F)` to `base_ring(M)`, return the
@@ -229,23 +229,23 @@ scalars in `base_ring(F)` to their images under `h`.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check::Bool=true) where {T} = FreeModuleHom(F, M, V; check)
-hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
+hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::Nothing; check::Bool=true) where {T} = FreeModuleHom(F, M, V; check)
+hom(F::FreeMod, M::SparseFPModule{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
-    identity_map(M::ModuleFP)
+    identity_map(M::SparseFPModule)
 
 Return the identity map $id_M$.
 """
-function identity_map(M::ModuleFP)
+function identity_map(M::SparseFPModule)
   phi = hom(M, M, gens(M), check=false)
   phi.generators_map_to_generators = true
   return phi
 end
 
 ### type getters in accordance with the `hom`-constructors
-function morphism_type(F::AbstractFreeMod, G::ModuleFP)
+function morphism_type(F::AbstractFreeMod, G::SparseFPModule)
   base_ring(F) === base_ring(G) && return FreeModuleHom{typeof(F), typeof(G), Nothing}
   return FreeModuleHom{typeof(F), typeof(G), typeof(base_ring(G))}
 end
@@ -253,24 +253,24 @@ end
 ### Careful here! Different base rings may still have the same type.
 # Whenever this is the case despite a non-trivial ring map, the appropriate 
 # type getter has to be called manually!
-function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:ModuleFP}
+function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:SparseFPModule}
   base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
   return FreeModuleHom{T, U, Nothing}
 end
 
-base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
+base_ring_type(::Type{ModuleType}) where {T, ModuleType<:SparseFPModule{T}} = parent_type(T)
 
-function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
+function morphism_type(F::AbstractFreeMod, G::SparseFPModule, h::RingMapType) where {RingMapType}
   return FreeModuleHom{typeof(F), typeof(G), typeof(h)}
 end
 
 function morphism_type(
     ::Type{DomainType}, ::Type{CodomainType}, ::Type{RingMapType}
-  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP, RingMapType}
+  ) where {DomainType<:AbstractFreeMod, CodomainType<:SparseFPModule, RingMapType}
   return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
-function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: SparseFPModule, RingMapType}
    println(terse(io), fmh)
    io = pretty(io)
    io_compact = IOContext(io, :compact => true)
@@ -289,7 +289,7 @@ function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMa
   end
 end
 
-function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: SparseFPModule, RingMapType}
   if is_terse(io)
     if is_graded(fmh)
       A = grading_group(fmh)
@@ -587,7 +587,7 @@ function image(h::FreeModuleHom)
   return s, phi
 end
 
-function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+function *(h::SparseFPModuleHom{T1, T2, Nothing}, g::SparseFPModuleHom{T2, T3, <:Any}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), 
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
@@ -596,7 +596,7 @@ function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, <:Any}) where
 
 end
 
-function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
+function *(h::SparseFPModuleHom{T1, T2, <:Any}, g::SparseFPModuleHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), 
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 

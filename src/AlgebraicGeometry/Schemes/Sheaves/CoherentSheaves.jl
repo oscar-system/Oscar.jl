@@ -174,7 +174,7 @@ identifications given by the gluings in the `default_covering`.
                                                                SpaceType, OpenType,
                                                                OutputType, RestrictionType
                                                               }
-  ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
+  ID::IdDict{AbsAffineScheme, SparseFPModule} # the modules on the basic patches of the default covering
   MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
   # `affine_charts` of `X` such that
   # A = MG[(U, V)] has entries aᵢⱼ with
@@ -190,7 +190,7 @@ identifications given by the gluings in the `default_covering`.
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme,
-      MD::IdDict{AbsAffineScheme, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
+      MD::IdDict{AbsAffineScheme, SparseFPModule}, # A dictionary of modules on the `affine_charts` of `X`
       MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}; # A dictionary for pairs `(U, V)` of
                                                        # `affine_charts` of `X` such that
                                                        # A = MG[(U, V)] has entries aᵢⱼ with
@@ -218,12 +218,12 @@ identifications given by the gluings in the `default_covering`.
     all(x->any(y->(x===y), keys(gluings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to gluings in the default covering")
 
     Mpre = PreSheafOnScheme(X,
-                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=SparseFPModule,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                       #is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(MD, MG, OOX, Mpre, default_cov)
+    M = new{typeof(X), AbsAffineScheme, SparseFPModule, Map}(MD, MG, OOX, Mpre, default_cov)
     @check begin
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
@@ -279,7 +279,7 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   haskey(twisting_sheaves, d) && return twisting_sheaves[d]
 
   X = covered_scheme(IP)
-  MD = IdDict{AbsAffineScheme, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, SparseFPModule}()
   S = homogeneous_coordinate_ring(IP)
   n = ngens(S)-1
   for i in 1:n+1
@@ -374,7 +374,7 @@ julia> Omega(U, VU)(dx)
 ```
 """
 @attr SheafOfModules function cotangent_sheaf(X::AbsCoveredScheme)
-  MD = IdDict{AbsAffineScheme, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, SparseFPModule}()
   for U in affine_charts(X)
     MD[U] = cotangent_module(U)
   end
@@ -402,20 +402,20 @@ function cotangent_module(X::AbsAffineScheme)
   error("method not implemented for this type of ring")
 end
 
-@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyRing})
+@attr SparseFPModule function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyRing})
   R = OO(X)
   F = FreeMod(R, ["d$(x)" for x in symbols(R)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyLocRing})
+@attr SparseFPModule function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
+@attr SparseFPModule function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -424,7 +424,7 @@ end
   return M
 end
 
-@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
+@attr SparseFPModule function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -492,7 +492,7 @@ with restrictions
   2: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
 
 julia> typeof(T)
-Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, SparseFPModule, Map}
 
 
 ```
@@ -515,11 +515,11 @@ Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
     OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
 
     Mpre = PreSheafOnScheme(X,
-                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=SparseFPModule,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(F, G, OOX, Mpre)
+    M = new{typeof(X), AbsAffineScheme, SparseFPModule, Map}(F, G, OOX, Mpre)
 
     return M
   end
@@ -578,7 +578,7 @@ with restrictions
   2: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
 
 julia> typeof(W)
-DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, SparseFPModule, Map}
 
 ```
 """
@@ -600,11 +600,11 @@ DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
     all(x->(sheaf_of_rings(x)===OOX), summands) || error("summands must be defined over the same sheaves of rings")
 
     Mpre = PreSheafOnScheme(X, 
-                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=SparseFPModule,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(summands, OOX, Mpre)
+    M = new{typeof(X), AbsAffineScheme, SparseFPModule, Map}(summands, OOX, Mpre)
 
     return M
   end
@@ -655,7 +655,7 @@ end
 function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   X = space(R)
   n = length(gen_names)
-  MD = IdDict{AbsAffineScheme, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, SparseFPModule}()
   for U in affine_charts(X)
     MD[U] = FreeMod(OO(U), gen_names)
   end
@@ -793,7 +793,7 @@ with restrictions
     5: (x_1_3^3 - x_2_3^2)*dx_2_3
 
 julia> typeof(inc_F)
-PushforwardSheaf{NormalToricVariety, AbsAffineScheme, ModuleFP, Map}
+PushforwardSheaf{NormalToricVariety, AbsAffineScheme, SparseFPModule, Map}
 
 ```
 """
@@ -820,12 +820,12 @@ PushforwardSheaf{NormalToricVariety, AbsAffineScheme, ModuleFP, Map}
     ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
     Blubber = PreSheafOnScheme(Y, 
-                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=SparseFPModule,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(Y)
                       #is_open_func=_is_open_for_modules(Y)
                      )
-    MY = new{typeof(Y), AbsAffineScheme, ModuleFP, Map}(inc, OOX, OOY, M, ident, Blubber)
+    MY = new{typeof(Y), AbsAffineScheme, SparseFPModule, Map}(inc, OOX, OOY, M, ident, Blubber)
     return MY
   end
 end
@@ -943,7 +943,7 @@ with restrictions
   represented as subquotient with no relations
 
 julia> typeof(inc_F)
-PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
+PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, SparseFPModule, Map}
 
 ```
 """
@@ -975,11 +975,11 @@ PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
     ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
     Blubber = PreSheafOnScheme(X, 
-                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=SparseFPModule,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber)
+    MY = new{typeof(X), AbsAffineScheme, SparseFPModule, Map}(f, OOX, OOY, M, pullbacks, Blubber)
     return MY
   end
 end
@@ -1267,7 +1267,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
   return return_patches
 end
 
-@attr MatrixElem function _presentation_matrix(M::ModuleFP)
+@attr MatrixElem function _presentation_matrix(M::SparseFPModule)
   return matrix(map(presentation(M), 1))
 end
 

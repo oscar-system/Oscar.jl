@@ -19,8 +19,8 @@ and homomorphisms between free modules by matrices.
 ## Types
 
 All OSCAR types for the modules considered here belong to the
-abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
+abstract type `SparseFPModule{T}`, where `T` is the element type of the underlying ring.
+Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: SparseFPModule{T}`,
 they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
@@ -96,7 +96,7 @@ degrees_of_generators(F::FreeMod)
 
 All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
-The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
+The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: SparseFPModuleElem{T}`.
 They are modeled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
 which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
 type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
@@ -198,17 +198,17 @@ is_zero(F::AbstractFreeMod)
 ## Homomorphisms from Free Modules
 
 All OSCAR types for homomorphisms of the modules considered here belong
-to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
+to the abstract type `SparseFPModuleHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\to M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
-`FreeModuleHom{T1, T2} <: ModuleFPHom{T1, T2}` as well as the following constructors:
+`FreeModuleHom{T1, T2} <: SparseFPModuleHom{T1, T2}` as well as the following constructors:
 
 ```@docs
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}) where T 
 ```
 
 ```@docs
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+hom(F::FreeMod, M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::RingMapType) where {T, RingMapType}
 ```
 
 Given a homomorphism of type `FreeModuleHom`, a matrix representing it

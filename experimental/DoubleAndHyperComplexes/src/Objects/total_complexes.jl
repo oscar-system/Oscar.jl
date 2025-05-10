@@ -95,7 +95,7 @@ function _direct_sum(u::Vector{T}) where {T}
 end
 
 # overwriting the method for finitely generated modules
-function _direct_sum(u::Vector{T}) where {T<:ModuleFP}
+function _direct_sum(u::Vector{T}) where {T<:SparseFPModule}
   return direct_sum(u...; task=:both)
 end
 

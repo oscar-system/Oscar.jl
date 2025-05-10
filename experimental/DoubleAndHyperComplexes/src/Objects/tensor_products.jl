@@ -14,7 +14,7 @@ mutable struct TensorProductFactory{ChainType} <: ChainFactory{ChainType}
 end
 
 # Then we override the call syntax as requested by the interface above.
-function (fac::TensorProductFactory{<:ModuleFP})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+function (fac::TensorProductFactory{<:SparseFPModule})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   M = fac.C1[i]
   N = fac.C2[j]
   if iszero(M) || iszero(N)
@@ -46,7 +46,7 @@ end
 #
 # induced by the (co-)boundary map ψⱼ : Dⱼ → Dⱼ₊₋1 of the second complex 
 # with the sign depending on the `vertical_direction` of `dc`.
-function (fac::VerticalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+function (fac::VerticalTensorMapFactory{<:SparseFPModuleHom})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   dom = dc[i, j]
   cod_ind = (i, j + (fac.C2.typ == :chain ? -1 : +1))
   cod = dc[cod_ind]
@@ -70,7 +70,7 @@ mutable struct HorizontalTensorMapFactory{MapType} <: ChainMorphismFactory{MapTy
   C2::ComplexOfMorphisms
 end
 
-function (fac::HorizontalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+function (fac::HorizontalTensorMapFactory{<:SparseFPModuleHom})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   dom = dc[i, j]
   cod_ind = (i + (fac.C1.typ == :chain ? -1 : +1), j)
   cod = dc[cod_ind]
@@ -122,10 +122,10 @@ end
 
 ### missing functionality
 # A fallback in case nothing more specific is known
-morphism_type(::Type{T}) where {T<:ModuleFP} = ModuleFPHom
+morphism_type(::Type{T}) where {T<:SparseFPModule} = SparseFPModuleHom
 
-zero(phi::ModuleFPHom) = hom(domain(phi), codomain(phi), [zero(codomain(phi)) for i in 1:ngens(domain(phi))])
-zero_morphism(dom::ModuleFP, cod::ModuleFP) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
+zero(phi::SparseFPModuleHom) = hom(domain(phi), codomain(phi), [zero(codomain(phi)) for i in 1:ngens(domain(phi))])
+zero_morphism(dom::SparseFPModule, cod::SparseFPModule) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
 
 
 ########################################################################
@@ -139,7 +139,7 @@ struct TensorProductChainFactory{ChainType} <: HyperComplexChainFactory{ChainTyp
   end
 end
 
-function (fac::TensorProductChainFactory{T})(HC::AbsHyperComplex, i::Tuple) where {T<:ModuleFP}
+function (fac::TensorProductChainFactory{T})(HC::AbsHyperComplex, i::Tuple) where {T<:SparseFPModule}
   d = length(i)
   if all(k->i[k] in range(fac.list[k]), 1:d)
     return tensor_product([fac.list[k][i[k]] for k in 1:d])
@@ -163,7 +163,7 @@ struct TensorProductMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismT
   end
 end
 
-function (fac::TensorProductMapFactory{T})(HC::AbsHyperComplex, p::Int, i::Tuple) where {T<:ModuleFPHom}
+function (fac::TensorProductMapFactory{T})(HC::AbsHyperComplex, p::Int, i::Tuple) where {T<:SparseFPModuleHom}
   d = length(i)
   v = collect(i)
   v[p] = (direction(HC, p) == :chain ? v[p] - 1 : v[p] + 1)
@@ -253,7 +253,7 @@ function _tensor_product(v::Any...)
 end
 
 # If not, we can wrap it here so that the correct output is produced
-function _tensor_product(v::ModuleFP...)
+function _tensor_product(v::SparseFPModule...)
   return tensor_product(v...; task=:with_map)
 end
 
@@ -282,7 +282,7 @@ struct HCTensorProductMapFactory{MorphismType} <: HyperComplexMapFactory{Morphis
   end
 end
 
-function zero_map(M::ModuleFP, N::ModuleFP)
+function zero_map(M::SparseFPModule, N::SparseFPModule)
   base_ring(M) === base_ring(N) || error("base rings must coincide")
   return hom(M, N, elem_type(N)[zero(N) for i in 1:ngens(M)], check=false)
 end
@@ -357,7 +357,7 @@ function tensor_product(c::AbsHyperComplex, cs::AbsHyperComplex...)
   return tensor_product([c, cs...])
 end
 
-function tensor_product(M::ModuleFP{T}, Ms::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+function tensor_product(M::SparseFPModule{T}, Ms::SparseFPModule{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
   R = base_ring(M)
   @assert all(N->base_ring(N)===R, Ms) "modules must be defined over the same ring"
   return tensor_product([free_resolution(SimpleFreeResolution, N)[1] for N in (M, Ms...)])

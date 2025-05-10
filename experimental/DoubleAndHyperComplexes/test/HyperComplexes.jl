@@ -95,7 +95,7 @@ end
   @test K[0, 0] isa FreeMod
   @test can_compute_index(K, 1, 0)
   @test !has_index(K, 1, 1)
-  @test vertical_map(K, 1, 0) isa ModuleFPHom
+  @test vertical_map(K, 1, 0) isa SparseFPModuleHom
   @test !has_vertical_map(K, 1, 1)
   @test can_compute_vertical_map(K, 1, 1)
   @test !has_horizontal_map(K, 1, 1)
@@ -114,7 +114,7 @@ end
   @test K[0, 0] isa FreeMod
   @test can_compute_index(K, 1, 0)
   @test !has_index(K, 1, 1)
-  @test vertical_map(K, 1, 0) isa ModuleFPHom
+  @test vertical_map(K, 1, 0) isa SparseFPModuleHom
   @test !has_vertical_map(K, 1, 1)
   @test can_compute_vertical_map(K, 1, 1)
   @test !has_horizontal_map(K, 1, 1)

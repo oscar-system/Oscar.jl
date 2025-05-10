@@ -418,7 +418,7 @@ function free_resolution(M::SubquoModule{T};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.SparseFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -491,7 +491,7 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.SparseFPModule, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
   set_attribute!(cc, :show => free_show, :free_res => M)
@@ -568,7 +568,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
+  C = Hecke.ComplexOfMorphisms(SparseFPModule, mp, check = false, seed = -2)
   #set_attribute!(C, :show => free_show, :free_res => M) # doesn't work
   return FreeResolution(C)
 end

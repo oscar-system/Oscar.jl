@@ -1,12 +1,12 @@
 # We need to cache eventually created exterior powers.
-@attr Dict{Int, Tuple{typeof(F), MapFromFunc}} function _exterior_powers(F::ModuleFP)
+@attr Dict{Int, Tuple{typeof(F), MapFromFunc}} function _exterior_powers(F::SparseFPModule)
   return Dict{Int, Tuple{typeof(F), MapFromFunc}}()
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
 # This returns a triple `(true, M, p)` in the affirmative case
 # and `(false, F, 0)` otherwise.
-function _is_exterior_power(M::ModuleFP)
+function _is_exterior_power(M::SparseFPModule)
   if has_attribute(M, :is_exterior_power)
     MM, p = get_attribute(M, :is_exterior_power)::Tuple{typeof(M), Int}
     return (true, MM, p)
@@ -15,7 +15,7 @@ function _is_exterior_power(M::ModuleFP)
 end
 
 # Printing of exterior powers
-function show_exterior_product(io::IO, M::ModuleFP)
+function show_exterior_product(io::IO, M::SparseFPModule)
   success, F, p = _is_exterior_power(M)
   success || error("module is not an exterior power")
   if is_unicode_allowed()
@@ -25,7 +25,7 @@ function show_exterior_product(io::IO, M::ModuleFP)
   end
 end
 
-function show_exterior_product(io::IO, ::MIME"text/html", M::ModuleFP)
+function show_exterior_product(io::IO, ::MIME"text/html", M::SparseFPModule)
   success, F, p = _is_exterior_power(M)
   success || error("module is not an exterior power")
   io = IOContext(io, :compact => true)
@@ -36,17 +36,17 @@ function show_exterior_product(io::IO, ::MIME"text/html", M::ModuleFP)
   end
 end
 
-function multiplication_map(M::ModuleFP)
+function multiplication_map(M::SparseFPModule)
   has_attribute(M, :multiplication_map) || error("module is not an exterior power")
   return get_attribute(M, :multiplication_map)::Map
 end
 
-function wedge_pure_function(M::ModuleFP)
+function wedge_pure_function(M::SparseFPModule)
   has_attribute(M, :wedge_pure_function) || error("module is not an exterior power")
   return get_attribute(M, :wedge_pure_function)::Map
 end
 
-function wedge_generator_decompose_function(M::ModuleFP)
+function wedge_generator_decompose_function(M::SparseFPModule)
   has_attribute(M, :wedge_generator_decompose_function) || error("module is not an exterior power")
   return get_attribute(M, :wedge_generator_decompose_function)::Map
 end
@@ -59,7 +59,7 @@ end
 #
 # We also allow v ∈ M considered as ⋀ ¹M and the same holds in 
 # the cases p = 1 and r = 1.
-function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
+function wedge_multiplication_map(F::SparseFPModule, G::SparseFPModule, v::SparseFPModuleElem)
   success, orig_mod, p = _is_exterior_power(F)
   if !success 
     Fwedge1, _ = exterior_power(F, 1)
@@ -97,8 +97,8 @@ function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
 end
 
 # The wedge product of two or more elements.
-function wedge(u::ModuleFPElem, v::ModuleFPElem; 
-    parent::ModuleFP=begin
+function wedge(u::SparseFPModuleElem, v::SparseFPModuleElem; 
+    parent::SparseFPModule=begin
       success, F, p = _is_exterior_power(Oscar.parent(u))
       if !success 
         F = Oscar.parent(u)
@@ -140,7 +140,7 @@ function wedge(u::ModuleFPElem, v::ModuleFPElem;
 end
 
 function wedge(u::Vector{T};
-    parent::ModuleFP=begin
+    parent::SparseFPModule=begin
       r = 0
       isempty(u) && error("list must not be empty")
       F = Oscar.parent(first(u)) # initialize variable
@@ -154,7 +154,7 @@ function wedge(u::Vector{T};
       end
       exterior_power(F, r)[1]
     end
-  ) where {T<:ModuleFPElem}
+  ) where {T<:SparseFPModuleElem}
   isempty(u) && error("list must not be empty")
   if isone(length(u))
     Oscar.parent(first(u)) === parent && return first(u)

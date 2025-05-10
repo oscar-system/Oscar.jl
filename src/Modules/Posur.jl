@@ -224,7 +224,7 @@ end
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
 @doc raw"""
-    base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
+    base_ring_module(M::SparseFPModule{T}) where {T<:AbsLocalizedRingElem}
 
 For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 
 this returns a module ``M'`` over ``R`` such that ``M ≅ M'[U⁻¹]``.
@@ -544,7 +544,7 @@ function kernel(
   ) where {
     T<:AbsLocalizedRingElem,
     DomType<:SubquoModule{T},
-    CodType<:ModuleFP{T}
+    CodType<:SparseFPModule{T}
   }
   F = ambient_free_module(domain(f))
   S = base_ring(F)

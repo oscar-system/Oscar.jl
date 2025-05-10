@@ -158,7 +158,7 @@ end
 
 
 @doc raw"""
-    simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
+    simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:SparseFPModule}
 
 For a complex `c` of free modules over some `base_ring` `R` this looks for 
 unit entries `u` in the representing matrices of the (co-)boundary maps and 
@@ -171,7 +171,7 @@ It returns a triple `(d, f, g)` where
 such that the composition `f ∘ g` is homotopy equivalent to the identity 
 and `g ∘ f` is the identity on `d`.
 """
-function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
+function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:SparseFPModule}
   # the maps from the new to the old complex
   phi = morphism_type(ChainType)[identity_map(c[first(range(c))])] 
   # the maps from the old to the new complex

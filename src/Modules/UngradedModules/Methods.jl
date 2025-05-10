@@ -53,8 +53,8 @@ end
 
 # We can not use the signature with T because the MPolyQuoIdeals are 
 # not parametrized by the element type of their ring.
-#function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
-function *(I::Ideal, M::ModuleFP)
+#function *(I::Ideal{T}, M::SparseFPModule{T}) where {T<:RingElem}
+function *(I::Ideal, M::SparseFPModule)
   base_ring(I) === base_ring(M) || error("ideal and module are not defined over the same ring")
   return sub(M, elem_type(M)[g*e for g in gens(I) for e in gens(M)])
 end
@@ -95,7 +95,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
     return [identity_map(M)]
   end
-  parent_hom = IdDict{SubquoModule, ModuleFPHom}()
+  parent_hom = IdDict{SubquoModule, SparseFPModuleHom}()
   modules = [M]
   found_N = false
   for A in modules
@@ -115,7 +115,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
-  morphisms = Vector{ModuleFPHom}()
+  morphisms = Vector{SparseFPModuleHom}()
   A = N
   while A !== M
     f = parent_hom[A]
@@ -125,7 +125,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   return morphisms
 end
 
-function _recreate_morphism(dom::ModuleFP, cod::ModuleFP, t::Tuple{<:SMat, <:Any})
+function _recreate_morphism(dom::SparseFPModule, cod::SparseFPModule, t::Tuple{<:SMat, <:Any})
   A, bc = t
   if bc === nothing
     return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], check=false)
@@ -171,7 +171,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   all_paths = []
 
-  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFP}, path::Vector)
+  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:SparseFPModule}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
@@ -182,9 +182,9 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
     end
   end
 
-  helper_dfs!(N, M, Vector{ModuleFP}(), [])
+  helper_dfs!(N, M, Vector{SparseFPModule}(), [])
 
-  morphisms = Vector{ModuleFPHom}()
+  morphisms = Vector{SparseFPModuleHom}()
   for path in all_paths
     phi = identity_map(N)
     for h in path
@@ -201,11 +201,11 @@ end
 #############################
 
 @doc raw"""
-    register_morphism!(f::ModuleFPHom)
+    register_morphism!(f::SparseFPModuleHom)
 
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
 """
-function register_morphism!(f::ModuleFPHom)
+function register_morphism!(f::SparseFPModuleHom)
   dom = domain(f)
   cod = codomain(f)
   dom.outgoing[cod] = sparse_matrix(f), ring_map(f)
@@ -214,7 +214,7 @@ function register_morphism!(f::ModuleFPHom)
 end
 
 # Some missing methods for the above to work
-function sparse_matrix(f::ModuleFPHom)
+function sparse_matrix(f::SparseFPModuleHom)
   dom = domain(f)
   R = base_ring(codomain(f))
   result = sparse_matrix(R, 0, ngens(codomain(f)))
@@ -224,10 +224,10 @@ function sparse_matrix(f::ModuleFPHom)
   return result
 end
 
-ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:SparseFPModule, Nothing}) = nothing
 ring_map(f::FreeModuleHom) = f.ring_map
 
-ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::SubQuoHom{<:AbstractFreeMod, <:SparseFPModule, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
 function default_ordering(F::FreeMod)
@@ -346,7 +346,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       A = convert_to_matrix(elem2)
       return SubQuoHom(M,N,A; check=false)
     end
-    to_subquotient_elem = function(H::ModuleFPHom)
+    to_subquotient_elem = function(H::SparseFPModuleHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
@@ -358,7 +358,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
 
     return SQ2, to_hom_map
   else
-    to_subquotient_elem = function(H::ModuleFPHom)
+    to_subquotient_elem = function(H::SparseFPModuleHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
@@ -417,7 +417,7 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   return MS, map
 end
 
-function change_base_ring(phi::Any, f::ModuleFPHom; 
+function change_base_ring(phi::Any, f::SparseFPModuleHom; 
     domain_base_change=change_base_ring(phi, domain(f))[2], 
     codomain_base_change=change_base_ring(phi, codomain(f))[2]
   )
@@ -429,7 +429,7 @@ end
 
 ### Duals of modules
 @doc raw"""
-    dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
+    dual(M::SparseFPModule; codomain::Union{FreeMod, Nothing}=nothing)
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
 interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
@@ -438,7 +438,7 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
+function dual(M::SparseFPModule; codomain::Union{FreeMod, Nothing}=nothing)
   R = base_ring(M)
   codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
   base_ring(codomain) === R && rank(codomain) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
@@ -446,7 +446,7 @@ function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
 end
 
 @doc raw"""
-    double_dual(M::ModuleFP)
+    double_dual(M::SparseFPModule)
 
 For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
@@ -494,7 +494,7 @@ end
 
 
 @doc raw"""
-    dual(f::ModuleFPHom; codomain::FreeMod)
+    dual(f::SparseFPModuleHom; codomain::FreeMod)
 
 Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
@@ -502,10 +502,10 @@ Given a morphism of modules ``f : M → N``, return the morphism
 The optional argument allows to specify a free module of rank one over the 
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
-function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
+function dual(f::SparseFPModuleHom{<:SparseFPModule, <:SparseFPModule, Nothing}; # Third parameter assures same base ring
     codomain::FreeMod=FreeMod(base_ring(domain(f)), 1), 
-    domain_dual::ModuleFP=dual(Oscar.domain(f), codomain=codomain)[1],
-    codomain_dual::ModuleFP=dual(Oscar.codomain(f), codomain=codomain)[1]
+    domain_dual::SparseFPModule=dual(Oscar.domain(f), codomain=codomain)[1],
+    codomain_dual::SparseFPModule=dual(Oscar.codomain(f), codomain=codomain)[1]
   )
   M = Oscar.domain(f)
   N = Oscar.codomain(f)
@@ -784,42 +784,42 @@ function has_monomials_on_all_axes(M::SubquoModule)
 end
 
 ### Some missing functionality
-function Base.:*(k::Int, f::ModuleFPHom)
+function Base.:*(k::Int, f::SparseFPModuleHom)
   return base_ring(codomain(f))(k)*f
 end
 
-function _is_tensor_product(M::ModuleFP)
+function _is_tensor_product(M::SparseFPModule)
   !has_attribute(M, :tensor_product) && return false, [M]
   return true, get_attribute(M, :tensor_product)::Tuple
 end
 
-function tensor_pure_function(M::ModuleFP)
+function tensor_pure_function(M::SparseFPModule)
   success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_pure_function)
 end
 
-function tensor_generator_decompose_function(M::ModuleFP)
+function tensor_generator_decompose_function(M::SparseFPModule)
   success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_generator_decompose_function)
 end
   
-function tensor_product(mod::Vector{<:ModuleFP})
+function tensor_product(mod::Vector{<:SparseFPModule})
   return tensor_product(mod...)
 end
 
-function tensor_product(f::ModuleFPHom...)
+function tensor_product(f::SparseFPModuleHom...)
   return tensor_product(collect(f))
 end
 
 # We follow the convention to use the same function also for the 
 # constructor of induced maps.
-tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
+tensor_product(dom::SparseFPModule, cod::SparseFPModule, maps::Vector{<:SparseFPModuleHom}) = hom_tensor(dom, cod, maps)
 
-function tensor_product(maps::Vector{<:ModuleFPHom}; 
-        domain::ModuleFP = tensor_product([domain(f) for f in maps]), 
-        codomain::ModuleFP = tensor_product([codomain(f) for f in maps])
+function tensor_product(maps::Vector{<:SparseFPModuleHom}; 
+        domain::SparseFPModule = tensor_product([domain(f) for f in maps]), 
+        codomain::SparseFPModule = tensor_product([codomain(f) for f in maps])
     )
   return tensor_product(domain, codomain, maps)
 end

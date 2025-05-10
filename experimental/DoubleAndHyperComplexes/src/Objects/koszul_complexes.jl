@@ -88,7 +88,7 @@ function defining_element(K::KoszulComplex)
   return K.v
 end
 #=
-function truncated_cech_complex(M::ModuleFP, x::Vector{T}, d::Int) where {T<:RingElem}
+function truncated_cech_complex(M::SparseFPModule, x::Vector{T}, d::Int) where {T<:RingElem}
   R = base_ring(M)
   @assert all(u->parent(u)===R, x) "elements do not belong to the correct ring"
   @assert d>=0 "pole order must be non-negative"

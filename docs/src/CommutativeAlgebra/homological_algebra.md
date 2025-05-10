@@ -15,13 +15,13 @@ supporting computations in homological algebra.
 ## Pruning Modules
 
 ```@docs
-prune_with_map(M::ModuleFP)
+prune_with_map(M::SparseFPModule)
 ```
 
 ## Presentations
 
 ```@docs
-presentation(M::ModuleFP)
+presentation(M::SparseFPModule)
 ```
 
 ## Representation as Cokernel
@@ -84,61 +84,61 @@ betti_table(F::FreeResolution)
 ```
 
 ```@docs
-minimal_betti_table(F::FreeResolution{T}) where {T<:ModuleFP}
+minimal_betti_table(F::FreeResolution{T}) where {T<:SparseFPModule}
 ```
 
 ```@docs
-minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}
+minimal_betti_table(M::SparseFPModule{T}) where {T<:MPolyDecRingElem}
 ```
 
 ## Castelnuovo-Mumford Regularity
 
 ```@docs
-cm_regularity(M::ModuleFP)
+cm_regularity(M::SparseFPModule)
 ```
 
 ## Homology
 
 ```@docs
-homology(C::ComplexOfMorphisms{<:ModuleFP})
+homology(C::ComplexOfMorphisms{<:SparseFPModule})
 ```
 
 ```@docs
-homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
+homology(C::ComplexOfMorphisms{<:SparseFPModule}, i::Int)
 ```
 
 ## Hom and Ext
 
 ```@docs
-hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
+hom(M::SparseFPModule, N::SparseFPModule; algorithm::Symbol=:maps)
 ```
 
 ```@docs
-element_to_homomorphism(f::ModuleFPElem)
+element_to_homomorphism(f::SparseFPModuleElem)
 ```
 
 ```@docs
-homomorphism_to_element(H::ModuleFP, phi::ModuleFPHom)
+homomorphism_to_element(H::SparseFPModule, phi::SparseFPModuleHom)
 ```
 
 ```@docs
-ext(M::ModuleFP, N::ModuleFP, i::Int)
+ext(M::SparseFPModule, N::SparseFPModule, i::Int)
 ```
 
 ## Tensorproduct and Tor
 
 ```@docs
-tensor_product(G::ModuleFP...; task::Symbol = :none)
+tensor_product(G::SparseFPModule...; task::Symbol = :none)
 ```
 
 ```@docs
-tor(M::ModuleFP, N::ModuleFP, i::Int)
+tor(M::SparseFPModule, N::SparseFPModule, i::Int)
 ```
 
 ## Fitting Ideals
 
 ```@docs
-fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+fitting_ideal(M::SparseFPModule{T}, i::Int) where T <: MPolyRingElem
 ```
 
 ## Flatness
@@ -146,17 +146,17 @@ fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
 Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
 
 ```@docs
-is_flat(M::ModuleFP{T}) where T <: MPolyRingElem
+is_flat(M::SparseFPModule{T}) where T <: MPolyRingElem
 ```
 
 ```@docs
-non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem
+non_flat_locus(M::SparseFPModule{T}) where T <: MPolyRingElem
 ```
 
 ## Regular Sequence Test
 
 ```@docs
-is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+is_regular_sequence(V::Vector{T}, M::SparseFPModule{T}) where T <: MPolyRingElem
 ```
 
 ## Koszul Complex
@@ -172,7 +172,7 @@ koszul_complex(V::Vector{T}) where T <: MPolyRingElem
 ## Koszul Homology
 
 ```@docs
-koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
+koszul_homology(V::Vector{T}, M::SparseFPModule{T}, p::Int) where T <: MPolyRingElem
 ```
 
 ## Depth
@@ -180,7 +180,7 @@ koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
 The computation of depth in OSCAR relies on expressing depth in terms of  Koszul cohomology. 
 
 ```@docs
-depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+depth(I::MPolyIdeal{T}, M::SparseFPModule{T}) where T <: MPolyRingElem
 ```
 
 

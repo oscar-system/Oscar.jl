@@ -42,7 +42,7 @@ mutable struct ZeroModuleFactory{ChainType} <: ChainFactory{ChainType}
   R::MPolyRing
   
   function ZeroModuleFactory(R::MPolyRing)
-    return new{ModuleFP{elem_type(R)}}(R)
+    return new{SparseFPModule{elem_type(R)}}(R)
   end
 end
 
@@ -71,7 +71,7 @@ mutable struct VerticalZeroMaps{MorphismType} <: ChainMorphismFactory{MorphismTy
   R::MPolyRing
 
   function VerticalZeroMaps(R::MPolyRing)
-    return new{ModuleFPHom}(R)
+    return new{SparseFPModuleHom}(R)
   end
 end
 
@@ -79,7 +79,7 @@ mutable struct HorizontalZeroMaps{MorphismType} <: ChainMorphismFactory{Morphism
   R::MPolyRing
 
   function HorizontalZeroMaps(R::MPolyRing)
-    return new{ModuleFPHom}(R)
+    return new{SparseFPModuleHom}(R)
   end
 end
 ```

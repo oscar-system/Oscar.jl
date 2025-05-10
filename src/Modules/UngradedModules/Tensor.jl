@@ -73,10 +73,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
-⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
+⊗(G::SparseFPModule...) = tensor_product(G..., task = :none)
 
 @doc raw"""
-    tensor_product(M::ModuleFP...; task::Symbol = :none)
+    tensor_product(M::SparseFPModule...; task::Symbol = :none)
 
 Given a collection of modules, say, $M_1, \dots, M_n$ over a ring $R$, return $M_1\otimes_R \cdots \otimes_R M_n$.
 
@@ -115,7 +115,7 @@ julia> t((M[1], M[2]))
 x*y*e[1] \otimes e[1]
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
+function tensor_product(G::SparseFPModule...; task::Symbol = :none)
   F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
   # We want to store a dict where the keys are tuples of indices and the values
   # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 

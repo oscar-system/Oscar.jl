@@ -256,13 +256,13 @@ end
 # scalar multiplication with polynomials, integers
 *(a::Any, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 
-function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleModuleFPRingElem}
+function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleSparseFPModuleRingElem}
   @assert is_left(parent(b)) "left multiplication is not defined for non-left module $(parent(b))"
   parent(a) === base_ring(parent(b)) && return parent(b)(a*coordinates(b))
   return parent(b)(base_ring(parent(b))(a)*coordinates(b))
 end
 
-function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleModuleFPRingElem}
+function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleSparseFPModuleRingElem}
   @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
   error("right multiplication is not supported at the moment")
 end
@@ -275,17 +275,17 @@ end
 # We plan to have flags set for this. But for the moment the generic code only supports left-multiplication, 
 # so we can decide this from the type alone. How we do it in the long run is not yet decided, but in either case
 # we want to use these functions to decide as they are already there for ideals. 
-is_left(M::ModuleFP) = is_left(typeof(M))
-is_left(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
-is_left(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = true # Left multiplication is generically supported
+is_left(M::SparseFPModule) = is_left(typeof(M))
+is_left(::Type{T}) where {RET<:RingElem, T<:SparseFPModule{RET}} = true
+is_left(::Type{T}) where {RET<:AdmissibleSparseFPModuleRingElem, T<:SparseFPModule{RET}} = true # Left multiplication is generically supported
 
-is_right(M::ModuleFP) = is_right_module(typeof(M))
-is_right(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
-is_right(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
+is_right(M::SparseFPModule) = is_right_module(typeof(M))
+is_right(::Type{T}) where {RET<:RingElem, T<:SparseFPModule{RET}} = true
+is_right(::Type{T}) where {RET<:AdmissibleSparseFPModuleRingElem, T<:SparseFPModule{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
 
-is_two_sided(M::ModuleFP) = is_right_module(typeof(M))
-is_two_sided(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
-is_two_sided(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # see above
+is_two_sided(M::SparseFPModule) = is_right_module(typeof(M))
+is_two_sided(::Type{T}) where {RET<:RingElem, T<:SparseFPModule{RET}} = true
+is_two_sided(::Type{T}) where {RET<:AdmissibleSparseFPModuleRingElem, T<:SparseFPModule{RET}} = false # see above
 
 
 @doc raw"""

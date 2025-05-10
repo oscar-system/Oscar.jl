@@ -247,7 +247,7 @@ include("../gap/pkg/OscarInterface/julia/alnuth.jl")
 
 
 include("Modules/Modules.jl")
-include("Rings/ReesAlgebra.jl") # Needs ModuleFP
+include("Rings/ReesAlgebra.jl") # Needs SparseFPModule
 
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/vinberg.jl")

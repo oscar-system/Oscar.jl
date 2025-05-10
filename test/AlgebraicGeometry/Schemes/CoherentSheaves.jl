@@ -89,10 +89,10 @@ end
   V = PrincipalOpenSubset(U[1], one(OO(U[1])))
   @test LC(V) isa FreeMod
   rho = LC(U[1], V)
-  @test rho isa ModuleFPHom
+  @test rho isa SparseFPModuleHom
   VV = simplify(V)
   rho = LC(U[1], VV)
-  @test rho isa ModuleFPHom
+  @test rho isa SparseFPModuleHom
 
   # Test pullbacks along blowup maps.
   # This is particularly simple, because the underlying CoveringMorphism
@@ -115,7 +115,7 @@ end
   U = first(affine_charts(Bl_C))
   V = simplify(U)
   @test p_star_LC(V) isa FreeMod
-  @test p_star_LC(U, V) isa ModuleFPHom
+  @test p_star_LC(U, V) isa SparseFPModuleHom
 end
 
 @testset "projectivization of vector bundles" begin
