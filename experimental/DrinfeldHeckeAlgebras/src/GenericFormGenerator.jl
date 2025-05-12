@@ -1,5 +1,5 @@
 ################################################################################
-# Struct for generating generic Drinfeld-Hecke forms
+# Methods for generating and validating Drinfeld-Hecke forms
 #
 # General theory:
 #
@@ -24,39 +24,19 @@
 # (Theorem 1.9 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 ################################################################################
 
-mutable struct GenericFormGenerator{T <: FieldElem, S <: RingElem}
-  group::MatrixGroup{T}
-  base_ring::Ring
-  map::Dict{Tuple{Int, Int}, Int}()
-  
-  function GenericFormGenerator(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
-    S = elem_type(typeof(R))
-    generator = new{T, S}()
-    
-    generator.group = G
-    generator.base_ring = R
-    generator.map = build_map(degree(G))
-    
-    return generator
-  end
-end
-
 ################################################################################
-# Check whether a set of bilinear forms define a valid Drinfeld-Hecke form
+# Drinfeld-Hecke form validation
 ################################################################################
 
-function defines_valid_drinfeld_hecke_form(
-  forms::Dict{MatrixGroupElem{T}, MatElem{S}}
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
+# Check whether a set of bilinear forms defines a valid Drinfeld-Hecke form
+function are_valid_forms(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
   # If the forms are empty, they define the trivial (zero) Drinfeld-Hecke form
   if length(forms) == 0 return true end
   
-  G = generator.group
+  G = parent(first(forms)[1])
   n = degree(G)
-  classes = conjugacy_classes(G)
   
-  for C in classes
+  for C in conjugacy_classes(G)
     g = representative(C)
     
     if !haskey(forms, g)
@@ -67,28 +47,15 @@ function defines_valid_drinfeld_hecke_form(
     
     else
       # Otherwise we first need to check that the form for g defines a valid form
-      κ_g = forms[g]
-      M = build_relation_matrix(g, generator)
-      sol = matrix_to_solution(κ_g, generator.map)
-      
-      if !is_zero(M * sol) return false end
+      if !is_valid_form(g, κ_g) return false end
       
       # Now we know that the form for g is valid. We need to check the other forms in this class
       for c in C
-        # No need to check
-        if c == g continue end
+        # If κ_g is nonzero, then also κ_c needs to be nonzero
+        if !haskey(forms, c) return false end
         
-        _, h = is_conjugate_with_data(G, g, c)
-        A = matrix(h)
-        κ_c = forms[c]
-        
-        # Check whether κ_h−1gh(v_i, v_j) = κ_g(hv_i, hv_j) for all i < j
-        for i in 1:n, j in (i+1):n
-          # the i-th column of A is the result of letting h act on the i-th standard basis vector
-          if κ_c[i,j] != (transpose(A[:,i])) * κ_g * A[:,j])[1,1]
-            return false
-          end
-        end
+        # Check if conjugate form is valid
+        if !is_valid_conjugate_form(g, κ_g, c, forms[c]) return false end
       end
     end
   end
@@ -96,14 +63,34 @@ function defines_valid_drinfeld_hecke_form(
   return true
 end
 
+# Check whether a single bilinear form fulfills the relations
+#   κ_g(u, v)(gw − w) + κ_g(v, w)(gu − u) + κ_g(w, u)(gv − v) = 0 for all u, v, w ∈ V
+function is_valid_form(g::MatrixGroupElem{T}, κ_g::MatElem{S}) where {T <: FieldElem, S <: RingElem}
+  M = build_relation_matrix(g)
+  sol = matrix_to_solution(κ_g)
+  
+  return is_zero(M * sol)
+end
+
+# Check whether κ_c fulfills the equation
+#   κ_c(v, w) = κ_g(hv, hw)
+# for a conjugate c = h−1gh of g
+function is_valid_conjugate_form(
+  g::MatrixGroupElem{T}, 
+  c::MatrixGroupElem{T}, 
+  κ_g::MatElem{S}, 
+  κ_c::MatElem{S}
+) where {T <: FieldElem, S <: RingElem}
+  κ_c_correct = calculate_form_for_conjugate(g, c, κ_g)
+  
+  return κ_c_correct == κ_c
+end
+
 ################################################################################
 # Generic Drinfeld-Hecke form generation
 ################################################################################
 
-function generate_generic_forms(generator::GenericFormGenerator{T, S}) where {T <: FieldElem, S <: RingElem}
-  G = generator.group
-  d = degree(G)
-  
+function generate_generic_forms(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
   # Iterate over the conjugacy classes and generate generic forms for the representatives
   classes = conjugacy_classes(G)
   classes_with_nonzero_forms = Dict{Tuple{MatrixGroupElem{T}, GroupConjClass}, MatElem{MPolyRing{S}}}()
@@ -113,7 +100,7 @@ function generate_generic_forms(generator::GenericFormGenerator{T, S}) where {T 
     g = representative(C)
     
     # Generate generic form for representative
-    κ_g = generate_generic_form(g)
+    κ_g = generate_generic_form(g, R)
     
     # if κ_g != 0, we save it and add the number of parameters
     if !is_zero(κ_g)
@@ -122,24 +109,23 @@ function generate_generic_forms(generator::GenericFormGenerator{T, S}) where {T 
     end
   end
 
-  # If there weren't any nonzero forms, return
+  # If there weren't any nonzero forms, return empty dictionary
   if length(classes_with_nonzero_forms) == 0
     return Dict{MatrixGroupElem{T}, MatElem{S}}()
   end
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
-  R, _ = polynomial_ring(generator.base_ring, parameters)
-  generator.base_ring = R
+  S, _ = polynomial_ring(generator.base_ring, parameters)
   forms = Dict{MatrixGroupElem{T}, MatElem{MPolyRingElem{S}}}()
   
-  # Next we shift all forms into R and calculate all remaining forms for the according class
+  # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1
   for ((g, C), κ_g) in classes_with_nonzero_forms
-    # Shift κ_g into R using an homomorphism
-    R_g = base_ring(κ_g)
-    next_index = current_parameter_index + ngens(R_g)
-    φ_g = hom(R_g, R, [R[i] for i in current_parameter_index:(next_index - 1)])
+    # Shift κ_g into S using an homomorphism
+    S_g = base_ring(κ_g)
+    next_index = current_parameter_index + ngens(S_g)
+    φ_g = hom(S_g, S, [S[i] for i in current_parameter_index:(next_index - 1)])
     κ_g = map(x -> φ_g(x), κ_g)
     current_parameter_index = next_index
     
@@ -152,6 +138,10 @@ function generate_generic_forms(generator::GenericFormGenerator{T, S}) where {T 
   return forms
 end
 
+################################################################################
+# Conjugation handling
+################################################################################
+
 # Calculate form for conjugate c = h−1gh of g by formula 
 #   κ_h−1gh(v, w) = κ_g(hv, hw)
 function calculate_form_for_conjugate(
@@ -161,14 +151,15 @@ function calculate_form_for_conjugate(
 ) where {T <: FieldElem, S <: RingElem}
   if c == g return κ_g end
 
-  is_conj, h = is_conjugate_with_data(parent(G), g, c)
+  is_conj, h = is_conjugate_with_data(parent(g), g, c)
   
   if !is_conj
     throw(ArgumentError("Input c needs to be a conjugate of input g."))
   end
   
   A = matrix(h)
-  κ_c = zero_matrix(S, d, d)
+  n = nrows(g)
+  κ_c = zero_matrix(S, n, n)
   
   for i in 1:n, j in (i+1):n
     # the i-th column of A is the result of letting h act on the i-th standard basis vector
@@ -180,30 +171,26 @@ function calculate_form_for_conjugate(
 end
 
 ################################################################################
-# Generic Drinfeld-Hecke form generation for a conjugacy class representative
+# Generic Drinfeld-Hecke form generation for a group element
 ################################################################################
 
-function generate_generic_form(
-  g::MatrixGroupElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
-  R = generator.base_ring
-  
+function generate_generic_form(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
   if R isa Field && characteristic(R) == 0
-    κ_g = generate_by_theorem_1_9(g, generator)
+    κ_g = generate_by_theorem_1_9(g, R)
   else
-    κ_g = generate_by_lemma_1_5(g, generator)
+    κ_g = generate_by_lemma_1_5(g, R)
   end
 end
 
-function generate_by_theorem_1_9(
-  g::MatrixGroupElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
+################################################################################
+# Generic Drinfeld-Hecke form generation according to Theorem 1.9
+################################################################################
+
+function generate_by_theorem_1_9(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
   if is_one(g)
-    return calculate_group_invariant_form(generator)
+    return calculate_group_invariant_form(R)
   else
-    return calculate_form_for_non_trivial_element(g, generator)
+    return calculate_form_for_non_trivial_element(g, R)
   end
 end
 
@@ -211,12 +198,8 @@ end
 # (a) ker κ_g = V^g where V^g = ker(1 - M)
 # (b) codim(V^g) = 2
 # (c) det h⊥ = 1 for all h ∈ ZG(g) where h⊥ is h restricted to (V^g)⊥ = im(1 - M)
-function calculate_form_for_non_trivial_element(
-  g::MatrixGroupElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
-  R = generator.base_ring
-  G = generator.group
+function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
+  G = parent(G)
   n = degree(G)
   
   I = identity_matrix(R, n)
@@ -268,9 +251,8 @@ function calculate_form_for_non_trivial_element(
   result[1,2] = S[1]
   result[2,1] = -S[1]
   
-  # Base change to the standard basis and return
+  # Base change to the standard basis
   combined_basis = hcat(basis_Vg, basis_Vg⊥)
-  
   result = transpose(combined_basis) * result * combined_basis
   
   return result
@@ -278,12 +260,11 @@ end
 
 # Calculate generic G-invariant bilinear alternating form, i.e κ with
 #   κ(v,w) = κ(gv,gw) for all g ∈ G and v,w ∈ V
-function calculate_group_invariant_form(generator::GenericFormGenerator{T, S}) where {T <: FieldElem, S <: RingElem}
-  G = generator.group
+function calculate_group_invariant_form(G::MatrixGroup{T}, R::Ring)
   K = base_ring(G)
   n = degree(G)
   
-  map = generator.map
+  map = build_map(n)
   m = length(map)
   rows = []
   
@@ -316,7 +297,7 @@ function calculate_group_invariant_form(generator::GenericFormGenerator{T, S}) w
   # Combine collected rows to matrix
   M = matrix(K, length(rows), m, vcat(rows...))
 
-  return solve_and_parametrize(M, generator)
+  return solve_and_parametrize(M, R)
 end
 
 ################################################################################
@@ -339,21 +320,32 @@ end
 #   (II)  κg(vi, vj) (a_kk − 1) + κg(vj, vk) a_ki       - κg(vi, vk) a_kj      = 0    (l == k)
 #   (III) κg(vi, vj) a_ik       + κg(vj, vk) (a_ii − 1) - κg(vi, vk) a_ij      = 0    (l == i)
 #   (IV)  κg(vi, vj) a_jk       + κg(vj, vk) a_ji       - κg(vi, vk) (ajj − 1) = 0    (l == j)
-function generate_by_lemma_1_5(
-  g::MatrixGroupElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
-  M = build_relation_matrix(g, generator)
+function generate_by_lemma_1_5(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
+  M = build_relation_matrix(g)
 
-  return solve_and_parametrize(M, generator)
+  return solve_and_parametrize(M, R)
 end
 
-function build_relation_matrix(
-  g::MatrixGroupElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
+# Translates for g ∈ G the relations
+#   κ_g(u, v)(gw − w) + κ_g(v, w)(gu − u) + κ_g(w, u)(gv − v) = 0 for all u, v, w ∈ V
+# into a matrix M representing the LES Mx = 0 such that x represents a solution for κ_g
+#
+# For this note that
+# - we only need to solve the relations for basis elements {v1,...,vn} of V
+# - due to skew-symmetry it is enough to solve 
+#   κ_g(vi, vj)(gvk − vk) + κ_g(vj, vk)(gvi − vi) - κ_g(vi, vk)(gvj − vj) = 0 
+#   for all combinations of i < j < k
+#
+# If A = (a_ij) is the matrix corresponding to g in the given basis, then gvi = sum_l (a_li * vl). 
+# Using this and rewriting the relations in the basis gives us the following relations for the coefficients:
+#   (I)   κg(vi, vj) a_lk       + κg(vj, vk) a_li       - κg(vi, vk) a_lj      = 0    if l != i,j,k
+#   (II)  κg(vi, vj) (a_kk − 1) + κg(vj, vk) a_ki       - κg(vi, vk) a_kj      = 0    (l == k)
+#   (III) κg(vi, vj) a_ik       + κg(vj, vk) (a_ii − 1) - κg(vi, vk) a_ij      = 0    (l == i)
+#   (IV)  κg(vi, vj) a_jk       + κg(vj, vk) a_ji       - κg(vi, vk) (ajj − 1) = 0    (l == j)
+function build_relation_matrix(g::MatrixGroupElem{T}) where {T <: FieldElem}
   K = base_ring(g)
-  map = generator.map
+  n = nrows(g)
+  map = build_map(n)
   m = length(map)
   
   # If g = 1, the relations are always true
@@ -364,8 +356,8 @@ function build_relation_matrix(
   rows = []
   A = matrix(g)
 
-  for i in 1:d, j in (i+1):d, k in (j+1):d
-    for l in 1:d
+  for i in 1:n, j in (i+1):n, k in (j+1):n
+    for l in 1:n
       row = fill(K(), m)
       
       if l == k   # (II)
@@ -404,18 +396,13 @@ end
 ################################################################################
 
 # Solves the LES Mx = 0 and returns a parametrized solution
-function solve_and_parametrize(
-  M::MatElem{T}, 
-  generator::GenericFormGenerator{T, S}
-) where {T <: FieldElem, S <: RingElem}
-  R = generator.base_ring
-  map = generator.GenericFormGenerator
-  m = length(map)
+function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
+  m = nrows(M)
   nullity, kernel_basis = nullspace(M)
   
   # If nullity = 0, there is only the solution 0
   if nullity == 0
-    return zero_matrix(R, n, n)
+    return solution_to_matrix(fill(R(), m))
   end
   
   # For creating a parametrized solution, we work over the polynomial ring S = R[t1,...tn]
@@ -428,12 +415,14 @@ function solve_and_parametrize(
     sol = sol + [S[j] * kernel_basis[i, j] for i in 1:m]
   end
 
-  return solution_to_matrix(sol, map)
+  return solution_to_matrix(sol)
 end
 
 # Convert solution to a matrix representing an alternating bilinear form
-function solution_to_matrix(sol::Vector, map::Dict{Tuple{Int, Int}, Int})
+function solution_to_matrix(sol::Vector)
+  n = Int((1 + sqrt(1 + 8m)) / 2)
   result = zero_matrix(parent(sol[1]), n, n)
+  map = build_map(n)
   
   for ((i,j),k) in map
     result[i,j] = generic_solution[k]
@@ -443,8 +432,10 @@ function solution_to_matrix(sol::Vector, map::Dict{Tuple{Int, Int}, Int})
   return result
 end
 
-# Convert matrix representing an alternating bilinear form to a (potential) solution
-function matrix_to_solution(mat::MatElem, map::Dict{Tuple{Int, Int}, Int})
+# Convert matrix representing an alternating bilinear form to a (potential solution) vector
+function matrix_to_solution(mat::MatElem)
+  map = build_map(nrows(mat))
+  m = length(map)
   sol = fill(base_ring(mat), m)
   
   for ((i,j),k) in map
@@ -454,12 +445,12 @@ function matrix_to_solution(mat::MatElem, map::Dict{Tuple{Int, Int}, Int})
   return sol
 end
 
-# Generate index map that maps a pair (i,j) with i < j and 0 < i, j <= d to a fixed index
-function build_map(d::Int)
+# Generate index map that maps a pair (i,j) with i < j and 0 < i, j <= n to a fixed index
+function build_map(n::Int)
   map = Dict{Tuple{Int, Int}, Int}()
   
   k = 1
-  for i in 1:d, j in (i+1):d
+  for i in 1:n, j in (i+1):n
     map[(g,i,j)] = k
     k = k + 1
   end
