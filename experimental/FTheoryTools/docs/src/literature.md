@@ -63,6 +63,12 @@ resolution_zero_sections(m::AbstractFTheoryModel)
 weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+zero_section(m::AbstractFTheoryModel)
+zero_section_class(m::AbstractFTheoryModel)
+zero_section_index(m::AbstractFTheoryModel)
+exceptional_classes(m::AbstractFTheoryModel)
+exceptional_divisor_indices(m::AbstractFTheoryModel)
+torsion_sections(m::AbstractFTheoryModel)
 ```
 
 One can check if a model has a particular set of information. This is achieved with the
@@ -101,7 +107,8 @@ following methods:
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
 * `has_zero_section(m::AbstractFTheoryModel)`,
-* `has_zero_section_coordinates(m::AbstractFTheoryModel)`,
+* `has_zero_section_class(m::AbstractFTheoryModel)`,
+* `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 
@@ -175,7 +182,7 @@ graph. In the case at hand, this is rather simple.
 
 The Ci-curves turn into the irreducible components of the nodel curve. Certainly, we only need
 to focus on the non-trivial Ci-curves. A non-trivial Ci-curve can split into multiple irreducible
-components. This is taken into acccount when the nodes/vertices of the dual graph are constructed.
+components. This is taken into account when the nodes/vertices of the dual graph are constructed.
 
 The topological intersection numbers among the Ci-curves (or rather, their irreducible components)
 tells us how many nodal singularities link the Ci-curves (or rather, their irreducible components)

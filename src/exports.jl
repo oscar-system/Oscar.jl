@@ -65,10 +65,12 @@ export CyclicQuotientSingularity
 export DirectProductGroup
 export DirectSumSheaf
 export Directed
+export DualRootSpaceElem
 export Edge
 export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
+export EnriquesBorcherdsCtx
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -89,9 +91,11 @@ export GU
 export GapObj
 export Gluing
 export Graph
+export Group
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
+export GroupElem
 export Halfspace
 export Hecke
 export HilbertData
@@ -123,6 +127,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Multipartition
 export Nemo
 export NormalToricVariety
 export OO
@@ -154,6 +159,8 @@ export QQ
 export R10_matroid
 export RationalEquivalenceClass
 export RayVector
+export RootSpaceElem
+export RootSystem
 export SIM_body_polytope
 export SL
 export SLPoly
@@ -193,7 +200,9 @@ export Undirected
 export VarietyFunctionField
 export VarietyFunctionFieldElem
 export WeakComposition
+export WeightLattice, WeightLatticeElem
 export WeilDivisor
+export WeylGroup, WeylGroupElem
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -208,6 +217,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
+export label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -244,6 +254,7 @@ export all_atlas_group_infos
 export all_blocks
 export all_character_table_names
 export all_cohomologies
+export all_groups_with_class_number
 export all_neighbors
 export all_perfect_groups
 export all_primitive_groups
@@ -289,6 +300,7 @@ export atlas_subgroup
 export augmented_chow_ring
 export aut
 export automorphism_group
+export barycentric_subdivision
 export base_ring
 export base_scheme
 export bases
@@ -320,6 +332,11 @@ export canonical_divisor
 export canonical_divisor_class
 export canonical_isomorphism
 export canonical_matrix
+export cartan_bilinear_form
+export cartan_matrix
+export cartan_symmetrizer
+export cartan_type
+export cartan_type_with_ordering
 export cartesian_power
 export cartier_divisor
 export catalan_solid
@@ -331,10 +348,12 @@ export cellular_hull
 export cellular_minimal_associated_primes
 export cellular_primary_decomposition
 export center, has_center, set_center
+export central_character
 export centralizer
 export chain_complex
 export chain_range
 export chamber
+export chamber_invariants
 export character_field
 export character_lattice
 export character_parameters
@@ -371,7 +390,6 @@ export codomain_covering
 export coefficient_field
 export coefficient_ring
 export coefficient_ring_type
-export coefficient_type
 export coefficients
 export coefficients_and_exponents
 export cohomology
@@ -415,10 +433,13 @@ export conjugacy_class
 export conjugacy_classes
 export conjugacy_classes_subgroups
 export conjugate
+export conjugate_dominant_weight, conjugate_dominant_weight!
+export conjugate_dominant_weight_with_elem, conjugate_dominant_weight_with_elem!
 export conjugate_group
 export conjugate_transpose
 export connected_components
 export connected_sum
+export connectivity
 export connectivity_function
 export contains
 export continued_fraction_hirzebruch_jung
@@ -436,6 +457,8 @@ export coordinates
 export cophenetic_matrix
 export corank
 export core
+export coroot
+export coroots
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export cotangent_sheaf
@@ -449,6 +472,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_length
 export cycle_matroid
 export cycle_structure
 export cycle_structures
@@ -466,12 +490,14 @@ export decorate
 export decoration
 export default_covering
 export default_ordering
+export defect_group
 export defines_automorphism
 export defining_equation
 export defining_ideal
 export deginvlex
 export deglex
 export degree
+export degree_of_character_field
 export degrees_of_generators
 export degrevlex
 export dehomogenization_map
@@ -518,6 +544,7 @@ export double_dual
 export dst
 export dual
 export dual_continued_fraction_hirzebruch_jung
+export dual_geometric_representation
 export dual_graph
 export dual_matroid
 export dual_subdivision
@@ -535,6 +562,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export enriques_surface_automorphism_group
 export epimorphism_from_free_group
 export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
@@ -606,11 +634,14 @@ export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
 export fundamental_invariants
+export fundamental_weight
+export fundamental_weights
 export g_vector
 export galois_group
 export galois_ideal
 export galois_orbit_sum
 export galois_quotient
+export galois_representative_and_multiplicity
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -626,6 +657,7 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export geometric_representation
 export get_conjugate
 export get_power
 export get_relative_order
@@ -639,6 +671,7 @@ export gluing_morphisms
 export gluings
 export goldfarb_cube
 export goldfarb_sit_cube
+export gomory_chvatal_closure
 export gorenstein_index
 export grade
 export graded_cokernel
@@ -648,10 +681,11 @@ export graded_map
 export graded_polynomial_ring
 export grading_group
 export graph
+export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_labeled_edges
 export grassmann_pluecker_ideal
-export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
@@ -659,6 +693,7 @@ export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
+export group_with_class_number
 export gset
 export h_star_polynomial
 export h_vector
@@ -669,6 +704,7 @@ export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
+export has_groups_with_class_number
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
@@ -747,6 +783,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export integer_hull
 export integral_basis
 export integrate
 export interior_lattice_points
@@ -758,10 +795,14 @@ export intersections
 export inv
 export inv!
 export invariant_alternating_forms
+export invariant_bilinear_form
 export invariant_bilinear_forms
 export invariant_hermitian_forms
+export invariant_lattice_of_K3_cover
+export invariant_quadratic_form
 export invariant_quadratic_forms
 export invariant_ring
+export invariant_sesquilinear_form
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
@@ -784,15 +825,19 @@ export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
 export is_archimedean_solid
+export is_atlas_character_table
 export is_ball
 export is_basepoint_free
 export is_bicoset
 export is_bijective
 export is_binary
 export is_binomial
+export is_bipartite
 export is_bounded
 export is_canonically_isomorphic
 export is_canonically_isomorphic_with_map
+export is_cartan_matrix
+export is_cartan_type
 export is_cartier
 export is_cellular
 export is_character_table_name
@@ -808,10 +853,13 @@ export is_conjugate_subgroup
 export is_conjugate_subgroup_with_data
 export is_conjugate_with_data
 export is_connected
+export is_coroot
+export is_coroot_with_index
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
+export is_dominant
 export is_du_val_singularity
 export is_duplicate_table
 export is_effective
@@ -835,6 +883,8 @@ export is_full_direct_product
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
+export is_fundamental_weight
+export is_fundamental_weight_with_index
 export is_geometrically_integral
 export is_geometrically_reduced
 export is_global
@@ -875,6 +925,10 @@ export is_modular
 export is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group
 export is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group
 export is_nef
+export is_negative_coroot
+export is_negative_coroot_with_index
+export is_negative_root
+export is_negative_root_with_index
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
 export is_non_zero_divisor
 export is_normal
@@ -888,6 +942,10 @@ export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
 export is_platonic_solid
 export is_pointed
+export is_positive_coroot
+export is_positive_coroot_with_index
+export is_positive_root
+export is_positive_root_with_index
 export is_positively_graded
 export is_primary
 export is_prime
@@ -908,10 +966,17 @@ export is_reduced
 export is_regular
 export is_regular_sequence
 export is_right
+export is_root
+export is_root_with_index
 export is_semiregular
 export is_semisimple
 export is_semistandard
+export is_shifted
 export is_simple, has_is_simple, set_is_simple
+export is_simple_coroot
+export is_simple_coroot_with_index
+export is_simple_root
+export is_simple_root_with_index
 export is_simplicial
 export is_singular
 export is_smooth
@@ -949,8 +1014,12 @@ export is_zm_graded
 export isfinite
 export isometry_group
 export isomorphic_matroid
+export isomorphic_subgroups
 export isomorphism
+export isomorphism_classes_elliptic_fibrations
+export isomorphism_classes_polarizations
 export isone
+export isotropic_rays
 export isqrtrem
 export issubset
 export iszero
@@ -973,7 +1042,10 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export labelings
 export laplacian_matrix
+export lattice_homomorphism
+export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
 export leading_coefficient
@@ -1009,10 +1081,13 @@ export linear_symmetries
 export linear_system
 export link_subcomplex
 export load
+export generic_enriques_surface
 export load_lp
 export load_mps
+export local_schur_indices
 export localization
 export localized_ring
+export longest_element
 export loops
 export low_index_subgroup_classes
 export low_index_subgroups
@@ -1033,6 +1108,7 @@ export marks_vector
 export mat_elem_type
 export mathieu_group
 export matrix_group
+export matrix_group_type
 export matrix_kernel
 export matrix_ordering
 export matroid_base_polytope
@@ -1067,11 +1143,13 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
 export minimal_generating_set
-export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
+export minimal_generator
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_subalgebra_generators
+export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minkowski_sum
 export minor
 export module_syzygies
@@ -1102,6 +1180,8 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multipartition
+export multipartitions
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1124,6 +1204,10 @@ export name
 export names_of_fusion_sources
 export natural_character
 export nef_cone
+export negative_coroot
+export negative_coroots
+export negative_root
+export negative_roots
 export negbias
 export negdeglex
 export negdegrevlex
@@ -1167,21 +1251,28 @@ export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators
+export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
 export number_of_perfect_groups, has_number_of_perfect_groups
+export number_of_positive_roots
 export number_of_primitive_groups, has_number_of_primitive_groups
+export number_of_roots
+export number_of_simple_roots
 export number_of_small_groups, has_number_of_small_groups
 export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
+export numerical_lattice 
+export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
+export on_echelon_form_mats
 export on_indeterminates
 export on_lines
-export on_echelon_form_mats
 export on_sets
 export on_sets_sets
 export on_simplicial_complex
@@ -1256,12 +1347,19 @@ export polyhedral_fan_from_rays_action
 export polyhedron
 export polynomial
 export polynomial_ring
+export positive_coroot
+export positive_coroots
 export positive_hull
+export positive_root
+export positive_roots
+export positive_tropical_variety
 export possible_class_fusions
+export power_map
 export power_sum
 export powers_of_element
 export preimage
 export present_as_cokernel
+export present_finite_extension_ring
 export presentation
 export preserved_quadratic_forms
 export preserved_sesquilinear_forms
@@ -1270,6 +1368,8 @@ export primary_invariants
 export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
+export primitive_generator
+export primitive_generator_with_scaling_factor
 export primitive_group
 export primitive_group_identification, has_primitive_group_identification
 export primorial
@@ -1298,6 +1398,7 @@ export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
+export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
 export quantum_automorphism_group
@@ -1343,9 +1444,12 @@ export reduce_fraction
 export reduce_with_quotients
 export reduce_with_quotients_and_unit
 export reduced_characteristic_polynomial
+export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export reflect, reflect!
+export reflection
 export register_morphism!
 export regular_120_cell
 export regular_24_cell
@@ -1384,6 +1488,8 @@ export reverse_direction!
 export revlex_basis_encoding
 export reynolds_operator
 export right_acting_group
+export translation_morphism
+export isomorphism_from_generic_fibers
 export right_coset
 export right_coset_action
 export right_cosets
@@ -1394,6 +1500,10 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export root_invariant
+export root_system
+export root_system_type, has_root_system_type
+export root_system_type_with_ordering
 export roots
 export row
 export rss_associahedron
@@ -1407,6 +1517,7 @@ export scalar_product
 export scheme
 export scheme_type
 export schensted
+export show_atlas_info
 export schur_cover
 export schur_index
 export schur_multiplier
@@ -1445,8 +1556,13 @@ export show_morphism_as_map
 export show_subquo
 export signed_incidence_matrix
 export signed_permutahedron
+export simple_coroot
+export simple_coroots
+export simple_root
+export simple_roots
 export simplex
 export simplicial_complex
+export simplicial_product
 export simplified_fp_group
 export simplify
 export simplify!
@@ -1479,12 +1595,15 @@ export spec
 export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
+export splitting_roots_mod2
 export src
+export stabilizer_in_orthogonal_group
 export stable_intersection
 export stable_set_polytope
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
+export standard_coordinates
 export standard_tableaux
 export stanley_reisner_ideal
 export stanley_reisner_ring
@@ -1550,6 +1669,7 @@ export transitive_group_identification, has_transitive_group_identification
 export transitivity
 export transport
 export transportation_polytope
+export triangular_decomposition
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
@@ -1563,9 +1683,11 @@ export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
 export tropical_variety
+export tropical_prevariety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_lifting
 export tutte_polynomial
 export twist
 export twisting_sheaf
@@ -1608,6 +1730,7 @@ export volume
 export volume_form
 export volume_map
 export walls
+export walls_defined_by_rational_curves
 export wdeglex
 export wdegrevlex
 export weak_composition
@@ -1623,13 +1746,17 @@ export weierstrass_contraction
 export weierstrass_model
 export weight
 export weight_cone
+export weight_lattice
 export weight_ordering
 export weighted_projective_space
 export weil_divisor
 export weyl_algebra
+export weyl_group
+export weyl_orbit
 export weyl_vector
 export with_ordering
 export witt_index
+export word
 export wreath_product
 export write_as_full
 export young_tableau

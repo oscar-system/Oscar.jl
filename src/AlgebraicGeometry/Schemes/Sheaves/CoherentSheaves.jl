@@ -341,6 +341,37 @@ end
 For an `AbsCoveredScheme` ``X``, return the sheaf ``Ω¹(X)`` of Kaehler-differentials
 on ``X`` as a `CoherentSheaf`.
 
+# Examples
+```jldoctest
+julia> IP1 = projective_space(QQ, 1);
+
+julia> X = covered_scheme(IP1)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 1-space
+    2: affine 1-space
+  in the coordinate(s)
+    1: [(s1//s0)]
+    2: [(s0//s1)]
+
+julia> Omega = cotangent_sheaf(X);
+
+julia> U, V = affine_charts(X);
+
+julia> UV, VU = gluing_domains(default_covering(X)[U, V]);
+
+julia> dx = Omega(U)[1]
+d(s1//s0)
+
+julia> Omega(V)
+Free module of rank 1 over multivariate polynomial ring in 1 variable over QQ
+
+julia> Omega(U, VU)(dx)
+-1/(s0//s1)^2*d(s0//s1)
+
+```
 """
 @attr SheafOfModules function cotangent_sheaf(X::AbsCoveredScheme)
   MD = IdDict{AbsAffineScheme, ModuleFP}()
@@ -419,6 +450,53 @@ end
   in the constructor.
 =#
 
+@doc raw"""
+    HomSheaf
+    
+For two `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X` 
+this computes the sheaf associated to `U -> Hom(F(U), G(U))`.
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP1);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> T = Oscar.HomSheaf(Omega, F)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+  2: hom of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+
+julia> typeof(T)
+Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+
+```
+"""
 @attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
                                     RestrictionType
                                    } <: AbsCoherentSheaf{
@@ -457,6 +535,53 @@ codomain(M::HomSheaf) = M.codomain
 ########################################################################
 # Sheaves of direct sums                                               #
 ########################################################################
+@doc raw"""
+    DirectSumSheaf
+
+Given two or more `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X`, 
+this holds the sheaf associated to the direct sum of `F` and `G`
+
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP1);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 1 variable over GF(7)
+
+julia> W = Oscar.DirectSumSheaf(Y, [Omega, F])
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 2 patches
+    1: [(y//x)]   affine 1-space
+    2: [(x//y)]   affine 1-space
+with restrictions
+  1: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+  2: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+
+julia> typeof(W)
+DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct DirectSumSheaf{SpaceType, OpenType, OutputType,
                                           RestrictionType
                                          } <: AbsCoherentSheaf{
@@ -587,6 +712,91 @@ end
 # It is clear that this can and should be made lazy.
 #                                                                     =#
 
+@doc raw"""
+    PushforwardSheaf
+    
+For a `CoveredClosedEmbedding` `i : X -> Y` and an `AbsCoherentSheaf` `F`
+on `X` this computes the coherent sheaf `i_* F` on `Y`.
+
+# Examples
+```jldoctest
+julia> IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
+
+julia> x, y, z = gens(S);
+
+julia> I = ideal(S, x^3 - y*z^2);
+
+julia> II = ideal_sheaf(IP2, I);
+
+julia> X, inc_X = sub(II);
+
+julia> F = cotangent_sheaf(X)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 1 generator
+    1: 3*x_1_1^2*dx_1_1 - dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 1 generator
+    1: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 1 generator
+    1: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+
+julia> inc_F = Oscar.PushforwardSheaf(inc_X, F)
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: subquotient of submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  by submodule with 5 generators
+    1: (x_1_1^3 - x_2_1)*dx_1_1
+    2: (x_1_1^3 - x_2_1)*dx_2_1
+    3: 3*x_1_1^2*dx_1_1 - dx_2_1
+    4: (x_1_1^3 - x_2_1)*dx_1_1
+    5: (x_1_1^3 - x_2_1)*dx_2_1
+  2: subquotient of submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  by submodule with 5 generators
+    1: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    2: (x_1_2^2*x_2_2 - 1)*dx_2_2
+    3: 2*x_1_2*x_2_2*dx_1_2 + x_1_2^2*dx_2_2
+    4: (x_1_2^2*x_2_2 - 1)*dx_1_2
+    5: (x_1_2^2*x_2_2 - 1)*dx_2_2
+  3: subquotient of submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  by submodule with 5 generators
+    1: (x_1_3^3 - x_2_3^2)*dx_1_3
+    2: (x_1_3^3 - x_2_3^2)*dx_2_3
+    3: 3*x_1_3^2*dx_1_3 - 2*x_2_3*dx_2_3
+    4: (x_1_3^3 - x_2_3^2)*dx_1_3
+    5: (x_1_3^3 - x_2_3^2)*dx_2_3
+
+julia> typeof(inc_F)
+PushforwardSheaf{NormalToricVariety, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct PushforwardSheaf{SpaceType, OpenType, OutputType,
                                             RestrictionType
                                            } <: AbsCoherentSheaf{
@@ -670,6 +880,73 @@ end
 #    to create a module for ℳ (U) when U ⊂ X is an `affine_chart` of X.
 #    The user is hence forced to work in the refinement only.
 
+
+@doc raw"""
+    PullbackSheaf
+    
+For a morphism `f : X -> Y` of `AbsCoveredScheme`s and a coherent 
+sheaf `F` on `Y` this computes the pullback `f^* F` on `X`.
+# Examples
+```jldoctest
+julia> IP2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> S = cox_ring(IP2)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
+
+julia> x, y, z = gens(S);
+
+julia> I = ideal(S, x^3 - y*z^2);
+
+julia> II = ideal_sheaf(IP2, I);
+
+julia> X, inc_X = sub(II);
+
+julia> F = cotangent_sheaf(codomain(inc_X))
+Coherent sheaf of modules
+  on normal toric variety
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia> inc_F = Oscar.PullbackSheaf(inc_X, F)
+Coherent sheaf of modules
+  on scheme over QQ covered with 3 patches
+    1: [x_1_1, x_2_1]   scheme(x_1_1^3 - x_2_1)
+    2: [x_1_2, x_2_2]   scheme(x_1_2^2*x_2_2 - 1)
+    3: [x_1_3, x_2_3]   scheme(x_1_3^3 - x_2_3^2)
+with restrictions
+  1: submodule with 2 generators
+    1: dx_1_1
+    2: dx_2_1
+  represented as subquotient with no relations
+  2: submodule with 2 generators
+    1: dx_1_2
+    2: dx_2_2
+  represented as subquotient with no relations
+  3: submodule with 2 generators
+    1: dx_1_3
+    2: dx_2_3
+  represented as subquotient with no relations
+
+julia> typeof(inc_F)
+PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
                                          RestrictionType
                                         } <: AbsCoherentSheaf{

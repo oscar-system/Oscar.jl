@@ -10,8 +10,9 @@
 """
     SesquilinearForm{T<:RingElem}
 
-Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
-At the moment, only rings of type `fqPolyRepField` are supported.
+Type of alternating and symmetric bilinear forms, hermitian forms,
+and quadratic forms, defined by a Gram matrix
+(or, in the case of a quadratic form, alternatively by a polynomial).
 """
 mutable struct SesquilinearForm{T<:RingElem}
    matrix::MatElem{T}
@@ -63,14 +64,16 @@ SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 """
     is_alternating(f::SesquilinearForm)
 
-Return whether the form `f` is an alternating form.
+Return whether the form `f` is an alternating form,
+see [`is_alternating(B::MatElem)`](@ref).
 """
 is_alternating(f::SesquilinearForm) = f.descr==:alternating
 
 """
     is_hermitian(f::SesquilinearForm)
 
-Return whether the form `f` is a hermitian form.
+Return whether the form `f` is a hermitian form,
+see [`is_hermitian(B::MatElem{T}) where T <: FinFieldElem`](@ref).
 """
 is_hermitian(f::SesquilinearForm) = f.descr==:hermitian
 
@@ -100,6 +103,19 @@ is_symmetric(f::SesquilinearForm) = f.descr==:symmetric
     alternating_form(B::MatElem{T})
 
 Return the alternating form with Gram matrix `B`.
+An exception is thrown if `B` is not square or does not have zeros on the
+diagonal or does not satisfy `B = -transpose(B)`.
+
+# Examples
+```jldoctest
+julia> f = alternating_form(matrix(GF(3), 2, 2, [0, 1, -1, 0]))
+alternating form with Gram matrix
+[0   1]
+[2   0]
+
+julia> describe(isometry_group(f))
+"SL(2,3)"
+```
 """
 alternating_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :alternating)
 
@@ -107,6 +123,18 @@ alternating_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :alte
     symmetric_form(B::MatElem{T})
 
 Return the symmetric form with Gram matrix `B`.
+An exception is thrown if `B` is not square or not symmetric.
+
+# Examples
+```jldoctest
+julia> f = symmetric_form(matrix(GF(3), 2, 2, [0, 1, 1, 0]))
+symmetric form with Gram matrix
+[0   1]
+[1   0]
+
+julia> describe(isometry_group(f))
+"C2 x C2"
+```
 """
 symmetric_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :symmetric)
 
@@ -114,6 +142,21 @@ symmetric_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :symmet
     hermitian_form(B::MatElem{T})
 
 Return the hermitian form with Gram matrix `B`.
+An exception is thrown if `B` is not square or does not satisfy
+`B = conjugate_transpose(B)`, see [`conjugate_transpose`](@ref).
+
+# Examples
+```jldoctest
+julia> F = GF(4);  z = gen(F);
+
+julia> f = hermitian_form(matrix(F, 2, 2, [0, z, z^2, 0]))
+hermitian form with Gram matrix
+[    0   o]
+[o + 1   0]
+
+julia> describe(isometry_group(f))
+"C3 x S3"
+```
 """
 hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermitian)
 
@@ -132,6 +175,17 @@ end
     quadratic_form(B::MatElem{T})
 
 Return the quadratic form with Gram matrix `B`.
+
+# Examples
+```jldoctest
+julia> f = quadratic_form(matrix(GF(3), 2, 2, [2, 2, 0, 1]))
+quadratic form with Gram matrix
+[2   2]
+[0   1]
+
+julia> describe(isometry_group(f))
+"D8"
+```
 """
 quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadratic)
 
@@ -140,8 +194,21 @@ quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadra
 
 Return the quadratic form described by the polynomial `f`.
 Here, `f` must be a homogeneous polynomial of degree 2.
-If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
+If `check` is set to `false`, it is not checked whether `f` is homogeneous of degree 2.
 To define quadratic forms of dimension 1, `f` can also have type `PolyRingElem{T}`.
+
+# Examples
+```jldoctest
+julia> _, (x1, x2) = polynomial_ring(GF(3), [:x1, :x2]);
+
+julia> f = quadratic_form(2*x1^2 + 2*x1*x2 + x2^2)
+quadratic form with Gram matrix
+[2   2]
+[0   1]
+
+julia> describe(isometry_group(f))
+"D8"
+```
 """
 quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
 # TODO : neither is_homogeneous or is_homogeneous works for variables of type MPolyRingElem{T}
@@ -162,7 +229,7 @@ end
 
 
 function Base.show(io::IO, f::SesquilinearForm)
-   println(io, "$(f.descr) form with Gram matrix ")
+   println(io, "$(f.descr) form with Gram matrix")
    show(io, "text/plain", gram_matrix(f))
 end
 
@@ -194,7 +261,14 @@ end
 """
     corresponding_bilinear_form(Q::SesquilinearForm)
 
-Given a quadratic form `Q`, return the bilinear form `B` defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
+Given a quadratic form `Q`, return the symmetric form with Gram matrix `B`
+defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
+
+# Examples
+```@repl
+Q = quadratic_form(invariant_quadratic_form(GO(3,3)))
+corresponding_bilinear_form(Q)
+```
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
    @req B.descr==:quadratic "The form must be a quadratic form"
@@ -205,10 +279,17 @@ function corresponding_bilinear_form(B::SesquilinearForm)
 end
 
 """
-    corresponding_quadratic_form(Q::SesquilinearForm)
+    corresponding_quadratic_form(f::SesquilinearForm)
 
-Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(v,v)/2`.
+Given a symmetric form `f`, return the quadratic form `Q`
+defined by `Q(v) = f(v,v)/2`.
 It is defined only in odd characteristic.
+
+# Examples
+```@repl
+f = symmetric_form(invariant_bilinear_form(GO(3, 3)))
+corresponding_quadratic_form(f)
+```
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
    @req B.descr==:symmetric "The form must be a symmetric form"
@@ -233,9 +314,9 @@ end
 ########################################################################
 
 """
-    gram_matrix(B::SesquilinearForm)
+    gram_matrix(f::SesquilinearForm)
 
-Return the Gram matrix of a sesquilinear or quadratic form `B`.
+Return the Gram matrix that defines `f`.
 """
 function gram_matrix(f::SesquilinearForm)
    isdefined(f,:matrix) && return f.matrix
@@ -268,7 +349,7 @@ end
 """
     defining_polynomial(f::SesquilinearForm)
 
-Return the polynomial that defines the quadratic form `f`.
+Return the polynomial that defines `f`.
 """
 function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
@@ -310,22 +391,6 @@ GAP.@install function GapObj(f::SesquilinearForm)
   end
   return f.X
 end
-
-function Base.getproperty(f::SesquilinearForm, sym::Symbol)
-
-   if isdefined(f,sym) return getfield(f,sym) end
-
-   if sym == :X
-      if !isdefined(f, :X)
-         assign_from_description(f)
-      end
-
-   end
-
-   return getfield(f, sym)
-
-end
-
 
 
 ########################################################################
@@ -390,10 +455,27 @@ end
 """
     radical(f::SesquilinearForm{T})
 
-Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v`
-such that `f(u,v)=0` for all `u`.
-The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
- and `v` lies in the radical of the corresponding bilinear form.
+Return `(U, emb)` where `U` is the radical of `f` and `emb` is the
+embedding of `U` into the full vector space on which `f` is defined.
+
+For a quadratic form `f`, the radical is defined as the set of vectors `v`
+such that `f(v) = 0` and `v` lies in the radical of the corresponding
+bilinear form.
+
+Otherwise the radical of `f` is defined as the subspace of all `v`
+such that `f(u, v) = 0` for all `u`.
+
+# Examples
+```jldoctest
+julia> g = GO(7, 2);
+
+julia> f = symmetric_form(invariant_symmetric_forms(g)[1]);
+
+julia> U, emb = radical(f);
+
+julia> dim(U)
+1
+```
 """
 function radical(f::SesquilinearForm{T}) where T
    V = vector_space(base_ring(f), nrows(gram_matrix(f)) )
@@ -411,7 +493,21 @@ end
     witt_index(f::SesquilinearForm{T})
 
 Return the Witt index of the form induced by `f` on `V/Rad(f)`.
-The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
+The Witt index is the dimension of a maximal totally isotropic
+(singular for quadratic forms) subspace.
+
+# Examples
+```jldoctest
+julia> g = GO(1, 6, 2);
+
+julia> witt_index(quadratic_form(invariant_quadratic_forms(g)[1]))
+3
+
+julia> g = GO(-1, 6, 2);
+
+julia> witt_index(quadratic_form(invariant_quadratic_forms(g)[1]))
+2
+```
 """
 witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(GapObj(f))
 

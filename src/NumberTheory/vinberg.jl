@@ -72,7 +72,7 @@ end
 @doc raw"""
     _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem}) -> Vector{Tuple{Int, ZZRingElem}}
 
-Returns all possible tuples $(n, l)$ with `n` a natural number and `l` contained in `root_lengths`,
+Return all possible tuples $(n, l)$ with `n` a natural number and `l` contained in `root_lengths`,
 sorted by increase of the value $\frac{n^2}{l}$, stopping by `upper_bound`.
 """
 function _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem})
@@ -234,8 +234,8 @@ function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
     if all((v*Q*v1)[1, 1] != 0 for v in possible_vec)
       # To run the algorithm it suffices to require that v*Q*v1 != 0, but we get a random (right) solution. 
       # This is the case because it is a random choice in which direction the fundamental cone 
-      # is built everytime we use the algorithm.
-      # To get always the same solution one should suply a `direction_vector` `v1`  
+      # is built every time we use the algorithm.
+      # To get always the same solution one should supply a `direction_vector` `v1`
       @vprintln :Vinberg 2 "direction vector v1 = $v1"
       return v1
     end
@@ -285,22 +285,36 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
   Qv = zero_matrix(ZZ, ncols(Q), 1)
   tmp2 = zero_matrix(ZZ, 1, 1)
+
+  # The code for `short_vectors_affine` will, by default, turn `Q` and `v0`
+  # into `QQMatrix`. This is due to the use of the function `_convert_type`
+  # in Hecke, which requires this (in this context, since `v0` might not be a
+  # vector in the lattice with Gram matrix `Q`, but only a vector of its
+  # rational span). Since we call several times the function
+  # `short_vectors_affine`, once per iteration, we do this conversion into
+  # `QQMatrix` prior iterating on the list `iteration`.
+
+  # The output of `short_vectors_affine` are `QQMatrix` with integer entries:
+  # we thus recover honest `ZZMatrix` by taking `numerator(v)`.
+  _Q = map_entries(QQ, Q)
+  _v0 = map_entries(QQ, v0)
   for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
-    possible_Vec = short_vectors_affine(Q, v0, QQ(n), k)
+    possible_Vec = short_vectors_affine(_Q, _v0, QQ(n), QQ(k))
     for v in possible_Vec
-      if !isone(reduce(gcd, v))
+      vZZ = numerator(v)
+      if !isone(reduce(gcd, vZZ))
         # v must be primitive.
         continue 
       end
-      mul!(Qv, Q, transpose(v))
+      mul!(Qv, Q, transpose(vZZ))
       #Qv = Q*transpose(v)
       if !(divisibilities isa Nothing)
         # filter for divisibilities
         reduce(gcd, Qv) in divisibilities[k] || continue
       end
       if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots)
-        push!(roots, v)
+        push!(roots, vZZ)
       end
     end
   end

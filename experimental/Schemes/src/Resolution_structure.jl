@@ -35,7 +35,7 @@ end
 ## entries of ex_div corresponding to normalization steps are only exceptional divisors at the very end
 ## so only return them at the very end or on specific demand 
 function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=false)
-  phi.resolves_sing || seq_unclean || error("excpetional divisor list not available for intermediate steps.")
+  phi.resolves_sing || seq_unclean || error("exceptional divisor list not available for intermediate steps.")
   return phi.ex_div
 end
 
@@ -55,7 +55,7 @@ end
 Return a `CartierDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
@@ -90,7 +90,7 @@ end
 Return a `WeilDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
@@ -125,7 +125,7 @@ end
 @doc raw"""
     exceptional_divisor_with_multiplicities(f::BlowUpSequence) --> CartierDivisor
 
-Return a `CartierDivisor` `C` on the `domain` of the emmbedded desingularization morphism `f` 
+Return a `CartierDivisor` `C` on the `domain` of the embedded desingularization morphism `f`
 which is the exceptional divisor of the sequence of blow-ups `f` in the ambient scheme.
 """
 function exceptional_divisor_with_multiplicities(f::BlowUpSequence)
@@ -150,8 +150,8 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   ex_div_list = exceptional_divisor_list(f)
   C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
-    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
-    C = C + weil_divisor(ex_div_list[i])
+    dim(ex_div_list[i]) === -inf && continue            # kick out empty ones
+    C += weil_divisor(ex_div_list[i])
   end
 
   f.exceptional_divisor = C
@@ -165,11 +165,11 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   C = CartierDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
 # do we want to introduce is_empty for divisors?
-    dim(ideal_sheaf(ex_div_list[i]))== -1 && continue          # kick out empty ones
+    dim(ideal_sheaf(ex_div_list[i])) === -inf && continue      # kick out empty ones
                                                                # caution: dim(CartierDivisor) is not computed,
                                                                #          but inferred
                                                                #          ==> need to pass to ideal_sheaf first
-    C = C + cartier_divisor(ex_div_list[i])
+    C += cartier_divisor(ex_div_list[i])
   end
 
   f.exceptional_divisor_on_X = C
@@ -190,8 +190,8 @@ function exceptional_locus(f::MixedBlowUpSequence)
                                                     # they might even have the wrong dimension
   C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
   for E in ex_div_list
-    dim(E) != -1 || continue                        # kick out empty ones
-    C = C + algebraic_cycle(E)
+    dim(E) === -inf && continue                     # kick out empty ones
+    C += algebraic_cycle(E)
   end
 
   return C
@@ -387,7 +387,7 @@ function initialize_blow_up_sequence(phi::BlowupMorphism)
   f.ex_div = [exceptional_divisor(phi)]
   f.is_trivial = is_one(center(phi))
   f.is_strong = false
-  f.resolves_sing = false                                # we have no information, wether we are done
+  f.resolves_sing = false                                # we have no information, whether we are done
                                                          # without further computation
   f.is_embedded = false
   return f
@@ -398,7 +398,7 @@ function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::AbsIde
   f.ex_div = [pullback(phi,I)]
   f.is_trivial = is_one(I)
   f.is_strong = false
-  f.resolves_sing = false                                # we have no information, wether we are done
+  f.resolves_sing = false                                # we have no information, whether we are done
                                                          # without further computation
   return f
 end
@@ -629,7 +629,7 @@ function weak_to_strong_desingularization_surface(phi::BlowUpSequence)
 end
 
 function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
-  dim(domain(phi)) == 2 || error("not implmemented yet")
+  dim(domain(phi)) == 2 || error("not implemented yet")
 
   !phi.is_strong || return phi
   ex_divs = phi.ex_div
@@ -702,7 +702,7 @@ function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUp
   while !is_one(I_sl_temp)
     f = _blow_up_at_all_points(f,I_sl_temp)
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
-    if dim(I_sl_temp) == 1
+    if is_one(dim(I_sl_temp))
       f = _do_normalization!(f)
       I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
     end
@@ -1036,7 +1036,7 @@ end
 # and count the A1 encountered on the way (their count is total_number)
 function curve_sing_A1_or_beyond(I::AbsIdealSheaf)
   !is_one(I) || return(I,0)
-  @assert dim(I) == 1
+  @assert is_one(dim(I))
   I_scheme,I_inc = sub(I)
   I_sl = pushforward(I_inc)(ideal_sheaf_of_singular_locus(I_scheme))
   decomp = maximal_associated_points(I_sl)    # zero-dimensional, as I describes a curve
@@ -1087,7 +1087,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
 ## only call this from higher functions
 ## it assumes: IX singular at Ipt, germ of IX at Ipt contact equivalent to hypersurface singularity
   R = base_ring(IX)
-  dim(IX) == 1 || error("not applicable: not a curve")
+  is_one(dim(IX)) || error("not applicable: not a curve")
   R == base_ring(Ipt) || error("basering mismatch")
   kk = base_ring(R)
   characteristic(kk) == 0 || error("only available in characteristic zero")

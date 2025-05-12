@@ -58,10 +58,18 @@
     @test size(cones(F2, 2)) == (2,)
     @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
     @test rays.(cones(F2, 2)) == [[], []]
-    @test isnothing(cones(F2, 1))
     @test _check_im_perm_rows(ray_indices(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(incidence_matrix(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
+
+    # Construct a fan that describes affine 3-space
+    A3 = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
+    @test length(cones(A3, 1)) == 3
+    @test length(cones(A3, 0)) == 1
+    @test length(cones(A3, -1)) == 0
+    @test cones(A3, 1) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, 0) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, -1) isa SubObjectIterator{Cone{QQFieldElem}}
 
     II = ray_indices(maximal_cones(NFsquare))
     NF0 = polyhedral_fan(II, rays(NFsquare))
@@ -110,6 +118,56 @@
     @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
     @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
   end
+end
+
+@testset "minimal supercone" begin
+  # Construct a fan that describes affine 3-space
+  PF = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [2//5, 3, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [2//5, 3, 0]) == [2//5, 3, 0]
+
+  # Construct a fan that describes projective 3-space
+  PF = normal_fan(Oscar.simplex(3))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [-1, 1, 1]), [2, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, 1, 1]) == [0, 2, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-1, -1, 1]), [3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, -1, 1]) == [0, 0, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-2//3, QQFieldElem(-4//3), 1]), [1, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-2//3, -4//3, 1]) == [2//3, 0, 7//3, 4//3]
+  
+  @test is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 0])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 1])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, -1, 0])
+  
+  @test standard_coordinates(PF, [1, 2, 3, 0]) == [1, 2, 3]
+  @test standard_coordinates(PF, [1, 1, 0, 1]) == [0, 0, -1]
+  @test standard_coordinates(PF, [1, 0, 0, 1]) == [0, -1, -1]
+
+  # Construct a nonsimplicial fan
+  PF = face_fan(cube(3))
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [0, 0, 0, 1//2, 0, 1//2, 0, 0]
+
+  # Construct a fan of the 1/2(1, 1) singularity
+  ray_generators = [[2, -1], [0, 1]]
+  max_cones = IncidenceMatrix([[1, 2]])
+  PF = polyhedral_fan(max_cones, ray_generators)
+  @test minimal_supercone_coordinates(PF, [1, 0]) == [1//2, 1//2]
 end
 
 @testset "Transform{$T}" for (f, T) in _prepare_scalar_types()

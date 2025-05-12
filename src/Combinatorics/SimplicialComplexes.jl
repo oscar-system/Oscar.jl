@@ -59,6 +59,10 @@ function simplicial_complex(generators::Union{AbstractVector{<:AbstractVector{<:
   SimplicialComplex(K)
 end
 
+function simplicial_complex(generators::Union{Set{<:AbstractVector{<:Base.Integer}}, Set{<:AbstractSet{<:Base.Integer}}})
+  return simplicial_complex(collect(generators))
+end
+
 function simplicial_complex(generators::IncidenceMatrix)
   K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
   simplicial_complex(K)
@@ -421,9 +425,9 @@ end
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a sphere.
-Returns false if not a sphere.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a sphere.
+Return `false` if not a sphere.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -440,9 +444,9 @@ is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a ball.
-Returns false if not a ball.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a ball.
+Return `false` if not a ball.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -459,9 +463,9 @@ is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
 
 Check if the abstract simplicial complex `K` is a combinatorial manifold, possibly with boundary.
 Note that this is undecidable in general.
-Returns true if recognized as a manifold.
-Returns false if not a manifold.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a manifold.
+Return `false` if not a manifold.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -564,7 +568,7 @@ end
 @doc raw"""
     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
-Checks if the given simplicial complexes are isomorphic.
+Check if the given simplicial complexes are isomorphic.
 
 # Examples
 ```jldoctest
@@ -692,4 +696,82 @@ function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
   @req degree(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
   new_facets = on_sets_sets(Set(facets(K)), g)
   simplicial_complex(collect(new_facets))
+end
+
+@doc raw"""
+     simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
+
+Given simplicial complexes `K1` and `K2` return their simplicial product.
+
+# Examples
+```jldoctest
+julia> K1 = simplicial_complex([[1, 2], [2, 3]])
+Abstract simplicial complex of dimension 1 on 3 vertices
+
+julia> K2 = simplicial_complex([[1, 2], [1, 3]])
+Abstract simplicial complex of dimension 1 on 3 vertices
+
+julia> facets(simplicial_product(K1, K2))
+8-element Vector{Set{Int64}}:
+ Set([5, 2, 1])
+ Set([5, 4, 1])
+ Set([2, 8, 1])
+ Set([7, 8, 1])
+ Set([6, 2, 3])
+ Set([5, 6, 2])
+ Set([2, 9, 3])
+ Set([2, 9, 8])
+```
+"""
+function simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
+  return SimplicialComplex(Polymake.topaz.simplicial_product(pm_object(K1), pm_object(K2)))
+end
+
+@doc raw"""
+     link_subcomplex(K::SimplicialComplex, f::Union{<:AbstractSet{Int},<:AbstractVector{Int}}))
+
+Given simplicial complex `K` and a face `f` of `K` return the link of `f`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
+Abstract simplicial complex of dimension 1 on 4 vertices
+
+julia> facets(link_subcomplex(K, [2]))
+2-element Vector{Set{Int64}}:
+ Set([1])
+ Set([2])
+```
+"""
+function link_subcomplex(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+  zero_based_face = Polymake.to_zero_based_indexing(face)
+  return SimplicialComplex(Polymake.link_subcomplex(pm_object(K), zero_based_face))
+end
+
+@doc raw"""
+   barycentric_subdivision(K::SimplicialComplex)
+
+Given simplicial complex `K` returns its barycentric subdivision.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3]])
+Abstract simplicial complex of dimension 2 on 3 vertices
+
+julia> facets(barycentric_subdivision(K))
+6-element Vector{Set{Int64}}:
+ Set([5, 2, 1])
+ Set([5, 3, 1])
+ Set([6, 2, 1])
+ Set([4, 6, 1])
+ Set([7, 3, 1])
+ Set([4, 7, 1])
+```
+"""
+function barycentric_subdivision(K::SimplicialComplex)
+  return SimplicialComplex(Polymake.topaz.barycentric_subdivision(pm_object(K))) 
+end
+
+function is_shifted(K::SimplicialComplex)
+  return pm_object(K).SHIFTED
 end

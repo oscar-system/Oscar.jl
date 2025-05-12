@@ -3,11 +3,9 @@ module BasisLieHighestWeight
 using ..Oscar
 using ..Oscar: IntegerUnion
 using ..Oscar: _is_weighted
+using ..Oscar: _root_system_type_string
 
-using Oscar.LieAlgebras:
-  _character,
-  _root_system_type_string,
-  lie_algebra_simple_module_struct_consts_gap
+using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
 
 using AbstractAlgebra.PrettyPrinting
 

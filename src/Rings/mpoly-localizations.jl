@@ -1013,6 +1013,11 @@ function rand(rng::Random.AbstractRNG, W::MPolyLocRing, v1::AbstractUnitRange{In
   return W(rand(rng, base_ring(W), v1, v2, v3), rand(rng, inverted_set(W), v1, v2, v3))
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(W::Oscar.MPolyLocRing)
+  return rand(W, 0:3, 0:4, 0:3)
+end
+
 
 ########################################################################
 # Elements of localized polynomial rings                               #
@@ -1610,24 +1615,21 @@ function _diagonal_sparse_matrix(L::Ring, v::Vector{T}) where {T<:RingElem}
   return A
 end
 
-function coordinate_shift(
+@attr Map function coordinate_shift(
     L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
   )
-  if !has_attribute(L, :coordinate_shift)
-    U = inverted_set(L)
-    a = point_coordinates(U)
-    R = base_ring(L)
-    Ls = MPolyLocRing(R, MPolyComplementOfKPointIdeal(R, [0 for i in 1:ngens(R)]))
-    xs = [ x + a for (x, a) in zip(gens(base_ring(L)), a) ]
-    xs_inv = [ x - a for (x, a) in zip(gens(base_ring(L)), a) ]
-    shift = MapFromFunc(
-                L, Ls,
-                f -> Ls(evaluate(numerator(f), xs), evaluate(denominator(f), xs), check=false),
-                g -> L(evaluate(numerator(g), xs_inv), evaluate(denominator(g), xs_inv), check=false),
-              )
-    set_attribute!(L, :coordinate_shift, shift)
-  end
-  return get_attribute(L, :coordinate_shift)::Map
+  U = inverted_set(L)
+  a = point_coordinates(U)
+  R = base_ring(L)
+  Ls = MPolyLocRing(R, MPolyComplementOfKPointIdeal(R, [0 for i in 1:ngens(R)]))
+  xs = [ x + a for (x, a) in zip(gens(base_ring(L)), a) ]
+  xs_inv = [ x - a for (x, a) in zip(gens(base_ring(L)), a) ]
+  shift = MapFromFunc(
+              L, Ls,
+              f -> Ls(evaluate(numerator(f), xs), evaluate(denominator(f), xs), check=false),
+              g -> L(evaluate(numerator(g), xs_inv), evaluate(denominator(g), xs_inv), check=false),
+            )
+  return shift
 end
 
 
@@ -2641,7 +2643,7 @@ true
 ### Some auxiliary functions
 
 @attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)
-  has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return I
+  get_attribute(I, :is_prime, false) && return I
   # heuristics have shown that the radical of the saturated ideal 
   # is often quicker 
   #J = pre_saturated_ideal(I)
@@ -2650,15 +2652,15 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
+@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
   return dim(saturated_ideal(I))
 end
 
-@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
   return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
-@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
@@ -2778,19 +2780,17 @@ small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
                         <:MPolyRing, <:MPolyRingElem,
                         <:MPolyComplementOfKPointIdeal}})  = minimal_generating_set(I)
 
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
     I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyPowersOfElement}};
     algorithm::Symbol=:simple
   )
-  get_attribute!(I, :small_generating_set) do
-    L = base_ring(I)
-    R = base_ring(L)
-    #I_min = L.(small_generating_set(saturated_ideal(I)))
-    I_min = L.(small_generating_set(ideal(R, numerator.(gens(I)))))
-    filter(!iszero, I_min)
-  end::Vector{elem_type(base_ring(I))}
+  L = base_ring(I)
+  R = base_ring(L)
+  #I_min = L.(small_generating_set(saturated_ideal(I)))
+  I_min = L.(small_generating_set(ideal(R, numerator.(gens(I)))))
+  filter(!iszero, I_min)
 end
 
 dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))

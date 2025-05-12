@@ -250,7 +250,7 @@ Return sections ``P_1,\dots P_n`` of the generic fiber, such that together with
 the generators of the algebraic lattice ``A``, they generate
 ```math
 \frac{1}{p} A \cap N
-``` 
+```
 where ``N`` is the numerical lattice of ``X``.
 
 The algorithm proceeds by computing division points in the Mordell-Weil subgroup of `X`
@@ -287,7 +287,7 @@ end
 Compute the primitive closure of the algebraic lattice of ``X`` inside its
 numerical lattice and update the generators of its Mordell--Weil group accordingly.
 
-The algorithm works by computing suitable divison points in its Mordell Weil group.
+The algorithm works by computing suitable division points in its Mordell Weil group.
 """
 function algebraic_lattice_primitive_closure!(X::EllipticSurface)
   S = X
@@ -1033,36 +1033,34 @@ The keyword argument `reducible_singular_fibers_in_PP1` must be a list of vector
 the base field representing the points in projective space over which there are reducible fibers.
 Specify it to force this ordering of the basis vectors of the ambient space of the `algebraic_lattice`
 """
-function _trivial_lattice(X::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(X))
+@attr Any function _trivial_lattice(X::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(X))
   S = X
-  get_attribute!(S, :_trivial_lattice) do
-    O = zero_section(S)
-    pt0, F = fiber(S)
-    set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
-    basisT = [F, O]
-    grams = [ZZ[0 1;1 -euler_characteristic(S)]]
-    sing = reducible_singular_fibers_in_PP1
-    f = [[pt, fiber_components(S,pt)] for  pt in sing]
-    fiber_componentsS = []
-    for (pt, ft) in f
-      @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
-      Ft0 = standardize_fiber(S, ft)
-      @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
-      append!(basisT , Ft0[3][2:end])
-      push!(grams,Ft0[4][2:end,2:end])
-      push!(fiber_componentsS, vcat([pt], collect(Ft0)))
-    end
-    G = block_diagonal_matrix(grams)
-    # make way for some more pretty printing
-    for (pt,root_type,_,comp) in fiber_componentsS
-      for (i,I) in enumerate(comp)
-        name = string(root_type[1], root_type[2])
-        set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
-        set_attribute!(components(I)[1], :_self_intersection, -2)
-      end
-    end
-    return basisT, G, fiber_componentsS
+  O = zero_section(S)
+  pt0, F = fiber(S)
+  set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
+  basisT = [F, O]
+  grams = [ZZ[0 1;1 -euler_characteristic(S)]]
+  sing = reducible_singular_fibers_in_PP1
+  f = [[pt, fiber_components(S,pt)] for  pt in sing]
+  fiber_componentsS = []
+  for (pt, ft) in f
+    @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
+    Ft0 = standardize_fiber(S, ft)
+    @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
+    append!(basisT , Ft0[3][2:end])
+    push!(grams,Ft0[4][2:end,2:end])
+    push!(fiber_componentsS, vcat([pt], collect(Ft0)))
   end
+  G = block_diagonal_matrix(grams)
+  # make way for some more pretty printing
+  for (pt,root_type,_,comp) in fiber_componentsS
+    for (i,I) in enumerate(comp)
+      name = string(root_type[1], root_type[2])
+      set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
+      set_attribute!(components(I)[1], :_self_intersection, -2)
+    end
+  end
+  return basisT, G, fiber_componentsS
 end
 
 function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)

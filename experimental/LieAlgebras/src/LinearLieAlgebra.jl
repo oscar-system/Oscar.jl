@@ -99,51 +99,6 @@ function Base.show(io::IO, L::LinearLieAlgebra)
   end
 end
 
-#=
-function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
-  @show_name(io, L)
-  @show_special(io, mime, L)
-  io = pretty(io)
-  println(io, "Abstract Lie algebra")
-  if has_root_system(L)
-    rs = root_system(L)
-    if has_root_system_type(rs)
-      type, ord = root_system_type_with_ordering(rs)
-      print(io, Indent(), "of type ", _root_system_type_string(type))
-      if !issorted(ord)
-        print(io, " (non-canonical ordering)")
-      end
-      println(io, Dedent())
-    end
-  end
-  println(io, Indent(), "of dimension ", dim(L), Dedent())
-  print(io, "over ")
-  print(io, Lowercase(), coefficient_ring(L))
-end
-
-function Base.show(io::IO, L::AbstractLieAlgebra)
-  @show_name(io, L)
-  @show_special(io, L)
-  if is_terse(io)
-    print(io, "Abstract Lie algebra")
-  else
-    io = pretty(io)
-    print(io, "Abstract Lie algebra")
-    if has_root_system(L)
-      rs = root_system(L)
-      if has_root_system_type(rs)
-        type, ord = root_system_type_with_ordering(rs)
-        print(io, " of type ", _root_system_type_string(type))
-        if !issorted(ord)
-          print(io, " (non-canonical ordering)")
-        end
-      end
-    end
-    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
-  end
-end
-=#
-
 function _lie_algebra_type_to_string(type::Symbol, n::Int)
   if type == :general_linear
     return "General linear Lie algebra of degree $n"
@@ -246,6 +201,17 @@ function set_root_system_and_chevalley_basis!(
 ) where {C<:FieldElem}
   L.root_system = R
   L.chevalley_basis = chev
+end
+
+###############################################################################
+#
+#   change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::LinearLieAlgebra)
+  basis = map(b -> change_base_ring(R, b), matrix_repr_basis(L))
+  return lie_algebra(R, L.n, basis, symbols(L); check=false)
 end
 
 ###############################################################################

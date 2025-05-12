@@ -118,12 +118,8 @@ const MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
-coefficient_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
-coefficient_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_elem_type(typeof(L))
 
 base_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
-base_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_elem_type(typeof(L))
 
 mult_set_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
 mult_set_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(L))
@@ -148,11 +144,8 @@ inverted_set(L::MPolyQuoLocRing) = L.S
 
 Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``IS⁻¹``.
 """
-function modulus(L::MPolyQuoLocRing) 
-  if !has_attribute(L, :modulus)
-    set_attribute!(L, :modulus, localized_ring(L)(L.I))
-  end
-  return get_attribute(L, :modulus)::ideal_type(localized_ring_type(L))
+@attr ideal_type(localized_ring_type(L)) function modulus(L::MPolyQuoLocRing) 
+  return localized_ring(L)(L.I)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
@@ -432,17 +425,12 @@ end
 
 ### type getters
 coefficient_ring_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
-coefficient_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
-coefficient_ring_elem_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
-coefficient_ring_elem_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
+coefficient_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(f))
 
 base_ring_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
-base_ring_elem_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
-base_ring_elem_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
 
 mult_set_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
-mult_set_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
+mult_set_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(f))
 
 ### required getter functions 
 parent(a::MPolyQuoLocRingElem) = a.L
@@ -452,7 +440,6 @@ denominator(a::MPolyQuoLocRingElem) = underlying_quotient(parent(a))(a.denominat
 ### additional getter functions
 underlying_quotient(a::MPolyQuoLocRingElem) = underlying_quotient(parent(a))
 localized_ring(a::MPolyQuoLocRingElem) = localized_ring(parent(a))
-base_ring(a::MPolyQuoLocRingElem) = base_ring(parent(a))
 is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 
 @doc raw"""
@@ -881,7 +868,7 @@ function iszero(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComple
   # In case that the original quotient ring A is an integral domain
   # the localization map is injective and a is zero iff its numerator is zero.
   I = modulus(underlying_quotient(parent(a)))
-  if has_attribute(I, :is_prime) && get_attribute(I, :is_prime) === true
+  if get_attribute(I, :is_prime, false)
     return lifted_numerator(a) in I
   end
   return lift(a) in modulus(parent(a))
@@ -1006,15 +993,14 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 
 @doc raw"""
     MPolyQuoLocalizedRingHom{
-      BaseRingType, 
-      BaseRingElemType, 
-      RingType, 
-      RingElemType, 
-      DomainMultSetType, 
-      CodomainMultSetType
-    } <: AbsLocalizedRingHom{
-      RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-    }
+         DomainType<:MPolyQuoLocRing, 
+         CodomainType<:Ring, 
+         RestrictedMapType<:Map
+        } <: AbsLocalizedRingHom{
+                                 DomainType, 
+                                 CodomainType, 
+                                 RestrictedMapType
+                                }
 
 Homomorphisms of localizations of affine algebras 
 
@@ -1229,7 +1215,7 @@ end
 # Sets up the ring S[c⁻¹] from the Lemma.
 function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
   if !has_attribute(f, :helper_ring)
-    minimal_denominators = Vector{base_ring_elem_type(domain(f))}()
+    minimal_denominators = Vector{elem_type(base_ring_type(domain(f)))}()
     R = base_ring(domain(f))
     S = base_ring(codomain(f))
     p = one(S)
@@ -1261,7 +1247,7 @@ function helper_images(
   if !has_attribute(f, :helper_images) 
     helper_ring(f)
   end
-  return get_attribute(f, :helper_images)::Vector{base_ring_elem_type(domain(f))}
+  return get_attribute(f, :helper_images)::Vector{elem_type(base_ring_type(domain(f)))}
 end
 
 function minimal_denominators(
@@ -1270,7 +1256,7 @@ function minimal_denominators(
   if !has_attribute(f, :minimal_denominators) 
     helper_ring(f)
   end
-  return get_attribute!(f, :minimal_denominators)::Vector{base_ring_elem_type(domain(f))}
+  return get_attribute!(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
 end
 
 function helper_eta(
@@ -1297,7 +1283,7 @@ function common_denominator(
   if !has_attribute(f, :minimal_denominators) 
     helper_ring(f)
   end
-  d = get_attribute(f, :minimal_denominators)::Vector{base_ring_elem_type(domain(f))}
+  d = get_attribute(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
   return (length(d) == 0 ? one(base_ring(codomain(f))) : prod(d))
 end
 
@@ -1394,7 +1380,7 @@ end
                    <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyPowersOfElement}})
   A = domain(f)
-  R = base_ring(f)
+  R = base_ring(A)
   g = hom(R, codomain(f), f.(gens(A)); check=false)
   K = kernel(g)
   return ideal(A, elem_type(A)[h for h in A.(gens(K)) if !is_zero(h)])
@@ -1878,7 +1864,7 @@ If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring 
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space. 
 !!! note 
-    The monomials are for readabilty in the varibles of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
+    The monomials are for readability in the variables of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
 !!! note
     If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
 # Examples
@@ -2112,8 +2098,8 @@ end
 ### Some auxiliary functions
 
 @attr T function radical(I::T) where {T<:MPolyQuoLocalizedIdeal}
-  has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return I
-  has_attribute(I, :is_radical) && get_attribute(I, :is_radical) && return I
+  get_attribute(I, :is_prime, false) && return I
+  get_attribute(I, :is_radical, false) && return I
   R = base_ring(I)
   R_simp, iso, iso_inv = simplify(R) # This usually does not cost much
   I_simp = ideal(R_simp, restricted_map(iso).(lifted_numerator.(gens(I))))
@@ -2122,7 +2108,7 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr Int function dim(I::MPolyQuoLocalizedIdeal)
+@attr Union{Int, NegInf} function dim(I::MPolyQuoLocalizedIdeal)
   return dim(pre_image_ideal(I))
 end
 
@@ -2366,7 +2352,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
     #b = normal_form(b, I_shift, ordering=ordering)
     result = zero(V)
     # The following is an ugly hack, because normal_form is currently broken 
-    # for local oderings.
+    # for local orderings.
     while !iszero(b)
       m = leading_monomial(b, ordering=ordering)
       c = leading_coefficient(b, ordering=ordering)
@@ -2385,7 +2371,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
 end
 
 
-# diasambiguate some conversions
+# disambiguate some conversions
 # ... but this needs to be after some type declarations... so here it is
 function (W::MPolyDecRing)(f::MPolyQuoRingElem)
   return W(forget_decoration(W)(f))
@@ -2495,7 +2481,7 @@ Note: This is only available for localizations at rational points.
   nJlist = length(Jlist)
   append!(Jlist,gens(modulus(Q)))
 
-  ## move to origing
+  ## move to origin
   shift, back_shift = base_ring_shifts(L)
   I_shift = shifted_ideal(ideal(L,Jlist))
   R = base_ring(I_shift)
@@ -2534,63 +2520,60 @@ If `I` is the zero ideal an empty list is returned.
 
 If the localization is at a point, a minimal set of generators is returned.
 """
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal},
                               <:Any,<:Any};
       algorithm::Symbol=:simple
   )
-  get_attribute!(I, :small_generating_set) do
-    Q = base_ring(I)
-    L = localized_ring(Q)
-    J = pre_image_ideal(I)
-    unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
-  end::Vector{elem_type(base_ring(I))} 
+  Q = base_ring(I)
+  L = localized_ring(Q)
+  J = pre_image_ideal(I)
+  return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyPowersOfElement}
                           };
       algorithm::Symbol=:simple
   )
-  get_attribute!(I, :small_generating_set) do
-    Q = base_ring(I)
-    L = localized_ring(Q)
+  Q = base_ring(I)
+  L = localized_ring(Q)
 
-    J = pre_image_ideal(I)
-    unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
-  end::Vector{elem_type(base_ring(I))} 
+  J = pre_image_ideal(I)
+  return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
 @attr Int function dim(R::MPolyLocRing)
   error("Not implemented")
 end
 
-@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
   P = prime_ideal(inverted_set(R))
   I = saturated_ideal(modulus(R))
+  dim(I) === -inf && return -inf
   return dim(I) - dim(P)
 end
 
-@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
+@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
   return dim(saturated_ideal(modulus(R)))
 end
 
-@attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
+@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
   # zariski open subset of A^n
   return dim(base_ring(R))
 end
 
-@attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
+@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
   P = prime_ideal(inverted_set(R))
   return codim(P)
 end
 
 
-@attr Int function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
+@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
   # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
   # because all maximal ideals have the same dimension in this case. 
   return dim(base_ring(R))
@@ -2814,10 +2797,8 @@ _compose(f::Any, g::Any, dom::Any, cod::Any) = MapFromFunc(dom, cod, x->g(f(x)))
 morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPolyLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
-base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
-base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyQuoLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
 
 function dim(R::MPolyQuoLocRing)
   return dim(modulus(R))
@@ -2843,7 +2824,8 @@ function _evaluate_plain(
   ) where {CT <: Union{<:MPolyLocRing, <:MPolyQuoLocRing}}
   W = codomain(F)::MPolyLocRing
   S = base_ring(W)
-  isdefined(F, :variable_indices) && return W(_build_poly(u, F.variable_indices, S))
+  fl, var_ind = _maps_variables_to_variables(F)
+  fl && return W(_build_poly(u, var_ind, S))
   return evaluate(u, F.img_gens)
 end
 
@@ -2851,23 +2833,24 @@ function _evaluate_general(
     F::MPolyAnyMap{<:MPolyRing, CT}, u
   ) where {CT <: Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   S = temp_ring(F)
+  fl, var_ind = _maps_variables_to_variables(F)
   if S !== nothing
-    if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+    if !fl || coefficient_ring(S) !== codomain(F)
       return evaluate(map_coefficients(coefficient_map(F), u,
                                        parent = S), F.img_gens)
     else
       tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-      return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+      return _evaluate_with_build_ctx(tmp_poly, var_ind, codomain(F))
     end
   else
-    if !isdefined(F, :variable_indices)
+    if !fl
       return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
     else
       # For the case where we can recycle the method above, do so.
       tmp_poly = map_coefficients(coefficient_map(F), u)
       coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
                                                                                             tmp_poly,
-                                                                                            F.variable_indices,
+                                                                                            var_ind,
                                                                                             codomain(F)
                                                                                            )
       # Otherwise default to the standard evaluation for the time being.

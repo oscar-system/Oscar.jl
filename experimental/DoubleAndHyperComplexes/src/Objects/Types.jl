@@ -93,7 +93,7 @@ end
       upper_bounds::Vector=[nothing for i in 1:d],
       lower_bounds::Vector=[nothing for i in 1:d]
     ) where {ChainType, MorphismType}
-    @assert d > 0 "can not create zero or negative dimensional hypercomplex"
+    @assert d >= 0 "can not create negative dimensional hypercomplex"
     chains = Dict{Tuple, ChainType}()
     morphisms = Dict{Tuple, Dict{Int, <:MorphismType}}()
     return new{ChainType, MorphismType}(d, chains, morphisms, 
@@ -199,7 +199,7 @@ horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 1, t)
 @doc raw"""
     has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Checks whether the double complex `dc` has the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
+Check whether the double complex `dc` has the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
 the sign depending on the `horizontal_direction` of `dc`.
 
 If this returns `false` this might just mean that the map has not been computed, yet. 
@@ -228,7 +228,7 @@ vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 2, t)
 @doc raw"""
     has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Checks whether the double complex `dc` has the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
+Check whether the double complex `dc` has the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
 the sign depending on the `vertical_direction` of `dc`.
 
 If this returns `false` this might just mean that the map has not been computed, yet. 
@@ -428,7 +428,7 @@ end
 # The first argument will always be the actual double complex itself, 
 # so that the body of the function has access to all data already generated 
 # and the other functionality available to this double complex. 
-function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::ChainType where {ChainType}
+function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {ChainType}
   error("production of the ($i, $j)-th chain not implemented")
 end
 
@@ -444,7 +444,7 @@ function (fac::ChainMorphismFactory)(dc::AbsDoubleComplexOfMorphisms, t1::Tuple)
 end
 
 # A dummy placeholder which must be overwritten; see below.
-function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::MorphismType where {MorphismType}
+function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {MorphismType}
   error("could not construct morphism from ($i, $j)")
 end
 

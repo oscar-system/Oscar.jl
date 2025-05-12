@@ -48,8 +48,8 @@ restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 
 OSCAR has also the following standard homomorphism.
 ```@docs
-id_hom
-trivial_morphism
+id_hom(G::GAPGroup)
+trivial_morphism(G::GAPGroup, H::GAPGroup = G)
 ```
 
 To evaluate the homomorphism `f` in the element `x` of `G`, it is possible to use the instruction
@@ -161,16 +161,10 @@ and the codomain is some new group constructed by the function.
 is_isomorphic(G::GAPGroup, H::GAPGroup)
 is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
 isomorphism(G::GAPGroup, H::GAPGroup)
+isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```
 
 ```@docs
-isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+isomorphism(::Type{T}, G::Group) where T <: Group
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
-simplified_fp_group(G::FPGroup)
-```
-
-## Other homomorphisms
-
-```@docs
-epimorphism_from_free_group(G::GAPGroup)
 ```

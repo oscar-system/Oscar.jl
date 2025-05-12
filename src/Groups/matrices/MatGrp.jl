@@ -1,4 +1,13 @@
-matrix_group(F::Ring, m::Int) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(F, m)
+matrix_group_type(::Type{T}) where T<:RingElement = MatrixGroup{T, dense_matrix_type(T)}
+
+matrix_group_type(::Type{S}) where S<:Ring = matrix_group_type(elem_type(S))
+matrix_group_type(x) = matrix_group_type(typeof(x)) # to stop this method from eternally recursing on itself, we better add ...
+matrix_group_type(::Type{T}) where T = throw(ArgumentError("Type `$T` must be subtype of `RingElement`."))
+
+const ZZMatrixGroup = matrix_group_type(ZZRing)
+const QQMatrixGroup = matrix_group_type(QQField)
+
+matrix_group(F::Ring, m::Int) = matrix_group_type(F)(F, m)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 """
@@ -75,8 +84,42 @@ MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = Matrix
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
+"""
+    ring_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `S` of the entries of the elements of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> ring_elem_type(typeof(g)) == elem_type(typeof(base_ring(g)))
+true
+```
+"""
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
+ring_elem_type(::MatrixGroup{S,T}) where {S,T} = S
+
+"""
+    mat_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `T` of `matrix(x)`, for elements `x` of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> mat_elem_type(typeof(g)) == typeof(matrix(one(g)))
+true
+```
+"""
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
+mat_elem_type(::MatrixGroup{S,T}) where {S,T} = T
+
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
@@ -241,37 +284,6 @@ GAP.@install function GapObj(x::MatrixGroupElem)
   return x.X
 end
 
-# return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
-
-   isdefined(G,sym) && return getfield(G,sym)
-
-   if sym === :X
-      if isdefined(G,:descr)
-         assign_from_description(G)
-      elseif isdefined(G,:gens)
-         V = GapObj(gens(G); recursive=true)
-         G.X = isempty(V) ? GAPWrap.Group(V, GapObj(one(G))) : GAPWrap.Group(V)
-      else
-         error("Cannot determine underlying GAP object")
-      end
-   end
-
-   return getfield(G, sym)
-
-end
-
-
-function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
-
-   isdefined(x,sym) && return getfield(x,sym)
-
-   if sym === :X
-      x.X = map_entries(_ring_iso(parent(x)), x.elm)
-   end
-   return getfield(x,sym)
-end
-
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(GapObj(G)))
@@ -418,8 +430,8 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
+Base.:*(x::MatrixGroupElem, y::MatElem) = matrix(x)*y
+Base.:*(x::MatElem, y::MatrixGroupElem) = x*matrix(y)
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(x)^n)
 
@@ -450,7 +462,23 @@ det(x::MatrixGroupElem) = det(matrix(x))
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of the underlying matrix of `x`.
+Return the base ring of the matrix group to which `x` belongs.
+This is also the base ring of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> base_ring(x) == F
+true
+
+julia> base_ring(x) == base_ring(matrix(x))
+true
+```
 """
 base_ring(x::MatrixGroupElem) = base_ring(parent(x))
 
@@ -462,6 +490,25 @@ parent(x::MatrixGroupElem) = x.parent
     matrix(x::MatrixGroupElem)
 
 Return the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> m = matrix(x)
+[o   0]
+[0   1]
+
+julia> x == m
+false
+
+julia> x == g(m)
+true
+```
 """
 function matrix(x::MatrixGroupElem)
   if !isdefined(x, :elm)
@@ -494,6 +541,21 @@ size(x::MatrixGroupElem) = size(matrix(x))
     tr(x::MatrixGroupElem)
 
 Return the trace of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> t = tr(x)
+o + 1
+
+julia> t in F
+true
+```
 """
 tr(x::MatrixGroupElem) = tr(matrix(x))
 
@@ -515,6 +577,14 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(parent(x), transpose(matrix(x)))
     base_ring(G::MatrixGroup)
 
 Return the base ring of the matrix group `G`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> base_ring(g) == F
+true
+```
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
@@ -523,20 +593,26 @@ base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 """
     degree(G::MatrixGroup)
 
-Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
+Return the degree of `G`, i.e., the number of rows of its matrices.
+
+# Examples
+```jldoctest
+julia> degree(GL(4, 2))
+4
+```
 """
 degree(G::MatrixGroup) = G.deg
 
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(base_ring(G), degree(G)))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
-   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)::GapObj
+   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(G))::GapObj
    return MatrixGroupElem(G, x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
-      L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
+      L = GAPWrap.GeneratorsOfGroup(GapObj(G))::GapObj
       G.gens = [MatrixGroupElem(G, a::GapObj) for a in L]
    end
    return G.gens::Vector{elem_type(G)}
@@ -555,26 +631,26 @@ end
 number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
+compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(GapObj(G)))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the rationals or over a number field,
-    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    the GAP group GapObj(G) does usually not store the flag `IsHandledByNiceMonomorphism`.
     - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
-    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    we can set this flag in `GapObj(G)` to true and store the action homomorphism in `GapObj(G)`,
     and then this information should be used in the computation of the order.
     - If the flag is not known to be true then the Oscar code from
     `isomorphic_group_over_finite_field` shall be preferred.
   =#
-  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAPWrap.IsHandledByNiceMonomorphism(G.X)
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(GapObj(G)) && GAPWrap.IsHandledByNiceMonomorphism(GapObj(G))
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return ZZRingElem(GAPWrap.Size(G.X))
+    return ZZRingElem(GAPWrap.Size(GapObj(G)))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
-    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    set_order(G, n)
     return n
   end
 end
@@ -990,8 +1066,8 @@ const SU = special_unitary_group
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) === S
-   elems_in_GAP = GAP.Obj(GapObj[x.X for x in elements])
-   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
+   elems_in_GAP = GAP.Obj(GapObj[GapObj(x) for x in elements])
+   H = GAP.Globals.Subgroup(GapObj(G),elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)
    L = Vector{elem_type(K)}(undef, length(elements))
@@ -1028,7 +1104,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
       for k in gens(K) k.parent = K end
    else
       K = matrix_group(base_ring(H), degree(H))
-      K.X = H.X^y.X
+      K.X = GapObj(H)^GapObj(y)
    end
 
    return K

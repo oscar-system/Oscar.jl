@@ -89,7 +89,7 @@ end
   @test M_plus_bar == M_minus_bar     ## over k_bar the intersection matrices coincide
   @test length(ex_divs2) == 2
   @test mults2 == [2,2]
-  II = ideal(R,[x^2+y^3+z^4])         ## E6 singularity (tests reduction of exc. curves with multiplicty)
+  II = ideal(R,[x^2+y^3+z^4])         ## E6 singularity (tests reduction of exc. curves with multiplicity)
   IIS = IdealSheaf(W,II)
   Z = subscheme(IIS)
   phi = desingularization(Z)

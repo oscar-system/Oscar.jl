@@ -9,16 +9,16 @@
 """
     UpgradeScript(version::VersionNumber, script::Function)
 
-Any upgrade scripts schould be created using the `UpgradeScript`
+Any upgrade scripts should be created using the `UpgradeScript`
 constructor and then pushed to the `upgrade_scripts_set`. The
 name of the function is not particularly important however one
 should be assigned so that it can be used for recursion if
-necessary for upgrade. The upgrde script should be independent
-from any Oscar code and should relie solely on `julia` core
+necessary for upgrade. The upgrade script should be independent
+from any Oscar code and should rely solely on `julia` core
 functionality so to avoid conflicts with any future Oscar code
 deprecations.
 
-# Example
+# Examples
 ```
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",
@@ -142,6 +142,7 @@ include("0.15.0.jl")
 include("1.1.0.jl")
 include("1.2.0.jl")
 include("1.3.0.jl")
+include("1.4.0.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -153,7 +154,7 @@ const backref_sym = Symbol("#backref")
 @doc raw"""
     upgrade(format_version::VersionNumber, dict::Dict)
 
-Finds the first version where an upgrade can be applied and then incrementally
+Find the first version where an upgrade can be applied and then incrementally
 upgrades to each intermediate version until the structure of the current version
 has been achieved.
 """

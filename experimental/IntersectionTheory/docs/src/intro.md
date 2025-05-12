@@ -8,29 +8,31 @@ DocTestSetup = Oscar.doctestsetup()
 In this chapter, we
 - introduce OSCAR tools which support computations in intersection theory, and
 - give examples which illustrate how intersection theory is used to solve problems from enumerative geometry.
+The varieties we are interested in are smooth projective varieties over the complex numbers.
 
 !!! note
-    Making use of OSCAR, a first version of what we present here was written by Jeiao Song as a julia package.
-    This package was "heavily inspired by the Macaulay2 package Schubert2 and the Sage library Chow. Some
-    functionalities from [the Sage library] Schubert3 are also implemented."
-
-!!! note
-    Schubert2 was written by Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman
-    while Chow is due to Manfred Lehn and Christoph Sorger. Schubert3  as well as the Singular library schubert.lib were
-    written by Dang Tuan Hiep. The basis for all this work, including ours, is the Maple package Schubert written
+    Making use of OSCAR, a first version of what we present here was written by Jeiao Song as a `julia` package.
+    This package was "heavily inspired by the Macaulay2 package `Schubert2` and the `sage` library `Chow`.
+	Some functionalities from [the `sage` library] `Schubert3` are also implemented."
+    The authors of `Schubert2` are Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman
+    while `Chow` is due to Manfred Lehn and Christoph Sorger. `Schubert3` as well as the `Singular` library `schubert.lib` is due
+    to Dang Tuan Hiep. All this work, including ours, is inspired by the `Maple` package `Schubert` written
     by Sheldon Katz and Stein A. Strømme.
 
-Throughout the chapter, the varieties we consider are smooth projective varieties over the complex numbers.
+The starting point of the original `Schubert` package was the problem of enumerating twisted cubic curves
+on a general quintic hypersuface in $\mathbb P^4$, see [ES02](@cite). We quote from that paper:
+
+> One way to approach enumerative problems is to find a suitable complete parameter space for the objects that one wants to count, and express the locus of objects satisfying given conditions as a certain zero-cycle on the parameter space. For this method to yield an explicit numerical answer, one needs in particular to be able to evaluate the degree of a given zerodimensional cycle class [(integration)]. This is possible in principle whenever the numerical intersection ring (cycles modulo numerical equivalence) of the parameter space is known, say in terms of generators and relations.
+
 
 !!! note
-    The Chow ring of a variety `X` is the group of cycles of `X` modulo an equivalence relation,
-    together with the intersection pairing which defines the multiplication of the ring. Here,
-    in contrast to most textbooks, we consider numerical equivalence classes of cycles rather than
-    rational equivalence classes.
+    Following the authors of `Schubert`, we work with cycles modulo numerical equivalence rather than
+    rational equivalence. Nevertheless, abusing our notation, we refer to the resulting intersection rings as
+	Chow rings. These rings are graded by the codimension of cycles.
 
-Our approach is abstract in the sense that we do not work with concrete varieties; that is,
-our varieties are not given by equations. Instead, we represent a variety by specifying its
-dimension together with its Chow ring and, possibly, further data. We refer to such such
+As in `Schubert`, our approach is abstract in the sense that we do not work with explicit
+varieties given by equations. Instead, we represent a variety by specifying its
+dimension together with its Chow ring and, possibly, further data. We refer to such
 a collection of data as an *abstract variety*, and to results obtained from manipulating
 the data as results which apply to all (smooth projective complex) varieties sharing the data. 
 
@@ -46,13 +48,21 @@ General textbooks offering details on theory and algorithms include:
 - [EH16](@cite)
 - [Ful98](@cite)
 
-For computations in the Chow rings of abstract flag bundles see 
+For the Chow rings of abstract flag bundles see 
 - [GSS22](@cite).
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on intersection theory in OSCAR,
+which can be found [here](https://www.oscar-system.org/tutorials/IntersectionTheory/).
 
 
 ## Contact
 
-Please direct questions about this part of OSCAR to the following people:
+Please direct questions about this part of OSCAR to the following
+people:
+* [Pieter Belmans](https://pbelmans.ncag.info/),
 * [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker),
 * [Tommy Hofmann](https://www.thofma.com/).
 

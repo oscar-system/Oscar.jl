@@ -11,6 +11,7 @@ end
   f = factorizations(zk(6))
   @test length(f) == 2
   @test all(x -> evalu(x) == 6, f)
+  @test !is_irreducible(zk(6))
 end
 
 @testset "norm_equation.absolute" begin
@@ -59,7 +60,7 @@ end
   k, a = wildanger_field(3, 13)
   zk = maximal_order(k)
   b = zk(8*a^2 - 24*a - 1)
-  o = Order(k, 8 .* basis(zk))
+  o = order(k, 8 .* basis(zk))
   @test length(norm_equation(zk, norm(b))) == 4
   @test length(norm_equation(o, norm(b))) == 3
 

@@ -43,7 +43,7 @@ function basis_lie_highest_weight_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(WeightLatticeElem, R) => Set([ZZx(1)])
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
@@ -58,7 +58,7 @@ function basis_lie_highest_weight_compute(
     calc_highest_weight,
     no_minkowski,
   )
-  # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+  # monomials = sort(collect(monomials); order=monomial_ordering)
   minkowski_gens = sort(
     collect(no_minkowski);
     by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
@@ -98,7 +98,7 @@ function basis_coordinate_ring_kodaira_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(WeightLatticeElem, R) => Set([ZZx(1)])
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
@@ -139,7 +139,7 @@ function basis_coordinate_ring_kodaira_compute(
       monomials_new = setdiff(monomials, monomials_minkowski_sum)
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight)) we added $(length(monomials_new)) monomials "
 
-      # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+      # monomials = sort(collect(monomials); order=monomial_ordering)
       minkowski_gens = sort(
         collect(no_minkowski);
         by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
@@ -151,7 +151,7 @@ function basis_coordinate_ring_kodaira_compute(
     )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
     monomials_new_sorted = sort(
-      collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
+      collect(monomials_new); order=monomial_ordering
     )
     if isempty(monomials_new)
       set_attribute!(
@@ -200,10 +200,10 @@ function compute_monomials(
   end
   # calculation required
   # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
-  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the basecase of 
+  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the base case of
   # the recursion.
   dim = dim_of_simple_module(L, highest_weight)
-  if is_zero(highest_weight) || is_fundamental(highest_weight)
+  if is_zero(highest_weight) || is_fundamental_weight(highest_weight)
     push!(no_minkowski, highest_weight)
     monomials = add_by_hand(
       L, birational_seq, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
@@ -280,7 +280,7 @@ function add_new_monomials!(
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
-  # polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
+  # polytope is bounded these are finitely many and we can sort them and then go through them, until we found enough.
 
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
@@ -291,9 +291,7 @@ function add_new_monomials!(
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
-  poss_mon_in_weightspace = sort(
-    poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
-  )
+  poss_mon_in_weightspace = sort(poss_mon_in_weightspace; order=monomial_ordering)
 
   # check which monomials should get added to the basis
   i = 0
@@ -362,12 +360,12 @@ function add_by_hand(
   matrices_of_operators = tensor_matrices_of_operators(
     L, highest_weight, operators_as_roots(birational_seq)
   )
-  space = Dict(zero(WeightLatticeElem, R) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
+  space = Dict(zero(weight_lattice(R)) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(basis, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = _character(R, highest_weight)
+  weightspaces = character(R, highest_weight)
   # sort the monomials from the minkowski-sum by their weightspaces
   monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
@@ -392,10 +390,10 @@ function add_by_hand(
       vec = calc_vec(v0, mon, matrices_of_operators)
 
       # check if vec extends the basis
-      if !haskey(space, weight_w)
-        space[weight_w] = sparse_matrix(QQ)
+      s = get!(space, weight_w) do
+        sparse_matrix(QQ)
       end
-      Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
+      Hecke._add_row_to_rref!(s, change_base_ring(QQ, vec))
     end
   end
 
@@ -455,7 +453,7 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   # Computes the operators for the lusztig polytopes for a longest weyl-word 
   # reduced_expression.
 
-  # \beta_k := s_{i_1} … s_{i_{k-1}} (\alpha_{i_k})
+  # \beta_k := (\alpha_{i_k}) s_{i_{k-1}} … s_{i_1}
 
   # F.e. for A, 2, [1, 2, 1], we get
   # \beta_1 = \alpha_1
@@ -465,28 +463,12 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   R = root_system(L)
   W = weyl_group(R)
   operators = map(1:length(reduced_expression)) do k
-    root = W(reduced_expression[1:(k - 1)]) * simple_root(R, reduced_expression[k])
+    root = simple_root(R, reduced_expression[k]) * W(reduced_expression[(k - 1):-1:1])
     fl = is_positive_root(root)
     @req fl "Only positive roots may occur here"
     root
   end
   return operators
-end
-
-# TODO: upstream to LieAlgebras/RootSystem.jl
-function is_fundamental(highest_weight::WeightLatticeElem)
-  hasone = false
-  for i in coefficients(highest_weight)
-    if iszero(i)
-      continue
-    elseif isone(i)
-      hasone && return false
-      hasone = true
-    else
-      return false
-    end
-  end
-  return hasone
 end
 
 function sub_weights(w::WeightLatticeElem)

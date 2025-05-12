@@ -109,6 +109,9 @@
           end
         end
       end
+      if T == RayVector
+        @test length(Set(ray_vector.(Ref(f), [[1,2,3],[2,4,6],[-1,-2,-3]]))) == 2
+      end
     end
   end
 
@@ -185,4 +188,18 @@
   @test hyperplane(a) isa LinearHyperplane{QQFieldElem}
   @test halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
   @test hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
+
+  for f in [QQ, ENF]
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, a, -3)])) == 2
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, -a, -3)])) == 2
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, 2 .* a, 6)])) == 1
+    @test length(Set([linear_halfspace(f, a),    linear_halfspace(f, -a)])) == 2
+    @test length(Set([linear_halfspace(f, a),    linear_halfspace(f, 2 .* a)])) == 1
+
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, -a,  3)])) == 2
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, -a, -3)])) == 1
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, 2 .* a, 6)])) == 1
+    @test length(Set([linear_hyperplane(f, a),    linear_hyperplane(f, -a)])) == 1
+    @test length(Set([linear_hyperplane(f, a),    linear_hyperplane(f, 2 .* a)])) == 1
+  end
 end

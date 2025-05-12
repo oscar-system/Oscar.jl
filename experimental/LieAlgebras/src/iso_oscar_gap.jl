@@ -7,7 +7,7 @@
 function _iso_oscar_gap_lie_algebra_functions(
   LO::LieAlgebra{C}, LG::GapObj, coeffs_iso::MapFromFunc
 ) where {C<:FieldElem}
-  basis_LG = GAPWrap.Basis(LG)
+  basis_LG = GAPWrap.Basis(LG, GAPWrap.GeneratorsOfAlgebra(LG))
 
   f = function (x::LieAlgebraElem{C})
     cfs = GAP.Obj([coeffs_iso(c) for c in coefficients(x)])
@@ -34,8 +34,7 @@ function _iso_oscar_gap(LO::LinearLieAlgebra; set_attributes::Bool=true)
 
   if set_attributes && has_root_system(LO)
     # we need to construct the root system in GAP as otherwise it may detect a different order of simple roots
-    RO = root_system(LO)
-    _iso_oscar_gap_set_root_system(LG, RO)
+    _iso_oscar_gap_set_root_system(LO, LG, f)
   end
 
   return MapFromFunc(LO, LG, f, finv)
@@ -64,14 +63,14 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
 
   if set_attributes && has_root_system(LO)
     # we need to construct the root system in GAP as otherwise it may detect a different order of simple roots
-    RO = root_system(LO)
-    _iso_oscar_gap_set_root_system(LG, RO)
+    _iso_oscar_gap_set_root_system(LO, LG, f)
   end
 
   return MapFromFunc(LO, LG, f, finv)
 end
 
-function _iso_oscar_gap_set_root_system(LG::GapObj, RO::RootSystem)
+function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG::Function)
+  RO = root_system(LO)
   RG = GAP.Globals.Objectify(
     GAP.Globals.NewType(
       GAP.Globals.NewFamily(GAP.Obj("RootSystemFam"), GAP.Globals.IsObject),
@@ -84,14 +83,14 @@ function _iso_oscar_gap_set_root_system(LG::GapObj, RO::RootSystem)
   GAP.Globals.SetPositiveRoots(RG, GAP.Obj(transform_root.(positive_roots(RO))))
   GAP.Globals.SetNegativeRoots(RG, GAP.Obj(transform_root.(negative_roots(RO))))
   GAP.Globals.SetSimpleSystem(RG, GAP.Obj(transform_root.(simple_roots(RO))))
-  can_basisG = GAP.Globals.CanonicalBasis(LG)
-  pos_root_vectorsG = can_basisG[1:n_positive_roots(RO)]
-  neg_root_vectorsG = can_basisG[(n_positive_roots(RO) + 1):(2 * n_positive_roots(RO))]
-  csa_basisG = can_basisG[(2 * n_positive_roots(RO) + 1):end]
+  chev_basisL = chevalley_basis(LO)
+  pos_root_vectorsG = GAP.Obj(LO_to_LG.(chev_basisL[1]))
+  neg_root_vectorsG = GAP.Obj(LO_to_LG.(chev_basisL[2]))
+  csa_basisG = GAP.Obj(LO_to_LG.(chev_basisL[3]))
   GAP.Globals.SetPositiveRootVectors(RG, pos_root_vectorsG)
   GAP.Globals.SetNegativeRootVectors(RG, neg_root_vectorsG)
   GAP.Globals.SetCanonicalGenerators(
-    RG, GAP.Obj([pos_root_vectorsG, neg_root_vectorsG, csa_basisG])
+    RG, GAP.Obj([pos_root_vectorsG[1:rank(RO)], neg_root_vectorsG[1:rank(RO)], csa_basisG])
   )
   GAP.Globals.SetChevalleyBasis(
     LG, GAP.Obj([pos_root_vectorsG, neg_root_vectorsG, csa_basisG])

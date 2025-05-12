@@ -47,7 +47,7 @@
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
         "model_sections": ["s1", "s2", "s3", "s4", "s5", "s6", "s8"],
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [ 3,  2,  1,  0,  2, 1,  1],
             [-1,  0,  1,  2, -1, 0, -1],
             [-1, -1, -1, -1,  0, 0,  1]
@@ -62,6 +62,8 @@
             [-1, 1, 0, 0, 0, 0]
         ],
         "hypersurface_equation": "s1*e1^2*e2^4*e3^6*u^3 + s2*e1^2*e2^3*e3^4*u^2*v + s3*e1^2*e2^2*e3^2*u*v^2 + s4*e1^2*e2*v^3 + s5*e1*e2^2*e3^3*u^2*w + s6*e1*e2*e3*u*v*w + s8*u*w^2",
+        "zero_section_class": "e3",
+        "exceptional_classes": ["e1", "e2", "e3"],
         "zero_section": ["s4", "1", "1", "1", "-s8", "0"]
     },
     "associated_models": [

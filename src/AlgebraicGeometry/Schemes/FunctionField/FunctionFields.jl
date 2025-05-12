@@ -68,10 +68,8 @@ represented by
   patch 1: 1
 ```
 """
-function function_field(X::AbsCoveredScheme; check::Bool=true)
-  return get_attribute!(X, :function_field) do
-    VarietyFunctionField(X, check=check)
-  end::VarietyFunctionField  # can't make this more concrete just using the type of X
+@attr VarietyFunctionField function function_field(X::AbsCoveredScheme; check::Bool=true)
+  return VarietyFunctionField(X, check=check)
 end
 
 ########################################################################
@@ -353,8 +351,9 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
   return ParentType
 end
 
-base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
-base_ring(a::VarietyFunctionFieldElem) = base_ring(parent(a))
+base_ring(KK::VarietyFunctionField) = KK.kk
+base_ring_type(::Type{T}) where {R, T<:VarietyFunctionField{R}} = R
+
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 
@@ -370,7 +369,10 @@ function Base.deepcopy_internal(f::VarietyFunctionFieldElem, dict::IdDict)
 end
 
 (KK::VarietyFunctionField)() = zero(KK)
-(KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
+function (KK::VarietyFunctionField)(a::Integer)
+  R = base_ring(representative_field(KK))
+  KK(R(a), one(R), check=false)
+end
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
 (KK::VarietyFunctionField)(a::MPolyRingElem) = KK(a, one(parent(a)), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
@@ -517,3 +519,22 @@ function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   end
 end
 
+scheme(f::VarietyFunctionFieldElem) = scheme(parent(f))
+variety(f::VarietyFunctionFieldElem) = variety(parent(f))
+
+###############################################################################
+#
+#   Conformance test element generation
+#
+###############################################################################
+
+function ConformanceTests.generate_element(K::VarietyFunctionField)
+  F = representative_field(K)
+  P = base_ring(F)::MPolyRing
+  num = rand(P, 0:5, 0:5, 0:5)
+  den = zero(P)
+  while is_zero(den)
+    den = rand(P, 1:5, 1:5, 1:5)
+  end
+  return K(num, den)
+end

@@ -1,4 +1,4 @@
-# Documenting OSCAR code
+# Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
 information as possible into the docstrings and only use the doc pages for
@@ -123,13 +123,20 @@ existing entries. An easy way to do that is to add your new BibTeX entry,
 then run [bibtool](http://www.gerd-neugebauer.de/software/TeX/BibTool/en/)
 by invoking it as follows from the root directory of the Oscar.jl repository:
 
-    bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+    bibtool -r .bibtoolrsc docs/oscar_references.bib -o docs/oscar_references.bib
 
 For every pull request on github, the CI checks if running `bibtool` leads to
 changes in the bibliography. If so, this test fails and indicates that the
 (recently) added bibliography entries are not standardized. For a merge, it
 is not required that this test is passed. Still, please feel encouraged to fix
 this failure by running `bibtool` locally as explained above.
+
+!!! note "bibtool produces changes in unrelated parts of oscar_references.bib"
+    Sometimes `bibtool` will produce many changes when run locally. This can be
+    caused by a version difference. The version used in our github actions is
+    2.68. Check your version by running `bibtool -V`. When running this
+    command, please also pay attention whether any "Special configuration
+    options" are set.
 
 Please follow the additional guidelines below, that are not checked by bibtool:
 

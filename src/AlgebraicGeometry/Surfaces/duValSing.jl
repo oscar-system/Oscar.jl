@@ -3,7 +3,7 @@
 
 Return whether the given ``X`` has at most du Val (surface) singularities.
 
-# Example:
+# Examples
 ```jldoctest
 julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
@@ -67,7 +67,7 @@ Return whether the given ``X`` has at most du Val (surface) singularities at the
 
 **Note**: For the ideal ``I`` in a ring ``R``, `dim(R/I) = 0` is asserted
 
-# Example:
+# Examples
 ```jldoctest
 julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
@@ -147,7 +147,7 @@ If ``X`` has a least one singularity which is not du Val, the returned vector co
 
 **Note**: For the ideal ``I`` in a ring ``R``, `dim(R/I) = 0` is asserted
 
-# Example:
+# Examples
 ```jldoctest
 julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])

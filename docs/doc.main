@@ -4,6 +4,7 @@
   "General" => [
      "General/architecture.md",
      "General/other.md",
+     "General/printing.md",
      "General/faq.md",
      "General/serialization.md",
      "General/complex.md",
@@ -70,9 +71,11 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/manual/misc/sparse.md",
      "AbstractAlgebra/matrix.md",
+     "AbstractAlgebra/matrix_spaces.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
+     "Hecke/manual/misc/sparse.md",
      "Modules" => [
         "AbstractAlgebra/module.md",
         "AbstractAlgebra/free_module.md",
@@ -91,6 +94,7 @@
         "Hecke/manual/quad_forms/discriminant_group.md",
         "NumberTheory/vinberg.md",
      ],
+     "AbstractAlgebra/matrix_implementation.md",
   ],
 
   "Number Theory" => [
@@ -108,6 +112,11 @@
         "Hecke/manual/orders/ideals.md",
         "Hecke/manual/orders/frac_ideals.md",
      ],
+     "Elliptic Curves" => [
+        "Hecke/manual/elliptic_curves/intro.md",
+        "Hecke/manual/elliptic_curves/basics.md",
+        "Hecke/manual/elliptic_curves/finite_fields.md"
+     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],
@@ -123,9 +132,11 @@
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
-      "PolyhedralGeometry/linear_programs.md",
-      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
+     "Optimization"=> [
+       "PolyhedralGeometry/Optimization/linear_programs.md",
+       "PolyhedralGeometry/Optimization/mixed_integer_linear_programs.md",
+     ],
   ],
 
   "Commutative Algebra" => [
@@ -198,6 +209,7 @@
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/EnriquesSurfaces.md",
         "AlgebraicGeometry/Surfaces/EllipticSurface.md",
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
@@ -241,9 +253,10 @@
      "TropicalGeometry/linear_space.md",
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
+     "TropicalGeometry/positive_variety.md",
   ],
 
- "Noncommutative Algebra" => [
+  "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
@@ -254,6 +267,14 @@
     "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
+  "Lie Theory" => [
+    "LieTheory/intro.md",
+    "LieTheory/cartan_matrix.md",
+    "LieTheory/root_systems.md",
+    "LieTheory/weight_lattices.md",
+    "LieTheory/weyl_groups.md",
+  ],
+
   "Combinatorics" => [
     "Combinatorics/graphs.md",
     "Combinatorics/matroids.md",
@@ -261,6 +282,7 @@
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
@@ -286,9 +308,11 @@
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
+    "DeveloperDocumentation/parallel.md"
   ],
 ]

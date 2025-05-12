@@ -200,7 +200,6 @@ end
   @test ambient_coordinate_ring(U) === R
   @test Oscar.ring_type(V) == typeof(OO(V))
   @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
-  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test is_subscheme(V,U)
   @test is_subscheme(U,V)

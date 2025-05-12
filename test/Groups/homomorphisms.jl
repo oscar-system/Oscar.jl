@@ -261,6 +261,9 @@ end
             y = image(iso, x)
             @test preimage(iso, y) == x
          end
+         iso2 = isomorphism(G, A)
+         S, emb = sub(A, [iso2(x) for x in gens(G)])
+         @test all(x -> has_preimage_with_preimage(emb, x)[1], gens(A))
       end
    end
 
@@ -275,6 +278,9 @@ end
                @test iso(x) * iso(y) == iso(z)
                @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
             end
+            G = codomain(iso)
+            iso2 = isomorphism(A, G)
+            @test image(iso2)[1] == G
          end
       end
    end
@@ -328,8 +334,15 @@ end
       G  = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
       H = small_group(64, 14)
       @test is_isomorphic(G, H)
+      @test is_isomorphic(H, G)
       f = isomorphism(G, H)
       for x in gens(G), y in gens(G)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+      f = isomorphism(H, G)
+      for x in gens(H), y in gens(H)
          @test f(x) * f(y) == f(x * y)
          @test preimage(f, f(x)) == x
          @test preimage(f, f(y)) == y
@@ -456,7 +469,13 @@ end
        @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
        @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
 
-       @test is_bijective(isomorphism(FPGroup, symmetric_group(1), on_gens = true))
+       G = symmetric_group(1)
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
+       @test is_bijective(iso)
+       G = sub(G, [one(G)])[1]
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
 
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)
@@ -475,6 +494,29 @@ end
        @test pc_group(G) isa PcGroup
        @test FPGroup(G) isa FPGroup
        @test_throws ArgumentError FinGenAbGroup(G)
+   end
+
+   # isomorphic subgroups
+   types = [PermGroup, PcGroup, FPGroup]
+   for T in types, S in types
+     G = codomain(isomorphism(T, symmetric_group(4)))
+     H = codomain(isomorphism(S, symmetric_group(3)))
+     res = @inferred isomorphic_subgroups(H, G)
+     @test length(res) == 1
+     @test domain(res[1]) === H
+     @test codomain(res[1]) === G
+     @test is_isomorphic(H, image(res[1])[1])
+   end
+   types = [PermGroup, SubPcGroup, FPGroup, FinGenAbGroup]
+   for T in types, S in types
+     G = abelian_group(T, [2, 4])
+     H = abelian_group(S, [2, 2])
+     res = @inferred isomorphic_subgroups(H, G)
+     @test length(res) == 1
+     @test domain(res[1]) === H
+     @test codomain(res[1]) === G
+     @test (T === FinGenAbGroup) || is_isomorphic(H, image(res[1])[1])
+#TODO make image work for embedding into FinGenAbGroup?
    end
 end
 
@@ -541,6 +583,127 @@ end
    imgs = elem_type(A)[]
    mp = hom(G, A, imgs)
    @test order(kernel(mp)[1]) == 1
+end
+
+@testset "Homomorphism FinGenAbGroup to GAPGroup" begin
+   # G abelian, A isomorphic to G
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   imgs = gens(G)
+   mp = hom(A, G, imgs)
+   @test image(mp)[1] == G
+
+   # G abelian, G a proper factor of A
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 2 ] )
+   imgs = gens(G)
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G abelian, G containing a proper factor of A
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   imgs = [gen(G, 1), gen(G, 2)^2]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G nonabelian, A isomorphic to a subgroup of G
+   A = abelian_group( [ 2, 2 ] )
+   G = dihedral_group(8)
+   imgs = [gen(G, 1), gen(G, 2)^2]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G nonabelian, a factor of A being a subgroup of G
+   A = abelian_group( [ 2, 2 ] )
+   G = dihedral_group(8)
+   imgs = [gen(G, 1), gen(G, 1)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 2
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group([2])
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test image(mp)[1] == G
+
+   # A trivial
+   A = abelian_group([1])
+   G = dihedral_group(8)
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 1
+
+   # G and A trivial
+   A = abelian_group([1])
+   G = cyclic_group(PcGroup, 1)
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 1
+end
+
+@testset "Homomorphism GAPGroup to MultTableGroup" begin
+   # M isomorphic to G
+   M = Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())
+   iso = isomorphism(PermGroup, M)
+   G = codomain(iso)
+   imgs = [iso(x) for x in gens(M)]
+   mp = hom(G, M, imgs, gens(M))
+   @test [mp(x) for x in gens(G)] == gens(M)
+   @test [preimage(mp, x) for x in gens(M)] == gens(G)
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(6, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = elem_type(M)[]
+   mp = hom(G, M, imgs)
+   @test mp(one(G)) == one(M)
+
+   # M trivial
+   G = small_group(20, 3)
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = [one(M) for x in gens(G)]
+   mp = hom(G, M, imgs)
+   @test all(x -> order(mp(x)) == 1, gens(G))
+
+   # G and M trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = elem_type(M)[]
+   mp = hom(G, M, imgs)
+   @test mp(one(G)) == one(M)
+end
+
+@testset "Homomorphism MultTableGroup to GAPGroup" begin
+   # M isomorphic to G
+   M = Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())
+   iso = isomorphism(PermGroup, M)
+   G = codomain(iso)
+   imgs = [iso(x) for x in gens(M)]
+   mp = hom(M, G, gens(M), imgs)
+   @test [mp(x) for x in gens(M)] == gens(G)
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(6, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = [one(G) for x in gens(M)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
+
+   # M trivial
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   G = dihedral_group(8)
+   imgs = [one(G)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
+
+   # G and M trivial
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   G = cyclic_group(PcGroup, 1)
+   imgs = [one(G)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
 end
 
 function test_direct_prods(G1,G2)

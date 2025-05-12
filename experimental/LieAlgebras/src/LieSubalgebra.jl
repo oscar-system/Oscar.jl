@@ -192,7 +192,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    bracket(S1::LieSubalgebra, S2::LieSubalgebra) -> LieAlgebraIdeal
+    bracket(S1::LieSubalgebra, S2::LieSubalgebra) -> LieSubalgebra
 
 Return $[S_1, S_2]$.
 """
@@ -200,14 +200,14 @@ function bracket(
   S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
-  return ideal(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
+  return sub(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
 end
 
 function bracket(
   L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req L === base_lie_algebra(S) "Incompatible Lie algebras."
-  return bracket(ideal(L), S)
+  return sub(sub(L), S)
 end
 
 ###############################################################################
@@ -293,7 +293,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(S::LieSubalgebra) -> LieAlgebra
+    lie_algebra(S::LieSubalgebra) -> LieAlgebra, LieAlgebraHom
 
 Return `S` as a Lie algebra `LS`, together with an embedding `LS -> L`,
 where `L` is the Lie algebra where `S` lives in.

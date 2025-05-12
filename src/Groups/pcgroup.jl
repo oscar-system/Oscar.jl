@@ -415,7 +415,6 @@ function _GAP_collector_from_the_left(c::GAP_Collector)
   return cGAP::GapObj
 end
 
-
 # Create the collector on the GAP side on demand
 function underlying_gap_object(c::GAP_Collector)
   if ! isdefined(c, :X)
@@ -473,8 +472,175 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+"""
+    letters(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator.
+
+This method can produce letters represented by negative numbers. A negative number 
+indicates the inverse of the generator at the corresponding positive index.
+
+For example, as shown below, an output of `-1` refers to the "inverse of the first generator".
+
+See also [`syllables(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> letters(x)
+5-element Vector{Int64}:
+ -1
+ -1
+ -1
+  2
+  2
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> letters(x)
+3-element Vector{Int64}:
+ 1
+ 2
+ 2
+```
+"""
+function letters(g::Union{PcGroupElem, SubPcGroupElem})
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    exp = GAPWrap.Exponents(GapObj(g))
+
+    # Should we check if the output is not larger than the
+    # amount of generators? Requires use of `parent`.
+    # @assert length(exp) == length(gens(parent(g)))
+
+    w = [sign(e) * i for (i, e) in enumerate(exp) for _ in 1:abs(e)]
+    return Vector{Int}(w)
+  else # finite PcGroup
+    w = GAPWrap.UnderlyingElement(GapObj(g))
+    return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+  end
+end
+
+"""
+    syllables(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
+a group generator and its exponent.
+
+See also [`letters(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
+# Examples
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> s = syllables(x)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 1
+ 2 => 2
+
+julia> gg(s)
+f1*f2^2
+
+julia> gg(s) == x
+true
+```
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [5, 0])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^2*g2^-3
+
+julia> s = syllables(x)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 2
+ 2 => -3
+
+julia> g(s)
+g1^2*g2^-3
+
+julia> g(s) == x
+true
+```
+"""
+function syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    l = GAPWrap.GenExpList(GapObj(g))
+  else # finite PcGroup
+    l = GAPWrap.ExtRepOfObj(GapObj(g))
+  end
+
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+# Convert syllables in canonical form into exponent vector
+function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
+  res = zeros(ZZRingElem, n)
+  for pair in sylls
+    @assert res[pair.first] == 0 #just to make sure 
+    res[pair.first] = pair.second
+  end
+  return res
+end
+
+# Convert syllables in canonical form into group element
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}; check::Bool=true)
+  # check if the syllables are in canonical form
+  if check
+    indices = map(p -> p.first, sylls)
+    @req allunique(indices) "given syllables have repeating generators"
+    @req issorted(indices) "given syllables must be in ascending order"
+  end
+
+  e = _exponent_vector(sylls, ngens(G))
+
+  # check if G is an underlying PcpGroup
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    coll = GAPWrap.Collector(GG)
+    x = GAPWrap.PcpElementByExponentsNC(coll, GapObj(e, true))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GG)
+    x = GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  end
+  
+  return Oscar.group_element(G, x)
+end
 
 # Create an Oscar collector from a GAP collector.
+
+const SCP_UNDERLYING_FAMILY = GAP.Globals.SCP_UNDERLYING_FAMILY             # = 1 - the family of our free grp elms
+const SCP_RWS_GENERATORS = GAP.Globals.SCP_RWS_GENERATORS                   # = 2 - the free grp generators used
+const SCP_NUMBER_RWS_GENERATORS = GAP.Globals.SCP_NUMBER_RWS_GENERATORS     # = 3 - number of generators
+const SCP_DEFAULT_TYPE = GAP.Globals.SCP_DEFAULT_TYPE                       # = 4 - default type of the result
+const SCP_IS_DEFAULT_TYPE = GAP.Globals.SCP_IS_DEFAULT_TYPE                 # = 5 - tester for default type
+const SCP_RELATIVE_ORDERS = GAP.Globals.SCP_RELATIVE_ORDERS                 # = 6 - list of relative orders
+const SCP_POWERS = GAP.Globals.SCP_POWERS                                   # = 7 - list of power rhs
+const SCP_CONJUGATES = GAP.Globals.SCP_CONJUGATES                           # = 8 - list of list of conjugates rhs
+const SCP_INVERSES = GAP.Globals.SCP_INVERSES                               # = 9 - list of inverses of the gens
+const SCP_COLLECTOR = GAP.Globals.SCP_COLLECTOR                             # = 10 - collector to use
+const SCP_AVECTOR = GAP.Globals.SCP_AVECTOR                                 # = 11 - avector
 
 """
     collector([::Type{T} = ZZRingElem, ]G::PcGroup) where T <: IntegerUnion
@@ -499,12 +665,12 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
   Fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
   GapC = GAP.getbangproperty(Fam, :rewritingSystem)::GapObj
 
-  n = GAP.getbangindex(GapC, 3)::Int
+  n = GAP.getbangindex(GapC, SCP_NUMBER_RWS_GENERATORS)::Int
   c = collector(n, T)
 
-  c.relorders = Vector{T}(GAP.getbangindex(GapC, 6)::GapObj)
+  c.relorders = Vector{T}(GAP.getbangindex(GapC, SCP_RELATIVE_ORDERS)::GapObj)
 
-  Gap_powers = GAP.gap_to_julia(GAP.getbangindex(GapC, 7)::GapObj, recursive = false)
+  Gap_powers = Vector{Union{Nothing, GapObj}}(GAP.getbangindex(GapC, SCP_POWERS)::GapObj, recursive = false)
   for i in 1:length(Gap_powers)
     if Gap_powers[i] !== nothing
       l = GAPWrap.ExtRepOfObj(Gap_powers[i])
@@ -512,12 +678,11 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
     end
   end
 
-  Gap_conj = GAP.gap_to_julia(GAP.getbangindex(GapC, 8)::GapObj, recursive = false)
+  Gap_conj = Vector{Vector{Union{Nothing, GapObj}}}(GAP.getbangindex(GapC, SCP_CONJUGATES)::GapObj)
   for i in 1:length(Gap_conj)
-    Gap_conj_i = GAP.gap_to_julia(Gap_conj[i]::GapObj, recursive = false)
-    for j in 1:length(Gap_conj_i)
-      if Gap_conj_i[j] !== nothing
-        l = GAPWrap.ExtRepOfObj(Gap_conj_i[j])
+    for j in 1:length(Gap_conj[i])
+      if Gap_conj[i][j] !== nothing
+        l = GAPWrap.ExtRepOfObj(Gap_conj[i][j])
         c.conjugates[j,i] = Pair{Int,T}[l[k-1] => T(l[k]) for k in 2:2:length(l)]
       end
     end

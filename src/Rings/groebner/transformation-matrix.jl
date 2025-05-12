@@ -36,7 +36,7 @@ Return a pair `G`, `T`, say, where `G` is a standard basis of `I` with respect t
 is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
 
 !!! note
-    The returned Gröbner basis is reduced if `ordering` is a global monomial odering and `complete_reduction = true`.
+    The returned Gröbner basis is reduced if `ordering` is a global monomial ordering and `complete_reduction = true`.
 
 # Examples
 ```jldoctest

@@ -439,15 +439,13 @@ julia> codim(Y)
 1
 ```
 """
-@attr Any function codim(X::AbsAffineScheme)
+@attr Union{Int, NegInf} function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
-function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
+@attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  get_attribute!(X, :degree) do
-    return vector_space_dimension(OO(X))
-  end::Int
+  return vector_space_dimension(OO(X))
 end
 
 @doc raw"""
@@ -615,7 +613,7 @@ julia> singular_locus(A3)
 (scheme(1), Hom: scheme(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z), Hom: scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z) -> scheme(x^2 - y^2 + z^2))
+(scheme(x^2 - y^2 + z^2, x, y, z), Hom: scheme(x^2 - y^2 + z^2, x, y, z) -> scheme(x^2 - y^2 + z^2))
 
 julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement
@@ -864,9 +862,6 @@ ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineS
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
 base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
-base_ring_type(X::AbsAffineScheme) = base_ring_type(typeof(X))
-base_ring_elem_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(BRT)
-base_ring_elem_type(X::AbsAffineScheme) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
 poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
@@ -877,5 +872,4 @@ poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::AffineScheme) = ring_type(typeof(X))
 base_ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = BRT
-base_ring_type(X::AffineScheme) = base_ring_type(typeof(X))
 
