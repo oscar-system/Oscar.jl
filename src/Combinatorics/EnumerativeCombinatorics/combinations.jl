@@ -134,7 +134,7 @@ function linear_index(C::Combination, n::IntegerUnion)
 
   r = binomial(n,k)
   i = 1
-  while i < k+1
+  while i <= k
     r -= binomial(n-C[i], k-i+1)
     i += 1
     k-i+1 == n-C[i-1] && return r
@@ -156,13 +156,91 @@ function combination(n::Int, k::Int, r::Int)
   j = 1
   for i in 1:k
     b = binomial(n - j, k - i + 1)
-    while b > r - 1
+    while b >= r
       j += 1
-      b = binomial(n - j, k - i _ 1)
+      b = binomial(n - j, k - i + 1)
     end
     C[i] = j
     j += 1
     r -= b
   end
   return Combination(C)
+end
+
+
+################################################################################
+#
+#  Misc (for OrderedMultiIndex compat)
+#
+################################################################################
+
+# _mult is currently identical to _wedge aside from return type
+# (Vector{T} vs Combination{T})
+# so leaving unimplemented.
+# function _mult(a::Combination{T}, b::Combination{T}) where {T}
+#   # @assert bound(a) == bound(b) "combinations must have the same bounds"
+#
+#   # in case of a double index return zero
+#   any(in(b), a) && return 0, data(a)
+#
+#   result, sign = merge_sorted_with_sign(data(a),data(b))
+#
+#   return sign, result_indices
+# end
+
+
+# merge sort vcat(a,b) and keep track of the sign of permutation.
+# requires that a and b are both sorted, and contain no common elements.
+function merge_sorted_with_sign(a::Vector{T}, b::Vector{T}) where T<:IntegerUnion
+  result = zeros(T, length(a)+length(b))
+  p = length(a)
+  q = length(b)
+
+  i = 1
+  j = 1
+  sign = 1
+  while i <= p || j <= q
+    if i > p
+      result[i+j-1] = b[j]
+      j += 1
+    elseif j > q || a[i] < b[j]
+      result[i+j-1] = a[i]
+      i += 1
+    else
+      result[i+j-1] = b[j]
+      is_even(p-i) && (sign = -sign)
+      j += 1
+    end
+  end
+
+  return result, sign
+end
+
+
+# For two combinations a = [i₁, i₂, …, iₚ] and b = [j₁, j₂, …, jᵣ]
+# the result is a pair `(sign, c)` with a a new combination,
+# and `sign` either 0 in the case that
+# iₖ = jₗ for some k and l, or ±1 depending on the number of transpositions
+# needed to put [i₁, …, iₚ, j₁, …, jᵣ] into a strictly increasing order
+# to produce `c`.
+function _wedge(a::Combination{T}, b::Combination{T}) where {T}
+  # if combinations are not disjoint, return 0
+  any(in(b), a) && return 0, a
+
+  c, sign = merge_sorted_with_sign(data(a), data(b))
+  return sign, Combination(c)
+end
+
+
+# # This could be optimized, but don't think it is currently used anywhere so leaving it for now.
+function _wedge(a::Vector{T}) where {T <: Combination}
+  isempty(a) && error("list must not be empty")
+  isone(length(a)) && return 1, first(a)
+  k = div(length(a), 2)
+  b = a[1:k]
+  c = a[k+1:end]
+  sign_b, comb_b = _wedge(b)
+  sign_c, comb_c = _wedge(c)
+  sign, comb = _wedge(comb_b, comb_c)
+  return sign * sign_b * sign_c, comb
 end

@@ -54,4 +54,31 @@
 
   end
 
+  @testset "wedge products" begin
+    n = 5
+    k = 3
+
+    I = Combination([1, 2, 5])
+    I1 = Combination([1])
+    I2 = Combination([2])
+    I5 = Combination([5])
+    J = Combination([3, 4])
+    K = Combination([2, 4])
+
+    sign, ind = Oscar._wedge(I, K)
+    @test sign == 0
+    sign, ind = Oscar._wedge(I, J)
+    @test sign == 1
+    ind == Combination(collect(1:5))
+    sign, ind = Oscar._wedge(J, K)
+    @test sign == 0
+
+    sign, ind = Oscar._wedge([I2, I5, I1])
+    @test ind == I
+    @test sign == 1
+    sign, ind = Oscar._wedge([I2, I1, I5])
+    @test ind == I
+    @test sign == -1
+  end
+
 end
