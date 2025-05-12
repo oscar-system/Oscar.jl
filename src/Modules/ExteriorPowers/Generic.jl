@@ -51,17 +51,17 @@ function wedge_generator_decompose_function(M::ModuleFP)
   return get_attribute(M, :wedge_generator_decompose_function)::Map
 end
 
-# Given two exterior powers F = ⋀ ᵖM and G = ⋀ ʳM and an element 
-# v ∈ ⋀ ʳ⁻ᵖ M this constructs the module homomorphism associated 
-# to 
+# Given two exterior powers F = ⋀ ᵖM and G = ⋀ ʳM and an element
+# v ∈ ⋀ ʳ⁻ᵖ M this constructs the module homomorphism associated
+# to
 #
 #   v ∧ - : F → G,  u ↦ v ∧ u.
 #
-# We also allow v ∈ M considered as ⋀ ¹M and the same holds in 
+# We also allow v ∈ M considered as ⋀ ¹M and the same holds in
 # the cases p = 1 and r = 1.
 function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
   success, orig_mod, p = _is_exterior_power(F)
-  if !success 
+  if !success
     Fwedge1, _ = exterior_power(F, 1)
     id = hom(F, Fwedge1, gens(Fwedge1); check=false)
     tmp = wedge_multiplication_map(Fwedge1, G, v)
@@ -90,17 +90,17 @@ function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
   success || error("element is not an exterior product")
   orig_mod_2 === orig_mod || error("element is not an exterior product for the correct module")
   p + r == q || error("powers are incompatible")
-  
+
   # map the generators
   img_gens = [wedge(v, e, parent=G) for e in gens(F)]
   return hom(F, G, img_gens; check=false)
 end
 
 # The wedge product of two or more elements.
-function wedge(u::ModuleFPElem, v::ModuleFPElem; 
+function wedge(u::ModuleFPElem, v::ModuleFPElem;
     parent::ModuleFP=begin
       success, F, p = _is_exterior_power(Oscar.parent(u))
-      if !success 
+      if !success
         F = Oscar.parent(u)
         p = 1
       end
@@ -111,14 +111,14 @@ function wedge(u::ModuleFPElem, v::ModuleFPElem;
   )
   success1, F1, p = _is_exterior_power(Oscar.parent(u))
   if !success1
-    F = Oscar.parent(u) 
+    F = Oscar.parent(u)
     Fwedge1, _ = exterior_power(F1, 1)
     return wedge(Fwedge1(coordinates(u)), v, parent=parent)
   end
 
   success2, F2, q = _is_exterior_power(Oscar.parent(v))
   if !success2
-    F = Oscar.parent(v) 
+    F = Oscar.parent(v)
     Fwedge1, _ = exterior_power(F1, 1)
     return wedge(u, Fwedge1(coordinates(v)), parent=parent)
   end
@@ -128,12 +128,12 @@ function wedge(u::ModuleFPElem, v::ModuleFPElem;
 
   result = zero(parent)
   for (i, a) in coordinates(u)
-    ind_i = ordered_multi_index(i, p, n)
+    ind_i = combination(n, p, i)
     for (j, b) in coordinates(v)
-      ind_j = ordered_multi_index(j, q, n)
+      ind_j = combination(n, q, j)
       sign, k = _wedge(ind_i, ind_j)
       iszero(sign) && continue
-      result = result + sign * a * b * parent[linear_index(k)]
+      result = result + sign * a * b * parent[linear_index(k, n)]
     end
   end
   return result
@@ -146,7 +146,7 @@ function wedge(u::Vector{T};
       F = Oscar.parent(first(u)) # initialize variable
       for v in u
         success, F, p = _is_exterior_power(Oscar.parent(v))
-        if !success 
+        if !success
           F = Oscar.parent(v)
           p = 1
         end
@@ -178,7 +178,7 @@ function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, 
   is_zero(p) && return hom(domain, codomain, gens(codomain); check=false) # Isomorphism of R^1
 
   imgs = phi.(gens(F))
-  img_gens = [wedge(imgs[indices(ind)], parent=codomain) for ind in OrderedMultiIndexSet(p, m)]
+  img_gens = [wedge(imgs[data(ind)], parent=codomain) for ind in combinations(m, p)]
   return hom(domain, codomain, img_gens; check=false)
 end
 
@@ -193,5 +193,3 @@ function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   @req p == q "exponents must agree"
   return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
-
-
