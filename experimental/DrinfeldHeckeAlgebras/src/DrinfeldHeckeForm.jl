@@ -2,72 +2,65 @@
 # Drinfeld-Hecke form
 ################################################################################
 
-mutable struct DrinfeldHeckeForm{T <: RingElem}
-  base_ring::Union{Ring, MPolyRing{T}}
-  ring::MPolyRing
-  group::MatrixGroup{T}
-  group_algebra::GroupAlgebra
-  forms::Dict{MatrixGroupElem, BilinearForm}
-  values::Dict{Tuple{Vector,Vector}, GroupAlgebraElem}
-  relation_handler::RelationHandler{T}
+# Struct for Drinfeld-Hecke form κ defined by 
+#   κ = sum_g∈G (κ_g * g)
+# where the κ_g are alternating bilinear forms.
+#
+# Each Drinfeld-Hecke form defines a Drinfeld-Hecke algebra via
+#   H_κ = R[V]#G / I_κ
+# with
+#   I_κ = < vw - wv - κ(v,w) | v,w ∈ V >
+mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
+  group::MatrixGroup{T} # Matrix group G over a field K
+  base_ring::Ring # Underlying K-algebra R with element type S of Drinfeld-Hecke form
+  symmetric_algebra::MPolyRing{S} # Symmetric algebra R[V]
+  group_algebra::GroupAlgebra{MPolyRing{S}, MatrixGroup{T}} # Group algebra R[V]G, used as base for R[V]#G
+  forms::Dict{MatrixGroupElem{T}, BilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
+  
+  # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group
+  function DrinfeldHeckeForm(G::MatrixGroup{T}) where {T <: FieldElem}
+    return DrinfeldHeckeForm(G, base_ring(G))
+  end
 
-  # Creates Drinfeld-Hecke form from group, either zero or parametrized solution
-  function DrinfeldHeckeForm(G::MatrixGroup{T}, parametrize::Bool = false) where {T <: RingElem}
-    # Depending on the ring over which G is defined, GAP might not support iterating and computing inverses
-    # In this case we throw an exception
+  # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group and K-algebra
+  function DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
+    # Check if R is a K-algebra where K is the field over which G is defined
+    K = base_ring(G)
     try
-      elements(G)
-      inv(G[1])
+      # TODO
     catch
-      throw(ArgumentError("Drinfeld-Hecke forms for groups over given ring are not supported."))
+      throw(ArgumentError("The given ring must be an algebra over the base ring of the given group."))
     end
-  
-    κ = new{T}()
     
-    κ.relation_handler = RelationHandler(G)
+    S = elem_type(typeof(R))
+    κ = new{T, S}()
+        
     κ.group = G
-    κ.forms = Dict{MatrixGroupElem, BilinearForm}()
-    κ.values = Dict{Tuple{Vector,Vector}, GroupAlgebraElem}()
-    
-    d = degree(G)
-    R = base_ring(G)
-    
-    if parametrize
-      forms = solve_relations(κ.relation_handler)
-
-      for (g, B) in forms
-        if !is_zero(B)
-          κ.forms[g] = alternating_bilinear_form(B)
-        end
-      end
-    
-      if length(forms) > 0
-        _, B = first(forms)
-        R = base_ring(B)
-      end
-    end
-  
     κ.base_ring = R
+    κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{S}}()
   
-    S, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)])
+    RV, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)])
     
-    κ.ring = S
-    κ.group_algebra = S[G]
+    κ.symmetric_algebra = RV
+    κ.group_algebra = RV[G]
     
     return κ
   end
 
   # Creates Drinfeld-Hecke form from non-empty forms input
-  function DrinfeldHeckeForm(forms::Dict{MatrixGroupElem{T}, MatElem{T}}) where {T <: RingElem}
+  function DrinfeldHeckeForm(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
     if length(forms) == 0
-      throw(ArgumentError("forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatrixGroup{T})")) 
+      throw(ArgumentError(
+        "Forms must not be empty. To create zero form use 
+        DrinfeldHeckeForm(G::MatrixGroup{T}) or DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring)"
+      ))
     end
-          
-    g, _ = first(forms)
+
+    g, κ_g = first(forms)
     G = g.parent
+    R = base_ring(κ_g)
     
-    κ = DrinfeldHeckeForm(G)
-    
+    κ = DrinfeldHeckeForm(G, R)
     set_forms(κ, forms)
   
     return κ
@@ -80,72 +73,33 @@ end
 
 const drinfeld_hecke_form = DrinfeldHeckeForm
 
-function parametrized_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingElem}
-  return DrinfeldHeckeForm(G, true)
+function generic_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingElem}
+  return generic_drinfeld_hecke_form(G, base_ring(G))
 end
 
-################################################################################
-# Parametrization helper functions
-################################################################################
-
-# Returns a parametrized solution to the linear equation system Mx = 0
-function solve_relations(handler::RelationHandler{T}) where {T <: RingElem}
-  M = relation_matrix(handler)
-  G = group(handler)
-  R = base_ring(M)
-  n = ncols(M)
-  K = zero_matrix(R, n, 0)
+function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
+  generator = GenericFormGenerator(G, R)
+  forms = generate_generic_forms(generator)
   
-  try
-    if is_zero(M)
-      # We check this because over some rings nullspace is not implemented
-      K = identity_matrix(R, n)
-    else
-      _, K = nullspace(M)
-    end
-  catch e
-    throw(ArgumentError("Can not solve Drinfeld-Hecke relations over given ring."))
-  end
-
-  n = ncols(K)
-  m = nrows(K)
-  forms = Dict{MatrixGroupElem, MatElem}()
-  
-  # If n is zero, we don't need parameters since zero is the only solution
-  if n == 0
-    return forms
-  end
-        
-  # For creating a parametrized solution, we work over a polynomial ring S = R[t1,...tn]
-  parameters = n == 1 ? ["t"] : ["t" * string(i) for i in 1:n]
-  S, _ = polynomial_ring(R, parameters)
-
-  # Use kernel basis to create a parametrized solution for a Drinfeld-Hecke form
-  x = fill(S(), m)
-  for j in 1:n
-    x = x + [S[j] * K[i, j] for i in 1:m]
-  end
-
-  # Initialize forms
-  d = degree(G)
-  for g in G
-    forms[g] = zero_matrix(S,d,d)
-  end
-    
-  # Use handler map to convert result to matrices
-  for ((g,i,j),k) in map(handler)
-    forms[g][i,j] = x[k]
-    forms[g][j,i] = -x[k]
+  if length(forms) == 0
+    # There is only the trivial Drinfeld-Hecke form
+    return DrinfeldHeckeForm(G, R)
   end
   
-  return forms 
+  return DrinfeldHeckeForm(forms)
 end
 
 ################################################################################
 # Drinfeld-Hecke form mutation
 ################################################################################
 
+# Checks if given matrix defines a valid Drinfeld-Hecke form and if yes, sets it to κ and calculates according forms
+# for the conjugates
 function Base.setindex!(κ::DrinfeldHeckeForm{T}, m::MatElem{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
+  G = κ.group
+  R = κ.base_ring
+  generator = GenericFormGenerator(G, R)
+  
   forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
   
   for (h, κ_h) in κ.forms
@@ -153,38 +107,38 @@ function Base.setindex!(κ::DrinfeldHeckeForm{T}, m::MatElem{T}, g::MatrixGroupE
   end
 
   forms[g] = m
+  calculate_form_for_conjugate()
   
   set_forms(κ, forms)
 end
 
-function evaluate_parameters(κ::DrinfeldHeckeForm{T}, values::Vector) where {T <: RingElem}
-  if !is_parametrized(κ)
-    throw(ArgumentError("Given form does not have any parameter."))
+# Substitute parameters by values in any subring
+function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where {T <: FieldElem, S <: RingElem}
+  if !is_generic(κ)
+    throw(ArgumentError("Given form does not have any parameters."))
   end
   
-  S = base_ring(κ)
+  R = base_ring(κ)
   n = ngens(S)
   
   if length(values) != n
     throw(ArgumentError("Values input must contain exactly " * string(n) * " entries."))
   end
-
-  R = base_ring(S)
   
   # Check if values are in K
   safe_values = nothing
   try
-    safe_values = map(v -> R(v), values)
+    safe_values = map(v -> S(v), values)
   catch e
     throw(ArgumentError("The given values can not be cast into elements of the base ring."))
   end
 
   # Evaluation function
-  φ = hom(S, R, safe_values)
+  φ = hom(S, S, safe_values)
   λ = f -> φ(f)
 
-  # Move forms to new ring S_new
-  forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
+  # Apply homomorphism to forms
+  forms = Dict{MatrixGroupElem{T}, MatElem{S}}()
   for (g, κ_g) in κ.forms
     forms[g] = map(λ, matrix(κ_g))
   end
@@ -192,32 +146,20 @@ function evaluate_parameters(κ::DrinfeldHeckeForm{T}, values::Vector) where {T 
   return DrinfeldHeckeForm(forms)
 end
 
-function set_forms(κ::DrinfeldHeckeForm{T}, forms::Dict{MatrixGroupElem{T}, MatElem{T}}) where {T <: RingElem}
-  if is_parametrized(κ)
-    throw(ArgumentError("Can not set forms to parametrized Drinfeld-Hecke form, please use evaluate_parameters"))
-  end
-  
+function set_forms(
+  κ::DrinfeldHeckeForm{T, S}, 
+  forms::Dict{MatrixGroupElem{T}, MatElem{S}}
+) where {T <: FieldElem, S <: RingElem}
   G = κ.group
   R = κ.base_ring
-  map = κ.relation_handler.map
-  M = κ.relation_handler.relation_matrix
+  generator = GenericFormGenerator(G, R)
   
-  # We need to check if forms satisfy the needed relations to define a Drinfeld-Hecke form
-  # For this we translate the forms into a vector x using the handler map
-  x = fill(R(), length(map))
-  for ((g,i,j),k) in map
-    if haskey(forms, g)
-      x[k] = forms[g][i,j]
-    end
-  end
-  
-  # Check if x satisfies the relations
-  if !is_zero(M*x)
-    throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form"))
+  if !defines_valid_drinfeld_hecke_form(forms, generator)
+    throw(ArgumentError("Forms must define valid Drinfeld-Hecke form"))
   end
   
   # Set the forms to κ
-  κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{T}}()
+  κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{S}}()
   for (g, m) in forms
     if !is_zero(m)
       κ.forms[g] = alternating_bilinear_form(m)
@@ -252,64 +194,43 @@ end
 
 is_zero(κ::DrinfeldHeckeForm) = length(κ.forms) == 0
 base_ring(κ::DrinfeldHeckeForm) = κ.base_ring
-ring(κ::DrinfeldHeckeForm) = κ.ring
+symmetric_algebra(κ::DrinfeldHeckeForm) = κ.symmetric_algebra
 group(κ::DrinfeldHeckeForm) = κ.group
 group_algebra(κ::DrinfeldHeckeForm) = κ.group_algebra
 forms(κ::DrinfeldHeckeForm) = κ.forms
 number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
+is_generic(κ::DrinfeldHeckeForm) = base_ring(κ) isa MPolyRing
 
-function is_parametrized(κ::DrinfeldHeckeForm{T}) where {T <: RingElem}
-  R = base_ring(κ)
-  G = group(κ)
-  
-  return R isa MPolyRing{T} && G isa MatrixGroup{T}
-end
-
-function parameters(κ::DrinfeldHeckeForm)
-  if !is_parametrized(κ)
-    throw(ArgumentError("Given form does not have any parameter."))
+function Base.getindex(κ::DrinfeldHeckeForm{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}
+  if g.parent != κ.group
+    throw(ArgumentError("The given group element does not belong to the group of the given Drinfeld-Hecke form."))
   end
   
-  S = base_ring(κ)
-  return gens(S)
-end
-
-function Base.getindex(κ::DrinfeldHeckeForm{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
-  if haskey(κ.forms, g) 
+  if haskey(κ.forms, g)
     return κ.forms[g] 
-  else 
-    d = degree(κ.group)
-    m = zero_matrix(κ.base_ring, d, d)
-    return alternating_bilinear_form(m)
   end
+
+  d = degree(κ.group)
+  m = zero_matrix(κ.base_ring, d, d)
+  return alternating_bilinear_form(m)
 end
 
 ################################################################################
 # Application of Drinfeld-Hecke form
 ################################################################################
 
-function (κ::DrinfeldHeckeForm{T})(v::Vector{T}, w::Vector{T}) where T <: RingElem
+function (κ::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <: FieldElem, S <: RingElem}
   RG = κ.group_algebra
-  
-  if v == w return RG() end
-  
-  if haskey(κ.values, (v,w))
-    return κ.values[(v,w)]
-  end
-
-  if haskey(κ.values, (w,v))
-    κ.values[(v,w)] = -1 * κ.values[(w,v)]
-    return κ.values[(v,w)]
-  end
+  RV = κ.symmetric_algebra
   
   res = RG()
+  
+  if v == w return res end
 
   for (g, κ_g) in κ.forms
-    res = res + base_ring(RG)(κ_g(v,w)) * RG(g)
+    res = res + RV(κ_g(v,w)) * RG(g)
   end
-
-  κ.values[(v,w)] = res
   
   return res
 end

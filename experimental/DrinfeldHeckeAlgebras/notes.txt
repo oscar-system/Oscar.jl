@@ -29,10 +29,9 @@ A = parametrized_drinfeld_hecke_form(G)
 
 using Revise, Oscar
 
-n = 5
-S = symmetric_group(n)
+S = symmetric_group(5)
 R, _ = residue_ring(ZZ, 5)
-mat_gens = [permutation_matrix(R, g) for g in gens(S)]
+mat_gens = [permutation_matrix(QQ, g) for g in gens(S)]
 G = matrix_group(mat_gens)
 A = parametrized_drinfeld_hecke_form(G)
 
