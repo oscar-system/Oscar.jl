@@ -710,14 +710,12 @@ function load_object(
   return MPolyLocRing(R, mult_set)
 end
 
-@register_serialization_type MPolyLocRingElem uses_params
+@register_serialization_type MPolyLocRingElem
 
 type_params(a::MPolyLocRingElem) = TypeParams(MPolyLocRingElem, parent(a))
 
 function save_object(s::SerializerState, a::MPolyLocRingElem)
-  # Because the `parent` of `a` is a `Ring` the generic implementation
-  # for `uses_params` above calls `save_type_params` and that stores 
-  # the ring. Hopefully. 
+  # `save_type_params` and that stores the parent ring
   save_data_array(s) do
     save_object(s, numerator(a))
     save_object(s, denominator(a))
@@ -751,7 +749,7 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRing}, params::Di
   return MPolyQuoLocRing(R, modulus(Q), inverted_set(L), Q, L)
 end
 
-@register_serialization_type MPolyQuoLocRingElem uses_params
+@register_serialization_type MPolyQuoLocRingElem
 
 type_params(a::T) where {T<:MPolyQuoLocRingElem} = TypeParams(T, parent(a))
 

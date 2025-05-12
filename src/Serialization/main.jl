@@ -118,11 +118,18 @@ function decode_type(s::DeserializerState)
   end
 
   if :name in keys(s.obj)
-    return load_node(s, :name) do _
-      decode_type(s)
+    if :_instance in keys(s.obj)
+      return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
+        unsupported_instance = s.obj[:_instance]
+        error("unsupported instance '$unsupported_instance' for decoding")
+      end
+    else
+      return load_node(s, :name) do _
+        decode_type(s)
+      end
     end
   end
-  return decode_type(s.obj)
+  #return decode_type(s.obj)
 end
 
 ################################################################################
@@ -237,7 +244,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
   save_data_dict(s) do
     T = type(tp)
     type_encoding = encode_type(T)
-    if !(T == reverse_type_map[type_encoding])
+    if reverse_type_map[type_encoding] isa Dict
       # here we get "$T" = "fpField"
       # see comment in register_serialization_type
       save_object(s, "$T", :_instance)
@@ -257,7 +264,15 @@ end
 
 function save_type_params(s::SerializerState,
                           ::TypeParams{T, Nothing}) where T
-  save_object(s, encode_type(T))
+  type_encoding = encode_type(T)
+  if reverse_type_map[type_encoding] isa Dict
+    save_data_dict(s) do
+      save_object(s, type_key, :name)
+      save_object(s, "$T", :_instance)
+    end
+  else
+    save_object(s, type_encoding)
+  end
 end
 
 function save_type_params(s::SerializerState,
@@ -380,14 +395,7 @@ end
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
-  if !(s.obj isa String) && haskey(s.obj, :_instance)
-    # to be safe we need this check but there are currently issues
-    # see register_serialization_type and construction of the reverse type map
-    #s.obj["_instance"] in keys(reverse_type_map[s.obj[type_key]])
-    T = eval(Meta.parse(s.obj["_instance"]))
-  else
-    T = decode_type(s)
-  end
+  T = decode_type(s)
   Base.issingletontype(T) && return T()
   if !isnothing(override_params)
     T, _ = load_type_params(s, T, type_key)
@@ -537,7 +545,6 @@ indicates which attributes will be serialized when using save with `with_attrs=t
 """
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
-  uses_params = false
   str = nothing
   attrs = nothing
   for el in args
@@ -545,8 +552,6 @@ macro register_serialization_type(ex::Any, args...)
       str = el
     elseif el == :uses_id
       uses_id = true
-    elseif el == :uses_params
-      uses_params = true
     else
       attrs = el
     end
@@ -555,9 +560,8 @@ macro register_serialization_type(ex::Any, args...)
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
+  return register_serialization_type(ex, str, uses_id, attrs)
 end
-
 
 ################################################################################
 # Utility macro
