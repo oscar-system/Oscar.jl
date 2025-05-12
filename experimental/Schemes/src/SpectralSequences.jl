@@ -90,14 +90,19 @@ function produce_entry(cssp::CSSPage, i::Int, j::Int)
   p = page_number(cssp)
   previous_page = css[p-1]
   H = previous_page[i, j]
-  Z, inc_Z = can_compute_map(previous_page, i, j) ? kernel(map(previous_page, i, j)) : sub(H, gens(H))
+  is_zero(H) && return H
   B, inc_B = can_compute_map(previous_page, i+p-1, j-p+2) ? image(map(previous_page, i+p-1, j-p+2)) : sub(H, elem_type(H)[])
+  Z, inc_Z = can_compute_map(previous_page, i, j) ? kernel(map(previous_page, i, j)) : sub(H, gens(H))
   # The code below relies on a particular generating set for the modulus
   # so we need to carefully build that here.
-  res = SubquoModule(ambient_free_module(H), repres.(gens(Z)), vcat(relations(H), repres.(gens(B))))
+  F = ambient_free_module(H)
+  new_B, _ = sub(F, vcat(relations(H), repres.(gens(B))))
+  g = unique!(ambient_representatives_generators(Z))
+  g = filter!(x->!(x in new_B), g)
+  res = SubquoModule(ambient_free_module(H), g, elem_type(ambient_free_module(H))[])
+  res.quo = new_B.sub # Use the already computed GB
   @assert length(relations(res)) == length(relations(H)) + ngens(B)
   return res
-  return quo(Z, B)[1]
 end
 
 function produce_entry_on_initial_page(cssp::CSSPage, i::Int, j::Int)
@@ -163,6 +168,7 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
   #prs = canonical_projections(dom)
   rngs = get_attribute(dom, :ranges)::Vector{UnitRange{Int}}
   cur_rng_ind = 1
+  summands = get_attribute(dom, :direct_product)::Vector{typeof(dom)}
   for (v_num, v) in enumerate(gens(dom))
     buckets = Tuple{Int, FreeModElem}[]
     e = Int[]
@@ -171,7 +177,8 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
       cur_rng_ind+=1
     end
     k = cur_rng_ind # findfirst(ind in r for r in rngs)
-    vv = canonical_projection(dom, k)(v)
+    # manual way to project (saves allocations)
+    vv = FreeModElem(coordinates(v)[rngs[cur_rng_ind]], summands[cur_rng_ind]) #canonical_projection(dom, k)(v)
     @assert !is_zero(vv)
     d = -dom_degs[k]
     vv2 = cohomology_model_inclusion(ctx, d, j)(vv)
@@ -950,6 +957,7 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
+  #=
   dd = get!(ctx.mult_map_cache, (e0, d0, j)) do
     # Dict{typeof(p), FreeModuleHom}()
     WeakKeyDict{typeof(p), MapFromFunc}()
@@ -957,6 +965,7 @@ function multiplication_map(
   #q = -p
   #haskey(dd, q) && return -dd[q]
   return get!(dd, p) do
+  =#
     d1 = d0 + degree(p; check=false)
     dom_cplx = ctx[e0, d0]
     cod_cplx = ctx[e0, d1]
@@ -967,7 +976,7 @@ function multiplication_map(
     return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
     img_gens = elem_type(cod)[cod_strand_pr(p*dom_strand_inc(v)) for v in gens(dom)]
     hom(dom, cod, img_gens)
-  end
+  #end
 end
 
 function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
