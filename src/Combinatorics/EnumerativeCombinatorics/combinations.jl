@@ -156,7 +156,7 @@ function combination(n::Int, k::Int, r::Int)
   j = 1
   for i in 1:k
     b = binomial(n - j, k - i + 1)
-    while b >= r
+    while b > r
       j += 1
       b = binomial(n - j, k - i + 1)
     end
