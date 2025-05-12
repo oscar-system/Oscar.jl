@@ -309,7 +309,7 @@ function monoid_algebra_from_lattice(M_Q::Matrix{Int}, k::Field)
   map_T_R = hom(R, T, targ)
 
   # return monoid algebra 
-  return MonoidAlgebra(quo(R, ideal(kernel(map_T_R)[1]))[1])
+  return MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1])
 end
 
 @doc raw"""
