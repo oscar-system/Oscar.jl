@@ -1230,15 +1230,32 @@ end
   n = codim(I)                # Calculate the codimension of the ideal
 
   # Check the S2 condition
-  test_range = 0:(dim(R) - n - 2)
+  test_range = 0:(dim(R_B) - n - 2)
 
-  all(dim(R) - dim(ext(M, graded_free_module(R_B, 1), j + n + 1)) >= (j + n + 3) for j in test_range) || return false # S2 condition not satisfied
+  all(dim(R_B) - dim(ext(M, graded_free_module(R_B, 1), j + n + 1)) >= (j + n + 3) for j in test_range) || return false # S2 condition not satisfied
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
   d = dim(Jac)                   # Get dimension of the Jacobian
   d < 0 && (d = -Inf)            # Handle negative dimensions
   return (dim(R) - d >= 2)       # Check the condition
 end
+
+@doc raw"""
+    is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
+
+Test if the given monoid algebra is normal by testing first the S2 and then the
+R1 condition.
+
+# Examples
+```jldoctest
+julia> A = monoid_algebra_from_lattice([[4,0],[3,1],[1,3],[0,4]],QQ)
+monoid algebra over rational field with cone of dimension 2
+
+
+julia> is_normal(A)
+false
+```
+"""
 
 
 # import local cohomology functions
