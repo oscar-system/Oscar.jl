@@ -2,6 +2,10 @@ using JSON3
 import Base.haskey
 
 ################################################################################
+# Type Serializers (converting types to strings)
+convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
+
+################################################################################
 # Serializers
 abstract type OscarSerializer end
 

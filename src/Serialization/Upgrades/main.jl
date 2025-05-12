@@ -162,7 +162,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
   upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
-    if format_version < script_version
+    if format_version <= script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
       @debug("upgrading serialized data....",

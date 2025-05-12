@@ -25,7 +25,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           upgraded_dict[:_type] = Dict(
             :name => dict[:_type],
-            :params => dict[:data][:base_ring]
+            :params => dict[:data][:base_ring] isa String ? dict[:data][:base_ring] : upgrade_1_4_0(s, dict[:data][:base_ring])
           )
           upgraded_dict[:data] = Dict(
             :symbols => dict[:data][:symbols],
@@ -186,13 +186,29 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:data] = []
       elseif type_name == "FqField"
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => dict[:_type]
+        )
+
         if dict[:data] isa Dict
-          upgraded_dict[:_type] = Dict(
-            :name => dict[:_type],
-            :params => dict[:data][:def_pol][:_type][:params]
-          )
+          upgraded_dict[:_type][:params] = upgrade_1_4_0(
+            s,
+            dict[:data][:def_pol])[:_type][:params]
           upgraded_dict[:data] = dict[:data][:def_pol][:data]
         end
+      elseif type_name in ["fpField", "Nemo.fpField"]
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => "fpField"
+            )
+        upgraded_dict[:data] = dict[:data]
+      elseif type_name in ["FpField", "Nemo.FpField"]
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => "FpField"
+            )
+        upgraded_dict[:data] = dict[:data]
       elseif type_name == "Dict"
         if haskey(dict[:_type][:params], :value_type)
           if haskey(dict[:_type][:params], :value_params)
@@ -522,7 +538,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:_refs] = upgraded_refs
     end
-    #println(json(upgraded_dict, 2))
     return upgraded_dict
   end
 ))

@@ -41,19 +41,21 @@ push!(upgrade_scripts_set, UpgradeScript(
     if dict[:type] == "Vector"
       upgraded_vector = []
       entry_type = nothing
-
       for entry in dict[:data][:vector]
-        result = upgrade_0_11_3(s, entry)
+        if entry isa String
+          result = entry
+        else
+          result = upgrade_0_11_3(s, entry)
 
-        # store values in state that are vector entries that aren't backrefs
-        if entry[:type] != string(backref_sym)
-          if haskey(entry, :id)
-            s.id_to_dict[Symbol(entry[:id])] = result
+          # store values in state that are vector entries that aren't backrefs
+          if entry[:type] != string(backref_sym)
+            if haskey(entry, :id)
+              s.id_to_dict[Symbol(entry[:id])] = result
+            end
+            @assert entry_type === nothing || entry_type == entry[:type]
+            entry_type = entry[:type]
           end
-          @assert entry_type === nothing || entry_type == entry[:type]
-          entry_type = entry[:type]
         end
-
         push!(upgraded_vector, result)
       end
 
@@ -97,11 +99,10 @@ push!(upgrade_scripts_set, UpgradeScript(
       dict_type = "PolyRing"
     end
 
-    U = reverse_type_map[dict_type]
-
     # Upgrades basic types
-    if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, zzModRing}
-      if U === QQFieldElem
+     if dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "QQFieldElem", "zzModRing"] || contains(dict_type, "Int")
+dict_type
+      if dict_type == "QQFieldElem"
         num = dict[:data][:num][:data]
         den = dict[:data][:den][:data]
         updated_fmpq = "$num//$den"

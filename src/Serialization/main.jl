@@ -247,7 +247,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     if reverse_type_map[type_encoding] isa Dict
       # here we get "$T" = "fpField"
       # see comment in register_serialization_type
-      save_object(s, "$T", :_instance)
+      save_object(s, convert_type_to_string(T), :_instance)
     end
     
     save_object(s, type_encoding, :name)
@@ -267,8 +267,8 @@ function save_type_params(s::SerializerState,
   type_encoding = encode_type(T)
   if reverse_type_map[type_encoding] isa Dict
     save_data_dict(s) do
-      save_object(s, type_key, :name)
-      save_object(s, "$T", :_instance)
+      save_object(s, type_encoding, :name)
+      save_object(s, convert_type_to_string(T), :_instance)
     end
   else
     save_object(s, type_encoding)
@@ -381,6 +381,8 @@ function load_type_params(s::DeserializerState, T::Type)
       # need to implement their own method, see for example containers
       return T, params
     end
+  elseif haskey(s, :_instance)
+    T, nothing
   else
     return T, load_typed_object(s)
   end
@@ -455,11 +457,9 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
     init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
     if init isa Type
-      init = Dict{String, Type}(string(init) => init)
+      init = Dict{String, Type}(convert_type_to_string(init) => init)
     end
-    # here we have "$T" = "Nemo.fpField" for example
-    # see comment in save_typed_object
-    reverse_type_map[str] = merge(Dict{String, Type}(string(T) => T), init)
+    reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
   else
     reverse_type_map[str] = T
   end
@@ -557,6 +557,9 @@ macro register_serialization_type(ex::Any, args...)
     end
   end
   if str === nothing
+    # here we use string since on an expression.
+    # this choice means we should write types without the namespace in front
+    # when registering, and in convert_type_to_string
     str = string(ex)
   end
 
