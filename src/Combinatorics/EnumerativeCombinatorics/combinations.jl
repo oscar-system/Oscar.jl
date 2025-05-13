@@ -125,8 +125,8 @@ end
 @doc raw"""
     linear_index(C::Combination, n::IntegerUnion)
 
-For a combination C containing k elements from 1:n,
-return the index i so that C occurs as the ith element in the
+For a combination `C` containing `k` elements from `1:n`,
+return the index `i` so that `C` occurs as the `i`th element in the
 iteration over all such combinations (in lexicographic order).
 
 The algorithm is as described in [Lie97; Section 3.3](@cite).
