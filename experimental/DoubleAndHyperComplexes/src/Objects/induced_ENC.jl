@@ -22,8 +22,8 @@ function (fac::InducedENCChainFactory)(self::AbsHyperComplex, ind::Tuple)
   k + i - 1 > ngens(I0) && return sub(enc[i], elem_type(enc[i])[])[1]
   amb_ext_power = _exterior_power(enc, i)
   new_gens = elem_type(amb_ext_power)[]
-  for a in combinations(ngens(I0), k+i-1)
-    push!(new_gens, wedge([repres(gen(I0, i)) for i in a]; parent=amb_ext_power))
+  for as in combinations(gens(I0), k+i-1)
+    push!(new_gens, wedge([repres(a) for a in as]; parent=amb_ext_power))
   end
   Ip, _ = sub(amb_ext_power, new_gens)
   fac.ext_powers[i] = Ip
