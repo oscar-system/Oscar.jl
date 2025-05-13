@@ -225,7 +225,7 @@ end
 # to produce `c`.
 function _wedge(a::Combination{T}, b::Combination{T}) where {T}
   # if combinations are not disjoint, return 0
-  any(in(b), a) && return 0, a
+  isdisjoint(a, b) || return 0, a
 
   c, sign = merge_sorted_with_sign(data(a), data(b))
   return sign, Combination(c)
