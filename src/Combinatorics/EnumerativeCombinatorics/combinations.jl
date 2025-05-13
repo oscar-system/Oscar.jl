@@ -203,24 +203,11 @@ end
 #
 ################################################################################
 
-# _mult is currently identical to _wedge aside from return type
-# (Vector{T} vs Combination{T})
-# so leaving unimplemented.
-# function _mult(a::Combination{T}, b::Combination{T}) where {T}
-#   # @assert bound(a) == bound(b) "combinations must have the same bounds"
-#
-#   # in case of a double index return zero
-#   any(in(b), a) && return 0, data(a)
-#
-#   result, sign = merge_sorted_with_sign(data(a),data(b))
-#
-#   return sign, result_indices
-# end
-
-
 # merge sort vcat(a,b) and keep track of the sign of permutation.
 # requires that a and b are both sorted, and contain no common elements.
 function merge_sorted_with_sign(a::Vector{T}, b::Vector{T}) where T<:IntegerUnion
+  is_disjoint(a,b) || return 0, nothing
+
   result = zeros(T, length(a)+length(b))
   p = length(a)
   q = length(b)
@@ -247,16 +234,15 @@ end
 
 
 # For two combinations a = [i₁, i₂, …, iₚ] and b = [j₁, j₂, …, jᵣ]
-# the result is a pair `(sign, c)` with a a new combination,
+# the result is a pair `(sign, c)` with `c` a new combination,
 # and `sign` either 0 in the case that
 # iₖ = jₗ for some k and l, or ±1 depending on the number of transpositions
 # needed to put [i₁, …, iₚ, j₁, …, jᵣ] into a strictly increasing order
-# to produce `c`.
+# to produce `c`. If the combinations are not disjoint,
+# then we return `nothing` for `c`.
 function _wedge(a::Combination{T}, b::Combination{T}) where {T}
-  # if combinations are not disjoint, return 0
-  isdisjoint(a, b) || return 0, a
-
   c, sign = merge_sorted_with_sign(data(a), data(b))
+  sign == 0 && return sign, c
   return sign, Combination(c)
 end
 
