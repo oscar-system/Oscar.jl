@@ -234,7 +234,7 @@ end
 
 # # This could be optimized, but don't think it is currently used anywhere so leaving it for now.
 function _wedge(a::Vector{T}) where {T <: Combination}
-  isempty(a) && error("list must not be empty")
+  @req !isempty(a) "list must not be empty"
   isone(length(a)) && return 1, first(a)
   k = div(length(a), 2)
   b = a[1:k]
