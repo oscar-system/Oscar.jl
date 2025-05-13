@@ -178,7 +178,7 @@ function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, 
   is_zero(p) && return hom(domain, codomain, gens(codomain); check=false) # Isomorphism of R^1
 
   imgs = phi.(gens(F))
-  img_gens = [wedge(imgs[data(ind)], parent=codomain) for ind in combinations(m, p)]
+  img_gens = [wedge(data(c), parent=codomain) for c in combinations(imgs, p)]
   return hom(domain, codomain, img_gens; check=false)
 end
 
