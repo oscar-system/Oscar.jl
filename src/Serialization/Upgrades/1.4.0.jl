@@ -192,9 +192,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
 
         if dict[:data] isa Dict
-          upgraded_dict[:_type][:params] = upgrade_1_4_0(
-            s,
-            dict[:data][:def_pol])[:_type][:params]
+          upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
           upgraded_dict[:data] = dict[:data][:def_pol][:data]
         end
       elseif type_name in ["fpField", "Nemo.fpField"]
@@ -209,6 +207,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           :_instance => "FpField"
             )
         upgraded_dict[:data] = dict[:data]
+      elseif type_name in ["FpFieldElem", "fpFieldElem"]
+        upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:_type][:params])
       elseif type_name == "Dict"
         if haskey(dict[:_type][:params], :value_type)
           if haskey(dict[:_type][:params], :value_params)
