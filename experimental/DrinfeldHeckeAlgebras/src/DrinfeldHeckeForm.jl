@@ -95,21 +95,24 @@ end
 
 # Checks if given matrix defines a valid Drinfeld-Hecke form and if yes, sets it to κ and calculates according forms
 # for the conjugates
-function Base.setindex!(κ::DrinfeldHeckeForm{T}, m::MatElem{T}, g::MatrixGroupElem{T}) where {T <: RingElem}
-  G = κ.group
-  R = κ.base_ring
-  generator = GenericFormGenerator(G, R)
-  
-  forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
-  
-  for (h, κ_h) in κ.forms
-    forms[h] = matrix(κ_h)
+function Base.setindex!(
+  κ::DrinfeldHeckeForm{T, S}, 
+  κ_g::MatElem{S}, 
+  g::MatrixGroupElem{T}
+) where {T <: FieldElem, S <: RingElem}
+  if !is_valid_form(g, κ_g)
+    throw(ArgumentError("Form does not define valid Drinfeld-Hecke form"))
   end
-
-  forms[g] = m
-  calculate_form_for_conjugate()
   
-  set_forms(κ, forms)
+  for c in conjugacy_class(g)
+    κ_c = calculate_form_for_conjugate(g, c, κ_g)
+    
+    if is_zero(κ_c)
+      delete!(κ.forms, c)
+    else 
+      κ.forms[c] = alternating_bilinear_form(κ_c)
+    end
+  end
 end
 
 # Substitute parameters by values in any subring
@@ -146,15 +149,12 @@ function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where 
   return DrinfeldHeckeForm(forms)
 end
 
+# Checks if given forms define valid Drinfeld-Hecke form and if yes, sets them to κ
 function set_forms(
   κ::DrinfeldHeckeForm{T, S}, 
   forms::Dict{MatrixGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
-  G = κ.group
-  R = κ.base_ring
-  generator = GenericFormGenerator(G, R)
-  
-  if !defines_valid_drinfeld_hecke_form(forms, generator)
+  if !are_valid_forms(forms)
     throw(ArgumentError("Forms must define valid Drinfeld-Hecke form"))
   end
   
@@ -203,12 +203,8 @@ nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
 is_generic(κ::DrinfeldHeckeForm) = base_ring(κ) isa MPolyRing
 
 function Base.getindex(κ::DrinfeldHeckeForm{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}
-  if g.parent != κ.group
-    throw(ArgumentError("The given group element does not belong to the group of the given Drinfeld-Hecke form."))
-  end
-  
   if haskey(κ.forms, g)
-    return κ.forms[g] 
+    return κ.forms[g]
   end
 
   d = degree(κ.group)
