@@ -48,7 +48,6 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = combination(n, p, k)
-    e = gens(F)
     return Tuple(e[i] for i in ind)
   end
 
