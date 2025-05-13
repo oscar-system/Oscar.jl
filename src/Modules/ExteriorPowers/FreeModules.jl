@@ -48,7 +48,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = combination(n, p, k)
-    return Tuple(e[i] for i in ind)
+    return Tuple(gen(F, i) for i in ind)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(F) for f in 1:p])), result, my_mult, my_decomp)
