@@ -34,7 +34,7 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
     @req !isnothing(k) "element must be a generator of the module"
     ind = combination(n, p, k)
     e = gens(M)
-    return Tuple(e[i] for i in ind)
+    return Tuple(gen(M, i) for i in ind)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(M) for f in 1:p])), result, my_mult, my_decomp)
