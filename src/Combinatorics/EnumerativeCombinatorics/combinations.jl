@@ -121,13 +121,28 @@ end
 #
 ################################################################################
 
-# For a combination C containing k elements from 1:n,
-# return the index i so that C occurs as the ith element in the
-# iteration over all such combinations (which are lexicographically ordered).
-# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
-# NOTE we have added an extra argument, since this info is not stored with
-# a Combination as it is with an OrderedMultiIndex
+
+@doc raw"""
+    linear_index(C::Combination, n::IntegerUnion)
+
+For a combination C containing k elements from 1:n,
+return the index i so that C occurs as the ith element in the
+iteration over all such combinations (in lexicographic order).
+
+The algorithm is as described in [Lie97; Section 3.3](@cite).
+
+# Examples
+
+```jldoctest
+julia> C = Combination([1, 3, 5, 7])
+[1, 3, 5, 7]
+
+julia> linear_index(C, 7)
+15
+```
+"""
 function linear_index(C::Combination, n::IntegerUnion)
+  @req C[end] <= n "Combination must be bounded by n"
   k = length(C)
   iszero(k) && return 1
   isone(k) && return Int(C[1])
@@ -142,9 +157,23 @@ function linear_index(C::Combination, n::IntegerUnion)
   return r
 end
 
-# Return the rth combination in the iteration over combinations(n,k)
-# NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
-# NOTE arguments are reordered to match combinatorial conventions
+@doc raw"""
+    combination(n::Int, k::Int, r::Int)
+
+Return the rth combination in the iteration over combinations(n,k).
+
+The algorithm is as described in [Lie97; Section 3.3](@cite).
+
+# Examples
+
+```jldoctest
+julia> C1 = collect(combinations(15, 3))[13]
+[1, 2, 15]
+
+julia> C1 = combination(15, 3, 13)
+[1, 2, 15]
+```
+"""
 function combination(n::Int, k::Int, r::Int)
   @req 1 <= r <= binomial(n, k) "index out of range"
   iszero(k) && return Combination(Int[])
