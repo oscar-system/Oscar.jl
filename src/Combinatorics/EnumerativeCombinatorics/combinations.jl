@@ -146,7 +146,7 @@ end
 # NOTE We use the method described in J. Liebehenschel - Ranking and unranking of lexicographically ordered words: an average-case analysis. Journal of Automata, Languages, and Combinatorics (1997).
 # NOTE arguments are reordered to match combinatorial conventions
 function combination(n::Int, k::Int, r::Int)
-  (r < 1 || r > binomial(n, k)) && error("index out of range")
+  @req 1 <= r <= binomial(n, k) "index out of range"
   iszero(k) && return Combination(Int[])
   isone(k) && return Combination([r])
   n == k && return Combination(collect(1:n))
