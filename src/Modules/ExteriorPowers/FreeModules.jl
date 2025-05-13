@@ -24,8 +24,8 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   result = if is_graded(F)
     G = grading_group(F)
     weights = elem_type(G)[]
-    for ind in combinations(n, p)
-      push!(weights, sum(_degree_fast(F[i]) for i in ind; init=zero(G)))
+    for fs in combinations(F, p)
+      push!(weights, sum(_degree_fast(f) for f in fs; init=zero(G)))
     end
     grade(result_, weights)
   else
@@ -48,8 +48,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = combination(n, p, k)
-    e = gens(F)
-    return Tuple(e[i] for i in ind)
+    return Tuple(gen(F, i) for i in ind)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(F) for f in 1:p])), result, my_mult, my_decomp)
