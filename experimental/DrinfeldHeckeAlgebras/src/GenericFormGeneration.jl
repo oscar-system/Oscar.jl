@@ -47,6 +47,7 @@ function are_valid_forms(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) where {T <
     
     else
       # Otherwise we first need to check that the form for g defines a valid form
+      κ_g = forms[g]
       if !is_valid_form(g, κ_g) return false end
       
       # Now we know that the form for g is valid. We need to check the other forms in this class
@@ -68,7 +69,9 @@ end
 function is_valid_form(g::MatrixGroupElem{T}, κ_g::MatElem{S}) where {T <: FieldElem, S <: RingElem}
   M = build_relation_matrix(g)
   sol = matrix_to_solution(κ_g)
-  
+  display(M)
+  display(κ_g)
+  display(M * sol)
   return is_zero(M * sol)
 end
 
@@ -93,7 +96,7 @@ end
 function generate_generic_forms(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
   # Iterate over the conjugacy classes and generate generic forms for the representatives
   classes = conjugacy_classes(G)
-  classes_with_nonzero_forms = Dict{Tuple{MatrixGroupElem{T}, GroupConjClass}, MatElem{MPolyRing{S}}}()
+  classes_with_nonzero_forms = Dict{Tuple{MatrixGroupElem{T}, GroupConjClass}, MatElem}()
   number_of_parameters = 0
 
   for C in classes
@@ -116,8 +119,8 @@ function generate_generic_forms(G::MatrixGroup{T}, R::Ring) where {T <: FieldEle
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
-  S, _ = polynomial_ring(generator.base_ring, parameters)
-  forms = Dict{MatrixGroupElem{T}, MatElem{MPolyRingElem{S}}}()
+  S, _ = polynomial_ring(R, parameters)
+  forms = Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   
   # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1
@@ -159,11 +162,14 @@ function calculate_form_for_conjugate(
   
   A = matrix(h)
   n = nrows(g)
-  κ_c = zero_matrix(S, n, n)
+  κ_c = zero_matrix(base_ring(κ_g), n, n)
   
   for i in 1:n, j in (i+1):n
     # the i-th column of A is the result of letting h act on the i-th standard basis vector
-    κ_c[i,j] = (transpose(A[:,i])) * κ_g * A[:,j])[1,1]
+    A_i = matrix(A[:,i])
+    A_j = matrix(A[:,j])
+
+    κ_c[i,j] = (transpose(A_i) * κ_g * A_j)[1,1]
     κ_c[j,i] = -κ_c[i,j]
   end
 
@@ -188,7 +194,7 @@ end
 
 function generate_by_theorem_1_9(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
   if is_one(g)
-    return calculate_group_invariant_form(R)
+    return calculate_group_invariant_form(parent(g), R)
   else
     return calculate_form_for_non_trivial_element(g, R)
   end
@@ -199,7 +205,7 @@ end
 # (b) codim(V^g) = 2
 # (c) det h⊥ = 1 for all h ∈ ZG(g) where h⊥ is h restricted to (V^g)⊥ = im(1 - M)
 function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Ring) where {T <: FieldElem}
-  G = parent(G)
+  G = parent(g)
   n = degree(G)
   
   I = identity_matrix(R, n)
@@ -260,7 +266,7 @@ end
 
 # Calculate generic G-invariant bilinear alternating form, i.e κ with
 #   κ(v,w) = κ(gv,gw) for all g ∈ G and v,w ∈ V
-function calculate_group_invariant_form(G::MatrixGroup{T}, R::Ring)
+function calculate_group_invariant_form(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
   K = base_ring(G)
   n = degree(G)
   
@@ -397,8 +403,8 @@ end
 
 # Solves the LES Mx = 0 and returns a parametrized solution
 function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
-  m = nrows(M)
   nullity, kernel_basis = nullspace(M)
+  m = nrows(kernel_basis)
   
   # If nullity = 0, there is only the solution 0
   if nullity == 0
@@ -420,13 +426,14 @@ end
 
 # Convert solution to a matrix representing an alternating bilinear form
 function solution_to_matrix(sol::Vector)
-  n = Int((1 + sqrt(1 + 8m)) / 2)
-  result = zero_matrix(parent(sol[1]), n, n)
-  map = build_map(n)
+  m = length(sol)
+  n = Int((1 + sqrt(1 + 8*m)) / 2)
   
-  for ((i,j),k) in map
-    result[i,j] = generic_solution[k]
-    result[j,i] = -generic_solution[k]
+  result = zero_matrix(parent(sol[1]), n, n)
+  
+  for ((i,j),k) in build_map(n)
+    result[i,j] = sol[k]
+    result[j,i] = -sol[k]
   end
 
   return result
@@ -436,8 +443,8 @@ end
 function matrix_to_solution(mat::MatElem)
   map = build_map(nrows(mat))
   m = length(map)
-  sol = fill(base_ring(mat), m)
-  
+  sol = fill(base_ring(mat)(), m)
+
   for ((i,j),k) in map
     sol[k] = mat[i,j]
   end
@@ -451,7 +458,7 @@ function build_map(n::Int)
   
   k = 1
   for i in 1:n, j in (i+1):n
-    map[(g,i,j)] = k
+    map[(i,j)] = k
     k = k + 1
   end
 

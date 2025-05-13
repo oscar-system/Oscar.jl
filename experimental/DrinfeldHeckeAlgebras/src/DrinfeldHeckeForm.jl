@@ -14,7 +14,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   group::MatrixGroup{T} # Matrix group G over a field K
   base_ring::Ring # Underlying K-algebra R with element type S of Drinfeld-Hecke form
   symmetric_algebra::MPolyRing{S} # Symmetric algebra R[V]
-  group_algebra::GroupAlgebra{MPolyRing{S}, MatrixGroup{T}} # Group algebra R[V]G, used as base for R[V]#G
+  group_algebra::GroupAlgebra # Group algebra R[V]G, used as base for R[V]#G
   forms::Dict{MatrixGroupElem{T}, BilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
   
   # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group
@@ -78,9 +78,8 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingElem}
 end
 
 function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
-  generator = GenericFormGenerator(G, R)
-  forms = generate_generic_forms(generator)
-  
+  forms = generate_generic_forms(G, R)
+
   if length(forms) == 0
     # There is only the trivial Drinfeld-Hecke form
     return DrinfeldHeckeForm(G, R)
