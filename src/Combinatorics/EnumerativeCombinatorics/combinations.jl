@@ -160,7 +160,7 @@ end
 @doc raw"""
     combination(n::Int, k::Int, r::Int)
 
-Return the rth combination in the iteration over combinations(n,k).
+Return the `r`th combination in the iteration over `combinations(n,k)`.
 
 The algorithm is as described in [Lie97; Section 3.3](@cite).
 
