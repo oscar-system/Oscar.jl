@@ -33,7 +33,6 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
     k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
     ind = combination(n, p, k)
-    e = gens(M)
     return Tuple(gen(M, i) for i in ind)
   end
 
