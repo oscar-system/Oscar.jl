@@ -75,11 +75,11 @@ julia> (1, 2, 4)^g[1]
 """
 on_tuples(tuple::GapObj, x::GAPGroupElem) = GAPWrap.OnTuples(tuple, GapObj(x))
 
-on_tuples(tuple::Vector{T}, x::GAPGroupElem) where T = T[pnt^x for pnt in tuple]
-^(tuple::Vector{T}, x::GAPGroupElem) where T = on_tuples(tuple, x)
+on_tuples(tuple::Vector{T}, x::S) where {T, S <: GroupElem} = T[pnt^x for pnt in tuple]
+^(tuple::Vector{T}, x::S) where {T, S <: GroupElem} = on_tuples(tuple, x)
 
-on_tuples(tuple::T, x::GAPGroupElem) where T <: Tuple = T(pnt^x for pnt in tuple)
-^(tuple::T, x::GAPGroupElem) where T <: Tuple = on_tuples(tuple, x)
+on_tuples(tuple::T, x::S) where {T <: Tuple, S <: GroupElem} = T(pnt^x for pnt in tuple)
+^(tuple::T, x::S) where {T <: Tuple, S <: GroupElem} = on_tuples(tuple, x)
 
 
 """
@@ -127,21 +127,21 @@ BitSet with 2 elements:
 """
 on_sets(set::GapObj, x::GAPGroupElem) = GAPWrap.OnSets(set, GapObj(x))
 
-function on_sets(set::Vector{T}, x::GAPGroupElem) where T
+function on_sets(set::Vector{T}, x::S) where {T,S<:GroupElem}
     res = T[pnt^x for pnt in set]
     sort!(res)
     return res
 end
 
-on_sets(set::T, x::GAPGroupElem) where T <: AbstractSet = T(pnt^x for pnt in set)
+on_sets(set::T, x::S) where {T<:AbstractSet,S<:GroupElem} = T(pnt^x for pnt in set)
 
-function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
+function on_sets(set::T, x::S) where {T<:Tuple,S<:GroupElem}
     res = [pnt^x for pnt in set]
     sort!(res)
     return T(res)
 end
 
-^(set::AbstractSet, x::GAPGroupElem) = on_sets(set, x)
+^(set::AbstractSet, x::S) where {S<:GroupElem} = on_sets(set, x)
 
 """
     on_sets_sets(set::GapObj, x::GAPGroupElem)
@@ -191,15 +191,16 @@ true
 """
 on_sets_sets(set::GapObj, x::GAPGroupElem) = GAPWrap.OnSetsSets(set, GapObj(x))
 
-function on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+function on_sets_sets(set::Vector{T}, x::S) where {T,S<:GroupElem}
     res = T[on_sets(pnt, x) for pnt in set]
     sort!(res)
     return res
 end
 
-on_sets_sets(set::T, x::GAPGroupElem) where T <: AbstractSet = T(on_sets(pnt, x) for pnt in set)
+on_sets_sets(set::T, x::S) where {T<:AbstractSet,S<:GroupElem} =
+  T(on_sets(pnt, x) for pnt in set)
 
-function on_sets_sets(set::T, x::GAPGroupElem) where T <: Tuple
+function on_sets_sets(set::T, x::S) where {T<:Tuple,S<:GroupElem}
     res = [on_sets(pnt, x) for pnt in set]
     sort!(res)
     return T(res)
