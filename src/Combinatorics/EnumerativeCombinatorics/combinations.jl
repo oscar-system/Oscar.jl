@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::Int, k::Int) = Combinations(1:n, k)
+combinations(n::Int, k::Int) = Combinations(range(; length=n), k)
 
 @doc raw"""
     combinations(v::AbstractVector, k::Int)
@@ -73,6 +73,10 @@ Base.length(C::Combinations) = binomial(C.n, C.k)
 
 Base.eltype(::Type{Combinations{T}}) where {T} = Combination{eltype(T)}
 
+function Base.show(io::IO, C::Combinations{Base.OneTo})
+  print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
+end
+
 function Base.show(io::IO, C::Combinations)
   print(io, "Iterator over the ", C.k, "-combinations of ", C.v)
 end
@@ -112,6 +116,10 @@ end
 
 function Base.copy(C::Combination)
   return Combination(copy(data(C)))
+end
+
+function Base.getindex(C::Combinations{Base.OneTo}, i::IntegerUnion)
+  return combination(C.n, C.k, i)
 end
 
 function Base.getindex(C::Combinations, i::IntegerUnion)
