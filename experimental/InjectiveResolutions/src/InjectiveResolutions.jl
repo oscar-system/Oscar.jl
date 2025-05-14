@@ -1267,12 +1267,26 @@ false
   R_B = base_ring(R)
   I = modulus(R)
   M = quotient_ring_as_module(I)
-  n = codim(I)                # Calculate the codimension of the ideal
+  n = codim(I)
 
   # Check the S2 condition
   test_range = 0:(dim(R_B) - n - 2)
 
-  all(dim(R_B) - dim(ext(M, graded_free_module(R_B, 1), j + n + 1)) >= (j + n + 3) for j in test_range) || return false # S2 condition not satisfied
+  for j in test_range
+    # Check if codimension of Ext^{j+n+1} is at least j+n+3
+    # get ext:
+    E = ext(M,graded_free_module(R_B, 1),j + n + 1)
+    # work around issue https://github.com/oscar-system/Oscar.jl/issues/4884
+    if is_zero(E)
+      d = -1
+    else 
+      d = dim(E)
+    end
+    cod = dim(R_B) - d
+    if cod < j+n+3
+        return false
+    end               # S2 condition not satisfied
+  end
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
   d = dim(Jac)                   # Get dimension of the Jacobian
