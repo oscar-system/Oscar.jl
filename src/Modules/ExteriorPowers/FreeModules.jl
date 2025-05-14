@@ -24,7 +24,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   result = if is_graded(F)
     G = grading_group(F)
     weights = elem_type(G)[]
-    for fs in combinations(F, p)
+    for fs in combinations(gens(F), p)
       push!(weights, sum(_degree_fast(f) for f in fs; init=zero(G)))
     end
     grade(result_, weights)
