@@ -676,9 +676,9 @@ end
       R = root_system(birational_sequence(mb))
       w = WeightLatticeElem(R, highest_weight) - WeightLatticeElem(2 * simple_root(R, 1) - 2 * simple_root(R, 2))
 
-      monomials_for_weight_w = Set{ZZMPolyRingElem}([mon for mon in monomials(mb) if WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w])
+      monomials_for_weight_w = filter(mon -> WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w, monomials(mb))
 
-      exponent_vectors = Set{Vector{Int64}}([collect(exponents(m))[1] for m in monomials_for_weight_w])
+      exponent_vectors = Set{Vector{Int64}}([only(exponents(m)) for m in monomials_for_weight_w])
     
       @test exponent_vectors == expected_result
     end
