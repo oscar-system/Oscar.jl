@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -16,7 +17,6 @@ The implemented algorithms may be accessed using the following function.
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = ngens(base_ring(I)),
       algorithm::Symbol = :standard
     )
 ```

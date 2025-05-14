@@ -1308,7 +1308,6 @@ base_ring_type(::Type{MPolyLocalizedIdeal{LRT, LRET}}) where {LRT, LRET} = LRT
 
 ### type getters
 ideal_type(::Type{MPolyLocalizedRingType}) where {MPolyLocalizedRingType<:MPolyLocRing} = MPolyLocalizedIdeal{MPolyLocalizedRingType, elem_type(MPolyLocalizedRingType)}
-ideal_type(L::MPolyLocRing) = ideal_type(typeof(L))
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring

@@ -21,7 +21,6 @@ include("special-ideals.jl")
 
 include("standard_walk.jl")
 include("generic_walk.jl")
-include("perturbed_walk.jl")
 
 export groebner_walk
 

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -110,7 +111,7 @@ following methods:
 * `has_zero_section_class(m::AbstractFTheoryModel)`,
 * `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
-* `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
+* `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
 
 
 ## Methods
