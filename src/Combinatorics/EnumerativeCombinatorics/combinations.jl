@@ -206,7 +206,7 @@ end
 # merge sort vcat(a,b) and keep track of the sign of permutation.
 # requires that a and b are both sorted, and contain no common elements.
 function merge_sorted_with_sign(a::Vector{T}, b::Vector{T}) where T<:IntegerUnion
-  is_disjoint(a,b) || return 0, nothing
+  isdisjoint(a,b) || return 0, nothing
 
   result = zeros(T, length(a)+length(b))
   p = length(a)
