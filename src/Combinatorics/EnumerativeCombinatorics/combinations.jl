@@ -114,6 +114,10 @@ function Base.copy(C::Combination)
   return Combination(copy(data(C)))
 end
 
+function Base.getindex(C::Combinations, i::IntegerUnion)
+  c = combination(C.n, C.k, i)
+  return C.v[data(c)]
+end
 
 ################################################################################
 #
@@ -206,7 +210,7 @@ end
 # merge sort vcat(a,b) and keep track of the sign of permutation.
 # requires that a and b are both sorted, and contain no common elements.
 function merge_sorted_with_sign(a::Vector{T}, b::Vector{T}) where T<:IntegerUnion
-  isdisjoint(a,b) || return nothing, sign
+  isdisjoint(a,b) || return nothing, 0
 
   result = zeros(T, length(a)+length(b))
   p = length(a)
