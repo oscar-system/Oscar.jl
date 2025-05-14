@@ -7,7 +7,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.11.3", # version this script upgrades to
-   function upgrade_0_11_3(s::UpgradeState, dict::Dict)
+  function upgrade_0_11_3(s::UpgradeState, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
@@ -100,7 +100,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     # Upgrades basic types
-     if dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "QQFieldElem", "zzModRing"] || contains(dict_type, "Int")
+    if dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "QQFieldElem", "zzModRing"] || contains(dict_type, "Int")
       if dict_type == "QQFieldElem"
         num = dict[:data][:num][:data]
         den = dict[:data][:den][:data]
