@@ -72,8 +72,8 @@ end
 @doc raw"""
     local_cohomology(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integer)
 
-Compute a sector partition (see, e.g. $\cite{HM05}$ or $\cite{MS05}$) of the local cohomology module $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
-The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in $\cite[Definition 1.2]{HM05}$.
+Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the local cohomology module $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
+The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
 
 !!! note
 The monoid algebra $k[Q]$ must be normal. 
@@ -114,8 +114,8 @@ end
 @doc raw"""
     local_cohomology(M::SubquoModule{<:MonoidAlgebraElem},I::MonoidAlgebraIdeal,i::Integer)
 
-Compute a sector partition (see, e.g. $\cite{HM05}$ or $\cite{MS05}$) of the local cohomology module $H^i_I(M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
-The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in $\cite[Definition 1.2]{HM05}$.
+Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the local cohomology module $H^i_I(M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
+The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
 
 !!! note
 The monoid algebra $k[Q]$ must be normal. 
@@ -167,11 +167,12 @@ function local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebra
   return LC
 end
 
-@doc raw""""
+@doc raw"""
     zeroth_local_cohomology(M::MonoidAlgebraModule, I::MonoidAlgebraIdeal)
 
 Computes the local cohomology module
-\[H^0_I(M) = \Gamma_I(M) = \{m\in M \mid m \cdot I^n = 0 \text{ for some }n \in \NN_{>0} \}.\]
+
+$H^0_I(M) = \Gamma_I(M) = \{m\in M \mid m \cdot I^n = 0 \text{ for some }n \in \mathbb{N}_{>0} \}.$
 
 # Examples
 ```jldoctest
@@ -210,7 +211,7 @@ end
 @doc raw"""
     local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 
-For $1 \geq j \leq i $ compute sector partitions (see, e.g. $\cite{HM05}$) of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
+For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
 The output consists of a list of sector partitions. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$. 
 
 !!! note
@@ -224,7 +225,7 @@ end
 @doc raw"""
     local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
 
-For $1 \geq j \leq i $ compute sector partitions (see, e.g. $\cite{HM05}$) of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in $\cite{HM05}$. 
+For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
 The output consists of a list of sector partitions. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
 
 !!! note
@@ -275,7 +276,7 @@ end
   compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
 
 This function computes a vector $\tau^j \in (\mathbb{Z}\cup \infty)^n$ for every indecomposable injective $J^j$.
-See~\cite[Section 6]{HM05}.
+See [HM05](@cite) (Section 6).
 """
 function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
   # get linear functionals tau_i for every hyperplane bounding Q, i.e. for every facet
@@ -447,7 +448,7 @@ end
 @doc raw"""
   _local_cohomology_sector(field::Field,A::Vector{Int},j::Integer,k::Integer,phi::Union{Vector{Any},MatElem{T}},psi::Union{Vector{Any},MatElem{T}}) where {T<:FieldElem}
 
-This function follows the construction in the proof of$\cite[Theorem 5.2]{HM05}$
+This function follows the construction in the proof of [HM05](@cite) (Theorem 5.2).
 """
 function _local_cohomology_sector(
   field::Field,
@@ -593,7 +594,7 @@ end
 @doc raw"""
   maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
 
-This follows Algorithm 6.4. in$~\cite{HM05}$ and computes all needed maps (as described in the proof of~\cite[Proposition 5.1]{HM05}).
+This follows Algorithm 6.4. in [HM05](@cite) and computes all needed maps (as described in the proof of [HM05](@cite) (Proposition 5.1)).
 """
 function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
   k = coefficient_ring(kQ)
