@@ -280,7 +280,7 @@ end
 # AˣX⁺ is generated as an AˣX-algebra by the images of these generators under jₓ, ev[i] = jₓ(gs[i])
 #
 ###############################################################################
-TODO This function needs to be tested and documented
+### TODO This function needs to be tested and documented
 ################################################################################
 #
 function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
