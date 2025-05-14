@@ -101,7 +101,6 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     # Upgrades basic types
      if dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "QQFieldElem", "zzModRing"] || contains(dict_type, "Int")
-dict_type
       if dict_type == "QQFieldElem"
         num = dict[:data][:num][:data]
         den = dict[:data][:den][:data]
