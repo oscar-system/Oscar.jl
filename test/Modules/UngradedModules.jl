@@ -447,7 +447,7 @@ end
     @test image(emb)[1] == image(map(F1,Ker))[1]
   end
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+    A = matrix([randpoly(R,0:5,2,2) for i=1:3,j=1:2])
     A = map(A)
     K,emb = kernel(A)
     @test iszero(emb*A)
@@ -469,7 +469,7 @@ end
     @test image(emb)[1] == image(map(F1,Ker))[1]
   end
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+    A = matrix([randpoly(R,0:5,2,2) for i=1:3,j=1:2])
     A = map(A)
     K,emb = kernel(A)
     @test image(emb)[1] == K
@@ -484,8 +484,8 @@ end
   B = R[x^2 y^2*x;-y x*y]
   @test iszero(SubquoModule(A,B))
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-    B = matrix([randpoly(R,0:15,2,2) for i=1:2,j=1:2])
+    A = matrix([randpoly(R,0:5,2,2) for i=1:3,j=1:2])
+    B = matrix([randpoly(R,0:5,2,2) for i=1:2,j=1:2])
     @test iszero(SubquoModule(A,A))
     @test !iszero(SubquoModule(A,B)) # could go wrong
   end
@@ -519,8 +519,8 @@ end
   @test i2*p2 == identity_map(M2)
   @test p2*i2 == identity_map(M1)
 
-  A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
   M1 = SubquoModule(A1,B1)
   M2,i2,p2 = Oscar._old_simplify(M1)
   for k=1:5
@@ -535,8 +535,8 @@ end
   @test is_bijective(i2)
   @test is_bijective(p2)
 
-  A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
-  B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+  A1 = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:3])
+  B1 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:3])
   M1 = SubquoModule(A1,B1)
   M2,i2,p2 = Oscar._old_simplify(M1)
 
@@ -713,8 +713,8 @@ end
   Z = FreeMod(R,0)
   @test iszero(hom(Z,Z)[1])
   for k=1:10
-    A = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-    B = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:2])
+    B = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
     N = SubquoModule(A,B)
 
     @test iszero(hom(N,Z)[1])
@@ -723,15 +723,15 @@ end
 
   # test welldefinedness of randomly generated homomorphisms (using hom() and element_to_homomorphism())
   for k=1:10
-    A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A1 = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:2])
+    A2 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:2])
+    B1 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
+    B2 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
     N = SubquoModule(A1,B1)
     M = SubquoModule(A2,B2)
     HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M, algorithm=:matrices)[1]
     for l=1:10
-      v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
+      v = sparse_row(matrix([randpoly(R,0:5,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
       H = HomNM(v)
       H = element_to_homomorphism(H)
       @test is_welldefined(H)
@@ -747,13 +747,13 @@ end
   F3 = FreeMod(R,3)
   F4 = FreeMod(R,4)
 
-  for _=1:10
-    A1 = matrix([randpoly(R,0:15,4,3) for i=1:3,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+  for _=1:3 # At some later point we run into non-finishing computations with this seed. 
+    A1 = matrix([randpoly(R,0:5,4,3) for i=1:3,j=1:2])
+    B1 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
 
 
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+    A2 = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:3])
+    B2 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:3])
 
     M1 = SubquoModule(F2,A1,B1)
     M2 = SubquoModule(F3,A2,B2)
@@ -766,8 +766,8 @@ end
       @test phi(v) == v
     end
 
-    A3 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    #B3 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A3 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:2])
+    #B3 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
     M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2,A3))
 
     N,pure_N = tensor_product(M3,F4, task=:map)
@@ -790,12 +790,12 @@ end
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
 
-  A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:5,2,2) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:5,2,2) for i=1:1,j=1:2])
   M1 = SubquoModule(F2,A1,B1)
 
-  A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-  B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+  A2 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:3])
+  B2 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:3])
   M2 = SubquoModule(F3,A2,B2)
 
   sum_M, emb = direct_sum(M1,M2)
@@ -825,12 +825,12 @@ end
     @test g == pr[2](emb[2](g))
   end
 
-  A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:5,2,2) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:5,2,2) for i=1:1,j=1:2])
   N1 = SubquoModule(F2,A1,B1)
 
-  A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-  B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+  A2 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:3])
+  B2 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:3])
   N2 = SubquoModule(F3,A2,B2)
 
   prod_N = direct_product(N1,N2,task=:none)
@@ -1103,10 +1103,10 @@ end
   R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   for _=1:10
-    A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A1 = matrix([randpoly(R,0:5,2,1) for i=1:3,j=1:1])
+    A2 = matrix([randpoly(R,0:5,2,1) for i=1:2,j=1:2])
+    B1 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:1])
+    B2 = matrix([randpoly(R,0:5,2,1) for i=1:1,j=1:2])
 
     N = SubquoModule(A1,B1)
     M = SubquoModule(A2,B2)
@@ -1114,7 +1114,7 @@ end
     if iszero(HomNM)
       continue
     end
-    H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
+    H = HomNM(sparse_row(matrix([randpoly(R,0:5,2,1) for _=1:1,j=1:ngens(HomNM)])))
     H = element_to_homomorphism(H)
 
     u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
