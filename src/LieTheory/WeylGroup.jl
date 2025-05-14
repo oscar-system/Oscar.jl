@@ -756,8 +756,6 @@ end
 ###############################################################################
 # G-set functionality
 
-gset(W::WeylGroup) = gset(W, *, roots(root_system(W)); closed=is_finite(W))
-
 function gset_by_type(W::WeylGroup, Omega, ::Type{RootSpaceElem}; closed::Bool=false)
   return GSetByElements(W, *, Omega; closed=closed, check=false)
 end
