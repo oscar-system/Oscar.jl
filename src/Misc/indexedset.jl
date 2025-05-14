@@ -75,7 +75,6 @@ Base.getindex(s::IndexedSet, i::Int) = s.data[i]
 # lookup index via object
 (s::IndexedSet{T})(x::T) where {T} = get(s, x, 0)
 Base.get(s::IndexedSet, x::T, def::Int) where {T} = get(s.pos, x, def)
-Base.collect(s::IndexedSet) = s.data
 
 Base.iterate(s::IndexedSet) = iterate(s.data)
 Base.iterate(s::IndexedSet, state) = iterate(s.data, state)

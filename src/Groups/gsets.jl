@@ -432,7 +432,7 @@ function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
     end
   end
 
-  res = as_gset(acting_group(Omega), action_function(Omega), collect(orb))
+  res = as_gset(acting_group(Omega), action_function(Omega), orb)
   # We know that this G-set is transitive.
   set_attribute!(res, :orbits => [res])
   return res
