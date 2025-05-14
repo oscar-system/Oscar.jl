@@ -40,7 +40,7 @@ end
 
 @testset "hartshorne example" begin
 # this is Hartshorne's example from Section 20.5 in 24HLC (24 hours of local cohohomology)
-kQ = monoid_algebra_from_lattice([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
+kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
 a, b, c, d = gens(kQ)
 
 # M = k[Q] (as a k[Q]-module)

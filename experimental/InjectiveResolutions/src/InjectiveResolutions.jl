@@ -90,7 +90,6 @@ import Base:
 # add more things here
 
 ## Functions visible on the outside
-export monoid_algebra_from_lattice
 export monoid_algebra
 export monoid_algebra_ideal
 
@@ -267,12 +266,12 @@ function Base.show(io::IO, Ji::IndecInj)
     )
 end
 
-function monoid_algebra(A::Union{MPolyRing,MPolyQuoRing})
-  return MonoidAlgebra(A)
-end
+# function monoid_algebra(A::Union{MPolyRing,MPolyQuoRing})
+#   return MonoidAlgebra(A)
+# end
 
 @doc raw"""
-    monoid_algebra_from_lattice(B::Matrix{Int},k::Field)
+    monoid_algebra(B::Matrix{Int},k::Field)
 
 Given a integer matrix $M_Q\in \mathbb{Z}^{d\times n}$ return the monoid algebra
 
@@ -287,11 +286,11 @@ julia> M_Q = [1 0; 0 1]
  1  0
  0  1
 
-julia> monoid_algebra_from_lattice(M_Q,QQ)
+julia> monoid_algebra(M_Q,QQ)
 monoid algebra over rational field with cone of dimension 2
 ```
 """
-function monoid_algebra_from_lattice(M_Q::Matrix{Int}, k::Field)
+function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   d = size(M_Q, 1)
 
   # construct k[t_1,...,t_d]
@@ -313,7 +312,7 @@ function monoid_algebra_from_lattice(M_Q::Matrix{Int}, k::Field)
 end
 
 @doc raw"""
-    monoid_algebra_from_lattice(V_Q::Vector{Vector{Int}},k::Field)
+    monoid_algebra(V_Q::Vector{Vector{Int}},k::Field)
 
 Given a finite number of vectors $v_1,\dots,v_n$ in $\mathbb{Z}^d$ return the monoid algebra
 
@@ -323,7 +322,7 @@ where $I_L = (\bold{x}^u - \bold{x}^v \mid u,v \in \mathbb{N}^d \text{ with } u 
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra_from_lattice([[0,1],[1,1],[2,1]],QQ)
+julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
 monoid algebra over rational field with cone of dimension 2
 
 
@@ -336,8 +335,8 @@ Quotient
   by ideal (-x_1*x_3 + x_2^2)
 ```
 """
-function monoid_algebra_from_lattice(V_Q::Vector{Vector{Int}}, k::Field)
-  return monoid_algebra_from_lattice(Matrix{Int}(transpose(matrix(V_Q))), k)
+function monoid_algebra(V_Q::Vector{Vector{Int}}, k::Field)
+  return monoid_algebra(Matrix{Int}(transpose(matrix(V_Q))), k)
 end
 
 function monoid_algebra_ideal(kQ::MonoidAlgebra, I::Ideal)
@@ -1248,7 +1247,7 @@ R1 condition.
 
 # Examples
 ```jldoctest
-julia> A = monoid_algebra_from_lattice([[4,0],[3,1],[1,3],[0,4]],QQ)
+julia> A = monoid_algebra([[4,0],[3,1],[1,3],[0,4]],QQ)
 monoid algebra over rational field with cone of dimension 2
 
 
@@ -1306,7 +1305,6 @@ end # module InjectiveResolutions
 using .InjectiveResolutions
 
 ## Functions visible on the outside
-export monoid_algebra_from_lattice
 export monoid_algebra
 
 export irreducible_resolution
