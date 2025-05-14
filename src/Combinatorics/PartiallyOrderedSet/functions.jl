@@ -15,6 +15,7 @@ the form of the adjacency matrix of a Hasse diagram. The covering relations
 must be given in topological order, i.e., `covrels` must be strictly upper
 triangular.
 
+# Examples
 ```jldoctest
 julia> a2_adj_cov = [
            0 1 1 0 0 0
@@ -44,6 +45,7 @@ end
 Construct an inclusion based partially ordered with rows of `I` as co-atoms.
 That is, the elements of the poset are the given sets and their intersections.
 
+# Examples
 ```jldoctest
 julia> im = vertex_indices(facets(simplex(3)))
 4×4 IncidenceMatrix
@@ -78,6 +80,7 @@ Construct a partially ordered set from a directed graph describing the Hasse dia
 The graph must be acyclic and have unique minimal and maximal elements. Edges must be
 directed from minimal to maximal element.
 
+# Examples
 ```jldoctest
 julia> g = graph_from_edges(Directed, [[2,1],[2,4],[1,3],[4,3]])
 Directed graph with 4 nodes and the following edges:
@@ -132,6 +135,7 @@ The dictionary `node_ranks` must give a valid rank for each node in the graph, s
 increasing from the unique minimal element to the unique maximal element.
 The rank difference between two adjacent nodes may be larger than one.
 
+# Examples
 ```jldoctest
 julia> g = graph_from_edges(Directed, [[2,1],[2,4],[1,3],[4,3],[3,6],[2,5],[5,6]])
 Directed graph with 6 nodes and the following edges:
@@ -165,6 +169,7 @@ end
 Return an undirected graph which has an edge for each pair of comparable
 elements in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
@@ -225,6 +230,7 @@ Base.length(p::PartiallyOrderedSet) = pm_object(p).N_NODES::Int - p.artificial_t
 
 Return the rank of an element in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
@@ -251,6 +257,7 @@ end
 
 Return the rank of a partially ordered set, i.e., the rank of a maximal element.
 
+# Examples
 ```jldoctest
 julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
@@ -268,6 +275,7 @@ end
 
 Return the maximal chains of a partially ordered set as a vector of sets of node ids.
 
+# Examples
 ```jldoctest
 julia> pos = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
@@ -286,6 +294,7 @@ julia> maximal_chains(pos)
 """
 function maximal_chains(p::PartiallyOrderedSet)
   mc = Polymake.graph.maximal_chains_of_lattice(pm_object(p))::IncidenceMatrix
+  # TODO check with top and bottom
   return Vector.(Polymake.to_one_based_indexing.(Polymake._row.(Ref(mc), 1:nrows(mc))))
 end
 
@@ -360,6 +369,7 @@ end
 
 Return the lattice of cyclic flats of a matroid.
 
+# Examples
 ```jldoctest
 julia> p = lattice_of_cyclic_flats(fano_matroid())
 Partially ordered set of rank 3 on 9 elements
@@ -376,6 +386,7 @@ end
 
 Return the lattice of flats of a matroid.
 
+# Examples
 ```jldoctest
 julia> p = lattice_of_flats(fano_matroid())
 Partially ordered set of rank 3 on 16 elements
@@ -392,6 +403,7 @@ end
 
 Return the order polytope of a poset, see [Sta86](@cite).
 
+# Examples
 ```jldoctest
 julia> p = face_poset(simplex(2))
 Partially ordered set of rank 3 on 8 elements
@@ -418,6 +430,7 @@ end
 
 Return the chain polytope of a poset, see [Sta86](@cite).
 
+# Examples
 ```jldoctest
 julia> p = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
@@ -438,6 +451,7 @@ Maximal ranked partially ordered set with number of nodes per rank given in
 
 See [AFJ25](@cite) for details.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -451,6 +465,8 @@ end
     graph(p::PartiallyOrderedSet)
 
 Return the directed graph of covering relations in a partially ordered set.
+
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -465,6 +481,7 @@ graph(p::PartiallyOrderedSet) = Graph{Directed}(pm_object(p).ADJACENCY)
 @doc raw"""
     node_ranks(p::PartiallyOrderedSet)
 
+# Examples
 Return a dictionary mapping each node index to its rank.
 """
 node_ranks(p::PartiallyOrderedSet) = Dict((i => rank(p, i)) for i in 1:length(p))
@@ -474,6 +491,7 @@ node_ranks(p::PartiallyOrderedSet) = Dict((i => rank(p, i)) for i in 1:length(p)
 
 Return the number of atoms in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -489,6 +507,7 @@ n_atoms(p::PartiallyOrderedSet) = length(atoms(p))
 
 Return the number of co-atoms in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -504,6 +523,7 @@ n_coatoms(p::PartiallyOrderedSet) = length(coatoms(p))
 
 Return the atoms in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -521,6 +541,7 @@ atoms(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), outneighbors
 
 Return the co-atoms in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -589,6 +610,8 @@ end
     element(p::PartiallyOrderedSet, i::Int)
 
 Return the element in a partially ordered set with give node id.
+
+# Examples
 ```jldoctest
 julia> fl = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
@@ -604,6 +627,7 @@ element(p::PartiallyOrderedSet, i::Int) = PartiallyOrderedSetElement(p, i)
 
 Return all elements in a partially ordered set.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
@@ -619,6 +643,7 @@ elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), 0:n_verti
 
 Return the elements in a partially ordered set with a given rank.
 
+# Examples
 ```jldoctest
 julia> pos = maximal_ranked_poset([2,4,3])
 Partially ordered set of rank 4 on 11 elements
