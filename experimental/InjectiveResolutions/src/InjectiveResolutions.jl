@@ -307,8 +307,12 @@ function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   targ = [prod(t[j]^M_Q[j, i] for j in 1:d) for i in 1:size(M_Q, 2)]
   map_T_R = hom(R, T, targ)
 
-  # return monoid algebra 
-  return MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1])
+  # return monoid algebra
+   if is_zero(ideal(gens(kernel(map_T_R))))
+    return MonoidAlgebra(R)
+   else
+    return  MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1])
+   end
 end
 
 @doc raw"""

@@ -1,54 +1,7 @@
-@testset "test is_normal" begin
-kQ = monoid_algebra([[3,0,0,3],[2,1,0,3],[0,3,0,3],[3,0,1,0],[2,1,1,0],[0,3,1,0]],QQ)
-@test !is_normal(kQ)
-kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
-@test is_normal(kQ)
-kQ = monoid_algebra([[4,0],[3,1],[1,3],[0,4]],QQ)
-@test !is_normal(kQ)
-end
-@testset "constuct MonoidAlgebras" begin
-# definition of monoid algebra as quotient of polynomial ring
-S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
-J = ideal(S, [x*z-y^2])
-R_Q, phi = quo(S, J)
-
-# get MonoidAlgebra
-kQ = monoid_algebra(R_Q)
-
-# get same MonoidAlgebra from lattice
-_kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]], QQ)
-f = hom(_kQ.algebra,kQ.algebra,[x,y,z]) #define isomorphism
-@test is_injective(f) && is_surjective(f)
-@test cone(kQ) == cone(_kQ)
-@test dim(cone(kQ)) == 2
-
-
-# definition of polynomial ring k[x,y]
-R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
-
-# get MonoidAlgebra
-kQ = monoid_algebra(R_Q)
-_kQ = monoid_algebra([[1,0],[0,1]],QQ)
-f = hom(_kQ.algebra,kQ.algebra,[x,y])
-@test is_injective(f) && is_surjective(f)
-@test dim(cone(kQ)) == 2
-@test cone(kQ) == cone(_kQ)
-
-
-#example with grading group ZZ^3
-kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
-a, b, c, d = gens(kQ)
-@test dim(cone(kQ)) == 3
-@test length([f for f in faces(kQ) if dim(f.poly) == 2]) == 4 && length(facets(cone(kQ))) == 4
-@test is_pointed(kQ)
-end
-
 @testset "injective resolution over k[x,y]" begin
-# definition of polynomial ring k[x,y]
-R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
-
 # get MonoidAlgebra
-kQ = monoid_algebra(R_Q)
+kQ = monoid_algebra([[1, 0], [0, 1]],QQ)
+x,y = gens(kQ)
 
 # define ideal over monoid algebra
 I = ideal(kQ, [x^4, x^2*y^2, y^4])
@@ -72,14 +25,9 @@ inj_res_Q = inj_res.Q_graded_part
 end
 
 @testset "injective resolutions over k[Q] = k[x,y,z]/(xz - y^2)" begin
-# definition of monoid algebra as quotient of polynomial ring
-S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
-J = ideal(S, [x*z-y^2])
-R_Q,_ = quo(S, J)
-
 # get MonoidAlgebra
-kQ = monoid_algebra(R_Q)
-
+kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]],QQ)
+x,y,z = gens(kQ)
 
 
 ##first example

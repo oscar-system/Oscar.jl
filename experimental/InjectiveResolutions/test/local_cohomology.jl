@@ -1,11 +1,6 @@
 @testset "first local cohomology example" begin
-S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
-J = ideal(S, [x*z-y^2])
-R_Q, phi = quo(S, J)
-x, y, z = gens(R_Q)
-
 # get MonoidAlgebra
-kQ = monoid_algebra(R_Q);
+kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]],QQ);
 x, y, z = gens(kQ);
 
 #example of computing local cohomology modules 
@@ -72,13 +67,9 @@ H3 = Oscar.local_cohomology(I_M, I, 3)
 end
 
 @testset "local cohomology of module" begin
-    # definition of monoid algebra as quotient of polynomial ring
-S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[[0, 1], [1, 1], [2, 1]])
-J = ideal(S, [x*z-y^2])
-R_Q,_ = quo(S, J)
-
 # get MonoidAlgebra
-kQ = monoid_algebra(R_Q)
+kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]],QQ)
+x,y,z = gens(kQ)
 
 # define ideals over monoid algebra
 I = ideal(kQ, [x^2*z, x^4*y])
