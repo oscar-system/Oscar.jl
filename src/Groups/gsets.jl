@@ -168,7 +168,7 @@ end
 ##  a default action depending on the element type of `seeds` (which can be
 ##  any iterable collection.)
 
-gset(G::T, seeds; closed::Bool = false) where T<:GAPGroup = gset_by_type(G, seeds, eltype(seeds); closed = closed)
+gset(G::T, seeds; closed::Bool = false) where T<:Group = gset_by_type(G, seeds, eltype(seeds); closed = closed)
 
 
 ## natural action of permutations on positive integers
