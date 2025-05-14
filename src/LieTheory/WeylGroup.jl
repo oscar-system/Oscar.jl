@@ -756,9 +756,9 @@ end
 ###############################################################################
 # G-set functionality
 
-function gset(G::WeylGroup; closed::Bool=false, check::Bool=true)
-  return GSetByElements(G, *, roots(root_system(G)); closed=closed, check=check)
-end
+# `on_tuples` and `on_sets` delegate to an action via `^` on the subobjects
+Base.:^(x::WeylGroupElem, y::WeylGroupElem) = x * y
+Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
 
 function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
   W = acting_group(Omega) # our base group
@@ -786,8 +786,6 @@ function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
   return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
 end
 
-# Required for blocks computation.
-on_sets(set::T, x::WeylGroupElem) where {T<:AbstractSet} = T(pnt * x for pnt in set)
 
 ###############################################################################
 # ReducedExpressionIterator
