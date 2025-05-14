@@ -766,10 +766,6 @@ function gset_by_type(W::WeylGroup, Omega, ::Type{WeightLatticeElem}; closed::Bo
   return GSetByElements(W, *, Omega; closed=closed, check=false)
 end
 
-# `on_tuples` and `on_sets` delegate to an action via `^` on the subobjects
-Base.:^(x::WeylGroupElem, y::WeylGroupElem) = x * y
-Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
-
 function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
   W = acting_group(Omega) # our base group
 
