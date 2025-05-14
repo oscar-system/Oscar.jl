@@ -743,8 +743,13 @@ end
 
 function Hecke.any_order(K::NfNSGen)
   B = basis(K, copy = false)
-  for b in B
-    @assert isone(denominator(b.f))
+  B = copy(B)
+  for i in 1:length(B)
+    z = B[i]
+    d = denominator(minpoly(z))
+    if !(is_unit(d))
+      B[i] = d * z
+    end
   end
 
   O = order(K, B)

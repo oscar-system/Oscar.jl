@@ -291,8 +291,9 @@
       @test t == b^degree(K)
     end
 
-    # (Maximal) order needs some adjustments on the Hecke side
-    @test_broken is_maximal(maximal_order(K))
+    if base_field(K) isa QQField
+      @test is_maximal(maximal_order(K))
+    end
 
     # Random
     b = @inferred rand(K, -1:1)
@@ -391,5 +392,15 @@
     zk = maximal_order(k)
     @test is_maximal(maximal_order(k))
     @test is_one(discriminant(zk))
+  end
+
+  let #
+    R, (x1, x2, x3) = polynomial_ring(QQ, 3)
+    I = ideal([28*x3^2 - 4*x3 - 1,
+               4*x2 + 2*x3 - 1,
+               2*x1 + 2*x3 - 1])
+    k, _ = number_field(I)
+    zk = maximal_order(k)
+    @test discriminant(zk) == 8
   end
 end
