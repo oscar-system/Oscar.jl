@@ -612,15 +612,13 @@ end
 
 @testset "Demazure" begin
   @testset "Trivial Cases" begin
-    for case in [
+    for (type, rank, highest_weight) in [
       (:A, 3, [1, 0, 1]),
       (:A, 3, [2, 2, 2]),
       (:B, 2, [1, 1]),
       (:D, 4, [1, 0, 1, 0]),
       (:G, 2, [1, 0]),
     ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
-      
-      type, rank, highest_weight = case
 
       # longest weyl group element leads to the same result as a simple module
       mb1 = basis_lie_highest_weight(type, rank, highest_weight; monomial_ordering)
@@ -634,17 +632,15 @@ end
   end
 
   @testset "Nontrivial Cases" begin
-    for case in [
+    for (type, rank, highest_weight, weyl_group_elem) in [
       (:A, 3, [1, 0, 1], [1, 2, 1]),
       (:A, 3, [2, 2, 2], [1, 2, 1]),
       (:A, 3, [2, 1, 0], [1, 2, 1]), #example below
-      #(:B, 2, [1, 0], [1, 2]),
-      #(:C, 2, [1, 1], [1, 2, 1]),
+      #(:B, 2, [1, 0], [1, 2]), #this fails currently because operators acting upwards are missing
+      #(:C, 2, [1, 1], [1, 2, 1]), #this fails currently because operators acting upwards are missing
       (:D, 4, [1, 0, 1, 0], [1, 2, 1]),
-      #(:G, 2, [1, 0], [1, 2, 1]),
+      #(:G, 2, [1, 0], [1, 2, 1]), #this fails currently because operators acting upwards are missing
     ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
-
-      type, rank, highest_weight, weyl_group_elem = case
 
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
       R = root_system(birational_sequence(mb))
@@ -668,14 +664,13 @@ end
     highest_weight = [2, 1, 0]
     weyl_group_elem = [1, 2, 1]   
 
-    for case in [
+    for (monomial_ordering, expected_result) in [
       (:degrevlex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
       (:lex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
-      #(:invlex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])),
-      #(:neglex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])),
+      #(:invlex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])), #this fails currently without known reason
+      #(:neglex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])), #this fails currently without known reason
       (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
     ]
-      monomial_ordering, expected_result = case
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
     
       R = root_system(birational_sequence(mb))
