@@ -375,19 +375,22 @@ function _can_be_made_equivariant(
   return true, phi
 end
 
-# We look for representatives of orbits of isometries on a lattice $N$ which
-# fit in a given gluing context, i.e. for which a given glue map is
-# equivariant. These isometries all live in a same coset, and we identity two
-# isometries in Let $N$ be the associated lattice.
+# We are given a primitive extension $M\oplus N \subseteq L$ with $N$
+# negative definite. We assume that we have fixed an isometry $f\in O(M)$.
+# We want to determine isometries $g$ of $N$ such that $f\oplus g$ preserves
+# the lattice $L$ (called them "fitting isometries").
 # * `OqfN` here is the image of $O(N)\to O(qN)$ where `qN` is the discriminant
-#    group.
-# * `HNinqN` is the embedding of the glue domain `HN` into `qN`.
-# * `phig` is the glue map between a module `HM` and `HN`.
-# * `fHM` is the isometry of `HM` which should coincide with the isometries of
-#   $N$ along the gluing `phig`.
+#    group of `N`.
+# * `HNinqN` is the embedding of the glue domain `HN` into `qN`, for the given
+#   primitive extension.
+# * `phig` is the glue map between a module `HM` and `HN` associated to the
+#   given primitive extension.
+# * `fHM` is the isometry of `HM` induced by the action of the fixed isometry
+#   `f` of `M`.
 # * `discrep` is the map $O(N)\to O(qN)$.
 # * `stabN` is the stabilizer of `HN` in `GN`, where `GN` is a classifying
-#   group for $N$.
+#   group for $N$ (mostly either the trivial group or the representation of
+#   $O(L, N)$ on $qN$).
 # * if `first == true`, we return only one fitting isometry.
 function _fitting_isometries(
     OqfN::AutomorphismGroup{TorQuadModule},
@@ -1194,7 +1197,7 @@ is isometric to $M$, $N'$ is isometric to $N$ and $L$ is a primitive extension
 of $M'\oplus N'$ satisfying conditions `glue_order` or `q` if assigned.
 
 The content of $V$ depends on the value `classification`.
-There are 6 possibilities:
+There are six possibilities:
   * `classification == :none`: $V$ is the empty list;
   * `classification == :first`: $V$ consists of the first primitive extension
     computed;
@@ -1270,7 +1273,7 @@ isometric to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
 
 If `T == false`, then $V$ will always be the empty list. If `T == true`, then
 the content of $V$ depends on the value of the symbol `classification`. There
-are 4 possibilities:
+are four possibilities:
   * `classification == :none`: $V$ is the empty list;
   * `classification == :first`: $V$ consists of the first primitive embedding
     found;
@@ -1347,7 +1350,7 @@ $L'$ isometric to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
 
 If `T == false`, then $V$ will always be the empty list. If `T == true`, then
 the content of $V$ depends on the value of the symbol `classification`. There
-are 4 possibilities:
+are four possibilities:
   * `classification == :none`: $V$ is the empty list;
   * `classification == :first`: $V$ consists of the first primitive embedding
     found;
@@ -1397,7 +1400,7 @@ $(L', M', N')$ where $L'$ is a lattice in $G$, $M'$ is a sublattice of
 $L'$ isometric to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
 
 If `T == false`, then $V$ will always be the empty list. If `T == true`, then
-the content of $V$ depends on the value of `classification`. There are 4
+the content of $V$ depends on the value of `classification`. There are four
 possibilities:
   * `classification == :none`: $V$ is the empty list;
   * `classification == :first`: $V$ consists of the first primitive embedding
@@ -1651,7 +1654,7 @@ or `q` if assigned. If $M$ (resp. $N$) is equipped with an isometry $f_M$
 $(N, f_N)$) are isomorphic as lattices with isometry.
 
 The content of $V$ depends on the value of `classification`.
-There are 6 possibilities:
+There are six possibilities:
   * `classification == :none`: $V$ is empty by default;
   * `classification == :first`: $V$ consists of the first equivariant primitive
     extension computed;

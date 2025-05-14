@@ -7,7 +7,7 @@ representing the action on the standard basis of $V$.
 
 We store the order of $f$ too, which can finite or infinite.
 
-To construct an object of type *QuadSpaceWithIsom*, see the set of functions
+To construct an object of type `QuadSpaceWithIsom`, see the set of functions
 called [`quadratic_space_with_isometry`](@ref)
 
 # Examples
@@ -72,7 +72,7 @@ inducing $f$ on $L$ seen as a pair $(V, f_a)$ of type
 [`QuadSpaceWithIsom`](@ref). We moreover store the order $n$ of $f$, which can
 be finite or infinite.
 
-To construct an object of type *ZZLatWithIsom*, see the following examples:
+To construct an object of type `ZZLatWithIsom`, see the following examples:
 
 # Examples
 

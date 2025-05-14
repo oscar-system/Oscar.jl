@@ -87,9 +87,9 @@ enumerate_classes_of_lattices_with_isometry(::Union{ZZGenus, ZZLat}, ::Int)
 As a remark: if $n = p_1^{e_1}p_2^{e_2}...p_k^{e_k}$ is the chosen order, with
 $p_1 < p_2 < ... < p_k$ distinct prime numbers and $e_i > 0$ for all $1\leq
 i\leq k$, then the previous function computes first iteratively representatives
-for all classes with isometry in the given genus of order $p_k^{e_k}$. Then, the
-function iteratively increases the order to be $p_{k-1}^{e_{k-1}}$, and so on
-until $n$.
+for all classes in the given genus with an isometry of order finite
+$p_k^{e_k}$. Then, the function iteratively increases the order to be
+$p_{k-1}^{e_{k-1}}p_k^{e_k}$, and so on until $n$.
 
 In particular, the current naive approach requires to determine representatives
 for the isomorphism classes of even lattices with isometry of order dividing

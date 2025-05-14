@@ -13,15 +13,15 @@ methods about primitive embeddings. Most of the content is taken from
 ## Primitive embeddings
 
 Given an embedding $i\colon S\hookrightarrow T$ of nondegenerate integral
-integer lattices, we call $i$ *primitive* if its cokernel $T/i(S)$ is torsion
-free. Two primitive embeddings $i_1\colon S\hookrightarrow M_1$ and
+integer lattices, we call $i$ *primitive* if its cokernel $T/i(S)$ is
+torsionfree. Two primitive embeddings $i_1\colon S\hookrightarrow M_1$ and
 $i_2\colon S \hookrightarrow M_2$ of $S$ into two lattices $M_1$ and $M_2$ are
 called *isomorphic* if there exists an isometry $M_1 \to M_2$ which restricts
 to the identity of $S$. Moreover, if there exists an isometry between $M_1$ and
 $M_2$ which maps $S$ to itself (not necessarily identically), we say that $i_1$
 and $i_2$ defines *isomorphic primitive sublattices* [Nik79](@cite).
 
-In [Nik79](@cite), Nikulin gives necessary and sufficient condition for an
+In [Nik79](@cite), Nikulin gives necessary and sufficient conditions for an
 even integer lattice $M$ to embed primitively into an even unimodular lattice
 with given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally,
 the author also provides methods to compute primitive embeddings of any even

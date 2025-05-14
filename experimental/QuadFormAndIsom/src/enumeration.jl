@@ -174,8 +174,12 @@ function is_admissible_triple(
   end
 
   # Gluing condition at p
-  # If the determinants agree, A+B = C and, equivalently, they agree locally at p too.
-  # Otherwise, their localizations at p must be rationally equal.
+  # If the determinants agree, A+B = C and, equivalently, they agree locally
+  # at p.
+  # Otherwise, they must be rationally equivalent locally at p.
+  # Because their determinants differ by a square, Theorem 3 in Chapter 5,
+  # section 5.1 (page 372) of Conway--Sloane tells that their localizations at
+  # p are rationally equal if and only if the p-excess agree
   if g == 0
     return local_symbol(AperpB, p) == local_symbol(C, p)
   elseif excess(local_symbol(AperpB, p)) != excess(local_symbol(C, p))
@@ -596,7 +600,7 @@ Note that if `Lf` is trivial, the algorithm returns `Lf` by default.
 
 See also [`type(::ZZLatWithIsom)`](@ref).
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function in a larger algorithm, one can use some keyword
     arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
@@ -607,8 +611,9 @@ See also [`type(::ZZLatWithIsom)`](@ref).
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists of lattices of maximum $-2$. In such a case, the enumeration is
+      skipped.
 
 # Examples
 ```jldoctest
@@ -676,7 +681,7 @@ If `first` is set to `true`, only return the first representative computed.
 Note that if `G` is trivial, the algorithm returns the trivial lattice with
 isometry by default.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function in a larger algorithm, one can use some
     keyword arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
@@ -687,8 +692,10 @@ isometry by default.
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists of lattices of maximum $-2$. In such a case, the enumeration is
+      skipped.
+
 
 # Examples
 ```jldoctest
@@ -761,7 +768,7 @@ If `first` is set to `true`, only return the first representative computed.
 Note that if `G` is trivial, the algorithm returns the trivial lattice with
 isometry by default.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function in a larger algorithm, one can use some
     keyword arguments which can be carried along the computations.
     - by setting the values in `cond` to the desired values (in order: rank,
@@ -772,8 +779,10 @@ isometry by default.
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists of lattices of maximum $-2$. In such a case, the enumeration is
+      skipped.
+
 
 # Examples
 ```jldoctest
@@ -834,7 +843,7 @@ function representatives_of_hermitian_type(
   end
 
   d_chi = degree(chi)
-  # In that case the isometry if +- id, so we do not need hermitian genera.
+  # In that case the isometry is +- id, so we do not need hermitian genera.
   if isone(d_chi)
     !is_zero(chi(1)*chi(-1)) && return reps
     f = is_zero(chi(1)) ? identity_matrix(QQ, rG) : -identity_matrix(QQ, rG)
@@ -858,14 +867,14 @@ function representatives_of_hermitian_type(
   ok, rk = divides(rG, d_chi)
   ok || return reps
 
-  # Detect if we have a finite order isometry, or a Salem component
+  # Detect if we have a finite order isometry
   R = parent(chi)
   is_cyclo, n = is_cyclotomic_polynomial_with_data(chi)
   if is_cyclo
     E, b = cyclotomic_field_as_cm_extension(n)
   else
     Etemp, btemp = number_field(chi; cached=false)
-    @req is_maximal(equation_order(Etemp)) "For infinite isometries, the equation order of the associated number field must be maximal (for now)"
+    @req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
     Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)
@@ -923,9 +932,6 @@ function representatives_of_hermitian_type(
 
     allow_info && println("Enumerate hermitian genus of rank $(rank(H))")
     gr = genus_representatives(H)
-    if is_definite(H)
-      @hassert :ZZLatWithIsom 1 mass(H) == sum(1//automorphism_group_order(HH) for HH in gr)
-    end
     for HH in gr
       M, fM = trace_lattice_with_isometry(HH)
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
@@ -978,24 +984,29 @@ For every $(M, g)$ in output, one may decide on the rank `r`, the positive
 signature `p` and the negative signature `n` of the eigenlattices of $(M, g)$
 using the keyword argument `eiglat_cond`. It should consist of a dictionary
 where each key is a divisor of $p*m$, and the corresponding value is a tuple
-`(r, p, n)` of integers.
+`(r, p, n)` of integers. Any undetermined value can be set to a negative
+number; for instance $(-1, 2, -4)$ means that the associated eigenlattice
+must have positive signature 2, without restriction on its rank and
+negative signature.
 
-If the keyword argument `check` is set to `true`, the functions tests whether
+If the keyword argument `check` is set to `true`, the function tests whether
 $(L, f)$ is of hermitian type.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
+
 
 # Examples
 ```jldoctest
@@ -1161,25 +1172,29 @@ The integer `b` can be set to be `0` or `1`, depending on whether one allows
 `Lf` to be among the outputs or not. For instance, setting `b = 1`
 would enforce every $(M, g)$ in output to satisfy that $g$ has order $p*m$.
 
-For every $(M, g)$ in output, one may decide on the rank `r`, the positive
-signature `p` and the negative signature `n` of the eigenlattices of $(M, g)$
+For every $(M, g)$ in output, one may decide on the rank `rM`, the positive
+signature `pM` and the negative signature `nM` of the eigenlattices of $(M, g)$
 using the keyword argument `eiglat_cond`. It should consist of a dictionary
 where each key is a divisor of $p*m$, and the corresponding value is a tuple
-`(r, p, n)` of integers.
+`(rM, pM, nM)` of integers. Any undetermined value can be set to a negative
+number; for instance $(-1, 2, -4)$ means that the associated eigenlattice
+must have positive signature 2, without restriction on its rank and
+negative signature.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
 
 # Examples
 ```jldoctest
@@ -1279,25 +1294,29 @@ of lattices with isometry $(M, g)$ such that the type of $(M, g^p)$ is equal
 to the type of $(L, f)$.
 Note that $e$ can be `0`, while $d$ has to be positive.
 
-For every $(M, g)$ in output, one may decide on the rank `r`, the positive
-signature `p` and the negative signature `n` of the eigenlattices of $(M, g)$
+For every $(M, g)$ in output, one may decide on the rank `rM`, the positive
+signature `pM` and the negative signature `nM` of the eigenlattices of $(M, g)$
 using the keyword argument `eiglat_cond`. It should consist of a dictionary
 where each key is a divisor of $p*m$, and the corresponding value is a tuple
-`(r, p, n)` of integers.
+`(rM, pM, nM)` of integers. Any undetermined value can be set to a negative
+number; for instance $(-1, 2, -4)$ means that the associated eigenlattice
+must have positive signature 2, without restriction on its rank and
+negative signature.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
 """
 function splitting_of_pure_mixed_prime_power(
     Lf::ZZLatWithIsom,
@@ -1378,25 +1397,29 @@ The integer `b` can be set to be `0` or `1`, depending on whether one allows
 `Lf` to be among the outputs or not. For instance, setting `b = 1`
 would enforce every $(M, g)$ in output to satisfy that $g$ has order $p*m$.
 
-For every $(M, g)$ in output, one may decide on the rank `r`, the positive
-signature `p` and the negative signature `n` of the eigenlattices of $(M, g)$
+For every $(M, g)$ in output, one may decide on the rank `rM`, the positive
+signature `pM` and the negative signature `nM` of the eigenlattices of $(M, g)$
 using the keyword argument `eiglat_cond`. It should consist of a dictionary
 where each key is a divisor of $p*m$, and the corresponding value is a tuple
-`(r, p, n)` of integers.
+`(rM, pM, nM)` of integers. Any undetermined value can be set to a negative
+number; for instance $(-1, 2, -4)$ means that the associated eigenlattice
+must have positive signature 2, without restriction on its rank and
+negative signature.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
 
 # Examples
 ```jldoctest
@@ -1526,13 +1549,15 @@ rank, positive signature and negative signature of the eigenlattices of $(M, g)$
 using the keyword arguments `rks`, `pos_sigs` and `neg_sigs` respectively. Each
 list should consist of tuples $(k, i)$ where $k$ is a divisor of $p*m$ and $i$
 is the value to be assigned for the given property (rank, positive/negative
-signature) to the corresponding $\Phi_m$-eigenlattice. All these conditions
+signature) to the corresponding $\Phi_k$-eigenlattice. All these conditions
 will be first condensed in a dictionary keeping track, for each divisor $k$
-of $p*m$ of the potential rank `r`, positive signature `p` and negative
-signature `n` of the corresponding $\Phi_k$-eigenlattice. The keys of such
+of $p*m$ of the potential rank `rk`, positive signature `pk` and negative
+signature `nk` of the corresponding $\Phi_k$-eigenlattice. The keys of such
 dictionary are the divisors $k$, and the corresponding value is the vector
-`[r, p, n]`. If one already know such a dictionary, one can choose it as
-input under the keyword argument `eiglat_cond`.
+`[rk, pk, nk]`. Any undetermined value will be set automatically to $-1$ by
+default.
+If one already knows such a dictionary, one can choose it as input under the
+keyword argument `eiglat_cond`.
 
 !!! warning
     In the case where the order of the isometries in output has at most
@@ -1542,19 +1567,20 @@ input under the keyword argument `eiglat_cond`.
     function [`splitting_of_hermitian_type`](@ref)), and gluing back all
     blocks together.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
 """
 function splitting(
     Lf::ZZLatWithIsom,
@@ -1663,28 +1689,31 @@ rank, positive signature and negative signature of the eigenlattices of $(M, g)$
 using the keyword arguments `rks`, `pos_sigs` and `neg_sigs` respectively. Each
 list should consist of tuples $(k, i)$ where $k$ is a divisor of $p*m$ and $i$
 is the value to be assigned for the given property (rank, positive/negative
-signature) to the corresponding $\Phi_m$-eigenlattice. All these conditions
+signature) to the corresponding $\Phi_k$-eigenlattice. All these conditions
 will be first condensed in a dictionary keeping track, for each divisor $k$
-of $p*m$ of the potential rank `r`, positive signature `p` and negative
-signature `n` of the corresponding $\Phi_k$-eigenlattice. The keys of such
+of $p*m$ of the potential rank `rk`, positive signature `pk` and negative
+signature `nk` of the corresponding $\Phi_k$-eigenlattice. The keys of such
 dictionary are the divisors $k$, and the corresponding value is the vector
-`[r, p, n]`. If one already know such a dictionary, one can choose it as
-input under the keyword argument `eiglat_cond`.
+`[rk, pk, nk]`. Any undetermined value will be set automatically to $-1$ by
+default.
+If one already knows such a dictionary, one can choose it as input under the
+keyword argument `eiglat_cond`.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped;
-    - by setting `keep_partial_result` to `true`, the functions returns all
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped;
+    - by setting `keep_partial_result` to `true`, the function returns all
       pairs of lattices of isometries which have been computed.
 """
 enumerate_classes_of_lattices_with_isometry(::Union{ZZGenus, ZZLat}, ::Int)
@@ -1779,25 +1808,29 @@ exactly $p^v*m$ where $m$ is the order of $h$.
 !!! warning
     The function empties the list `Np` in input.
 
-For every $(M, g)$ in output, one may decide on the rank `r`, the positive
-signature `p` and the negative signature `n` of the eigenlattices of $(M, g)$
+For every $(M, g)$ in output, one may decide on the rank `rM`, the positive
+signature `pM` and the negative signature `nM` of the eigenlattices of $(M, g)$
 using the keyword argument `eiglat_cond`. It should consist of a dictionary
 where each key is a divisor of $p*m$, and the corresponding value is a tuple
-`(r, p, n)` of integers.
+`(rM, pM, nM)` of integers. Any undetermined value can be set to a negative
+number; for instance $(-1, 2, -4)$ means that the associated eigenlattice
+must have positive signature 2, without restriction on its rank and
+negative signature.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     - by setting the value of `fix_root` to a certain integer $k$, the function
-      only compute one generator for every conjugacy classes of finite cyclic
+      only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     - if `root_test` is set to true, the genus enumeration algorithm determines
-      whether any new genus of definite lattices to be enumerated consists of
-      lattices of minimum 2. In such a case, the enumeration is skipped.
+      whether any new genus of negative definite lattices to be enumerated
+      consists only of lattices of maximum $-2$. In such a case, the
+      enumeration is skipped.
 """
 function splitting_by_prime_power!(
     Np::Vector{ZZLatWithIsom},
@@ -2059,17 +2092,17 @@ The `default_invariant_function` currently computes:
     number of vectors of shortest length;
   * the order of the isometry group of the given lattice.
 
-!!! information "For the advanced users"
+!!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
-    which are be carried along the computations.
+    which are carried along the computation:
     * if available, one can use any database of genera of definite lattices
       using the keyword argument `genusDB` (which should be a dictionary whose
       keys are genus symbols, and the corresponding value is a list of lattices
       of this genus);
     * if `root_test` is set to true, the algorithm determines whether the genus
-      `G` consists of negative definite lattices of maximum -2 (which can
-      sometimes be predicted using sphere packing conditions). In such a case,
-      the enumeration is skipped.
+      `G` consists only of negative definite lattices of maximum $-2$ (which
+      can sometimes be predicted using sphere packing conditions). In such a
+      case, the enumeration is skipped.
 """
 function oscar_genus_representatives(
   G::ZZGenus,
@@ -2112,13 +2145,13 @@ function oscar_genus_representatives(
   # Enumerate G using Hecke. If the rank and deteterminant of G are reasonable,
   # it will call `line_orbits` computations and the list l will be complete.
   # Otherwise, we proceed by random search, and as soon as we reach a point
-  # where after 1000 vain iterations we do not find any new isometry class,
-  # we stop Kneser's algorithm and we start isometry enumeration instead.
+  # where after `stop_after` vain iterations we do not find any new isometry
+  # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
   l = enumerate_definite_genus(G, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat)
   length(l) == max_lat && return l
 
-  # Part of the mess of G which is missing
+  # Part of the mass of G which is missing
   mm = mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
 
   # If `mm` is nonzero, we are missing some isometry classes
@@ -2149,7 +2182,7 @@ function oscar_genus_representatives(
         i = 1
       else
         # Wants to minimize the rank of genera to enumerate
-        # So we look, among the prime dividing d, for which
+        # So we look, among the primes dividing d, for which
         # one we haven't yet computed isometries with very
         # small rank for the invariant part. If several primes
         # have the same of smallest value, we keep the largest
@@ -2198,8 +2231,8 @@ function oscar_genus_representatives(
             if !haskey(inv_dict, invN)
               flag = true
               inv_dict[invN] = ZZLat[N]
-	            push!(l, N)
-	            s = isometry_group_order(N)
+              push!(l, N)
+              s = isometry_group_order(N)
               if save_partial
                 Hecke.save_lattice(N, save_path)
               end
@@ -2210,11 +2243,11 @@ function oscar_genus_representatives(
               flag = true
               push!(inv_dict[invN], N)
               push!(l, N)
-	            s = isometry_group_order(N)
+              s = isometry_group_order(N)
               if save_partial
                 Hecke.save_lattice(N, save_path)
               end
-	            sub!(mm, mm, 1//s)
+              sub!(mm, mm, 1//s)
             end
             length(l) == max_lat && return l
             is_zero(mm) && break
