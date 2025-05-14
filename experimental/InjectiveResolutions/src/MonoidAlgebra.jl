@@ -360,9 +360,15 @@ rand(A::MonoidAlgebra, v...) = A(rand(A.algebra, v...))
 Base.hash(a::MonoidAlgebraElem, h::UInt) = hash(underlying_element, h)
 characteristic(A::MonoidAlgebra) = characteristic(A.algebra)
 divexact(a::MonoidAlgebraElem, b::MonoidAlgebraElem; check::Bool=true) = parent(a)(divexact(underlying_element(a), underlying_element(b); check))
+
+function divides(a::MonoidAlgebraElem, b::MonoidAlgebraElem)
+  success, q = divides(underlying_element(a), underlying_element(b))
+  return success, parent(a)(q)
+end
+
 is_nilpotent(a::MonoidAlgebraElem) = is_nilpotent(underlying_element(a))
 canonical_unit(a::MonoidAlgebraElem) = canonical_unit(underlying_element(a))
 is_domain_type(::Type{MonoidAlgebraElem{CT, PT}}) where {CT, AT, PT <: MonoidAlgebra{CT, AT}} = is_domain_type(elem_type(AT))
 # dummy method required by the conformance test
-divrem(a::MonoidAlgebraElem, b::MonoidAlgebraElem; check::Bool=true) = zero(a), a
+#divrem(a::MonoidAlgebraElem, b::MonoidAlgebraElem; check::Bool=true) = zero(a), a
 

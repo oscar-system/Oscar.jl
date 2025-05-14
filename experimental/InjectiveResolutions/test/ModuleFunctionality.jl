@@ -70,7 +70,7 @@ R_Q, phi = quo(S, J)
 # get a MonoidAlgebra with a quotient ring as internal
 A = Oscar.MonoidAlgebra(R_Q)
 GA = grading_group(A)
-@test all(parent(a) === A for a in monomial_basis(A, GA[1]+5*GA[2]))
+@test all(parent(a) === base_ring(A.algebra) for a in monomial_basis(A, GA[1]+5*GA[2]))
 A.algebra[1]*A[1] # Test promotion
 @test is_normal(A)
 
@@ -80,7 +80,7 @@ R_Q, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights=[[1, 0], [0, 1]])
 # get MonoidAlgebra with a polynomial ring as internal
 B = Oscar.MonoidAlgebra(R_Q)
 GB = grading_group(B)
-@test all(parent(a) === B for a in monomial_basis(B, GB[1]+5*GB[2]))
+@test all(parent(a) === B.algebra for a in monomial_basis(B, GB[1]+5*GB[2]))
 B.algebra[1] *B[1] # Test promotion
 @test is_normal(B)
 
@@ -106,7 +106,7 @@ mon_base = monomial_basis(A, GA[2])
 [x*F[1] for x in mon_base]
 
 for f in Oscar.faces(A)
-  coefficients(I, f, A)
+  coefficients(I, f)
 end
 
 end

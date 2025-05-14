@@ -735,7 +735,7 @@ function evaluate(
 end
 
 @doc raw"""
-  coefficients(N::SubquoModule, p_F::FaceQ, kQ::MonoidAlgebra)
+  coefficients(N::SubquoModule, p_F::FaceQ)
 
 Returns a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
 
@@ -743,7 +743,7 @@ $(0 :_N p_F) \xrightarrow{\Lambda} \sum_{b\in Bp}k\{\deg(b) + F - Q\}.$
 
 This fixes Algorithm 3.6. in [HM05](@cite).
 """
-function coefficients(N::SubquoModule{<:MonoidAlgebraElem}, p_F::FaceQ)
+function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
   @assert base_ring(p_F.prime) == kQ.algebra
 
@@ -1279,6 +1279,8 @@ false
   d < 0 && (d = -Inf)            # Handle negative dimensions
   return (dim(R) - d >= 2)       # Check the condition
 end
+
+is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true
 
 
 # import local cohomology functions
