@@ -1,6 +1,9 @@
 # Project files
 include("AlternatingBilinearForm.jl")
-include("GenericFormGeneration.jl")
+include("HelperFunctions.jl")
+include("DrinfeldHeckeFormValidation.jl")
+include("GlobalGenericFormGeneration.jl")
+include("LocalGenericFormGeneration.jl")
 include("DrinfeldHeckeForm.jl")
 include("DrinfeldHeckeAlgebra.jl")
 
