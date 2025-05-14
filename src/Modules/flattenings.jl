@@ -1,6 +1,6 @@
 ### Flattenings of (graded) modules over polynomial rings and quotients of polynomial rings
 
-function flatten(F::ModuleFP)
+function flatten(F::SparseFPModule)
   return flatten(base_ring(F))(F)
 end
 
@@ -17,7 +17,7 @@ function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: FlattableRingElem
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
     return F_flat, iso, iso_inv
-  end::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
+  end::Tuple{<:SparseFPModule, <:SparseFPModuleHom, <:SparseFPModuleHom}
 end
 
 function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: FlattableRingElemType}
@@ -33,7 +33,7 @@ function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: FlattableRin
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
     return M_flat, iso, iso_inv
-  end::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
+  end::Tuple{<:SparseFPModule, <:SparseFPModuleHom, <:SparseFPModuleHom}
 end
 
 function flatten(
@@ -80,8 +80,8 @@ function free_resolution(
   M_flat, iso_M, iso_M_inv = flat(M)
   comp = free_resolution(M_flat) # assuming that this is potentially cached
   return get!(flat_counterparts(flat), comp) do
-    res_obj = ModuleFP[]
-    isos = ModuleFPHom[]
+    res_obj = SparseFPModule[]
+    isos = SparseFPModuleHom[]
     push!(res_obj, M)
     push!(isos, iso_M_inv)
     res_maps = Map[]
@@ -95,13 +95,13 @@ function free_resolution(
       push!(res_obj, F)
       push!(isos, iso_F_inv)
     end
-    comp_up = ComplexOfMorphisms(ModuleFP, reverse(res_maps), typ=:chain, seed=-1, check=false)
+    comp_up = ComplexOfMorphisms(SparseFPModule, reverse(res_maps), typ=:chain, seed=-1, check=false)
     comp_up.complete = true
     return FreeResolution(comp_up)
   end::FreeResolution
 end
 
-function (phi::RingFlattening)(f::ModuleFPHom)
+function (phi::RingFlattening)(f::SparseFPModuleHom)
   return get!(flat_counterparts(phi), f) do
     dom = domain(f)
     dom_b, iso_dom, iso_inv_dom = phi(dom)
@@ -109,7 +109,7 @@ function (phi::RingFlattening)(f::ModuleFPHom)
     cod_b, iso_cod, iso_inv_cod = phi(cod)
     fb = hom(dom_b, cod_b, iso_cod.(f.(gens(dom))); check=false)
     return fb
-  end::ModuleFPHom
+  end::SparseFPModuleHom
 end
 
 # TODO: We need this special routine, because we can not write a generic 
@@ -137,7 +137,7 @@ function _change_base_ring_and_preserve_gradings(
 end
 
 function _change_base_ring_and_preserve_gradings(
-    phi::Any, f::ModuleFPHom;
+    phi::Any, f::SparseFPModuleHom;
     domain_change::Map = _change_base_ring_and_preserve_gradings(phi, domain(f))[2],
     codomain_change::Map = _change_base_ring_and_preserve_gradings(phi, codomain(f))[2]
   )

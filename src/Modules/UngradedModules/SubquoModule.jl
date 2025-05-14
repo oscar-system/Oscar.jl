@@ -157,7 +157,7 @@ end
 Construct the subquotient with ambient free module `F`, generators `g`
 and relations `q`.
 """
-function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:AdmissibleModuleFPRingElem} 
+function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:AdmissibleSparseFPModuleRingElem} 
   return SubquoModule(SubModuleOfFreeModule(F, g), SubModuleOfFreeModule(F, q))
 end
 
@@ -429,7 +429,7 @@ function show_subquo(SQ::SubquoModule)
   print(terse(io), "\nwith ambient free module ", SQ.F)
 end
 
-function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
+function show_morphism_as_map(f::SparseFPModuleHom, print_non_zero_only = false)
   io_compact = terse(stdout)
   print(io_compact, domain(f), " -> ", codomain(f))
   print("\n")
@@ -459,7 +459,7 @@ return
 end
 
 @doc raw"""
-    cokernel(a::ModuleFPHom)
+    cokernel(a::SparseFPModuleHom)
 
 Return the cokernel of `a` as an object of type `SubquoModule`.
 
@@ -564,7 +564,7 @@ by graded submodule of G with 3 generators
 
 ```
 """
-function cokernel(f::ModuleFPHom{T1, T2}) where {T1, T2}
+function cokernel(f::SparseFPModuleHom{T1, T2}) where {T1, T2}
   return quo_object(codomain(f), image(f)[1])::SubquoModule{elem_type(base_ring_type(T2))}
 end
 

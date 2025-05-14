@@ -102,7 +102,7 @@ end
   C = hom(shift(K, sh), shift(K, sh))
   @test C isa Oscar.HomComplex
   H_tot = total_complex(C);
-  @test H_tot isa Oscar.TotalComplex{<:ModuleFP, <:ModuleFPHom, <:Oscar.HomComplex}
+  @test H_tot isa Oscar.TotalComplex{<:SparseFPModule, <:SparseFPModuleHom, <:Oscar.HomComplex}
   for i in -10:10
     Oscar.can_compute_index(H_tot, i) || continue
     H0, _ = kernel(H_tot, i)
@@ -345,12 +345,12 @@ end
   double_ind = Oscar.HomComplexMorphism(Any, C1, C2, f, f)
   @test !Oscar.can_compute_index(double_ind, (1, 0))
   @test !Oscar.can_compute_index(double_ind, (0, -1))
-  @test double_ind[0, 0] isa ModuleFPHom
-  @test double_ind[-1, 0] isa ModuleFPHom
-  @test double_ind[-2, 0] isa ModuleFPHom
-  @test double_ind[0, 1] isa ModuleFPHom
-  @test double_ind[-1, 1] isa ModuleFPHom
-  @test double_ind[-2, 1] isa ModuleFPHom
+  @test double_ind[0, 0] isa SparseFPModuleHom
+  @test double_ind[-1, 0] isa SparseFPModuleHom
+  @test double_ind[-2, 0] isa SparseFPModuleHom
+  @test double_ind[0, 1] isa SparseFPModuleHom
+  @test double_ind[-1, 1] isa SparseFPModuleHom
+  @test double_ind[-2, 1] isa SparseFPModuleHom
 
 end
 

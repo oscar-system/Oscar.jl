@@ -1,60 +1,60 @@
 import AbstractAlgebra.WeakKeyIdDict
 
 # The following type union gathers all types for elements for which 
-# we expect the `ModuleFP` framework to be functional and/or working.
+# we expect the `SparseFPModule` framework to be functional and/or working.
 # It can gradually be extended, but should not be considered to be 
 # visible or accessible to the outside world. 
-const AdmissibleModuleFPRingElem = Union{RingElem, PBWAlgQuoElem, PBWAlgElem}
-const AdmissibleModuleFPRing = Union{Ring, PBWAlgQuo, PBWAlgRing}
+const AdmissibleSparseFPModuleRingElem = Union{RingElem, PBWAlgQuoElem, PBWAlgElem}
+const AdmissibleSparseFPModuleRing = Union{Ring, PBWAlgQuo, PBWAlgRing}
 
 @doc raw"""
-    ModuleFP{T}
+    SparseFPModule{T}
 
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T <: AdmissibleModuleFPRingElem} <: AbstractAlgebra.Module{T} end
+abstract type SparseFPModule{T <: AdmissibleSparseFPModuleRingElem} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
-    AbstractFreeMod{T} <: ModuleFP{T}
+    AbstractFreeMod{T} <: SparseFPModule{T}
 
 The abstract supertype of all finitely generated free modules.
 """
-abstract type AbstractFreeMod{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T} end
+abstract type AbstractFreeMod{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModule{T} end
 
 @doc raw"""
-    AbstractSubQuo{T} <: ModuleFP{T}
+    AbstractSubQuo{T} <: SparseFPModule{T}
 
 The abstract supertype of all finitely presented subquotient modules.
 """
-abstract type AbstractSubQuo{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T} end
+abstract type AbstractSubQuo{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModule{T} end
 
 
 @doc raw"""
-    ModuleFPElem{T} <: ModuleElem{T}
+    SparseFPModuleElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T <: AdmissibleModuleFPRingElem} <: ModuleElem{T} end
+abstract type SparseFPModuleElem{T <: AdmissibleSparseFPModuleRingElem} <: ModuleElem{T} end
 
 @doc raw"""
-    AbstractFreeModElem{T} <: ModuleFPElem{T}
+    AbstractFreeModElem{T} <: SparseFPModuleElem{T}
 
 The abstract supertype of all elements of finitely generated free modules.
 """
-abstract type AbstractFreeModElem{T <: AdmissibleModuleFPRingElem} <: ModuleFPElem{T} end
+abstract type AbstractFreeModElem{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModuleElem{T} end
 
 @doc raw"""
-    AbstractSubQuoElem{T} <: ModuleFPElem{T}
+    AbstractSubQuoElem{T} <: SparseFPModuleElem{T}
 
 The abstract supertype of all elements of subquotient modules.
 """
-abstract type AbstractSubQuoElem{T <: AdmissibleModuleFPRingElem} <: ModuleFPElem{T} end
+abstract type AbstractSubQuoElem{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModuleElem{T} end
 
-abstract type ModuleFPHomDummy end
+abstract type SparseFPModuleHomDummy end
 
 @doc raw"""
-    ModuleFPHom{T1, T2, RingMapType}
+    SparseFPModuleHom{T1, T2, RingMapType}
 
 The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
 `T1` and `T2` are the types of domain and codomain respectively.
@@ -63,9 +63,9 @@ The abstract supertype for morphisms of finitely presented modules over multivar
 and the codomain is considered as an ``R``-module via ``f``. 
 In case there is no base change, this parameter is set to `Nothing`.
 """
-abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
+abstract type SparseFPModuleHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, SparseFPModuleHomDummy} end
 
-parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
+parent(f::SparseFPModuleHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
 @doc raw"""
     FreeMod{T <: RingElem} <: AbstractFreeMod{T}
@@ -77,7 +77,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
-@attributes mutable struct FreeMod{T <: AdmissibleModuleFPRingElem} <: AbstractFreeMod{T}
+@attributes mutable struct FreeMod{T <: AdmissibleSparseFPModuleRingElem} <: AbstractFreeMod{T}
   R::NCRing
   n::Int
   S::Vector{Symbol}
@@ -96,24 +96,24 @@ option is set in suitable functions.
   # the map and potentially a change of rings. This allows us to 
   # reconstruct the map on request (which should be of relatively 
   # low cost).
-  incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
-  outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
+  incoming::WeakKeyIdDict{<:SparseFPModule, <:Tuple{<:SMat, <:Any}}
+  outgoing::WeakKeyIdDict{<:SparseFPModule, <:Tuple{<:SMat, <:Any}}
 
-  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, S::Vector{Symbol}) where T <: AdmissibleModuleFPRingElem
+  function FreeMod{T}(n::Int, R::AdmissibleSparseFPModuleRing, S::Vector{Symbol}) where T <: AdmissibleSparseFPModuleRingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
     r.S = S
     r.d = nothing
 
-    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.incoming = WeakKeyIdDict{SparseFPModule, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{SparseFPModule, Tuple{SMat, Any}}()
     return r
   end
 end
 
 @doc raw"""
-    FreeModElem{T <: AdmissibleModuleFPRingElem} <: AbstractFreeModElem{T}
+    FreeModElem{T <: AdmissibleSparseFPModuleRingElem} <: AbstractFreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
 which specifies its coordinates with respect to the basis of standard unit vectors of $F$.
@@ -139,7 +139,7 @@ julia> f == g
 true
 ```
 """
-mutable struct FreeModElem{T <: AdmissibleModuleFPRingElem} <: AbstractFreeModElem{T}
+mutable struct FreeModElem{T <: AdmissibleSparseFPModuleRingElem} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
   d::Union{FinGenAbGroupElem, Nothing}
@@ -163,7 +163,7 @@ and all the conversion is taken care of here.
 This data structure is also used for representing Gröbner / standard bases.
 Relative Gröbner / standard bases are also supported.
 """
-@attributes mutable struct ModuleGens{T <: AdmissibleModuleFPRingElem} # T is the type of the elements of the ground ring.
+@attributes mutable struct ModuleGens{T <: AdmissibleSparseFPModuleRingElem} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
   F::FreeMod{T}
@@ -174,7 +174,7 @@ Relative Gröbner / standard bases are also supported.
   ordering::ModuleOrdering
   quo_GB::ModuleGens{T} # Pointer to the quotient GB when having a relative GB
 
-  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T <: AdmissibleModuleFPRingElem}
+  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T <: AdmissibleSparseFPModuleRingElem}
     r = new{T}()
     r.O = O
     r.F = F
@@ -183,7 +183,7 @@ Relative Gröbner / standard bases are also supported.
 
   # ModuleGens from an Array of Oscar free module elements, specifying the free module 
   # and Singular free module, only useful indirectly
-  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T <: AdmissibleModuleFPRingElem}
+  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T <: AdmissibleSparseFPModuleRingElem}
     r = new{T}()
     r.O = O
     r.SF = SF
@@ -192,7 +192,7 @@ Relative Gröbner / standard bases are also supported.
   end
 
   # ModuleGens from a Singular submodule
-  function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S <: AdmissibleModuleFPRingElem} # FreeMod is necessary due to type S
+  function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S <: AdmissibleSparseFPModuleRingElem} # FreeMod is necessary due to type S
     r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
@@ -206,14 +206,14 @@ Relative Gröbner / standard bases are also supported.
 end
 
 @doc raw"""
-    SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
+    SubModuleOfFreeModule{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModule{T}
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
 used by the end user.
 When computed, a standard basis (computed via `standard_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
-@attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
+@attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleSparseFPModuleRingElem} <: SparseFPModule{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
@@ -232,7 +232,7 @@ end
 
 
 @doc raw"""
-    SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
+    SubquoModule{T <: AdmissibleSparseFPModuleRingElem} <: AbstractSubQuo{T}
 
 The type of subquotient modules.
 A subquotient module $M$ is a module where $M = A + B / B$ where $A$ and $B$ are 
@@ -242,9 +242,9 @@ free module are stored.
 One can construct ordinary submodules of free modules by not giving $B$.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
-`SubquoModule{T}` is a subtype of `ModuleFP{T}`.
+`SubquoModule{T}` is a subtype of `SparseFPModule{T}`.
 """
-@attributes mutable struct SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
+@attributes mutable struct SubquoModule{T <: AdmissibleSparseFPModuleRingElem} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -253,8 +253,8 @@ option is set in suitable functions.
 
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
 
-  incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
-  outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
+  incoming::WeakKeyIdDict{<:SparseFPModule, <:Tuple{<:SMat, <:Any}}
+  outgoing::WeakKeyIdDict{<:SparseFPModule, <:Tuple{<:SMat, <:Any}}
 
   function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
@@ -263,8 +263,8 @@ option is set in suitable functions.
 
     r.groebner_basis = Dict()
     
-    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.incoming = WeakKeyIdDict{SparseFPModule, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{SparseFPModule, Tuple{SMat, Any}}()
 
     return r
   end
@@ -272,7 +272,7 @@ end
 
 
 @doc raw"""
-    SubquoModuleElem{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuoElem{T} 
+    SubquoModuleElem{T <: AdmissibleSparseFPModuleRingElem} <: AbstractSubQuoElem{T} 
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
 is given by a sparse row (`SRow`) which specifies the coefficients of an $R$-linear 
@@ -316,13 +316,13 @@ julia> f == g
 true
 ```
 """
-mutable struct SubquoModuleElem{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuoElem{T} 
+mutable struct SubquoModuleElem{T <: AdmissibleSparseFPModuleRingElem} <: AbstractSubQuoElem{T} 
   parent::SubquoModule{T}
   coeffs::SRow{T} # Need not be defined! Use `coordinates` as getter
   repres::FreeModElem{T} # Need not be defined! Use `repres` as getter
   is_reduced::Bool # `false` by default. Will be set by `simplify` and `simplify!`.
 
-  function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R <: AdmissibleModuleFPRingElem}
+  function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R <: AdmissibleSparseFPModuleRingElem}
     @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
       r = new{R}(SQ, v, zero(SQ.F))
@@ -334,7 +334,7 @@ mutable struct SubquoModuleElem{T <: AdmissibleModuleFPRingElem} <: AbstractSubQ
     return r
   end
 
-  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R <: AdmissibleModuleFPRingElem}
+  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R <: AdmissibleSparseFPModuleRingElem}
     @assert a.parent === SQ.F
     r = new{R}(SQ)
     r.repres = a
@@ -346,13 +346,13 @@ end
 
 mutable struct SubQuoHom{
     T1<:AbstractSubQuo, 
-    T2<:ModuleFP, 
+    T2<:SparseFPModule, 
     RingMapType<:Any
-  } <: ModuleFPHom{T1, T2, RingMapType}
+  } <: SparseFPModuleHom{T1, T2, RingMapType}
   matrix::MatElem
   header::MapHeader{T1,T2}
   im::Vector # The images of the generators; use `images_of_generators` as a getter.
-  inverse_isomorphism::ModuleFPHom
+  inverse_isomorphism::SparseFPModuleHom
   ring_map::RingMapType
   d::FinGenAbGroupElem
   generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation;
@@ -392,7 +392,7 @@ mutable struct SubQuoHom{
     return set_grading(r; check)
   end
 
-  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector;
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SparseFPModule, im::Vector;
                                         check::Bool=true
                                        ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
@@ -453,7 +453,7 @@ mutable struct SubQuoHom{
 
   function SubQuoHom{T1,T2,RingMapType}(
       D::SubquoModule, 
-      C::ModuleFP, 
+      C::SparseFPModule, 
       im::Vector, 
       h::RingMapType;
       check::Bool=true
@@ -483,14 +483,14 @@ const CRingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecR
 #TODO: other name for CRing_dec -> which?
 
 @doc raw"""
-    FreeMod_dec{T <: CRingElem_dec} <: ModuleFP_dec{T}
+    FreeMod_dec{T <: CRingElem_dec} <: SparseFPModule_dec{T}
 
 The type of decorated (graded or filtered) free modules.
 Decorated free modules are determined by their base ring, the rank,
 the grading or filtration and the names of the (standard) generators.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
-`FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
+`FreeMod_dec{T}` is a subtype of `SparseFPModule{T}`.
 """
 @attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod{T}
   F::FreeMod{T}
@@ -531,30 +531,30 @@ end
 
 
 
-const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubquoDecModule{T} will be included
-const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubquoDecModuleElem{T} will be included
+const SparseFPModule_dec{T} = Union{FreeMod_dec{T}} # SubquoDecModule{T} will be included
+const SparseFPModuleElem_dec{T} = Union{FreeModElem_dec{T}} # SubquoDecModuleElem{T} will be included
 
 
 @doc raw"""
-    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2, RingMapType} 
+    FreeModuleHom{T1, T2, RingMapType} <: SparseFPModuleHom{T1, T2, RingMapType} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
-`FreeModuleHom` is a subtype of `ModuleFPHom`.
+`FreeModuleHom` is a subtype of `SparseFPModuleHom`.
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
 @attributes mutable struct FreeModuleHom{
     T1 <: AbstractFreeMod,
-    T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
+    T2 <: SparseFPModule,
+    RingMapType <: Any} <: SparseFPModuleHom{T1, T2, RingMapType} 
   header::MapHeader{T1, T2}
   ring_map::RingMapType
   d::FinGenAbGroupElem
   imgs_of_gens::Vector # stored here for easy evaluation; use `images_of_generators` as getter
   
   matrix::MatElem
-  inverse_isomorphism::ModuleFPHom
+  inverse_isomorphism::SparseFPModuleHom
   generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation
                                                      # of the map; `nothing` by default and to be 
                                                      # set manually.
@@ -564,7 +564,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType};
       check::Bool=true
-    ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
+    ) where {S<:SparseFPModule, ModuleElemType<:SparseFPModuleElem}
     ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
@@ -609,7 +609,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::FreeMod_dec, G::S, a::Vector{ModuleElemType};
       check::Bool=true
-    ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
+    ) where {S<:SparseFPModule, ModuleElemType<:SparseFPModuleElem}
     ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
@@ -643,7 +643,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType;
       check::Bool=true
-    ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
+    ) where {T2, ModuleElemType<:SparseFPModuleElem, RingMapType}
     ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
@@ -691,7 +691,7 @@ end
 function FreeModuleHom(
     F::AbstractFreeMod{T}, G::S, mat::MatElem{T};
     check::Bool=true
-  ) where {T<:RingElem, S<:ModuleFP}
+  ) where {T<:RingElem, S<:SparseFPModule}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)]; check)
@@ -714,7 +714,7 @@ end
 function FreeModuleHom(
     F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType;
     check::Bool=true
-  ) where {S<:ModuleFP, RingMapType}
+  ) where {S<:SparseFPModule, RingMapType}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
@@ -725,31 +725,31 @@ end
 
 struct FreeModuleHom_dec{
     T1 <: AbstractFreeMod,
-    T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType}
+    T2 <: SparseFPModule,
+    RingMapType <: Any} <: SparseFPModuleHom{T1, T2, RingMapType}
   f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader{T1,T2}
   # TODO degree and homogeneity
 
-  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::SparseFPModule_dec{T}, a::Vector) where {T}
     f = FreeModuleHom(F,G,a)
     r = new{typeof(F), typeof(G), Nothing}(f, f.header)
     return r
   end
 
-  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::SparseFPModule_dec{T}, mat::MatElem{T}) where {T}
     f = FreeModuleHom(F,G,mat)
     r = new{typeof(F), typeof(G), Nothing}(f, f.header)
     return r
   end
 
-  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec, a::Vector, h::RingMapType) where {RingMapType}
+  function FreeModuleHom_dec(F::FreeMod_dec, G::SparseFPModule_dec, a::Vector, h::RingMapType) where {RingMapType}
     f = FreeModuleHom(F,G,a,h)
     r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
     return r
   end
 
-  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+  function FreeModuleHom_dec(F::FreeMod_dec, G::SparseFPModule_dec{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
     f = FreeModuleHom(F,G,mat,h)
     r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
     return r

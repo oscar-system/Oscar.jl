@@ -529,7 +529,7 @@ function relative_euler_sequence(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
   W, inc = kernel(theta)
   Z = graded_free_module(S, 0)
   inc_Z = hom(Z, W, elem_type(W)[]; check=false)
-  comp = ComplexOfMorphisms(ModuleFP, [inc_Z, inc, theta], typ=:cochain, seed = -1)
+  comp = ComplexOfMorphisms(SparseFPModule, [inc_Z, inc, theta], typ=:cochain, seed = -1)
   return comp
 end
 

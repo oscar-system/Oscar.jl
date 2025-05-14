@@ -10,7 +10,7 @@ struct ChainFactoryFromComplex{ChainType} <: HyperComplexChainFactory{ChainType}
   end
 end
 
-function (fac::ChainFactoryFromComplex{T})(HC::AbsHyperComplex, i::Tuple) where {T<:ModuleFP}
+function (fac::ChainFactoryFromComplex{T})(HC::AbsHyperComplex, i::Tuple) where {T<:SparseFPModule}
   @assert length(i) == 1 "wrong type of index"
   k = i[1]
   if k in range(fac.C)
@@ -39,7 +39,7 @@ struct MapFactoryFromComplex{MorphismType} <: HyperComplexMapFactory{MorphismTyp
   end
 end
 
-function (fac::MapFactoryFromComplex{T})(HC::AbsHyperComplex, p::Int, i::Tuple) where {T<:ModuleFPHom}
+function (fac::MapFactoryFromComplex{T})(HC::AbsHyperComplex, p::Int, i::Tuple) where {T<:SparseFPModuleHom}
   @assert length(i) == 1 "wrong type of index"
   @assert p == 1 "complex is one-dimensional"
   k = i[1]

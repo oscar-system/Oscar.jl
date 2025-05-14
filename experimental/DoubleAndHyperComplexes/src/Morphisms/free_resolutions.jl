@@ -12,7 +12,7 @@ struct ResolutionModuleFactory{ChainType, MapType} <: HyperComplexChainFactory{C
 end
 
 # Generic Code via iterated kernel computation
-function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple) where {ChainType <: ModuleFP}
+function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple) where {ChainType <: SparseFPModule}
   i = first(I)
   R = base_ring(fac.orig_mod)
 
@@ -54,7 +54,7 @@ end
 # Modified version to use Schreyer's resolution where applicable
 function (fac::ResolutionModuleFactory{ChainType})(
              c::AbsHyperComplex, I::Tuple
-           ) where {ChainType <: ModuleFP{<:MPolyRingElem{<:FieldElem}}}
+           ) where {ChainType <: SparseFPModule{<:MPolyRingElem{<:FieldElem}}}
   i = first(I)
   R = base_ring(fac.orig_mod)
 
@@ -88,7 +88,7 @@ function (fac::ResolutionModuleFactory{ChainType})(
 end
 
 
-function zero_object(M::ModuleFP)
+function zero_object(M::SparseFPModule)
   if is_graded(M)
     result = graded_free_module(base_ring(M), [])
     return result, hom(result, M, elem_type(M)[]; check=false)

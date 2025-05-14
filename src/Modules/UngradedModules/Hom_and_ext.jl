@@ -1,14 +1,14 @@
 @doc raw"""
-    iszero(f::ModuleFPHom)
+    iszero(f::SparseFPModuleHom)
 
 Return true iff `f` is the zero map.
 """
-function iszero(f::ModuleFPHom)
+function iszero(f::SparseFPModuleHom)
   return all(iszero, map(f, gens(domain(f))))
 end
 
 @doc raw"""
-    hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
+    hom(M::SparseFPModule, N::SparseFPModule; algorithm::Symbol=:maps)
 
 Return the module `Hom(M,N)` as an object of type `SubquoModule`.
 
@@ -48,7 +48,7 @@ julia> relations(H)
  y^2*(e[2] -> e[2])
 ```
 """
-function hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
+function hom(M::SparseFPModule, N::SparseFPModule; algorithm::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
     if is_graded(M) && is_graded(N)
@@ -96,7 +96,7 @@ function hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
     return hom(M, N, elem_type(N)[g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)])
   end
 
-  function pre(f::ModuleFPHom)
+  function pre(f::SparseFPModuleHom)
     @assert domain(f) === M
     @assert codomain(f) === N
     Rs0 = domain(f0)
@@ -114,7 +114,7 @@ end
 ### New and hopefully more maintainable code
 # Disabled for the moment because of the book chapter. We want to keep code output stable.
 # Eventually we will gradually merge this in.
-function hom(F::FreeMod, G::ModuleFP)
+function hom(F::FreeMod, G::SparseFPModule)
   R = base_ring(F)
   R === base_ring(G) || error("base rings must be the same")
   
@@ -124,7 +124,7 @@ function hom(F::FreeMod, G::ModuleFP)
   Fdual, interp = dual(F)
   H, mult_map = tensor_product(Fdual, G; task=:with_map)
 
-  function _elem_to_hom1(v::ModuleFPElem)
+  function _elem_to_hom1(v::SparseFPModuleElem)
     result = hom(F, G, elem_type(G)[zero(G) for i in 1:ngens(F)]; check=false)
     for (i, c) in coordinates(v)
       # decompose the i-th generator as ψ : F → R¹ and g ∈ G
@@ -138,7 +138,7 @@ function hom(F::FreeMod, G::ModuleFP)
     return result
   end
 
-  function _hom_to_elem1(phi::ModuleFPHom)
+  function _hom_to_elem1(phi::SparseFPModuleHom)
     @assert domain(phi) === F
     @assert codomain(phi) === G
     return sum(mult_map((Fdual[i], phi(v))) for (i, v) in enumerate(gens(F)); init=zero(H))
@@ -149,7 +149,7 @@ function hom(F::FreeMod, G::ModuleFP)
   return H, to_hom_map1
 end
 
-function hom(M::SubquoModule, N::ModuleFP)
+function hom(M::SubquoModule, N::SparseFPModule)
   R = base_ring(M)
   R === base_ring(N) || error("base rings must coincide")
   pres = presentation(M)
@@ -177,7 +177,7 @@ function hom(M::SubquoModule, N::ModuleFP)
   H, iso, iso_inv = simplify_light(K)
 
 
-  function _elem_to_hom2(v::ModuleFPElem)
+  function _elem_to_hom2(v::SparseFPModuleElem)
     w = inc(iso(v)) 
     @assert parent(w) === hom_F0_N
     psi = element_to_homomorphism(w)
@@ -185,7 +185,7 @@ function hom(M::SubquoModule, N::ModuleFP)
     return hom(M, N, img_gens; check=false)
   end
 
-  function _hom_to_elem2(phi::ModuleFPHom)
+  function _hom_to_elem2(phi::SparseFPModuleHom)
     # phi : M --> N
     @assert domain(phi) === M
     @assert codomain(phi) === N
@@ -203,9 +203,9 @@ end
 
 # The induced hom on the first argument
 function hom(
-    phi::FreeModuleHom{<:FreeMod, <:FreeMod}, N::ModuleFP; 
-    domain::ModuleFP=hom(Oscar.codomain(phi), N)[1],
-    codomain::ModuleFP=hom(Oscar.domain(phi), N)[1]
+    phi::FreeModuleHom{<:FreeMod, <:FreeMod}, N::SparseFPModule; 
+    domain::SparseFPModule=hom(Oscar.codomain(phi), N)[1],
+    codomain::SparseFPModule=hom(Oscar.domain(phi), N)[1]
   )
   R = base_ring(N)
   R === base_ring(domain) === base_ring(codomain) || error("base rings must coincide")
@@ -361,7 +361,7 @@ end
 
 
 @doc raw"""
-    element_to_homomorphism(f::ModuleFPElem)
+    element_to_homomorphism(f::SparseFPModuleElem)
 
 If `f` is an element of a module created via `hom(M,N)`, for some modules `M` and `N`, 
 return the homomorphism `M` $\to$ `N` corresponding to `f`.
@@ -405,7 +405,7 @@ julia> matrix(a)
 [0   y]
 ```
 """
-function element_to_homomorphism(f::ModuleFPElem)
+function element_to_homomorphism(f::SparseFPModuleElem)
   H = f.parent
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("element doesn't live in a hom module")  
@@ -413,7 +413,7 @@ function element_to_homomorphism(f::ModuleFPElem)
 end
 
 @doc raw"""
-    homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
+    homomorphism_to_element(H::SparseFPModule, a::SparseFPModuleHom)
 
 If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
@@ -462,7 +462,7 @@ julia> m = homomorphism_to_element(H, a)
 (e[1] -> e[1]) + y*(e[2] -> e[2])
 ```
 """
-function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
+function homomorphism_to_element(H::SparseFPModule, a::SparseFPModuleHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = pseudo_inv(to_hom_map)
@@ -470,35 +470,35 @@ function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
 end
 
 @doc raw"""
-    multiplication_morphism(a::RingElem, M::ModuleFP)
+    multiplication_morphism(a::RingElem, M::SparseFPModule)
 
 Return the multiplication by `a` as an endomorphism on `M`.
 """
-function multiplication_morphism(a::RingElem, M::ModuleFP)
+function multiplication_morphism(a::RingElem, M::SparseFPModule)
   @assert base_ring(M) === parent(a)
   return hom(M, M, [a*v for v in gens(M)]; check=false)
 end
 
 @doc raw"""
-    multiplication_morphism(a::FreeModElem, M::ModuleFP)
+    multiplication_morphism(a::FreeModElem, M::SparseFPModule)
 
 Return the multiplication by `a` as an endomorphism on `M`. For this,
 the parent of `a` must be a module of rank 1.
 """
-function multiplication_morphism(a::FreeModElem, M::ModuleFP)
+function multiplication_morphism(a::FreeModElem, M::SparseFPModule)
   @assert rank(parent(a)) == 1
   return multiplication_morphism(a[1], M)
 end
 
 @doc raw"""
-    multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
+    multiplication_induced_morphism(F::FreeMod, H::SparseFPModule)
 
 Let `H` be the module of endomorphisms on a module `M`. (If this is not
 the case an error is thrown.) Let `F` be free of rank 1. Return the 
 morphism from `F` to `H` which sends an element of `F` to its
 corresponding multiplication morphism.
 """
-function multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
+function multiplication_induced_morphism(F::FreeMod, H::SparseFPModule)
   @assert rank(F) == 1
   M_N = get_attribute(H, :hom)
   M_N === nothing && error("module must be a hom module")

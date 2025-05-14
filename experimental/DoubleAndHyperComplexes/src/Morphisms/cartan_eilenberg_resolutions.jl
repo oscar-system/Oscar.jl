@@ -3,7 +3,7 @@ is_chain_complex(c::AbsHyperComplex) = (dim(c) == 1 ? direction(c, 1) == (:chain
 is_cochain_complex(c::AbsHyperComplex) = (dim(c) == 1 ? direction(c, 1) == (:cochain) : error("complex is not one-dimensional"))
 
 
-function (l::MapLifter{T})(Phi::AbsHyperComplexMorphism, I::Tuple) where {T<:ModuleFPHom}
+function (l::MapLifter{T})(Phi::AbsHyperComplexMorphism, I::Tuple) where {T<:SparseFPModuleHom}
   i = first(I)
   i == l.start_index && return l.orig_map
 
@@ -38,7 +38,7 @@ function lift_map(dom::AbsHyperComplex{DomChainType}, cod::AbsHyperComplex{CodCh
   return HyperComplexMorphism(dom, cod, l, offset=[offset])
 end
   
-morphism_type(::Type{T1}, ::Type{T2}) where {T1<:ModuleFP, T2<:ModuleFP} = ModuleFPHom{<:T1, <:T2}
+morphism_type(::Type{T1}, ::Type{T2}) where {T1<:SparseFPModule, T2<:SparseFPModule} = SparseFPModuleHom{<:T1, <:T2}
 
 ### Cartan Eilenberg resolutions
 

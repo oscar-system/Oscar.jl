@@ -49,8 +49,8 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 ## Types
 
 All OSCAR types for the finitely presented modules considered here belong to the
-abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+abstract type `SparseFPModule{T}`, where `T` is the element type of the underlying ring.
+Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: SparseFPModule{T}`,
 they are modeled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
@@ -157,7 +157,7 @@ degrees_of_generators(M::SubquoModule)
 
 All OSCAR types for elements of finitely presented modules considered here belong to the
 abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
-For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
+For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: SparseFPModuleElem{T}`
 and its concrete descendant `SubquoModuleElem{T}` which implements an element $m$ of a subquotient
 $M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
 This object specifies the coefficients of an $R$-linear combination of the generators of $M$
@@ -379,22 +379,22 @@ saturation_with_index(M:: SubquoModule, J::Ideal)
 ## Submodules and Quotients
 
 ```@docs
-sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+sub(M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}) where T
 ```
 
 ```@docs
-quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
+quo(M::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}; cache_morphism::Bool=false) where T
 ```
 
 ## Homomorphisms From Subqotients
 
 All OSCAR types for homomorphisms of finitely presented modules considered here belong
-to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
-For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: ModuleFPHom{T1, T2}`
+to the abstract type `SparseFPModuleHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
+For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: SparseFPModuleHom{T1, T2}`
 as well as the following constructors:
 
 ```@docs
-hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+hom(M::SubquoModule{T}, N::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}) where T
 ```
 
 Given a homomorphism of type `SubQuoHom`, a matrix `A` representing it

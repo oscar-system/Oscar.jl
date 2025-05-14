@@ -3,9 +3,9 @@
 # internal function maintains that structure.
 function _kaehler_differentials(R::Ring)
   if !has_attribute(R, :kaehler_differentials)
-    set_attribute!(R, :kaehler_differentials, Dict{Int, ModuleFP}())
+    set_attribute!(R, :kaehler_differentials, Dict{Int, SparseFPModule}())
   end
-  return get_attribute(R, :kaehler_differentials)::Dict{Int, <:ModuleFP}
+  return get_attribute(R, :kaehler_differentials)::Dict{Int, <:SparseFPModule}
 end
 
 function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=true)
@@ -120,7 +120,7 @@ function kaehler_differentials(R::Ring, p::Int; cached::Bool=true)
 end
 
 @doc raw"""
-    is_kaehler_differential_module(M::ModuleFP)
+    is_kaehler_differential_module(M::SparseFPModule)
 
 Internal method to check whether a module `M` was created as 
 some ``p``-th exterior power of the Kaehler differentials 
@@ -129,7 +129,7 @@ some ``p``-th exterior power of the Kaehler differentials
 Return `(true, R, p)` in the affirmative case and 
 `(false, base_ring(M), 0)` otherwise.
 """
-function is_kaehler_differential_module(M::ModuleFP)
+function is_kaehler_differential_module(M::SparseFPModule)
   has_attribute(M, :is_kaehler_differential_module) || return false, base_ring(M), 0
   R, p = get_attribute(M, :is_kaehler_differential_module)
   return true, R, p
@@ -149,7 +149,7 @@ function de_rham_complex(R::Ring; cached::Bool=true)
 end
 
 # printing of kaehler differentials
-function show_kaehler_differentials(io::IO, M::ModuleFP)
+function show_kaehler_differentials(io::IO, M::SparseFPModule)
   success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   if success 
@@ -167,7 +167,7 @@ function show_kaehler_differentials(io::IO, M::ModuleFP)
   end
 end
 
-function show_kaehler_differentials(io::IO, ::MIME"text/html", M::ModuleFP)
+function show_kaehler_differentials(io::IO, ::MIME"text/html", M::SparseFPModule)
   success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   io = IOContext(io, :compact => true)
@@ -189,13 +189,13 @@ end
 # Exterior derivatives
 @doc raw"""
     exterior_derivative(f::Union{MPolyRingElem, MPolyLocRingElem, MPolyQuoRingElem, MPolyQuoLocRingElem}; 
-                        parent::ModuleFP=kaehler_differentials(parent(f)))
+                        parent::SparseFPModule=kaehler_differentials(parent(f)))
 
 Compute the exterior derivative of an element ``f`` of a ``𝕜``-algebra `R`
 as an element of the `kaehler_differentials` of `R`.
 """
 function exterior_derivative(f::Union{MPolyRingElem, MPolyLocRingElem, MPolyQuoRingElem, MPolyQuoLocRingElem}; 
-    parent::ModuleFP=kaehler_differentials(parent(f))
+    parent::SparseFPModule=kaehler_differentials(parent(f))
   )
   R = Oscar.parent(f)
   n = ngens(R)
@@ -205,15 +205,15 @@ function exterior_derivative(f::Union{MPolyRingElem, MPolyLocRingElem, MPolyQuoR
 end
 
 @doc raw"""
-    exterior_derivative(w::ModuleFPElem; parent::ModuleFP=...)
+    exterior_derivative(w::SparseFPModuleElem; parent::SparseFPModule=...)
 
 Check whether `parent(w)` is an exterior power ``Ωᵖ(R/𝕜)`` of the module of 
 Kaehler differentials of some ``𝕜``-algebra `R` and computes its exterior 
 derivative in `parent`. If the latter is not specified, it defaults to 
 ``Ωᵖ⁺¹(R/𝕜)``, the `kaehler_differentials(R, p+1)`.
 """
-function exterior_derivative(w::ModuleFPElem; 
-    parent::ModuleFP=begin
+function exterior_derivative(w::SparseFPModuleElem; 
+    parent::SparseFPModule=begin
       success, R, p = is_kaehler_differential_module(parent(w))
       success || error("not a kaehler differential module")
       kaehler_differentials(R, p+1)
@@ -234,7 +234,7 @@ function symbols(L::MPolyLocRing)
   return symbols(base_ring(L))
 end
 
-function change_base_ring(R::Ring, phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, <:Nothing})
+function change_base_ring(R::Ring, phi::SparseFPModuleHom{<:SparseFPModule, <:SparseFPModule, <:Nothing})
   dom_res, dom_map = change_base_ring(R, domain(phi))
   cod_res, cod_map = change_base_ring(R, codomain(phi))
   result = hom(dom_res, cod_res, cod_map.(phi.(gens(domain(phi)))))

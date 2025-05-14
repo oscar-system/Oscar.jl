@@ -148,19 +148,19 @@ function _hom(
                    )
 end
 
-#function hom(c::AbsSimpleComplex{ChainType}, M::ModuleFP; auto_extend::Bool=false) where {ChainType<:ModuleFP}
+#function hom(c::AbsSimpleComplex{ChainType}, M::SparseFPModule; auto_extend::Bool=false) where {ChainType<:SparseFPModule}
 #  return SimpleComplexWrapper(_hom(c, ZeroDimensionalComplex(M); auto_extend))
 #end
 
-function hom(c::AbsHyperComplex{ChainType}, M::ModuleFP; auto_extend::Bool=false) where {ChainType<:ModuleFP}
+function hom(c::AbsHyperComplex{ChainType}, M::SparseFPModule; auto_extend::Bool=false) where {ChainType<:SparseFPModule}
   return _hom(c, ZeroDimensionalComplex(M); auto_extend)
 end
 
-#function hom(M::ModuleFP, c::AbsSimpleComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: ModuleFP}
+#function hom(M::SparseFPModule, c::AbsSimpleComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: SparseFPModule}
 #  return SimpleComplexWrapper(_hom(ZeroDimensionalComplex(M), c; auto_extend))
 #end
 
-function hom(M::ModuleFP, c::AbsHyperComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: ModuleFP}
+function hom(M::SparseFPModule, c::AbsHyperComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: SparseFPModule}
   return _hom(ZeroDimensionalComplex(M), c; auto_extend)
 end
 
@@ -176,17 +176,17 @@ end
 #
 # from the total complex of `a` to the total complex of `b` shifted by i.
 struct InterpretationMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
-  tot::TotalComplex{<:ModuleFP, <:ModuleFPHom, <:HomComplex}
+  tot::TotalComplex{<:SparseFPModule, <:SparseFPModuleHom, <:HomComplex}
   dom::TotalComplex
   cod::TotalComplex
-  v::ModuleFPElem
+  v::SparseFPModuleElem
   i::Int
 
   function InterpretationMorphismFactory(
       tot::TotalComplex{ChainType, MorphismType, <:HomComplex}, 
       dom::TotalComplex, 
       cod::TotalComplex,
-      v::ModuleFPElem, i::Int
+      v::SparseFPModuleElem, i::Int
     ) where {ChainType, MorphismType}
     @assert original_complex(dom) === domain(original_complex(tot))
     @assert original_complex(cod) === codomain(original_complex(tot))
@@ -246,14 +246,14 @@ end
 
 @attributes mutable struct InterpretationMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InterpretationMorphism{DomainType, CodomainType, MorphismType}}
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-  tot::TotalComplex{<:ModuleFP, <:ModuleFPHom, <:HomComplex}
-  v::ModuleFPElem
+  tot::TotalComplex{<:SparseFPModule, <:SparseFPModuleHom, <:HomComplex}
+  v::SparseFPModuleElem
 
   function InterpretationMorphism(
       tot::TotalComplex{ChainType, MorphismType, <:HomComplex}, 
       dom::TotalComplex, 
       cod::TotalComplex,
-      v::ModuleFPElem, i::Int
+      v::SparseFPModuleElem, i::Int
     ) where {ChainType, MorphismType}
     map_factory = InterpretationMorphismFactory(tot, dom, cod, v, i)
 
@@ -276,7 +276,7 @@ module_element(phi::InterpretationMorphism) = phi.v
 #
 # where `tot = tot(hom(a, b))`.
 function element_to_homomorphism_map(
-    tot::TotalComplex{<:ModuleFP, <:ModuleFPHom, <:HomComplex}, 
+    tot::TotalComplex{<:SparseFPModule, <:SparseFPModuleHom, <:HomComplex}, 
     i::Int;
     domain::TotalComplex=total_complex(domain(original_complex(tot))),
     codomain::TotalComplex=total_complex(codomain(original_complex(tot)))

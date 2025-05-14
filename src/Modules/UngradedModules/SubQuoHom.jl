@@ -3,21 +3,21 @@
 ###############################################################################
 
 @doc raw"""
-    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where T
+    SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, im::Vector{<:SparseFPModuleElem{T}}) where T
 
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
 In particular, `length(im) == ngens(D)` must hold.
 """
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im; check)
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h; check)
+SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, im::Vector{<:SparseFPModuleElem{T}}; check::Bool=true) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im; check)
+SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, im::Vector{<:SparseFPModuleElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h; check)
 
 @doc raw"""
-    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
+    SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, mat::MatElem{T})
 
 Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a subquotient.
 `mat` must have `ngens(D)` many rows and `ngens(C)` many columns.
 """
-function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool=true) where T
+function SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, mat::MatElem{T}; check::Bool=true) where T
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
@@ -29,7 +29,7 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool
   end
 end
 
-function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType}
+function SubQuoHom(D::SubquoModule, C::SparseFPModule{T}, mat::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType}
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
@@ -41,7 +41,7 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapT
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: SparseFPModule, RingMapType}
    println(terse(io), fmh)
    io = pretty(io)
    io_compact = IOContext(io, :compact => true)
@@ -60,7 +60,7 @@ function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapTyp
   end
 end
 
-function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: SparseFPModule, RingMapType}
   if is_terse(io)
     if is_graded(fmh)
       A = grading_group(fmh)
@@ -87,13 +87,13 @@ image_of_generator(phi::SubQuoHom, i::Int) = phi.im[i]::elem_type(codomain(phi))
 ###################################################################
 
 @doc raw"""
-    hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+    hom(M::SubquoModule{T}, N::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}) where T
 
 Given a vector `V` of `ngens(M)` elements of `N`,
 return the homomorphism `M` $\to$ `N` which sends the `i`-th
 generator `M[i]` of `M` to the `i`-th entry of `V`.
 
-    hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T})) where T
+    hom(M::SubquoModule{T}, N::SparseFPModule{T},  A::MatElem{T})) where T
 
 Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
 homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to
@@ -112,7 +112,7 @@ the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 If you are uncertain with regard to well-definedness, use the function below.
 Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
 
-    is_welldefined(a::ModuleFPHom)
+    is_welldefined(a::SparseFPModuleHom)
 
 Return `true` if `a` is well-defined, and `false` otherwise.
 
@@ -258,19 +258,19 @@ julia> is_welldefined(c)
 false
 ```
 """
-hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
-hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
+hom(M::SubquoModule{T}, N::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
+hom(M::SubquoModule{T}, N::SparseFPModule{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
 
 
 @doc raw"""
-    hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+    hom(M::SubquoModule, N::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::RingMapType) where {T, RingMapType}
 
 Given a vector `V` of `ngens(M)` elements of `N`,
 return the homomorphism `M` $\to$ `N` which sends the `i`-th
 generator `M[i]` of `M` to the `i`-th entry of `V`, and the
 scalars in `base_ring(M)` to their images under `h`.
 
-    hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+    hom(M::SubquoModule, N::SparseFPModule{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
 
 Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
 homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to
@@ -290,13 +290,13 @@ and the scalars in `base_ring(M)` to their images under `h`.
 If you are uncertain with regard to well-definedness, use the function below.
 Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
 
-    is_welldefined(a::ModuleFPHom)
+    is_welldefined(a::SparseFPModuleHom)
 
 Return `true` if `a` is well-defined, and `false` otherwise.
 
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, V, h; check)
-hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, A, h; check)
+hom(M::SubquoModule, N::SparseFPModule{T}, V::Vector{<:SparseFPModuleElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, V, h; check)
+hom(M::SubquoModule, N::SparseFPModule{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, A, h; check)
 
 function is_welldefined(H::Union{FreeModuleHom,FreeModuleHom_dec})
   return true
@@ -329,7 +329,7 @@ function is_welldefined(H::SubQuoHom)
   return true
 end
 
-function (==)(f::ModuleFPHom, g::ModuleFPHom)
+function (==)(f::SparseFPModuleHom, g::SparseFPModuleHom)
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   M = domain(f)
@@ -339,7 +339,7 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   return true
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
+function Base.hash(f::SparseFPModuleHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:SparseFPModule{S}}
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
@@ -350,7 +350,7 @@ function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRing
   return xor(h, b)
 end
 
-function Base.hash(f::ModuleFPHom, h::UInt)
+function Base.hash(f::SparseFPModuleHom, h::UInt)
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
@@ -458,7 +458,7 @@ function matrix(f::SubQuoHom)
   return f.matrix
 end
 
-function show_morphism(f::ModuleFPHom)
+function show_morphism(f::SparseFPModuleHom)
   show(stdout, "text/plain", matrix(f))
 end
 
@@ -484,7 +484,7 @@ function image(f::SubQuoHom, a::SubquoModuleElem)
   return sum(h(b)*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
 end
 
-function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
+function image(f::SubQuoHom{<:SubquoModule, <:SparseFPModule, Nothing}, a::SubquoModuleElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
  #if f.generators_map_to_generators === nothing
@@ -503,7 +503,7 @@ function image(f::SubQuoHom, a::FreeModElem)
   return image(f, SubquoModuleElem(a, domain(f)))
 end
 
-function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::FreeModElem)
+function image(f::SubQuoHom{<:SubquoModule, <:SparseFPModule, Nothing}, a::FreeModElem)
   return image(f, SubquoModuleElem(a, domain(f)))
 end
 
@@ -512,7 +512,7 @@ end
 
 Compute a preimage of `a` under `f`.
 """
-function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP}, a::Union{SubquoModuleElem,FreeModElem})
+function preimage(f::SubQuoHom{<:SubquoModule, <:SparseFPModule}, a::Union{SubquoModuleElem,FreeModElem})
   @assert parent(a) === codomain(f)
   phi = base_ring_map(f)
   D = domain(f)
@@ -525,7 +525,7 @@ function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP}, a::Union{SubquoModul
   return i
 end
 
-function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing},
+function preimage(f::SubQuoHom{<:SubquoModule, <:SparseFPModule, Nothing},
         a::Union{SubquoModuleElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
@@ -547,14 +547,14 @@ Return the image of `a` as an object of type `SubquoModule`.
 
 Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
-@attr Tuple{<:SubquoModule, <:ModuleFPHom} function image(h::SubQuoHom)
+@attr Tuple{<:SubquoModule, <:SparseFPModuleHom} function image(h::SubQuoHom)
   s = sub_object(codomain(h), images_of_generators(h))
   inc = hom(s, codomain(h), images_of_generators(h), check=false)
   return s, inc
 end
 
 @doc raw"""
-    image(a::ModuleFPHom)
+    image(a::SparseFPModuleHom)
 
 Return the image of `a` as an object of type `SubquoModule`.
 
@@ -685,7 +685,7 @@ by graded submodule of F with 3 generators
   3: z^4*e[1] -> M)
 ```
 """
-function image(a::ModuleFPHom)
+function image(a::SparseFPModuleHom)
  error("image is not implemented for the given types.")
 end
 
@@ -711,7 +711,7 @@ function kernel(h::SubQuoHom)
 end
 
 @doc raw"""
-    kernel(a::ModuleFPHom)
+    kernel(a::SparseFPModuleHom)
 
 Return the kernel of `a` as an object of type `SubquoModule`.
 
@@ -842,7 +842,7 @@ by graded submodule of F with 3 generators
 
 ```
 """
-function kernel(a::ModuleFPHom)
+function kernel(a::SparseFPModuleHom)
  error("kernel is not implemented for the given types.")
 end
 
@@ -851,21 +851,21 @@ end
 #  relshp to store the maps elsewhere
 
 @doc raw"""
-    *(a::ModuleFPHom, b::ModuleFPHom)
+    *(a::SparseFPModuleHom, b::SparseFPModuleHom)
 
 Return the composition `b` $\circ$ `a`.
 """
-function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
+function *(h::SparseFPModuleHom{T1, T2, Nothing}, g::SparseFPModuleHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), check=false)
 end
 
-function *(h::ModuleFPHom{T1, T2, <:Map}, g::ModuleFPHom{T2, T3, <:Map}) where {T1, T2, T3}
+function *(h::SparseFPModuleHom{T1, T2, <:Map}, g::SparseFPModuleHom{T2, T3, <:Map}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)), check=false)
 end
 
-function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+function *(h::SparseFPModuleHom{T1, T2, <:Any}, g::SparseFPModuleHom{T2, T3, <:Any}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g),
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]),
@@ -877,55 +877,55 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {
 
 end
 
-compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
+compose(h::SparseFPModuleHom, g::SparseFPModuleHom) = h*g
 
--(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], check=false)
--(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], base_ring_map(h), check=false)
+-(h::SparseFPModuleHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], check=false)
+-(h::SparseFPModuleHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 
-function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function -(h::SparseFPModuleHom{D, C, T}, g::SparseFPModuleHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
-function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function -(h::SparseFPModuleHom{D, C, Nothing}, g::SparseFPModuleHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], check=false)
 end
 
-function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function +(h::SparseFPModuleHom{D, C, T}, g::SparseFPModuleHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
-function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function +(h::SparseFPModuleHom{D, C, Nothing}, g::SparseFPModuleHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
-function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function *(a::AdmissibleSparseFPModuleRingElem, g::SparseFPModuleHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
-function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function *(a::AdmissibleSparseFPModuleRingElem, g::SparseFPModuleHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end
 
 
 @doc raw"""
-    restrict_codomain(H::ModuleFPHom, M::SubquoModule)
+    restrict_codomain(H::SparseFPModuleHom, M::SubquoModule)
 
 Return, if possible, a homomorphism, which is mathematically identical to `H`,
 but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
 """
-function restrict_codomain(H::ModuleFPHom, M::SubquoModule)
+function restrict_codomain(H::SparseFPModuleHom, M::SubquoModule)
   D = domain(H)
   return hom(D, M, map(v -> SubquoModuleElem(v, M), map(x -> repres(H(x)), gens(D))), check=false)
 end
@@ -967,11 +967,11 @@ function induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
 end
 
 @doc raw"""
-    inv(a::ModuleFPHom)
+    inv(a::SparseFPModuleHom)
 
 If `a` is bijective, return its inverse.
 """
-function inv(H::ModuleFPHom)
+function inv(H::SparseFPModuleHom)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
@@ -1274,29 +1274,29 @@ function map(A::MatElem)
 end
 
 @doc raw"""
-    is_injective(f::ModuleFPHom)
+    is_injective(f::SparseFPModuleHom)
 
 Test if `f` is injective.
 """
-function is_injective(f::ModuleFPHom)
+function is_injective(f::SparseFPModuleHom)
   return iszero(kernel(f)[1])
 end
 
 @doc raw"""
-    is_surjective(f::ModuleFPHom)
+    is_surjective(f::SparseFPModuleHom)
 
 Test if `f` is surjective.
 """
-function is_surjective(f::ModuleFPHom)
+function is_surjective(f::SparseFPModuleHom)
   return image(f)[1] == codomain(f)
 end
 
 @doc raw"""
-    is_bijective(f::ModuleFPHom)
+    is_bijective(f::SparseFPModuleHom)
 
 Test if `f` is bijective.
 """
-function is_bijective(f::ModuleFPHom)
+function is_bijective(f::SparseFPModuleHom)
   return is_injective(f) && is_surjective(f)
 end
 
