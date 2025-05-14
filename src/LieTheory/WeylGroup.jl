@@ -796,7 +796,6 @@ function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
   return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
 end
 
-
 ###############################################################################
 # ReducedExpressionIterator
 
