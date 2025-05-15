@@ -179,4 +179,4 @@ OSCAR can be sent to:
 ## Acknowledgements
 
 We appreciate extensive support on integrating this code into OSCAR provided by
-[Mathias Zach](https://hechtiderlachs.github.io/).
+[Matthias Zach](https://hechtiderlachs.github.io/).
