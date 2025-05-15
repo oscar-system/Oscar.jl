@@ -178,7 +178,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
 end
 
 @doc raw"""
-    zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
+    zeroth_local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal) where {T<:MonoidAlgebraElem}
 
 Computes the local cohomology module
 
@@ -233,7 +233,7 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
 end
 
 @doc raw"""
-    local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+    local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 
 For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
 The output consists of a list of sector partitions. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
