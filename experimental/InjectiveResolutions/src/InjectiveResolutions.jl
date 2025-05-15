@@ -1036,13 +1036,6 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
     end
 
     push!(irreducible_sums, Ji)
-    # TODO: Remove once bugs are gone!
-    if !isempty(cochain_maps) && !is_zero(compose(last(cochain_maps), hi))
-      @show length(cochain_maps)
-      @show last(cochain_maps)
-      @show hi
-      error()
-    end
     push!(cochain_maps, hi)
 
     # end at cohomological degree i
