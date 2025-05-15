@@ -201,9 +201,9 @@ function Base.show(io::IO,I::MonoidAlgebraIdeal)
 end
 
 function Base.show(io::IO,J::InjMod)
-print(
-  io, "injective module given by direct sum of ", length(J.indec_injectives)," indecomposable injectives"
-)
+  print(
+    io, "injective module given by direct sum of ", length(J.indec_injectives)," indecomposable injectives"
+  )
 end
 
 function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
@@ -837,7 +837,7 @@ end
 @doc raw"""
   irreducible_hull(Mi::SubquoModule, kQ::MonoidAlgebra, j=0)
 
-Returns an irreducible hull of a $\mathbb{Z}^d$-graded $k[Q]$-module M. It consists of indecomposable injectives $J_1,\dots,J_k$ and a $k$-matrix $\Lamdba$
+Returns an irreducible hull of a $\mathbb{Z}^d$-graded $k[Q]$-module M. It consists of indecomposable injectives $J_1,\dots,J_k$ and a $k$-matrix $\Lambda$
 such that $Mi \xhookrightarrow{\Lambda} \sum{i=1}^k J_i$. 
 """
 function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
