@@ -1116,60 +1116,60 @@ julia> F = graded_free_module(kQ,2)
 Graded free module monoid algebra over rational field with cone of dimension 2^2([0 0]) of rank 2 over monoid algebra over rational field with cone of dimension 2
 
 julia> a = kQ[y y;0 x^2]
-[y     y]
-[0   x^2]
+[x_2     x_2]
+[  0   x_1^2]
 
 julia> b = kQ[x^2*z 0; x^4*y 0; 0 x^5*y; 0 z^3]
-[x^2*z       0]
-[x^4*y       0]
-[    0   x^5*y]
-[    0     z^3]
+[x_1^2*x_3           0]
+[x_1^4*x_2           0]
+[        0   x_1^5*x_2]
+[        0       x_3^3]
 
 julia> M = SubquoModule(F,a,b)
 Graded subquotient of graded submodule of F with 2 generators
-  1: y*e[1] + y*e[2]
-  2: x^2*e[2]
+  1: x_2*e[1] + x_2*e[2]
+  2: x_1^2*e[2]
 by graded submodule of F with 4 generators
-  1: x^2*z*e[1]
-  2: x^4*y*e[1]
-  3: x^5*y*e[2]
-  4: z^3*e[2]
+  1: x_1^2*x_3*e[1]
+  2: x_1^4*x_2*e[1]
+  3: x_1^5*x_2*e[2]
+  4: x_3^3*e[2]
 
 julia> injective_resolution(M,2)
 injective resolution
   J^0 -> J^1 -> J^2
 where
  J^0 = direct sum of
-    k{[1, 4] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[5, 7] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[4, 7] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[0, 2] + F - Q}, where p_F = Ideal (y, z, x*z)
-    k{[1, 2] + F - Q}, where p_F = Ideal (x, y, x*z)
+    k{[1, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[5, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[4, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[0, 2] + F - Q}, where p_F = Ideal (x_2, x_3, x_1*x_3)
+    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_1*x_3)
  J^1 = direct sum of
-    k{[1, 2] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[0, 3] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[-1, 3] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[5, 4] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[0, 5] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[4, 6] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[3, 6] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[-1, -2] + F - Q}, where p_F = Ideal (y, z, x*z)
-    k{[-4, -2] + F - Q}, where p_F = Ideal (x, y, x*z)
+    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[0, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[5, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[0, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[4, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[3, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[-1, -2] + F - Q}, where p_F = Ideal (x_2, x_3, x_1*x_3)
+    k{[-4, -2] + F - Q}, where p_F = Ideal (x_1, x_2, x_1*x_3)
  J^2 = direct sum of
-    k{[0, 0] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[-1, 1] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[-1, 2] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[-2, 2] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[3, 5] + F - Q}, where p_F = Ideal (x, y, z, x*z)
-    k{[2, 5] + F - Q}, where p_F = Ideal (x, y, z, x*z)
+    k{[0, 0] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[-1, 1] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[-1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[-2, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[3, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+    k{[2, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
 of Graded subquotient of graded submodule of F with 2 generators
-  1: y*e[1] + y*e[2]
-  2: x^2*e[2]
+  1: x_2*e[1] + x_2*e[2]
+  2: x_1^2*e[2]
 by graded submodule of F with 4 generators
-  1: x^2*z*e[1]
-  2: x^4*y*e[1]
-  3: x^5*y*e[2]
-  4: z^3*e[2]
+  1: x_1^2*x_3*e[1]
+  2: x_1^4*x_2*e[1]
+  3: x_1^5*x_2*e[2]
+  4: x_3^3*e[2]
 over monoid algebra over rational field with cone of dimension 2
 ```
 """
