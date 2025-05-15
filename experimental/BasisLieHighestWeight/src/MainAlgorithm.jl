@@ -223,6 +223,9 @@ function compute_monomials(
       if V isa SimpleModuleData
         M_lambda_1 = SimpleModuleData(base_lie_algebra(V), lambda_1)
         M_lambda_2 = SimpleModuleData(base_lie_algebra(V), lambda_2)
+      elseif V isa DemazureModuleData
+        M_lambda_1 = DemazureModuleData(base_lie_algebra(V), lambda_1, weyl_group_elem(V))
+        M_lambda_2 = DemazureModuleData(base_lie_algebra(V), lambda_2, weyl_group_elem(V))
       else
         error("unreachable")
       end
@@ -467,6 +470,17 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
     root
   end
   return operators
+end
+
+function operators_demazure(V::DemazureModuleData)
+  # Computes the operators for the Demazure module V.
+  op = RootSpaceElem[]
+  for negroot in negative_roots(root_system(base_lie_algebra(V)))
+    if is_positive_root(negroot * V.weyl_group_elem)
+      push!(op, -negroot)
+    end
+  end
+  return op
 end
 
 function sub_weights(w::WeightLatticeElem)
