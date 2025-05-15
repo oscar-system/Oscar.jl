@@ -86,11 +86,11 @@ Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the loc
 The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
 
 !!! note
-The monoid algebra $k[Q]$ must be normal. 
+    The monoid algebra $k[Q]$ must be normal. 
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra_from_lattice([[0,1],[1,1],[2,1]],QQ)
+julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
 monoid algebra over rational field with cone of dimension 2
 
 
@@ -128,7 +128,7 @@ Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the loc
 The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
 
 !!! note
-The monoid algebra $k[Q]$ must be normal. 
+    The monoid algebra $k[Q]$ must be normal. 
 """
 function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
@@ -186,7 +186,7 @@ $H^0_I(M) = \Gamma_I(M) = \{m\in M \mid m \cdot I^n = 0 \text{ for some }n \in \
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra_from_lattice([[0,1],[1,1],[2,1]],QQ)
+julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
 monoid algebra over rational field with cone of dimension 2
 
 
@@ -225,7 +225,7 @@ For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of th
 The output consists of a list of sector partitions. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$. 
 
 !!! note
-The monoid algebra $k[Q]$ must be normal.  
+    The monoid algebra $k[Q]$ must be normal.  
 """
 function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
   @req I_M.algebra == I.algebra "ideals must be over same monoid algebra"
@@ -239,7 +239,7 @@ For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of th
 The output consists of a list of sector partitions. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
 
 !!! note
-The monoid algebra $k[Q]$ must be normal.  
+    The monoid algebra $k[Q]$ must be normal.  
 """
 function local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
@@ -326,7 +326,7 @@ end
 Returns a finite set of positive halfspaces such that $Q$ is the intersection of them. 
 
 !!! note 
-The corresponding semigroup $Q$ must be saturated. 
+    The corresponding semigroup $Q$ must be saturated. 
 """
 function get_halfspace_eq(kQ::MonoidAlgebra)
   A, _ = halfspace_matrix_pair(facets(kQ.cone))
