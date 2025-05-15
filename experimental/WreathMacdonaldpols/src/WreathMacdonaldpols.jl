@@ -1,6 +1,6 @@
 # I would like to credit Dario Mathiä who produced an initial version of the following code
 
-export wreath_macs, wreath_mac, tau_om, core
+export wreath_macs, wreath_mac
 
 # Tools
 
@@ -133,6 +133,16 @@ function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{I
   return res
 end
 
+@doc raw"""
+    wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
+
+Given two integers n and r and an element of the affine Weyl group of type A (seen as
+the semi-direct product of the Symmetric group with the coroot lattice), this function
+returns the square matrix of coefficients of the wreath Macdonald polynomials associated with
+all multipartition of size n and length r in the standard Schur basis indexed by the
+multipartitions of the same size and length as lbb. Each row of this matrix is a wreath
+Macdonald polynomial.
+"""
 function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
   K,_ = abelian_closure(QQ)
   R, (q,t) = polynomial_ring(K, [:q,:t])
@@ -171,9 +181,18 @@ function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
   return c_L_qt_H
 end
 
+@doc raw"""
+    wreath_mac(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
+
+Given a multipartition lbb and an element of the affine Weyl group of type A (seen as
+the semi-direct product of the Symmetric group with the coroot lattice), this function
+returns the coefficients of the wreath Macdonald polynomial associated with lbb and
+the affine Weyl group element in the standard Schur basis indexed by the multipartitions
+ of the same size and length as lbb.
+"""
 function wreath_mac(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
   K,_ = abelian_closure(QQ)
-  R, (q,t) = polynomial_ring(K, [:q,:t])
+  R, (q,t) = polynomial_ring(K, [:q,:t]; cached = false)
   Q = fraction_field(R)
 
   r=length(lbb)
