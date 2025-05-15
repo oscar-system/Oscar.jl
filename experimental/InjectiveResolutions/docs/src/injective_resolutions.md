@@ -5,12 +5,15 @@ DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Injective Resolutions
-Let $k[Q]$ be a monoid algebra, and, let $M$ be a finitely generated $Q$-graded module over $k[Q]$. An *injective resolution* is an exact sequence
+Let $k[Q]$ be a monoid algebra for $Q\subset \mathbb{Z}^d$ and, let $M$ be a finitely 
+generated $\mathbb{Z}^d$-graded module over $k[Q]$. 
+An *injective resolution* is an exact sequence
 
 $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} \dots \xrightarrow{d^{i-1}} J^i \xrightarrow{d^i} \cdots.$
 
-The maps $d^j$ are given by monomial matrices. The function [injective_resolution](@ref) computes an injective resolution up to some given cohomological degree. This is an implementation of the algorithms in [HM05](@cite).
-
+The maps $d^j$ are given by monomial matrices. The function [injective_resolution](@ref) computes 
+an injective resolution up to some given cohomological degree. 
+This is an implementation of the algorithms in [HM05](@cite).
 
 ```@docs
 injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)

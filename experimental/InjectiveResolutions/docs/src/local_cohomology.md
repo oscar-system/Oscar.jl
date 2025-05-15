@@ -5,7 +5,9 @@ DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Local Cohomology
-Let $M$ be a finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. Further, let $J\subseteq k[Q]$ be an ideal. The $i$-th local cohomology module of $M$, denoted $H^i_J(M)$, is obtained as follows:
+Let $M$ be a finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. 
+Further, let $J\subseteq k[Q]$ be an ideal. 
+The $i$-th local cohomology module of $M$, denoted $H^i_J(M)$, is obtained as follows:
 
 Let
 
@@ -29,14 +31,18 @@ The zeroth local cohomology module of $M$ supported by $J$ is
 
 $H^0_J(M) = \Gamma_J(M) = \{m\in M \mid \exists n \in \mathbb{N} \colon m\cdot J^n = 0\}.$
 
-The function `zeroth_local_cohomology` returns this submodule. 
+The function `zeroth_local_cohomology` returns this submodule.
+The function is split off from the other degrees because it returns its result 
+as a proper module in OSCAR while higher local cohomlogy modules are
+represented using sector partitions.
 
 ```@docs
 zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
 ```
 
 ## Sector Partition of Local Cohomology Module
-The local cohomology module $H^i_J(M)$ are not finitely generated generated for $i>0$. However, sector partitions give us a finite data structure for local cohomology modules.
+The local cohomology module $H^i_J(M)$ are not finitely generated 
+generated for $i>0$. However, sector partitions are a finite data structure for them.
 
 A *sector partition* $\mathcal{S}$ of $H^i_J(M)$ consists of
 
@@ -50,7 +56,9 @@ $H^i_J(M)_\alpha \cong k^{\dim(H_S)} \text{ for } \alpha \in S.$
 
 For more details on sector partitions see, e.g., Chapter 13 of [MS05](@cite).
 
-The function [local_cohomology](@ref) computes a sector partition of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ should be computed using the function `local_cohomology_all`.
+The function [local_cohomology](@ref) computes a sector partition 
+of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ 
+should be computed at once using the function `local_cohomology_all`.
 
 ```@docs
     local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
@@ -72,7 +80,7 @@ Each sector `S` of a sector partition consists of
 - the sector as a polyhedron `S.sector`. 
 
 ### Tests on Local Cohomology Modules
-Test if a local cohomology module vanishes. 
+To test vanishing of local cohomology independent of the internal representation use `is_zero`:
 ```@docs
 is_zero(S::Oscar.InjectiveResolutions.SectorPartitionLC)
 ```
