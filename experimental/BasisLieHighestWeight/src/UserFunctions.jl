@@ -499,7 +499,7 @@ function basis_coordinate_ring_kodaira(
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-   V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 

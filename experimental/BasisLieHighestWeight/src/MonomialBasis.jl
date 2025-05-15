@@ -1,4 +1,4 @@
-@attributes mutable struct MonomialBasis{T <: ModuleData}
+@attributes mutable struct MonomialBasis{T<:ModuleData}
   V::T
   birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
@@ -10,7 +10,7 @@
     birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
-  ) where {T <: ModuleData}
+  ) where {T<:ModuleData}
     @req dim(V) == length(monomials) "dimesion mismatch"
     return new{T}(
       V,
