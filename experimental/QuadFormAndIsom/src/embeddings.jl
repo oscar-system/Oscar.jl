@@ -378,7 +378,7 @@ end
 # We are given a primitive extension $M\oplus N \subseteq L$ with $N$
 # negative definite. We assume that we have fixed an isometry $f\in O(M)$.
 # We want to determine isometries $g$ of $N$ such that $f\oplus g$ preserves
-# the lattice $L$ (called them "fitting isometries").
+# the lattice $L$ (call them "fitting isometries").
 # * `OqfN` here is the image of $O(N)\to O(qN)$ where `qN` is the discriminant
 #    group of `N`.
 # * `HNinqN` is the embedding of the glue domain `HN` into `qN`, for the given
