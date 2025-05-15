@@ -15,6 +15,9 @@ The maps $d^j$ are given by monomial matrices. The function [injective_resolutio
 an injective resolution up to some given cohomological degree. 
 This is an implementation of the algorithms in [HM05](@cite).
 
+!!! note
+    We require that the monoid algebra $k[Q]$ is normal. 
+
 ```@docs
 injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 injective_resolution(I::Oscar.InjectiveResolutions.MonoidAlgebraIdeal, i::Int)

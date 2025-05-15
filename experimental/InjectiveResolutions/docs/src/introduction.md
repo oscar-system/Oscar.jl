@@ -155,16 +155,15 @@ length(H2_sectors)
 
 And the third vanishes.
 ```julia
-julia> H3 = local_cohomology(M, I, 3)
+H3 = local_cohomology(M, I, 3)
+# sector partition of 3-th local cohomology module supported on ideal (x_1, x_2) of 
+#  Graded submodule of kQ^1 with 1 generator
+#   1: 1*e[1]
+# represented as subquotient with no relations
 
-sector partition of 3-th local cohomology module supported on ideal (x_1, x_2) of 
- Graded submodule of kQ^1 with 1 generator
-  1: 1*e[1]
-represented as subquotient with no relations
 
-
-julia> is_zero(H3)
-true
+is_zero(H3)
+# true
 ```
 
 ## Contact
