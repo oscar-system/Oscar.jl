@@ -73,7 +73,7 @@ Base.length(C::Combinations) = binomial(C.n, C.k)
 
 Base.eltype(::Type{Combinations{T}}) where {T} = Combination{eltype(T)}
 
-function Base.show(io::IO, C::Combinations{Base.OneTo})
+function Base.show(io::IO, C::Combinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
 end
 
