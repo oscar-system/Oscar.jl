@@ -122,7 +122,7 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
 end
 
 @doc raw"""
-    local_cohomology(M::SubquoModule{<:MonoidAlgebraElem},I::MonoidAlgebraIdeal,i::Integer)
+    local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 
 Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the local cohomology module $H^i_I(M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
 The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
