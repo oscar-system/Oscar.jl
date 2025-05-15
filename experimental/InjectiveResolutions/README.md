@@ -1,10 +1,9 @@
-# Injective Resolutions over monoid algebras
+# Local Cohomology over monoid algebras
 
 ## Aims
 
-Computing injective resolutions and local cohomology over monoid algebras
+This experimental package provides tools to compute injective resolutions and local cohomology modules of finitely generated modules over monoid algebras. It implements the algorithms in [HM05](@cite). 
 
 ## Status
 
-Just setting up my Oscar.
-
+We have implemented algorithms to compute injective resolutions and local cohomology for normal monoid algebras. 
