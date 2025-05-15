@@ -33,7 +33,7 @@ function basis_lie_highest_weight_compute(
   #     return set_mon
 
   R = root_system(base_lie_algebra(V))
-  
+
   birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
@@ -153,7 +153,8 @@ function basis_coordinate_ring_kodaira_compute(
     if isempty(monomials_new)
       set_attribute!(
         mb,
-        :minkowski_gens => [k * highest_weight(V) for k in findall(!isempty, monomials_new_k)],
+        :minkowski_gens =>
+          [k * highest_weight(V) for k in findall(!isempty, monomials_new_k)],
         :new_monomials => nothing,
       )
     else
@@ -258,7 +259,6 @@ function compute_monomials(
     push!(calc_highest_weight, highest_weight(V) => monomials)
     return monomials
   end
-  
 end
 
 function add_new_monomials!(
