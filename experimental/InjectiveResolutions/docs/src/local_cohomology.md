@@ -29,7 +29,7 @@ The zeroth local cohomology module of $M$ supported by $J$ is
 
 $H^0_J(M) = \Gamma_J(M) = \{m\in M \mid \exists n \in \mathbb{N} \colon m\cdot J^n = 0\}.$
 
-The function [zeroth_local_cohomology](@ref) returns this submodule. 
+The function `zeroth_local_cohomology` returns this submodule. 
 
 ```@docs
 zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
@@ -50,11 +50,11 @@ $H^i_J(M)_\alpha \cong k^{\dim(H_S)} \text{ for } \alpha \in S.$
 
 For more details on sector partitions see, e.g., Chapter 13 of [MS05](@cite).
 
-The function [local_cohomology](@ref) computes a sector partition of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ should be computed using the function [local_cohomology_all](@ref).
+The function [local_cohomology](@ref) computes a sector partition of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ should be computed using the function `local_cohomology_all`.
 
 ```@docs
-local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
-local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+    local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
+    local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 ```
 
 ### Data asssociated to local cohomology
