@@ -120,7 +120,7 @@ The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the
 !!! note
 The monoid algebra $k[Q]$ must be normal. 
 """
-function local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
   k = coefficient_ring(kQ)
 
@@ -157,7 +157,7 @@ function local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebra
   end
 
   #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
-  J, phi, psi, (j, k) = apply_gamma(Ji_, Ji, Ji_1, _phi, _psi, I)
+  J, phi, psi, (j, k) = apply_gamma!(Ji_, Ji, Ji_1, _phi, _psi, I)
 
   #compute sector partition of J -> sector partition of H^i_I(M) (see Theorem 5.2. in HM05)
   LC.sectors = sector_partition(kQ, phi, psi, j, k, J...)
@@ -202,7 +202,7 @@ by graded submodule of kQ^1 with 2 generators
   2: x_1^4*x_2*e[1]
 ```
 """
-function zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
+function zeroth_local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal) where {T<:MonoidAlgebraElem}
   #apply gamma_I to M -> corresponds to the saturation (0_M : I^\infty)
   zeroM = sub(M, [zero(M)])[1]
   return saturation(zeroM, I)
@@ -231,7 +231,7 @@ The output consists of a list of sector partitions. This function only computes 
 !!! note
 The monoid algebra $k[Q]$ must be normal.  
 """
-function local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+function local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
   @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
   @req is_normal(kQ) "monoid algebra must be normal"
@@ -248,7 +248,7 @@ function local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlg
     Jj_1 = inj_res.inj_mods[j + 1]
     Jj_2 = inj_res.inj_mods[j + 2]
 
-    J, phi, psi, (j, k) = apply_gamma(Jj, Jj_1, Jj_2, _phi, _psi, I)
+    J, phi, psi, (j, k) = apply_gamma!(Jj, Jj_1, Jj_2, _phi, _psi, I)
     Hj = sector_partition(kQ, phi, psi, j, k, J...)
     push!(
       H,
@@ -335,12 +335,13 @@ and j = |J^0|, k = |J^0| + |J^1|. This function computes a sector partition of t
 """
 function sector_partition(
   kQ::MonoidAlgebra,
-  phi::Union{Vector{Any},MatElem{<:T}},
-  psi::Union{Vector{Any},MatElem{<:T}},
+  phi::MatElem{T},
+  psi::MatElem{T},
   j::Integer,
   k::Integer,
   J::IndecInj...,
 ) where {T<:FieldElem}
+ 
   # check that kQ is compatible with the indecomposable injectives
   # ...
   field = coefficient_ring(kQ)
@@ -455,8 +456,8 @@ function _local_cohomology_sector(
   A::Vector{Int},
   j::Integer,
   k::Integer,
-  phi::Union{Vector{Any},MatElem{<:T}},
-  psi::Union{Vector{Any},MatElem{<:T}},
+  phi::MatElem{T},
+  psi::MatElem{T}
 ) where {T<:FieldElem}
   @assert elem_type(field) == T
   # divide A into triple
@@ -474,7 +475,7 @@ function _local_cohomology_sector(
   #phi
   phi_del = matrix(field, zeros(field, length(A_0), length(A_1)))
 
-  if phi != []
+  if !is_empty(phi) # `is_empty` is true for the the m x 0-matrix
     rows = []
     for i in A_0 #delete i-th row of phi for i \notin A_0
       push!(rows, phi[i, :])
@@ -494,7 +495,7 @@ function _local_cohomology_sector(
 
   #psi
   psi_del = matrix(field, zeros(field, length(A_1), length(A_2)))
-  if psi != []
+  if !is_empty(psi)
     rows = []
     for i in A_1 #delete i-th row of psi for i \notin A_1 
       push!(rows, psi[i - j, :])
@@ -519,13 +520,13 @@ function _local_cohomology_sector(
 end
 
 @doc raw"""
-  apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::MonoidAlgebraIdeal) where {T<:FieldElem}
+  apply_gamma!(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::MonoidAlgebraIdeal) where {T<:FieldElem}
 
 Apply the functor $\Gamma_I(-)$ to a cochain complex of injective modules $J_0 \xrightarrow{phi} J_1 \xrightarrow{\psi} J_2$. It maps a $\mathbb{Z}^d$-graded $k[Q]$-momdule $M$
 to the submodule $\Gamma_I(M) = \{m \in M \mid m \cdot I^n = 0 \text{ for some }n>0\}$. Applying the functor corresponds to deleting all indecomposable injectives
 $k\{a_i + F_i - Q\}$ with $I \not\subseteq p_{F_i}$. The monomial matrices of the maps $\phi$ and $\psi$ are updated by deleting the corresponding rows and columns.  
 """
-function apply_gamma(
+function apply_gamma!(
   J0::InjMod,
   J1::InjMod,
   J2::InjMod,
@@ -556,7 +557,6 @@ function apply_gamma(
   _J_1 = []
   for i in eachindex(J_1)
     if issubset(underlying_ideal(I), J_1[i].face.prime)
-      # if issubset(I,J_1[i].face.prime) 
       push!(_J_1, J_1[i])
       if rows_phi != []
         push!(columns_phi, _phi[:, i])
@@ -564,8 +564,8 @@ function apply_gamma(
       push!(rows_psi, psi[i, :])
     end
   end
-  if columns_phi == []
-    phi = []
+  if is_empty(columns_phi)
+    phi = zero_matrix(k, length(rows_phi), 0)
   else
     phi = matrix(k, hcat(columns_phi...))
   end
@@ -575,20 +575,19 @@ function apply_gamma(
   _J_2 = []
   for i in eachindex(J_2)
     if issubset(underlying_ideal(I), J_2[i].face.prime)
-      # if issubset(I,J_2[i].face.prime) 
       push!(_J_2, J_2[i])
       if rows_psi != []
         push!(columns_psi, _psi[:, i])
       end
     end
   end
-  if columns_psi == []
-    psi = []
+  if is_empty(columns_psi)
+    psi = zero_matrix(k, length(rows_psi), 0)
   else
     psi = matrix(k, hcat(columns_psi...))
   end
 
-  return [_J_0..., _J_1..., _J_2...], phi, psi, (length(_J_0), length(_J_0) + length(_J_1))
+  return [_J_0..., _J_1..., _J_2...], phi::MatElem, psi::MatElem, (length(_J_0), length(_J_0) + length(_J_1))
 end
 
 @doc raw"""
