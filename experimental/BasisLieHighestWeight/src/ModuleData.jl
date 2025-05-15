@@ -78,7 +78,8 @@ end
 
 function character(V::DemazureModuleData)
     if !isdefined(V, :character)
-        V.character = demazure_character(ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem)
+        _char = demazure_character(ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem)
+        V.character = Dict([(w * inv(weyl_group_elem(V)) => k) for (w, k) in _char])
     end
     return V.character
 end
