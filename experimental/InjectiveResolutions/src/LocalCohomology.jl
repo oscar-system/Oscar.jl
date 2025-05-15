@@ -23,10 +23,20 @@ mutable struct SectorPartitionLC
   end
 end
 
+@doc raw"""
+    is_zero(s::SectorLC)
+
+Test if local cohomology is zero on a sector.
+"""
 function is_zero(s::SectorLC)
   return dim(s.H) == 0
 end
 
+@doc raw"""
+    is_zero(S::SectorPartitionLC)
+
+Given a sector partition of a local cohomology module, check if the local cohomology module is zero.
+"""
 function is_zero(S::SectorPartitionLC)
   return all([dim(s.H) == 0 for s in S.sectors])
 end
@@ -168,7 +178,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
 end
 
 @doc raw"""
-    zeroth_local_cohomology(M::MonoidAlgebraModule, I::MonoidAlgebraIdeal)
+    zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
 
 Computes the local cohomology module
 
