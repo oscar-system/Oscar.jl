@@ -140,7 +140,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
   #compute injective resolution
   inj_res = injective_resolution(M, i+1)
 
-  #initilalize sector partition
+  #initialize sector partition
   LC = SectorPartitionLC(M, i, I)
 
   if i > inj_res.upto #local cohomology zero
