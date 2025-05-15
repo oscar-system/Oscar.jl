@@ -24,7 +24,7 @@ algebras) can be considered.
 Injective modules over polynomial rings or monoid algebras are generally not
 finitely generated and hence cannot be algorithmically treated with off-the-shelf
 tools implemented in OSCAR.  However, there exist polyhedral data structures for
-both injective modules and local cohomology that allow to represent them using
+both injective modules and local cohomlogy that allow to represent them using
 lattice points and polyhedra.  Because resolutions typically are also infinite,
 we can finitely represent it them only up to a given homological degree.
 This package provides all the necessary data structures and algorithms.
