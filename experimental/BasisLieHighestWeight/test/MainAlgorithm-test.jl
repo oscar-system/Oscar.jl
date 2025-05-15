@@ -674,7 +674,7 @@ end
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
     
       R = root_system(birational_sequence(mb))
-      w = WeightLatticeElem(R, highest_weight) - WeightLatticeElem(2 * simple_root(R, 1) - 2 * simple_root(R, 2))
+      w = WeightLatticeElem(R, highest_weight) - WeightLatticeElem(2 * simple_root(R, 1) + 2 * simple_root(R, 2))
 
       monomials_for_weight_w = filter(mon -> WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w, monomials(mb))
 
