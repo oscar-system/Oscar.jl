@@ -848,7 +848,7 @@ function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
   kQ = base_ring(Mi)
   T = elem_type(kQ)
 
-  #initilalize
+  #initialize
   N = Mi
   summands = Vector{IndecInj}()
   lambda = Vector{dense_matrix_type(T)}()
