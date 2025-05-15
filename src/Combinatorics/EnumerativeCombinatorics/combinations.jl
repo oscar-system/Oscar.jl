@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::Int, k::Int) = Combinations(range(; length=n), k)
+combinations(n::Int, k::Int) = Combinations(Base.OneTo(n), k)
 
 @doc raw"""
     combinations(v::AbstractVector, k::Int)
