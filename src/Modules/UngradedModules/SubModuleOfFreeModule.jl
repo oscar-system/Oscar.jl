@@ -432,14 +432,7 @@ end
 Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 function lift_std(M::SubModuleOfFreeModule)
-  if haskey(M.groebner_basis, default_ordering(M))
-    gb = M.groebner_basis[default_ordering(M)]
-    transform = get_attribute(gb, :transformation_matrix)
-    if transform !== nothing
-      return gb, transform
-    end
-  end
-  for gb in values(M.groebner_basis)
+  for (ord, gb) in M.groebner_basis
     transform = get_attribute(gb, :transformation_matrix)
     if transform !== nothing
       return gb, transform
