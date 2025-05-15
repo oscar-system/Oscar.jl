@@ -57,14 +57,14 @@ The function [local_cohomology](@ref) computes a sector partition of $H^i_I(M)$.
     local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 ```
 
-### Data asssociated to local cohomology
+### Data asssociated to Sector Partitions
 Let `H = local_cohomology(M,I,i)` be a sector partition of the local cohomology module $H^i_I(M)$. Then
 
 - `H.M` refers to $M$,
 - `H.I` refers to $I$,
 - `H.i` refers to `i`,
 - `H.sectors` refers to the finite partition of $\mathbb{Z}^d$ into sectors as polyhedron, and,
-- `H.maps` refers to the maps between the finite dimensional vector spaces of each sector. 
+- `H.maps` refers to the maps between the finite dimensional vector spaces. 
 
 Each sector `S` of a sector partition consists of
 
