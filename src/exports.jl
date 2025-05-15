@@ -773,6 +773,7 @@ export img_gens
 export immaculate_line_bundles
 export incidence_matrix
 export inclusion_morphism
+export indegree
 export independent_sets
 export index
 export index_of_gen
@@ -1315,6 +1316,7 @@ export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
+export outdegree
 export outneighbors
 export p_central_series
 export pappus_matroid

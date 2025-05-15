@@ -545,7 +545,66 @@ julia> degree(g, 1)
 ```
 """
 degree(g::Graph, v::Int64) = length(neighbors(g, v))
+
+@doc raw"""
+    indegree(g::Graph{Directed} [, v::Int64])
+
+Return the indegree of the vertex `v` in the directed graph `g`. If `v` is
+missing, return the list of indegrees of all vertices.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g, 1, 3);
+
+julia> add_edge!(g, 3, 4);
+
+julia> indegree(g, 1)
+0
+
+julia> indegree(g)
+5-element Vector{Int64}:
+ 0
+ 0
+ 1
+ 1
+ 0
+```
+"""
+indegree(g::Graph{Directed}, v::Int64) = length(inneighbors(g, v))
+
+@doc raw"""
+    outdegree(g::Graph{Directed} [, v::Int64])
+
+Return the outdegree of the vertex `v` in the directed graph `g`. If `v` is
+missing, return the list of outdegrees of all vertices.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g, 1, 3);
+
+julia> add_edge!(g, 3, 4);
+
+julia> outdegree(g, 1)
+1
+
+julia> outdegree(g)
+5-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 0
+ 0
+```
+"""
+outdegree(g::Graph{Directed}, v::Int64) = length(outneighbors(g, v))
+
 degree(g::Graph) = [ length(neighbors(g, v)) for v in 1:n_vertices(g) ]
+indegree(g::Graph{Directed}) = [ length(inneighbors(g, v)) for v in 1:n_vertices(g) ]
+outdegree(g::Graph{Directed}) = [ length(outneighbors(g, v)) for v in 1:n_vertices(g) ]
 
 
 @doc raw"""
