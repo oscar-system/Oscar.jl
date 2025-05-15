@@ -12,7 +12,7 @@
 ################################################################################
 # Returns true if the given forms define a Drinfeld-Hecke algebra, false otherwise
 ################################################################################
-function is_drinfeld_hecke_form(forms::Dict{MatrixGroupElem{T}, MatElem}) where {T <: FieldElem}
+function is_drinfeld_hecke_form(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
   # If the forms are empty, they define the trivial (zero) Drinfeld-Hecke form
   if length(forms) == 0 return true end
   
@@ -25,7 +25,7 @@ function is_drinfeld_hecke_form(forms::Dict{MatrixGroupElem{T}, MatElem}) where 
   M, map = build_relation_matrix(G)
   
   # Translate forms into vector using the map
-  sol = fill(R, length(map))
+  sol = fill(R(), length(map))
   for ((g,i,j),k) in map
     if haskey(forms, g)
       sol[k] = forms[g][i,j]

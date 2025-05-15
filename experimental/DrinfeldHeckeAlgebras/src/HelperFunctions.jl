@@ -83,22 +83,22 @@ function build_relation_matrix(G::MatrixGroup)
       
       A = matrix(h)
     
-      row = fill(R(), m)
+      row = fill(K(), m)
       
       # (V) sum_{l < k} (a_li a_kj − a_ki a_lj) κ_g(vl,vk) − κ_h−1gh(vi,vj) = 0
       for i in 1:n, j in (i+1):n
-        for l in 1:d, k in (l+1):d
+        for l in 1:n, k in (l+1):n
           if g == c
             if l == i && k == j
-              row[handler.map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j] - R(1)
+              row[map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j] - K(1)
             else
-              row[handler.map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
+              row[map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
             end
           else
-            row[handler.map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
+            row[map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
             
             if l == i && k == j
-              row[handler.map[(c,i,j)]] = R(-1)
+              row[map[(c,i,j)]] = K(-1)
             end
           end
         end
@@ -121,6 +121,7 @@ end
 ################################################################################
 function build_global_map(G::MatrixGroup)
   map = Dict{Tuple{MatrixGroupElem, Int, Int}, Int}()
+  n = degree(G)
   
   k = 1
   for g in G, i in 1:n, j in (i+1):n

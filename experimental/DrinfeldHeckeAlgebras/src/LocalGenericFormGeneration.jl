@@ -37,19 +37,19 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
     end
   end
 
-  # Initialize result
-  forms = Dict{MatrixGroupElem{T}, MatElem}()
-
   # If there weren't any nonzero forms, return empty dictionary
-  if length(nonzero_forms) == 0 return forms end
+  if length(nonzero_forms) == 0 
+    return Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(R))}}() 
+  end
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
   S, _ = polynomial_ring(R, parameters)
+  forms = Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   
   # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1
-  for ((g, C), κ_g) in classes_with_nonzero_forms
+  for ((g, C), κ_g) in nonzero_forms
     # Shift κ_g into S using an homomorphism
     S_g = base_ring(κ_g)
     next_index = current_parameter_index + ngens(S_g)
@@ -133,8 +133,9 @@ end
 # Returns G-invariant alternating bilinear form represented as a matrix in the standard basis
 ################################################################################
 function calculate_group_invariant_form(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
-  M = build_group_invariant_relation_matrix(G)
+  M, map = build_group_invariant_relation_matrix(G)
   sol = solve_and_parametrize(M, R)
+  n = degree(G)
   
   # Convert solution to matrix
   result = zero_matrix(parent(sol[1]), n, n)

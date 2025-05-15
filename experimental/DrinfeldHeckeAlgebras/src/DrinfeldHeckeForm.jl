@@ -1,15 +1,12 @@
 ################################################################################
 # Drinfeld-Hecke form
+#
+# Struct and methods for Drinfeld-Hecke form κ defined by 
+#   κ = sum_g∈G (κ_g * g)
+# where the κ_g are alternating bilinear forms fulfilling certain requirements
+# (see Lemma 1.5 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002).
 ################################################################################
 
-# Struct for Drinfeld-Hecke form κ defined by 
-#   κ = sum_g∈G (κ_g * g)
-# where the κ_g are alternating bilinear forms.
-#
-# Each Drinfeld-Hecke form defines a Drinfeld-Hecke algebra via
-#   H_κ = R[V]#G / I_κ
-# with
-#   I_κ = < vw - wv - κ(v,w) | v,w ∈ V >
 mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   group::MatrixGroup{T} # Matrix group G over a field K
   base_ring::Ring # Underlying K-algebra R with element type S of Drinfeld-Hecke form
@@ -78,10 +75,13 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}) where {T <: RingElem}
 end
 
 function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
-  forms = generate_generic_forms(G, R)
+  if R isa Field && characteristic(R) == 0
+    forms = generate_generic_forms_locally(G, R)
+  else
+    forms = generate_generic_forms_globally(G, R)
+  end
 
   if length(forms) == 0
-    # There is only the trivial Drinfeld-Hecke form
     return DrinfeldHeckeForm(G, R)
   end
   
@@ -92,51 +92,34 @@ end
 # Drinfeld-Hecke form mutation
 ################################################################################
 
-# Checks if given matrix defines a valid Drinfeld-Hecke form and if yes, sets it to κ and calculates according forms
-# for the conjugates
-function Base.setindex!(
-  κ::DrinfeldHeckeForm{T, S}, 
-  κ_g::MatElem{S}, 
-  g::MatrixGroupElem{T}
-) where {T <: FieldElem, S <: RingElem}
-  if !is_valid_form(g, κ_g)
-    throw(ArgumentError("Form does not define valid Drinfeld-Hecke form"))
-  end
-  
-  for c in conjugacy_class(g)
-    κ_c = calculate_form_for_conjugate(g, c, κ_g)
-    
-    if is_zero(κ_c)
-      delete!(κ.forms, c)
-    else 
-      κ.forms[c] = alternating_bilinear_form(κ_c)
-    end
-  end
-end
-
 # Substitute parameters by values in any subring
 function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where {T <: FieldElem, S <: RingElem}
   if !is_generic(κ)
     throw(ArgumentError("Given form does not have any parameters."))
   end
+
+  κ_evaluated = deepcopy_internal(κ)
+
+  # If κ is zero, there is nothing to do
+  if is_zero(κ) return κ_evaluated end
   
   R = base_ring(κ)
-  n = ngens(S)
+  n = ngens(R)
   
   if length(values) != n
     throw(ArgumentError("Values input must contain exactly " * string(n) * " entries."))
   end
   
-  # Check if values are in K
+  # Check if values are in R
   safe_values = nothing
   try
-    safe_values = map(v -> S(v), values)
+    safe_values = map(v -> R(v), values)
   catch e
     throw(ArgumentError("The given values can not be cast into elements of the base ring."))
   end
 
   # Evaluation function
-  φ = hom(S, S, safe_values)
+  φ = hom(R, R, safe_values)
   λ = f -> φ(f)
 
   # Apply homomorphism to forms
@@ -145,7 +128,10 @@ function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where 
     forms[g] = map(λ, matrix(κ_g))
   end
   
-  return DrinfeldHeckeForm(forms)
+  # Set them to κ_evaluated
+  set_forms(κ_evaluated, forms)
+  
+  return κ_evaluated
 end
 
 # Checks if given forms define valid Drinfeld-Hecke form and if yes, sets them to κ
@@ -153,12 +139,15 @@ function set_forms(
   κ::DrinfeldHeckeForm{T, S}, 
   forms::Dict{MatrixGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
-  if !are_valid_forms(forms)
+  # Check if forms input defines valid Drinfeld-Hecke form
+  if !is_drinfeld_hecke_form(forms)
     throw(ArgumentError("Forms must define valid Drinfeld-Hecke form"))
   end
   
-  # Set the forms to κ
+  # Initialize forms of κ
   κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{S}}()
+  
+  # Set nonzero forms to κ
   for (g, m) in forms
     if !is_zero(m)
       κ.forms[g] = alternating_bilinear_form(m)
@@ -201,6 +190,14 @@ number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
 is_generic(κ::DrinfeldHeckeForm) = base_ring(κ) isa MPolyRing
 
+function deepcopy_internal(κ::DrinfeldHeckeForm)
+  G = group(κ)
+  R = base_ring(κ)
+  
+  κ_copy = DrinfeldHeckeForm(G, R)
+  κ_copy.forms = κ.forms
+end
+
 function Base.getindex(κ::DrinfeldHeckeForm{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}
   if haskey(κ.forms, g)
     return κ.forms[g]
@@ -209,6 +206,16 @@ function Base.getindex(κ::DrinfeldHeckeForm{T, S}, g::MatrixGroupElem{T}) where
   d = degree(κ.group)
   m = zero_matrix(κ.base_ring, d, d)
   return alternating_bilinear_form(m)
+end
+
+function get_forms(κ::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem}
+  forms = Dict{MatrixGroupElem{T}, MatElem{S}}()
+  
+  for (g, κ_g) in κ.forms
+    forms[g] = matrix(κ_g)
+  end
+
+  return forms
 end
 
 ################################################################################
