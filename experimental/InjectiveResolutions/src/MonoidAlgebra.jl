@@ -327,15 +327,15 @@ end
 dim(I::MonoidAlgebraIdeal) = dim(underlying_ideal(I))
 
 # some generic functionality which should probably be elsewhere
-function is_subset(I::Ideal, J::Ideal)
+function is_subset(I::T, J::T) where {T<:Ideal}
   return all(x in J for x in gens(I))
 end
 
-function Base.:(==)(I::Ideal, J::Ideal)
+function Base.:(==)(I::T, J::T) where {T <: Ideal}
   return is_subset(I, J) && is_subset(J, I)
 end
 
-function Base.:*(I::Ideal, J::Ideal)
+function Base.:*(I::T, J::T) where {T<:Ideal}
   @assert base_ring(I) === base_ring(J)
   return ideal(base_ring(I), [x*y for x in gens(I) for y in gens(J)])
 end
