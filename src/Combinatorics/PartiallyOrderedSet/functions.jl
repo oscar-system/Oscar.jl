@@ -15,6 +15,8 @@ the form of the adjacency matrix of a Hasse diagram. The covering relations
 must be given in topological order, i.e., `covrels` must be strictly upper
 triangular.
 
+The construction only distinguishes zero coefficients (to indicate the absence) and nonzero coefficients (to indicate the presence of a covering relation).
+
 # Examples
 ```jldoctest
 julia> a2_adj_cov = [
@@ -29,11 +31,9 @@ julia> a2_adj_cov = [
 julia> pa2 = partially_ordered_set(a2_adj_cov)
 Partially ordered set of rank 3 on 6 elements
 ```
-
-The construction only distinguishes zero coefficients (to indicate the absence) and nonzero coefficients (to indicate the presence of a covering relation).
 """
 function partially_ordered_set(covrels::Matrix{Int})
-  pg = Polymake.Graph{Directed}(IncidenceMatrix(covrels))
+  pg = Polymake.Graph{Directed}(incidence_matrix(covrels))
   nelem = nrows(covrels)
   return partially_ordered_set(Graph{Directed}(pg))
 end
@@ -77,8 +77,9 @@ _pmdec(r::Int) = Polymake.BasicDecoration(Polymake.Set{Int}(), r)
     partially_ordered_set(g::Graph{Directed})
 
 Construct a partially ordered set from a directed graph describing the Hasse diagram.
-The graph must be acyclic and have unique minimal and maximal elements. Edges must be
-directed from minimal to maximal element.
+The graph must be acyclic, edges must be directed from minimal to maximal elements.
+
+If there is no unique minimal (maximal) element in the graph, an artificial least (greatest) element is added to the internal datastructure.
 
 # Examples
 ```jldoctest
@@ -90,25 +91,39 @@ julia> pos = partially_ordered_set(g)
 Partially ordered set of rank 2 on 4 elements
 ```
 """
-function partially_ordered_set(g::Graph{Directed})
-  @req n_vertices(g) >= 2  "Graph must have at least two nodes"
-  gc = Polymake.Graph{Directed}(pm_object(g))
-  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(gc)
-  _, least_element = findmax(degree(g))
-  deg, _ = findmin(degree(g))
-  @req deg == 0 "no source element found"
-  queue = [least_element]
-  Polymake._set_entry(dec, least_element-1, _pmdec(least_element, 0))
+function partially_ordered_set(gin::Graph{Directed})
+  @req n_vertices(gin) >= 2  "Graph must have at least two nodes"
+  g = deepcopy(gin)
+  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(pm_object(g))
+  minimal = findall(iszero, indegree(g))
+  maximal = findall(iszero, outdegree(g))
+  @req length(minimal) > 0 "no minimal element found"
+  @req length(maximal) > 0 "no maximal element found"
   pos = 1
+  if length(minimal) > 1
+    # need artificial bottom node
+    add_vertex!(g)
+    least_element = n_vertices(g)
+    add_edge!.(Ref(g), Ref(least_element), minimal)
+    abottom = true
+    maxrank = -1
+  else
+    least_element = only(minimal)
+    abottom = false
+    maxrank = 0
+  end
+  queue = [least_element]
+  dec[least_element] = _pmdec(least_element, maxrank)
   # we need to generate a valid rank function
   visited = BitSet(queue)
   # we keep the elements in the queue for permuting the graph at the end
   while pos <= length(queue)
     src = queue[pos]
-    r = Polymake.decoration_rank(Polymake._get_entry(dec, src-1))
-    for t in neighbors(g, src)
-      rr = Polymake.decoration_rank(Polymake._get_entry(dec, t-1))
-      Polymake._set_entry(dec, t-1, _pmdec(t, max(r+1, rr)))
+    r = Polymake.decoration_rank(dec[src])
+    for t in outneighbors(g, src)
+      rr = max(r+1, Polymake.decoration_rank(dec[t]))
+      maxrank = max(maxrank, rr)
+      dec[t] = _pmdec(t, rr)
       if !(t in visited)
         push!(queue, t)
         push!(visited, t)
@@ -116,14 +131,29 @@ function partially_ordered_set(g::Graph{Directed})
     end
     pos += 1
   end
-  Polymake.call_function(:common, :permute_graph, gc, Polymake.to_zero_based_indexing(queue))
+  if length(maximal) > 1
+    # need artificial top
+    add_vertex!(g)
+    greatest_element = n_vertices(g)
+    add_edge!.(Ref(g), maximal, Ref(greatest_element))
+    dec[greatest_element] = _pmdec(greatest_element, maxrank+1)
+    atop = true
+    push!(queue, greatest_element)
+  else
+    atop = false
+  end
+
+  Polymake.call_function(:common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(queue))
   pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(
-                                                                     ADJACENCY=gc,
+                                                                     ADJACENCY=pm_object(g),
                                                                      DECORATION=dec,
                                                                      TOP_NODE=length(queue)-1,
                                                                      BOTTOM_NODE=0
                                                                     )
-  return PartiallyOrderedSet(pos)
+  opos = PartiallyOrderedSet(pos)
+  opos.artificial_bottom = abottom
+  opos.artificial_top = atop
+  return opos
 end
 
 @doc raw"""
@@ -223,7 +253,7 @@ function data(pose::PartiallyOrderedSetElement)
   return Vector{Int}(dec)
 end
 
-Base.length(p::PartiallyOrderedSet) = pm_object(p).N_NODES::Int - p.artificial_top
+Base.length(p::PartiallyOrderedSet) = pm_object(p).N_NODES::Int - p.artificial_top - p.artificial_bottom
 
 @doc raw"""
     rank(pe::PartiallyOrderedSetElement)
@@ -293,8 +323,7 @@ julia> maximal_chains(pos)
 ```
 """
 function maximal_chains(p::PartiallyOrderedSet)
-  mc = Polymake.graph.maximal_chains_of_lattice(pm_object(p))::IncidenceMatrix
-  # TODO check with top and bottom
+  mc = Polymake.graph.maximal_chains_of_lattice(pm_object(p), ignore_top_node=p.artificial_top, ignore_bottom_node=p.artificial_bottom)::IncidenceMatrix
   return Vector.(Polymake.to_one_based_indexing.(Polymake._row.(Ref(mc), 1:nrows(mc))))
 end
 
@@ -446,7 +475,7 @@ end
 @doc raw"""
     maximal_ranked_poset(v::AbstractVector{Int})
 
-Maximal ranked partially ordered set with number of nodes per rank given in
+Return a maximal ranked partially ordered set with number of nodes per rank given in
 `v`, from bottom to top and excluding the least and greatest elements.
 
 See [AFJ25](@cite) for details.
@@ -458,13 +487,17 @@ Partially ordered set of rank 4 on 11 elements
 ```
 """
 function maximal_ranked_poset(v::AbstractVector{Int})
-  return partially_ordered_set(Polymake.graph.maximal_ranked_poset(Polymake.Array{Int}(v)))
+  pos = partially_ordered_set(Polymake.graph.maximal_ranked_poset(Polymake.Array{Int}(v)))
+  pos.artificial_top = false
+  pos.artificial_bottom = false
+  return pos
 end
 
 @doc raw"""
     graph(p::PartiallyOrderedSet)
 
 Return the directed graph of covering relations in a partially ordered set.
+To keep the node ids consistent this will include artificial top and bottom nodes.
 
 # Examples
 ```jldoctest
@@ -481,7 +514,6 @@ graph(p::PartiallyOrderedSet) = Graph{Directed}(pm_object(p).ADJACENCY)
 @doc raw"""
     node_ranks(p::PartiallyOrderedSet)
 
-# Examples
 Return a dictionary mapping each node index to its rank.
 """
 node_ranks(p::PartiallyOrderedSet) = Dict((i => rank(p, i)) for i in 1:length(p))
@@ -567,7 +599,8 @@ end
 @doc raw"""
     least_element(p::PartiallyOrderedSet)
 
-Return the unique minimal element in a partially ordered set.
+Return the unique minimal element in a partially ordered set, if it exists.
+Throws an error otherwise.
 
 # Examples
 ```jldoctest
@@ -578,7 +611,16 @@ julia> least_element(pos)
 Poset element <[0]>
 ```
 """
-least_element(p::PartiallyOrderedSet) = PartiallyOrderedSetElement(p, _bottom_node(p))
+function least_element(p::PartiallyOrderedSet)
+  bottom = _bottom_node(p)
+  if p.artificial_bottom
+    br = rank(p, bottom)
+    nb = _ids_of_rank(p, br+1)
+    @req length(nb) == 1 "No unique minimal element"
+    bottom = first(nb)
+  end
+  return PartiallyOrderedSetElement(p, bottom)
+end
 
 @doc raw"""
     greatest_element(p::PartiallyOrderedSet)
@@ -636,7 +678,7 @@ julia> length(elements(pos))
 11
 ```
 """
-elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), 0:n_vertices(graph(p)) - 1 - p.artificial_top)
+elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), 0:n_vertices(graph(p)) - 1 - p.artificial_top - p.artificial_bottom)
 
 @doc raw"""
     elements_of_rank(p::PartiallyOrderedSet, rk::Int)

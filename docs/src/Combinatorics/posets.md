@@ -9,7 +9,6 @@ CurrentModule = Oscar
 Partially ordered sets (a.k.a. *posets*) describe a finite set of elements with a partial ordering.
 All such objects in OSCAR need to have a rank function but it is not required
 that it is graded, i.e., adjacent nodes may have a rank difference larger than one.
-There must also be a unique minimal element in the set.
 
 Internally, posets are encoded in terms of their *Hasse diagrams*.
 The latter object is the directed graph whose nodes are the elements, and the oriented edges are given by the covering relations.
@@ -19,9 +18,9 @@ Posets are static in the sense that they are born once, and then they remain imm
 This is different from [Graphs](@ref).
 
 !!! note
-    A unique maximal element is also required but in some cases this is realized by adding an
-    extra artificial top node which covers all maximal elements. This node is suppressed in most
-    functions except for the visualization.
+    Unique maximal and minimal elements are also required but in some cases this is realized by adding an extra
+    artificial top node which covers all maximal elements and an artificial top node which is covered by all minimal elements.
+    These nodes are suppressed in most functions except for the visualization.
 
 
 ## Construction
