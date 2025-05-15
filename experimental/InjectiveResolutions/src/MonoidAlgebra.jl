@@ -42,6 +42,12 @@ function polyhedral_cone(A::MonoidAlgebra)
   return A.polyhedral_cone
 end
 
+@doc raw"""
+    cone(A::MonoidAlgebra)
+
+Given a monoid algebra with underlying monoid $Q$, this function returns the polyhedral cone $\mathbb{R}_{\geq 0}Q$ as a polyhedron. 
+
+"""
 function cone(A::MonoidAlgebra)
   if !isdefined(A, :cone)
     A.cone = polyhedron(polyhedral_cone(A))
@@ -49,6 +55,12 @@ function cone(A::MonoidAlgebra)
   return A.cone
 end
 
+
+@doc raw"""
+    faces(A::MonoidAlgebra)
+
+Given a monoid algebra with underlying monoid $Q$, this function a list of all faces of the polyhedral cone $\mathbb{R}_{\geq 0}Q$ with their corresponding homogeneous prime ideals. 
+"""
 function faces(A::MonoidAlgebra)
   if !isdefined(A, :faces)
     A.faces = get_faces_of_polyhedral_cone(A.algebra, zonotope(A)[1], cone(A))
