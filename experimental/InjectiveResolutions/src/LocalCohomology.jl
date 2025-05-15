@@ -82,8 +82,7 @@ end
 @doc raw"""
     local_cohomology(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integer)
 
-Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the local cohomology module $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
-The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
+Compute a sector partition of the local cohomology module $H^i_I(k[Q]/I_M)$, where $I_M$ and $I$ are ideals in $k[Q]$.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal. 
@@ -124,8 +123,7 @@ end
 @doc raw"""
     local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 
-Compute a sector partition (see, e.g. [HM05](@cite) or [MS05](@cite)) of the local cohomology module $H^i_I(M)$, where $k[Q]$ is a monoid algebra (semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
-The output consists of a finite partition of $\mathbb{Z}^d$ into sectors and the needed maps as in [HM05](@cite) (Definition 1.2).
+Compute a sector partition of the local cohomology module $H^i_I(M)$. 
 
 !!! note
     The monoid algebra $k[Q]$ must be normal. 
@@ -180,9 +178,7 @@ end
 @doc raw"""
     zeroth_local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal) where {T<:MonoidAlgebraElem}
 
-Computes the local cohomology module
-
-$H^0_I(M) = \Gamma_I(M) = \{m\in M \mid m \cdot I^n = 0 \text{ for some }n \in \mathbb{N}_{>0} \}.$
+Computes the local cohomology module supported on I in cohomological degree zero.
 
 # Examples
 ```jldoctest
@@ -221,8 +217,7 @@ end
 @doc raw"""
     local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 
-For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
-The output consists of a list of sector partitions. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$. 
+For $1 \leq j \leq i$ compute sector partitions of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$. 
 
 !!! note
     The monoid algebra $k[Q]$ must be normal.  
@@ -235,8 +230,7 @@ end
 @doc raw"""
     local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 
-For $1 \geq j \leq i $ compute sector partitions (see, e.g. [HM05](@cite)) of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra (or semigroup ring). This is an implementation of the algorithms in [HM05](@cite). 
-The output consists of a list of sector partitions. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
+For $1 \geq j \leq i $ compute sector partitions of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
 
 !!! note
     The monoid algebra $k[Q]$ must be normal.  

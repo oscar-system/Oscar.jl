@@ -837,8 +837,7 @@ end
 @doc raw"""
   irreducible_hull(Mi::SubquoModule, kQ::MonoidAlgebra, j=0)
 
-Returns an irreducible hull of a $\mathbb{Z}^d$-graded $k[Q]$-module M. It consists of indecomposable injectives $J_1,\dots,J_k$ and a $k$-matrix $\Lambda$
-such that $Mi \xhookrightarrow{\Lambda} \sum{i=1}^k J_i$. 
+Return an irreducible hull of $M$.
 """
 function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
   kQ = base_ring(Mi)
@@ -938,11 +937,7 @@ end
 @doc raw"""
     irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int = 0)
 
-Let $k[Q]$ be a monoid algebra and let $M$ be a $\mathbb{Z}^d$-graded module over $k[Q]$. This function computes a minimal irreducible resolution
-
-$0 \to M \xrightarrow{\epsilon} \overline{W}^0 \xrightarrow{d^0} \overline{W}^1 \dots \xrightarrow{d^{r-1} \overline{W}^r,$
-
-where $\overline{W}^i = \sum_{j=1}^{n_i} \overline{W_{i_j}} = \sum_{j=1}^{n_i} k[Q]/W_{i_j}$ for irreducible ideals $W_{i_j}$. 
+Return an irreducible resolution of $M$.
 
 # Examples 
 ```jldoctest
@@ -1050,12 +1045,7 @@ end
 @doc raw"""
     injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Let $k[Q]$ be a monoid algebra and $M$ a finitely generated $Q$-graded module over $k[Q]$. This function computes a minimal injective
-resolution 
-
-$0 \to M \xrightarrow{ϵ} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} \dots \xrightarrow{d^{i-1}} J^i.$
-
-The maps $d^j$ are given by monomial matrices. This is an implementation of the algorithms in [HM05](@cite).
+Return an injective resolution of $M$ up to cohomological degree i.
 
 # Examples
 ```jldoctest
@@ -1201,7 +1191,7 @@ end
 @doc raw"""
     injective_resolution(I::MonoidAlgebraIdeal,i::Int)
     
-Let $k[Q]$ be a monoid algebra and $I\subset k[Q]$ a $\mathbb{Z}^d$-graded ideal. This function computes an injective resolution of $M = k[Q]/I$.  
+Return an injective resolution of $M = k[Q]/I$ up to cohomological degree i.  
 """
 function injective_resolution(I::MonoidAlgebraIdeal, i::Int)
   return injective_resolution(quotient_ring_as_module(I), i)
