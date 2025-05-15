@@ -1,6 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-CollapsedDocStrings = false
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -66,7 +66,7 @@ julia> faces(kQ)
 ## Constructor
 Let $v_1,\dots,v_n$ in $\mathbb{Z}^d$ be the generators of a monoid $Q$. The corresponding monoid algebra is
 
-$k[Q] \cong k\left[x^{v_1},\dots,x^{v_n}]\subseteq k[x_1,\dots, x_d].$
+$k[Q] \cong k[x^{v_1},\dots,x^{v_n}]\subseteq k[x_1,\dots, x_d].$
 
 ```@docs
 monoid_algebra(V_Q::Vector{Vector{Int}},k::Field)

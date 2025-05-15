@@ -11,8 +11,6 @@ $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} 
 
 The maps $d^j$ are given by monomial matrices. The function [injective_resolution](@ref) computes an injective resolution up to some given cohomological degree. This is an implementation of the algorithms in [HM05](@cite).
 
-!!! note
-    test
 
 ```@docs
 injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)

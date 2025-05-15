@@ -24,18 +24,55 @@ The *$i$-th local cohomology module of $M$ supported on $J$* is the $i$-th cohom
 !!! note
     We require that the monoid algebra $k[Q]$ is normal. 
 
-## $H^0_J(M)$
+## Cohomological degree zero
+The zeroth local cohomology module of $M$ supported by $J$ is
 
-## Computing Local Cohomology
+$H^0_J(M) = \Gamma_J(M) = \{m\in M \mid \exists n \in \mathbb{N} \colon m\cdot J^n = 0\}.$
 
-
-### Data asssociated to local cohomology
-
+The function [zeroth_local_cohomology](@ref) returns this submodule. 
 
 ```@docs
-zeroth_local_cohomology
+zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
+```
 
-local_cohomology
+## Sector Partition of Local Cohomology Module
+The local cohomology module $H^i_J(M)$ are not finitely generated generated for $i>0$. However, sector partitions give us a finite data structure for local cohomology modules.
 
-local_cohomology_all
+A *sector partition* $\mathcal{S}$ of $H^i_J(M)$ consists of
+
+- a finite partition $\mathbb{Z}^d = \sqcup_{S\in \mathcal{S}} S$ into *sectors*
+- finite dimensional $k$-vector spaces $H_S$ for each sector $S\in \mathcal{S}$, and,
+- maps between these vector spaces.
+
+Now given $\alpha \in \mathbb{Z}^d$,
+
+$H^i_J(M)_\alpha \cong k^{\dim(H_S)} \text{ for } \alpha \in S.$
+
+For more details on sector partitions see, e.g., Chapter 13 of [MS05](@cite).
+
+The function [local_cohomology](@ref) computes a sector partition of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ should be computed using the function [local_cohomology_all](@ref).
+
+```@docs
+local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
+```
+
+### Data asssociated to local cohomology
+Let `H = local_cohomology(M,I,i)` be a sector partition of the local cohomology module $H^i_I(M)$. Then
+
+- `H.M` refers to $M$,
+- `H.I` refers to $I$,
+- `H.i` refers to `i`,
+- `H.sectors` refers to the finite partition of $\mathbb{Z}^d$ into sectors as polyhedron, and,
+- `H.maps` refers to the maps between the finite dimensional vector spaces of each sector. 
+
+Each sector `S` of a sector partition consists of
+
+- the finite dimensional $k$-vector space $H_S$ = `S.H`,
+- the sector as a polyhedron `S.sector`. 
+
+### Tests on Local Cohomology Modules
+Test if a local cohomology module vanishes. 
+```@docs
+is_zero(S::Oscar.InjectiveResolutions.SectorPartitionLC)
 ```
