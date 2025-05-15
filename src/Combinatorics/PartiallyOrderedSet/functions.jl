@@ -160,10 +160,12 @@ end
     partially_ordered_set(g::Graph{Directed}, node_ranks::Dict{Int,Int})
 
 Construct a partially ordered set from a directed graph describing the Hasse diagram.
-The graph must be acyclic and have unique minimal and maximal elements.
+The graph must be acyclic.
 The dictionary `node_ranks` must give a valid rank for each node in the graph, strictly
-increasing from the unique minimal element to the unique maximal element.
+increasing from the minimal elements to maximal elements.
 The rank difference between two adjacent nodes may be larger than one.
+
+If there is no unique minimal (maximal) element in the graph, an artificial least (greatest) element is added to the internal datastructure.
 
 # Examples
 ```jldoctest
@@ -175,22 +177,50 @@ julia> pos = partially_ordered_set(g, Dict(2=>0, 1=>1, 4=>2, 3=>3, 5=>2, 6=>4))
 Partially ordered set of rank 4 on 6 elements
 ```
 """
-function partially_ordered_set(g::Graph{Directed}, node_ranks::Dict{Int,Int})
-  @req n_vertices(g) >= 2  "Graph must have at least two nodes"
-  gc = Polymake.Graph{Directed}(pm_object(g))
-  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(gc)
+function partially_ordered_set(gin::Graph{Directed}, node_ranks::Dict{Int,Int})
+  @req n_vertices(gin) >= 2  "Graph must have at least two nodes"
+  g = deepcopy(gin)
+  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(pm_object(g))
   for n in 1:n_vertices(g)
     Polymake._set_entry(dec, n-1, _pmdec(n, node_ranks[n]))
   end
-  sorted = first.(sort(collect(node_ranks), by=last))
-  Polymake.call_function(:common, :permute_graph, gc, Polymake.to_zero_based_indexing(sorted))
+  sorted = sort(collect(node_ranks), by=last)
+  sortednodes = first.(sorted)
+  if last(sorted[1]) == last(sorted[2])
+    # need artificial bottom node
+    minimal = first.(filter(x -> last(x) == last(sorted[1]), sorted))
+    add_vertex!(g)
+    least_element = n_vertices(g)
+    add_edge!.(Ref(g), Ref(least_element), minimal)
+    dec[least_element] = _pmdec(least_element, -1)
+    abottom = true
+    pushfirst!(sortednodes, least_element)
+  else
+    abottom = false
+  end
+  if last(sorted[end]) == last(sorted[end-1])
+    # need artificial top node
+    maximal = first.(filter(x -> last(x) == last(sorted[end]), sorted))
+    add_vertex!(g)
+    greatest_element = n_vertices(g)
+    add_edge!.(Ref(g), maximal, Ref(greatest_element))
+    dec[greatest_element] = _pmdec(greatest_element, last(sorted[end])+1)
+    atop = true
+    push!(sortednodes, greatest_element)
+  else
+    atop = false
+  end
+  Polymake.call_function(:common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(sortednodes))
   pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(
-                                                                     ADJACENCY=gc,
+                                                                     ADJACENCY=pm_object(g),
                                                                      DECORATION=dec,
-                                                                     TOP_NODE=length(sorted)-1,
+                                                                     TOP_NODE=length(sortednodes)-1,
                                                                      BOTTOM_NODE=0
                                                                     )
-  return PartiallyOrderedSet(pos)
+  opos = PartiallyOrderedSet(pos)
+  opos.artificial_bottom = abottom
+  opos.artificial_top = atop
+  return opos
 end
 
 @doc raw"""
@@ -355,7 +385,7 @@ The labels of the least and greatest elements are not shown.
 The `filename` keyword argument allows writing TikZ visualization code to `filename`.
 
 !!! note
-    This will always show the greatest element even if it does not correspond to an element of the partially ordered set.
+    This will always show the greatest and least elements even if it does not correspond to an element of the partially ordered set.
 """
 function visualize(p::PartiallyOrderedSet; filename::Union{Nothing, String}=nothing, kwargs...)
   if isdefined(p, :atomlabels) && !haskey(kwargs, :AtomLabels)
