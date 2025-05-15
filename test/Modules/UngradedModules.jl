@@ -853,7 +853,7 @@ end
   H21 = hom(M2,N1)[1]
   M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
   M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(H21[1])
-  M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
+  M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 0 0])
   @assert is_welldefined(M1_to_N1)
   @assert is_welldefined(M1_to_N2)
   @assert is_welldefined(M2_to_N1)
