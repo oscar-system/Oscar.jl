@@ -1,3 +1,6 @@
+using Distributed: pmap
+
+include("MultigradedImplicitization.jl")
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
@@ -40,3 +43,6 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+
+# Multigradedimplicitization
+export components_of_kernel
