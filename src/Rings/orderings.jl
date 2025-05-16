@@ -1475,6 +1475,7 @@ true
 ```
 """
 function is_global(ord::MonomialOrdering)
+  !is_total(ord) && error("The monomial ordering must be defined on all variables.")
   M = matrix(ord)
   for i in _support_indices(ord.o)
     if _cmp_var(M, i) <= 0
@@ -1501,6 +1502,7 @@ true
 ```
 """
 function is_local(ord::MonomialOrdering)
+  !is_total(ord) && error("The monomial ordering must be defined on all variables.")
   M = matrix(ord)
   for i in _support_indices(ord.o)
     if _cmp_var(M, i) >= 0
