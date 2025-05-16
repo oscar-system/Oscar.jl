@@ -62,10 +62,6 @@ schubert_class(G::AbstractVariety, λ::Int...)
 ```
 
 ```@docs
-schubert_classes(G::AbstractVariety, m::Int)
-```
-
-```@docs
 schubert_classes(G::AbstractVariety)
 ```
 
