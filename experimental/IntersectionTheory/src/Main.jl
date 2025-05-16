@@ -7,8 +7,8 @@
     abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
     abstract_bundle(X::AbstractVariety, r::RingElement, c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return an abstract vector bundle on `X` by specifying its Chern character. Equivalently, specify its rank and
-total Chern class.
+Return an abstract vector bundle on `X` by specifying its Chern character `ch`. Equivalently, specify its rank `r` and
+total Chern class `c`.
 
 # Examples
 
@@ -322,7 +322,7 @@ julia> tc = todd_class(TZ)
 julia> K = canonical_class(Z)
 z - H
 
-julia> H = hyperplane_class(Z)
+julia> H = polarization(Z)
 H
 
 julia> ec = euler_characteristic(OO(Z, H))
@@ -353,7 +353,7 @@ the generators of the Chow ring of `Y`.
     The corresponding pushforward will be automatically computed in certain cases.
 
 In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
-present in the Chow ring of `Y`, use the argument `inclusion = true`. Then,
+present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
 a copy of `Y` will be created, with extra classes added so that one can
 pushforward all classes on `X`.
 
@@ -668,10 +668,10 @@ end
 @doc raw"""
      abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
 
-Return an abstract variety of dimension `n` with Chow ring `A`.
+Return an abstract variety by specifying its dimension `n` and Chow ring `A`.
 
 !!! note
-    We allow graded polynomial rings here since for the construction of a new abstract variety, it is occasionally useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    We allow graded polynomial rings here since for the construction of a new abstract variety it is occasionally useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
 
 # Examples
 ```jldoctest
@@ -707,9 +707,9 @@ julia> chern_character(TP2)
 ```
 
 !!! note
-    Extending the coefficient ring as shown below allows one to work with parameters when using specialized constructors such as `abstract_projective_space`:
-
-
+    Typically, the coefficient ring of a Chow ring in OSCAR will be $\mathbb Q$. In order to
+    allow the use of parameters, the coefficient ring may be extended, say to a function field of type $\mathbb Q(t_1, \dots, t_r).$
+    The example below shows how to do this when using built-in constructors such as `abstract_projective_space`:
 
 ```jldoctest
 julia> T, (t, ) = polynomial_ring(QQ, [:t])
@@ -822,14 +822,14 @@ julia> integral(p)
 point_class(X::AbstractVariety) = X.point
 
 @doc raw"""
-    hyperplane_class(X::AbstractVariety)
+    polarization(X::AbstractVariety)
 
-If `X` has been given the class of a hyperplane section of `X`, return that class.
+If `X` has been given a polarization, return that polarization.
 
 !!! note
-    Speaking of a hyperplane section of `X` means that we have a specific embedding of `X` into projective space in mind.
-    For Grassmanians, for example, this embedding is the Plücker embedding. For the product of two abstract varieties with
-    given classes of hyperplane sections, it is the Segre embedding.
+    To implement a polarization $\mathcal O_X(1)$ means to implement its first Chern class.
+    For Grassmannians, this is the polarization of the Plücker embedding. For the product
+    of two abstract varieties with given polarizations, it is the polarization of the Segre embedding.
 
 # Examples
 
@@ -837,10 +837,16 @@ If `X` has been given the class of a hyperplane section of `X`, return that clas
 julia> G = abstract_grassmannian(2, 5)
 AbstractVariety of dim 6
 
-julia> hyperplane_class(G)
+julia> D = polarization(G)
 -c[1]
 
-julia> degree(G) == integral(hyperplane_class(G)^dim(G)) == 5
+julia> degree(G) == integral(D^dim(G)) == 5
+true
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 3 on AbstractVariety of dim 6
+
+julia> OO(G, D) == det(Q)
 true
 
 ```
@@ -855,15 +861,15 @@ AbstractVariety of dim 1
 julia> P = P1s*P1t
 AbstractVariety of dim 2
 
-julia> H = hyperplane_class(P)
+julia> D = polarization(P)
 s + t
 
-julia> integral(H^dim(P))
-2
+julia> degree(P) == integral(D^dim(P)) == 2
+true
 
 ```
 """
-function hyperplane_class(X::AbstractVariety)
+function polarization(X::AbstractVariety)
   return(X.O1)
 end
 
@@ -871,7 +877,9 @@ end
 @doc raw"""
     trivial_line_bundle(X::AbstractVariety)
 
-Return the trivial line bundle $\mathcal O_X$ on `X`. Alternatively, use `OO` instead of `trivial_line_bundle`.
+Return the trivial line bundle $\mathcal O_X$ on `X`.
+
+Alternatively, use `OO` instead of `trivial_line_bundle`.
 
 # Examples
 ```jldoctest
@@ -962,11 +970,12 @@ structure_map(X::AbstractVariety) = X.struct_map
 @doc raw"""
     line_bundle(X::AbstractVariety, n::RingElement)
 
-If `X` has been given a hyperplane class, return the line bundle $\mathcal O_X(n)$ on `X`.
+If `X` has been given a polarization $\mathcal O_X(1)$, return the line bundle $\mathcal O_X(n)$ on `X`.
 
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$. Here, $D[1]$ is the degree-1 part of `D`.
+Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$. Here, $D[1]$ is the degree-1 part of `D`
+(geometrically, this is the codimension 1 part of $D$).
 
 Alternatively, use `OO` instead of `line_bundle`.
 
@@ -995,7 +1004,7 @@ OO(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = line_bund
 @doc raw"""
     degree(X::AbstractVariety)
 
-If `X` has been given a hyperplane class, return the corresponding degree of `X`.
+If `X` has been given a polarization, return the corresponding degree of `X`.
 
 # Examples
 ```jldoctest
@@ -1231,8 +1240,8 @@ signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 @doc raw"""
     hilbert_polynomial(F::AbstractBundle)
 
-Given an abstract vector bundle `F` on an abstract variety with a specified hyperplane class, 
-return the corresponding Hilbert polynomial of `F`.
+If `F` is an abstract vector bundle on an abstract variety with a given polarization,
+then return the corresponding Hilbert polynomial of `F`.
 
 # Examples
 ```jldoctest
@@ -1257,7 +1266,7 @@ julia> euler_characteristic(OO(P2, 3))
 ```
 """
 function hilbert_polynomial(F::AbstractBundle)
-  !isdefined(F.parent, :O1) && error("no hyperplane class is specified for the abstract_variety")
+  !isdefined(F.parent, :O1) && error("no polarization is specified for the abstract_variety")
   X, O1 = F.parent, F.parent.O1
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
@@ -1280,7 +1289,7 @@ end
 @doc raw"""
     hilbert_polynomial(X::AbstractVariety)
 
-If `X` has been given a hyperplane class, return the corresponding Hilbert polynomial of `X`.
+If `X` has been given a polarization, return the corresponding Hilbert polynomial of `X`.
 
 # Examples
 ```jldoctest
@@ -1337,7 +1346,7 @@ end
 Return the product $X\times Y$. Alternatively, use `*`.
 
 !!! note 
-    If both `X` and `Y` have been given a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
+    If both `X` and `Y` have been given a polarization, $X\times Y$ will be endowed with the polarization corresponding to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
@@ -1684,29 +1693,27 @@ julia> basis(P2xP2)
 betti_numbers(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
-    integral(x:::Union{MPolyDecRingElem, MPolyQuoRingElem})
+    integral(c:::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
+Given an element `c` of the Chow ring of an abstract variety, return the integral of `c`.
 
 !!! note
-    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest degree part of `x` is returned (geometrically, this is the 0-dimensional part of `x`).
+    If the abstract variety has been given a point class, the integral will be an element of the coefficient ring of the Chow ring.
+    That is, typically, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
+    part of `c` is returned.
 
 # Examples
 
-Lines on a General Cubic Hypersurface in $\mathbb P^3$
-
 ```jldoctest
-julia> G = abstract_grassmannian(2, 4)
-AbstractVariety of dim 4
+julia> G = abstract_grassmannian(2, 5)
+AbstractVariety of dim 6
 
-julia> Q = tautological_bundles(G)[2]
-AbstractBundle of rank 2 on AbstractVariety of dim 4
+julia> p = point_class(G)
+c[2]^3
 
-julia> E = symmetric_power(Q, 3)
-AbstractBundle of rank 4 on AbstractVariety of dim 4
-
-julia> integral(top_chern_class(E))
-27
+julia> integral(p)
+1
 
 ```
 
@@ -1729,7 +1736,24 @@ t^2
 
 ```
 
-Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
+# Lines on a General Cubic Hypersurface in $\mathbb P^3$
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4)
+AbstractVariety of dim 4
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> E = symmetric_power(Q, 3)
+AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> integral(top_chern_class(E))
+27
+
+```
+
+# Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4+4)
@@ -1737,6 +1761,12 @@ AbstractVariety of dim 12
 
 julia> S = tautological_bundles(G)[1]
 AbstractBundle of rank 2 on AbstractVariety of dim 12
+
+julia> E = symmetric_power(S, 2)
+AbstractBundle of rank 3 on AbstractVariety of dim 12
+
+julia> integral(top_chern_class(E)^4)
+512
 
 ```
 """
@@ -2187,7 +2217,7 @@ z - H
 julia> integral(K^2)
 -7
 
-julia> H = hyperplane_class(Z)
+julia> H = polarization(Z)
 H
 
 julia> integral(H^2) # degree of surface
@@ -2226,7 +2256,7 @@ end
 
 ###############################################################################
 @doc raw"""
-    abstract_point(; base::Ring=QQ)
+    abstract_point(; base::Ring = QQ)
 
 Return an abstract variety consisting of a point.
 
@@ -2358,10 +2388,12 @@ julia> [chern_class(T, i) for i = 1:2]
 julia> gens(PT)[1]
 z
 
-julia> gens(PT)[1] == hyperplane_class(PT)
+julia> gens(PT)[1] == polarization(PT)
 true
 
 ```
+
+*Number of Conics on the General Quintic Hypersurface in $\mathbb P^4$:*
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)

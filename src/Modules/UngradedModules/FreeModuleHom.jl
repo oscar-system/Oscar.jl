@@ -74,7 +74,10 @@ function matrix(f::FreeModuleHom)
   return f.matrix
 end
 
-(h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
+function (h::FreeModuleHom)(a::AbstractFreeModElem)
+  @req parent(a) === domain(h) "invalid input"
+  image(h, a)
+end
 
 @doc raw"""
     hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T

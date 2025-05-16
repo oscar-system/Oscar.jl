@@ -128,9 +128,6 @@ localized_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT
 localized_ring_type(L::MPolyQuoLocRing) = localized_ring_type(typeof(L))
 
 ideal_type(::Type{MPolyQuoLocalizedRingType}) where {MPolyQuoLocalizedRingType<:MPolyQuoLocRing} = MPolyQuoLocalizedIdeal{MPolyQuoLocalizedRingType, elem_type(MPolyQuoLocalizedRingType), ideal_type(localized_ring_type(MPolyQuoLocalizedRingType))}
-ideal_type(W::MPolyQuoLocRing) = ideal_type(typeof(W))
-
-
 
 
 

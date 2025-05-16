@@ -14,7 +14,83 @@ function getindex(r::Hecke.SRow, u::AbstractUnitRange)
   return s
 end
 
-Oscar.canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
+canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
+
+function numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
+  g = parent()
+  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
+  return g
+end
+
+minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+
+function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
+  ext_dom = fraction_field(domain(phi))
+  return MapFromFunc(ext_dom, codomain(phi), x->phi(numerator(x))*inv(phi(denominator(x))))
+end
+
+
+function iszero(P::EllipticCurvePoint)
+  return iszero(P[1]) && isone(P[2]) && iszero(P[3])
+end
+
+@doc raw"""
+    extended_ade(ADE::Symbol, n::Int)
+
+Return the dual intersection matrix of an extended ade Dynkin diagram
+as well as the isotropic vector (with positive coefficients in the roots).
+"""
+function extended_ade(ADE::Symbol, n::Int)
+  R = change_base_ring(ZZ,gram_matrix(root_lattice(ADE,n)))
+  G = block_diagonal_matrix([ZZ[2;],R])
+  if ADE == :E && n == 8
+    G[1,n] = -1
+    G[n,1] = -1
+  end
+  if ADE == :E && n == 7
+    G[1,2] = -1
+    G[2,1] = -1
+  end
+  if ADE == :E && n == 6
+    G[1,n+1] = -1
+    G[n+1,1] = -1
+  end
+  if ADE == :A && n > 0
+    G[1,2] = -1
+    G[2,1] = -1
+    G[1,n+1] = -1
+    G[n+1,1] = -1
+  end
+  if ADE == :A && n ==1 0
+    G[1,2]= -2
+    G[2,1] = -2
+  end
+  if ADE == :D
+    G[1,n] = -1
+    G[n,1] = -1
+  end
+  @assert rank(G) == n
+  return -G, kernel(G; side = :left)
+end
+
+@doc raw"""
+    disc_log(b::T, x::T) where {T <: FinFieldElem}
+
+Return an integer `s` such that $b^s = x$.
+If no such `x` exists, an exception is thrown.
+
+# Examples
+```jldoctest
+julia> F = GF(3,4); a = gen(F)^21;
+
+julia> disc_log(gen(F), a)
+21
+```
+"""
+function disc_log(b::T, x::T) where {T <: FinFieldElem}
+  @assert parent(b) === parent(x)
+  return Hecke.disc_log_bs_gs(b, x, order(parent(b)))
+end
 
 ###############################################################################
 # Part of https://github.com/thofma/Hecke.jl/pull/1800, but breaking for OSCAR 1.3.1.
