@@ -577,5 +577,7 @@ end
   @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
   @test all(o -> conductor(sum(collect(o))) == 1, orbs)
   o = orbs[findfirst(o -> length(o) == 3, orbs)]
-  @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
+  acthom = action_homomorphism(o)
+  @test describe(image(acthom)[1]) == "C3"
+  @test all(x -> permutation(o, x) == acthom(x), gens(u))
 end
