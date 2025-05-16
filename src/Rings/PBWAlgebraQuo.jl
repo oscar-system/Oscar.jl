@@ -128,8 +128,7 @@ function simplify(a::PBWAlgQuoElem)
         return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
     end
     I = parent(a).I
-    groebner_assure!(I)
-    a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
+    a.data.sdata = Singular.reduce(a.data.sdata, singular_groebner_basis(I))
     return a
 end
 
