@@ -532,31 +532,36 @@ function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
   _print_generators(io, G)
   rels = relators(G)
   if !isempty(rels)
-    print(io, " and ", ItemQuantity(length(rels), "relator"))
+    print(io, " and ")
+    # TODO: relators can be pretty long; it would be good to abbreviate them
+    # if they don't fit in a single line...
+   _print_stuff_with_limit(io, rels, "relator")
   end
 end
 
-
-
 function _print_generators(io::IO, G::AbstractAlgebra.Group)
-  io = pretty(io)
-  n = ngens(G)
   if G isa PermGroup
     print(io, " ")
   else
     println(io)
   end
-  print(io, "with ", ItemQuantity(n, "generator"))
+  _print_stuff_with_limit(io, gens(G), "generator")
+end
+
+function _print_stuff_with_limit(io::IO, v, what::String)
+  io = pretty(io)
+  n = length(v)
+  print(io, "with ", ItemQuantity(n, what))
 
   # compute maximum number of generators that can fit on the screen
   # assuming each of those requires just one line
   rows,cols = displaysize(io)
-  maxgens = rows - 6
-  maxgens > 0 || return
+  limit = rows - 6
+  limit > 0 || return
 
   println(io, Indent())
-  for (i, g) in enumerate(gens(G))
-    if i > maxgens
+  for (i, g) in enumerate(v)
+    if i > limit
       print(io, "⋮")
       break
     end
@@ -568,7 +573,7 @@ function _print_generators(io::IO, G::AbstractAlgebra.Group)
   print(io, Dedent())
 end
 
-function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup}) # TODO: what about subgroups of those?
+function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup})
   io = pretty(io)
   n = ngens(G)
   print(io, " with ", ItemQuantity(n, "generator"))
