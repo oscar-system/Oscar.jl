@@ -20,7 +20,7 @@ from a Groebner basis with respect to the ordering `start` using the Groebner Wa
 
 # Examples
 
-```jldoctest
+```jldoctest; setup=:(oldverb=get_verbosity_level(:groebner_walk);), teardown=:(set_verbosity_level(:groebner_walk, oldverb))
 julia> R,(x,y) = polynomial_ring(QQ, [:x,:y]);
 
 julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
