@@ -4,11 +4,6 @@ using Oscar
 using Oscar.GaloisGrp
 import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
                         primitive_by_shape, bound_to_precision
-import Oscar: subfield
-
-if isdefined(Oscar, :subfield)
-  import Oscar: subfield
-end
 
 if isdefined(Oscar, :subfield)
   import Oscar: subfield
