@@ -88,6 +88,10 @@
    @test !is_local(a)
    @test is_mixed(a)
 
+   # issue 1697
+   @test_throws ErrorException is_global(lex([x,y]))
+   @test_throws ErrorException is_local(neglex([x,y]))
+
    @test_throws ArgumentError monomial_ordering(gens(R), :foo)
    @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
    @test_throws ArgumentError monomial_ordering(gens(R), :foo, ones(Int, ngens(R)))
