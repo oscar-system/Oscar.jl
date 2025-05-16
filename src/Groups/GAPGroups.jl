@@ -521,6 +521,23 @@ function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
   _print_generators(io, G)
 end
 
+#function Base.show(io::IO, ::MIME"text/plain", G::Union{FPGroup, SubFPGroup})
+function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+  rels = relators(G)
+  if !isempty(rels)
+    print(io, " and ", ItemQuantity(length(rels), "relator"))
+  end
+end
+
+
+
 function _print_generators(io::IO, G::AbstractAlgebra.Group)
   io = pretty(io)
   n = ngens(G)
