@@ -1283,6 +1283,14 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   @assert domain(mL) == codomain(mkK)
   l = codomain(ml)
   L = codomain(mL)
+  #to make sure domain/codomain have the same precision...
+  #otherwise, we'll get cool errors if the data does not 
+  #define a homomorphism - due to not enough prec.
+  rel_e = divexact(absolute_ramification_index(L), absolute_ramification_index(l))
+  pr_ml = ml.precision
+  pr_mL = mL.precision
+  setprecision!(ml, max(pr_ml*rel_e, pr_mL))
+  setprecision!(mL, max(pr_ml*rel_e, pr_mL))
   im_data = mL(mkK(preimage(ml, gen(l))))
   #CompletionMap is always Eisenstein/Unram
   #so need embedding of the unram parts:
@@ -1296,6 +1304,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   rt = coeff(mL(mkK(preimage(ml, l(preimage(mrl, gen(rl)))))), 0)
   f = map_coefficients(x->preimage(mrL, rL(x)), defining_polynomial(rl))
   rt = Hecke.refine_roots1(f, [rt])[1]
+#  setprecision!(ml, pr_ml)
+#  setprecision!(mL, pr_mL)
   return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
@@ -1362,8 +1372,8 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g^i, g^j) => i+j<order(q) ? zero(parent(x)) : x for i=0:order(q)-1 for j=0:order(q)-1))
       else
         l, ml = completion(B.k, pp)
+        setprecision!(ml, precision(codomain(mL)))
         mlL = induce_hom(ml, mL, B.mkK)
-#        @show :serre, minimum(P)
         s = Hecke.Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
@@ -1835,11 +1845,11 @@ and explicit 2-cochains.
 ```jldoctest
 julia> k = rationals_as_number_field()[1];
 
-julia> lp = collect(keys(factor(30*maximal_order(B.k))));
+julia> lp = collect(keys(factor(30*maximal_order(k))));
 
 julia> qz = Hecke.QmodnZ();
 
-julia> B, mB = Oscar.GModuleFromGap.brauer_group(k);
+julia> B, mB = brauer_group(k);
 
 julia> b = B(Dict(lp[1]=>qz(1//3), lp[2]=>qz(2//3)));
 
