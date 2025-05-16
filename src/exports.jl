@@ -1325,6 +1325,7 @@ export parametrization
 export parametrization_conic
 export parent
 export partially_ordered_set
+export partially_ordered_set_from_adjacency
 export partially_ordered_set_from_inclusions
 export partition
 export partitions

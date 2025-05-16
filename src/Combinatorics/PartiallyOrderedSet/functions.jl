@@ -8,7 +8,7 @@ function partially_ordered_set(pp::Polymake.BigObject)
 end
 
 @doc raw"""
-    partially_ordered_set(covrels::Matrix{Int})
+    partially_ordered_set(covrels::Union{SMat,Matrix{Int}})
 
 Construct a partially ordered set from covering relations `covrels`, given in
 the form of the adjacency matrix of a Hasse diagram. The covering relations
@@ -33,11 +33,39 @@ Partially ordered set of rank 3 on 6 elements
 ```
 """
 function partially_ordered_set(covrels::Matrix{Int})
-  pg = Polymake.Graph{Directed}(incidence_matrix(covrels))
-  nelem = nrows(covrels)
-  return partially_ordered_set(Graph{Directed}(pg))
+  incmat = incidence_matrix((!iszero).(covrels))
+  return partially_ordered_set_from_adjacency(incmat)
 end
 
+function partially_ordered_set(sm::SMat)
+  incmat = incidence_matrix(nrows(sm), ncols(sm))
+  for i in 1:nrows(sm)
+    for (k, _) in sm[i]
+      incmat[i,k] = 1
+    end
+  end
+  return partially_ordered_set_from_adjacency(incmat)
+end
+
+@doc raw"""
+    partially_ordered_set_from_adjacency(covrels::IncidenceMatrix)
+
+Construct a partially ordered set from covering relations `covrels`, given in
+the form of the adjacency matrix of a Hasse diagram. The covering relations
+must be given in topological order, i.e., `covrels` must be strictly upper
+triangular.
+
+# Examples
+```jldoctest
+julia> im = incidence_matrix(4, 4, [[2, 3], [4], [4], Int[]]);
+
+julia> partially_ordered_set_from_adjacency(im)
+Partially ordered set of rank 2 on 4 elements
+```
+"""
+function partially_ordered_set_from_adjacency(covrels::IncidenceMatrix)
+  return partially_ordered_set(Graph{Directed}(Polymake.Graph{Directed}(covrels)))
+end
 
 @doc raw"""
     partially_ordered_set_from_inclusions(I::IncidenceMatrix)
@@ -692,7 +720,10 @@ julia> element(fl,7)
 Poset element <[2, 4]>
 ```
 """
-element(p::PartiallyOrderedSet, i::Int) = PartiallyOrderedSetElement(p, i)
+function element(p::PartiallyOrderedSet, i::Int)
+  @req _bottom_node(p)+p.artificial_bottom <= i <= _top_node(p)-p.artificial_top "invalid node id"
+  return PartiallyOrderedSetElement(p, i)
+end
 
 @doc raw"""
     elements(p::PartiallyOrderedSet)
@@ -708,7 +739,7 @@ julia> length(elements(pos))
 11
 ```
 """
-elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), 0:n_vertices(graph(p)) - 1 - p.artificial_top - p.artificial_bottom)
+elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), (_bottom_node(p) + p.artificial_bottom):(_top_node(p) - p.artificial_top))
 
 @doc raw"""
     elements_of_rank(p::PartiallyOrderedSet, rk::Int)
