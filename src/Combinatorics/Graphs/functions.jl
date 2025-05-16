@@ -536,6 +536,8 @@ Return the degree of the vertex `v` in the graph `g`. If `v` is
 missing, return the list of degrees of all vertices. If the graph is
 directed, only neighbors reachable via outgoing edges are counted.
 
+See also [`indegree`](@ref) and [`outdegree`](@ref) for directed graphs.
+
 # Examples
 ```jldoctest
 julia> g = vertex_edge_graph(icosahedron());
