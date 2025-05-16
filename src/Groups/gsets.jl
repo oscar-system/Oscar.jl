@@ -41,7 +41,7 @@ The fields are
     action_function::Function
     seeds
 
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup}}
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{Group, FinGenAbGroup}}
         @req !isempty(seeds) "seeds for G-set must be nonempty"
         check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
         Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
@@ -118,7 +118,7 @@ end
 ##  general method with explicit action function
 
 """
-    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
+    gset(G::Union{Group, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
 
 Return the G-set `Omega` that consists of the closure of the seeds `seeds`
 under the action of `G` defined by `fun`.
@@ -155,7 +155,7 @@ julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
 6
 ```
 """
-function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
+function gset(G::Union{Group, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
   return GSetByElements(G, fun, seeds; closed = closed, check = check)
 end
 
@@ -168,7 +168,7 @@ end
 ##  a default action depending on the element type of `seeds` (which can be
 ##  any iterable collection.)
 
-gset(G::T, seeds; closed::Bool = false) where T<:GAPGroup = gset_by_type(G, seeds, eltype(seeds); closed = closed)
+gset(G::T, seeds; closed::Bool = false) where T<:Group = gset_by_type(G, seeds, eltype(seeds); closed = closed)
 
 
 ## natural action of permutations on positive integers
@@ -243,7 +243,7 @@ end
 ##
 ##  G-sets given by the complete set
 
-function as_gset(G::T, fun::Function, Omega) where T<:Union{GAPGroup,FinGenAbGroup}
+function as_gset(G::T, fun::Function, Omega) where T<:Union{Group, FinGenAbGroup}
     return GSetByElements(G, fun, Omega; closed = true)
 end
 
@@ -413,30 +413,29 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
     return res
 end
 
-function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
+function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{Group, FinGenAbGroup}, S}
     return orbit_via_Julia(Omega, omega)
 end
 
 # simpleminded alternative directly in Julia
-function orbit_via_Julia(Omega::GSet, omega)
-    acts = gens(acting_group(Omega))
-    orbarray = [omega]
-    orb = Set(orbarray)
-    fun = action_function(Omega)
-    for p in orbarray
-      for g in acts
-        img = fun(p, g)
-        if !(img in orb)
-          push!(orbarray, img)
-          push!(orb, img)
-        end
+function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
+  acts = gens(acting_group(Omega))
+  orb = IndexedSet([omega])
+  fun = action_function(Omega)
+
+  for p in orb
+    for g in acts
+      img = fun(p, g)::S
+      if !(img in orb)
+        push!(orb, img)
       end
     end
+  end
 
-    res = as_gset(acting_group(Omega), action_function(Omega), orbarray)
-    # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [res])
-    return res
+  res = as_gset(acting_group(Omega), action_function(Omega), orb)
+  # We know that this G-set is transitive.
+  set_attribute!(res, :orbits => [res])
+  return res
 end
 
 
@@ -462,7 +461,7 @@ julia> map(collect, orbs)
  [5, 6]
 ```
 """
-@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
+@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{Group, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
   for p_ in Omega.seeds
     p = p_::S
