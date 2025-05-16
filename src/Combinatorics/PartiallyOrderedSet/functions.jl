@@ -1,5 +1,5 @@
 function pm_object(P::PartiallyOrderedSet)
-    return P.pm_poset
+  return P.pm_poset
 end
 
 function partially_ordered_set(pp::Polymake.BigObject)
@@ -8,7 +8,7 @@ function partially_ordered_set(pp::Polymake.BigObject)
 end
 
 @doc raw"""
-    partially_ordered_set(covrels::Union{SMat,Matrix{Int}})
+    partially_ordered_set(covrels::Union{SMat,AbstractMatrix{<:IntegerUnion},})
 
 Construct a partially ordered set from covering relations `covrels`, given in
 the form of the adjacency matrix of a Hasse diagram. The covering relations
@@ -32,16 +32,17 @@ julia> pa2 = partially_ordered_set(a2_adj_cov)
 Partially ordered set of rank 3 on 6 elements
 ```
 """
-function partially_ordered_set(covrels::Matrix{Int})
-  incmat = incidence_matrix((!iszero).(covrels))
-  return partially_ordered_set_from_adjacency(incmat)
-end
+partially_ordered_set(covrels::AbstractMatrix{<:IntegerUnion}) =
+  partially_ordered_set((!iszero).(covrels))
+
+partially_ordered_set(covrels::Union{<:AbstractMatrix{Bool},BitMatrix}) =
+  partially_ordered_set_from_adjacency(incidence_matrix(covrels))
 
 function partially_ordered_set(sm::SMat)
   incmat = incidence_matrix(nrows(sm), ncols(sm))
   for i in 1:nrows(sm)
     for (k, _) in sm[i]
-      incmat[i,k] = 1
+      incmat[i, k] = 1
     end
   end
   return partially_ordered_set_from_adjacency(incmat)
@@ -97,7 +98,6 @@ function partially_ordered_set_from_inclusions(I::IncidenceMatrix)
   return pos
 end
 
-
 _pmdec(elem::Int, r::Int) = Polymake.BasicDecoration(Polymake.Set{Int}(elem), r)
 _pmdec(r::Int) = Polymake.BasicDecoration(Polymake.Set{Int}(), r)
 
@@ -120,9 +120,9 @@ Partially ordered set of rank 2 on 4 elements
 ```
 """
 function partially_ordered_set(gin::Graph{Directed})
-  @req n_vertices(gin) >= 2  "Graph must have at least two nodes"
+  @req n_vertices(gin) >= 2 "Graph must have at least two nodes"
   g = deepcopy(gin)
-  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(pm_object(g))
+  dec = Polymake.NodeMap{Directed,Polymake.BasicDecoration}(pm_object(g))
   minimal = findall(iszero, indegree(g))
   maximal = findall(iszero, outdegree(g))
   @req length(minimal) > 0 "no minimal element found"
@@ -149,7 +149,7 @@ function partially_ordered_set(gin::Graph{Directed})
     src = queue[pos]
     r = Polymake.decoration_rank(dec[src])
     for t in outneighbors(g, src)
-      rr = max(r+1, Polymake.decoration_rank(dec[t]))
+      rr = max(r + 1, Polymake.decoration_rank(dec[t]))
       maxrank = max(maxrank, rr)
       dec[t] = _pmdec(t, rr)
       if !(t in visited)
@@ -164,20 +164,22 @@ function partially_ordered_set(gin::Graph{Directed})
     add_vertex!(g)
     greatest_element = n_vertices(g)
     add_edge!.(Ref(g), maximal, Ref(greatest_element))
-    dec[greatest_element] = _pmdec(greatest_element, maxrank+1)
+    dec[greatest_element] = _pmdec(greatest_element, maxrank + 1)
     atop = true
     push!(queue, greatest_element)
   else
     atop = false
   end
 
-  Polymake.call_function(:common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(queue))
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(
-                                                                     ADJACENCY=pm_object(g),
-                                                                     DECORATION=dec,
-                                                                     TOP_NODE=length(queue)-1,
-                                                                     BOTTOM_NODE=0
-                                                                    )
+  Polymake.call_function(
+    :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(queue)
+  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
+    ADJACENCY=pm_object(g),
+    DECORATION=dec,
+    TOP_NODE=length(queue) - 1,
+    BOTTOM_NODE=0,
+  )
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop
@@ -206,13 +208,13 @@ Partially ordered set of rank 4 on 6 elements
 ```
 """
 function partially_ordered_set(gin::Graph{Directed}, node_ranks::Dict{Int,Int})
-  @req n_vertices(gin) >= 2  "Graph must have at least two nodes"
+  @req n_vertices(gin) >= 2 "Graph must have at least two nodes"
   g = deepcopy(gin)
-  dec = Polymake.NodeMap{Directed, Polymake.BasicDecoration}(pm_object(g))
+  dec = Polymake.NodeMap{Directed,Polymake.BasicDecoration}(pm_object(g))
   for n in 1:n_vertices(g)
-    Polymake._set_entry(dec, n-1, _pmdec(n, node_ranks[n]))
+    Polymake._set_entry(dec, n - 1, _pmdec(n, node_ranks[n]))
   end
-  sorted = sort(collect(node_ranks), by=last)
+  sorted = sort(collect(node_ranks); by=last)
   sortednodes = first.(sorted)
   if last(sorted[1]) == last(sorted[2])
     # need artificial bottom node
@@ -226,25 +228,27 @@ function partially_ordered_set(gin::Graph{Directed}, node_ranks::Dict{Int,Int})
   else
     abottom = false
   end
-  if last(sorted[end]) == last(sorted[end-1])
+  if last(sorted[end]) == last(sorted[end - 1])
     # need artificial top node
     maximal = first.(filter(x -> last(x) == last(sorted[end]), sorted))
     add_vertex!(g)
     greatest_element = n_vertices(g)
     add_edge!.(Ref(g), maximal, Ref(greatest_element))
-    dec[greatest_element] = _pmdec(greatest_element, last(sorted[end])+1)
+    dec[greatest_element] = _pmdec(greatest_element, last(sorted[end]) + 1)
     atop = true
     push!(sortednodes, greatest_element)
   else
     atop = false
   end
-  Polymake.call_function(:common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(sortednodes))
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(
-                                                                     ADJACENCY=pm_object(g),
-                                                                     DECORATION=dec,
-                                                                     TOP_NODE=length(sortednodes)-1,
-                                                                     BOTTOM_NODE=0
-                                                                    )
+  Polymake.call_function(
+    :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(sortednodes)
+  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
+    ADJACENCY=pm_object(g),
+    DECORATION=dec,
+    TOP_NODE=length(sortednodes) - 1,
+    BOTTOM_NODE=0,
+  )
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop
@@ -267,7 +271,8 @@ Undirected graph with 8 nodes and the following edges:
 (2, 1)(3, 1)(4, 1)(5, 1)(5, 2)(5, 4)(6, 1)(6, 2)(6, 3)(7, 1)(7, 3)(7, 4)(8, 1)(8, 2)(8, 3)(8, 4)(8, 5)(8, 6)(8, 7)
 ```
 """
-comparability_graph(pos::PartiallyOrderedSet) = Graph{Undirected}(pm_object(pos).COMPARABILITY_GRAPH::Polymake.Graph{Undirected})
+comparability_graph(pos::PartiallyOrderedSet) =
+  Graph{Undirected}(pm_object(pos).COMPARABILITY_GRAPH::Polymake.Graph{Undirected})
 
 # this will compute the comparability graph on first use
 # the graph will be kept in the polymake object
@@ -279,7 +284,7 @@ end
 
 function _get_decoration(p::PartiallyOrderedSet, i::Int)
   dec = pm_object(p).DECORATION::Polymake.NodeMap{Directed,Polymake.BasicDecoration}
-  elemdec = Polymake._get_entry(dec, i-1)::Polymake.BasicDecoration
+  elemdec = Polymake._get_entry(dec, i - 1)::Polymake.BasicDecoration
   return Polymake.decoration_face(elemdec)
 end
 
@@ -297,7 +302,6 @@ function Base.hash(pe::PartiallyOrderedSetElement, h::UInt)
   return hash(node_id(pe), hash(parent(pe), h))
 end
 
-
 parent(pose::PartiallyOrderedSetElement) = pose.parent
 node_id(pose::PartiallyOrderedSetElement) = pose.node_id
 
@@ -311,7 +315,8 @@ function data(pose::PartiallyOrderedSetElement)
   return Vector{Int}(dec)
 end
 
-Base.length(p::PartiallyOrderedSet) = pm_object(p).N_NODES::Int - p.artificial_top - p.artificial_bottom
+Base.length(p::PartiallyOrderedSet) =
+  pm_object(p).N_NODES::Int - p.artificial_top - p.artificial_bottom
 
 @doc raw"""
     rank(pe::PartiallyOrderedSetElement)
@@ -336,7 +341,7 @@ end
 
 function rank(p::PartiallyOrderedSet, i::Int64)
   dec = pm_object(p).DECORATION::Polymake.NodeMap{Directed,Polymake.BasicDecoration}
-  elemdec = Polymake._get_entry(dec, i-1)::Polymake.BasicDecoration
+  elemdec = Polymake._get_entry(dec, i - 1)::Polymake.BasicDecoration
   return Polymake.decoration_rank(elemdec)::Int
 end
 
@@ -381,7 +386,9 @@ julia> maximal_chains(pos)
 ```
 """
 function maximal_chains(p::PartiallyOrderedSet)
-  mc = Polymake.graph.maximal_chains_of_lattice(pm_object(p), ignore_top_node=p.artificial_top, ignore_bottom_node=p.artificial_bottom)::IncidenceMatrix
+  mc = Polymake.graph.maximal_chains_of_lattice(
+    pm_object(p); ignore_top_node=p.artificial_top, ignore_bottom_node=p.artificial_bottom
+  )::IncidenceMatrix
   return Vector.(Polymake.to_one_based_indexing.(Polymake._row.(Ref(mc), 1:nrows(mc))))
 end
 
@@ -415,9 +422,11 @@ The `filename` keyword argument allows writing TikZ visualization code to `filen
 !!! note
     This will always show the greatest and least elements even if it does not correspond to an element of the partially ordered set.
 """
-function visualize(p::PartiallyOrderedSet; filename::Union{Nothing, String}=nothing, kwargs...)
+function visualize(
+  p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, kwargs...
+)
   if isdefined(p, :atomlabels) && !haskey(kwargs, :AtomLabels)
-    kwargs = (kwargs..., :AtomLabels=>p.atomlabels)
+    kwargs = (kwargs..., :AtomLabels => p.atomlabels)
   end
   vpos = Polymake.visual(Polymake.Visual, pm_object(p); kwargs...)
   # todo: check if we can use svg in jupyter notebooks
@@ -444,7 +453,9 @@ julia> pf = face_poset(normal_fan(dodecahedron()))
 Partially ordered set of rank 3 on 63 elements
 ```
 """
-function face_poset(p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex})
+function face_poset(
+  p::Union{Polyhedron,Cone,PolyhedralFan,PolyhedralComplex,SimplicialComplex}
+)
   pos = partially_ordered_set(pm_object(p).HASSE_DIAGRAM)
   pos.atomlabels = collect(1:n_atoms(pos))
   pos.artificial_top = p isa Union{PolyhedralFan,PolyhedralComplex,SimplicialComplex}
@@ -624,7 +635,8 @@ julia> atoms(pos)
  Poset element <[2]>
 ```
 """
-atoms(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), outneighbors(graph(p), node_id(least_element(p))))
+atoms(p::PartiallyOrderedSet) =
+  PartiallyOrderedSetElement.(Ref(p), outneighbors(graph(p), node_id(least_element(p))))
 
 @doc raw"""
     coatoms(p::PartiallyOrderedSet)
@@ -643,10 +655,11 @@ julia> coatoms(pos)
  Poset element <[9]>
 ```
 """
-coatoms(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), inneighbors(graph(p), node_id(greatest_element(p))))
+coatoms(p::PartiallyOrderedSet) =
+  PartiallyOrderedSetElement.(Ref(p), inneighbors(graph(p), node_id(greatest_element(p))))
 
-_bottom_node(p::PartiallyOrderedSet) = 1+pm_object(p).BOTTOM_NODE::Int
-_top_node(p::PartiallyOrderedSet) = 1+pm_object(p).TOP_NODE::Int
+_bottom_node(p::PartiallyOrderedSet) = 1 + pm_object(p).BOTTOM_NODE::Int
+_top_node(p::PartiallyOrderedSet) = 1 + pm_object(p).TOP_NODE::Int
 
 function _ids_of_rank(p::PartiallyOrderedSet, rk::Int)
   pv = Polymake.graph.nodes_of_rank(pm_object(p), rk)
@@ -673,7 +686,7 @@ function least_element(p::PartiallyOrderedSet)
   bottom = _bottom_node(p)
   if p.artificial_bottom
     br = rank(p, bottom)
-    nb = _ids_of_rank(p, br+1)
+    nb = _ids_of_rank(p, br + 1)
     @req length(nb) == 1 "No unique minimal element"
     bottom = first(nb)
   end
@@ -699,7 +712,7 @@ function greatest_element(p::PartiallyOrderedSet)
   top = _top_node(p)
   if p.artificial_top
     tr = rank(p, top)
-    nb = _ids_of_rank(p, tr-1)
+    nb = _ids_of_rank(p, tr - 1)
     @req length(nb) == 1 "No unique maximal element"
     top = first(nb)
   end
@@ -721,7 +734,7 @@ Poset element <[2, 4]>
 ```
 """
 function element(p::PartiallyOrderedSet, i::Int)
-  @req _bottom_node(p)+p.artificial_bottom <= i <= _top_node(p)-p.artificial_top "invalid node id"
+  @req _bottom_node(p) + p.artificial_bottom <= i <= _top_node(p) - p.artificial_top "invalid node id"
   return PartiallyOrderedSetElement(p, i)
 end
 
@@ -739,7 +752,10 @@ julia> length(elements(pos))
 11
 ```
 """
-elements(p::PartiallyOrderedSet) = PartiallyOrderedSetElement.(Ref(p), (_bottom_node(p) + p.artificial_bottom):(_top_node(p) - p.artificial_top))
+elements(p::PartiallyOrderedSet) =
+  PartiallyOrderedSetElement.(
+    Ref(p), (_bottom_node(p) + p.artificial_bottom):(_top_node(p) - p.artificial_top)
+  )
 
 @doc raw"""
     elements_of_rank(p::PartiallyOrderedSet, rk::Int)
@@ -755,4 +771,5 @@ julia> length(elements_of_rank(pos, 2))
 4
 ```
 """
-elements_of_rank(p::PartiallyOrderedSet, rk::Int) = PartiallyOrderedSetElement.(Ref(p), _ids_of_rank(p, rk))
+elements_of_rank(p::PartiallyOrderedSet, rk::Int) =
+  PartiallyOrderedSetElement.(Ref(p), _ids_of_rank(p, rk))
