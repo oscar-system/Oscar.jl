@@ -32,7 +32,7 @@ GAP_lib_jll = "c863536a-3901-11e9-33e7-d5cd0df7b904"
 
 [compat]
 AbstractAlgebra = "0.44.11"
-AlgebraicSolving = "0.8.0"
+AlgebraicSolving = "0.9.0"
 Compat = "4.13.0"
 Distributed = "1.6"
 GAP = "0.13.1"
