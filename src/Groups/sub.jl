@@ -928,11 +928,16 @@ end
 """
     abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
-Return the sorted vector of abelian invariants of the commutator factor group
-of `G` (see [`maximal_abelian_quotient`](@ref)).
+Return the sorted vector `v` of abelian invariants of the commutator factor
+group `Q` of `G` (see [`maximal_abelian_quotient`](@ref)).
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the commutator factor group of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
+
+In order to convert between the formats defined for `abelian_invariants`
+and [`elementary_divisors(::FinGenAbGroup)`](@ref) for `Q`,
+one can apply [`elementary_divisors(::Vector)`](@ref) to `v`
+and [`abelian_invariants(::Vector{S}) where S <: Oscar.IntegerUnion`](@ref) to the result of that call.
 
 # Examples
 ```jldoctest
@@ -963,7 +968,8 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
     abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
-(see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
+(see [`abelian_invariants(::Union{GAPGroup, FinGenAbGroup})`](@ref))
+of the Schur multiplier of `G`.
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the Schur multiplier of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
@@ -1018,7 +1024,7 @@ Z/1
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)
 
 function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
-  eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
+  eldiv = elementary_divisors(ZZRingElem, abelian_invariants_schur_multiplier(G))
   M = abelian_group(eldiv)
   (M isa T) && return M
   return codomain(isomorphism(T, M))
