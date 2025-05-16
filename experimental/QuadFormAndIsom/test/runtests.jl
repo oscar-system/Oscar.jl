@@ -269,6 +269,7 @@ end
   @test length(admissible_triples(rescale(E6, 2), 2; IpB=[4])) == 2
   @test length(admissible_triples(E6, 3; IpA=[2], IpB=[4])) == 1
 
+  Zx, x = ZZ["x"]
   U = hyperbolic_plane_lattice()
   E8 = root_lattice(:E, 8)
   L = direct_sum(U, E8)[1]
