@@ -3,7 +3,9 @@ julia> Qx, x = QQ["x"];
 julia> K, a = number_field(x^4 - 13*x^2 + 16, "a");
 
 julia> G, m = automorphism_group(PermGroup, K); G # we only print G
-Permutation group of degree 4
+Permutation group of degree 4 with 2 generators
+  (1,3)(2,4)
+  (1,2)(3,4)
 
 julia> describe(G)
 "C2 x C2"
