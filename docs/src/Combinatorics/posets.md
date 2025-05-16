@@ -28,7 +28,7 @@ This is different from [Graphs](@ref).
 ## Construction
 
 ```@docs
-partially_ordered_set(covrels::Matrix{Int})
+partially_ordered_set(covrels::AbstractMatrix{<:IntegerUnion})
 partially_ordered_set(g::Graph{Directed})
 partially_ordered_set(g::Graph{Directed}, node_ranks::Dict{Int,Int})
 partially_ordered_set_from_inclusions(I::IncidenceMatrix)
