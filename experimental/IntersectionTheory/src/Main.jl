@@ -800,6 +800,9 @@ base(X::AbstractVariety) = X.base
 
 If `X` has been given a point class, return that class.
 
+!!! note
+    A *point class* is a top-degree element of the Chow ring of `X` which integrates to 1.
+
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
