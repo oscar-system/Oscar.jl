@@ -62,7 +62,7 @@ Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6
 """
 function rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
     @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
-    @req length(coefficients) == n_cones(v) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
+    @req length(coefficients) == n_cones(v; trivial=false) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
     mons = gens_of_rational_equivalence_classes(v)
     return RationalEquivalenceClass(v, sum(coefficients[i]*mons[i] for i in 1:length(coefficients)))
 end
