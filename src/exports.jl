@@ -404,6 +404,7 @@ export cokernel
 export collector
 export coloops
 export column
+export combination
 export combinations
 export combinatorial_symmetries
 export comm
@@ -1079,6 +1080,7 @@ export lifted_numerator
 export lineality_dim
 export lineality_space
 export linear_characters
+export linear_index
 export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
@@ -1273,7 +1275,7 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
-export numerical_lattice 
+export numerical_lattice
 export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group

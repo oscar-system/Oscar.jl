@@ -78,18 +78,18 @@ end
 
   phi_2 = Oscar.induced_map_on_exterior_power(phi, 2)
 
-  for ind in Oscar.OrderedMultiIndexSet(2, 5)
-    imgs = [phi(R5[i]) for i in Oscar.indices(ind)]
+  for ind in combinations(5, 2)
+    imgs = [phi(R5[i]) for i in ind]
     img = Oscar.wedge(imgs)
-    @test img == phi_2(domain(phi_2)[Oscar.linear_index(ind)])
+    @test img == phi_2(domain(phi_2)[Oscar.linear_index(ind, 5)])
   end
 
   phi_3 = Oscar.induced_map_on_exterior_power(phi, 3)
 
   A3 = matrix(phi_3)
-  for ind1 in Oscar.OrderedMultiIndexSet(3, 5)
-    for ind2 in Oscar.OrderedMultiIndexSet(3, 4)
-      @test A3[Oscar.linear_index(ind1), Oscar.linear_index(ind2)] == det(A[Oscar.indices(ind1), Oscar.indices(ind2)])
+  for ind1 in combinations(5, 3)
+    for ind2 in combinations(4, 3)
+      @test A3[Oscar.linear_index(ind1, 5), Oscar.linear_index(ind2, 4)] == det(A[data(ind1), data(ind2)])
     end
   end
 
