@@ -879,9 +879,9 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
   #      first step.
   #TODO: long term: implement more sane (or complicated) ideas ala Steel
   G = group(C)
-  phi = epimorphism_from_free_group(G)
-  ac = Oscar.GrpCoh.action(C)
-  iac = Oscar.GrpCoh.inv_action(C)
+#  phi = epimorphism_from_free_group(G)
+#  ac = Oscar.GrpCoh.action(C)
+#  iac = Oscar.GrpCoh.inv_action(C)
 
   n = dim(C)
   K = base_ring(C)
@@ -973,10 +973,16 @@ Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
 
 @attr Any function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   val = _character(C)
-  k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
-  if isa(val[2], QQAbFieldElem)
-    return k, mkK
-  end
+  @assert isa(val[1][2], QQAbFieldElem)
+
+  k, mkK = sub(parent(val[1][2]), [x[2] for x = val])
+  K = base_ring(C)
+  fl, em = is_subfield(k, K)
+  return k, em
+
+#  if isa(val[2], QQAbFieldElem)
+#    return k, mkK
+#  end
 
   A = maximal_abelian_subfield(ClassField, k)
   c = Hecke.norm(conductor(A)[1])
@@ -1980,19 +1986,6 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   set_attribute!(M, :center_endo => mE)
   return E, mE
 end
-
-function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
-  mE = get_attribute(M, :center_endo)
-  if mE !== nothing
-    return domain(mE), mE
-  end
-  E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
-  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
-  set_attribute!(M, :center_endo => mE)
-  return E, mE
-end
-
-
 
 Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
 

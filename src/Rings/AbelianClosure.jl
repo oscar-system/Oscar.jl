@@ -665,7 +665,7 @@ function block_system(k::AbsSimpleNumField, a::QQAbFieldElem)
   end
   nq = 1
   for q = PrimesSet(p+1, -1, n, 1)
-    @show rd = RootData(n, q)
+    rd = RootData(n, q)
     push!(rda[n], rd)
     b = block_system(k(data(a)), rd)
     if length(b) != 0
@@ -722,7 +722,7 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cache::Bool = true)
   f = minpoly(pe)
   @assert degree(f) == length(b)
   s, g = number_field(f; check = false, cached = false)
-  h = hom(s, k, k(pe))
+  h = hom(s, k, k(pe.data))
   hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
   if cache
     old = get_attribute(K, :subfields)
