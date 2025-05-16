@@ -110,10 +110,6 @@ function Base.getindex(C::Combination, i::IntegerUnion)
   return getindex(data(C), Int(i))
 end
 
-function Base.setindex!(C::Combination, x::IntegerUnion, i::IntegerUnion)
-  return setindex!(data(C), x, i)
-end
-
 function Base.copy(C::Combination)
   return Combination(copy(data(C)))
 end
