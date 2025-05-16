@@ -150,11 +150,15 @@ function is_admissible_triple(
   # be an even power of the prime p
   _q, _r = divrem(numerator(det(AperpB)), numerator(det(C)))
   !iszero(_r) && return false
-  ok, _g, _p = is_prime_power_with_data(_q)
-  !ok && return false
-  _p != p && return false
-  g, r = divrem(_g, 2)
-  !iszero(r) && return false
+  if isone(_q)
+    g = 0
+  else
+    ok, _g, _p = is_prime_power_with_data(_q)
+    !ok && return false
+    _p != p && return false
+    g, r = divrem(_g, 2)
+    !iszero(r) && return false
+  end
 
   # Condition (2) of Definition 4.13
   # Half the p-valuation of the quotient of the determinants should be
@@ -172,6 +176,7 @@ function is_admissible_triple(
       return false
     end
   end
+
 
   # Gluing condition at p
   # If the determinants agree, A+B = C and, equivalently, they agree locally
@@ -1647,7 +1652,7 @@ function splitting(
     for i in 1:l
       N = popfirst!(Ns)
       for M in Ms
-        ok, _Es = equivariant_primitive_extensions(N, M; q=first(discriminant_group(Lq)), info_depth)
+        ok, _Es = equivariant_primitive_extensions(N, M; q=first(discriminant_group(Lq)))
         !ok && continue
         Es = first.(_Es)
         filter!(T -> is_of_type(T^p, type(Lq)), Es)
@@ -1715,6 +1720,16 @@ keyword argument `eiglat_cond`.
       enumeration is skipped;
     - by setting `keep_partial_result` to `true`, the function returns all
       pairs of lattices of isometries which have been computed.
+
+# Examples
+```jldoctest
+julia> r = enumerate_classes_of_lattices_with_isometry(root_lattice(:A, 3), 4; rks=[(1, 0)])
+1-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 4
+
+julia> rank(invariant_lattice(r[1]))
+0
+```
 """
 enumerate_classes_of_lattices_with_isometry(::Union{ZZGenus, ZZLat}, ::Int)
 
@@ -1758,7 +1773,8 @@ function enumerate_classes_of_lattices_with_isometry(
   for p in pds
     v = valuation(m, p)
     o *= p^v
-    Lq = splitting_by_prime_power!(Lq, p, v; eiglat_cond=_conditions_after_power(eiglat_cond, div(m, o)), fix_root=gcd(o, fix_root), genusDB, root_test, info_depth)
+    eco = _conditions_after_power(eiglat_cond, div(m, o))
+    Lq = splitting_by_prime_power!(Lq, p, v; eiglat_cond=eco, fix_root=gcd(o, fix_root), genusDB, root_test, info_depth)
     if keep_partial_result
       append!(out, Lq)
     end

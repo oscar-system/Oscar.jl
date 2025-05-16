@@ -268,6 +268,18 @@ end
   @test length(admissible_triples(E6, 2; IpA=[2])) == 2
   @test length(admissible_triples(rescale(E6, 2), 2; IpB=[4])) == 2
   @test length(admissible_triples(E6, 3; IpA=[2], IpB=[4])) == 1
+
+  U = hyperbolic_plane_lattice()
+  E8 = root_lattice(:E, 8)
+  L = direct_sum(U, E8)[1]
+  r = enumerate_classes_of_lattices_with_isometry(L, 30; char_poly=(x-1)^2*cyclotomic(30, x))
+  @test length(r) == 1
+  @test det(invariant_lattice(r[1])) == -1
+
+  M = direct_sum(U, U, U, U, U)[1]
+  r = enumerate_classes_of_lattices_with_isometry(M, 4; min_poly=(x^2-1)*cyclotomic(4,x), pos_sigs=[(1,2), (2,1), (4,2)], neg_sigs=[(2,0)], fix_root=4)
+  @test length(r) == 5
+  @test length(filter(N -> det(kernel_lattice(N, 2)) == 4, r)) == 3
 end
 
 @testset "Enumeration of lattices with isometry of hermitian type" begin
@@ -284,6 +296,10 @@ end
   L = direct_sum(U, U, U, U)[1]
   @test length(representatives_of_hermitian_type(L, 5)) == 3
   @test length(representatives_of_hermitian_type(L, 5, 5)) == 2
+
+  L = integer_lattice(; gram=matrix(QQ, 2, 2, [2 0; 0 2]))
+  I = integer_lattice_with_isometry(L; neg=true)
+  r = splitting(I, 2)
 end
 
 @testset "Primitive extensions and embeddings" begin

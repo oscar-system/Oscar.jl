@@ -379,7 +379,7 @@ end
 # negative definite. We assume that we have fixed an isometry $f\in O(M)$.
 # We want to determine isometries $g$ of $N$ such that $f\oplus g$ preserves
 # the lattice $L$ (call them "fitting isometries").
-# * `OqfN` here is the image of $O(N)\to O(qN)$ where `qN` is the discriminant
+# * `GN` here is the image of $O(N)\to O(qN)$ where `qN` is the discriminant
 #    group of `N`.
 # * `HNinqN` is the embedding of the glue domain `HN` into `qN`, for the given
 #   primitive extension.
@@ -388,12 +388,12 @@ end
 # * `fHM` is the isometry of `HM` induced by the action of the fixed isometry
 #   `f` of `M`.
 # * `discrep` is the map $O(N)\to O(qN)$.
-# * `stabN` is the stabilizer of `HN` in `GN`, where `GN` is a classifying
+# * `stabN` is the stabilizer of `HN` in `O_N`, where `O_N` is a classifying
 #   group for $N$ (mostly either the trivial group or the representation of
 #   $O(L, N)$ on $qN$).
 # * if `first == true`, we return only one fitting isometry.
 function _fitting_isometries(
-    OqfN::AutomorphismGroup{TorQuadModule},
+    GN::AutomorphismGroup{TorQuadModule},
     HNinqN::TorQuadModuleMap,
     phig::TorQuadModuleMap,
     fHM::TorQuadModuleMap,
@@ -403,43 +403,42 @@ function _fitting_isometries(
     first::Bool,
   )
   OHN = orthogonal_group(domain(HNinqN)) # This is normally cached
-  _stabN, _ = stabilizer(OqfN, HNinqN) # A priori, this could be different from stabN
+  _stabN, _ = stabilizer(GN, HNinqN) # A priori, this could be different from stabN
   imOHN = elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check=false); check=false) for x in gens(_stabN)]
   _actN = hom(_stabN, OHN, imOHN; check=false)
   _imN, _ = image(_actN) # This group consists of isometry of HN which can be lifted to O(N)
-  _fHN = OHN(compose(inv(phig), compose(fHM, phig)); check=false)
+  _gHN = OHN(compose(inv(phig), compose(fHM, phig)); check=false)
 
-  _fHN in _imN || return QQMatrix[] # Now phig is (fHM, _fHN)-equivariant
-  _fqN = _actN\_fHN
-  _fN = discrep\_fqN
+  _gHN in _imN || return QQMatrix[] # Now phig is (fHM, _fHN)-equivariant
+  _gqN = _actN\_gHN
+  _gN = discrep\_gqN # Initial fitting isometry
 
-  # _fN is one of the fitting isometries. Now there are two cases:
-  # - either we only want one of such, and we are done (we just make it into a
-  #   honest isometry of N);
+  # _gN is one of the fitting isometries. Now there are two cases:
+  # - either we only want one of such, and we are done;
   # - or we want all such isometries up to the action of the classifying group.
   #
   # For the latter, we remark that: the set of isometries of N restricting to
-  # _fHN is the coset _fN*KN where KN is the preimage by discrep of the kernel
+  # _gHN is the coset _gN*KN where KN is the preimage by discrep of the kernel
   # of _imN. Now, inside this coset, some isometries could still give rise to
   # isomorphic equivariant primitive extensions for our classifying group. Thus
   # we need to identify isometries which are conjugate by an isometry of our
   # classifying group stabilizing HN (otherwise it does not make sense). This
   # group of isometries is exactly the preimage by discrep of the centralizer
-  # in stabN of _fN, which we call CN here.
+  # in stabN of _gHN, which we call CN here.
   #
   # To summarize, in the general case, we obtain representatives of fitting
-  # isometries by identifying CN-conjugate isometries in the coset fNKN.
+  # isometries by identifying CN-conjugate isometries in the coset gNKN.
   if first
-    reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(_fN); side=:left)]
+    reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(_gN); side=:left)]
   else
     KNhat, _ = discrep\(kernel(_actN)[1])
-    _CN, _ = centralizer(_actN(stabN)[1], _imN(_fHN))
+    _CN, _ = centralizer(_actN(stabN)[1], _imN(_gHN))
     _CN, _ = _actN\_CN
     CN, _ = discrep\_CN
     @hassert :ZZLatWithIsom 3 is_normal_subgroup(KNhat, CN)
-    @hassert :ZZLatWithIsom 3 all(g -> g * _fN == _fN * g, gens(CN))
-    fNKN = _fN*KNhat
-    m = gset(CN, (a, g) -> inv(g)*a*g, fNKN)
+    @hassert :ZZLatWithIsom 3 all(g -> g * _gN == _gN * g, gens(CN))
+    gNKN = _gN*KNhat
+    m = gset(CN, (a, g) -> inv(g)*a*g, gNKN)
     reporb = QQMatrix[matrix(representative(a)) for a in orbits(m)]
     map!(m -> solve(basis_matrix(N), basis_matrix(N)*m; side=:left), reporb, reporb)
   end
