@@ -300,6 +300,7 @@ end
   L = integer_lattice(; gram=matrix(QQ, 2, 2, [2 0; 0 2]))
   I = integer_lattice_with_isometry(L; neg=true)
   r = splitting(I, 2)
+  @test is_of_hermitian_type(r[1])
 end
 
 @testset "Primitive extensions and embeddings" begin
