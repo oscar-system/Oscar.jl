@@ -694,7 +694,7 @@ end
 
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  @req parent(a) == parent(b) "parents must match"
+  @req parent(a) === parent(b) "parents must match"
   return true
 end
 
@@ -1299,6 +1299,10 @@ function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   b, q = divides(a, b)
   !b && error("Division is not exact in divexact")
   return q
+end
+
+function is_nilpotent(a::MPolyQuoRingElem)
+  return radical_membership(a.f, modulus(parent(a)))
 end
 
 ### 
