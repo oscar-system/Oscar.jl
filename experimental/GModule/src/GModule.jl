@@ -527,7 +527,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
   if d != 1
     @vprint :MinField 1  "non-trivial Schur index $d found\n"
   end
-  if d !== nothing && d*degree(k) == degree(base_ring(V))
+  if d*degree(k) == degree(base_ring(V))
     return V
   elseif d == 1
     @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
@@ -764,6 +764,17 @@ function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
   return [gmodule(ZZ, m) for m in z]
 end
 
+function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:QQAbFieldElem})
+  l = 1
+  C = parent(V[1])
+  for g = V
+    l = lcm(l, Hecke.is_cyclotomic_type(parent(g.data))[2])
+  end
+  K = cyclotomic_field(C, l)[1]
+  return [K(x.data) for x = V]
+end
+
+
 function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:MatElem{<:QQAbFieldElem}})
   l = 1
   C = base_ring(V[1])
@@ -853,6 +864,15 @@ end
 
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
+#=
+ On characters (in char 0)
+ ========================
+ character values are always in QQab - to always have them compatibelm with gap
+
+ a gmodule can be "created" from a character, then the base_ring should also
+ be QQab
+=#
+
 @attr Any function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
   #NOTE: the "proper" characters need to be in QQab for compatibility!!!
   #      this is to be used internally (e.g. over fin. fields) and as a 
@@ -876,7 +896,20 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
     T = action(C, r)
     push!(chr, (c, K(trace(matrix(T)))))
   end
-  return chr
+
+  if !isa(K, SimpleNumField) #no idea is this is correct (in char p)
+    return chr
+  end
+  
+  k, mkK = Hecke.subfield(K, [x[2] for x = chr])
+  #embedding k -> base_ring
+  A = maximal_abelian_subfield(ClassField, k)
+  c = Hecke.norm(conductor(A)[1])
+  QQAb = abelian_closure(QQ)[1]
+  K = cyclotomic_field(QQAb, Int(c))[1]
+  fl, em = is_subfield(k, K)
+  #embedding k -> Cyclo -> QQab
+  return [(x[1], QQAb(em(preimage(mkK, x[2])))) for x = chr]
 end
 
 """
@@ -958,10 +991,6 @@ function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNu
   return subfield(C, [c.data for c = v])
 end
 
-function Oscar.subfield(C::AbsSimpleNumField,v::Vector{QQAbFieldElem{AbsSimpleNumFieldElem}})
-  return subfield(C, [c.data for c = v])
-end
-
 function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _character_field(C)[1]
 end
@@ -971,15 +1000,9 @@ function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbFieldE
 end
 
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
-  chr = _character(C)
+  chr =  _character(C)
 
-  k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
-  A = maximal_abelian_subfield(ClassField, k)
-  c = Hecke.norm(conductor(A)[1])
-  QQAb = abelian_closure(QQ)[1]
-  K = cyclotomic_field(QQAb, Int(c))[1]
-  fl, em = is_subfield(k, K)
-  return Oscar.class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
+  return Oscar.class_function(group(C), [x[2] for x = chr])
 end
 
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
@@ -2033,9 +2056,9 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   #            need to look for more elements - but how many?
   E, mE = endo(M)
   Z_M = maximal_order(E)
-  @show s = 1#schur_index(E)
-  @show k = dim(center(E)[1])
-  @show m = div(root(div(dim(E), k), 2), s)
+  chi = character(M)
+  chi, k, m = galois_representative_and_multiplicity(chi)
+
   if m == 1
     @show :is_irr
     return [M]
@@ -2146,13 +2169,15 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
   #     - e.g. write & use factored_minpoly, factored_charpoly ...
   E, mE = endo(M)
   Z_M = maximal_order(E)
-  @show s = 1#schur_index(E)
-  @show k = dim(center(E)[1])
-  @show m = div(root(div(dim(E), k), 2), s)
-  if false && s*m == 1
-    @show :is_irr_and_min
-    return [M]
-  end
+
+
+  chi = character(M)
+  chi, k, m = galois_representative_and_multiplicity(chi)
+
+  #we should have k*(m*s)^2 = dim(E), so
+  #s = sqrt(dim(E)/k)/m
+  @show s = divexact(root(divexact(dim(E), k), 2), m)
+  @assert s == schur_index(chi)
 
   first = true
   local best_f::QQPolyRingElem
@@ -2195,7 +2220,6 @@ function Oscar.eigenspace(f::Oscar.GModuleHom{<:Any, T, T}, a::AbsSimpleNumField
   @req codomain(f) == M "1st argument must be an endomorphism"
   Mf = extension_of_scalars(M, Ka)
   h = hom(Mf, Mf, hom(Mf.M, Mf.M, map_entries(Ka, f.module_map.matrix) - a*identity_matrix(Ka, dim(M))))
-  global last_h = h
   return kernel(h)[1]
 end
 
