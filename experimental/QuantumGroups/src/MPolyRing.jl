@@ -159,7 +159,7 @@ function pack_monomial!(x::MPolyRingElem, i::Int, m::Memory{Int})
   end
 end
 
-function insert_monomial!(x::MPolyRingElem, m::Memory{Int})
+function add_monomial!(x::MPolyRingElem, m::Memory{Int})
   i = 1
   while i <= length(x)
     cmp = monomial_cmp(x, i, m)
@@ -177,10 +177,10 @@ function insert_monomial!(x::MPolyRingElem, m::Memory{Int})
       x.coeffs[length(x) + 1] = zero(coefficient_ring(parent(x)))
     end
     c = x.coeffs[length(x) + 1]
-    for j in length(x):-1:i
-      x.coeffs[j + 1] = x.coeffs[j]
-      unsafe_copyto!(x.exps, j * N + 1, x.exps, (j - 1) * N + 1, N)
-    end
+
+    unsafe_copyto!(x.coeffs, i + 1, x.coeffs, i, length(x) + 1 - i)
+    unsafe_copyto!(x.exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
+
     x.coeffs[i] = zero!(c)
     unsafe_copyto!(x.exps, (i - 1) * N + 1, m, 1, N)
   else
@@ -192,10 +192,8 @@ function insert_monomial!(x::MPolyRingElem, m::Memory{Int})
     coeffs[i] = zero(coefficient_ring(parent(x)))
     unsafe_copyto!(exps, (i - 1) * N + 1, m, 1, N)
 
-    if i <= length(x.coeffs)
-      unsafe_copyto!(coeffs, i + 1, x.coeffs, i, length(x.coeffs) - i)
-      unsafe_copyto!(exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) - i) * N)
-    end
+    unsafe_copyto!(coeffs, i + 1, x.coeffs, i, length(x.coeffs) + 1 - i)
+    unsafe_copyto!(exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
 
     x.coeffs = coeffs
     x.exps = exps
@@ -328,13 +326,12 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
       R, pointer(x.exps, (i - 1) * R.N + 1), pointer(y.exps, (j - 1) * R.N + 1)
     )
     if cmp > 0
-      x.coeffs[k] = mul!(x.coeffs[i], a)
+      x.coeffs[k] = x.coeffs[i]
       Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
       monomial_set!(x, k, x, i)
       i += 1
     elseif cmp == 0
-      x.coeffs[k] = add!(x.coeffs[i], y.coeffs[j])
-      x.coeffs[k] = mul!(x.coeffs[k], a)
+      x.coeffs[k] = addmul!(x.coeffs[i], y.coeffs[j], a)
       if !iszero(x.coeffs[k])
         Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
         monomial_set!(x, k, x, i)
@@ -353,7 +350,7 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
   end
 
   while i <= len
-    x.coeffs[k] = mul!(x.coeffs[i], a)
+    x.coeffs[k] = x.coeffs[i]
     Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
     monomial_set!(x, k, x, i)
     i += 1
