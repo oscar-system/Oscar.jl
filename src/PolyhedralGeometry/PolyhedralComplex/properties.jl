@@ -7,9 +7,8 @@ Return the ambient dimension of `PC`.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
-[1, 2, 3]
-[1, 3, 4]
-
+ [1, 2, 3]
+ [1, 3, 4]
 
 julia> V = [0 0; 1 0; 1 1; 0 1]
 4×2 Matrix{Int64}:
@@ -400,9 +399,8 @@ refer to the output of [`vertices_and_rays`](@ref vertices_and_rays(PC::Polyhedr
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
-[1, 2, 3]
-[1, 3, 4]
-
+ [1, 2, 3]
+ [1, 3, 4]
 
 julia> VR = [0 0; 1 0; 1 1; 0 1]
 4×2 Matrix{Int64}:
@@ -437,9 +435,8 @@ Return the number of maximal polyhedra of `PC`
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
-[1, 2, 3]
-[1, 3, 4]
-
+ [1, 2, 3]
+ [1, 3, 4]
 
 julia> VR = [0 0; 1 0; 1 1; 0 1]
 4×2 Matrix{Int64}:
