@@ -47,10 +47,11 @@
     n = 5
     k = 3
 
-    c = collect(combinations(n,k))
+    C = combinations(n,k)
+    c = collect(C)
     @test length(c) == binomial(n,k)
     @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
-    @test all(i->Oscar.combination(n,k,i) == c[i], 1:length(c))
+    @test all(i->C[i] == c[i], 1:length(c))
 
   end
 
