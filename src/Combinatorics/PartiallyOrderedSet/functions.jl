@@ -8,7 +8,7 @@ function partially_ordered_set(pp::Polymake.BigObject)
 end
 
 @doc raw"""
-    partially_ordered_set(covrels::Union{SMat,AbstractMatrix{<:IntegerUnion},})
+    partially_ordered_set(covrels::Union{SMat, AbstractMatrix{<:IntegerUnion}})
 
 Construct a partially ordered set from covering relations `covrels`, given in
 the form of the adjacency matrix of a Hasse diagram. The covering relations
@@ -35,6 +35,9 @@ Partially ordered set of rank 3 on 6 elements
 partially_ordered_set(covrels::AbstractMatrix{<:IntegerUnion}) =
   partially_ordered_set((!iszero).(covrels))
 
+partially_ordered_set(covrels::IncidenceMatrix) =
+  partially_ordered_set_from_adjacency(covrels)
+
 partially_ordered_set(covrels::Union{<:AbstractMatrix{Bool},BitMatrix}) =
   partially_ordered_set_from_adjacency(incidence_matrix(covrels))
 
@@ -48,22 +51,6 @@ function partially_ordered_set(sm::SMat)
   return partially_ordered_set_from_adjacency(incmat)
 end
 
-@doc raw"""
-    partially_ordered_set_from_adjacency(covrels::IncidenceMatrix)
-
-Construct a partially ordered set from covering relations `covrels`, given in
-the form of the adjacency matrix of a Hasse diagram. The covering relations
-must be given in topological order, i.e., `covrels` must be strictly upper
-triangular.
-
-# Examples
-```jldoctest
-julia> im = incidence_matrix(4, 4, [[2, 3], [4], [4], Int[]]);
-
-julia> partially_ordered_set_from_adjacency(im)
-Partially ordered set of rank 2 on 4 elements
-```
-"""
 function partially_ordered_set_from_adjacency(covrels::IncidenceMatrix)
   return partially_ordered_set(Graph{Directed}(Polymake.Graph{Directed}(covrels)))
 end
@@ -72,7 +59,7 @@ end
     partially_ordered_set_from_inclusions(I::IncidenceMatrix)
 
 Construct an inclusion based partially ordered with rows of `I` as co-atoms.
-That is, the elements of the poset are the given sets and their intersections.
+That is, the elements of the poset are the given sets, their intersections, and the union of all rows as greatest element.
 
 # Examples
 ```jldoctest
@@ -364,16 +351,16 @@ function rank(p::PartiallyOrderedSet)
 end
 
 @doc raw"""
-    maximal_chains(p::PartiallyOrderedSet)
+    maximal_chains([::Type{Int},] p::PartiallyOrderedSet)
 
-Return the maximal chains of a partially ordered set as a vector of sets of node ids.
+Return the maximal chains of a partially ordered set as a vector of sets of elements (or node ids of `Int` is passed as first argument).
 
 # Examples
 ```jldoctest
 julia> pos = face_poset(cube(2))
 Partially ordered set of rank 3 on 10 elements
 
-julia> maximal_chains(pos)
+julia> maximal_chains(Int, pos)
 8-element Vector{Vector{Int64}}:
  [1, 2, 6, 10]
  [1, 2, 8, 10]
@@ -383,9 +370,27 @@ julia> maximal_chains(pos)
  [1, 4, 9, 10]
  [1, 5, 7, 10]
  [1, 5, 9, 10]
+
+julia> pos = face_poset(simplex(2))
+Partially ordered set of rank 3 on 8 elements
+
+julia> maximal_chains(pos)
+6-element Vector{Vector{Oscar.PartiallyOrderedSetElement}}:
+ [Poset element <Int64[]>, Poset element <[1]>, Poset element <[1, 3]>, Poset element <[1, 2, 3]>]
+ [Poset element <Int64[]>, Poset element <[1]>, Poset element <[1, 2]>, Poset element <[1, 2, 3]>]
+ [Poset element <Int64[]>, Poset element <[2]>, Poset element <[1, 2]>, Poset element <[1, 2, 3]>]
+ [Poset element <Int64[]>, Poset element <[2]>, Poset element <[2, 3]>, Poset element <[1, 2, 3]>]
+ [Poset element <Int64[]>, Poset element <[3]>, Poset element <[1, 3]>, Poset element <[1, 2, 3]>]
+ [Poset element <Int64[]>, Poset element <[3]>, Poset element <[2, 3]>, Poset element <[1, 2, 3]>]
+
 ```
 """
 function maximal_chains(p::PartiallyOrderedSet)
+  ids = maximal_chains(Int, p)
+  return map(x -> Oscar.PartiallyOrderedSetElement.(Ref(p), x), ids)
+end
+
+function maximal_chains(::Type{Int}, p::PartiallyOrderedSet)
   mc = Polymake.graph.maximal_chains_of_lattice(
     pm_object(p); ignore_top_node=p.artificial_top, ignore_bottom_node=p.artificial_bottom
   )::IncidenceMatrix
