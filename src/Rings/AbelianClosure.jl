@@ -602,14 +602,14 @@ struct RootData
      k = Native.GF(p)
      @assert((p-1)%n == 0)
      lf = factor(n)
-     Z = rand(k)
-     local Zn
+     local Z, Zn
      while true
+       Z = rand(k)
+       iszero(Z) && continue
        Zn = Z^divexact(p-1, n)
        if all(x->!isone(Zn^divexact(n, x)), keys(lf.fac))
          break
        end
-       Z = rand(k)
      end
      r, mr = quo(ZZ, n)
      u, mu = unit_group(r)
@@ -645,6 +645,9 @@ function block_system(a::AbsSimpleNumFieldElem, rd::RootData)
 end
 
 function block_system(k::AbsSimpleNumField, a::QQAbFieldElem)
+  if degree(k) == 1
+    return [[1]]
+  end
   A = parent(a)
   rda = get_attribute(A, :RootData)
   if rda === nothing
@@ -711,22 +714,22 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cache::Bool = true)
   if cache
     old = get_attribute(K, :subfields)
     if old === nothing
-      old = Dict{Vector{Int}, Map}()
+      old = Dict{Tuple{Int, Vector{Int}}, Map}()
       set_attribute!(K, :subfields=>old)
     end
-    if haskey(old, b[1])
-      hh = old[b[1]]
+    if haskey(old, (f, b[1]))
+      hh = old[(f, b[1])]
       return domain(hh), hh
     end
   end
-  f = minpoly(pe)
-  @assert degree(f) == length(b)
-  s, g = number_field(f; check = false, cached = false)
+  g = minpoly(pe)
+  @assert degree(g) == length(b)
+  s, _ = number_field(g; check = false, cached = false)
   h = hom(s, k, k(pe.data))
   hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
   if cache
     old = get_attribute(K, :subfields)
-    old[b[1]] = hh
+    old[(f, b[1])] = hh
   end
   return s, hh
 end

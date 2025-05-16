@@ -530,7 +530,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
   if d*degree(k) == degree(base_ring(V))
     return V
   elseif d == 1
-    @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
+    @vprint :MinField 1 "Going from $(degree(base_ring(V))) to character field of $(degree(k))\n"
     Vmin = gmodule_over(m, V)
     return Vmin
   else
@@ -1261,11 +1261,11 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
     @vtime :MinField 2 hb = hom_base(C^mA(g), C)
     #C^g * hb == hb * C
     if length(hb) == 0
-      do_error && return nothing
+      do_error || return nothing
       error("field too small")
     end
     if length(hb) > 1
-      do_error && return nothing
+      do_error || return nothing
       error("rep. not abs. irr.")
     end
     #as the matrices are only unique up to scalars, try to
