@@ -7,7 +7,7 @@
 function pbw_algebra(
   R::AbstractAlgebra.MPolyRing{T}, rels::Vector{<:AbstractAlgebra.MPolyRingElem{T}}
 ) where {T<:FieldElem}
-  S = MPolyRing{T}(ngens(R), coefficient_ring(R), false)
+  S = MPolyRing{T}(ngens(R), coefficient_ring(R), false, symbols(R))
   rels2 = Vector{MPolyRingElem{T}}(undef, length(rels))
   for i in 1:length(rels)
     rels2[i] = zero(S)
@@ -19,9 +19,11 @@ function pbw_algebra(
   return PBWAlgebra(S, rels2)
 end
 
-function pbw_algebra(R::MPolyRing{T}, rels::Matrix{MPolyRingElem{T}}) where {T<:FieldElem}
+function pbw_algebra(
+  R::AbstractAlgebra.MPolyRing{T}, rels::Matrix{<:AbstractAlgebra.MPolyRingElem{T}}
+) where {T<:FieldElem}
   N = ngens(R)
-  return pbw_algebra(R, [rels[i, j] for i in 1:N, j in (i + 1):N])
+  return pbw_algebra(R, [rels[i, j] for i in 1:N for j in (i + 1):N])
 end
 
 ###############################################################################
