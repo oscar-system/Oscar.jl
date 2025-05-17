@@ -189,20 +189,13 @@ Return the Clifford order of the even lattice $ls$.
 julia> K,a = quadratic_field(-5); OK = maximal_order(K);
 
 julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))))
-Clifford order of even lattice over maximal order of imaginary quadratic field defined by x^2 + 5
-with basis [1, sqrt(-5)] with Gram matrix
+Clifford order of even lattice over maximal order of imaginary quadratic field defined by x^2 + 5 with Gram matrix
   [2   0]
   [0   2]
 and coefficient ideals of the lattice
   2-element Vector{AbsSimpleNumFieldOrderFractionalIdeal}:
-   1//1 * <1, 1>
-  Norm: 1
-  principal generator 1
-  two normal wrt: 1
-   1//1 * <1, 1>
-  Norm: 1
-  principal generator 1
-  two normal wrt: 1
+   <1>//1
+   <1>//1
 ```
 """
 clifford_order(ls::QuadLat) = CliffordOrder{elem_type(base_ring(ls)), typeof(clifford_algebra(rational_span(ls)))}(ls)
@@ -591,16 +584,10 @@ julia> K,a = quadratic_field(-5); OK = maximal_order(K);
 julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))));
 
 julia> pseudo_basis(C,1)
-([1, 0, 0, 0], 1//1 * <1, 1>
-Norm: 1
-principal generator 1
-two normal wrt: 1)
+([1, 0, 0, 0], <1>//1)
 
 julia> pseudo_basis(C,3)
-([0, 0, 1, 0], 1//1 * <1, 1>
-Norm: 1
-principal generator 1
-two normal wrt: 1)
+([0, 0, 1, 0], <1>//1)
 ```
 """
 function pseudo_basis(C::CliffordOrder, i::Int)
@@ -623,16 +610,10 @@ julia> K,a = quadratic_field(-5); OK = maximal_order(K);
 julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))));
 
 julia> pseudo_gen(C,1)
-([0, 1, 0, 0], 1//1 * <1, 1>
-Norm: 1
-principal generator 1
-two normal wrt: 1)
+([0, 1, 0, 0], <1>//1)
 
 julia> pseudo_gen(C,2)
-([0, 0, 1, 0], 1//1 * <1, 1>
-Norm: 1
-principal generator 1
-two normal wrt: 1)
+([0, 0, 1, 0], <1>//1)
 ```
 """
 function pseudo_gen(C::CliffordOrder, i::Int)
