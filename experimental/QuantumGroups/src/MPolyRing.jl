@@ -1,6 +1,3 @@
-function polynomial_ring(S::Ring, ordering::Symbol, weights::Vector{Int})
-end
-
 function coefficient_ring(R::MPolyRing)
   return R.coefficient_ring
 end
@@ -46,8 +43,7 @@ end
 function deepcopy_internal(x::MPolyRingElem, dict::IdDict)
   return get!(dict, x) do
     MPolyRingElem(
-      parent(x),
-      #deepcopy_internal(x.bits, dict),
+      x.parent,
       deepcopy_internal(x.coeffs, dict),
       deepcopy_internal(x.exps, dict),
       deepcopy_internal(x.len, dict),
@@ -458,9 +454,6 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
   return z
 end
 
-function pow!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, n::Int) where {T}
-end
-
 function set!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   if x === y
     return x
@@ -484,7 +477,6 @@ function swap!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   x.coeffs, y.coeffs = y.coeffs, x.coeffs
   x.exps, y.exps = y.exps, x.exps
   x.len, y.len = y.len, x.len
-  return nothing
 end
 
 ###############################################################################
@@ -549,7 +541,7 @@ function length(x::MPolyRingElem)
 end
 
 function symbols(R::MPolyRing)
-  return ["x$i" for i in 1:ngens(R)]
+  return R.vars
 end
 
 ###############################################################################
