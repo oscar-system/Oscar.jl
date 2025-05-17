@@ -129,7 +129,8 @@ function (C::CliffordAlgebra)(a::R) where {R<:RingElem}
   return CliffordAlgebraElem(C, res)
 end
 
-function (C::CliffordAlgebra)(a::R) where {R<:Number}
+# for disambiguation
+function (C::CliffordAlgebra)(a::ZZRingElem)
   res = fill(zero(a), dim(C))
   res[1] = a
   return CliffordAlgebraElem(C, res)

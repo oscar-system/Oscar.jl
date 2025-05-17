@@ -237,7 +237,8 @@ function (C::CliffordOrder)(a::S) where {S<:RingElem}
   return CliffordOrderElem(C, res)
 end
 
-function (C::CliffordOrder)(a::S) where {S<:Number}
+# for disambiguation
+function (C::CliffordOrder)(a::ZZRingElem)
   res = fill(zero(a), rank(C))
   res[1] = a
   return CliffordOrderElem(C, res)
@@ -260,7 +261,8 @@ function (C::ZZCliffordOrder)(a::S) where {S<:RingElem}
   return ZZCliffordOrderElem(C, res)
 end
 
-function (C::ZZCliffordOrder)(a::S) where {S<:Number}
+# for disambiguation
+function (C::ZZCliffordOrder)(a::ZZRingElem)
   res = fill(zero(a), rank(C))
   res[1] = a
   return ZZCliffordOrderElem(C, res)
