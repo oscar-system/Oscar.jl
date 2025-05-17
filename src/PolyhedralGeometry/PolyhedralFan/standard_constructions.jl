@@ -87,12 +87,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(
@@ -241,12 +241,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType, n::Int)

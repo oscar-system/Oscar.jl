@@ -1570,10 +1570,12 @@ Integer lattice of rank 4 and degree 5
 
 julia> H = hermitian_structure(M)
 Hermitian lattice of rank 1 and degree 1
-  over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
+  over maximal order
+    of relative number field with defining polynomial t^2 - (z_5 + 1//z_5)*t + 1
+      over maximal real subfield of cyclotomic field of order 5
   with pseudo-basis
-  (1, 1//1 * <1, 1>)
-  (z_5, 1//1 * <1, 1>)
+    (1, <1>//1)
+    (z_5, <1>//1)
 ```
 
 Note that one can access the map used for the restriction of scalars between
