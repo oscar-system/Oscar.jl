@@ -4,11 +4,11 @@ struct MPolyRing{T} <: AbstractAlgebra.MPolyRing{T}
   N::Int
   coefficient_ring::Ring
   graded::Bool
+  vars::Vector{Symbol}
 end
 
 mutable struct MPolyRingElem{T} <: AbstractAlgebra.MPolyRingElem{T}
   parent::MPolyRing{T}
-  #bits::UInt32
   coeffs::Memory{T}
   exps::Memory{Int}
   len::Int
@@ -69,7 +69,13 @@ struct PBWAlgebraHom{T}
   img::Vector{PBWAlgebraElem{T}}
 end
 
-const QuantumFieldElem = FracFieldElem{LaurentPolyWrap{ZZRingElem}}
+const QuantumFieldElem = FracFieldElem{
+  LaurentPolyWrap{
+    ZZRingElem,
+    ZZPolyRingElem,
+    AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
+  },
+}
 
 mutable struct QuantumGroup
   algebra::PBWAlgebra{QuantumFieldElem}
@@ -88,10 +94,13 @@ mutable struct QuantumGroup
   bar_involution::PBWAlgebraHom{QuantumFieldElem}
 end
 
-function QuantumGroup(R::RootSystem, bilinear_form::ZZMatrix, w0::Vector{Int})
-end
-
 mutable struct QuantumGroupElem <: NCRingElem
   parent::QuantumGroup
   elem::PBWAlgebraElem{FracFieldElem{QuantumFieldElem}}
+end
+
+struct QuantumGroupHom
+  domain::QuantumGroup
+  codomain::QuantumGroup
+  img::Vector{QuantumGroupElem}
 end

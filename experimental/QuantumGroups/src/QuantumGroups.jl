@@ -31,6 +31,7 @@ import ..Oscar:
   one!,
   parent,
   parent_type,
+  root_system,
   setcoeff!,
   symbols,
   zero,
@@ -48,5 +49,7 @@ include("QuantumGroup.jl")
 include("QuantumGroupHom.jl")
 
 end
+
+using .QuantumGroups
 
 include("exports.jl")
