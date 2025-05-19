@@ -16,11 +16,15 @@ import ..Oscar:
   addmul!,
   coeff,
   coefficient_ring,
+  div,
+  div!,
   elem_type,
   exponent_vector,
   expressify,
   gen,
   gens,
+  inv,
+  is_domain_type,
   isone,
   iszero,
   length,
@@ -31,8 +35,11 @@ import ..Oscar:
   one!,
   parent,
   parent_type,
+  q_binomial,
+  q_factorial,
   root_system,
   setcoeff!,
+  sub!,
   symbols,
   zero,
   zero!
@@ -45,6 +52,7 @@ include("CanonicalBasis.jl")
 include("MPolyRing.jl")
 include("PBWAlgebra.jl")
 include("PBWAlgebraHom.jl")
+include("QuantumField.jl")
 include("QuantumGroup.jl")
 include("QuantumGroupHom.jl")
 
