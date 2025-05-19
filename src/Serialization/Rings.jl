@@ -715,7 +715,8 @@ end
 type_params(a::MPolyLocRingElem) = TypeParams(MPolyLocRingElem, parent(a))
 
 function save_object(s::SerializerState, a::MPolyLocRingElem)
-  # `save_type_params` and that stores the parent ring
+  # `save_type_params` will store the output of type_params
+  # in this case the parent ring
   save_data_array(s) do
     save_object(s, numerator(a))
     save_object(s, denominator(a))

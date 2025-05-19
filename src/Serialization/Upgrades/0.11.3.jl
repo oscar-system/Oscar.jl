@@ -100,25 +100,29 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     # Upgrades basic types
-    if dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "QQFieldElem", "zzModRing"] || contains(dict_type, "Int")
-      if dict_type == "QQFieldElem"
-        num = dict[:data][:num][:data]
-        den = dict[:data][:den][:data]
-        updated_fmpq = "$num//$den"
-        #add to state
-        s.id_to_dict[Symbol(dict[:id])] = updated_fmpq
-        
-        return updated_fmpq
-      else
-        updated_basic_value = dict[:data]
-        #add to state
-        if haskey(dict, :id)
-          s.id_to_dict[Symbol(dict[:id])] = updated_basic_value
-        end
-        
-        return updated_basic_value
+    if dict_type == "QQFieldElem"
+      num = dict[:data][:num][:data]
+      den = dict[:data][:den][:data]
+      updated_fmpq = "$num//$den"
+      #add to state
+      s.id_to_dict[Symbol(dict[:id])] = updated_fmpq
+      
+      return updated_fmpq
+
+    elseif dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "zzModRing",
+                         "Base.Int", "UInt64", "UInt8", "UInt16", "UInt32", "UInt64",
+                         "UInt128", "Int8", "Int16", "Int32", "Int64", "Int128",
+                         "Float16", "Float32", "Float64", "BigInt"
+                         ]
+      updated_basic_value = dict[:data]
+      #add to state
+      if haskey(dict, :id)
+        s.id_to_dict[Symbol(dict[:id])] = updated_basic_value
       end
+      
+      return updated_basic_value
     end
+
 
     upgraded_data = upgrade_0_11_3(s, dict[:data])
     upgraded_dict = Dict(

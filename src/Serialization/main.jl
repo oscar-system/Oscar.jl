@@ -129,7 +129,6 @@ function decode_type(s::DeserializerState)
       end
     end
   end
-  #return decode_type(s.obj)
 end
 
 ################################################################################
