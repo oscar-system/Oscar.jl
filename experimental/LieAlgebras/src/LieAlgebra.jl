@@ -1035,12 +1035,12 @@ end
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex) -> PBWAlgRing, Map
 
 Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
 together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
-function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
+function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
   n = dim(L)
   b = basis(L)

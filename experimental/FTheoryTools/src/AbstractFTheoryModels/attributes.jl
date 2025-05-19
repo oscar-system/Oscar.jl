@@ -14,7 +14,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(m)
-A family of spaces of dimension d = 3
+Family of spaces of dimension d = 3
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -35,7 +35,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(m)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)
@@ -1097,6 +1097,72 @@ end
 
 
 @doc raw"""
+    exceptional_classes(m::AbstractFTheoryModel)
+
+Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_classes(foah11_B3)
+4-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by e1
+ Cohomology class on a normal toric variety given by e2
+ Cohomology class on a normal toric variety given by e3
+ Cohomology class on a normal toric variety given by e4
+```
+"""
+function exceptional_classes(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_classes, Vector{CohomologyClass}())
+end
+
+
+@doc raw"""
+    exceptional_divisor_indices(m::AbstractFTheoryModel)
+
+Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_divisor_indices(foah11_B3)
+4-element Vector{Int64}:
+  8
+  9
+ 10
+ 11
+```
+"""
+@attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_divisor_indices, Vector{Int}())
+end
+
+
+@doc raw"""
     torsion_sections(m::AbstractFTheoryModel)
 
 Return the torsion sections of the given model.
@@ -1156,7 +1222,7 @@ end
 
 
 @doc raw"""
-    global_gauge_quotients(m::AbstractFTheoryModel)
+    global_gauge_group_quotient(m::AbstractFTheoryModel)
 
 Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
 These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
@@ -1169,7 +1235,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
 
-julia> global_gauge_quotients(t)
+julia> global_gauge_group_quotient(t)
 5-element Vector{Vector{String}}:
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
  ["-identity_matrix(C,2)"]
@@ -1178,8 +1244,8 @@ julia> global_gauge_quotients(t)
  ["-identity_matrix(C,1)"]
 ```
 """
-function global_gauge_quotients(m::AbstractFTheoryModel)
-  @req has_global_gauge_quotients(m) "No gauge quotients stored for this model"
+function global_gauge_group_quotient(m::AbstractFTheoryModel)
+  @req has_global_gauge_group_quotient(m) "No gauge quotients stored for this model"
   return get_attribute(m, :global_gauge_quotients)
 end
 
@@ -1216,18 +1282,26 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
-  # Check if we can compute the Chern classes for the toric ambient space
-  if check
-    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
-  end
+  # CAREFUL: The code below works ONLY for hypersurfaces in toric spaces.
+  # CAREFUL: It represents the Chern classes of the hypersurface by - so I believe canonical - counterparts in the toric ambient space.
+  # CAREFUL: Those counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
+  # CAREFUL: Currently, we only integrate those Chern classes against the hypersurface, which automatically executes the restriction in question.
 
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
     cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
     cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
+    diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
+    coeffs_list = coefficients(toric_divisor(toric_divisor_class(ambient_space(m), diff)))
+    indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
+    poly = sum(QQ(coeffs_list[k]) * indets[k] for k in 1:length(indets))
+    cs[2] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
     set_attribute!(m, :chern_classes, cs)
+  end
+
+  # Check if we can compute the Chern classes for the toric ambient space
+  if check
+    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
 
   # Check if the Chern class in question is known
@@ -1235,10 +1309,18 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   if cs[k+1] !== nothing
     return cs[k+1]::CohomologyClass
   end
-
   # Chern class is not known, so compute and return it...
-  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  #cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  d = toric_divisor(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
+  indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
+  coeff_ring = coefficient_ring(ambient_space(m))
+  poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
+  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
+  ck_ambient = chern_class(ambient_space(m), k, check = check)
+  ckm1 = chern_class(m, k-1, check = check)
+  new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
+  cs[k+1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly))
   set_attribute!(m, :chern_classes, cs)
   return cs[k+1]
 end
@@ -1973,14 +2055,6 @@ end
 ### (5) Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################
 
-@attr QQMatrix function matrix_integral_quant(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_integral(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
-end
-
-@attr QQMatrix function matrix_rational_quant(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_rational(well_quantized_ambient_space_models_of_g4_fluxes(m, check = check))
-end
-
 @attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_integral(special_flux_family(m, check = check))
 end
@@ -1989,10 +2063,18 @@ end
   return matrix_rational(special_flux_family(m, check = check))
 end
 
-@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel)
+@attr Vector{QQFieldElem} function offset_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
 end
 
-@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel)
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
   return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, not_breaking = true; check = check))
 end

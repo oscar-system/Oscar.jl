@@ -29,7 +29,7 @@
         "authors": ["Washington Taylor", "Yi-Nan Wang"],
         "title": "The F-theory geometry with the most flux vacua",
         "description": "The F-theory geometry with most flux vacua",
-        "buzzwords": ["GUT model", "Tate", "U(1)", "SU(5)"]
+        "buzzwords": ["Tate", "Most flux vacua"]
     },
     "model_descriptors": {
         "type": "tate",

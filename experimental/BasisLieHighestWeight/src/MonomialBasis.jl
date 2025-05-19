@@ -1,36 +1,32 @@
-@attributes mutable struct MonomialBasis
-  lie_algebra::AbstractLieAlgebra{QQFieldElem}
-  highest_weight::WeightLatticeElem
+@attributes mutable struct MonomialBasis{T<:ModuleData}
+  V::T
   birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
-  dimension::Int
   monomials::Set{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
 
   function MonomialBasis(
-    lie_algebra::AbstractLieAlgebra{QQFieldElem},
-    highest_weight::WeightLatticeElem,
+    V::T,
     birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
-  )
-    return new(
-      lie_algebra,
-      highest_weight,
+  ) where {T<:ModuleData}
+    @req dim(V) == length(monomials) "dimesion mismatch"
+    return new{T}(
+      V,
       birational_seq,
       monomial_ordering,
-      length(monomials),
       monomials,
       parent(first(monomials)),
     )
   end
 end
 
-base_lie_algebra(basis::MonomialBasis) = basis.lie_algebra
+base_lie_algebra(basis::MonomialBasis) = base_lie_algebra(basis.V)
 
-highest_weight(basis::MonomialBasis) = basis.highest_weight
+highest_weight(basis::MonomialBasis) = highest_weight(basis.V)
 
-dim(basis::MonomialBasis) = basis.dimension
+dim(basis::MonomialBasis) = dim(basis.V)
 length(basis::MonomialBasis) = dim(basis)
 
 monomials(basis::MonomialBasis) = basis.monomials

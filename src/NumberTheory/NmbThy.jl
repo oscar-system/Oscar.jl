@@ -316,27 +316,3 @@ function factorizations(a::AbsSimpleNumFieldOrderElem)
   end
   return res
 end
-
-
-################################################################################
-#
-#   disc_log   TODO: move to Hecke
-#
-@doc raw"""
-    disc_log(b::T, x::T) where {T <: FinFieldElem}
-
-Return an integer `s` such that $b^s = x$.
-If no such `x` exists, an exception is thrown.
-
-# Examples
-```jldoctest
-julia> F = GF(3,4); a = gen(F)^21;
-
-julia> disc_log(gen(F), a)
-21
-```
-"""
-function disc_log(b::T, x::T) where {T <: FinFieldElem}
-  @assert parent(b) === parent(x)
-  return Hecke.disc_log_bs_gs(b, x, order(parent(b)))
-end

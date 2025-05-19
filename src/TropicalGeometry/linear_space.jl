@@ -193,7 +193,7 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
-    TropL = tropical_linear_space(AbstractAlgebra.combinations(1:n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    TropL = tropical_linear_space(AbstractAlgebra.combinations(n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
     if !weighted_polyhedral_complex_only
         set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
@@ -209,7 +209,7 @@ function compute_pluecker_indices_and_vector(A::MatElem)
     n = ncols(A)
     k = nrows(A)
     @req n>=k "matrix for Pluecker vector cannot have more rows than columns"
-    plueckerIndices = AbstractAlgebra.combinations(1:n,k)
+    plueckerIndices = AbstractAlgebra.combinations(n,k)
     plueckerVector = AbstractAlgebra.minors(A,k)
     nonZeroIndices = findall(!iszero,plueckerVector)
     plueckerIndices = plueckerIndices[nonZeroIndices]
@@ -393,26 +393,22 @@ end
     pluecker_indices(TropL::TropicalLinearSpace)
 
 Return the Pluecker indices used to construct `TropL`.
+Raises an error if neither it, nor any relevant algebraic data nor a tropical matrix is cached.
 """
 @attr Vector{Vector{Int}} function pluecker_indices(TropL::TropicalLinearSpace)
-    # there are two ways to compute the pluecker indices:
-    # - from the algebraic matrix
-    # - from the tropical matrix
-    # (we generally assume that a tropical linear space has at most one of the two)
-
-    # check if tropical matrix is available and, if yes, compute the pluecker indices from it
-    if has_attribute(TropL,:tropical_matrix)
-        A = tropical_matrix(TropL)
+    # if any relevant algebraic data is cached, use it to construct the Pluecker indices
+    if any(has_attribute.(Ref(TropL),[:algebraic_matrix, :algebraic_ideal]))
+        A = algebraic_matrix(TropL)
         plueckerIndices, plueckerVector = compute_pluecker_indices_and_vector(A)
-        set_attribute!(TropL, :tropical_pluecker_vector, plueckerVector)
+        set_attribute!(TropL, :algebraic_pluecker_vector, plueckerVector)
         return plueckerIndices
     end
 
-    # otherwise, get the algebraic matrix and compute the pluecker indices from it
-    # (will rightfully error if algebraic matrix cannot be found or computed)
-    A = algebraic_matrix(TropL)
+    # otherwise use the tropical matrix to construct the Pluecker indices
+    # (will rightfully error if tropical matrix not cached)
+    A = tropical_matrix(TropL)
     plueckerIndices, plueckerVector = compute_pluecker_indices_and_vector(A)
-    set_attribute!(TropL, :algebraic_pluecker_vector, plueckerVector)
+    set_attribute!(TropL, :tropical_pluecker_vector, plueckerVector)
     return plueckerIndices
 end
 
@@ -421,8 +417,18 @@ end
     tropical_pluecker_vector(TropL::TropicalLinearSpace)
 
 Return the tropical Pluecker vector of `TropL`.
+Reises an error if neither it, nor any algebraic data nor a tropical matrix is cached.
 """
 @attr Vector function tropical_pluecker_vector(TropL::TropicalLinearSpace)
+    # if any algebraic data is cached, use it to compute the tropical Pluecker vector.
+    if any(has_attribute.(Ref(TropL),[:algebraic_pluecker_vector, :algebraic_matrix, :algebraic_ideal]))
+        algebraicPlueckerVector = algebraic_pluecker_vector(TropL)
+        nu = tropical_semiring_map(TropL)
+        return nu.(algebraicPlueckerVector)
+    end
+
+    # otherwise use tropical matrix to construct the tropical Pluecker vector
+    # (will rightfully error if tropical matrix not cached)
     A = tropical_matrix(TropL)
     plueckerIndices, plueckerVector = compute_pluecker_indices_and_vector(A)
     set_attribute!(TropL, :pluecker_indices, plueckerIndices)
@@ -434,6 +440,7 @@ end
     algebraic_pluecker_vector(TropL::TropicalLinearSpace)
 
 Return the Pluecker vector over a valued field used to construct `TropL`.
+Raises an error, if neither it nor an algebraic matrix nor an algebraic ideal is cached.
 """
 @attr Vector function algebraic_pluecker_vector(TropL::TropicalLinearSpace)
     A = algebraic_matrix(TropL)
@@ -448,9 +455,8 @@ end
 
 Return the tropical semiring map used to construct `TropL`.  Raises an error, if it is not cached.
 """
-function tropical_semiring_map(TropL::TropicalLinearSpace)
-    @req has_attribute(TropL,:tropical_semiring_map) "no tropical semiring map cached"
-    return get_attribute(TropL, :tropical_semiring_map)::TropicalSemiringMap
+@attr TropicalSemiringMap function tropical_semiring_map(TropL::TropicalLinearSpace)
+    error("no tropical semiring map cached")
 end
 
 
@@ -459,14 +465,8 @@ end
 
 Return the tropical matrix used to construct `TropL`.  Raises an error, if it is not cached.
 """
-function tropical_matrix(TropL::TropicalLinearSpace{minOrMax}) where minOrMax
-    if has_attribute(TropL,:tropical_matrix)
-        return get_attribute(TropL, :tropical_matrix)::dense_matrix_type(TropicalSemiringElem{minOrMax})
-    end
-    @req has_attribute(TropL,:algebraic_matrix) && has_attribute(TropL,:tropical_semiring_map) "neither tropical matrix nor algebraic matrix and tropical semiring map cached"
-    A = algebraic_matrix(TropL)
-    nu = tropical_semiring_map(TropL)
-    return nu.(A)
+@attr MatElem function tropical_matrix(TropL::TropicalLinearSpace)
+    error("no tropical matrix cached")
 end
 
 
@@ -474,12 +474,11 @@ end
     algebraic_matrix(TropL::TropicalLinearSpace)
 
 Return the matrix over a valued field used to construct `TropL`.
+Raises an error, if neither it nor an algebraic ideal is cached.
 """
 @attr MatElem function algebraic_matrix(TropL::TropicalLinearSpace)
-    if has_attribute(TropL,:algebraic_matrix)
-        return get_attribute(TropL, :algebraic_matrix)::MatElem
-    end
-    @req has_attribute(TropL,:algebraic_ideal) "neither algebraic matrix nor algebraic ideal cached"
+    # use algebraic ideal to construct the algebraic matrix
+    # (will rightfully error if algebraic ideal not defined)
     I = algebraic_ideal(TropL)
     return basis_of_vanishing_of_linear_ideal(I)
 end
@@ -491,7 +490,6 @@ end
 Return the polynomial ideal over a valued field used to construct `TropL`.
 Raises an error, if it is not cached.
 """
-function algebraic_ideal(TropL::TropicalLinearSpace)
-    @req has_attribute(TropL,:algebraic_ideal) "no algebraic ideal cached"
-    return get_attribute(TropL, :algebraic_ideal)::MPolyIdeal
+@attr MPolyIdeal function algebraic_ideal(TropL::TropicalLinearSpace)
+    error("no algebraic ideal cached")
 end

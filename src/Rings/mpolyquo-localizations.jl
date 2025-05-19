@@ -128,9 +128,6 @@ localized_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT
 localized_ring_type(L::MPolyQuoLocRing) = localized_ring_type(typeof(L))
 
 ideal_type(::Type{MPolyQuoLocalizedRingType}) where {MPolyQuoLocalizedRingType<:MPolyQuoLocRing} = MPolyQuoLocalizedIdeal{MPolyQuoLocalizedRingType, elem_type(MPolyQuoLocalizedRingType), ideal_type(localized_ring_type(MPolyQuoLocalizedRingType))}
-ideal_type(W::MPolyQuoLocRing) = ideal_type(typeof(W))
-
-
 
 
 
@@ -993,15 +990,14 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 
 @doc raw"""
     MPolyQuoLocalizedRingHom{
-      BaseRingType, 
-      BaseRingElemType, 
-      RingType, 
-      RingElemType, 
-      DomainMultSetType, 
-      CodomainMultSetType
-    } <: AbsLocalizedRingHom{
-      RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-    }
+         DomainType<:MPolyQuoLocRing, 
+         CodomainType<:Ring, 
+         RestrictedMapType<:Map
+        } <: AbsLocalizedRingHom{
+                                 DomainType, 
+                                 CodomainType, 
+                                 RestrictedMapType
+                                }
 
 Homomorphisms of localizations of affine algebras 
 
@@ -2699,27 +2695,41 @@ function Base.:(==)(
 
   if _has_coefficient_map(f)
     if _has_coefficient_map(g) 
-      coefficient_map(f) == coefficient_map(g) || return false
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      coefficient_map(f) == identity_map(coefficient_ring(domain(f))) || return false
+      # In this case, type casting needs to have the same result 
+      # as the coefficient map on the other end
+      return is_equal_as_morphism(coefficient_ring(codomain(g)), coefficient_map(f))
     end
   elseif _has_coefficient_map(g)
     if _has_coefficient_map(f) 
-      coefficient_map(f) == coefficient_map(g) || return false
+      return is_equal_as_morphism(coefficient_map(f), coefficient_map(g))
     else
-      coefficient_map(g) == identity_map(coefficient_ring(domain(g))) || return false
+      return is_equal_as_morphism(coefficient_ring(codomain(f)), coefficient_map(g))
     end
   end
 
-  return all(x->f(x) == g(x), gens(domain(f)))
+  return all(f(x) == g(x) for x in gens(domain(f)))
 end
 
+# Accompanying implementation of hash
 function Base.hash(f::Map{<:MPolyAnyRing, <:MPolyAnyRing}, h::UInt)
-    h = hash(domain(f), h)
-    h = hash(codomain(f), h)
-    # TODO: add in coefficient_map if available
-    h = hash(f.(gens(domain(f))), h)
-    return h
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  # TODO: add in coefficient_map if available
+  h = hash(f.(gens(domain(f))), h)
+  return h
+end
+
+# This rerouting is necessary as internally the function 
+# `is_equal_as_morphism` is called in several places 
+# and we wish to have the above implementation for such 
+# signatures. 
+function is_equal_as_morphism(
+    f::Map{<:MPolyAnyRing, <:MPolyAnyRing},
+    g::Map{<:MPolyAnyRing, <:MPolyAnyRing}
+   )
+  return f == g
 end
 
 coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))

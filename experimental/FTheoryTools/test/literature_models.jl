@@ -77,6 +77,9 @@ t2 = resolve(t1, 1)
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_classes(t2))
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_divisor_indices(t1)) + 5
+  @test length(exceptional_classes(t2)) == length(exceptional_classes(t1)) + 5
 end
 
 add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
@@ -462,23 +465,23 @@ foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hy
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
   @test haskey(explicit_model_sections(foah6), "s9") == false
   @test dim(gauge_algebra(foah6)) == 4
-  @test length(global_gauge_quotients(foah6)) == 2
+  @test length(global_gauge_group_quotient(foah6)) == 2
   @test dim(gauge_algebra(foah8)) == 7
-  @test length(global_gauge_quotients(foah8)) == 3
+  @test length(global_gauge_group_quotient(foah8)) == 3
   @test dim(gauge_algebra(foah9)) == 5
-  @test length(global_gauge_quotients(foah9)) == 3
+  @test length(global_gauge_group_quotient(foah9)) == 3
   @test dim(gauge_algebra(foah11)) == 12
-  @test length(global_gauge_quotients(foah11)) == 3
+  @test length(global_gauge_group_quotient(foah11)) == 3
   @test dim(gauge_algebra(foah12)) == 8
-  @test length(global_gauge_quotients(foah12)) == 4
+  @test length(global_gauge_group_quotient(foah12)) == 4
   @test dim(gauge_algebra(foah13)) == 21
-  @test length(global_gauge_quotients(foah13)) == 3
+  @test length(global_gauge_group_quotient(foah13)) == 3
   @test dim(gauge_algebra(foah14)) == 15
-  @test length(global_gauge_quotients(foah14)) == 4
+  @test length(global_gauge_group_quotient(foah14)) == 4
   @test dim(gauge_algebra(foah15)) == 13
-  @test length(global_gauge_quotients(foah15)) == 5
+  @test length(global_gauge_group_quotient(foah15)) == 5
   @test dim(gauge_algebra(foah16)) == 24
-  @test length(global_gauge_quotients(foah16)) == 3
+  @test length(global_gauge_group_quotient(foah16)) == 3
 end
 
 
@@ -593,7 +596,7 @@ end
 
 
 ##########################################################################################################
-# 10: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
+# 10: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
 ##########################################################################################################
 
 foah1_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass")
@@ -613,7 +616,7 @@ foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type
 foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
 foah16_weier = weierstrass_model(foah16)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
   @test dim(base_space(foah2_weier)) == 3
   @test dim(base_space(foah3_weier)) == 3
@@ -683,7 +686,7 @@ end
 
 
 ########################################################################################################
-# 11: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
+# 11: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
 ########################################################################################################
 
 B3 = projective_space(NormalToricVariety, 3)
@@ -705,7 +708,7 @@ foah14_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", t
 foah15_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
   @test dim(base_space(foah1_B3_weier)) == 3
   @test dim(base_space(foah2_B3_weier)) == 3
   @test dim(base_space(foah3_B3_weier)) == 3

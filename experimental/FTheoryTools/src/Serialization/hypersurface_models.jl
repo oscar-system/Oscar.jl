@@ -5,18 +5,25 @@
   :ambient_space_models_of_g4_fluxes,
   :ambient_space_models_of_g4_fluxes_indices,
   :associated_literature_models,
+  :basis_of_h22_ambient,
+  :basis_of_h22_ambient_indices,
+  :basis_of_h22_hypersurface,
+  :basis_of_h22_hypersurface_indices,
   :birational_literature_models,
-  :chern_classes,
   :classes_of_model_sections,
   :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes,
   :components_of_dual_graph,
   :components_of_simplified_dual_graph,
+  :converter_dict_h22_ambient,
+  :converter_dict_h22_hypersurface,
   :degree_of_Kbar_of_tv_restricted_to_ci,
   :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
   :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
   :dual_graph,
   :estimated_number_of_triangulations,
   :euler_characteristic,
+  :exceptional_classes,
+  :exceptional_divisor_indices,
   :g4_flux_tuple_list,
   :gauge_algebra,
   :generating_sections,
@@ -34,8 +41,6 @@
   :intersection_number_among_nontrivial_ci_cj,
   :is_calabi_yau,
   :literature_identifier,
-  :matrix_integral_quant,
-  :matrix_rational_quant,
   :matrix_integral_quant_transverse,
   :matrix_rational_quant_transverse,
   :matrix_integral_quant_transverse_nobreak,
@@ -43,6 +48,8 @@
   :max_lattice_pts_in_facet,
   :model_parameters,
   :model_sections,
+  :offset_quant_transverse,
+  :offset_quant_transverse_nobreak,
   :partially_resolved,
   :poly_index,
   :resolutions,
@@ -58,15 +65,6 @@
   :weighted_resolutions,
   :weighted_resolution_generating_sections,
   :weighted_resolution_zero_sections,
-  :well_quantized_ambient_space_models_of_g4_fluxes,
-  :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes,
-  :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes,
-  :well_quantized_and_vertical_integral,
-  :well_quantized_and_vertical_rational,
-  :well_quantized_integral,
-  :well_quantized_rational,
-  :well_quantized_vertical_no_break_integral,
-  :well_quantized_vertical_no_break_rational,
   :zero_section,
   :zero_section_class,
   :zero_section_index,
@@ -174,24 +172,4 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model.model_section_parametrization = model_section_parametrization
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
   return model
-
-  # TODO Refactor inter_dict to the type that is needed.
-  # TODO !!!!!!! We should add functionality for storing this types of tuples !!!!!!!
-  # TODO Code alike (! not identical) the one below below has been moved into other places (marked with TODO):
-  # TODO: FamiliesOfG4Fluxes/special_constructors (3 times) & FamiliesOfG4Fluxes/attributes (once).
-  # TODO These code blocks are to be removed once NTuple{4, Int64} is supported by serialization.
-
-  # if haskey(attrs_data, :inter_dict)
-  #   # We want this inter_dict to be of type Dict{NTuple{4, Int64}, ZZRingElem}().
-  #   # Sadly, serializing and loading turns NTuple{4, Int64} into Tuple.
-  #   # So we need to massage this... Not at all good, as it doubles memory usage!
-  #   original_dict = attrs_data[:inter_dict]
-  #   new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-  #   for (key, value) in original_dict
-  #     new_key = NTuple{4, Int64}(key)
-  #     new_dict[new_key] = value
-  #   end
-  #   set_attribute!(model, :inter_dict, new_dict)
-  # end
-
 end

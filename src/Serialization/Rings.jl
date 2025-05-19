@@ -14,8 +14,12 @@ const PolyRingUnionType = Union{UniversalPolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
 
 const IdealUnionType = Union{MPolyIdeal,
-                             LaurentMPolyIdeal,
-                             FreeAssociativeAlgebraIdeal}
+                                MPolyQuoIdeal,
+                                MPolyLocalizedIdeal,
+                                MPolyQuoLocalizedIdeal,
+                                LaurentMPolyIdeal,
+                                FreeAssociativeAlgebraIdeal
+                            }
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
                                       QQRelPowerSeriesRing,
@@ -247,9 +251,11 @@ end
 
 ################################################################################
 # Polynomial Ideals
-
 @register_serialization_type MPolyIdeal
 @register_serialization_type LaurentMPolyIdeal
+@register_serialization_type MPolyLocalizedIdeal
+@register_serialization_type MPolyQuoLocalizedIdeal
+@register_serialization_type MPolyQuoIdeal
 
 function save_object(s::SerializerState, I::T) where T <: IdealUnionType
   # we might want to serialize generating_system(I) and I.gb
@@ -345,7 +351,7 @@ end
 
 # elems
 function save_object(s::SerializerState, obj::MatElem)
-  save_object(s, Array(obj))
+  save_object(s, Matrix(obj))
 end
 
 function save_object(s::SerializerState, obj::SMat)
@@ -656,3 +662,157 @@ function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering})
   vars = load_object(s, Vector{Int}, :vars) # are these always Vector{Int} ?
   return Orderings.SymbOrdering(S, vars)
 end
+
+
+# localizations of polynomial rings
+@register_serialization_type MPolyPowersOfElement uses_id
+
+type_params(U::T) where T <: MPolyPowersOfElement = TypeParams(T, ring(U))
+
+function save_object(s::SerializerState, U::MPolyPowersOfElement)
+  save_object(s, denominators(U))
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyPowersOfElement}, R::MPolyRing)
+  dens = load_object(s, Vector{elem_type(R)}, R)
+  return MPolyPowersOfElement(R, dens)
+end
+
+
+@register_serialization_type MPolyComplementOfPrimeIdeal uses_id
+
+type_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), ring(U))
+
+function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
+  save_object(s, prime_ideal(U))
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, R::MPolyRing)
+  id = load_object(s, ideal_type(R), R)
+  return MPolyComplementOfPrimeIdeal(id)
+end
+
+@register_serialization_type MPolyLocRing uses_id
+
+type_params(W::T) where {T <: MPolyLocRing} = TypeParams(T, :base_ring => base_ring(W), :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing)) # TODO: make this neater!
+
+function save_object(s::SerializerState, L::MPolyLocRing)
+  save_object(s, inverted_set(L))
+end
+
+function load_object(
+    s::DeserializerState, 
+    ::Type{<:MPolyLocRing}, params::Dict
+  ) 
+  U = params[:mult_set_type]
+  R = params[:base_ring]
+  mult_set = load_object(s, U, R)
+  return MPolyLocRing(R, mult_set)
+end
+
+@register_serialization_type MPolyLocRingElem uses_params
+
+type_params(a::MPolyLocRingElem) = TypeParams(MPolyLocRingElem, parent(a))
+
+function save_object(s::SerializerState, a::MPolyLocRingElem)
+  # Because the `parent` of `a` is a `Ring` the generic implementation
+  # for `uses_params` above calls `save_type_params` and that stores 
+  # the ring. Hopefully. 
+  save_data_array(s) do
+    save_object(s, numerator(a))
+    save_object(s, denominator(a))
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyLocRingElem}, parent::MPolyLocRing)
+  P = base_ring(parent)
+  RET = elem_type(P)
+  num = load_object(s, RET, P, 1)
+  den = load_object(s, RET, P, 2)
+  return parent(num, den; check=false)
+end
+
+@register_serialization_type MPolyQuoLocRing uses_id
+
+type_params(L::T) where {T <: MPolyQuoLocRing} = TypeParams(T, :base_ring=>base_ring(L), :loc_ring=>localized_ring(L), :quo_ring=>underlying_quotient(L))
+
+function save_object(s::SerializerState, L::MPolyQuoLocRing)
+  save_data_dict(s) do
+    # Everything happens in the type_params.
+    # We still need to do something here, because otherwise 
+    # we get an error. TODO: Make this better!
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRing}, params::Dict)
+  R = params[:base_ring]::MPolyRing
+  L = params[:loc_ring]::MPolyLocRing
+  Q = params[:quo_ring]::MPolyQuoRing
+  return MPolyQuoLocRing(R, modulus(Q), inverted_set(L), Q, L)
+end
+
+@register_serialization_type MPolyQuoLocRingElem uses_params
+
+type_params(a::T) where {T<:MPolyQuoLocRingElem} = TypeParams(T, parent(a))
+
+function save_object(s::SerializerState, a::MPolyQuoLocRingElem)
+ save_object(s, [lifted_numerator(a), lifted_denominator(a)])
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRingElem}, parent::MPolyQuoLocRing)
+  P = base_ring(parent)
+  RET = elem_type(P)
+  num = load_object(s, RET, P, 1)
+  den = load_object(s, RET, P, 2)
+  return parent(num, den; check=false)
+end
+
+@register_serialization_type MPolyComplementOfKPointIdeal uses_id
+
+type_params(U::T) where {T<:MPolyComplementOfKPointIdeal} = TypeParams(T, ring(U))
+
+function save_object(s::SerializerState, U::MPolyComplementOfKPointIdeal)
+  save_object(s, point_coordinates(U))
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfKPointIdeal}, R::Ring)
+  kk = coefficient_ring(R)
+  T = elem_type(kk)
+  a = load_object(s, Vector{T}, kk)
+  return MPolyComplementOfKPointIdeal(R, a)
+end
+
+### Morphisms of the four types of rings
+
+@register_serialization_type MPolyLocalizedRingHom uses_id
+
+type_params(phi::T) where {T<:MPolyLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_params(restricted_map(phi)))
+
+function save_object(s::SerializerState, phi::MPolyLocalizedRingHom)
+  save_object(s, restricted_map(phi))
+end
+
+function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyLocalizedRingHom} # RT is the type of the `restricted_map`
+  dom = params[:domain]
+  cod = params[:codomain]
+  rm_tp = params[:restricted_map_params]
+  res = load_object(s, MPolyAnyMap, rm_tp)
+  return MPolyLocalizedRingHom(dom, cod, res; check=false)
+end
+
+@register_serialization_type MPolyQuoLocalizedRingHom uses_id
+
+type_params(phi::T) where {T<:MPolyQuoLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_params(restricted_map(phi)))
+
+function save_object(s::SerializerState, phi::MPolyQuoLocalizedRingHom)
+  save_object(s, restricted_map(phi))
+end
+
+function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyQuoLocalizedRingHom} # RT is the type of the `restricted_map`
+  dom = params[:domain]
+  cod = params[:codomain]
+  rm_tp = params[:restricted_map_params]
+  res = load_object(s, MPolyAnyMap, rm_tp)
+  return MPolyQuoLocalizedRingHom(dom, cod, res; check=false)
+end
+

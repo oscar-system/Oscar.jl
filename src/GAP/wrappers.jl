@@ -288,6 +288,7 @@ GAP.@wrap LinearCharacters(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LinearCombinationPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ListPerm(x::GapObj)::GapObj
+GAP.@wrap MappedWord(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap MarksTom(x::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap MatTom(x::GapObj)::GapObj

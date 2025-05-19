@@ -1201,6 +1201,11 @@ end
     @test length(character_parameters(t)) == length(t)
     @test length(class_parameters(t)) == length(t)
   end
+
+  t = character_table_complex_reflection_group(4, 1, 3)
+  @test length(character_parameters(t)) == length(t)
+  @test length(class_parameters(t)) == length(t)
+  @test get_attribute(t, :type) == (4, 1, 3)
 end
 
 @testset "symmetrizations" begin
