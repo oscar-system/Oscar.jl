@@ -145,7 +145,7 @@ The algorithm is as described in [Lie97; Section 3.3](@cite).
 julia> C = Combination([1, 3, 5, 7])
 [1, 3, 5, 7]
 
-julia> linear_index(C, 7)
+julia> Oscar.linear_index(C, 7)
 15
 ```
 """

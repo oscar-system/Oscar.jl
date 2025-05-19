@@ -133,7 +133,7 @@ function wedge(u::ModuleFPElem, v::ModuleFPElem;
       ind_j = combination(n, q, j)
       sign, k = _wedge(ind_i, ind_j)
       iszero(sign) && continue
-      result = result + sign * a * b * parent[linear_index(k, n)]
+      result = result + sign * a * b * parent[Oscar.linear_index(k, n)]
     end
   end
   return result

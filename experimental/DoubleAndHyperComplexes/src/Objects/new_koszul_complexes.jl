@@ -57,7 +57,7 @@ function (fac::HomogKoszulComplexMapFactory)(self::AbsHyperComplex, p::Int, I::T
     for (m, v) in zip(inds, cfac.seq)
       sign, mult_ind = _wedge(omi, m)
       is_zero(sign) && continue
-      res_ind = linear_index(mult_ind, n)
+      res_ind = Oscar.linear_index(mult_ind, n)
       img += sign*v*cod[res_ind]
     end
     push!(img_gens, img)

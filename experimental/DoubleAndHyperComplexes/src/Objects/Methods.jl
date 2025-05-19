@@ -364,7 +364,7 @@ function _contract(
     for j in 1:p
       I = deleteat!(copy(data(ind)), j)
       new_ind = Combination(I)
-      result = result + (-1)^j * v[i] * phi[ind[j]] * parent[linear_index(new_ind, n)]
+      result = result + (-1)^j * v[i] * phi[ind[j]] * parent[Oscar.linear_index(new_ind, n)]
     end
   end
   return result

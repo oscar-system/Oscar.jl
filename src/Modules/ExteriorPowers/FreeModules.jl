@@ -176,7 +176,7 @@ function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   any(isnothing, k) && error("elements must be generators of the module")
   ind = [combination(n, p, r) for r in k]
   comp = [Combination([i for i in 1:n if !(i in I)]) for I in ind]
-  lin_ind = linear_index.(comp, Ref(n))
+  lin_ind = Oscar.linear_index.(comp, Ref(n))
   F_dual = koszul_dual(F, cached=cached)
   results = [F_dual[j] for j in lin_ind]
   for r in 1:length(v)
