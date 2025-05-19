@@ -1,6 +1,6 @@
 # I would like to credit Dario Mathiä who produced an initial version of the following code
 
-export wreath_macs, wreath_mac
+export wreath_macdonald_polynomials, wreath_macdonald_polynomial
 
 # Tools
 
@@ -61,7 +61,7 @@ function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
 end
 
 #Reoders the CharTable from Chevie
-function reorder(charTirr::Matrix{QQAbFieldElem{AbsSimpleNumFieldElem}}, r::Int, n::Int, Modules::Vector{Multipartition{Int}}, K::QQAbField{AbsSimpleNumField}, mps::Vector{Multipartition{Int}})
+function reorder(charTirr::Matrix{QQAbFieldElem{AbsSimpleNumFieldElem}}, Modules::Vector{Multipartition{Int}},  mps::Vector{Multipartition{Int}})
   new_ord=indexin(mps,Modules)
   return charTirr[new_ord,:]
 end
@@ -69,7 +69,7 @@ end
 #Tools from representation theory
 
 # Computes the fake degree of a multipartition cf. Ste89 Thm 5.3 and Prop. 3.3.2 Haiman cdm
-function fake_deg(lbb::Multipartition, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
+function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
   r=length(lbb)
   n=sum(lbb)
   res=Q(1)
@@ -89,20 +89,20 @@ function fake_deg(lbb::Multipartition, K::QQAbField{AbsSimpleNumField}, Q::Abstr
 end
 
 # computes C_Delta defined in PhD relation (1.45)
-function C_Delta(r::Int, n::Int, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
+function C_Delta(r::Int, n::Int, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
   charTable=character_table_complex_reflection_group(r,1,n)
   charTirr=[charTable[i,j] for i in 1:nrows(charTable), j in 1:ncols(charTable)]
   Modules=[multipartition([lbb...]) for lbb in class_parameters(charTable)]
   l=length(Modules)
-  charTirr=reorder(charTirr,r,n,Modules,K,mps)
-  charTirrT=solve_init(matrix(K,transpose(charTirr)))
+  charTirr=reorder(charTirr,Modules,mps)
+  charTirrT=solve_init(matrix(Q,transpose(charTirr)))
   rows=zero_matrix(Q,l,0)
   for i in 1:l
     col=zero_matrix(Q,l,1)
     for j in 1:l
-      v=matrix(K,l,1,map(k->charTirr[i,k]*charTirr[j,k],1:l))
+      v=matrix(Q,l,1,map(k->charTirr[i,k]*charTirr[j,k],1:l))
       x=solve(charTirrT,v,side=:right)
-      col=col+fake_deg(mps[j],K,Q,var)*x
+      col=col+fake_deg(mps[j],Q,var)*x
     end
     rows=hcat(rows,col)
   end
@@ -110,9 +110,9 @@ function C_Delta(r::Int, n::Int, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlg
 end
 
 # computes the character of the simple representations of the Cherednik algebra.
-function C_L(r::Int, n::Int, K::QQAbField{AbsSimpleNumField}, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
-  C_D=C_Delta(r,n,K,Q,var,mps)
-  d = [var^b_inv(mp)//fake_deg(mp,K,Q,var) for mp in mps]
+function C_L(r::Int, n::Int, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
+  C_D=C_Delta(r,n,Q,var,mps)
+  d = [var^b_inv(mp)//fake_deg(mp,Q,var) for mp in mps]
   diag=diagonal_matrix(Q,d)
   return diag * C_D
 end
@@ -134,7 +134,11 @@ function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{I
 end
 
 @doc raw"""
-    wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
+    wreath_macdonald_polynomials(n::Int,
+                                r::Int,
+                                wperm::PermGroupElem,
+                                coroot::Vector{Int},
+                                parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
 
 Given two integers n and r and an element of the affine Weyl group of type A (seen as
 the semi-direct product of the Symmetric group with the coroot lattice), this function
@@ -143,15 +147,19 @@ all multipartition of size n and length r in the standard Schur basis indexed by
 multipartitions of the same size and length as lbb. Each row of this matrix is a wreath
 Macdonald polynomial.
 """
-function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
-  K,_ = abelian_closure(QQ)
-  R, (q,t) = polynomial_ring(K, [:q,:t])
-  Q = fraction_field(R)
+function wreath_macdonald_polynomials(n::Int,
+                                      r::Int,
+                                      wperm::PermGroupElem,
+                                      coroot::Vector{Int},
+                                      parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+
+  Q = fraction_field(parent[1])
+  (q,t) = parent[2]
 
   mps=collect(multipartitions(n,r))
   l=length(mps)
 
-  c_L=C_L(r,n,K,Q,t,mps)
+  c_L=C_L(r,n,Q,t,mps)
   c_L_q=map_entries(f->numerator(f)(0,q)//denominator(f)(0,q),c_L)
   c_L_tinv=map_entries(f->numerator(f)(0,1//t)//denominator(f)(0,1//t),c_L)
 
@@ -182,7 +190,11 @@ function wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
 end
 
 @doc raw"""
-    wreath_mac(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
+
+    wreath_macdonald_polynomial(lbb::Multipartition,
+                                     wperm::PermGroupElem,
+                                     coroot::Vector{Int},
+                                     parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
 
 Given a multipartition lbb and an element of the affine Weyl group of type A (seen as
 the semi-direct product of the Symmetric group with the coroot lattice), this function
@@ -190,17 +202,20 @@ returns the coefficients of the wreath Macdonald polynomial associated with lbb 
 the affine Weyl group element in the standard Schur basis indexed by the multipartitions
  of the same size and length as lbb.
 """
-function wreath_mac(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
-  K,_ = abelian_closure(QQ)
-  R, (q,t) = polynomial_ring(K, [:q,:t]; cached = false)
-  Q = fraction_field(R)
+function wreath_macdonald_polynomial(lbb::Multipartition,
+                                     wperm::PermGroupElem,
+                                     coroot::Vector{Int},
+                                     parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+
+  Q = fraction_field(parent[1])
+  (q,t) = parent[2]
 
   r=length(lbb)
   n=sum(lbb)
   mps=collect(multipartitions(n,r))
   l=length(mps)
 
-  c_L=C_L(r,n,K,Q,t,mps)
+  c_L=C_L(r,n,Q,t,mps)
   c_L_q=map_entries(f->numerator(f)(0,q)//denominator(f)(0,q),c_L)
   c_L_tinv=map_entries(f->numerator(f)(0,1//t)//denominator(f)(0,1//t),c_L)
 

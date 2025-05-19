@@ -35,7 +35,13 @@ julia> collect(multipartitions(1,3))
  Partition{Int64}[[], [1], []]
  Partition{Int64}[[1], [], []]
 
-julia> wreath_macs(1,3,(@perm 3 (1,2,3)), [0,1,-1])[[3, 2, 1],[3, 2, 1]]
+julia> K,=abelian_closure(QQ)
+(Abelian closure of rational field, Generator of abelian closure of rational field)
+
+julia> parent=polynomial_ring(K,[:q,:t];cached=false)
+(Multivariate polynomial ring in 2 variables over abelian closure of QQ, AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}[q, t])
+
+julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1],parent)[[3, 2, 1],[3, 2, 1]]
 [1   q^2     q]
 [1     t     q]
 [1     t   t^2]
