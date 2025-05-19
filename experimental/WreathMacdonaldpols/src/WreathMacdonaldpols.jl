@@ -137,7 +137,7 @@ end
     wreath_macdonald_polynomials(n::Int,
                                  r::Int,
                                  wperm::PermGroupElem,
-                                 coroot::Vector{Int},
+                                 coroot::Vector{Int};
                                  parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
 Given two integers n and r and an element of the affine Weyl group of type A (seen as
@@ -193,7 +193,7 @@ end
 
     wreath_macdonald_polynomial(lbb::Multipartition,
                                 wperm::PermGroupElem,
-                                coroot::Vector{Int},
+                                coroot::Vector{Int};
                                 parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
 Given a multipartition lbb and an element of the affine Weyl group of type A (seen as
