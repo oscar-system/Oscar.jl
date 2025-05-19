@@ -2483,13 +2483,12 @@ julia> vertices(pG)
 
 julia> faces(IncidenceMatrix,pG,1)
 6×4 IncidenceMatrix
-[1, 2]
-[1, 3]
-[1, 4]
-[2, 3]
-[2, 4]
-[3, 4]
-
+ [1, 2]
+ [1, 3]
+ [1, 4]
+ [2, 3]
+ [2, 4]
+ [3, 4]
 ```
 """
 function tutte_lifting(G::Graph{Undirected})
