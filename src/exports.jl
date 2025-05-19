@@ -1273,7 +1273,7 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
-export numerical_lattice 
+export numerical_lattice
 export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
