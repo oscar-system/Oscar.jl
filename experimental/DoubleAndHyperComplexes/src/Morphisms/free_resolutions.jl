@@ -143,6 +143,29 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
   return result, aug_map_comp
 end
 
+function free_resolution(::Type{T}, F::FreeMod{RET}) where {T<:SimpleFreeResolution, RET}
+  ChainType = FreeMod{RET}
+  MorphismType = FreeModuleHom{ChainType, ChainType, Nothing}
+
+  M = SubquoModule(F, gens(F), elem_type(F)[])
+  chain_fac = ResolutionModuleFactory(M)
+  map_fac = ResolutionMapFactory{MorphismType}()
+
+  R = base_ring(M)
+  upper_bound = (R isa MPolyRing ? ngens(R) : nothing)
+  internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
+                                  upper_bounds = [upper_bound], 
+                                  lower_bounds = [0]
+                                 )
+  result = SimpleFreeResolution(M, internal_complex)
+  FC = ZeroDimensionalComplex(F)[0:0] # Wrap FC as a 1-dimensional complex concentrated in degree 0
+  aug_map = hom(result[(0,)], F, gens(F); check=false) # The actual augmentation map
+  aug_map.generators_map_to_generators = true
+  aug_map_comp = MorphismFromDict(result, FC, Dict{Tuple, typeof(aug_map)}([(0,)=>aug_map]))
+  result.augmentation_map = aug_map_comp
+  return result, aug_map_comp
+end
+
 function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolution, RET}
   R = base_ring(I)
   F = (!is_graded(R) ? FreeMod(R, 1) : graded_free_module(R, [zero(grading_group(R))]))

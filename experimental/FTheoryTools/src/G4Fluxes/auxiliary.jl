@@ -642,7 +642,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4_basis[1])
 Cohomology class on a normal toric variety given by y^2

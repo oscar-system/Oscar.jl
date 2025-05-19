@@ -2,6 +2,9 @@
   @testset "multicombinations" begin
     multicombinations = Oscar.LieAlgebras.multicombinations
 
+    @test collect(multicombinations(0, 0)) == [Int[]]
+    @test collect(multicombinations(0, 1)) == []
+
     for n in 1:8, k in 1:n
       @test collect(multicombinations(n, k)) == collect(multicombinations(1:n, k))
     end

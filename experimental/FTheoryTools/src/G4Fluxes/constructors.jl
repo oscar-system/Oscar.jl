@@ -58,14 +58,14 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f2)
 Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w + 8*x8*x23 + 4*x10*x23 - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 22*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 + 7//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 88//3*x20*x21 - 7*x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 11//3*x21^2 - 77//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w + 31//3*x22^2 + 5//3*x22*x23 + 97//6*x22*x25 + 4*x23^2 - 8*x24^2 - 17//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w + 7//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 - 7//3*x29^2 + 5*e1*w
@@ -75,7 +75,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f3)
 Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 6*x6*e4 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 6*x16*e4 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 16*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 12*x21*e4 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 6*x24*e4 + 2*x24*w - 1//2*x25^2 + 6*x25*e4 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 6*x27*e4 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w
@@ -144,8 +144,8 @@ julia> qsm_flux(qsm_model)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 ```
 """
 function qsm_flux(qsm_model::AbstractFTheoryModel)
@@ -228,7 +228,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, g4::G4Flux)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
+  io = pretty(io)
   properties_string = ["G4-flux candidate"]
 
   # Check for elementary quantization checks
@@ -236,7 +238,7 @@ function Base.show(io::IO, g4::G4Flux)
     if is_well_quantized(g4)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
-      push!(properties_string, "  - Elementary quantization checks: failed")
+      push!(properties_string, "  - Elementary quantization checks: violated")
     end
   else
     push!(properties_string, "  - Elementary quantization checks: not executed")
@@ -247,7 +249,7 @@ function Base.show(io::IO, g4::G4Flux)
     if passes_transversality_checks(g4)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
-      push!(properties_string, "  - Transversality checks: failed")
+      push!(properties_string, "  - Transversality checks: violated")
     end
   else
     push!(properties_string, "  - Transversality checks: not executed")
@@ -258,7 +260,7 @@ function Base.show(io::IO, g4::G4Flux)
     if breaks_non_abelian_gauge_group(g4)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
-      push!(properties_string, "  - Non-abelian gauge group: not broken")
+      push!(properties_string, "  - Non-abelian gauge group: unbroken")
     end
   else
     push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
@@ -269,10 +271,10 @@ function Base.show(io::IO, g4::G4Flux)
     if passes_tadpole_cancellation_check(g4)
       push!(properties_string, "  - Tadpole cancellation check: satisfied")
     else
-      push!(properties_string, "  - Tadpole cancellation check: failed")
+      push!(properties_string, "  - Tadpole cancellation check: violated")
     end
   else
-    push!(properties_string, "  - Tadpole cancellation check: not executed")
+    push!(properties_string, "  - Tadpole cancellation check: not computed")
   end
 
   # Print each line separately, to avoid extra line break at the end
@@ -283,4 +285,9 @@ function Base.show(io::IO, g4::G4Flux)
       println(io, line) # Print all other lines with line break
     end
   end
+end
+
+# Terse and one line printing
+function Base.show(io::IO, g4::G4Flux)
+  print(io, "G4-flux candidate")
 end

@@ -168,7 +168,7 @@ function doit(
     DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive=true)
 
     if doctest !== false
-      Documenter.doctest(Oscar, fix = doctest === :fix)
+      Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters())
     end
 
     makedocs(;

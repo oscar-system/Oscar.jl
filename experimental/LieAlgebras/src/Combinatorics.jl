@@ -5,8 +5,8 @@
 function multicombinations(n::Integer, k::Integer)
   return sort!(
     reverse.(
-      Vector.(
-        reduce(vcat, collect(partitions(i, k, 1, n)) for i in 0:(k * n); init=Vector{Int}[])
+      reduce(
+        vcat, data.(partitions(i, k, 1, n)) for i in 0:(k * n); init=Vector{Int}[]
       )::Vector{Vector{Int}}
     ),
   )

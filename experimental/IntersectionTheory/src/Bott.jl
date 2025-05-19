@@ -170,10 +170,10 @@ tn_bundle(X::TnVariety, r::Int, f::Function) = TnBundle(X, r, f)
 @doc raw"""
     tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P
 
-Return an abstract variety with a (split) torus action, represented by its dimension `n` and a `Vector` specifying the fixed points of the action together with their multiplicities.
+Return an abstract variety with a (split) torus action by specifying its dimension `n` and the fixed points of the action together with their multiplicities.
 
 !!! note
-    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
+    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces in the Oscar documentation for an example.
 """
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 

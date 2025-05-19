@@ -57,7 +57,7 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   B = coefficient_ring(Bt)
 
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
-  Rt, t1 = polynomial_ring(R,:t)
+  Rt, t1 = polynomial_ring(R, :t, cached=false)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
   b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)

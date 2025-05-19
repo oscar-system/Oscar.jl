@@ -703,18 +703,18 @@ function right_ideal(R::PBWAlgRing{T, S}, g::AbstractVector) where {T, S}
   return PBWAlgIdeal{1, T, S}(R, i)
 end
 
-# assure a.sopdata is defined
-function _sopdata_assure!(a::PBWAlgIdeal)
-  if !isdefined(a, :sopdata)
-    R = base_ring(a)
-    a.sopdata = _opmap(_opposite(R), a.sdata, R)
-  end
+# sopdata is "singular opposite (algebra) data"
+function get_sopdata(a::PBWAlgIdeal)
+  isdefined(a, :sopdata) && return a.sopdata
+  R = base_ring(a)
+  a.sopdata = _opmap(_opposite(R), a.sdata, R)
+  return a.sopdata
 end
 
 
 # for D < 0, a.gb is a left gb of left_ideal(a.sdata)
 # for D = 0, a.gb is a left gb of two_sided_ideal(a.sdata)
-function groebner_assure!(a::PBWAlgIdeal{D}) where D
+function singular_groebner_basis(a::PBWAlgIdeal{D}) where D
   @assert D <= 0
   if !isdefined(a, :gb)
     a.gb = Singular.std(a.sdata)
@@ -722,21 +722,21 @@ function groebner_assure!(a::PBWAlgIdeal{D}) where D
       a.gb.isTwoSided = false
     end
   end
+  return a.gb
 end
 
 # for D > 0, a.sopdata are gens of the left ideal opposite(right_ideal(a.sdata))
 #            a.opgb is a left gb of left_ideal(a.sopdata)
 # for D = 0, a.sopdata are gens of the two sided ideal opposite(two_sided_ideal(a.sdata))
 #            a.opgb is a left gb of two_sided_ideal(a.sopdata)
-function opgroebner_assure!(a::PBWAlgIdeal{D}) where D
+function singular_opgroebner_basis(a::PBWAlgIdeal{D}) where D
   @assert D >= 0
-  _sopdata_assure!(a)
-  if !isdefined(a, :opgb)
-    a.opgb = Singular.std(a.sopdata)
-    if D == 0
+  isdefined(a, :opgb) && return a.opgb
+  a.opgb = Singular.std(get_sopdata(a))
+  if D == 0
       a.opgb.isTwoSided = false
-    end
   end
+  return a.opgb
 end
 
 @doc raw"""
@@ -816,11 +816,9 @@ function is_one(a::PBWAlgIdeal{D}) where D
     return true
   end
   if D > 0
-    opgroebner_assure!(a)
-    return _one_check(a.opgb)
+    return _one_check(singular_opgroebner_basis(a))
   else
-    groebner_assure!(a)
-    return _one_check(a.gb)
+    return _one_check(singular_groebner_basis(a))
   end
 end
 
@@ -839,8 +837,7 @@ function _as_left_ideal(a::PBWAlgIdeal{D}) where D
   if D < 0
     return a.sdata
   else
-    groebner_assure!(a)
-    return a.gb
+    return singular_groebner_basis(a)
   end
 end
 
@@ -849,9 +846,8 @@ function _as_right_ideal(a::PBWAlgIdeal{D}) where D
   if D > 0
     return a.sdata
   else
-    opgroebner_assure!(a)
     R = base_ring(a)
-    return _opmap(R, a.opgb, _opposite(R))
+    return _opmap(R, singular_opgroebner_basis(a), _opposite(R))
   end
 end
 
@@ -945,16 +941,10 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
     res = Singular.intersection(res, [bi.sdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   elseif D > 0
-    _sopdata_assure!(a)
-    res = a.sopdata
-    for bi in b
-      _sopdata_assure!(bi)
-    end
-    res = Singular.intersection(res, [bi.sopdata for bi in b]...)
+    res = Singular.intersection(get_sopdata(a), [get_sopdata(bi)  for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, _opmap(R, res, _opposite(R)), res)
   else
-    res = _as_left_ideal(a)
-    res = Singular.intersection(res, [_as_left_ideal(bi) for bi in b]...)
+    res = Singular.intersection(_as_left_ideal(a), [_as_left_ideal(bi) for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   end
 end
@@ -999,14 +989,12 @@ function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D
   @assert R === parent(f)
   if D <= 0
     # this code works for both D < 0 and D = 0 since:
-    #  - groebner_assure! gives a left gb for D = 0 as well (id_TwoStd)
+    #  - singular_groebner_basis gives a left gb for D = 0 as well (id_TwoStd)
     #  - Singular.reduce is a left normal form
-    groebner_assure!(I)
-    return Singular.is_zero(Singular.reduce(f.sdata, I.gb))
+    return Singular.is_zero(Singular.reduce(f.sdata, singular_groebner_basis(I)))
   else
-    opgroebner_assure!(I)
     opf = _opmap(_opposite(R), f.sdata, R)
-    return Singular.is_zero(Singular.reduce(opf, I.opgb))
+    return Singular.is_zero(Singular.reduce(opf, singular_opgroebner_basis(I)))
   end
 end
 
@@ -1037,12 +1025,9 @@ function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T
     @assert base_ring(a) === base_ring(b)
     if D <= 0
         # Ditto comment ideal_membership
-        groebner_assure!(b)
-        return Singular.is_zero(Singular.reduce(a.sdata, b.gb))
+        return Singular.is_zero(Singular.reduce(a.sdata, singular_groebner_basis(b)))
     else
-        _sopdata_assure!(a)
-        opgroebner_assure!(b)
-        return Singular.is_zero(Singular.reduce(a.sopdata, b.opgb))
+        return Singular.is_zero(Singular.reduce(a.sopdata, singular_opgroebner_basis(b)))
     end
 end
 
@@ -1228,13 +1213,12 @@ function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = noth
 
   if D > 0
     Rop = _opposite(R)
-    _sopdata_assure!(I)
     n = ngens(R)
     sigmaop = reverse!(n + 1 .- sigma)
     sigmaCop = reverse!(n + 1 .- sigmaC)
     orderingop = isnothing(ordering) ? ordering :
                                      opposite_ordering(Rop.poly_ring, ordering)
-    zop = _left_eliminate(Rop, I.sopdata, sigmaop, sigmaCop, orderingop)
+    zop = _left_eliminate(Rop, get_sopdata(I), sigmaop, sigmaCop, orderingop)
     z = _opmap(R, zop, Rop)
     return PBWAlgIdeal{D, T, S}(R, z, zop)
   else

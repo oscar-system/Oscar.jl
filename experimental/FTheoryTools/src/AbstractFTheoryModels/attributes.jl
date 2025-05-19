@@ -14,7 +14,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(m)
-A family of spaces of dimension d = 3
+Family of spaces of dimension d = 3
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -35,7 +35,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(m)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)
@@ -1222,7 +1222,7 @@ end
 
 
 @doc raw"""
-    global_gauge_quotients(m::AbstractFTheoryModel)
+    global_gauge_group_quotient(m::AbstractFTheoryModel)
 
 Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
 These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
@@ -1235,7 +1235,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
 
-julia> global_gauge_quotients(t)
+julia> global_gauge_group_quotient(t)
 5-element Vector{Vector{String}}:
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
  ["-identity_matrix(C,2)"]
@@ -1244,8 +1244,8 @@ julia> global_gauge_quotients(t)
  ["-identity_matrix(C,1)"]
 ```
 """
-function global_gauge_quotients(m::AbstractFTheoryModel)
-  @req has_global_gauge_quotients(m) "No gauge quotients stored for this model"
+function global_gauge_group_quotient(m::AbstractFTheoryModel)
+  @req has_global_gauge_group_quotient(m) "No gauge quotients stored for this model"
   return get_attribute(m, :global_gauge_quotients)
 end
 

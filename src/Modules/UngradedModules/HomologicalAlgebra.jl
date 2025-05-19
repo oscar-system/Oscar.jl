@@ -170,9 +170,16 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   for i in 1:length(Hecke.map_range(C))
     A = tensor_modules[i]
     B = tensor_modules[i+1]
-
+    success, A_fac = _is_tensor_product(A)
+    @assert success
+    success, B_fac = _is_tensor_product(B)
+    @assert success
+    @assert A_fac[1] === B_fac[1]
+    
     j = Hecke.map_range(C)[i]
-    push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
+    @assert domain(map(C, j)) === A_fac[2]
+    @assert codomain(map(C, j)) === B_fac[2]
+    push!(tensor_chain, hom_tensor(A,B,[identity_map(A_fac[1]), map(C,j)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
@@ -232,22 +239,28 @@ julia> Q, _ = quo(F, [x*F[1]]);
 
 julia> T0 = tor(Q, M, 0)
 Subquotient of submodule with 2 generators
-  1: x*e[1] \otimes e[1]
-  2: y*e[1] \otimes e[1]
-by submodule with 4 generators
-  1: x^2*e[1] \otimes e[1]
-  2: y^3*e[1] \otimes e[1]
-  3: z^4*e[1] \otimes e[1]
-  4: x*y*e[1] \otimes e[1]
+  1: (e[1] \otimes e[1])
+  2: (e[1] \otimes e[2])
+by submodule with 7 generators
+  1: x*(e[1] \otimes e[1])
+  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
+  3: y^2*(e[1] \otimes e[2])
+  4: y^3*(e[1] \otimes e[1])
+  5: z^4*(e[1] \otimes e[1])
+  6: z^4*(e[1] \otimes e[2])
+  7: x*(e[1] \otimes e[2])
 
 julia> T1 = tor(Q, M, 1)
 Subquotient of submodule with 2 generators
-  1: x*e[1] \otimes e[1]
-  2: x*y*e[1] \otimes e[1]
-by submodule with 3 generators
-  1: x^2*e[1] \otimes e[1]
-  2: y^3*e[1] \otimes e[1]
-  3: z^4*e[1] \otimes e[1]
+  1: (e[1] \otimes e[1])
+  2: x*(e[1] \otimes e[2])
+by submodule with 6 generators
+  1: x*(e[1] \otimes e[1])
+  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
+  3: y^2*(e[1] \otimes e[2])
+  4: y^3*(e[1] \otimes e[1])
+  5: z^4*(e[1] \otimes e[1])
+  6: z^4*(e[1] \otimes e[2])
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators

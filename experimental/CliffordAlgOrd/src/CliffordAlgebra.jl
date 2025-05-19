@@ -100,6 +100,22 @@ is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
     clifford_algebra(qs::QuadSpace) -> CliffordAlgebra
 
 Return the Clifford algebra of the quadratic space 'qs'.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0]))
+Clifford algebra of quadratic space with Gram matrix
+  [0   1]
+  [1   0]
+defined over rational field
+
+julia> K, a = quadratic_field(-5); C = clifford_algebra(quadratic_space(K, K[2 a; a 2]))
+Clifford algebra of quadratic space with Gram matrix
+  [       2   sqrt(-5)]
+  [sqrt(-5)          2]
+defined over imaginary quadratic field defined by x^2 + 5
+```
 """
 clifford_algebra(qs::Hecke.QuadSpace) =
   CliffordAlgebra{elem_type(base_ring(qs)),typeof(gram_matrix(qs))}(qs)
@@ -211,29 +227,6 @@ function odd_coefficients(x::CliffordAlgebraElem)
   return x.odd_coeffs
 end
 
-################################################################################
-#
-#  String I/O
-#
-################################################################################
-
-### Algebra ###
-function Base.show(io::IO, ::MIME"text/plain", C::CliffordAlgebra)
-  io = pretty(io)
-  print(io, "Clifford algebra of quadratic space with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\ndefined over $(base_ring(C))")
-end
-
-Base.show(io::IO, C::CliffordAlgebra) = print(io, "Clifford algebra over $(base_ring(C))")
-
-### Elements ###
-function Base.show(io::IO, x::CliffordAlgebraElem)
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
-end
 
 ################################################################################
 #
@@ -263,6 +256,24 @@ end
     basis(C::CliffordAlgebra, i::Int) -> CliffordAlgebraElem
 
 Return the $i$-th canonical basis vector of the Clifford algebra $C$.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0]));
+
+julia> basis(C,1)
+[1, 0, 0, 0]
+
+julia> basis(C,2)
+[0, 1, 0, 0]
+
+julia> basis(C,3)
+[0, 0, 1, 0]
+
+julia> basis(C,4)
+[0, 0, 0, 1]
+```
 """
 function basis(C::CliffordAlgebra, i::Int)
   res = C()
@@ -277,6 +288,21 @@ Return the $i$-th canonical algebra generator of the Clifford
 algebra $C$. This is just the image of the $i$-th basis vector
 of the underlying quadratic space under the canonical embedding
 into the Clifford algebra.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, identity_matrix(QQ,3)));
+
+julia> gen(C, 1)
+[0, 1, 0, 0, 0, 0, 0, 0]
+
+julia> gen(C, 2)
+[0, 0, 1, 0, 0, 0, 0, 0]
+
+julia> gen(C, 3)
+[0, 0, 0, 0, 1, 0, 0, 0]
+```
 """
 function gen(C::CliffordAlgebra, i::Int)
   res = C()
@@ -484,6 +510,16 @@ end
     even_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
 Return the projection of $x$ onto the even Clifford algebra
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, identity_matrix(QQ,3))); x = C(collect(1:8))
+[1, 2, 3, 4, 5, 6, 7, 8]
+
+julia> even_part(x)
+[1, 0, 0, 4, 0, 6, 7, 0]
+```
 """
 even_part(x::CliffordAlgebraElem) = parent(x)(even_coefficients(x))
 
@@ -491,6 +527,16 @@ even_part(x::CliffordAlgebraElem) = parent(x)(even_coefficients(x))
     odd_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
 Return the projection of $x$ onto the odd Clifford algebra.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, identity_matrix(QQ,3))); x = C(collect(1:8))
+[1, 2, 3, 4, 5, 6, 7, 8]
+
+julia> odd_part(x)
+[0, 2, 3, 0, 5, 0, 0, 8]
+```
 """
 odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coefficients(x))
 

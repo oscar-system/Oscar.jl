@@ -1,6 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Adjunction Process for Surfaces

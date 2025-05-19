@@ -44,27 +44,6 @@ end
 # Methods which should not be necessary, but the stuff doesn't work,   #
 # unless we implement them.                                            #
 ########################################################################
-#=
-@attr Any function kernel(
-    f::FreeModuleHom{DomainType, CodomainType}
-  ) where {
-           DomainType<:FreeMod{<:MPolyQuoRingElem},
-           CodomainType<:SubquoModule{<:MPolyQuoRingElem}
-          }
-  R = base_ring(codomain(f))
-  P = base_ring(R)
-  F = _poly_module(domain(f))
-  M = _as_poly_module(codomain(f))
-  id = _iso_with_poly_module(codomain(f))
-  # Why does img_gens(f) return a list of SubQuoElems???
-  phi = _lifting_iso(codomain(f))
-  g = hom(F, M, phi.(f.(gens(domain(f)))))
-  K, inc = kernel(g)
-  tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
-  return KK, inc2
-end
-=#
 
 function coordinates(
     v::FreeModElem{T}, 
@@ -73,24 +52,6 @@ function coordinates(
   ) where {T<:MPolyQuoRingElem}
   return coordinates(v, M)
 end
-
-#function free_resolution(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
-#  R = base_ring(M)
-#  p = presentation(M)
-#  K, inc = kernel(map(p, 1))
-#  i = 1
-#  while !iszero(K)
-#    F = FreeMod(R, ngens(K))
-#    phi = hom(F, p[i], inc.(gens(K)))
-#    p = Hecke.ComplexOfMorphisms(ModuleFP, pushfirst!(ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]], phi), check=false, seed = -2)
-#    i = i+1
-#    K, inc = kernel(phi)
-#  end
-#  #end_map = hom(FreeMod(R, 0), K, elem_type(K)[])
-#  p = Hecke.ComplexOfMorphisms(ModuleFP, vcat(ModuleFPHom[inc], ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]]), check=false, seed = -2)
-#  return p
-#end
-
 
 ########################################################################
 # Auxiliary helping functions to allow for the above                   #
