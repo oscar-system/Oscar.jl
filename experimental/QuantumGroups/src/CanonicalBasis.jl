@@ -48,6 +48,10 @@ end
 
 @doc raw"""
     canonical_basis_expansion(x::QuantumGroupElem) -> Vector{Tuple{QuantumFieldElem,Vector{Int}}}
+    
+Return the expansion into the canonical basis of an element `x` lying in the negative part `parent(x)`.
+The expansion is given as a vector of tuples,
+where each tuple contains the coefficient and the Lusztig datum of a canonical basis element.
 """
 function canonical_basis_expansion(x::QuantumGroupElem)
   U = parent(x)
@@ -59,7 +63,7 @@ function canonical_basis_expansion(x::QuantumGroupElem)
     exponent_vector!(b, y, length(y))
     elem = _canonical_basis_elem(U, b)
 
-    coeff = coeff(y, length(y) / coeff(elem, length(elem)))
+    coeff = coeff(y, length(y)) / coeff(elem, length(elem))
     push!(rep, (coeff, exp))
     y = submul!(y, elem, coeff)
   end

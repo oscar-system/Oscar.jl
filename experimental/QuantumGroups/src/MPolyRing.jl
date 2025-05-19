@@ -1,5 +1,9 @@
-function coefficient_ring(R::MPolyRing)
-  return R.coefficient_ring
+function coefficient_ring(R::MPolyRing{T}) where {T}
+  return R.coefficient_ring::parent_type(T)
+end
+
+function coefficient_ring(x::MPolyRingElem)
+  return coefficient_ring(parent(x))
 end
 
 function gen(R::MPolyRing, i::Int)
@@ -33,12 +37,6 @@ end
 #   
 #
 ###############################################################################
-
-function deepcopy_internal(R::MPolyRing, dict::IdDict)
-  return get!(dict, R) do
-    MPolyRing(R.N, coefficient_ring(R), R.graded)
-  end
-end
 
 function deepcopy_internal(x::MPolyRingElem, dict::IdDict)
   return get!(dict, x) do
@@ -101,61 +99,16 @@ function monomial_cmp(R::MPolyRing, m::Ptr{Int}, n::Ptr{Int})
 end
 
 function monomial_set!(x::MPolyRingElem, i::Int, y::MPolyRingElem, j::Int)
-  #=
-  for k in 1:(parent(x).N)
-    xn = UInt(((i - 1) * parent(x).N + k - 1) * x.bits)
-    yn = UInt(((j - 1) * parent(x).N + k - 1) * y.bits)
-    pack_exponent!(
-      pointer(x.exps) + (xn >> UInt(6)), xn,
-      unpack_exponent(y.exps[yn >> UInt(6) | 1], yn, y.bits), x.bits,
-    )
-  end
-  =#
-
   N = parent(x).N
   unsafe_copyto!(x.exps, (i - 1) * N + 1, y.exps, (j - 1) * N + 1, N)
 end
 
 function monomial_set!(x::MPolyRingElem, i::Int, m::Memory{Int})
-  #=
-  j = k >> x.shift + 1
-  @inbounds x.exps[j, i] =
-    (x.exps[j, i] & ~((1 << x.bits - 1) << ((k - 1) * x.bits))) | (e << ((k - 1) * x.bits))
-  =#
   N = parent(x).N
   unsafe_copyto!(x.exps, (i - 1) * N + 1, m, 1, N)
 end
 
-###############################################################################
-#
-#   Packing
-#
-###############################################################################
-
-function unpack_exponent(p::Int, k::UInt, bits::UInt32)
-  return p >> k & (1 << bits - 1)
-end
-
-function pack_exponent!(p::Ptr{Int}, k::UInt, e::Int, bits::UInt32)
-  unsafe_modify!(p, &, ~((1 << bits - 1) << k))
-  unsafe_modify!(p, |, e << k)
-end
-
-function unpack_monomial!(m::Memory{Int}, x::MPolyRingElem, i::Int)
-  for k in 1:ngens(parent(x))
-    xn = UInt(((i - 1) * parent(x).N + k - 1) * x.bits)
-    @inbounds m[k] = unpack_exponent(x.exps[xn >> UInt(6) | 1], xn, x.bits)
-  end
-end
-
-function pack_monomial!(x::MPolyRingElem, i::Int, m::Memory{Int})
-  for k in 1:ngens(parent(x))
-    xn = UInt(((i - 1) * parent(x).N + k - 1) * x.bits)
-    @inbounds pack_exponent!(pointer(x.exps) + (xn >> UInt(6)), xn, m[k], x.bits)
-  end
-end
-
-function add_monomial!(x::MPolyRingElem, m::Memory{Int})
+function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
   i = 1
   while i <= length(x)
     cmp = monomial_cmp(x, i, m)
@@ -170,7 +123,7 @@ function add_monomial!(x::MPolyRingElem, m::Memory{Int})
   N = parent(x).N
   if length(x.coeffs) > length(x)
     if !isassigned(x.coeffs, length(x) + 1)
-      x.coeffs[length(x) + 1] = zero(coefficient_ring(parent(x)))
+      x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
     end
     c = x.coeffs[length(x) + 1]
 
@@ -185,7 +138,7 @@ function add_monomial!(x::MPolyRingElem, m::Memory{Int})
     unsafe_copyto!(coeffs, 1, x.coeffs, 1, i - 1)
     unsafe_copyto!(exps, 1, x.exps, 1, (i - 1) * N)
 
-    coeffs[i] = zero(coefficient_ring(parent(x)))
+    coeffs[i] = zero(coefficient_ring(x))
     unsafe_copyto!(exps, (i - 1) * N + 1, m, 1, N)
 
     unsafe_copyto!(coeffs, i + 1, x.coeffs, i, length(x.coeffs) + 1 - i)

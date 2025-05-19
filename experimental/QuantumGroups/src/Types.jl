@@ -69,13 +69,28 @@ struct PBWAlgebraHom{T}
   img::Vector{PBWAlgebraElem{T}}
 end
 
-const QuantumFieldElem = FracFieldElem{
-  LaurentPolyWrap{
-    ZZRingElem,
-    ZZPolyRingElem,
-    AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
-  },
-}
+struct QuantumField <: Field
+  d::AbstractAlgebra.Generic.FracField{
+    AbstractAlgebra.Generic.LaurentPolyWrap{
+      ZZRingElem,
+      ZZPolyRingElem,
+      AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
+    },
+  }
+
+  q_factorial::Dict
+end
+
+mutable struct QuantumFieldElem <: FieldElem
+  parent::QuantumField
+  d::FracFieldElem{
+    LaurentPolyWrap{
+      ZZRingElem,
+      ZZPolyRingElem,
+      AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
+    },
+  }
+end
 
 mutable struct QuantumGroup
   algebra::PBWAlgebra{QuantumFieldElem}
@@ -91,12 +106,12 @@ mutable struct QuantumGroup
     Vector{Int},PBWAlgebraElem{QuantumFieldElem}
   }
 
-  bar_involution::PBWAlgebraHom{QuantumFieldElem}
+  #bar_involution::PBWAlgebraHom{QuantumFieldElem}
 end
 
 mutable struct QuantumGroupElem <: NCRingElem
   parent::QuantumGroup
-  elem::PBWAlgebraElem{FracFieldElem{QuantumFieldElem}}
+  elem::PBWAlgebraElem{QuantumFieldElem}
 end
 
 struct QuantumGroupHom

@@ -1,30 +1,3 @@
-function quantum_factorial(n::Int, q::LaurentPolyWrap)
-  return prod(div(q^k - q^-k, q - q^-1) for k in 2:n; init=one(q))
-end
-
-function quantum_binomial(n::Int, k::Int, q::LaurentPolyWrap)
-  z = one(q)
-  for i in 0:(k - 1)
-    z *= q^(n - i) - q^(i - n)
-  end
-  for i in 1:k
-    z /= q^i - q^-i
-  end
-  return z
-end
-
-function bar!(z::LaurentPolyWrap, x::LaurentPolyWrap)
-  reverse!(z.poly, x.poly, length(x.poly))
-  z.mindeg = -degree(x.poly) - x.mindeg
-  return z
-end
-
-function bar!(z::FracFieldElem{T}, x::FracFieldElem{T}) where {T<:LaurentPolyWrap}
-  bar!(z.num, x.num)
-  bar!(z.den, x.den)
-  return z
-end
-
 ###############################################################################
 #
 #   Constructors
@@ -41,10 +14,8 @@ function quantum_group(
   bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
   w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
 )
-  A, _q = laurent_polynomial_ring(ZZ, "q")
-  QA = fraction_field(A)
-  q = gen(QA)
-  P, theta = polynomial_ring(QA, :F => 1:length(w0))
+  QF, q = quantum_field()
+  P, theta = polynomial_ring(QF, :F => 1:length(w0))
 
   # for now we rely on the QuaGroup package to compute the PBW relations
   GAP.Packages.load("QuaGroup")
@@ -89,10 +60,10 @@ function quantum_group(
         for _ in 1:rep[n][m + 1]
           term = mul!(term, theta[rep[n][m]])
         end
-        term = mul!(term, inv(quantum_factorial(rep[n][m + 1], _q)))
+        term = mul!(term, inv(q_factorial(rep[n][m + 1], q)))
       end
       coeffRep = GAP.Globals.CoefficientsOfLaurentPolynomial(rep[n + 1])
-      coeff = zero(QA)
+      coeff = zero(QF)
       for n in 1:length(coeffRep[1])
         coeff = addmul!(coeff, q^(n + coeffRep[2] - 1), coeffRep[1][n])
       end
@@ -119,7 +90,7 @@ function quantum_group(
     cvx,
     # [q^div(r * gapBil * r, 2) for r in GAP.Globals.PositiveRootsInConvexOrder(gapR)],
     Dict{Vector{Int},PBWAlgebraElem}(),
-    undef,
+    #_bar_involution(),
   )
 end
 
@@ -136,12 +107,41 @@ end
 #
 ###############################################################################
 
-function root_system(x::QuantumGroup)
-  return x.root_system
+@doc raw"""
+    root_system(U::QuantumGroup) -> RootSystem
+    
+Return the root system of the quantum group `U`.
+"""
+function root_system(U::QuantumGroup)
+  return U.root_system
 end
 
 function parent(x::QuantumGroupElem)
   return x.parent
+end
+
+function ngens(U::QuantumGroup)
+  return ngens(U.algebra)
+end
+
+function gen(U::QuantumGroup, i::Int)
+  return QuantumGroupElem(U, gen(U.algebra, i))
+end
+
+function gens(U::QuantumGroup)
+  return [gen(U, i) for i in 1:ngens(U)]
+end
+
+function chevalley_gens(U::QuantumGroup)
+  return [gen(U, U.cvx[i]) for i in 1:rank(root_system(U))]
+end
+
+function one(U::QuantumGroup)
+  return QuantumGroupElem(U, one(U.algebra))
+end
+
+function zero(U::QuantumGroup)
+  return QuantumGroupElem(U, zero(U.algebra))
 end
 
 ###############################################################################
@@ -165,6 +165,20 @@ function Base.hash(x::QuantumGroupElem, h::UInt)
   h = hash(x.elem, h)
 
   return xor(h, b)
+end
+
+###############################################################################
+#
+#   Printing
+#
+###############################################################################
+
+function Base.show(io::IO, U::QuantumGroup)
+  print(io, "Quantum Group over ", root_system(U))
+end
+
+function Base.show(io::IO, x::QuantumGroupElem)
+  show(io, x.elem)
 end
 
 ###############################################################################
@@ -233,4 +247,23 @@ end
 function Base.:*(x::QuantumGroupElem, y::QuantumGroupElem)
   check_parent(x, y)
   return mul!(zero(x), x, y)
+end
+
+###############################################################################
+#
+#   Comparison
+#
+###############################################################################
+
+function Base.:(==)(x::QuantumGroupElem, y::QuantumGroupElem)
+  check_parent(x, y)
+  return x.elem == y.elem
+end
+
+function isone(x::QuantumGroupElem)
+  return isone(x.elem)
+end
+
+function iszero(x::QuantumGroupElem)
+  return iszero(x.elem)
 end
