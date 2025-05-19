@@ -95,16 +95,16 @@
   ]
     @testset "isomorphism(FPGroup, ::WeylGroup)" begin
       if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
-        G = _isomorphic_group_on_gens(FPGroup, W)
+        G = @inferred _isomorphic_group_on_gens(FPGroup, W)
         @test is_finite(G) == is_finite(W)
         is_finite(W) && @test order(G) == order(W)
       end
 
-      G = fp_group(W)
+      G = @inferred fp_group(W)
       @test is_finite(G) == is_finite(W)
       is_finite(W) && @test order(G) == order(W)
 
-      iso = isomorphism(FPGroup, W)
+      iso = @inferred isomorphism(FPGroup, W)
       @test W === domain(iso)
       @test G === codomain(iso)
       @test iso === isomorphism(FPGroup, W) # test caching
@@ -138,16 +138,16 @@
       type, ordering = root_system_type_with_ordering(root_system(W))
       @testset "isomorphism(PermGroup, ::WeylGroup)" begin
         if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
-          G = _isomorphic_group_on_gens(PermGroup, W)
+          G = @inferred _isomorphic_group_on_gens(PermGroup, W)
           @test is_finite(G) == is_finite(W)
           is_finite(W) && @test order(G) == order(W)
         end
 
-        G = permutation_group(W)
+        G = @inferred permutation_group(W)
         @test is_finite(G) == is_finite(W)
         is_finite(W) && @test order(G) == order(W)
 
-        iso = isomorphism(PermGroup, W)
+        iso = @inferred isomorphism(PermGroup, W)
         @test W === domain(iso)
         @test G === codomain(iso)
         @test iso === isomorphism(PermGroup, W) # test caching
