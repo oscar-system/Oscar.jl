@@ -66,6 +66,10 @@ function parent(x::PBWAlgebraElem)
   return x.parent
 end
 
+function coeff(x::PBWAlgebraElem, i::Int)
+  return coeff(x.poly, i)
+end
+
 ###############################################################################
 #
 #   
@@ -256,9 +260,9 @@ function Base.:^(x::PBWAlgebraElem, n::Int)
   return pow!(zero(x), x, n)
 end
 
-function Base.:(==)(x::QuantumGroupElem, y::QuantumGroupElem)
+function Base.:(==)(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
   check_parent(x, y)
-  return x.elem == y.elem
+  return x.poly == y.poly
 end
 
 ###############################################################################

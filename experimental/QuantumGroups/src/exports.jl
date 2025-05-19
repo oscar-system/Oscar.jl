@@ -1,3 +1,9 @@
+export QuantumField, QuantumFieldElem
+export QuantumGroup, QuantumGroupElem
+
 export bar_involution
 export canonical_basis_elem
+export canonical_basis_expansion
+export chevalley_gens
+export quantum_field
 export quantum_group
