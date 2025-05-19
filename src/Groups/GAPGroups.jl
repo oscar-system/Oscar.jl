@@ -412,7 +412,30 @@ Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::GAPGroupElem)
+  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+end
+
+#function Base.show(io::IO, ::MIME"text/plain", x::FPGroupElem)
+#  println(io, "limit = ", get(io, :limit, false))
+#  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+#end
+
+function Base.show(io::IO, x::FPGroupElem)
+#  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+#  println(io, "compact = ", get(io, :compact, false))
+#  println(io, "limit = ", get(io, :limit, false))
+#  println(io, "is_terse = ", is_terse(io))
+  s = String(GAPWrap.StringViewObj(GapObj(x)))
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    #println(length(s), " vs ", screenwidth)
+    if length(s) > screenwidth - 3
+      s = s[1:screenwidth-6] * "..."
+    end
+  end
+  print(io, s)
+end
 
 # Printing GAP groups
 function Base.show(io::IO, G::GAPGroup)
@@ -535,7 +558,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
     print(io, " and ")
     # TODO: relators can be pretty long; it would be good to abbreviate them
     # if they don't fit in a single line...
-   _print_stuff_with_limit(io, rels, "relator")
+   _print_stuff_with_limit(terse(io), rels, "relator")
   end
 end
 
@@ -555,8 +578,8 @@ function _print_stuff_with_limit(io::IO, v, what::String)
 
   # compute maximum number of generators that can fit on the screen
   # assuming each of those requires just one line
-  rows,cols = displaysize(io)
-  limit = rows - 6
+  screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+  limit = screenheight - 6
   limit > 0 || return
 
   println(io, Indent())
