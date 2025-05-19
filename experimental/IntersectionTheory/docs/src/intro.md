@@ -134,7 +134,7 @@ yield a warning and not give a correct answer.
     The class of these varieties includes projective spaces, Grassmannians, homogeneous spaces for affine algebraic
     groups (for example, flag varieties), and in general any variety with an affine stratification. Moreover, products,
     projective bundles, and blowups with center in this class will remain in this class. Internally, we use
-    `set_special(X, :alg => true)` to declare that X satisfies this property.
+    `set_attribute(X, :alg => true)` to declare that X satisfies this property.
 
 General textbooks offering details on theory and algorithms include: 
 - [EH16](@cite)

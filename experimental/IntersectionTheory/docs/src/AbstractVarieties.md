@@ -16,10 +16,12 @@ The OSCAR type for abstract varieties is `AbstractVariety`.
 abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
+### Specialized Constructors
+
+
 ```@docs
 abstract_point(; base::Ring=QQ)
 ```
-### Specialized Constructors
 
 ```@docs
 abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
@@ -87,7 +89,7 @@ tangent_bundle(X::AbstractVariety)
 ```
 
 ```@docs
-hyperplane_class(X::AbstractVariety)
+polarization(X::AbstractVariety)
 ```
 
 ```@docs

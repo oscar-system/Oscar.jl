@@ -116,8 +116,6 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
-^(a::MatElem, b::ZZRingElem) = Nemo._generic_power(a, b)
-
 ########################################################################
 #
 # New properties
