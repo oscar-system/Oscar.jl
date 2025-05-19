@@ -9,10 +9,10 @@ x^3 + (z_7^2 + z_7 + 1)*x^2 + (55*z_7^5 + 23)*x + 1//2*z_7 + 77//2</code></pre><
 julia&gt; p = 29;
 
 julia&gt; frakp = prime_decomposition(OK, p)[1][1]
-&lt;29, z_7 + 22&gt;
-Norm: 29
-Minimum: 29
-two normal wrt: 29</code></pre><p>We can now determine the residue field <span>$F = \mathcal{O}_K/\mathfrak p$</span> and the canonical map <span>$\mathcal O_K \to F$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; F, reduction_map_OK = residue_field(OK, frakp);
+Ideal of maximal order of cyclotomic field of order 7
+  of norm 29
+  of minimum 29
+with 29-normal generators [29, z_7 + 22]</code></pre><p>We can now determine the residue field <span>$F = \mathcal{O}_K/\mathfrak p$</span> and the canonical map <span>$\mathcal O_K \to F$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; F, reduction_map_OK = residue_field(OK, frakp);
 
 julia&gt; F
 Prime field of characteristic 29
@@ -20,7 +20,6 @@ Prime field of characteristic 29
 julia&gt; reduction_map_OK
 Map
   from maximal order of cyclotomic field of order 7
-  with basis [1, z_7, z_7^2, z_7^3, z_7^4, z_7^5]
   to prime field of characteristic 29</code></pre><p>Not that the reduction map has domain <span>$\mathcal O_K$</span> and thus cannot be applied to elements of <span>$K$</span>. We can extend it to the set of <span>$\mathfrak p$</span>-integral elements by invoking the <code>extend</code> function. Not that the domain of the extended map will be the whole <span>$K$</span>, but the map will throw an error when applied to elements which are not <span>$\mathfrak p$</span>-integral.</p><pre><code class="language-julia-repl hljs">julia&gt; reduction_map_extended = extend(reduction_map_OK, K)
 Map
   from cyclotomic field of order 7
@@ -35,4 +34,4 @@ ERROR: Element not p-integral
 x^3 + 28*x^2 + 4*x + 13
 
 julia&gt; base_ring(fbar) === F
-true</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.4 on <span class="colophon-date" title="Monday 19 May 2025 10:45">Monday 19 May 2025</span>. Using Julia version 1.10.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+true</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.4 on <span class="colophon-date" title="Monday 19 May 2025 16:52">Monday 19 May 2025</span>. Using Julia version 1.10.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
