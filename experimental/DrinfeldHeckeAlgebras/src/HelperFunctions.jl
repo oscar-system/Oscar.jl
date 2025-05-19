@@ -33,59 +33,51 @@ function build_relation_matrix(G::MatrixGroup)
   # Start to collect rows for relations
   rows = []
   
-  # First we add the relations (I) - (IV)
-  for g in G
-    # If g = 1, the relations (I) - (IV) are always true
-    if is_one(g) continue end
-  
-    A = matrix(g)
-  
-    for i in 1:n, j in (i+1):n, k in (j+1):n
-      for l in 1:n
-        row = fill(K(), m)
-        
-        if l == k   # (II)
-          row[map[(g,i,j)]] = A[k,k] - K(1)
-          row[map[(g,j,k)]] = A[k,i]
-          row[map[(g,i,k)]] = -A[k,j]
-          
-        elseif l == i   # (III)
-          row[map[(g,i,j)]] = A[i,k]
-          row[map[(g,j,k)]] = A[i,i] - K(1)
-          row[map[(g,i,k)]] = -A[i,j]
-          
-        elseif l == j   # (IV)
-          row[map[(g,i,j)]] = A[j,k]
-          row[map[(g,j,k)]] = A[j,i]
-          row[map[(g,i,k)]] = -A[j,j] + K(1)
-          
-        else  # (I)
-          row[map[(g,i,j)]] = A[l,k]
-          row[map[(g,j,k)]] = A[l,i]
-          row[map[(g,i,k)]] = -A[l,j]
+ for g in G
+    # First we add the relations (I) - (IV) for g != 1, since for g = 1, they are always true
+    if !is_one(g)
+      A = matrix(g)
+
+      for i in 1:n, j in (i+1):n, k in (j+1):n
+        for l in 1:n
+          row = fill(K(), m)
+
+          if l == k   # (II)
+            row[map[(g,i,j)]] = A[k,k] - K(1)
+            row[map[(g,j,k)]] = A[k,i]
+            row[map[(g,i,k)]] = -A[k,j]
+
+          elseif l == i   # (III)
+            row[map[(g,i,j)]] = A[i,k]
+            row[map[(g,j,k)]] = A[i,i] - K(1)
+            row[map[(g,i,k)]] = -A[i,j]
+
+          elseif l == j   # (IV)
+            row[map[(g,i,j)]] = A[j,k]
+            row[map[(g,j,k)]] = A[j,i]
+            row[map[(g,i,k)]] = -A[j,j] + K(1)
+
+          else  # (I)
+            row[map[(g,i,j)]] = A[l,k]
+            row[map[(g,j,k)]] = A[l,i]
+            row[map[(g,i,k)]] = -A[l,j]
+          end
+
+          # If the row is nonzero, we add it to the LES
+          if !is_zero(row) push!(rows, row) end
         end
-      
-        # If the row is nonzero, we add it to the LES
-        if !is_zero(row) push!(rows, row) end
       end
     end
-  end
-  
-  # Now we add the relations (V) for all h ∈ G and i < j
-  # We can iterate directly over the conjugacy classes of G
-  for C in conjugacy_classes(G)
-    g = representative(C)
-    
-    for c in C
-      _, h = is_conjugate_with_data(G, g, c)
-      
+
+    # Now we add the relations (V) for all h ∈ G and i < j
+    for h in G
+      # If h is one, they are always true
       if is_one(h) continue end
-      
+
+      c = inv(h) * g * h
       A = matrix(h)
-    
       row = fill(K(), m)
-      
-      # (V) sum_{l < k} (a_li a_kj − a_ki a_lj) κ_g(vl,vk) − κ_h−1gh(vi,vj) = 0
+
       for i in 1:n, j in (i+1):n
         for l in 1:n, k in (l+1):n
           if g == c
@@ -96,14 +88,14 @@ function build_relation_matrix(G::MatrixGroup)
             end
           else
             row[map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
-            
+
             if l == i && k == j
               row[map[(c,i,j)]] = K(-1)
             end
           end
         end
       end
-    
+
       if !is_zero(row)
         push!(rows, row)
       end
@@ -145,7 +137,8 @@ function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
   end
   
   # For creating a parametrized solution, we work over the polynomial ring S = R[t1,...tn]
-  S, _ = polynomial_ring(R, ["t" * string(i) for i in 1:nullity])
+  parameters = nullity == 1 ? ["t"] : ["t" * string(i) for i in 1:nullity]
+  S, _ = polynomial_ring(R, parameters)
 
   # Use kernel basis to create a parametrized solution for a Drinfeld-Hecke form
   sol = fill(S(), m)

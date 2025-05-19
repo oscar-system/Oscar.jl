@@ -74,31 +74,27 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
   n = degree(G)
   
   I = identity_matrix(R, n)
+  A = I - matrix(g)
   
   # Calculate dim and basis of V^g = ker(id - g)
-  dim_Vg, basis_Vg = nullspace(I - matrix(g))
+  dim_Vg, basis_Vg = nullspace(A)
   
   # Check codim(V^g) = 2
   if n - dim_Vg != 2 
     return zero_matrix(R, n, n)  
   end
   
-  # Find a basis for (V^g)⊥ = im(id - g)
-  # Step 1: Extend basis_Vg to basis of V
-  full_basis = basis_Vg
-  for i in 1:n
-    extended_basis = hcat(full_basis, matrix(I[:, i]))
-    if rank(extended_basis) > rank(full_basis)
-      full_basis = extended_basis
-    end
+  # We know that dim(V^g)⊥ = 2, hence we get a basis of (V^g)⊥ = im(id - g) by picking 2 columns of
+  # id - g that are linearly independent 
+  basis_Vg⊥ = I - matrix(g)
+  
+  for i in 1:n, j in (i+1):n
+    basis_Vg⊥ = matrix(hcat(A[:,i], A[:,j]))
+
+    # If the rank is 2, we stop
+    if rank(basis_Vg⊥) == 2 break end
   end
-  
-  # Step 2: Remove V^g basis to get complement basis
-  complement_basis = full_basis[:, (dim_Vg + 1):n]
-  
-  # Apply I - matrix(g) to get a basis of (V^g)⊥ = im(id - g)
-  basis_Vg⊥ = (I - matrix(g)) * complement_basis
-  
+
   # Check det(h⊥) = 1 for elements in the centralizer restricted to (V^g)⊥
   ZG, _ = centralizer(G,g)
   
@@ -123,8 +119,9 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
   result[2,1] = -S[1]
   
   # Base change to the standard basis
-  combined_basis = hcat(basis_Vg, basis_Vg⊥)
-  result = transpose(combined_basis) * result * combined_basis
+  B = hcat(basis_Vg, basis_Vg⊥)
+  B_inv = inv(B)
+  result = transpose(B_inv) * result * B_inv
   
   return result
 end

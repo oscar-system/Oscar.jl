@@ -12,8 +12,7 @@ n = 3
 S3 = symmetric_group(n)
 mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
 G = matrix_group(mat_gens)
-A = parametrized_drinfeld_hecke_form(G)
-generate_forms_for_conjugacy_classes(G)
+A = generic_drinfeld_hecke_form(G)
 
 ##########################################################
 
@@ -23,7 +22,7 @@ C = algebraic_closure(QQ)
 S3 = symmetric_group(3)
 mat_gens = [permutation_matrix(C, g) for g in gens(S3)]
 G = matrix_group(mat_gens)
-A = parametrized_drinfeld_hecke_form(G)
+A = generic_drinfeld_hecke_form(G)
 
 ##########################################################
 
