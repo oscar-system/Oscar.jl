@@ -585,9 +585,9 @@ function inner_direct_product(L::WeylGroup, Ls::WeylGroup...; morphisms::Bool=fa
 end
 
 ###############################################################################
-# G-set functionality
+# G-set functionality (can get moved to src/ once `isomorphism(PermGroup, ::WeylGroup)` gets moved)
 
-Base.:^(rw::Union{RootSpaceElem, WeightLatticeElem}, x::WeylGroupElem) = rw * x
+Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
 
 function gset_by_type(W::WeylGroup, Omega, ::Type{RootSpaceElem}; closed::Bool=false)
   return GSetByElements(W, *, Omega; closed=closed, check=false)

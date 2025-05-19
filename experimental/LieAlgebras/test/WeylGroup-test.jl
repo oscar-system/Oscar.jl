@@ -417,20 +417,20 @@
     @test (@inferred length(Omega)) == 6
     @test (@inferred length(@inferred orbits(Omega))) == 1
     @test is_transitive(Omega)
-    @test ! is_primitive(Omega)
+    @test !is_primitive(Omega)
     @test is_regular(Omega)
     @test is_semiregular(Omega)
-  
+
     W = weyl_group([(:A, 2), (:B, 3)])
     pts = roots(root_system(W))
     Omega = gset(W, pts)
     @test length(Omega) == 24
     @test length(orbits(Omega)) == 3
-    @test ! is_transitive(Omega)
-    @test ! is_primitive(Omega)
-    @test ! is_regular(Omega)
-    @test ! is_semiregular(Omega)
-  
+    @test !is_transitive(Omega)
+    @test !is_primitive(Omega)
+    @test !is_regular(Omega)
+    @test !is_semiregular(Omega)
+
     # construction using WeightLatticeElem elements from root system
     R = root_system(:A, 2)
     w = WeightLatticeElem(R, [2, 2])
@@ -440,10 +440,10 @@
     @test length(Omega) == 6
     @test length(orbits(Omega)) == 1
     @test is_transitive(Omega)
-    @test ! is_primitive(Omega)
+    @test !is_primitive(Omega)
     @test is_regular(Omega)
     @test is_semiregular(Omega)
-  
+
     # orbit
     W = weyl_group([(:A, 2), (:B, 3)])
     pts = roots(root_system(W))
@@ -452,19 +452,19 @@
     @test length(orbs) == 3
     @test length(orbit(Omega, pts[2])) == 6
     @test sort(map(length, orbs)) == [6, 6, 12]
-  
+
     # action homomorphism
     W = weyl_group(:A, 2)
     pts = roots(root_system(W))
     Omega = gset(W, pts)
     acthom = action_homomorphism(Omega)
     @test order(image(acthom)[1]) == order(W)
-  
+
     # all_blocks
     bl = all_blocks(Omega)
     @test length(bl) == 4
     @test Set([pts[1], pts[5]]) in bl
-  
+
     # blocks
     bl = blocks(Omega)
     @test length(bl) == 3

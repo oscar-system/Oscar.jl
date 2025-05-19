@@ -753,7 +753,6 @@ function reflection(beta::RootSpaceElem)
   return W([list_of_indices; current_index; reverse(list_of_indices)])
 end
 
-
 ###############################################################################
 # ReducedExpressionIterator
 
