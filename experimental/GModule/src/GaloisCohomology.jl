@@ -1727,9 +1727,9 @@ Relative Brauer group for cyclotomic field of order 5 over number field of degre
 
 julia> b = B(S)
 Element of relative Brauer group of number field of degree 1 over QQ
-  <2, 2> -> 1//2 + Z
-  <5, 5> -> 0 + Z
-  Complex embedding of number field -> 1//2 + Z
+  <2> -> 1//2 + Z
+  <5> -> 0 + Z
+  Real embedding of number field -> 1//2 + Z
 ```
 """
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
