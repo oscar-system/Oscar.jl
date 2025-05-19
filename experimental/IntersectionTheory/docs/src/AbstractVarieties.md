@@ -42,7 +42,7 @@ complete_intersection(X::AbstractVariety, degs::Int...)
 ```
 
 ```@docs
-abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+projective_bundle(F::AbstractBundle; symbol::String = "z")
 ```
 
 ```@docs
@@ -50,7 +50,7 @@ abstract_hirzebruch_surface(n::Int)
 ```
 
 ```@docs
-abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ```
 
 ```@docs

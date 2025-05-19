@@ -433,7 +433,7 @@ AbstractVariety of dim 2
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> PT = abstract_projective_bundle(T)
+julia> PT = projective_bundle(T)
 AbstractVariety of dim 3
 
 julia> pr = structure_map(PT)
@@ -952,7 +952,7 @@ AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 0
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> E = abstract_projective_bundle(T, symbol = "H")
+julia> E = projective_bundle(T, symbol = "H")
 AbstractVariety of dim 3
 
 julia> chow_ring(E)
@@ -1563,7 +1563,7 @@ end
 
 function symmetric_power(F::AbstractBundle, k::RingElement)
   X = F.parent
-  PF = abstract_projective_bundle(dual(F))
+  PF = projective_bundle(dual(F))
   p = PF.struct_map
   AbstractBundle(X, p.pushforward(sum((chern_character(line_bundle(PF, k)) * todd_class(p))[0:PF.dim])))
 end
@@ -2246,7 +2246,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
       return F.parent.ring(0)
     end
   end
-  Gr = (m-k == 1) ? abstract_projective_bundle(F) : abstract_flag_bundle(F, m-k)
+  Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = map(D, F.parent) # skip the flag abstract_variety
@@ -2358,7 +2358,7 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
 end
 
 @doc raw"""
-    abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+    projective_bundle(F::AbstractBundle; symbol::String = "z")
 
 Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
 
@@ -2373,7 +2373,7 @@ AbstractVariety of dim 2
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> PT = abstract_projective_bundle(T)
+julia> PT = projective_bundle(T)
 AbstractVariety of dim 3
 
 julia> chow_ring(PT)
@@ -2408,7 +2408,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
-julia> PF = abstract_projective_bundle(F)
+julia> PF = projective_bundle(F)
 AbstractVariety of dim 11
 
 julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)
@@ -2419,7 +2419,7 @@ julia> integral(top_chern_class(A))
 
 ```
 """
-function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+function projective_bundle(F::AbstractBundle; symbol::String = "z")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
@@ -2495,7 +2495,7 @@ Quotient
 function abstract_hirzebruch_surface(n::Int)
   P1 = abstract_projective_space(1)
   E = OO(P1)+OO(P1, -n)
-  return abstract_projective_bundle(E)
+  return projective_bundle(E)
 end
 
 
@@ -2639,8 +2639,8 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
-    abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
+    flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+    flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
 Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
 and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences 
@@ -2657,7 +2657,7 @@ AbstractVariety of dim 4
 julia> F = exterior_power(cotangent_bundle(P),  3)*OO(P,3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
 
-julia> FB = abstract_flag_bundle(F, 1, 3)
+julia> FB = flag_bundle(F, 1, 3)
 AbstractVariety of dim 9
 
 julia> CR = chow_ring(FB)
@@ -2686,11 +2686,11 @@ julia> tautological_bundles(FB)
 
 ```
 """
-function abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
-  abstract_flag_bundle(F, collect(dims), symbol=symbol)
+function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+  flag_bundle(F, collect(dims), symbol=symbol)
 end
 
-function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
+function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   X, n = F.parent, F.rank
   !(n isa Int) && error("expect rank to be an integer")
   
