@@ -1,15 +1,30 @@
 function make_Usl3()
-  rels = []
+  R, y = polynomial_ring(QQ, :y => 1:6)
+  rels = [
+    y[1] * y[2] + y[4], y[1] * y[3], y[1] * y[4], y[1] * y[5] + y[6], y[1] * y[6],
+    y[2] * y[3] + y[5], y[2] * y[4], y[2] * y[5], y[2] * y[6],
+    y[3] * y[4] - y[6], y[3] * y[5], y[3] * y[6],
+    y[4] * y[5], y[4] * y[6],
+    y[5] * y[6],
+  ]
 
-  return pbw_algebra(rels)
+  return pbw_algebra(R, rels)
 end
 
 @testset "QuantumGroups" begin
-  @testset "PBWAlgebra" begin
-    function AbstractAlgebra.ConformanceTests.generate_element(A::PBWAlgebra)
-    end
+  function AbstractAlgebra.ConformanceTests.generate_element(A::PBWAlgebra)
+    R = coefficient_ring(A)
+    len = rand(0:8)
+    coeffs = filter!(
+      !iszero, [AbstractAlgebra.ConformanceTests.generate_element(R) for _ in 1:len]
+    )
+    exps = [rand(0:4) for _ in 1:ngens(A) for _ in 1:length(coeffs)]
+    return PBWAlgebraElem(A, MPolyRingElem(R, coeffs, exps, length(coeffs)))
+  end
 
-    AbstractAlgebra.ConformanceTests.test_NCRing_interface(PBWAlgebra)
+  @testset "Conformance Tests" begin
+    U = make_Usl3()
+    AbstractAlgebra.ConformanceTests.test_NCRing_interface(U)
   end
 
   @testset "multplication" begin
