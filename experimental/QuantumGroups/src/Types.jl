@@ -9,7 +9,7 @@ end
 
 mutable struct MPolyRingElem{T} <: AbstractAlgebra.MPolyRingElem{T}
   parent::MPolyRing{T}
-  coeffs::Memory{T}
+  coeffs::Memory{Union{T,Nothing}}
   exps::Memory{Int}
   len::Int
 end
@@ -18,7 +18,7 @@ function MPolyRingElem(R::MPolyRing{T}) where {T}
   return MPolyRingElem(
     R,
     #UInt32(8),
-    Memory{T}(),
+    Memory{Union{T,Nothing}}(),
     Memory{Int}(),
     0,
   )
