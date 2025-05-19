@@ -981,6 +981,9 @@ end
     injective_resolution(I::MonoidAlgebraIdeal,i::Int)
     
 Return an injective resolution of $M = k[Q]/I$ up to cohomological degree i.  
+
+!!! note
+    The monoid algebra $k[Q]$ must be normal. 
 """
 function injective_resolution(I::MonoidAlgebraIdeal, i::Int)
   return injective_resolution(quotient_ring_as_module(I), i)

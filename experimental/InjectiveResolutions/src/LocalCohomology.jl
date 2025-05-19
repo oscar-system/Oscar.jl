@@ -178,7 +178,7 @@ end
 @doc raw"""
     zeroth_local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal) where {T<:MonoidAlgebraElem}
 
-Computes the local cohomology module supported on I in cohomological degree zero.
+Computes the local cohomology module of $M$ supported on $I$ in cohomological degree zero.
 
 # Examples
 ```jldoctest
@@ -230,7 +230,7 @@ end
 @doc raw"""
     local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 
-For $1 \geq j \leq i $ compute sector partitions of the local cohomology modules $H^i_I(M))$, where $k[Q]$ is a monoid algebra. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
+For $1 \leq j \leq i $ compute sector partitions of the local cohomology modules $H^i_I(M))$. This function only computes one injective resolution of $M$ up to cohomological degree $i+1$. 
 
 !!! note
     The monoid algebra $k[Q]$ must be normal.  
