@@ -1,6 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Ideals and Quotient Rings as Modules

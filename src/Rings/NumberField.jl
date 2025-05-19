@@ -148,20 +148,28 @@ base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 #
 ################################################################################
 
-function show(io::IO, K::NfNSGen)
-  Hecke.@show_name(io, K)
-  Hecke.@show_special(io, K)
-  io = IOContext(io, :compact => true)
-  print(io, "Number field defined by\n")
-  G = gens(defining_ideal(K))
-  print(io, "[")
-  for i in 1:length(G)
-    print(io, G[i])
-    if i < length(G)
-      print(io, ", ")
-    end
+function Base.show(io::IO, ::MIME"text/plain", a::NfNSGen)
+  @show_name(io, a)
+  @show_special(io, a)
+  io = pretty(io)
+  print(io, "Non-simple number field with defining polynomials [")
+  g = gens(defining_ideal(a))
+  join(io, g, ", ")
+  println(io, "]")
+  print(io, Indent(), "over ", Lowercase(), base_field(a))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, a::NfNSGen)
+  @show_name(io, a)
+  @show_special(io, a)
+  if is_terse(io)
+    print(io, "Non-simple number field")
+  else
+    io = pretty(io)
+    print(io, "Non-simple number field of degree ", degree(a))
+    print(terse(io), " over ", Lowercase(), base_field(a))
   end
-  print(io, "]")
 end
 
 function AbstractAlgebra.expressify(a::NfNSGenElem; context = nothing)
@@ -735,8 +743,13 @@ end
 
 function Hecke.any_order(K::NfNSGen)
   B = basis(K, copy = false)
-  for b in B
-    @assert isone(denominator(b.f))
+  B = copy(B)
+  for i in 1:length(B)
+    z = B[i]
+    d = denominator(minpoly(z))
+    if !(is_unit(d))
+      B[i] = d * z
+    end
   end
 
   O = order(K, B)

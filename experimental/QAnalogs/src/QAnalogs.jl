@@ -45,6 +45,7 @@ julia> q_integer(3,2)
 julia> q_integer(-3,2)
 ERROR: DomainError with -3:
 Cannot raise an integer x to a negative power -3.
+[...]
 
 julia> q_integer(-3,2//1)
 -7//8

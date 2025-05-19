@@ -20,7 +20,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed  
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> model(g4f)
 Hypersurface model over a concrete base
@@ -47,7 +47,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> cohomology_class(g4f) == g4_class
 true
@@ -75,8 +75,8 @@ julia> g4 = qsm_flux(qsm_model)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: not broken
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 
 julia> d3_tadpole_constraint(g4, check = false)
 12
@@ -85,17 +85,17 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gfs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> g4_2 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
 
@@ -108,7 +108,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> d3_tadpole_constraint(gfs, check = false);
 
@@ -159,29 +159,23 @@ non-Abelian gauge group.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
-
-julia> g4 = random_flux_instance(gfs, check = false)
+julia> g4 = qsm_flux(qsm_model)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
 
 julia> g4_flux_family(g4, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: unbroken
 ```
 """
 @attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; check::Bool = true)
   nb = breaks_non_abelian_gauge_group(gf)
-  gfs = special_flux_family(model(gf), not_breaking = nb, check = check)
+  gfs = special_flux_family(model(gf), not_breaking = !nb, check = check)
   return gfs
 end
 
@@ -197,17 +191,17 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gfs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> integral_coefficients(g4);
 ```
@@ -229,17 +223,17 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gfs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> rational_coefficients(g4);
 ```

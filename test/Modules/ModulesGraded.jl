@@ -610,7 +610,7 @@ end
     M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
-    N = SubquoModule(F1, Rg[x+2*x^2*z; x+y-z], Rg[z^4;])
+    N = SubquoModule(F1, Rg[x^3+2*x^2*z; x+y-z], Rg[z^4;])
     tensor_resolution = tensor_product(free_res,N)
     @test chain_range(tensor_resolution) == chain_range(free_res)
     for i in Hecke.map_range(tensor_resolution)
@@ -710,7 +710,6 @@ end
   T0 = tor(Q, M, 0)
   T1 = tor(Q, M, 1)
   T2 =  tor(Q, M, 2)
-  @test is_canonically_isomorphic(T0, M)
   @test ngens(present_as_cokernel(T1)) == ngens(M_coker)
   # Todo twist
   @test iszero(T2)

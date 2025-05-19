@@ -42,11 +42,11 @@ canonical_projection(G::SemidirectProductGroup)
 ```@docs
 WreathProductGroup
 wreath_product(G::T, H::PermGroup) where T<: GAPGroup
-normal_subgroup(W::WreathProductGroup)
-acting_subgroup(W::WreathProductGroup)
-homomorphism_of_wreath_product(G::WreathProductGroup)
-is_full_wreath_product(G::WreathProductGroup)
-canonical_projection(W::WreathProductGroup)
-canonical_injection(W::WreathProductGroup, n::Int)
-canonical_injections(W::WreathProductGroup)
+normal_subgroup(::WreathProductGroup)
+acting_subgroup(::WreathProductGroup)
+homomorphism_of_wreath_product(::WreathProductGroup)
+is_full_wreath_product(::WreathProductGroup)
+canonical_projection(::WreathProductGroup)
+canonical_injection(::WreathProductGroup, ::Int)
+canonical_injections(::WreathProductGroup)
 ```

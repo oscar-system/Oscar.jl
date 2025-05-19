@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Release management
 
 We roughly follow the julia release process. The following outlines the approach taken for OSCAR 1.0.0 but is subject to change depending in how this works out.

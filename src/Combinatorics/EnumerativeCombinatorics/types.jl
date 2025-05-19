@@ -394,3 +394,21 @@ struct StandardTableauxFixedBoxNum{T<:IntegerUnion}
     return new{T}(box_num)
   end
 end
+
+################################################################################
+#
+#  Combination(s)
+#
+################################################################################
+
+struct Combinations{T}
+  v::T
+  n::Int
+  k::Int
+end
+
+struct Combination{T} <: AbstractVector{T}
+  v::Vector{T} 
+end
+
+

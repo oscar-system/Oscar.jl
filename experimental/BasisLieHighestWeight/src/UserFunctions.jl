@@ -125,8 +125,9 @@ function basis_lie_highest_weight(
   type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -137,8 +138,9 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -149,8 +151,9 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -200,8 +203,9 @@ function basis_lie_highest_weight_lusztig(
 )
   monomial_ordering = :wdegrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_lusztig(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -270,8 +274,9 @@ function basis_lie_highest_weight_string(
 )
   monomial_ordering = :neglex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -309,10 +314,11 @@ over Lie algebra of type A3
 function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -381,8 +387,9 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -457,9 +464,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -472,9 +480,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -487,9 +496,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -552,10 +562,11 @@ function basis_coordinate_ring_kodaira_ffl(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end

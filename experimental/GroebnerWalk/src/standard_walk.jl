@@ -69,7 +69,7 @@ standard_walk(
 ) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
 
 ###############################################################
-# The standard step is used for the strategies standard and perturbed.
+# The standard step is used for the strategy standard.
 ###############################################################
 
 function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)

@@ -43,6 +43,7 @@ jobs:
         with:
           version: '1.10'
       - uses: julia-actions/cache@v2
+        id: julia-cache
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
@@ -55,6 +56,14 @@ jobs:
         uses: julia-actions/julia-buildpkg@v1
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: cancelled() || failure()
+        uses: actions/cache/save@v4
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   doctest:
     runs-on: ubuntu-latest
@@ -67,6 +76,7 @@ jobs:
         with:
           version: '1.10'
       - uses: julia-actions/cache@v2
+        id: julia-cache
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
@@ -88,4 +98,12 @@ jobs:
               include("docs/documenter_helpers.jl")
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar)'
+              doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: cancelled() || failure()
+        uses: actions/cache/save@v4
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}

@@ -50,6 +50,7 @@ end
   Q, q = quo(R,I)
   f = q(x*y)
   @test divides(one(Q), f) == (false, one(Q))
+  @test_throws ErrorException divexact(one(Q), f)
 
   A, _ = quo(R, 2*x^2-5*y^3)
   (x, y) = (A(x), A(y))
@@ -60,7 +61,9 @@ end
 
   @test !divides(x, y)[1]
   @test divides(x, x) == (true, one(A))
+  @test divexact(x, x) == one(A)
   @test divides(zero(A), x) == (true, zero(A))
+  @test divexact(zero(A), x) == zero(A)
 
   # promote rule
   K = GF(2)
