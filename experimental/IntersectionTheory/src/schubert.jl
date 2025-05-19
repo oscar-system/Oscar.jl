@@ -76,7 +76,7 @@ julia> integral(s1^4)
 function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
 function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
 function schubert_class(G::AbstractVariety, λ::Vector{Int})
-  @reg has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
   (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
   giambelli(G.bundles[2], λ)
 end
@@ -121,13 +121,13 @@ julia> schubert_classes(G, 2)
 
 """
 function schubert_classes(G::AbstractVariety)
-   @reg has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
    S, Q = G.bundles
    return [schubert_classes(G, i) for i = 0:rank(S)*rank(Q)]
 end
 
 function schubert_classes(G::AbstractVariety, m::Int)
-  @reg has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
   S, Q = G.bundles
   res = elem_type(G.ring)[]
   for i in 0:rank(S)
