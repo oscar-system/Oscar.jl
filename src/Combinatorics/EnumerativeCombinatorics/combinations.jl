@@ -115,11 +115,11 @@ function Base.copy(C::Combination)
 end
 
 function Base.getindex(C::Combinations{Base.OneTo}, i::IntegerUnion)
-  return combination(C.n, C.k, i)
+  return Oscar.combination(C.n, C.k, i)
 end
 
 function Base.getindex(C::Combinations, i::IntegerUnion)
-  c = combination(C.n, C.k, i)
+  c = Oscar.combination(C.n, C.k, i)
   return C.v[data(c)]
 end
 
@@ -178,7 +178,7 @@ The algorithm is as described in [Lie97; Section 3.3](@cite).
 julia> C1 = collect(combinations(15, 3))[13]
 [1, 2, 15]
 
-julia> C1 = combination(15, 3, 13)
+julia> C1 = Oscar.combination(15, 3, 13)
 [1, 2, 15]
 ```
 """
