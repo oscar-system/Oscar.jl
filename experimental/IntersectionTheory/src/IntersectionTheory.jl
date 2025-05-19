@@ -17,12 +17,11 @@ import ..AbstractAlgebra: polynomial
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -67,6 +66,7 @@ export polarization
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
@@ -116,12 +116,11 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -166,6 +165,7 @@ export polarization
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
