@@ -21,8 +21,8 @@ the ambient rational quadratic space $V$ of $L$, and an isometry $f_a$ of $V$
 preserving $L$ and inducing $f$ on $L$. The integer $n$ is the order of $f$,
 which is a divisor of the order of the isometry $f_a\in O(V)$.
 
-Given a lattice with isometry $(L, f)$, we provide the following accessors to the
-elements of the previously described quadruple:
+Given a lattice with isometry $(L, f)$, we provide the following accessors to
+the elements of the previously described quadruple:
 
 ```@docs
 ambient_isometry(::ZZLatWithIsom)
@@ -55,10 +55,10 @@ quadratic spaces with isometry, both isometries of integer lattices of *finite
 order* and *infinite order* are supported.
 
 Another way of constructing such lattices with isometry is by fixing an ambient
-quadratic space with isometry, of type `QuadSpaceWithIsom`, and specifying a basis
-for an integral lattice in that space. If this lattice is preserved by the fixed
-isometry of the quadratic space considered, then we endow it with the induced
-action.
+quadratic space with isometry, of type `QuadSpaceWithIsom`, and specifying a
+basis for an integral lattice in that space. If this lattice is preserved by
+the fixed isometry of the quadratic space considered, then we endow it with the
+induced action.
 
 ```@docs
 lattice(::QuadSpaceWithIsom)
@@ -105,8 +105,6 @@ available for integer lattices with isometry.
 
 ```@docs
 Base.:^(::ZZLatWithIsom, ::Int)
-biproduct(::Vector{ZZLatWithIsom})
-direct_product(::Vector{ZZLatWithIsom})
 direct_sum(::Vector{ZZLatWithIsom})
 dual(::ZZLatWithIsom)
 lll(::ZZLatWithIsom)
@@ -124,9 +122,9 @@ type(::ZZLatWithIsom)
 ```
 
 Since determining whether two pairs of lattices with isometry are isomorphic is
-a challenging task, one can perform a coarser comparison by looking at the type.
-This set of data keeps track of some local and global invariants of the pair $(L,
-f)$ with respect to the action of $f$ on $L$.
+a challenging task, one can perform a coarser comparison by looking at the
+type. This set of data keeps track of some local and global invariants of the
+pair $(L, f)$ with respect to the action of $f$ on $L$.
 
 ```@docs
 is_of_type(::ZZLatWithIsom, t::Dict)
@@ -152,8 +150,9 @@ is_hermitian(::Dict)
 As mentioned in the previous section, to a lattice with isometry $Lf := (L, f)$
 such that the minimal polynomial of $f$ is irreducible, one can associate a
 hermitian lattice $\mathfrak{L}$ over the equation order of $f$, if it is
-maximal, for which $Lf$ is the associated trace lattice. Hecke provides the tools
-to perform the trace equivalence for lattices with isometry of hermitian type.
+maximal, for which $Lf$ is the associated trace lattice. Hecke provides the
+tools to perform the trace equivalence for lattices with isometry of hermitian
+type.
 
 ```@docs
 hermitian_structure(::ZZLatWithIsom)
@@ -161,30 +160,31 @@ hermitian_structure(::ZZLatWithIsom)
 
 ## Discriminant groups
 
-Given an integral lattice with isometry $Lf := (L, f)$, if one denotes by $D_L$ the
-discriminant group of $L$, there exists a natural map $\pi\colon O(L) \to O(D_L)$
-sending any isometry to its induced action on the discriminant group of $L$. In
-general, this map is neither injective nor surjective. If we denote by $D_f :=
-\pi(f)$ then $\pi$ induces a map between centralizers $O(L, f)\to O(D_L, D_f)$.
-Again, this induced map is in general neither injective nor surjective, and we
-denote its image by $G_{L,f}$.
+Given an integral lattice with isometry $Lf := (L, f)$, if one denotes by $D_L$
+the discriminant group of $L$, there exists a natural map
+$\pi\colon O(L) \to O(D_L)$ sending any isometry to its induced action on the
+discriminant group of $L$. In general, this map is neither injective nor
+surjective. If we denote by $D_f := \pi(f)$ then $\pi$ induces a map between
+centralizers $O(L, f)\to O(D_L, D_f)$. Again, this induced map is in general
+neither injective nor surjective, and we denote its image by $G_{L,f}$.
 
 ```@docs
 discriminant_group(::ZZLatWithIsom)
 ```
 
 For simple cases as for definite lattices, $f$ being plus-or-minus the identity
-or if the rank of $L$ is equal to the totient of the order of $f$ (in the
+or if the rank of $L$ is equal to the Euler totient of the order of $f$ (in the
 finite case), $G_{L,f}$ can be easily computed. For the remaining cases, we use
-the hermitian version of *Miranda-Morrison theory* as presented in
-[BH23](@cite). The general computation of $G_{L, f}$ has been implemented in this
-project and it can be indirectly used through the general following method:
+the hermitian version of *Miranda--Morrison theory* as presented in
+[BH23](@cite). The general computation of $G_{L, f}$ has been implemented in
+this project and it can be indirectly used through the general following
+method:
 
 ```@docs
 image_centralizer_in_Oq(::ZZLatWithIsom)
 ```
 
-Note: hermitian Miranda-Morrison is only available for even lattices.
+Important note: hermitian Miranda-Morrison is only available for even lattices.
 
 For an implementation of the regular Miranda-Morrison theory, we refer to the
 function `image_in_Oq` which actually computes the image of
@@ -198,8 +198,8 @@ discriminant_representation(::ZZLat, ::MatrixGroup)
 ```
 
 We will see later in the section about enumeration of lattices with isometry
-that one can compute $G_{L,f}$ in some particular cases arising from equivariant
-primitive embeddings of lattices with isometries.
+that one can compute $G_{L,f}$ in some particular cases arising from
+equivariant primitive embeddings of lattices with isometries.
 
 ## Kernel sublattices
 
@@ -248,8 +248,9 @@ signatures(::ZZLatWithIsom)
 ## Spinor norm
 
 Given an integer lattice with isometry $(L, f)$, one often would like to know
-the *spinor norm* of $f$ seen as an isometry of the rational quadratic space $L\times
-\mathbb{Q}$. See [`rational_spinor_norm(::QuadSpaceWithIsom)`](@ref) for a definition.
+the *spinor norm* of $f$ seen as an isometry of the rational quadratic space
+$L\times \mathbb{Q}$. See [`rational_spinor_norm(::QuadSpaceWithIsom)`](@ref)
+for a definition.
 
 ```@docs
 rational_spinor_norm(::ZZLatWithIsom)
@@ -259,6 +260,6 @@ rational_spinor_norm(::ZZLatWithIsom)
 
 We choose as a convention that two pairs $(L, f)$ and $(L', f')$ of integer
 lattices with isometries are *equal* if their ambient quadratic space with
-isometry of type [`QuadSpaceWithIsom`](@ref) are equal, and if the underlying lattices
-$L$ and $L'$ are equal as $\mathbb Z$-modules in the common ambient quadratic
-space.
+isometry of type [`QuadSpaceWithIsom`](@ref) are equal, and if the underlying
+lattices $L$ and $L'$ are equal as $\mathbb Z$-modules in the common ambient
+quadratic space.

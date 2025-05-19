@@ -222,7 +222,7 @@ function (fac::HCTensorProductChainFactory{ChainType})(c::AbsHyperComplex, I::Tu
     k = k + dim(f)
   end
   factors = [fac.factors[k][Tuple(a)] for (k, a) in enumerate(j)]
-  any(iszero, factors) && return zero_object(first(factors))[1]
+  #any(iszero, factors) && return zero_object(first(factors))[1]
   tmp_res = _tensor_product(factors...)
   @assert tmp_res isa Tuple{<:ChainType, <:Map} "the output of `tensor_product` does not have the anticipated format; see the source code for details"
   # If you got here because of the error message above:

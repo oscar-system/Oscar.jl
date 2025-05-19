@@ -7,8 +7,7 @@ Return the common refinement of two polyhedral complexes.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3]])
 1×3 IncidenceMatrix
-[1, 2, 3]
-
+ [1, 2, 3]
 
 julia> VR1 = [0 0; 1 0; 1 1]
 3×2 Matrix{Int64}:
@@ -53,7 +52,7 @@ Return the k-skeleton of a polyhedral complex.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3]])
 1×3 IncidenceMatrix
-[1, 2, 3]
+ [1, 2, 3]
 
 julia> VR = [0 0; 1 0; 1 1]
 3×2 Matrix{Int64}:

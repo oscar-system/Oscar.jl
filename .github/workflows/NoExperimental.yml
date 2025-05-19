@@ -98,7 +98,7 @@ jobs:
               include("docs/documenter_helpers.jl")
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar)'
+              doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: cancelled() || failure()

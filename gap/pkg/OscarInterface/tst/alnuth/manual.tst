@@ -58,7 +58,7 @@ gap> y := RandomGroupElement( elms );;
 gap> z := ImageElm( isom, y );;
 gap> y = PreImagesRepresentative( isom, z );
 true
-gap> FactorsPolynomialAlgExt( F, g );
-[ x_1+(a-2), x_1+(-1/7*a^3+3/7*a^2+31/7*a-40/7), 
-  x_1+(1/7*a^3-3/7*a^2-31/7*a+26/7), x_1+(-a) ]
+gap> SortedList(FactorsPolynomialAlgExt( F, g ));
+[ x_1+(-1/7*a^3+3/7*a^2+31/7*a-40/7), x_1+(a-2), x_1+(-a), 
+  x_1+(1/7*a^3-3/7*a^2-31/7*a+26/7) ]
 gap> STOP_TEST( "manual.tst", 100000);   
