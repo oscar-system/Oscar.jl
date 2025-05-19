@@ -22,8 +22,16 @@ Wreath Macdonald polynomials depend on two parameters. The first one is
  up to zero.
 
 ```@docs
-wreath_macs(n::Int, r::Int, wperm::PermGroupElem, coroot::Vector{Int})
-wreath_mac(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
+wreath_macdonald_polynomial(lbb::Multipartition,
+                            wperm::PermGroupElem,
+                            coroot::Vector{Int};
+                            parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
+
+wreath_macdonald_polynomials(n::Int,
+                             r::Int,
+                             wperm::PermGroupElem,
+                             coroot::Vector{Int};
+                             parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 ```
 
 Compare with Example 3.15 in [OS23](@cite).
@@ -38,12 +46,11 @@ julia> collect(multipartitions(1,3))
 julia> K,=abelian_closure(QQ)
 (Abelian closure of rational field, Generator of abelian closure of rational field)
 
-julia> parent=polynomial_ring(K,[:q,:t];cached=false)
+julia> parent,=polynomial_ring(K,[:q,:t];cached=false)
 (Multivariate polynomial ring in 2 variables over abelian closure of QQ, AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}[q, t])
 
-julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1],parent)[[3, 2, 1],[3, 2, 1]]
+julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1];parent)[[3, 2, 1],[3, 2, 1]]
 [1   q^2     q]
 [1     t     q]
 [1     t   t^2]
-
 ```

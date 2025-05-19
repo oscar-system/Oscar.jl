@@ -135,10 +135,10 @@ end
 
 @doc raw"""
     wreath_macdonald_polynomials(n::Int,
-                                r::Int,
-                                wperm::PermGroupElem,
-                                coroot::Vector{Int},
-                                parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+                                 r::Int,
+                                 wperm::PermGroupElem,
+                                 coroot::Vector{Int},
+                                 parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
 Given two integers n and r and an element of the affine Weyl group of type A (seen as
 the semi-direct product of the Symmetric group with the coroot lattice), this function
@@ -150,11 +150,11 @@ Macdonald polynomial.
 function wreath_macdonald_polynomials(n::Int,
                                       r::Int,
                                       wperm::PermGroupElem,
-                                      coroot::Vector{Int},
-                                      parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+                                      coroot::Vector{Int};
+                                      parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
-  Q = fraction_field(parent[1])
-  (q,t) = parent[2]
+  Q = fraction_field(parent)
+  q,t = gens(parent)
 
   mps=collect(multipartitions(n,r))
   l=length(mps)
@@ -192,9 +192,9 @@ end
 @doc raw"""
 
     wreath_macdonald_polynomial(lbb::Multipartition,
-                                     wperm::PermGroupElem,
-                                     coroot::Vector{Int},
-                                     parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+                                wperm::PermGroupElem,
+                                coroot::Vector{Int},
+                                parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
 Given a multipartition lbb and an element of the affine Weyl group of type A (seen as
 the semi-direct product of the Symmetric group with the coroot lattice), this function
@@ -204,11 +204,11 @@ the affine Weyl group element in the standard Schur basis indexed by the multipa
 """
 function wreath_macdonald_polynomial(lbb::Multipartition,
                                      wperm::PermGroupElem,
-                                     coroot::Vector{Int},
-                                     parent::Tuple{AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}}, Vector{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}})
+                                     coroot::Vector{Int};
+                                     parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
-  Q = fraction_field(parent[1])
-  (q,t) = parent[2]
+  Q = fraction_field(parent)
+  q,t = gens(parent)
 
   r=length(lbb)
   n=sum(lbb)
