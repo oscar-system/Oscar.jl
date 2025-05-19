@@ -14,7 +14,7 @@ Exceptions to this philosophy are the developer and general pages.
 
 ## Docstrings of exported functions
 
-Exported function should have docstrings, which look like
+Exported function should have docstrings, which look like this.
 ```julia
 @doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
@@ -23,10 +23,13 @@ A short description of the function. It is allowed to use $\LaTeX$.
 """
 functionname(x...,b...; c = ...)
 ```
-If the signature is too long, use linebreaks to fit 80 characters.
+If the signature is too long, use linebreaks to fit it in 80 characters.
+Note that the signature should be indented by exactly four spaces to be rendered
+correctly in the manual.
 
 Please also do provide an example within the docstring if possible, preferably
-as a `jldoctest`, i.e.
+as a `jldoctest`. This should be in a section titled `Examples`. Overall it might
+look like this:
 ````julia
 @doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
