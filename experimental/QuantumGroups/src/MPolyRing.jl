@@ -122,7 +122,7 @@ function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
 
   N = parent(x).N
   if length(x.coeffs) > length(x)
-    if !isassigned(x.coeffs, length(x) + 1)
+    if isnothing(x.coeffs[length(x) + 1])
       x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
     end
     c = x.coeffs[length(x) + 1]
@@ -180,16 +180,14 @@ function fit(x::MPolyRingElem{T}, len::Int) where {T}
     end
   end
 
-  return Memory{T}(undef, len), Memory{Int}(undef, R.N * len)
+  return fill!(Memory{Union{T,Nothing}}(undef, len), nothing), Memory{Int}(undef, R.N * len)
 end
 
 function fit!(x::MPolyRingElem{T}, len::Int) where {T}
   coeffs, exps = fit(x, len)
   if coeffs !== x.coeffs
-    Base.memcpy(
-      pointer(coeffs), pointer(x.coeffs), length(x.coeffs) * Base.elsize(x.coeffs)
-    )
-    Base.memcpy(pointer(exps), pointer(x.exps), length(x.exps) * Base.elsize(x.exps))
+    unsafe_copyto!(coeffs, 1, x.coeffs, 1, length(x.coeffs))
+    unsafe_copyto!(exps, 1, x.exps, 1, length(x.exps))
     x.coeffs = coeffs
     x.exps = exps
   end
@@ -215,13 +213,13 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
     )
     if cmp > 0
       x.coeffs[k] = x.coeffs[i]
-      Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+      x.coeffs[i] = nothing
       monomial_set!(x, k, x, i)
       i += 1
     elseif cmp == 0
       x.coeffs[k] = add!(x.coeffs[i], y.coeffs[j])
       if !iszero(x.coeffs[k])
-        Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+        x.coeffs[i] = nothing
         monomial_set!(x, k, x, i)
       else
         k -= 1
@@ -239,7 +237,7 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
 
   while i <= len
     x.coeffs[k] = x.coeffs[i]
-    Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+    x.coeffs[i] = nothing
     monomial_set!(x, k, x, i)
     i += 1
     k += 1
@@ -276,13 +274,13 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
     )
     if cmp > 0
       x.coeffs[k] = x.coeffs[i]
-      Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+      x.coeffs[i] = nothing
       monomial_set!(x, k, x, i)
       i += 1
     elseif cmp == 0
       x.coeffs[k] = addmul!(x.coeffs[i], y.coeffs[j], a)
       if !iszero(x.coeffs[k])
-        Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+        x.coeffs[i] = nothing
         monomial_set!(x, k, x, i)
       else
         k -= 1
@@ -300,7 +298,7 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
 
   while i <= len
     x.coeffs[k] = x.coeffs[i]
-    Base.memset(pointer(x.coeffs, i), 0, Base.elsize(x.coeffs))
+    x.coeffs[i] = nothing
     monomial_set!(x, k, x, i)
     i += 1
     k += 1
@@ -327,18 +325,18 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
       R, pointer(x.exps, (i - 1) * R.N + 1), pointer(y.exps, (j - 1) * R.N + 1)
     )
     if cmp > 0
-      if isassigned(z.coeffs, k)
-        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
-      else
+      if isnothing(z.coeffs[k])
         z.coeffs[k] = deepcopy(x.coeffs[i])
+      else
+        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
       end
       monomial_set!(z, k, x, i)
       i += 1
     elseif cmp == 0
-      if isassigned(z.coeffs, k)
-        z.coeffs[k] = add!(z.coeffs[k], x.coeffs[i], y.coeffs[j])
-      else
+      if isnothing(z.coeffs[k])
         z.coeffs[k] = x.coeffs[i] + y.coeffs[j]
+      else
+        z.coeffs[k] = add!(z.coeffs[k], x.coeffs[i], y.coeffs[j])
       end
       if !iszero(x.coeffs[k])
         monomial_set!(z, k, x, i)
@@ -349,10 +347,10 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
       i += 1
       j += 1
     else
-      if isassigned(z.coeffs, k)
-        z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
-      else
+      if isnothing(z.coeffs[k])
         z.coeffs[k] = deepcopy(y.coeffs[j])
+      else
+        z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
       end
       monomial_set!(z, k, y, j)
       j += 1
@@ -361,10 +359,10 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
   end
 
   while i <= length(x)
-    if isassigned(z.coeffs, k)
-      z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
-    else
+    if isnothing(z.coeffs[k])
       z.coeffs[k] = deepcopy(x.coeffs[i])
+    else
+      z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
     end
     monomial_set!(z, k, x, i)
     i += 1
@@ -372,10 +370,10 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
   end
 
   while j <= length(y)
-    if isassigned(z.coeffs, k)
-      z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
-    else
+    if isnothing(z.coeffs[k])
       z.coeffs[k] = deepcopy(y.coeffs[j])
+    else
+      z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
     end
     monomial_set!(z, k, y, j)
     j += 1
@@ -395,10 +393,10 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
 
   fit!(z, length(x))
   for i in 1:length(x)
-    if isassigned(z.coeffs, i)
-      z.coeffs[i] = mul!(z.coeffs[i], x.coeffs[i], a)
-    else
+    if isnothing(z.coeffs[i])
       z.coeffs[i] = x.coeffs[i] * a
+    else
+      z.coeffs[i] = mul!(z.coeffs[i], x.coeffs[i], a)
     end
     monomial_set!(z, i, x, i)
   end
@@ -414,10 +412,10 @@ function set!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
 
   fit!(x, y.len)
   for i in 1:length(y.coeffs)
-    if isassigned(x.coeffs, i)
-      x.coeffs[i] = set!(x.coeffs[i], y.coeffs[i])
-    else
+    if isnothing(x.coeffs[i])
       x.coeffs[i] = deepcopy(y.coeffs[i])
+    else
+      x.coeffs[i] = set!(x.coeffs[i], y.coeffs[i])
     end
     monomial_set!(x, i, y, i)
   end
