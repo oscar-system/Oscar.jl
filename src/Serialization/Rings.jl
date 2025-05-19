@@ -351,7 +351,7 @@ end
 
 # elems
 function save_object(s::SerializerState, obj::MatElem)
-  save_object(s, Array(obj))
+  save_object(s, Matrix(obj))
 end
 
 function save_object(s::SerializerState, obj::SMat)
