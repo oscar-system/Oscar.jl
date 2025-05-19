@@ -44,6 +44,10 @@
   @test collect(combinations(0, 0)) == [Int[]]
 
   @testset "ranking/unranking" begin
+    @test Oscar.combination(0,0,1) == Combination([])
+    @test Oscar.combination(3,3,1) == Combination(collect(1:3))
+    @test all(x->Oscar.combination(3,1,x) == Combination([x]), 1:3)
+
     n = 5
     k = 3
 
@@ -54,6 +58,10 @@
     @test all(i->C[i] == c[i], 1:length(c))
 
   end
+
+
+
+
 
   @testset "wedge products" begin
     n = 5
