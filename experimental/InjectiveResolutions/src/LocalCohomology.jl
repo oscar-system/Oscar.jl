@@ -284,8 +284,7 @@ See [HM05](@cite) (Section 6).
 """
 function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
   # get linear functionals tau_i for every hyperplane bounding Q, i.e. for every facet
-  A, _ = halfspace_matrix_pair(facets(kQ.cone))
-  H = [[kQ.hyperplanes[i].hyperplane, A[i, :]] for i in 1:length(kQ.hyperplanes)]
+  H = get_halfspace_eq(kQ)
 
   # for every indecomposable injectives J_j = k{a_j + F_j - Q} compute the vector \tau^j used in Section 6 of HM05  
   _tau = []
@@ -473,7 +472,7 @@ function _local_cohomology_sector(
 
   #compute the maps by deleting rows and columns in phi and psi
   #phi
-  phi_del = zero_matrix(field,length(A0),length(A1))
+  phi_del = zero_matrix(field,length(A_0),length(A_1))
 
   if !is_empty(phi) # `is_empty` is true for the the m x 0-matrix
     rows = []
@@ -494,7 +493,7 @@ function _local_cohomology_sector(
   end
 
   #psi
-  psi_del = zero_matrix(field,length(A1),length(A2))
+  psi_del = zero_matrix(field,length(A_1),length(A_2))
   if !is_empty(psi)
     rows = []
     for i in A_1 #delete i-th row of psi for i \notin A_1 
@@ -599,10 +598,9 @@ function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
   k = coefficient_ring(kQ)
   maps = []
   for s1 in S_A, s2 in S_A # loop over all pairs
-    if s1 == s2
-      continue
-    end
-    if issubset(s2.A, s1.A) && s1.index_vector >= s2.index_vector # check if B \subseteq A and (l_1, ..., l_n) <= (l_1', ..., l_n')
+    s1 == s2 && continue
+    issubset(s2.A, s1.A) || continue
+    s1.index_vector >= s2.index_vector || continue # check if B \subseteq A and (l_1, ..., l_n) <= (l_1', ..., l_n')
       K = s2.sector + (-1)*s1.sector # minkowski sum (|Delta_B - \Delta_A)
       if dim(intersect(K, kQ.cone)) > -1 # check if Q \cap (|Delta_B - \Delta_A) \neq \emptyset
         # compute the map x^{B - A}: H_A -> H_B
@@ -624,15 +622,10 @@ function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
         # define map H_A -> H_B
         f_AB = hom(H_A, H_B, V)
 
-        if is_zero(f_AB)
-          continue
-        else
+        if !is_zero(f_AB)
           push!(maps, (s1, s2, f_AB))
         end
       end
-    else
-      continue
-    end
   end
   return maps
 end

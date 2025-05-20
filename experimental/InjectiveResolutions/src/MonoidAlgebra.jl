@@ -339,7 +339,6 @@ function get_faces_of_polyhedral_cone(
 )
   P_faces = Vector{Polyhedron}()
   for i in 0:dim(P)
-    in
     append!(P_faces, faces(P, i))
   end
   return [FaceQ(prime_to_face(kQ, zonotope, F), F) for F in P_faces]
