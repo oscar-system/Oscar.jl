@@ -15,11 +15,12 @@
   Qx, x = QQ[:x]
   K, r = number_field(x^3 - 3x^2 - 4x + 8, "r")
   Ky, y = K[:y]
-  L, = number_field(y^2 - (2 - r^2)//2, "q")
+  L, lq = number_field(y^2 - (2 - r^2)//2, "q")
   Lz, z = L[:z]
-  E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
-  pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
-  pq2 = E(roots(z^2 - (3 - r^2))[1])
+  emb = only(filter(x -> is_positive(lq, x), real_embeddings(L)))
+  E, q = Hecke.embedded_field(L, emb)
+  pq1 = only(filter(x -> x > 0, E.(roots(z^2 - (3 + 2r - r^2)))))
+  pq2 = only(filter(x -> x > 0, E.(roots(z^2 - (3 - r^2)))))
   p = (pq1 + pq2)//2
   r = E(r)
 
@@ -97,9 +98,9 @@
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
     end
     let ng = n_gon(5)
-      (A,b) = halfspace_matrix_pair(facets(ng))
-      @test typeof(polyhedron(A,b)) == typeof(ng)
-      @test coefficient_field(polyhedron(A,b)) == coefficient_field((ng))
+      (A, b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A, b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A, b)) == coefficient_field((ng))
     end
   end
 
