@@ -37,7 +37,6 @@ Segre embedding $\mathbb{P}^1\times \mathbb{P}^1 \to \mathbb{P}^3$.
 
 ```jldoctest introExample
 julia> kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
-a, b, c, d = gens(kQ)
 monoid algebra over rational field with cone of dimension 3
 
 
