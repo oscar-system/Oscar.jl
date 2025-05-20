@@ -1624,6 +1624,7 @@ export sub
 export sub_object
 export subalgebra_membership
 export subalgebra_membership_homogeneous
+export subgroup
 export subgroup_classes
 export subquo_type
 export subquotient
