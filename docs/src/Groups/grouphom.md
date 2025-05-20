@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -165,6 +166,6 @@ isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```
 
 ```@docs
-isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+isomorphism(::Type{T}, G::Group) where T <: Group
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 ```

@@ -1,5 +1,5 @@
 @doc raw"""
-    GAPGroup <: AbstractAlgebra.Group
+    GAPGroup <: Group
 
 Each object of the abstract type `GAPGroup` stores a group object from
 the GAP system,
@@ -11,13 +11,13 @@ i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `SubFPGroup`,
 `PcGroup`, `SubPcGroup`, and `MatrixGroup`.
 """
-abstract type GAPGroup <: AbstractAlgebra.Group end
+abstract type GAPGroup <: Group end
 
 ## `GapGroup` to underlying GAP group
 GAP.@install GapObj(obj::GAPGroup) = obj.X
 
 @doc raw"""
-    GAPGroupElem <: AbstractAlgebra.GroupElem
+    GAPGroupElem <: GroupElem
 
 Each object of the abstract type `GAPGroupElem` stores a group element
 object from the GAP system,
@@ -26,7 +26,7 @@ and thus can delegate questions about this object to GAP.
 For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g`.
 """
-abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+abstract type GAPGroupElem{T<:GAPGroup} <: GroupElem end
 
 ## `GapGroupElem` to GAP group element
 GAP.@install GapObj(obj::GAPGroupElem) = obj.X

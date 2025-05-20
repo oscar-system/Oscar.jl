@@ -61,7 +61,7 @@ julia> t1 = blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
 Partially resolved global Tate model over a concrete base
 
 julia> amb1 = ambient_space(t1)
-Normal toric variety
+Normal, simplicial toric variety
 
 julia> cox_ring(amb1)
 Multivariate polynomial ring in 8 variables over QQ graded by

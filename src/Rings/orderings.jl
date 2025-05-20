@@ -178,7 +178,7 @@ end
 """
 Orderings actually applied to polynomial rings (as opposed to variable indices)
 """
-mutable struct MonomialOrdering{S}
+mutable struct MonomialOrdering{S} <: Base.Order.Ordering
   R::S
   o::AbsGenOrdering
   is_total::Bool
@@ -197,6 +197,8 @@ end
 base_ring(a::MonomialOrdering) = a.R
 
 base_ring_type(::Type{MonomialOrdering{S}}) where {S} = S
+
+Base.lt(ord::MonomialOrdering, a, b) = cmp(ord, a, b) < 0
 
 @doc raw"""
     support(o::MonomialOrdering)
@@ -1565,6 +1567,9 @@ Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
 
+Sorting some vector `v` of monomials with respect to `ord` can be done with
+`sort(v; order=ord)`.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
@@ -1761,7 +1766,7 @@ struct ModOrdering{T <: AbstractVector{Int}} <: AbsModOrdering
   ord::Symbol
 end
 
-mutable struct ModuleOrdering{S}
+mutable struct ModuleOrdering{S} <: Base.Order.Ordering
   M::S
   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 
@@ -1775,6 +1780,8 @@ end
 base_ring(a::ModuleOrdering) = a.M
 
 base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
+
+Base.lt(ord::ModuleOrdering, a, b) = cmp(ord, a, b) < 0
 
 struct ModProdOrdering{A <: AbsOrdering, B <: AbsOrdering} <: AbsModOrdering
   a::A

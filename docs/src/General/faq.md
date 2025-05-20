@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -133,7 +134,7 @@ can be done via `GAP.Packages.install`, where the first argument is this URL.
 
 Many of the algorithms implemented in OSCAR have a very high complexity. Even
 if not calling one of these algorithms directly, you may be using it in the
-background. Please read our page on [Complex Algorithms in OSCAR](@ref).
+background. Please read our page on [Complex Algorithms](@ref).
 
 ---
 

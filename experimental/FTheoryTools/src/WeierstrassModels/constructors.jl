@@ -168,7 +168,9 @@ end
 # 4: Display
 #####################################################################
 
-function Base.show(io::IO, w::WeierstrassModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(w)
     push!(properties_string, "Partially resolved Weierstrass model over a")
@@ -193,4 +195,9 @@ function Base.show(io::IO, w::WeierstrassModel)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, w::WeierstrassModel)
+  print(io, "Weierstrass model")
 end

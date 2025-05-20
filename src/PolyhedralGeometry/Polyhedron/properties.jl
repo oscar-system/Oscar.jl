@@ -1433,8 +1433,7 @@ function _squared_distance(p::PointVector, q::PointVector)
 end
 
 function _has_equal_facets(P::Polyhedron)
-  nv = facet_sizes(P)
-  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
+  return allequal(facet_sizes(P))
 end
 
 @doc raw"""

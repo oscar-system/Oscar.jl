@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -31,7 +32,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 3
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 3
 
-julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
+julia> PF = projective_bundle(F) # the parameter space of conics in P3
 AbstractVariety of dim 8
 
 julia> UQB = tautological_bundles(G)[2]
@@ -94,7 +95,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
-julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
+julia> PF = projective_bundle(F) # the parameter space of conics in P3
 AbstractVariety of dim 11
 
 julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)

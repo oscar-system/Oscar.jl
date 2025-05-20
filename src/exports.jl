@@ -55,6 +55,7 @@ export CartierDivisor
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Combination
 export Composition
 export Cone
 export CoveredScheme
@@ -91,9 +92,11 @@ export GU
 export GapObj
 export Gluing
 export Graph
+export Group
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
+export GroupElem
 export Halfspace
 export Hecke
 export HilbertData
@@ -125,6 +128,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Multipartition
 export Nemo
 export NormalToricVariety
 export OO
@@ -214,6 +218,7 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
+export label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -344,6 +349,7 @@ export cellular_hull
 export cellular_minimal_associated_primes
 export cellular_primary_decomposition
 export center, has_center, set_center
+export central_character
 export centralizer
 export chain_complex
 export chain_range
@@ -353,6 +359,8 @@ export character_field
 export character_lattice
 export character_parameters
 export character_table
+export character_table_complex_reflection_group
+export character_table_wreath_symmetric
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
@@ -396,6 +404,7 @@ export cokernel
 export collector
 export coloops
 export column
+export combinations
 export combinatorial_symmetries
 export comm
 export comm!
@@ -485,12 +494,14 @@ export decorate
 export decoration
 export default_covering
 export default_ordering
+export defect_group
 export defines_automorphism
 export defining_equation
 export defining_ideal
 export deginvlex
 export deglex
 export degree
+export degree_of_character_field
 export degrees_of_generators
 export degrevlex
 export dehomogenization_map
@@ -510,6 +521,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
+export dicyclic_group
 export dihedral_group
 export dim
 export dim_of_torusfactor
@@ -634,6 +646,7 @@ export galois_group
 export galois_ideal
 export galois_orbit_sum
 export galois_quotient
+export galois_representative_and_multiplicity
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -676,6 +689,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_labeled_edges
 export grassmann_pluecker_ideal
 export groebner_basis
 export groebner_basis_f4
@@ -708,6 +722,7 @@ export height
 export hermitian_form
 export hessian
 export hessian_matrix
+export highest_root
 export hilbert_basis
 export hilbert_function
 export hilbert_polynomial
@@ -786,10 +801,14 @@ export intersections
 export inv
 export inv!
 export invariant_alternating_forms
+export invariant_bilinear_form
 export invariant_bilinear_forms
 export invariant_hermitian_forms
+export invariant_lattice_of_K3_cover
+export invariant_quadratic_form
 export invariant_quadratic_forms
 export invariant_ring
+export invariant_sesquilinear_form
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
@@ -845,6 +864,7 @@ export is_coroot_with_index
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
+export is_dicyclic_group
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_dominant
 export is_du_val_singularity
@@ -945,7 +965,7 @@ export is_pure
 export is_q_cartier
 export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
-export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_quaternion_group
 export is_quotient
 export is_radical
 export is_ready
@@ -1029,6 +1049,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export labelings
 export laplacian_matrix
 export lattice_homomorphism
 export lattice_of_one_parameter_subgroups
@@ -1070,6 +1091,7 @@ export load
 export generic_enriques_surface
 export load_lp
 export load_mps
+export local_schur_indices
 export localization
 export localized_ring
 export longest_element
@@ -1165,6 +1187,8 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multipartition
+export multipartitions
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1236,6 +1260,7 @@ export number_of_factors
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
 export number_of_perfect_groups, has_number_of_perfect_groups
@@ -1248,6 +1273,8 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
+export numerical_lattice
+export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
@@ -1332,7 +1359,9 @@ export positive_coroots
 export positive_hull
 export positive_root
 export positive_roots
+export positive_tropical_variety
 export possible_class_fusions
+export power_map
 export power_sum
 export powers_of_element
 export preimage
@@ -1495,6 +1524,7 @@ export scalar_product
 export scheme
 export scheme_type
 export schensted
+export show_atlas_info
 export schur_cover
 export schur_index
 export schur_multiplier
@@ -1594,6 +1624,7 @@ export sub
 export sub_object
 export subalgebra_membership
 export subalgebra_membership_homogeneous
+export subgroup
 export subgroup_classes
 export subquo_type
 export subquotient
@@ -1646,6 +1677,7 @@ export transitive_group_identification, has_transitive_group_identification
 export transitivity
 export transport
 export transportation_polytope
+export triangular_decomposition
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
@@ -1659,6 +1691,7 @@ export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
 export tropical_variety
+export tropical_prevariety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity

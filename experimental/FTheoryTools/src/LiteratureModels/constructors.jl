@@ -98,7 +98,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 
 julia> coordinate_ring(v)
 Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
@@ -230,52 +230,11 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   
   # (2) The QSM need special treatment...
   if model_dict["arxiv_data"]["id"] == "1903.00009"
-
-    # Read in the QSM-model form the database
     model_dict["literature_identifier"] = "1903_00009"
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
-
-    # Create the hypersurface model and set meta data attributes
-    model = qsm_model.hs_model
-    cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
-    cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
-    model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = cfs
-    _set_all_attributes(model, model_dict, model_parameters)
-
-    # Set specialized attributes regarding the polytope
-    set_attribute!(model, :vertices, qsm_model.vertices)
-    set_attribute!(model, :poly_index, qsm_model.poly_index)
-    set_attribute!(model, :triang_quick, qsm_model.triang_quick)
-    set_attribute!(model, :max_lattice_pts_in_facet, qsm_model.max_lattice_pts_in_facet)
-    set_attribute!(model, :estimated_number_of_triangulations, qsm_model.estimated_number_of_triangulations)
-
-    # Set specialized attributes regarding the general geometry of the base space
-    set_attribute!(model, :Kbar3, qsm_model.Kbar3)
-    set_attribute!(model, :h11, qsm_model.h11)
-    set_attribute!(model, :h12, qsm_model.h12)
-    set_attribute!(model, :h13, qsm_model.h13)
-    set_attribute!(model, :h22, qsm_model.h22)
-
-    # Set specialized attributes regarding the root bundle counting
-    set_attribute!(model, :genus_ci, qsm_model.genus_ci)
-    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_ci, qsm_model.degree_of_Kbar_of_tv_restricted_to_ci)
-    set_attribute!(model, :intersection_number_among_ci_cj, qsm_model.intersection_number_among_ci_cj)
-    set_attribute!(model, :index_facet_interior_divisors, qsm_model.index_facet_interior_divisors)
-    set_attribute!(model, :intersection_number_among_nontrivial_ci_cj, qsm_model.intersection_number_among_nontrivial_ci_cj)
-    set_attribute!(model, :dual_graph, qsm_model.dual_graph)
-    set_attribute!(model, :components_of_dual_graph, qsm_model.components_of_dual_graph)
-    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph, qsm_model.degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph)
-    set_attribute!(model, :genus_of_components_of_dual_graph, qsm_model.genus_of_components_of_dual_graph)
-    set_attribute!(model, :simplified_dual_graph, qsm_model.simplified_dual_graph)
-    set_attribute!(model, :components_of_simplified_dual_graph, qsm_model.components_of_simplified_dual_graph)
-    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph, qsm_model.degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph)
-    set_attribute!(model, :genus_of_components_of_simplified_dual_graph, qsm_model.genus_of_components_of_simplified_dual_graph)
-
-    # Finally, return the QSM model
-    return model
-
+    return qsm_model
   end
 
   # (2b) The F-theory model with the largest number of flux vacua needs special attention
@@ -290,6 +249,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     base_space = load(directory)
     set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
     model = global_tate_model(base_space, completeness_check = false)
+    model_dict["literature_identifier"] = "1511_03209"
     _set_all_attributes(model, model_dict, model_parameters)
     return model
     =#
@@ -652,13 +612,20 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_data"], "resolutions")
-    set_resolutions(model, [[[string.(c) for c in r[1]], string.(r[2])] for r in model_dict["model_data"]["resolutions"]])
+    set_resolutions(model, [([string.(c) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["resolutions"]])
   end
   
   if haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes")
     D = Dict{String, Vector{Int}}()
     tun_sections = model_dict["model_data"]["model_sections"]
     M = model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]
+    if typeof(M) != Matrix{Int}
+      vars = string.(model_dict["model_data"]["model_sections"])
+      auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
+      M = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in M]...)))
+      M = vcat([[Int(k) for k in M[i:i,:]] for i in 1:nrows(M)]...)
+      model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = M
+    end
     for i in 1:length(tun_sections)
       D[tun_sections[i]] = M[:,i]
     end
@@ -675,7 +642,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_data"], "weighted_resolutions")
-    set_weighted_resolutions(model, [[[[string.(c[1]), c[2]] for c in r[1]], string.(r[2])] for r in model_dict["model_data"]["weighted_resolutions"]])
+    set_weighted_resolutions(model, [([(string.(c[1]), Int.(c[2])) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["weighted_resolutions"]])
   end
   
   if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
@@ -695,6 +662,10 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
   end
 
+  if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety
+    set_exceptional_classes(model, string.(model_dict["model_data"]["exceptional_classes"]))
+  end
+
   if haskey(model_dict["model_data"], "generating_sections")
     set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
   end
@@ -708,7 +679,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
-    set_global_gauge_quotients(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
+    set_global_gauge_group_quotient(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
   end
   
   if haskey(model_dict, "birational_models")

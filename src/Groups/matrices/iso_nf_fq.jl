@@ -182,7 +182,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{AbsSimp
    if p == 2
       return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
-   O = EquationOrder(K)
+   O = equation_order(K)
    if mod(discriminant(O), p) == 0
       return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end

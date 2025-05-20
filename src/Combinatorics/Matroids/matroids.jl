@@ -615,8 +615,8 @@ julia> matroid_groundset(N)
 ```
 """
 function deletion(M::Matroid,set::GroundsetType)
-    set = unique(collect(set))
-    if length(set) == 0
+    set = unique!(collect(set))
+    if isempty(set)
         return M
     end
     if !all([e in M.groundset for e in set])

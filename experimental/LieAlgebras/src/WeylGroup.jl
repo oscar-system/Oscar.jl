@@ -1,31 +1,188 @@
 @doc raw"""
-    FPGroup(W::WeylGroup) -> FPGroup
-    fp_group(W::WeylGroup) -> FPGroup
+    exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8) -> AbstractVector{UInt8}
 
-Construct a group of type `FPGroup` that is isomorphic to `W`.
+Given a word `w` which is reduced w.r.t. `W`, modify `w` in-place into an equivalent word
+starting with `i` if the exchange condition can be applied, otherwise leave `w` unchanged.
+Finally, return `w`.
 
-If one needs the isomorphism then [`isomorphism(::Type{FPGroup}, W::WeylGroup)`](@ref)
-can be used instead.
+!!! warning
+    If `w` is not a reduced expression, the behaviour is arbitrary.
+
+See also [`exchange_right!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
-function FPGroup(W::WeylGroup)
-  return codomain(isomorphism(FPGroup, W))
+function exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  if w[1] == i
+    return w
+  end
+
+  root = i
+  for s in 1:length(w)
+    if w[s] == root
+      for n in s:-1:2
+        w[n] = w[n - 1]
+      end
+      w[1] = i
+      return w
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return w
 end
 
 @doc raw"""
-    PermGroup(W::WeylGroup) -> PermGroup
-    permutation_group(W::WeylGroup) -> PermGroup
+    exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8) -> AbstractVector{UInt8}
 
-Construct a group of type `PermGroup` that is isomorphic to `W`.
+Given a word `w` which is reduced w.r.t. `W`, modify `w` in-place into an equivalent word
+ending with `i` if the exchange condition can be applied, otherwise leave `w` unchanged.
+Finally, return `w`.
 
-If one needs the isomorphism then [`isomorphism(::Type{PermGroup}, W::WeylGroup)`](@ref)
-can be used instead.
+!!! warning
+    If `w` is not a reduced expression, the behaviour is arbitrary.
+
+See also [`exchange_left!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
-function PermGroup(W::WeylGroup)
-  return codomain(isomorphism(PermGroup, W))
+function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
+  # The algorithm is almost the same as explain_rmul
+  # But we don't need a normal form, so this is faster
+  if w[end] == i
+    return w
+  end
+
+  root = i
+  for s in length(w):-1:1
+    if w[s] == root
+      for n in s:(length(w) - 1)
+        w[n] = w[s + 1]
+      end
+      w[end] = i
+      return w
+    end
+    root = W.refl[Int(w[s]), Int(root)]
+  end
+
+  return w
 end
 
-fp_group(W::WeylGroup) = FPGroup(W)
-permutation_group(W::WeylGroup) = PermGroup(W)
+@doc raw"""
+    braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8}) -> Vector{Tuple{Int,Int,Int}}
+
+Return the braid moves required to transform the reduced expression `w2`
+into the reduced expression `w1` with respect to the Weyl group `W`.
+A braid move `(n, len, dir)` should be understood as follows:
+- `n` is the position where the braid move starts
+- `len` is the length of the braid move
+- `dir` is the direction of the braid move. If `len=2` or `len=3`, `dir` is `0` or `-1`.
+  If `len=4` or `len=6`, `dir` is `-2` or `-3` if the root at `n` is short, otherwise `dir` is `-1`.
+  This information can be used, when computing the tropical Plücker relations.
+
+!!! warning
+    If `w1` and `w2` do not define the same element in `W`, the behaviour is arbitrary.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 3);
+
+julia> braid_moves(W, UInt8[1,2,1,3,2,1], UInt8[1,3,2,1,3,2])
+4-element Vector{Tuple{Int64, Int64, Int64}}:
+ (4, 2, 0)
+ (2, 3, -1)
+ (4, 3, -1)
+ (3, 2, 0)
+
+julia> W = weyl_group(:B, 2);
+
+julia> braid_moves(W, UInt8[2,1,2,1], UInt8[1,2,1,2])
+1-element Vector{Tuple{Int64, Int64, Int64}}:
+ (1, 4, -2)
+```
+"""
+function braid_moves(W::WeylGroup, w1::Vector{UInt8}, w2::Vector{UInt8})
+  return _braid_moves(W, w1, w2, 0)
+end
+
+function _braid_moves(
+  W::WeylGroup, w1::AbstractVector{UInt8}, w2::AbstractVector{UInt8}, offset::Int
+)
+  mvs = Tuple{Int,Int,Int}[]
+  if w1 == w2
+    return mvs
+  end
+
+  C = cartan_matrix(W)
+  jo, jn = copy(w2), copy(w2)
+  for i in 1:length(w1)
+    if w1[i] == jo[i]
+      continue
+    end
+
+    cij = Int(C[Int(w1[i]), Int(jo[i])])
+    cji = Int(C[Int(jo[i]), Int(w1[i])])
+
+    # in all cases we need to move w1[i] to the right of jn[i]
+    # so that we can later apply the appropriate braid move
+    @views exchange_left!(W, jn[(i + 1):end], w1[i])
+
+    if cij == 0
+      # compute how to get jn[i:end] into [jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 2, cij))
+      reverse!(jn, i, i + 1)
+    elseif cij == -1 && cji == -1
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 3, cij))
+      jn[i], jn[i + 1], jn[i + 2] = jn[i + 1], jn[i], jn[i + 1]
+    elseif cij == -2 || cji == -2
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 4, cij))
+      reverse!(jn, i, i + 3)
+    elseif cij == -3 || cji == -3
+      @views exchange_left!(W, jn[(i + 2):end], jn[i]) # move jn[i] to the right of jn[i+1]
+      @views exchange_left!(W, jn[(i + 3):end], w1[i]) # move w1[i] to the right of jn[i+2]
+      @views exchange_left!(W, jn[(i + 4):end], jn[i]) # move jn[i] to the right of jn[i+3]
+      @views exchange_left!(W, jn[(i + 5):end], w1[i]) # move w1[i] to the right of jn[i+4]
+
+      # compute how to get jn[i:end] into [jn[i], w1[i], jn[i], w1[i], jn[i], w1[i], ...]
+      @views append!(mvs, _braid_moves(W, jn[(i + 1):end], jo[(i + 1):end], i + offset))
+      push!(mvs, (i + offset, 6, cij))
+      reverse!(jn, i, i + 5)
+    end
+
+    copyto!(jo, i, jn, i, length(jo) - i + 1)
+  end
+
+  return mvs
+end
+
+@doc raw"""
+    apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int}) -> Vector{UInt8}
+
+Apply the braid move `mv` to the word `w` and return the result.
+If `mv` is not a valid braid move for `w`, the behaviour is arbitrary.
+See also [`braid_moves`](@ref).
+"""
+function apply_braid_move!(w::Vector{UInt8}, mv::Tuple{Int,Int,Int})
+  i, len, _ = mv
+  if len == 2
+    w[i], w[i + 1] = w[i + 1], w[i]
+  elseif len == 3
+    w[i], w[i + 1], w[i + 2] = w[i + 1], w[i], w[i + 1]
+  elseif len == 4
+    w[i], w[i + 1], w[i + 2], w[i + 3] = w[i + 1], w[i], w[i + 1], w[i]
+  elseif len == 6
+    w[i], w[i + 1], w[i + 2], w[i + 3], w[i + 4], w[i + 5] = w[i + 1],
+    w[i], w[i + 1], w[i], w[i + 1],
+    w[i]
+  end
+  return w
+end
 
 @doc raw"""
     isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
@@ -39,7 +196,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(FPGroup, W)` yi
 
 If only the image of such an isomorphism is needed, use `fp_group(W)`.
 """
-function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
@@ -95,7 +252,7 @@ Isomorphisms are cached in `W`, subsequent calls of `isomorphism(PermGroup, W)` 
 
 If only the image of such an isomorphism is needed, use `permutation_group(W)`.
 """
-function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=true)
+function isomorphism(T::Type{PermGroup}, W::WeylGroup; on_gens::Bool=false)
   on_gens = true # we ignore the on_gens flag, the iso will *always* map gens onto gens
   isos =
     get_attribute!(Dict{Tuple{Type,Bool},Any}, W, :isomorphisms)::Dict{Tuple{Type,Bool},Any}
@@ -132,7 +289,15 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   type, ordering = root_system_type_with_ordering(R)
 
   if length(type) != 1
-    error("Not implemented (yet)")
+    # Apply recursion to the irreducible factors
+    # Note that the gens of each irreducible factor are in canonical ordering
+    factors = irreducible_factors(W; morphisms=false)::Vector{WeylGroup}
+    factors_as_perm = [_isomorphic_group_on_gens(PermGroup, factor) for factor in factors]
+    G = inner_direct_product(factors_as_perm; morphisms=false)::PermGroup
+    # gens(G) corresponds to gens(W)[ordering], so
+    # gens(G)[invperm(ordering)] corresponds to gens(W)
+    G_sorted, _ = sub(G, gens(G)[invperm(ordering)])
+    return G_sorted
   end
 
   # Compute generators of the permutation group to which the simple reflections are mapped.
@@ -140,25 +305,35 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   coxeter_type, n = only(type)
   if coxeter_type == :A
     Sym = symmetric_group(n + 1)
-    gen_G = [cperm(Sym, [i, i + 1]) for i in 1:n]
+    gen_G = let Sym = Sym # closure boxing
+      [cperm(Sym, [i, i + 1]) for i in 1:n]
+    end
   elseif coxeter_type == :B || coxeter_type == :C
     Sym = symmetric_group(2n)
-    gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)], cperm(Sym, [n, 2n])
-    )
+    gen_G = let Sym = Sym # closure boxing
+      vcat(
+        [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+        cperm(Sym, [n, 2n]),
+      )
+    end
   elseif coxeter_type == :D
     Sym = symmetric_group(2n)
-    gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
-      cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
-    )
+    gen_G = let Sym = Sym # closure boxing
+      vcat(
+        [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+        cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
+      )
+    end
   elseif coxeter_type == :E
     # Permutation representation on the root system. The permutation degree is not optimal for E_6 and E_7.
     m = number_of_roots(R)
     Sym = symmetric_group(m)
-    gen_G = [
-      perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n
-    ]
+    gen_G = let Sym = Sym # closure boxing
+      [
+        perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for
+        i in 1:n
+      ]
+    end
   elseif coxeter_type == :F
     Sym = symmetric_group(24)
     #! format: off
@@ -176,9 +351,9 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
 
   # Reorder generators
   # (Details: simple_roots(R)[ordering] is in canonical ordering.
-  # s = sortperm(ordering) is the inverse of the corresponding permutation.
+  # s = invperm(ordering) is the inverse of the corresponding permutation.
   # Hence (gen_G[s])[i] is the image of gen(W, i).)
-  gen_G = gen_G[sortperm(ordering)]
+  gen_G = gen_G[invperm(ordering)]
   G, _ = sub(Sym, gen_G)
   return G
 end

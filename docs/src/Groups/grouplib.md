@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -156,4 +157,5 @@ number_of_atlas_groups
 all_atlas_group_infos
 atlas_group
 atlas_subgroup
+show_atlas_info
 ```

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -82,9 +83,6 @@ galois_group(f::PolyRingElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
-```@meta
-DocTestFilters = r"Galois context\(.*\]\)"
-```
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
 julia> Qt, t = rational_function_field(QQ, "t");
 
@@ -112,9 +110,6 @@ over `C(t)` is only of degree `3`. Here the group collapses to a cyclic group
 of degree `3`, the algebraic closure of `Q` in the splitting field is the
 quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
 
-```@meta
-DocTestFilters = nothing
-```
 ```jldoctest galqt
 julia> is_isomorphic(k, cyclotomic_field(3)[1])
 true

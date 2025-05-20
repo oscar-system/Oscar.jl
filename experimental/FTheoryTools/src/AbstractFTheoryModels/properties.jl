@@ -100,7 +100,7 @@ has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
 has_zero_section_class(m::AbstractFTheoryModel) = has_attribute(m, :zero_section_class)
 has_torsion_sections(m::AbstractFTheoryModel) = has_attribute(m, :torsion_sections)
 has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
-has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
+has_global_gauge_group_quotient(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
 
 
 

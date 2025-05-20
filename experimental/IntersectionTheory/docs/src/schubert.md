@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -58,10 +59,6 @@ See [EH16](@cite) for the relations on these generators.
 
 ```@docs
 schubert_class(G::AbstractVariety, λ::Int...)
-```
-
-```@docs
-schubert_classes(G::AbstractVariety, m::Int)
 ```
 
 ```@docs

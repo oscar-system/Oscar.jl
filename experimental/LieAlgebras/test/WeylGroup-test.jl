@@ -5,11 +5,44 @@
 
   _isomorphic_group_on_gens = Oscar.LieAlgebras._isomorphic_group_on_gens
 
+  @testset "apply_braid_move!" begin
+    @test apply_braid_move!(UInt8[1, 3, 2, 1], (1, 2, 0)) == [3, 1, 2, 1]
+    @test apply_braid_move!(UInt8[2, 3, 1, 4], (2, 2, 0)) == [2, 1, 3, 4]
+    @test apply_braid_move!(UInt8[2, 3, 1, 2, 1, 4], (3, 3, -1)) == [2, 3, 2, 1, 2, 4]
+    @test apply_braid_move!(UInt8[2, 3, 4, 3, 4, 2], (2, 4, -2)) == [2, 4, 3, 4, 3, 2]
+    @test apply_braid_move!(UInt8[1, 2, 1, 2, 1, 2], (1, 6, -3)) == [2, 1, 2, 1, 2, 1]
+  end
+
+  @testset "braid_moves for $fam$rk" for (fam, rk) in [
+    (:A, 3), (:B, 3), (:C, 3), (:D, 4), (:F, 4), (:G, 2)
+  ]
+    W = weyl_group(fam, rk)
+    for _ in 1:10
+      w = rand(W)
+      w1 = word(w)
+      w2 = copy(w1)
+
+      i = 0
+      n = rand(1:(10 * order(W)))
+      for r in reduced_expressions(w)
+        i += 1
+        copy!(w2, r)
+        if i == n
+          break
+        end
+      end
+
+      mvs = braid_moves(W, w1, w2)
+      @test !isnothing(mvs)
+      for mv in mvs
+        apply_braid_move!(w2, mv)
+      end
+      @test w1 == w2
+    end
+  end
+
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
-    # Some test cases can be removed as soon as isomorphism has support for reducible types.
-    # (Then nearly everything is covered by complicated case 1 and 2.)
-    # Until then, all irreducible types and some explicit non-canonical orderings should be tested.
     ("A1", weyl_group(:A, 1)),
     (
       "A3 with non-canonical ordering of simple roots",
@@ -62,16 +95,16 @@
   ]
     @testset "isomorphism(FPGroup, ::WeylGroup)" begin
       if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
-        G = _isomorphic_group_on_gens(FPGroup, W)
+        G = @inferred _isomorphic_group_on_gens(FPGroup, W)
         @test is_finite(G) == is_finite(W)
         is_finite(W) && @test order(G) == order(W)
       end
 
-      G = fp_group(W)
+      G = @inferred fp_group(W)
       @test is_finite(G) == is_finite(W)
       is_finite(W) && @test order(G) == order(W)
 
-      iso = isomorphism(FPGroup, W)
+      iso = @inferred isomorphism(FPGroup, W)
       @test W === domain(iso)
       @test G === codomain(iso)
       @test iso === isomorphism(FPGroup, W) # test caching
@@ -103,45 +136,43 @@
 
     if has_root_system_type(root_system(W))
       type, ordering = root_system_type_with_ordering(root_system(W))
-      if length(type) == 1
-        @testset "isomorphism(PermGroup, ::WeylGroup)" begin
-          if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
-            G = _isomorphic_group_on_gens(PermGroup, W)
-            @test is_finite(G) == is_finite(W)
-            is_finite(W) && @test order(G) == order(W)
-          end
-
-          G = permutation_group(W)
+      @testset "isomorphism(PermGroup, ::WeylGroup)" begin
+        if is_finite(W) && ngens(W) < 6 #= for sane runtime =#
+          G = @inferred _isomorphic_group_on_gens(PermGroup, W)
           @test is_finite(G) == is_finite(W)
           is_finite(W) && @test order(G) == order(W)
+        end
 
-          iso = isomorphism(PermGroup, W)
-          @test W === domain(iso)
-          @test G === codomain(iso)
-          @test iso === isomorphism(PermGroup, W) # test caching
+        G = @inferred permutation_group(W)
+        @test is_finite(G) == is_finite(W)
+        is_finite(W) && @test order(G) == order(W)
 
-          # test mapping of gens
-          @test ngens(W) == ngens(G)
-          @test iso.(gens(W)) == gens(G)
-          @test inv(iso).(gens(G)) == gens(W)
+        iso = @inferred isomorphism(PermGroup, W)
+        @test W === domain(iso)
+        @test G === codomain(iso)
+        @test iso === isomorphism(PermGroup, W) # test caching
 
-          # test general mapping
-          if ngens(W) < 10 #= for sane runtime =#
-            for _ in 1:5
-              if is_finite(W) # remove once rand(W) is implemented for infinite groups
-                w = rand(W)
-                @test w == inv(iso)(iso(w))
-                v = rand(W)
-                @test iso(v * w) == iso(v) * iso(w)
-                @test v * w == inv(iso)(iso(v) * iso(w))
-              end
-              g = rand_pseudo(G)
-              @test is_in_normal_form(inv(iso)(g))
-              @test g == iso(inv(iso)(g))
-              h = rand_pseudo(G)
-              @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
-              @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+        # test mapping of gens
+        @test ngens(W) == ngens(G)
+        @test iso.(gens(W)) == gens(G)
+        @test inv(iso).(gens(G)) == gens(W)
+
+        # test general mapping
+        if ngens(W) < 10 #= for sane runtime =#
+          for _ in 1:5
+            if is_finite(W) # remove once rand(W) is implemented for infinite groups
+              w = rand(W)
+              @test w == inv(iso)(iso(w))
+              v = rand(W)
+              @test iso(v * w) == iso(v) * iso(w)
+              @test v * w == inv(iso)(iso(v) * iso(w))
             end
+            g = rand_pseudo(G)
+            @test is_in_normal_form(inv(iso)(g))
+            @test g == iso(inv(iso)(g))
+            h = rand_pseudo(G)
+            @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+            @test h * g == iso(inv(iso)(h) * inv(iso)(g))
           end
         end
       end

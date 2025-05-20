@@ -67,7 +67,7 @@ let pushforward = IntersectionTheory.pushforward
     @test parent(A) == P2
     @test A == trivial_line_bundle(P2)
 
-    PF = abstract_projective_bundle(P2.bundles[2])
+    PF = projective_bundle(P2.bundles[2])
     A = trivial_line_bundle(P2) + trivial_line_bundle(PF)
     @test parent(A) == PF
     @test A == 2trivial_line_bundle(PF)
@@ -194,7 +194,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # projective bundle
     X, (F,) = abstract_variety(3, [3=>"c"])
-    PF = abstract_projective_bundle(F)
+    PF = projective_bundle(F)
     @test dim(PF) == 5
     @test rank.(tautological_bundles(PF)) == [1, 2]
     p = PF.struct_map
@@ -205,7 +205,7 @@ let pushforward = IntersectionTheory.pushforward
     
     # flag bundle
     X, (F,) = abstract_variety(2, [4=>"c"])
-    FlF = abstract_flag_bundle(F, 2)
+    FlF = flag_bundle(F, 2)
     @test dim(FlF) == 6
     @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = FlF.struct_map

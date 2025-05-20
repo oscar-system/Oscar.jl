@@ -5,6 +5,10 @@ using Oscar.GaloisGrp
 import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
                         primitive_by_shape, bound_to_precision
 
+if isdefined(Oscar, :subfield)
+  import Oscar: subfield
+end
+
 
 function embedding_hom(k, K)
   return MapFromFunc(k, K, K)

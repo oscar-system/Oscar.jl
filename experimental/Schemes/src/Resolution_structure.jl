@@ -872,10 +872,10 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   for (i, j) in non_zero_indices
     h_ij = M_ext[i, j]
     U_ij = PrincipalOpenSubset(W, OO(W)(h_ij))
-    I = ordered_multi_index(i, codim, n)
-    J = ordered_multi_index(j, codim, r)
+    I = combination(n, codim, i)
+    J = combination(r, codim, j)
     push!(ref_patches, U_ij)
-    minor_dict[U_ij] = (indices(I), indices(J), M_ext[i, j])
+    minor_dict[U_ij] = (data(I), data(J), M_ext[i, j])
   end
   res_cov = Covering(ref_patches)
   inherit_gluings!(res_cov, Covering(W))

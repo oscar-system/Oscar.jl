@@ -1,4 +1,10 @@
-# Documenting OSCAR code
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
+# Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
 information as possible into the docstrings and only use the doc pages for

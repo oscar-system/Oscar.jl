@@ -876,7 +876,7 @@ function _moebius_to_pullback_on_weierstrass_chart(X, Y, img_gens)
   RY = ambient_coordinate_ring(WY)
   FRY = fraction_field(RY)
   
-  return extend_domain_to_fraction_field(hom(RY, FRX, img_gens))
+  return Hecke.extend_domain_to_fraction_field(hom(RY, FRX, img_gens))
 end 
 
 function _moebius_to_morphism_from_rational_functions(X, Y, img_gens)

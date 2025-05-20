@@ -19,7 +19,8 @@
   l = @inferred collect(weak_compositions(T(0), T(7)))
   @test l == [weak_composition(T[0 for i in 1:7])]
   l = @inferred collect(weak_compositions(T(1), T(7)))
-  @test length(l) == length(unique!(l)) == 7
+  @test length(l) == 7
+  @test allunique(l)
 
   l = @inferred collect(weak_compositions(T(7), T(1)))
   @test l == [weak_composition(T[7])]

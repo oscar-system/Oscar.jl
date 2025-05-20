@@ -26,11 +26,11 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
   end
 end
 
-function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: AbstractAlgebra.Group
+function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: Group
   return GModuleHom(M1, M2, mp; check)
 end
 
-function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: AbstractAlgebra.Group
+function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: Group
   return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check)
 end
 

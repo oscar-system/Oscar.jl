@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -62,7 +63,7 @@ classes_of_model_sections(m::AbstractFTheoryModel)
 classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
-global_gauge_quotients(m::AbstractFTheoryModel)
+global_gauge_group_quotient(m::AbstractFTheoryModel)
 chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)

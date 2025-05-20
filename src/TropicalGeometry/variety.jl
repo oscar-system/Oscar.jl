@@ -323,23 +323,59 @@ end
 #
 ################################################################################
 
-function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,QQFieldElem,<:Union{typeof(min),typeof(max)}})
+@doc raw"""
+    Oscar.tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; precision::Int=64)
 
-    k,(a,_) = number_field(I)
-    zk = maximal_order(k)
-    p = uniformizer(nu)
-    lp = [x[1] for x = prime_decomposition(zk,p)]
-    ma = representation_matrix(a)
-    mb = representation_matrix(k(lp[1].gen_two*lp[2].gen_two^2))
-    @assert iszero(ma*mb - mb*ma)
-    Qp = PadicField(p, 10)
-    TropVDict = simultaneous_diagonalization([map_entries(Qp, ma),map_entries(Qp, mb)])
+Internal function for computing zero-dimensional tropical varieties over p-adic numbers via
+finite precision Eigenvalue computation.  Assumes without test that `I` is zero-dimensional.
 
-    TropVPoints = collect(values(TropVDict))
-    TropVPointsUnique = unique(TropVPointsMults)
+# Examples
+```jldoctest
+julia> R,(x1,x2,x3) = polynomial_ring(QQ,3);
+
+julia> I = ideal([28*x3^2 - 1*x3 - 1,
+                  2*x2 - x3,
+                  2*x1 - x2]);
+
+julia> nu = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
+
+julia> TropI = Oscar.tropical_variety_zero_dimensional(I,nu)
+Min tropical variety
+
+julia> vertices(TropI)
+2-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [-2, -1, 0]
+ [-4, -3, -2]
+
+julia> nu = tropical_semiring_map(QQ,3,max)
+Map into Max tropical semiring encoding the 3-adic valuation on Rational field
+
+julia> TropI = Oscar.tropical_variety_zero_dimensional(I,nu)
+Max tropical variety
+
+julia> vertices(TropI)
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+
+```
+"""
+function tropical_variety_zero_dimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; precision::Int=64)
+    # Construct the representation matrices of the multiplications by xi in K[x]/I
+    _,x = number_field(I)
+    mx = representation_matrix.(x)
+
+    # Compute their simultaneous diagonalization numerically
+    Qp = padic_field(uniformizer(nu), precision=precision)
+    TropVDict = Oscar.simultaneous_diagonalization(map_entries.(Ref(Qp), mx))
+
+    # Construct their tropical variety as a polyhedral complex consisting only of vertices
+    # and a list of multiplicities
+    TropVPoints = convention(nu)==min ? collect(values(TropVDict)) : -collect(values(TropVDict))
+    TropVPointsUnique = unique(TropVPoints)
     Sigma = polyhedral_complex(IncidenceMatrix([[i] for i in 1:length(TropVPointsUnique)]), TropVPointsUnique)
     TropVMults = [ZZ(length(findall(isequal(p),TropVPoints))) for p in TropVPointsUnique]
-    TropV = tropical_variety(Sigma,TropVMults)
+    TropV = tropical_variety(Sigma,TropVMults,convention(nu))
     set_attribute!(TropV,:algebraic_points,collect(keys(TropVDict)))
     return TropV
 end

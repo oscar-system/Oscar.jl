@@ -113,7 +113,7 @@ end
     # fourier parameters
     fp = model.fourier_params
     for i in 1:3
-      @test length(fp[Edge(4, i)]) == length(unique(fp[Edge(4, i)]))
+      @test allunique(fp[Edge(4, i)])
     end
     # group of the model
     G = group_of_model(model)

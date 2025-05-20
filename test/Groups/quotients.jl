@@ -1,10 +1,11 @@
 @testset "quo for trivial kernel" begin
 #  @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
-   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
+   @testset for G in [free_group(0), symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
       if is_finite(G)
         @test order(F) == order(G)
+        @test epi(one(G)) == one(F)
       else
         @test ! is_finite(F)
       end
