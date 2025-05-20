@@ -193,7 +193,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
     end
   end
   println(io, "of ", res.mod)
-  println(
+  print(
     io,
     "over ",
     base_ring(res.mod)
@@ -212,7 +212,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
     end
   end
   println(io, "of ", res.mod)
-  println(
+  print(
     io,
     "over ",
     base_ring(res.mod)
@@ -232,7 +232,7 @@ function Base.show(io::IO, Ji::IndecInj)
 end
 
 @doc raw"""
-  generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
+    generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
 
 Given a monoid algebra  kQ = $k[Q]$, a hyperplane $H$ that bounds the polyhedral cone $\RR_{\geq 0}Q$ and a vector
 $a \in \mathbb{Z}^d$, return a finite set $B$ such that
@@ -274,7 +274,7 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
 end
 
 @doc raw"""
-  degrees_of_bass_numbers(M::SubquoModule,i::Int)
+    degrees_of_bass_numbers(M::SubquoModule,i::Int)
 
 Return the $\mathbb{Z}^d$-degrees of non-zero Bass numbers of $M$ up to cohomological degree $i$.
 """
@@ -296,7 +296,7 @@ function degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int) #
 end
 
 @doc raw"""
-  compute_shift(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
+    compute_shift(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
 Let $M$ be finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. This function computes $a\in \mathbb{Z}^d$
 such that all $\mathbb{Z}^d$-degrees of non-zero Bass numbers of $M(-a)$ lie in $Q$. 
@@ -449,7 +449,7 @@ function mod_saturate(M::SubquoModule, I::Ideal)
 end
 
 @doc raw"""
-  ZF_basis(M::SubquoModule, p::FaceQ)
+    ZF_basis(M::SubquoModule, p::FaceQ)
 
 Let $p = k\{Q\setminus F\}$ for some face $F$. This functions computes a $k[\mathbb{Z}F]$-basis of the quotient
 
@@ -506,7 +506,7 @@ function evaluate(
 end
 
 @doc raw"""
-  coefficients(N::SubquoModule, p_F::FaceQ)
+    coefficients(N::SubquoModule, p_F::FaceQ)
 
 Returns a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
 
@@ -609,7 +609,7 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
 end
 
 @doc raw"""
-  irreducible_hull(Mi::SubquoModule, kQ::MonoidAlgebra, j=0)
+    irreducible_hull(Mi::SubquoModule, kQ::MonoidAlgebra, j=0)
 
 Return an irreducible hull of $M$.
 """
@@ -685,7 +685,7 @@ function irreducible_decomposition(I::MonoidAlgebraIdeal)
 end
 
 @doc raw"""
-  _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
+    _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
 
 Given a monoid algebra $k[Q]$ and an indecomposable injective $J = k\{a + F - Q\}$ return the irreducible ideal $W\subseteq k[Q]$ such that $J_Q = k[Q]/W$ ($Q$-graded part of $J$). 
 

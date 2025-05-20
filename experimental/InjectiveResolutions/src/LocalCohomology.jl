@@ -38,7 +38,7 @@ end
 Given a sector partition of a local cohomology module, check if the local cohomology module is zero.
 """
 function is_zero(S::SectorPartitionLC)
-  return all([dim(s.H) == 0 for s in S.sectors])
+  return all(dim(s.H) == 0 for s in S.sectors)
 end
 
 function print_A_vector(io::IO, A::Vector{Vector{Int}})
@@ -76,7 +76,7 @@ function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
     join(gens(SP.I), ", "),
     ") of ",
   )
-  println(io, " ", SP.M)
+  print(io, " ", SP.M)
 end
 
 @doc raw"""
@@ -161,7 +161,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
   if inj_res.upto > i
     _psi = get_scalar_matrix(kQ, inj_res.cochain_maps[i + 1])
   else # map is zero 
-    _psi = matrix(k, zeros(k, length(Ji.indec_injectives), 1))
+    _psi = zero_matrix(k,length(Ji.indec_injectives), 1)
   end
 
   #apply the functor Gamma_I(-) to J^{i-1},J^i and J^{i+1} -> J is direct sum of Gamma_I(J^{i-1}), Gamma_I(J^{i}) and Gamma_I(J^{i+1})
@@ -264,7 +264,7 @@ end
 
 # given a matrix with entries in a MPolyDecRing or a MPolyQuoRing, return the matrix with the corresponding scalar coefficients
 @doc raw"""
-  get_scalar_matrix(A::MonoidAlgebra, M)
+    get_scalar_matrix(A::MonoidAlgebra, M)
 
 Given a monomial matrix, return the corresponding coefficient matrix. 
 """
@@ -277,7 +277,7 @@ end
 # there is one defining linear functional for every facet of Q and Q is the intersection of the halfspaces {\tau_i \leq 0} 
 
 @doc raw"""
-  compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
+    compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
 
 This function computes a vector $\tau^j \in (\mathbb{Z}\cup \infty)^n$ for every indecomposable injective $J^j$.
 See [HM05](@cite) (Section 6).
@@ -285,15 +285,11 @@ See [HM05](@cite) (Section 6).
 function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
   # get linear functionals tau_i for every hyperplane bounding Q, i.e. for every facet
   A, _ = halfspace_matrix_pair(facets(kQ.cone))
-  H = []
-  for i in 1:length(kQ.hyperplanes)
-    push!(H, [kQ.hyperplanes[i].hyperplane, A[i, :]])
-  end
+  H = [[kQ.hyperplanes[i].hyperplane, A[i, :]] for i in 1:length(kQ.hyperplanes)]
 
   # for every indecomposable injectives J_j = k{a_j + F_j - Q} compute the vector \tau^j used in Section 6 of HM05  
   _tau = []
   for J_i in J
-    in
     tau_i = []
     for h in H
       if issubset(J_i.face.poly, h[1])
@@ -315,7 +311,7 @@ function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
 end
 
 @doc raw"""
-  get_halfspace_eq(kQ::MonoidAlgebra)
+    get_halfspace_eq(kQ::MonoidAlgebra)
 
 Returns a finite set of positive halfspaces such that $Q$ is the intersection of them. 
 
@@ -332,7 +328,7 @@ function get_halfspace_eq(kQ::MonoidAlgebra)
 end
 
 @doc raw"""
-  sector_partition(kQ::MonoidAlgebra,phi::Union{Vector{Any},MatElem{T}},psi::Union{Vector{Any},MatElem{T}},j::Integer,k::Integer,J::IndecInj...,) where {T<:FieldElem}
+    sector_partition(kQ::MonoidAlgebra,phi::Union{Vector{Any},MatElem{T}},psi::Union{Vector{Any},MatElem{T}},j::Integer,k::Integer,J::IndecInj...,) where {T<:FieldElem}
 
 Given a cochain complex of injective modules J^0 -> J^1 -> J^2, where phi: J^0 -> J^1 and psi: J^1 -> J^2, let J = J^0 + J^1 + J^2
 and j = |J^0|, k = |J^0| + |J^1|. This function computes a sector partition of the local cohomology module ker(psi)/im(phi). 
@@ -451,7 +447,7 @@ function sector_partition(
 end
 
 @doc raw"""
-  _local_cohomology_sector(field::Field,A::Vector{Int},j::Integer,k::Integer,phi::Union{Vector{Any},MatElem{T}},psi::Union{Vector{Any},MatElem{T}}) where {T<:FieldElem}
+    _local_cohomology_sector(field::Field,A::Vector{Int},j::Integer,k::Integer,phi::Union{Vector{Any},MatElem{T}},psi::Union{Vector{Any},MatElem{T}}) where {T<:FieldElem}
 
 This function follows the construction in the proof of [HM05](@cite) (Theorem 5.2).
 """
@@ -477,7 +473,7 @@ function _local_cohomology_sector(
 
   #compute the maps by deleting rows and columns in phi and psi
   #phi
-  phi_del = matrix(field, zeros(field, length(A_0), length(A_1)))
+  phi_del = zero_matrix(field,length(A0),length(A1))
 
   if !is_empty(phi) # `is_empty` is true for the the m x 0-matrix
     rows = []
@@ -498,7 +494,7 @@ function _local_cohomology_sector(
   end
 
   #psi
-  psi_del = matrix(field, zeros(field, length(A_1), length(A_2)))
+  psi_del = zero_matrix(field,length(A1),length(A2))
   if !is_empty(psi)
     rows = []
     for i in A_1 #delete i-th row of psi for i \notin A_1 
@@ -524,7 +520,7 @@ function _local_cohomology_sector(
 end
 
 @doc raw"""
-  apply_gamma!(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::MonoidAlgebraIdeal) where {T<:FieldElem}
+    apply_gamma!(J0::InjMod,J1::InjMod,J2::InjMod,phi::MatElem{T},psi::MatElem{T},I::MonoidAlgebraIdeal) where {T<:FieldElem}
 
 Apply the functor $\Gamma_I(-)$ to a cochain complex of injective modules $J_0 \xrightarrow{phi} J_1 \xrightarrow{\psi} J_2$. It maps a $\mathbb{Z}^d$-graded $k[Q]$-momdule $M$
 to the submodule $\Gamma_I(M) = \{m \in M \mid m \cdot I^n = 0 \text{ for some }n>0\}$. Applying the functor corresponds to deleting all indecomposable injectives
@@ -595,7 +591,7 @@ function apply_gamma!(
 end
 
 @doc raw"""
-  maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
+    maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
 
 This follows Algorithm 6.4. in [HM05](@cite) and computes all needed maps (as described in the proof of [HM05](@cite) (Proposition 5.1)).
 """
