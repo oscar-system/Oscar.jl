@@ -63,7 +63,7 @@ function entries(cssp::CSSPage)
 end
 
 function getindex(cssp::CSSPage, i::Int, j::Int)
-  @assert can_compute_index(graded_complex(spectral_sequence(cssp)), i) "index out of bounds"
+  #@assert can_compute_index(graded_complex(spectral_sequence(cssp)), i) "index out of bounds"
   @assert j<=0 "index out of bounds"
   return get!(entries(cssp), (i, j)) do
     produce_entry(cssp, i, j)
@@ -90,13 +90,17 @@ function produce_entry(cssp::CSSPage, i::Int, j::Int)
   p = page_number(cssp)
   previous_page = css[p-1]
   H = previous_page[i, j]
-  is_zero(H) && return H
+  #is_zero(H) && return H
   B, inc_B = can_compute_map(previous_page, i+p-1, j-p+2) ? image(map(previous_page, i+p-1, j-p+2)) : sub(H, elem_type(H)[])
   Z, inc_Z = can_compute_map(previous_page, i, j) ? kernel(map(previous_page, i, j)) : sub(H, gens(H))
   # The code below relies on a particular generating set for the modulus
   # so we need to carefully build that here.
   F = ambient_free_module(H)
   new_B, _ = sub(F, vcat(relations(H), repres.(gens(B))))
+  g = ambient_representatives_generators(Z)
+  return SubquoModule(ambient_free_module(H), g, ambient_representatives_generators(new_B))
+  # TODO: The code below gives wrong results; probably because too many 
+  # kernel generators are discarded? I have not fully understood why!
   g = unique!(ambient_representatives_generators(Z))
   g = filter!(x->!(x in new_B), g)
   res = SubquoModule(ambient_free_module(H), g, elem_type(ambient_free_module(H))[])
@@ -205,7 +209,7 @@ end
 
 function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
   #@show "production of lifted kernel generators on page $(page_number(cssp)) at place $i, $j"
-  @assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
+  #@assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
   @assert j <= 0 "index out of bounds"
 
   # Let `p` be the number of the page `cssp`. We have the 
@@ -259,7 +263,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
   v = lifted_kernel_generators(prev_page, ii, jj) # lifts of the kernel generators on the previous page
 
   # The generators of the kernel Zₚ = ker ∂ₚ₋₁ are extracted from this page.
-  u_next = repres.(gens(cssp[i0, j0]))
+  u_next = [repres(simplify(g)) for g in gens(cssp[i0, j0])] # effectively discard zero generators
 
   orig_cplx = graded_complex(cssp)
   # The degrees of the generators in the original graded complex 
@@ -372,19 +376,15 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     if !is_zero(coh_rem)
       # in this case we need to do adjustments by the images of the 
       # previous incoming maps.
-      @show coh_rem
       H = prev_page[ii, jj]
       I = H.quo
       @assert coh_rem in I
       c = coordinates(coh_rem, I)
-      @show c
       offset = 0
       ranges = UnitRange[]
       for q in 1:p-2
-        @show q
         kernel_lifts = lifted_kernel_generators(css[q], ii, jj)
         n = length(kernel_lifts)
-        @show n
         c_sub = c[offset+1:offset+n]
         push!(ranges, offset+1:offset+n)
         offset += n
@@ -417,11 +417,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
               if sup_exp != next_sup_exp
                 w = ctx[sup_exp, next_sup_exp, -inter_degs[l]][jj](w)
               end
-              @show parent(w)
-              @show parent(vv)
-              @show sup_exp
-              @show e
-              @show next_sup_exp
               buckets[ind] = (l, w + vv)
             end
           end
@@ -557,7 +552,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
 # for (v, (e, b)) in zip(u_next, new_lifted_kernel_gens)
 #   println("$(coordinates(v)) -> $e : $b")
 # end
-  @show "done"
   return new_lifted_kernel_gens
 end
 
@@ -745,14 +739,15 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
 end
 
 function produce_map(cssp::CSSPage, i::Int, j::Int)
-  @assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
-  @assert can_compute_index(graded_complex(cssp), i-page_number(cssp)) "index out of bounds"
+  #@assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
+  #@assert can_compute_index(graded_complex(cssp), i-page_number(cssp)) "index out of bounds"
   @assert j <= 0 "index out of bounds"
   @assert j + page_number(cssp) - 1 <= 0 "index out of bounds"
   #is_one(page_number(cssp)) && return produce_map_on_initial_page(cssp, i, j)
   #page_number(cssp) == 2 && return produce_map_on_second_page(cssp, i, j)
 
   p = page_number(cssp)
+  S = graded_ring(cssp)
   css = spectral_sequence(cssp)
   ctx = pushforward_ctx(cssp)
   
@@ -772,45 +767,61 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
   other_vert_maps = Dict{Vector{Int}, FreeModuleHom}()
   hor_maps = Dict{Vector{Int}, FreeModuleHom}()
   incs = Dict{Vector{Int}, FreeModuleHom}()
-  for (e, buckets) in new_lifted_kernel_gens
-    img_gen = zero(F)
-    for (k, v) in buckets
-      is_zero(v) && continue
-      d1 = -cod_degs[k]
-      e1 = _minimal_exponent_vector(ctx, d1)
-      @assert all(a <= b for (a, b) in zip(e1, e))
-      pr = ctx[e, e1, d1][j1]
+  for (e, buckets) in new_lifted_kernel_gens # iterate through the representatives 
+                                             # of the images
+    img_gen = zero(F) # initialize the result for this generator
+    for (k, v) in buckets # go through the buckets
+      is_zero(v) && continue # discard zero elements 
+      d1 = -cod_degs[k] # find the shift for this component
+      e1 = _minimal_exponent_vector(ctx, d1) # get the minimal exponent for this 
+                                             # component's cohomology complex
+      @assert all(a <= b for (a, b) in zip(e1, e)) # make sure we have not lost information
+                                                   # along the way by taking to small denoms
+      pr = ctx[e, e1, d1][j1] # project down to the minimal complex
       vv = pr(v)
       is_zero(vv) && continue
-      coh_pr = cohomology_model_projection(ctx, d1, j1)
-      img_gen += canonical_injection(F, k)(coh_pr(vv))
+      coh_pr = cohomology_model_projection(ctx, d1, j1) # project to the cohomology model
+      img_gen += canonical_injection(F, k)(coh_pr(vv)) # add the component to the result
     end
     # sanity check
-    #=
-    inc = get!(incs, e) do
-      cohomology_injection_map(css, e, i1, j1)
+    #= 
+    # We first find a set of minimal common denominators which allows for enough 
+    # room to represent all 
+    exps = Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in cod_degs]
+    sup_exp = Int[maximum(ex[i] for ex in exps; init=e[i]) for i in 1:ngens(S)]
+    inc = get!(incs, sup_exp) do
+      cohomology_injection_map(css, sup_exp, i1, j1)
     end
-    ww = inc(img_gen)
-    ww0 = sum(canonical_injection(codomain(inc), l)(v) for (l, v) in buckets; init=zero(codomain(inc)))
+    ww = inc(img_gen) # the representative of the current image of the generator
+    # Bring the buckets for the current generator to the common denominator
+    com_den_buckets = [(k, (ctx[e, sup_exp, -cod_degs[k]])[j1](v)) for (k, v) in buckets]
+    # We compute the representative without losses for comparison
+    ww0 = sum(canonical_injection(codomain(inc), l)(v) for (l, v) in com_den_buckets; init=zero(codomain(inc)))
     S = graded_ring(css)
+    # If there is an outgoing vertical map...
     if j1 > -ngens(S) + rank(grading_group(S))
-      vert_map = get!(vert_maps, e) do
-        vertical_map(css, e, i1, j1; domain=codomain(inc))
+      vert_map = get!(vert_maps, sup_exp) do
+        vertical_map(css, sup_exp, i1, j1; domain=codomain(inc))
       end
+      # ...check that both representatives are taken to zero.
       @assert is_zero(vert_map(ww))
       @assert is_zero(vert_map(ww0))
     end
-    if j1 < 0
-      other_vert_map = get!(other_vert_maps, e) do
-        vertical_map(css, e, i1, j1+1; codomain=codomain(inc))
+    if j1 < 0 # If there is an incoming vertical map...
+      other_vert_map = get!(other_vert_maps, sup_exp) do
+        vertical_map(css, sup_exp, i1, j1+1; codomain=codomain(inc))
       end
+      # ...check that the difference of the representatives 
+      # is governed by the image of that map.
       @assert ww - ww0 in image(other_vert_map)[1]
     end
-    if i1 > 0
+    if i1 > 0 # if there is an outgoing horizontal map...
       hor_map = get!(hor_maps, e) do
-        horizontal_map(css, e, i1, j1; domain=codomain(inc))
+        horizontal_map(css, sup_exp, i1, j1; domain=codomain(inc))
       end
+      # ...check that it takes the full representative to zero.
       @assert is_zero(hor_map(ww0))
+      # This does not necessarily hold for the truncated representative!
       #@assert is_zero(hor_map(ww))
     end
     =#
