@@ -147,9 +147,11 @@ end
       @test [images(iso, C)[1] for C in hall_subgroups(G1, collect(P))] ==
             collect(hall_subgroups(G2, collect(P)))
     end
-    @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
-          sort!([order(S) for S in hall_system(G2)])
-    @test [images(iso, S)[1] for S in sylow_system(G1)] == sylow_system(G2)
+    @test issetequal(
+      [order(images(iso, S)[1]) for S in hall_system(G1)],
+      [order(S) for S in hall_system(G2)]
+    )
+    @test issetequal([images(iso, S)[1] for S in sylow_system(G1)], sylow_system(G2))
   end
 end
 
