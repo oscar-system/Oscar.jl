@@ -17,10 +17,10 @@
   Ky, y = K[:y]
   L, lq = number_field(y^2 - (2 - r^2)//2, "q")
   Lz, z = L[:z]
-  emb = only(filter(x -> is_positive(lq, x), real_embeddings(L)))
+  emb = only(filter(Base.Fix1(is_positive, lq), real_embeddings(L)))
   E, q = Hecke.embedded_field(L, emb)
-  pq1 = only(filter(x -> x > 0, E.(roots(z^2 - (3 + 2r - r^2)))))
-  pq2 = only(filter(x -> x > 0, E.(roots(z^2 - (3 - r^2)))))
+  pq1 = only(filter(is_positive, E.(roots(z^2 - (3 + 2r - r^2)))))
+  pq2 = only(filter(is_positive, E.(roots(z^2 - (3 - r^2)))))
   p = (pq1 + pq2)//2
   r = E(r)
 
