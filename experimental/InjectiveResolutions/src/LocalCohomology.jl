@@ -92,7 +92,6 @@ Compute a sector partition of the local cohomology module $H^i_I(k[Q]/I_M)$, whe
 julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
 monoid algebra over rational field with cone of dimension 2
 
-
 julia> x,y,z = gens(kQ)
 3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
@@ -184,7 +183,6 @@ Computes the local cohomology module of $M$ supported on $I$ in cohomological de
 ```jldoctest
 julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
 monoid algebra over rational field with cone of dimension 2
-
 
 julia> x,y,z = gens(kQ)
 3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:

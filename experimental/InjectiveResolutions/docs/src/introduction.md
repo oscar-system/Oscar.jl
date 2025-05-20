@@ -101,7 +101,7 @@ The zeroth local cohomology is just the well known module $\Gamma_I (M)$ module.
 This can be represented with the standard data structures and hence we compute:
 
 ```jldoctest introExample
-H0 = zeroth_local_cohomology(M, I)
+julia> H0 = zeroth_local_cohomology(M, I)
 Graded submodule of kQ^1 with 0 generators
 represented as subquotient with no relations
 
