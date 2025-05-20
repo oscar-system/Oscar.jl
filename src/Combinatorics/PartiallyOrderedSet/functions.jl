@@ -65,11 +65,10 @@ That is, the elements of the poset are the given sets, their intersections, and 
 ```jldoctest
 julia> im = vertex_indices(facets(simplex(3)))
 4×4 IncidenceMatrix
-[1, 3, 4]
-[1, 2, 4]
-[1, 2, 3]
-[2, 3, 4]
-
+ [1, 3, 4]
+ [1, 2, 4]
+ [1, 2, 3]
+ [2, 3, 4]
 
 julia> partially_ordered_set_from_inclusions(im)
 Partially ordered set of rank 4 on 16 elements
