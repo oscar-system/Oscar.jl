@@ -60,8 +60,8 @@ function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
    return partition(new_w)
 end
 
-#Reoders the CharTable from Chevie
-function reorder(charTirr::Matrix{QQAbFieldElem{AbsSimpleNumFieldElem}}, Modules::Vector{Multipartition{Int}},  mps::Vector{Multipartition{Int}})
+#Reoders the CharTable
+function reorder(charTirr::Matrix, Modules::Vector{Multipartition{Int}},  mps::Vector{Multipartition{Int}})
   new_ord=indexin(mps,Modules)
   return charTirr[new_ord,:]
 end
@@ -69,7 +69,7 @@ end
 #Tools from representation theory
 
 # Computes the fake degree of a multipartition cf. Ste89 Thm 5.3 and Prop. 3.3.2 Haiman cdm
-function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}})
+function fake_deg(lbb::Multipartition, Q::FracField{T}, var::T) where {T <: MPolyRingElem}
   r=length(lbb)
   n=sum(lbb)
   res=Q(1)
@@ -89,7 +89,7 @@ function fake_deg(lbb::Multipartition, Q::AbstractAlgebra.Generic.FracField{Abst
 end
 
 # computes C_Delta defined in PhD relation (1.45)
-function C_Delta(r::Int, n::Int, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
+function C_Delta(r::Int, n::Int, Q::FracField{T}, var::T, mps::Vector{Multipartition{Int}}) where {T <: MPolyRingElem}
   charTable=character_table_complex_reflection_group(r,1,n)
   charTirr=[charTable[i,j] for i in 1:nrows(charTable), j in 1:ncols(charTable)]
   Modules=[multipartition([lbb...]) for lbb in class_parameters(charTable)]
@@ -110,7 +110,7 @@ function C_Delta(r::Int, n::Int, Q::AbstractAlgebra.Generic.FracField{AbstractAl
 end
 
 # computes the character of the simple representations of the Cherednik algebra.
-function C_L(r::Int, n::Int, Q::AbstractAlgebra.Generic.FracField{AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}}, var::AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}, mps::Vector{Multipartition{Int}})
+function C_L(r::Int, n::Int, Q::FracField{T}, var::T, mps::Vector{Multipartition{Int}}) where {T <: MPolyRingElem}
   C_D=C_Delta(r,n,Q,var,mps)
   d = [var^b_inv(mp)//fake_deg(mp,Q,var) for mp in mps]
   diag=diagonal_matrix(Q,d)
@@ -134,24 +134,34 @@ function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{I
 end
 
 @doc raw"""
-    wreath_macdonald_polynomials(n::Int,
-                                 r::Int,
-                                 wperm::PermGroupElem,
-                                 coroot::Vector{Int},
-                                 parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
 
-Given two integers n and r and an element of the affine Weyl group of type A (seen as
-the semi-direct product of the Symmetric group with the coroot lattice), this function
-returns the square matrix of coefficients of the wreath Macdonald polynomials associated with
-all multipartition of size n and length r in the standard Schur basis indexed by the
-multipartitions of the same size and length as lbb. Each row of this matrix is a wreath
-Macdonald polynomial.
+    wreath_macdonald_polynomials(n::Int,
+                                      r::Int,
+                                      wperm::PermGroupElem,
+                                      coroot::Vector{Int};
+                                      parent::MPolyRing{<:QQAbFieldElem}=
+                                      polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
+
+Given two integers `n` and `r` and an element of the affine Weyl group of type ``A^{(1)}_{r-1}``
+(seen as the semi-direct product of the symmetric group on `r` letters with the coroot lattice
+of the finite type ``A_{r-1}``), this function returns the square matrix of coefficients of the wreath
+ Macdonald polynomials associated with all multipartitions of size `n` and length `r` in the standard
+Schur basis of multisymmetric functions. Each row of this matrix is a wreath Macdonald polynomial.
+Here is an example of how to use it:
+
+```jldoctest
+julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1])
+[t^2     t   1]
+[  q     t   1]
+[  q   q^2   1]
+```
 """
 function wreath_macdonald_polynomials(n::Int,
                                       r::Int,
                                       wperm::PermGroupElem,
                                       coroot::Vector{Int};
-                                      parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
+                                      parent::MPolyRing{<:QQAbFieldElem}=
+                                      polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
 
   Q = fraction_field(parent)
   q,t = gens(parent)
@@ -192,20 +202,26 @@ end
 @doc raw"""
 
     wreath_macdonald_polynomial(lbb::Multipartition,
-                                wperm::PermGroupElem,
-                                coroot::Vector{Int},
-                                parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
+                                     wperm::PermGroupElem,
+                                     coroot::Vector{Int};
+                                     parent::MPolyRing{<:QQAbFieldElem}=
+                                     polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
 
-Given a multipartition lbb and an element of the affine Weyl group of type A (seen as
-the semi-direct product of the Symmetric group with the coroot lattice), this function
-returns the coefficients of the wreath Macdonald polynomial associated with lbb and
-the affine Weyl group element in the standard Schur basis indexed by the multipartitions
- of the same size and length as lbb.
+Given a multipartition `lbb` of size ``n`` and length ``r`` and an element of the affine Weyl group of type ``A^{(1)}_{r-1}``
+(seen as the semi-direct product of the symmetric group on ``r`` letters with the coroot lattice
+of the finite type ``A_{r-1}``), this function returns the coefficients of the wreath Macdonald polynomial
+associated with `lbb` and the affine Weyl group element in the standard Schur basis of multisymmetric functions. Here is an example of how to use it:
+
+```jldoctest
+julia> wreath_macdonald_polynomial(multipartition([[1],[],[]]),cperm(1:3),[0,1,-1])
+[  q   q^2   1]
+```
 """
 function wreath_macdonald_polynomial(lbb::Multipartition,
                                      wperm::PermGroupElem,
                                      coroot::Vector{Int};
-                                     parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
+                                     parent::MPolyRing{<:QQAbFieldElem}=
+                                     polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
 
   Q = fraction_field(parent)
   q,t = gens(parent)

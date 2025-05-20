@@ -8,33 +8,25 @@ DocTestSetup = Oscar.doctestsetup()
 
 The existence, integrality and positivity of wreath Macdonald polynomials
  has been conjectured by Haiman [Hai02](@cite) and proved by Bezrukavnikov
- and Finkelberg [BF14](@cite). Here we have implemented an algorithm which
- computes the wreath Macdonald polynomials as defined in the review by
- Orr and Shimozono on this topic [OS23](@cite).
+ and Finkelberg [BF14](@cite). When ``r=1``, wreath Macdonald polynomials are
+ equal to the Haiman-Macdonald polynomials, used to prove the Macdonald positivity conjecture.
 
-Wreath Macdonald polynomials depend on two parameters. The first one is
- a multipartition since they are indexing the set of irreducible representations of
- the complex reflection group ``G(r,1,n)``. The second one is an element
- of the affine Weyl group of type ``A_r`` which is isomorphic to the semi-direct
- product of the finite Weyl group of type ``A_r`` (the symmetric group on ``r`` letters)
- and of the coroot lattice of type ``A_r``. The element of the coroot lattice is
- given in the canonical basis. It is then the sublattice of ``\mathbb{Z}^r`` of elements summing
- up to zero.
+Here we have implemented an algorithm computing the wreath Macdonald
+ polynomials as defined in the survey by Orr and Shimozono on this topic [OS23](@cite).
+
+Wreath Macdonald polynomials depend on two parameters. The first parameter is
+ an ``r``-multipartition of ``n``. The second parameter is an element of the affine Weyl group
+ of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group
+ of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}``.
+ The element of the coroot lattice is given in the canonical basis. It is then the sublattice
+of ``\mathbb{Z}^r`` of elements summing up to zero.
 
 ```@docs
-wreath_macdonald_polynomial(lbb::Multipartition,
-                            wperm::PermGroupElem,
-                            coroot::Vector{Int};
-                            parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
-
-wreath_macdonald_polynomials(n::Int,
-                             r::Int,
-                             wperm::PermGroupElem,
-                             coroot::Vector{Int};
-                             parent::AbstractAlgebra.Generic.MPolyRing{QQAbFieldElem{AbsSimpleNumFieldElem}})
+wreath_macdonald_polynomial
+wreath_macdonald_polynomials
 ```
 
-Compare with Example 3.15 in [OS23](@cite).
+Compare the following computation with Example 3.15 in [OS23](@cite).
 
 ```jldoctest
 julia> collect(multipartitions(1,3))
@@ -43,13 +35,7 @@ julia> collect(multipartitions(1,3))
  Partition{Int64}[[], [1], []]
  Partition{Int64}[[1], [], []]
 
-julia> K,=abelian_closure(QQ)
-(Abelian closure of rational field, Generator of abelian closure of rational field)
-
-julia> parent,=polynomial_ring(K,[:q,:t];cached=false)
-(Multivariate polynomial ring in 2 variables over abelian closure of QQ, AbstractAlgebra.Generic.MPoly{QQAbFieldElem{AbsSimpleNumFieldElem}}[q, t])
-
-julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1];parent)[[3, 2, 1],[3, 2, 1]]
+julia> wreath_macdonald_polynomials(1,3,cperm(1:3),[0,1,-1])[[3, 2, 1],[3, 2, 1]]
 [1   q^2     q]
 [1     t     q]
 [1     t   t^2]
