@@ -428,12 +428,12 @@ function monoid_algebra(M_Q::Matrix{Int}, k::Field)
 
   # construct k[t_1,...,t_d]
   t_vars = [Symbol("t_$i") for i in 1:d]
-  T, t = graded_polynomial_ring(k, t_vars)
+  T, t = graded_polynomial_ring(k, t_vars; cached = false)
 
   # construct k[x_1,...,x_n] where n is the number of columns/generators
   x_vars = [Symbol("x_$i") for i in 1:size(M_Q, 2)]
   R, _ = graded_polynomial_ring(
-    k, x_vars; weights=[Vector(row) for row in eachcol(M_Q)]
+    k, x_vars; weights=[Vector(row) for row in eachcol(M_Q)], cached = false
   )
 
   # construct map x_i \to t^(a_i)
