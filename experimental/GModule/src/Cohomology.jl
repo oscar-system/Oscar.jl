@@ -1857,38 +1857,19 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   end
   @assert nrows(h) == ncols(h)
   if refine
-    r = sparse_matrix(ZZ)
-    ng = 1
-    gp = []
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = factor(h[i,i]).fac
+      lf = collect(factor(h[i,i]).fac)
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
-          push!(r, sparse_row(ZZ, [ng, ng+1], [p, ZZRingElem(-1)]))
           push!(hm, v)
           v *= p
-          ng += 1
         end
-        push!(r, sparse_row(ZZ, [ng], [p]))
-        push!(gp, ng)
         push!(hm, v)
-        ng += 1
       end
     end
-    for i=1:nrows(h)
-      for j=i+1:ncols(h)
-        if !iszero(h[i,j])
-          push!(r.rows[gp[i]].pos, gp[j])
-          push!(r.rows[gp[i]].values, h[i,j])
-        end
-      end
-    end
-    MM = abelian_group(matrix(r))
-    h = hom(MM, M, hm)
-    M = MM
-    mM = h
+    M, mM = sub(M, hm) #without simplify is guaranteed to keep the gens!
   else
     mM = hom(M, M, gens(M))
   end

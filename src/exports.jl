@@ -298,6 +298,7 @@ export atlas_group
 export atlas_irrationality
 export atlas_program
 export atlas_subgroup
+export atoms
 export augmented_chow_ring
 export aut
 export automorphism_group
@@ -352,6 +353,7 @@ export center, has_center, set_center
 export central_character
 export centralizer
 export chain_complex
+export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
@@ -383,6 +385,7 @@ export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
 export cm_regularity
+export coatoms
 export cobases
 export cochain_complex
 export cocircuits
@@ -406,6 +409,7 @@ export coloops
 export column
 export combinations
 export combinatorial_symmetries
+export comparability_graph
 export comm
 export comm!
 export common_components
@@ -561,7 +565,9 @@ export ehrhart_polynomial
 export element_to_homomorphism
 export elementary_abelian_group
 export elementary_symmetric
+export element
 export elements
+export elements_of_rank
 export eliminate
 export elliptic_parameter
 export elliptic_surface
@@ -588,6 +594,7 @@ export exterior_derivative
 export exterior_power
 export f_vector
 export face_fan
+export face_poset
 export faces
 export facet_degrees
 export facet_indices
@@ -691,6 +698,7 @@ export graph_from_adjacency_matrix
 export graph_from_edges
 export graph_from_labeled_edges
 export grassmann_pluecker_ideal
+export greatest_element
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
@@ -771,6 +779,7 @@ export img_gens
 export immaculate_line_bundles
 export incidence_matrix
 export inclusion_morphism
+export indegree
 export independent_sets
 export index
 export index_of_gen
@@ -1052,9 +1061,12 @@ export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
 export lattice_homomorphism
+export lattice_of_cyclic_flats
+export lattice_of_flats
 export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
+export least_element
 export leading_coefficient
 export leading_coefficient_and_exponent
 export leading_exponent
@@ -1136,11 +1148,13 @@ export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abeli
 export maximal_associated_points
 export maximal_blocks
 export maximal_cells
+export maximal_chains
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
+export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
 export metadata
@@ -1195,6 +1209,8 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
+export n_atoms
+export n_coatoms
 export n_cones
 export n_connected_components
 export n_edges
@@ -1273,7 +1289,7 @@ export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_weak_compositions
 export numerator
-export numerical_lattice 
+export numerical_lattice
 export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
@@ -1298,6 +1314,7 @@ export orbits
 export order, has_order, set_order
 export order_field_of_definition
 export order_of_vanishing
+export order_polytope
 export ordering
 export orders_centralizers
 export orders_class_representatives
@@ -1306,6 +1323,7 @@ export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
+export outdegree
 export outneighbors
 export p_central_series
 export pappus_matroid
@@ -1313,6 +1331,9 @@ export parallel_extension
 export parametrization
 export parametrization_conic
 export parent
+export partially_ordered_set
+export partially_ordered_set_from_adjacency
+export partially_ordered_set_from_inclusions
 export partition
 export partitions
 export patches
@@ -1624,6 +1645,7 @@ export sub
 export sub_object
 export subalgebra_membership
 export subalgebra_membership_homogeneous
+export subgroup
 export subgroup_classes
 export subquo_type
 export subquotient
