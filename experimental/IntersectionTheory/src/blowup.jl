@@ -100,7 +100,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 
   # we construct E as the projective bundle PN of N, see [E-H, p 472]
 
-  E = abstract_projective_bundle(N) 
+  E = projective_bundle(N) 
   AE, RE = E.ring, base_ring(E.ring)
   g = E.struct_map
   ζ = g.O1  # the first Chern class of O_E(1)

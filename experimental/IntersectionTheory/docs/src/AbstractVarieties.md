@@ -42,7 +42,7 @@ complete_intersection(X::AbstractVariety, degs::Int...)
 ```
 
 ```@docs
-abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+projective_bundle(F::AbstractBundle; symbol::String = "z")
 ```
 
 ```@docs
@@ -50,7 +50,7 @@ abstract_hirzebruch_surface(n::Int)
 ```
 
 ```@docs
-abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ```
 
 ```@docs
@@ -175,7 +175,7 @@ Given an element `c` of the Chow ring of an abstract variety, return the integra
 
 !!! note
     If the abstract variety has been given a point class, the integral will be an element of the coefficient ring of the Chow ring.
-    That is, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
+    That is, typically, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
     of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
     part of `c` is returned.
 
@@ -212,6 +212,8 @@ t^2
 
 ```
 
+*Lines on a general cubic hypersurface in P^3:*
+
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
@@ -222,12 +224,12 @@ AbstractBundle of rank 2 on AbstractVariety of dim 4
 julia> E = symmetric_power(Q, 3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
 
-julia> # Lines on a general cubic hypersurface in P^3:
-
 julia> integral(top_chern_class(E))
 27
 
 ```
+
+*Lines on a general complete intersection Calabi-Yau threefold of type (2,2,2,2):*
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4+4)
@@ -238,8 +240,6 @@ AbstractBundle of rank 2 on AbstractVariety of dim 12
 
 julia> E = symmetric_power(S, 2)
 AbstractBundle of rank 3 on AbstractVariety of dim 12
-
-julia> # Lines on a general complete intersection Calabi-Yau threefold of type (2,2,2,2):
 
 julia> integral(top_chern_class(E)^4)
 512

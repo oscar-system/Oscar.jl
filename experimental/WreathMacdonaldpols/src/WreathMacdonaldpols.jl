@@ -134,13 +134,12 @@ function smaller_ord(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{I
 end
 
 @doc raw"""
-
     wreath_macdonald_polynomials(n::Int,
-                                      r::Int,
-                                      wperm::PermGroupElem,
-                                      coroot::Vector{Int};
-                                      parent::MPolyRing{<:QQAbFieldElem}=
-                                      polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
+                                 r::Int,
+                                 wperm::PermGroupElem,
+                                 coroot::Vector{Int};
+                                 parent::MPolyRing{<:QQAbFieldElem}=
+                                 polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
 
 Given two integers `n` and `r` and an element of the affine Weyl group of type ``A^{(1)}_{r-1}``
 (seen as the semi-direct product of the symmetric group on `r` letters with the coroot lattice
@@ -202,10 +201,10 @@ end
 @doc raw"""
 
     wreath_macdonald_polynomial(lbb::Multipartition,
-                                     wperm::PermGroupElem,
-                                     coroot::Vector{Int};
-                                     parent::MPolyRing{<:QQAbFieldElem}=
-                                     polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
+                                wperm::PermGroupElem,
+                                coroot::Vector{Int};
+                                parent::MPolyRing{<:QQAbFieldElem}=
+                                polynomial_ring(abelian_closure(QQ)[1], [:q,:t];cached=true)[1])
 
 Given a multipartition `lbb` of size ``n`` and length ``r`` and an element of the affine Weyl group of type ``A^{(1)}_{r-1}``
 (seen as the semi-direct product of the symmetric group on ``r`` letters with the coroot lattice
