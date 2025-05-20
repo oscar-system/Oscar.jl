@@ -312,10 +312,7 @@ function prime_to_face(
   gens = Vector{MPolyDecRingElem}()
   for lp in lattice_points(zonotope)
     if !(lp in F) #check if lattice point is in F
-      a_v = Vector{ZZRingElem}()
-      for a_p in lp # PointVector -> Vector
-        push!(a_v, a_p)
-      end
+      a_v = [a_p for a_p in lp]
       push!(gens, monomial_basis(kQ, a_v)[1])
     end
   end

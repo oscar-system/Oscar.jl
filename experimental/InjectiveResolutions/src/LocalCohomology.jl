@@ -319,11 +319,7 @@ Returns a finite set of positive halfspaces such that $Q$ is the intersection of
 """
 function get_halfspace_eq(kQ::MonoidAlgebra)
   A, _ = halfspace_matrix_pair(facets(kQ.cone))
-  H = []
-  for i in 1:length(kQ.hyperplanes)
-    push!(H, [kQ.hyperplanes[i].hyperplane, A[i, :]])
-  end
-  return H
+  return [[kQ.hyperplanes[i].hyperplane, A[i, :]] for i in 1:length(kQ.hyperplanes)]
 end
 
 @doc raw"""
@@ -399,7 +395,7 @@ function sector_partition(
   for tuple in Iterators.product(ntuple(_ -> 1:(r + 1), length(tau))...) #for all tuples (l1,...,ln) where li \in {1,...,r}) and n is the number of facets
     _delta = Vector{Polyhedron}()
     valid = true # is one strip empty? => the intersection is empty
-    A_tuple = []
+    A_tuple = Vector{Vector{Int}}()
     for i in eachindex(tau)
       if all(x -> x == -Inf*one(field), tau[i])
         continue
@@ -475,19 +471,11 @@ function _local_cohomology_sector(
   phi_del = zero_matrix(field,length(A_0),length(A_1))
 
   if !is_empty(phi) # `is_empty` is true for the the m x 0-matrix
-    rows = []
-    for i in A_0 #delete i-th row of phi for i \notin A_0
-      push!(rows, phi[i, :])
-    end
-    _phi_del = transpose(hcat(rows...))
-
-    if all(>(0), size(_phi_del)) #not of size 0xn or nx0
-      columns = []
-      for i in A_1 #delete i-th column of phi for i \notin A_1
-        push!(columns, _phi_del[:, i - j])
-      end
-      if length(columns) > 0
-        phi_del = matrix(field, hcat(columns...))
+    if length(A_0) > 0
+      _phi_del = phi[A_0,:]
+   
+      if length(A_1) > 0
+        phi_del = _phi_del[:,A_1 .- j]
       end
     end
   end
@@ -495,19 +483,11 @@ function _local_cohomology_sector(
   #psi
   psi_del = zero_matrix(field,length(A_1),length(A_2))
   if !is_empty(psi)
-    rows = []
-    for i in A_1 #delete i-th row of psi for i \notin A_1 
-      push!(rows, psi[i - j, :])
-    end
-    _psi_del = transpose(hcat(rows...))
+    if length(A_1) > 0
+          _psi_del = psi[A_1 .- j,:]
 
-    if all(>(0), size(_psi_del)) #not of size 0xn or nx0
-      columns = []
-      for i in A_2 #delete i-th column of psi for i \notin A_2 
-        push!(columns, _psi_del[:, i - k])
-      end
-      if length(columns) > 0
-        psi_del = matrix(field, hcat(columns...))
+      if length(A_2) > 0
+        psi_del = _psi_del[:,A_2 .- k]
       end
     end
   end
@@ -554,7 +534,7 @@ function apply_gamma!(
   columns_phi = []
   rows_psi = []
   _J_1 = []
-  for i in eachindex(J_1)
+    for i in eachindex(J_1)
     if issubset(underlying_ideal(I), J_1[i].face.prime)
       push!(_J_1, J_1[i])
       if rows_phi != []
