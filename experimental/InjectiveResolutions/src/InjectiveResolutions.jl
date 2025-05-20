@@ -8,7 +8,7 @@ import ..Oscar:
   ModuleGens,
   SubModuleOfFreeModule,
   is_zm_graded,
-grading_group,
+  grading_group,
   elem_type,
   singular_module, 
   singular_generators,
