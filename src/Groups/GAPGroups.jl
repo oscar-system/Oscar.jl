@@ -2187,7 +2187,7 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
     @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
     return one(genimgs[1])
   end
-  res = init !== nothing? init : one(genimgs[1])
+  res = init !== nothing ? init : one(genimgs[1])
   for i in v
     res *= _map_word_syllable(i, genimgs, genimgs_inv)
   end
@@ -2204,7 +2204,7 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
     @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
     return zero(parent(genimgs[1]))
   end
-  res = init !== nothing? init : zero(parent(genimgs[1]))
+  res = init !== nothing ? init : zero(parent(genimgs[1]))
   for i in v
     res += _map_word_syllable_additive(i, genimgs, genimgs_inv)
   end
