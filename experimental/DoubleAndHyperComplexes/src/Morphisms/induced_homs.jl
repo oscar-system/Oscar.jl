@@ -46,7 +46,7 @@ function (fac::InducedContravariantMorphismFactory)(self::AbsHyperComplexMorphis
   a = i[1:m]
   b = i[m+1:m+n]
   na = Tuple([-i for i in a])
-  return hom(fac.phi[na], common_cod[b]; domain=dom[a], codomain=cod[a])
+  return hom(fac.phi[na], common_cod[b]; domain=dom[i], codomain=cod[i])
 end
 
 function can_compute(fac::InducedContravariantMorphismFactory, self::AbsHyperComplexMorphism, i::Tuple)
