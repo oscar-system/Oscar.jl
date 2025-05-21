@@ -67,7 +67,7 @@ julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
 
-julia> is_global(o1)
+julia> is_global_block(o1)
 true
 
 julia> canonical_matrix(o1)
@@ -77,7 +77,7 @@ julia> canonical_matrix(o1)
 julia> o2 = neglex([y, z])
 neglex([y, z])
 
-julia> is_local(o2)
+julia> is_local_block(o2)
 true
 
 julia> canonical_matrix(o2)
