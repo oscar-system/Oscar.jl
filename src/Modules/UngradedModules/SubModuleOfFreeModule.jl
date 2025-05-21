@@ -475,9 +475,43 @@ end
 Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
-  F = ambient_free_module(M)
-  return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
+    return in_atomic(a, M)
 end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,<:FieldElem}, T<:MPolyRingElem{S}}
+    F = ambient_free_module(M)
+    return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
+end
+
+function ensure_solve_ctx!(M::SubModuleOfFreeModule)
+    if !has_attribute(M, :solve_ctx)
+        F = ambient_free_module(M)
+        d, n = rank(F), ngens(M)
+        R = base_ring(F)
+        mat = zero_matrix(R, d, n)
+        for (j, g) in enumerate(gens(M)), (i, val) in coordinates(g)
+            mat[i, j] = val
+        end
+        set_attribute!(M, :solve_ctx, solve_init(mat))
+    end
+end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {T<:Union{ZZRingElem, FieldElem}}
+    ensure_solve_ctx!(M)
+    solve_ctx = get_attribute(M, :solve_ctx)
+    R = base_ring(ambient_free_module(M))
+    d = rank(ambient_free_module(M))
+    vec_a = zeros(R, d)
+    for (i, val) in coordinates(a)
+        vec_a[i] = val
+    end
+    return can_solve(solve_ctx, vec_a, side=:right)
+end
+
+function in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
+    error("Membership test 'in' is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
+end
+
 
 function normal_form(M::SubModuleOfFreeModule{T}, N::SubModuleOfFreeModule{T}) where {T <: MPolyRingElem}
   @assert is_global(default_ordering(N))

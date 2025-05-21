@@ -419,31 +419,65 @@ Note: `:via_lift` is typically faster than `:via_transform` for a single vector 
 is faster if many vectors are lifted
 """
 function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
-  if iszero(a)
-    return sparse_row(base_ring(parent(a)))
-  end
-  if task == :auto
-    if coefficient_ring(base_ring(parent(a))) isa Field #base_ring(base_ring(...)) does not work for MPolyQuos
-      task = :via_transform
+    if iszero(a)
+        return sparse_row(base_ring(parent(a)))
+    end
+    return coordinates_atomic(a, M; task=task)
+end
+
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol = :auto) where {S<:Union{ZZRingElem,<:FieldElem}, T<:MPolyRingElem{S}}
+    if task == :auto
+        task = coefficient_ring(base_ring(parent(a))) isa Field ? :via_transform : :via_lift
+    end
+    for i in 1:ngens(M)
+        g = gen(M,i)
+        if a == g
+            R = base_ring(M)
+            return sparse_row(R, [(i,R(1))])
+        end
+    end
+    if task == :via_transform
+        std, _ = lift_std(M)
+        return coordinates_via_transform(a, std)
+    elseif task == :via_lift
+        return coordinates(a, M.gens)
     else
-      task = :via_lift
+        error("Invalid task given.")
     end
-  end
-  for i in 1:ngens(M)
-    g = gen(M,i)
-    if a == g
-      R = base_ring(M)
-      return sparse_row(R, [(i,R(1))])
+end
+
+function sparse_row_from_dense(R::Ring, dense_vec::Vector{T}) where T
+    positions = Int[]
+    values = T[]
+    for (i, val) in enumerate(dense_vec)
+        if !iszero(val)
+            push!(positions, i)
+            push!(values, val)
+        end
     end
-  end
-  if task == :via_transform
-    std, _ = lift_std(M)
-    return coordinates_via_transform(a, std)
-  elseif task == :via_lift
-    return coordinates(a, M.gens)
-  else
-    error("Invalid task given.")
-  end
+    return sparse_row(R, positions, values)
+end
+
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol=:auto) where {T<:Union{ZZRingElem, FieldElem}}
+    ensure_solve_ctx!(M)
+    solve_ctx = get_attribute(M, :solve_ctx)
+    n = ngens(M)
+    R = base_ring(ambient_free_module(M))
+    d = rank(ambient_free_module(M))
+    vec_a = zeros(R, d)
+    for (i, val) in coordinates(a)
+        vec_a[i] = val
+    end
+    is_solvable, sol = can_solve_with_solution(solve_ctx, vec_a, side=:right)
+    if !is_solvable
+        error("Element is not contained in the module.")
+    end
+    return sparse_row_from_dense(R, sol)
+end
+
+
+function coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symbol = :auto)
+    error("The function coordinates_atomic is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
 end
 
 @doc raw"""

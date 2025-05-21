@@ -531,14 +531,21 @@ julia> phi(first(gens(N)))
 e[2]
 ```
 """
+# generic dispatcher 
 function prune_with_map(M::ModuleFP)
+    return prune_with_map_atomic(M)
+end
+
+# generic fallback
+function prune_with_map_atomic(M::ModuleFP)
   # TODO: take special care of graded modules 
   # by stripping off the grading and rewrapping it afterwards.
   N, b = simplify(M)
   return N, b
 end
 
-function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
+# MpolyRing and MPolyQuoRing case
+function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
 
   # Singular presentation
   pm = presentation(M)
@@ -580,6 +587,75 @@ function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoR
   phi = compose(phi3, phi2)
   
   return M_new, phi
+end
+
+function ensure_presentation_ctx!(M::SubquoModule)
+    ensure_presentation_ctx!(base_ring(M), M)
+end
+
+function ensure_presentation_ctx!(M::SubquoModule{ZZRingElem})
+    if !has_attribute(M, :presentation_ctx)
+        R = base_ring(M)
+        F = ambient_free_module(M)
+        m = ngens(F)
+        rels = relations(M)
+        n = length(rels)
+
+        A = zero_matrix(R, m, n)
+        for (j, rel) in enumerate(rels)
+            for (i, v) in coordinates(rel)
+                A[i, j] = v
+            end
+        end
+
+        D, U, V = snf_with_transform(A)
+        set_attribute!(M, :presentation_ctx, (D=D, U=U, V=V))
+    end
+end
+
+function ensure_presentation_ctx!(M::SubquoModule{T}) where {T<:FieldElem}
+    if !has_attribute(M, :presentation_ctx)
+        R = base_ring(M)
+        F = ambient_free_module(M)
+        m = ngens(F)
+        rels = relations(M)
+        n = length(rels)
+
+        A = zero_matrix(R, m, n)
+        for (j, rel) in enumerate(rels)
+            for (i, v) in coordinates(rel)
+                A[i, j] = v
+            end
+        end
+
+        D, U, V = snf_with_transform(A)
+        set_attribute!(M, :presentation_ctx, (D=D, U=U, V=V))
+    end
+end
+
+function prune_with_map_atomic(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+    ensure_presentation_ctx!(M)
+    ctx = get_attribute(M, :presentation_ctx)
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    m = ngens(F)
+    D = ctx.D
+    U = ctx.U
+    diag_length = min(size(D)...)
+    unit_diag_indices = [i for i in 1:diag_length if is_unit(D[i,i])]
+    row_indices = setdiff(1:size(D, 1), unit_diag_indices)
+    col_indices = setdiff(1:size(D, 2), unit_diag_indices)
+    D_prime_matrix = sub(D, row_indices, col_indices)
+    F_prime = FreeMod(R, length(row_indices))
+    rels_prime = [F_prime(sparse_row_from_dense(R, D_prime_matrix[:, j])) for j in 1:size(D_prime_matrix, 2)]
+    N_prime, _ = sub(F_prime, rels_prime)
+    M_prime, _ = quo(F_prime, N_prime)
+    U_inv = inv(U)
+    iso_basis_ambient = [sum(U_inv[j, row_indices[i]] * gens(F)[j] for j in 1:m) for i in 1:length(row_indices)]
+    proj_to_M = hom(F, M, gens(M))
+    iso_basis = [proj_to_M(b) for b in iso_basis_ambient]
+    iso_map = hom(M_prime, M, iso_basis)
+    return M_prime, iso_map
 end
 
 function _presentation_minimal(SQ::ModuleFP{T};
