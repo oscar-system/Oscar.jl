@@ -96,12 +96,12 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
   end
 
   # Check det(h⊥) = 1 for elements in the centralizer restricted to (V^g)⊥
-  ZG, _ = centralizer(G,g)
+  ZGg, _ = centralizer(G,g)
   
   # Compute left-inverse of basis_Vg⊥ (via Moore-Penrose pseudoinverse formula)
   left_inverse = inv(transpose(basis_Vg⊥) * basis_Vg⊥) * transpose(basis_Vg⊥)
   
-  for h in ZG
+  for h in ZGg
     # Restrict h to the space (V^g)⊥
     h⊥ = left_inverse * matrix(h) * basis_Vg⊥
     
@@ -112,16 +112,23 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
 
   # We know that κ_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
   S, _ = polynomial_ring(R, ["t"])
-  result = zero_matrix(S, n, n)
   
   # Create matrix of κ_g in the basis {v1,v2}
+  result = zero_matrix(S, n, n)
   result[1,2] = S[1]
   result[2,1] = -S[1]
   
   # Base change to the standard basis
-  B = hcat(basis_Vg, basis_Vg⊥)
+  B = hcat(basis_Vg⊥, basis_Vg)
   B_inv = inv(B)
   result = transpose(B_inv) * result * B_inv
+  
+  # Normalize for better readability
+  for j in 1:n, i in 1:n
+    if !is_zero(result[i,j])
+      result = result / leading_coefficient(result[i,j])
+    end
+  end
   
   return result
 end

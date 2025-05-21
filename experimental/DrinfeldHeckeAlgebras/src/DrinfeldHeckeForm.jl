@@ -2,7 +2,6 @@
 # TODO: Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
 # TODO: Gibt es Drinfeld-Hecke algebren die keine Rational-Cherednik algebren sind für complexe Spiegelungsgruppe?
 # TODO: Gibt es DH algebren die keine Symplectic reflection algebras sind?
-# TODO. generic instead of parametrized
 
 ################################################################################
 # Drinfeld-Hecke form
