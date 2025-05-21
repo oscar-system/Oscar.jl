@@ -419,11 +419,21 @@ Note: `:via_lift` is typically faster than `:via_transform` for a single vector 
 is faster if many vectors are lifted
 """
 function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
+    R = base_ring(parent(a))
     if iszero(a)
-        return sparse_row(base_ring(parent(a)))
+        return sparse_row(R)
+    end
+    for (i, g) in enumerate(gens(M))
+        if a == g
+            row = sparse_row(R)
+            push!(row.pos, i)
+            push!(row.values, one(R))
+            return row
+        end
     end
     return coordinates_atomic(a, M; task=task)
 end
+
 
 function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol = :auto) where {S<:Union{ZZRingElem,<:FieldElem}, T<:MPolyRingElem{S}}
     if task == :auto
@@ -461,7 +471,6 @@ end
 function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol=:auto) where {T<:Union{ZZRingElem, FieldElem}}
     ensure_solve_ctx!(M)
     solve_ctx = get_attribute(M, :solve_ctx)
-    n = ngens(M)
     R = base_ring(ambient_free_module(M))
     d = rank(ambient_free_module(M))
     vec_a = zeros(R, d)
