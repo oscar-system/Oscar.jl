@@ -288,7 +288,7 @@ function free_resolution(M::SubquoModule{T};
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
-  set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
   set_attribute!(cc, :algorithm, algorithm)
 
   return FreeResolution(cc)
