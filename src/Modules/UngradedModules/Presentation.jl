@@ -715,12 +715,11 @@ function prune_with_map(F::FreeMod)
 end
 
 @doc raw"""
-    is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}} -> Bool
+    is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
 
-Determine whether the finitely presented module `M` over `ZZ` or a field is finite.
+Determine whether the finitely presented module `M` over `ZZ` or a field is finite as a set.
 
-This is done by computing a minimal presentation and checking if the resulting
-module has rank 0, meaning all generators are torsion elements.
+This is done by computing a minimal presentation.
 
 # Examples
 ```jldoctest
