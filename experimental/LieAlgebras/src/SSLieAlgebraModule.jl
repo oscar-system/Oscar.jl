@@ -200,7 +200,7 @@ or its root system.
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> dominant_character(L, [2, 1, 0])
@@ -211,7 +211,7 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   2*w_1 + w_2 => 1
 ```
 
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> R = root_system(:B, 3);
 
 julia> dominant_character(R, 2 * fundamental_weight(R, 1) + fundamental_weight(R, 3))
@@ -336,7 +336,7 @@ or its root system.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::WeightLatticeElem)).
 
 # Examples
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> character(L, [2, 0, 0])
@@ -353,7 +353,7 @@ Dict{WeightLatticeElem, Int64} with 10 entries:
   -w_2             => 1
 ```
 
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> R = root_system(:B, 3);
 
 julia> character(R, fundamental_weight(R, 3))
@@ -427,7 +427,7 @@ This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
 The return type may change in the future.
 
 # Examples
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> L = lie_algebra(QQ, :A, 2);
 
 julia> tensor_product_decomposition(L, [1, 0], [0, 1])
@@ -444,7 +444,7 @@ MSet{Vector{Int64}} with 6 elements:
   [0, 3]
 ```
 
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> R = root_system(:B, 2);
 
 julia> tensor_product_decomposition(R, fundamental_weight(R, 1), fundamental_weight(R, 2))
@@ -563,7 +563,7 @@ where $P$ denotes the additive group of the weight lattice.
 If a single weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> R = root_system(:A, 3);
 
 julia> pos_r = positive_root(R, 4)
@@ -622,7 +622,7 @@ For Demazure characters of generalized flag manifolds, as in [PS09](@cite),
 see [`demazure_character(::AbstractVector, ::PermGroupElem)`](@ref).
 
 # Examples
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> L = lie_algebra(QQ, :A, 2);
 
 julia> demazure_character(L, [1, 1], [2, 1])
@@ -634,7 +634,7 @@ Dict{WeightLatticeElem, Int64} with 5 entries:
   -2*w_1 + w_2 => 1
 ```
 
-```jldoctest
+```jldoctest; filter = :(Oscar.doctestfilter_hash_changes_in_1_13())
 julia> R = root_system(:B, 3);
 
 julia> demazure_character(R, fundamental_weight(R, 2), weyl_group(R)([1, 2, 3]))
