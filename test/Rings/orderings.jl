@@ -91,6 +91,8 @@
    # issue 1697
    @test_throws ErrorException is_global(lex([x,y]))
    @test_throws ErrorException is_local(neglex([x,y]))
+   @test is_global_block(lex([x,y]))
+   @test is_local_block(neglex([x,y]))
 
    @test_throws ArgumentError monomial_ordering(gens(R), :foo)
    @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
