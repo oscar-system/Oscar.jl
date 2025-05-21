@@ -651,11 +651,11 @@ julia> add_edge!(g, 3, 4);
 
 julia> incidence_matrix(g)
 5×2 IncidenceMatrix
-[1]
-[]
-[1, 2]
-[2]
-[]
+ [1]
+ []
+ [1, 2]
+ [2]
+ []
 ```
 """
 function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -1550,10 +1550,9 @@ true
 
 julia> adjacency_matrix(G)
 3×3 IncidenceMatrix
-[2, 3]
-[]
-[]
-
+ [2, 3]
+ []
+ []
 
 julia> matrix(ZZ, adjacency_matrix(G))
 [0   1   1]
@@ -1569,11 +1568,10 @@ Undirected graph with 4 nodes and the following edges:
 
 julia> adjacency_matrix(G)
 4×4 IncidenceMatrix
-[2, 3]
-[1, 4]
-[1, 4]
-[2, 3]
-
+ [2, 3]
+ [1, 4]
+ [1, 4]
+ [2, 3]
 
 julia> matrix(ZZ, adjacency_matrix(G))
 [0   1   1   0]

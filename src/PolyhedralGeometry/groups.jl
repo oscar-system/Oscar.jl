@@ -225,13 +225,12 @@ Polytope in ambient dimension 3
 
 julia> IM = vertex_indices(facets(c))
 6×8 IncidenceMatrix
-[1, 3, 5, 7]
-[2, 4, 6, 8]
-[1, 2, 5, 6]
-[3, 4, 7, 8]
-[1, 2, 3, 4]
-[5, 6, 7, 8]
-
+ [1, 3, 5, 7]
+ [2, 4, 6, 8]
+ [1, 2, 5, 6]
+ [3, 4, 7, 8]
+ [1, 2, 3, 4]
+ [5, 6, 7, 8]
 
 julia> automorphism_group_generators(IM)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
