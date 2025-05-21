@@ -11,10 +11,6 @@ function Base.copy(f::MPolyRingElem)
   return finish(g)
 end
 
-function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
-  return divexact(numerator(a)(b), denominator(a)(b))
-end
-
 ########################################################################
 # Part of PR #4706
 function is_equal_as_morphism(f::Map, g::Map)
@@ -25,11 +21,3 @@ function is_equal_as_morphism(f::Map, g::Map)
 end
 # end of changes in PR #4706
 ########################################################################
-
-function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
-  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
-end
-
-function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:PolyRingElem}, a::RingElem)
-  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
-end
