@@ -9,7 +9,7 @@
     end
   
     @testset "create parametrized drinfeld-hecke form" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       
       S = base_ring(κ)
       @test ngens(S) == 2
@@ -29,27 +29,33 @@
     end
   
     @testset "evaluate parameter" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       
-      @test is_parametrized(κ)
+      κ2 = evaluate_parameters(κ, [2,3])
       
-      κ = evaluate_parameters(κ, [2,3])
+      S = base_ring(κ2)
+      g = G[1]
+      h = one(G)
+
+      κ_g = alternating_bilinear_form(matrix(S, [0 2; -2 0]))
+      κ_h = alternating_bilinear_form(matrix(S, [0 3; -3 0]))
       
-      @test !is_parametrized(κ)
+      @test κ2[g] == κ_g
+      @test κ2[h] == κ_h
     end
   
     @testset "evaluate parameter not enough values" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       @test_throws ArgumentError evaluate_parameters(κ, [2])
     end
   
     @testset "evaluate parameter too many values" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       @test_throws ArgumentError evaluate_parameters(κ, [2,3,4])
     end
   
     @testset "evaluate parameter wrong element type" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       @test_throws ArgumentError evaluate_parameters(κ, [1, "hi"])
     end
   
@@ -74,23 +80,7 @@
       @test κ[g] == κ_g
     end
   
-    @testset "change drinfeld-hecke form locally" begin
-      κ = drinfeld_hecke_form(G)
-      
-      @test is_zero(κ)
-      
-      g = one(G)
-      κ[g] = MS([0 1;-1 0])
-      
-      @test !is_zero(κ)
-      @test nforms(κ) == 1
-      
-      κ_g = alternating_bilinear_form(MS([0 1;-1 0]))
-      
-      @test κ[g] == κ_g
-    end
-  
-    @testset "change drinfeld-hecke form globally" begin
+    @testset "change drinfeld-hecke form" begin
       κ = drinfeld_hecke_form(G)
       
       @test is_zero(κ)
@@ -111,19 +101,6 @@
       
       @test κ[g] == κ_g
       @test κ[h] == κ_h
-    end
-  
-    @testset "can't change parametrized drinfeld-hecke form" begin
-      κ = parametrized_drinfeld_hecke_form(G)
-      
-      T = elem_type(typeof(QQ))
-      forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
-      g = one(G)
-      h = G[1]
-      forms[g] = MS([0 3;-3 0])
-      forms[h] = MS([0 -2;2 0])
-      
-      @test_throws ArgumentError set_forms(κ, forms)
     end
   
     @testset "can't create from empty forms" begin
@@ -151,60 +128,19 @@
     end
   end
 
-  @testset "parametrized drinfeld-hecke forms over various rings" begin
-    @testset "base ring algebraic closure of Q" begin
-      R = algebraic_closure(QQ)
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
-      @test ngens(base_ring(κ)) == 2
-    end
-      
-    @testset "base ring Z" begin
-      G = matrix_group(matrix(ZZ, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
+  @testset "parametrized drinfeld-hecke forms over various fields" begin
+    @testset "algebraic closure of Q" begin
+      F = algebraic_closure(QQ)
+      G = matrix_group(matrix(F, [-1 0;0 -1]))
+      κ = generic_drinfeld_hecke_form(G)
       @test ngens(base_ring(κ)) == 2
     end
   
-    @testset "base ring Z/5Z" begin
-      R, _ = residue_ring(ZZ, 5)
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
+    @testset "Z/5Z" begin
+      F, _ = residue_ring(ZZ, 5)
+      G = matrix_group(matrix(F, [-1 0;0 -1]))
+      κ = generic_drinfeld_hecke_form(G)
       @test ngens(base_ring(κ)) == 2
-    end
-  
-    @testset "base ring Z/6Z" begin
-      R, _ = residue_ring(ZZ, 6)
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
-      @test ngens(base_ring(κ)) == 2
-    end
-  
-    @testset "base ring QQ[t]" begin
-      R, _ = polynomial_ring(QQ, ["t"])
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
-      @test ngens(base_ring(κ)) == 2
-    end
-  
-    @testset "base ring ZZ[t]" begin
-      R, _ = polynomial_ring(ZZ, ["t"])
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      κ = parametrized_drinfeld_hecke_form(G)
-      @test ngens(base_ring(κ)) == 2
-    end
-  
-    @testset "base ring F_5[t] not supported" begin
-      F_5, _ = residue_ring(ZZ, 5)
-      R, _ = polynomial_ring(F_5, ["t"])
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      @test_throws ArgumentError parametrized_drinfeld_hecke_form(G)
-    end
-  
-    @testset "base ring Z/6Z[t] not supported" begin
-      Z_6, _ = residue_ring(ZZ, 6)
-      R, _ = polynomial_ring(Z_6, ["t"])
-      G = matrix_group(matrix(R, [-1 0;0 -1]))
-      @test_throws ArgumentError parametrized_drinfeld_hecke_form(G)
     end
   end
 
@@ -219,19 +155,19 @@
     end
   
     @testset "create parametrized drinfeld-hecke form" begin
-      κ = parametrized_drinfeld_hecke_form(G)
+      κ = generic_drinfeld_hecke_form(G)
       S = base_ring(κ)
   
       @test ngens(S) == 1
   
-      t1 = S[1]
+      t = S[1]
       MS = matrix_space(S,3,3)
   
       g = G([0 0 1; 1 0 0; 0 1 0])
       h = G([0 1 0; 0 0 1; 1 0 0])
   
-      κ_g = alternating_bilinear_form(MS([0 -t1 t1; t1 0 -t1; -t1 t1 0]))
-      κ_h = alternating_bilinear_form(MS([0 t1 -t1; -t1 0 t1; t1 -t1 0]))
+      κ_g = alternating_bilinear_form(MS([0 t -t; -t 0 t; t -t 0]))
+      κ_h = alternating_bilinear_form(MS([0 -t t; t 0 -t; -t t 0]))
   
       @test κ[g] == κ_g
       @test κ[h] == κ_h
@@ -239,8 +175,8 @@
     end
   
     @testset "evaluate parameter" begin
-      κ = parametrized_drinfeld_hecke_form(G)
-      κ = evaluate_parameters(κ, [2])
+      κ = generic_drinfeld_hecke_form(G)
+      κ = evaluate_parameters(κ, [-2])
   
       g = G(matrix(QQ, [0 0 1; 1 0 0; 0 1 0]))
       h = G(matrix(QQ, [0 1 0; 0 0 1; 1 0 0]))
@@ -275,16 +211,6 @@
             
       @test κ[g] == κ_g
       @test κ[h] == κ_h
-    end
-  
-    @testset "change drinfeld-hecke form locally not possible" begin
-      κ = drinfeld_hecke_form(G)
-      @test is_zero(κ)
-  
-      g = G([0 0 1; 1 0 0; 0 1 0])
-      MS = matrix_space(QQ,3,3)
-  
-      @test_throws ArgumentError κ[g] = MS([0 -1 1; 1 0 -1; -1 1 0])
     end
   end
 end

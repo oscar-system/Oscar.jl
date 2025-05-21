@@ -99,7 +99,7 @@ end
 
 # Substitute parameters by values in any subring
 function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where {T <: FieldElem, S <: RingElem}
-  if !is_generic(κ)
+  if !(base_ring(κ) isa MPolyRing)
     throw(ArgumentError("Given form does not have any parameters."))
   end
 
@@ -193,7 +193,6 @@ group_algebra(κ::DrinfeldHeckeForm) = κ.group_algebra
 forms(κ::DrinfeldHeckeForm) = κ.forms
 number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
-is_generic(κ::DrinfeldHeckeForm) = base_ring(κ) isa MPolyRing
 
 function deepcopy_internal(κ::DrinfeldHeckeForm)
   G = group(κ)
