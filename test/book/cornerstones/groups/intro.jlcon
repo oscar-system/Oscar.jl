@@ -50,7 +50,7 @@ julia> p = K.([0,1]);  # coordinates of vertex 1, expressed over K
 julia> orb = orbit(G_mat, *, p)
 G-set of
   matrix group of degree 2 over QQBar
-  with seeds Vector{QQBarFieldElem}[[Root 0 of x, Root 1.00000 of x - 1]]
+  with seeds [[Root 0 of x, Root 1.00000 of x - 1]]
 
 julia> pts = collect(orb)
 5-element Vector{Vector{QQBarFieldElem}}:
