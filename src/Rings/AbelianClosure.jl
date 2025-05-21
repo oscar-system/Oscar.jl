@@ -687,7 +687,7 @@ function intersect_block_systems(a::Vector{Vector{Int}}, b::Vector{Vector{Int}})
   return sort([x for x = c if length(x) > 0], lt = (a,b) -> isless(a[1], b[1]))
 end
 
-function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cache::Bool = true)
+function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true)
   f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = s])
   k = cyclotomic_field(f)[1]
   b = [[i for i = 1:degree(k)]] #block system for QQ as a subfield
@@ -711,7 +711,7 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cache::Bool = true)
   if iszero(pe) #to catch QQ as a subfield, we prefer x-1 over x
     pe = one(K)
   end
-  if cache
+  if cached
     old = get_attribute(K, :subfields)
     if old === nothing
       old = Dict{Tuple{Int, Vector{Int}}, Map}()
@@ -727,7 +727,7 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cache::Bool = true)
   s, _ = number_field(g; check = false, cached = false)
   h = hom(s, k, k(pe.data))
   hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
-  if cache
+  if cached
     old = get_attribute(K, :subfields)
     old[(f, b[1])] = hh
   end
