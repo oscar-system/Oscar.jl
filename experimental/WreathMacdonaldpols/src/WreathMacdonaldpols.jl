@@ -199,7 +199,6 @@ function wreath_macdonald_polynomials(n::Int,
 end
 
 @doc raw"""
-
     wreath_macdonald_polynomial(lbb::Multipartition,
                                 wperm::PermGroupElem,
                                 coroot::Vector{Int};
@@ -213,7 +212,7 @@ associated with `lbb` and the affine Weyl group element in the standard Schur ba
 
 ```jldoctest
 julia> wreath_macdonald_polynomial(multipartition([[1],[],[]]),cperm(1:3),[0,1,-1])
-[  q   q^2   1]
+[q   q^2   1]
 ```
 """
 function wreath_macdonald_polynomial(lbb::Multipartition,
