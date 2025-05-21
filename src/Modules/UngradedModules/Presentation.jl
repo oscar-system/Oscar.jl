@@ -531,7 +531,6 @@ julia> phi(first(gens(N)))
 e[2]
 ```
 """
-# generic dispatcher 
 function prune_with_map(M::ModuleFP)
     return prune_with_map_atomic(M)
 end
