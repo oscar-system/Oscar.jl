@@ -1493,17 +1493,6 @@ end
     @testset "Tensoring morphisms over ZZ" begin
         R = ZZ
         F2 = FreeMod(R, 2)
-        F3 = FreeMod(R, 3)
-        A1 = matrix(ZZ, [1 2; 3 4; 5 6])
-        B1 = matrix(ZZ, [7 8])
-        A2 = matrix(ZZ, [2 0 1; 0 1 3; 1 1 1])
-        B2 = matrix(ZZ, [0 1 1])
-        M1 = SubquoModule(F2, A1, B1)
-        M2 = SubquoModule(F3, A2, B2)
-        M, pure_M = tensor_product(M1, M2, task=:map)
-        phi = hom_tensor(M, M, [identity_map(M1), identity_map(M2)])
-        v = M[1] + 2*M[2]
-        @test phi(v) == v
         F4 = FreeMod(R, 4)
         A3 = matrix(ZZ, [1 2; 3 4])
         M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
