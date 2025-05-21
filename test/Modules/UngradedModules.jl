@@ -1494,6 +1494,14 @@ end
         R = ZZ
         F2 = FreeMod(R, 2)
         F4 = FreeMod(R, 4)
+        A1 = matrix(ZZ, [1 2; 3 4; 5 6])
+        B1 = matrix(ZZ, [7 8])
+        A2 = matrix(ZZ, [2 0 1; 0 1 3; 1 1 1])
+        B2 = matrix(ZZ, [0 1 1])
+        M1 = SubquoModule(F2, A1, B1)
+        F3 = FreeMod(R, 3)
+        M2 = SubquoModule(F3, A2, B2)
+        M, pure_M = tensor_product(M1, M2, task=:map)
         A3 = matrix(ZZ, [1 2; 3 4])
         M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
         N, pure_N = tensor_product(M3, F4, task=:map)
@@ -1504,6 +1512,24 @@ end
         u1 = M3[1]
         u2 = F4[1]
         @test phi2(pure_N((u1, u2))) == pure_M((M3_to_M1(u1), F4_to_M2(u2)))
+        F3 = FreeMod(R, 3)
+        A1 = matrix(ZZ, [1 2; 3 4; 5 6])
+        B1 = matrix(ZZ, [7 8])
+        A2 = matrix(ZZ, [2 0 1; 0 1 3; 1 1 1])
+        B2 = matrix(ZZ, [0 1 1])
+        M1 = SubquoModule(F2, A1, B1)
+        M2 = SubquoModule(F3, A2, B2)
+        M, pure_M = tensor_product(M1, M2, task=:map)
+        phi_M1 = hom(M1, M1, identity_matrix(ZZ, 3))
+        phi_M2 = hom(M2, M2, identity_matrix(ZZ, 3))
+        phi = hom_tensor(M, M, [phi_M1, phi_M2])
+        @test is_welldefined(phi)
+        @test is_bijective(phi)
+        for u1 in gens(M1), u2 in gens(M2)
+          input_elem = pure_M((u1, u2))
+          output_elem = pure_M((phi_M1(u1), phi_M2(u2)))
+          @test phi(input_elem) == output_elem
+        end
     end
 
     @testset "Direct product over ZZ" begin
