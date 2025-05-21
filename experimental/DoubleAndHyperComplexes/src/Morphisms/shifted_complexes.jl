@@ -26,7 +26,7 @@ function (fac::ShiftedComplexMorphismFactory)(self::AbsHyperComplexMorphism, I::
   return fac.phi[j]
 end
 
-function can_compute(fac::ShiftedComplexMorphismFactory, self::AbsHyperComplexMorphism, i::Tuple)
+function can_compute(fac::ShiftedComplexMorphismFactory, self::AbsHyperComplexMorphism, I::Tuple)
   j = Tuple([i for i in I] + fac.shift)
   return can_compute_index(fac.phi, j)
 end
