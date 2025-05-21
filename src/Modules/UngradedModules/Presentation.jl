@@ -788,7 +788,7 @@ function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
         if is_finite(R)
             return true
         else
-            return ncols == 0
+            return nc == 0
         end
     else
         error("The base ring $(typeof(R)) is not supported.")
