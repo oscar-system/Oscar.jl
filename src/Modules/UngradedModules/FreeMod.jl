@@ -36,7 +36,7 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> F = free_module_sparse(ZZ, 3, "f")
-Free module of rank 3 over ZZ
+Free module of rank 3 over integer ring
 
 julia> F[1]
 f[1]
@@ -44,7 +44,7 @@ f[1]
 julia> K = GF(7);
 
 julia> FK = free_module_sparse(K, 2)
-Free module of rank 2 over GF(7)
+Free module of rank 2 over K
 
 julia> FK[1]
 e[1]
