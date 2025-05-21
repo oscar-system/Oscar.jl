@@ -300,6 +300,7 @@ export atlas_program
 export atlas_subgroup
 export atoms
 export augmented_chow_ring
+export augmented_complex
 export aut
 export automorphism_group
 export barycentric_subdivision
@@ -905,6 +906,7 @@ export is_fundamental_weight_with_index
 export is_geometrically_integral
 export is_geometrically_reduced
 export is_global
+export is_global_block
 export is_gorenstein
 export is_graded
 export is_groebner_basis
@@ -932,6 +934,7 @@ export is_leaf
 export is_left
 export is_linearly_normal
 export is_local
+export is_local_block
 export is_locally_free
 export is_loopless
 export is_manifold

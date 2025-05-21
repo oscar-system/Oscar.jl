@@ -638,7 +638,7 @@ Fields:
       oscar_assure(B)
       R = B.gens.Ox
       if is_graded(R)
-        @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
+        @req all(is_homogeneous, B.gens.O) "The generators of an ideal in a graded ring must be homogeneous"
       end
     end
     r = new{T}()

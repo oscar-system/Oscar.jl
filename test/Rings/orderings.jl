@@ -51,16 +51,16 @@
                                   collect(monomials(f; ordering = deglex(R)))
 
    a = lex([x, y])
-   @test is_global(a)
-   @test !is_local(a)
+   @test is_global_block(a)
+   @test !is_local_block(a)
    @test !is_mixed(a)
    @test cmp(a, x, one(R)) > 0
    @test cmp(a, y, one(R)) > 0
    @test_throws ErrorException cmp(a, z, one(R))
 
    a = neglex([y, z])
-   @test !is_global(a)
-   @test is_local(a)
+   @test !is_global_block(a)
+   @test is_local_block(a)
    @test !is_mixed(a)
    @test_throws ErrorException cmp(a, x, one(R))
    @test cmp(a, y, one(R)) < 0
@@ -87,6 +87,10 @@
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)
+
+   # issue 1697
+   @test_throws ErrorException is_global(lex([x,y]))
+   @test_throws ErrorException is_local(neglex([x,y]))
 
    @test_throws ArgumentError monomial_ordering(gens(R), :foo)
    @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
