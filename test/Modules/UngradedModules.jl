@@ -1383,6 +1383,26 @@ end
   conj_S1_alt = hom(S1, S1, [S1[1]], f->evaluate(map_coefficients(conj, f), [u, v]))
   @test_throws ErrorException conj_S1 == conj_S1_alt
 
+   a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
+  b = compose(compose(id_R1, compose(f, conj_S1)), id_S1)
+  c = compose(compose(compose(id_R1, f), conj_S1), id_S1)
+  d = compose(id_R1, compose(f, compose(conj_S1, id_S1)))
+
+  @test a == b
+  a_alt = compose(compose(id_R1, f), compose(conj_S1_alt, id_S1))
+  @test_throws ErrorException f == a # non-comparable ring_maps
+  @test_throws ErrorException a_alt == a # same
+  @test_throws MethodError !(conj_S1 == id_S1) # ring map vs. no ring map
+  @test conj_S1 == conj_S1 # identical ring maps are OK
+  @test all(a(x) == b(x) for x in gens(R1))
+  @test all(a(x) == c(x) for x in gens(R1))
+  @test all(a(x) == d(x) for x in gens(R1))
+
+  @test all(i*conj_S1(x) == conj_S1(-i*x) for x in gens(S1))
+  @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
+  @test conj_S1 == compose(id_S1, conj_S1)
+end
+
 @testset "Modules over ZZ and QQ" begin
 
     @testset "Module Constructors over ZZ" begin
@@ -1634,7 +1654,7 @@ end
         phi_M2 = SubQuoHom(M2, M2, matrix(R, [0 1 0; 1 0 1; 1 1 0]))
         phi = hom_tensor(M, M, [phi_M1, phi_M2])
         v = M[1] + 2*M[2]
-        @test phi(v) == pure_M((phi_M1(M1[1]), phi_M2(M2[1]))) + 2*pure_M((phi_M1(M1[2]), phi_M2(M2[1])))
+        @test phi(v) == pure_M((phi_M1(M1[1]), phi_M2(M2[1]))) + 2*pure_M((phi_M1(M1[1]), phi_M2(M2[2])))
         F4 = FreeMod(R, 4)
         A3 = matrix(R, [1 2; 3 4])
         M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
