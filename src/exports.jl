@@ -651,6 +651,7 @@ export free_extension
 export free_group
 export free_module
 export free_module_dec
+export free_module_sparse
 export free_resolution
 export free_resolution_via_kernels
 export full_group
