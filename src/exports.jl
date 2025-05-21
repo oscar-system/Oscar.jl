@@ -300,6 +300,7 @@ export atlas_program
 export atlas_subgroup
 export atoms
 export augmented_chow_ring
+export augmented_complex
 export aut
 export automorphism_group
 export barycentric_subdivision

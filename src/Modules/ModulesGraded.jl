@@ -2509,7 +2509,7 @@ end
     minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} 
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
-multivariate polynomial ring with coefficients in a field, return the Betti Table
+multivariate polynomial ring with coefficients in a field, return the Betti table
 of the minimal free resolution of `M`. Similarly for `A` and `I`.
 
 # Examples
