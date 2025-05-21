@@ -28,7 +28,8 @@ end
     free_module_sparse(R::Field, n::Int, name::VarName = :e; cached::Bool = false)
 
 Construct a free module of rank `n` over the ring `R` using a sparse implementation
-in cases where the `free_module` constructor returns a free module with a dense one.
+compatible with the generic modules framework, in cases where the `free_module` constructor 
+returns a free module with a dense implementation.
 
 The string `name` specifies how the basis vectors are printed.
 

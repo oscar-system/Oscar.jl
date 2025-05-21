@@ -17,6 +17,11 @@ supporting computations in homological algebra.
 ```@docs
 prune_with_map(M::ModuleFP)
 ```
+## Finiteness as a set
+
+```@docs
+is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+```
 
 ## Presentations
 
