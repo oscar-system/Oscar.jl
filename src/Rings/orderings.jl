@@ -17,7 +17,9 @@ export deginvlex
 export invlex
 export is_elimination_ordering
 export is_global
+export is_global_block
 export is_local
+export is_local_block
 export is_mixed
 export is_total
 export _is_weighted
@@ -1459,9 +1461,35 @@ function _cmp_var(M, j::Int)
 end
 
 @doc raw"""
-    is_global(ord::MonomialOrdering)
+    is_global_block(ord::MonomialOrdering)
 
 Return `true` if `ord` is global, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> o = lex([x,y])
+lex([x, y])
+
+julia> is_global_block(o)
+true
+```
+"""
+function is_global_block(ord::MonomialOrdering)
+  M = matrix(ord)
+  for i in _support_indices(ord.o)
+    if _cmp_var(M, i) <= 0
+      return false
+    end
+  end
+  return true
+end
+
+@doc raw"""
+    is_global(ord::MonomialOrdering)
+
+Return `true` if `ord` is a total global ordering, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -1476,9 +1504,29 @@ true
 """
 function is_global(ord::MonomialOrdering)
   !is_total(ord) && error("The monomial ordering must be defined on all variables.")
+  return is_global_block(ord);
+end
+
+@doc raw"""
+    is_local_block(ord::MonomialOrdering)
+
+Return `true` if `ord` is local, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> o = neglex([x,y])
+neglex([x, y])
+
+julia> is_local_block(o)
+true
+```
+"""
+function is_local_block(ord::MonomialOrdering)
   M = matrix(ord)
   for i in _support_indices(ord.o)
-    if _cmp_var(M, i) <= 0
+    if _cmp_var(M, i) >= 0
       return false
     end
   end
@@ -1488,7 +1536,7 @@ end
 @doc raw"""
     is_local(ord::MonomialOrdering)
 
-Return `true` if `ord` is local, `false` otherwise.
+Return `true` if `ord` is a total local ordering, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -1503,13 +1551,7 @@ true
 """
 function is_local(ord::MonomialOrdering)
   !is_total(ord) && error("The monomial ordering must be defined on all variables.")
-  M = matrix(ord)
-  for i in _support_indices(ord.o)
-    if _cmp_var(M, i) >= 0
-      return false
-    end
-  end
-  return true
+  return is_local_block(ord)
 end
 
 @doc raw"""
