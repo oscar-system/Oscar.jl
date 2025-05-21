@@ -56,6 +56,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.group)
+  io = IOContext(io, :typeinfo => typeof(x.seeds))
   print(io, "with seeds ", x.seeds)
   print(io, Dedent())
 end
@@ -65,7 +66,7 @@ function Base.show(io::IO, x::GSetByElements)
     print(io, "G-set")
   else
     print(io, "G-set of ")
-    io = pretty(io)
+    io = IOContext(pretty(io), :typeinfo => typeof(x.seeds))
     print(terse(io), Lowercase(), x.group, " with seeds ", x.seeds)
   end
 end

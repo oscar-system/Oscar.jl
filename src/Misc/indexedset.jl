@@ -49,7 +49,12 @@ function IndexedSet(v::Vector{T}) where {T}
 end
 
 function Base.show(io::IO, s::IndexedSet)
-  print(io, "Indexed set ", s.data)
+  if is_terse(io) || get(io, :typeinfo, nothing) == typeof(s)
+    io = IOContext(io, :typeinfo => typeof(s.data))
+    print(io, s.data)
+  else
+    print(io, "Indexed set ", s.data)
+  end
 end
 
 function Base.push!(s::IndexedSet, x)
