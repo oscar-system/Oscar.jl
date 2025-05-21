@@ -353,8 +353,8 @@ is_pgroup_with_prime(G::FinGenAbGroup) = is_pgroup_with_prime(ZZRingElem, G)
 
 Return the unique sorted vector `w` of zeros and prime powers of type `T`
 such that `v` and `w` describe the same abelian group in the sense that
-the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
-the direct product of the groups `ZZ /(w[i]*ZZ)`.
+the direct product of the groups of order `v[i]` is isomorphic to
+the direct product of the groups of order `w[i]`.
 
 For example, if `v` was computed with
 [`elementary_divisors(G::FinGenAbGroup)`](@ref)
@@ -390,10 +390,10 @@ end
     elementary_divisors(::Type{T} = S, v::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
 Return the unique vector `w` of nonnegative integers of type `T`
-such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 < i < length(w)-1`
+such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 <= i < length(w)`
 and such that `v` and `w` describe the same abelian group in the sense that
-the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
-the direct product of the groups `ZZ /(w[i]*ZZ)`.
+the direct product of cyclic groups of order `v[i]` is isomorphic to
+the direct product of cyclic groups of order `w[i]`.
 
 For example, if `v` was computed with
 [`abelian_invariants(G::FinGenAbGroup)`](@ref)
