@@ -22,6 +22,35 @@ function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
+
+@doc raw"""
+    free_module_sparse(R::ZZRing, n::Int, name::VarName = :e; cached::Bool = false)
+    free_module_sparse(R::Field, n::Int, name::VarName = :e; cached::Bool = false)
+
+Construct a free module of rank `n` over the ring `R` using a sparse implementation
+in cases where the `free_module` constructor returns a free module with a dense one.
+
+The string `name` specifies how the basis vectors are printed.
+
+# Examples
+```jldoctest
+julia> F = free_module_sparse(ZZ, 3, "f")
+Free module of rank 3 over ZZ
+
+julia> F[1]
+f[1]
+
+julia> K = GF(7);
+
+julia> FK = free_module_sparse(K, 2)
+Free module of rank 2 over GF(7)
+
+julia> FK[1]
+e[1]
+"""
+free_module_sparse(R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+    n::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, n, name, cached=cached)
+
 @doc raw"""
     free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false)
     free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false)
