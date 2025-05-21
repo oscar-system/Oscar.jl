@@ -47,6 +47,7 @@ Free module of rank 2 over GF(7)
 
 julia> FK[1]
 e[1]
+```
 """
 free_module_sparse(R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
     n::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, n, name, cached=cached)

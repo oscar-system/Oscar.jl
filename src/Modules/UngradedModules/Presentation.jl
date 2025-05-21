@@ -714,3 +714,84 @@ end
 function prune_with_map(F::FreeMod)
   return F, hom(F, F, gens(F))
 end
+
+@doc raw"""
+    is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}} -> Bool
+
+Determine whether the finitely presented module `M` over `ZZ` or a field is finite.
+
+This is done by computing a minimal presentation and checking if the resulting
+module has rank 0, meaning all generators are torsion elements.
+
+# Examples
+```jldoctest
+julia> R = ZZ;
+
+julia> F = free_module_sparse(R, 2);
+
+julia> A = matrix(ZZ, [2 0; 0 3]);
+
+julia> M = cokernel(hom(F, F, A));
+
+julia> is_finite(M)
+true
+
+julia> B = matrix(ZZ, [0 0; 0 0]);
+
+julia> N = cokernel(hom(F, F, B));
+
+julia> is_finite(N)
+false
+
+julia> B = matrix(ZZ, [0 0; 0 0]);
+
+julia> N = cokernel(hom(F, F, B));
+
+julia> is_finite(N)
+false
+
+julia> K, a = finite_field(7, "a");
+
+julia> G = free_module_sparse(K, 3);
+
+julia> C = matrix(K, [1 0 0; 0 1 0; 0 0 1]);
+
+julia> L = cokernel(hom(G, G, C));
+
+julia> is_finite(L)
+true
+
+julia> H = free_module_sparse(QQ, 1);
+
+julia> P = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
+
+julia> is_finite(P)
+false
+
+julia> Z = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
+
+julia> is_finite(Z)
+true
+```
+"""
+function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+    M_prime, _ = prune_with_map_atomic(M)
+    R = base_ring(M_prime)
+    pres = presentation(M_prime)
+    rel_map = map(pres, 1)
+    rel_matrix = matrix(rel_map)
+    nc = size(rel_matrix, 2)
+    nr = size(rel_matrix, 1)
+    has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
+    if isa(R, ZZRing)
+        return !has_free_generator && ncols > 0
+    elseif isa(R, Field)
+        if is_finite(R)
+            return true
+        else
+            return ncols == 0
+        end
+    else
+        error("The base ring $(typeof(R)) is not supported.")
+    end
+end
