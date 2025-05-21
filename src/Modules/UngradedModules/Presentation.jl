@@ -782,7 +782,7 @@ function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
     nr = size(rel_matrix, 1)
     has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
     if isa(R, ZZRing)
-        return !has_free_generator && ncols > 0
+        return !has_free_generator && nc > 0
     elseif isa(R, Field)
         if is_finite(R)
             return true
