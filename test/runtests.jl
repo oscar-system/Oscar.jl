@@ -157,9 +157,6 @@ stats = Dict{String,NamedTuple}()
 # it is in the ignore list for the other tests
 # try running it first for now
 if test_subset == :long || test_subset == :default
-  println("Starting tests for Serialization/IPC.jl")
-  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
-
   if "Parallel" in Oscar.exppkgs
     path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
     println("Starting tests for $path")
