@@ -745,7 +745,7 @@ function Hecke.number_field(K::QQField, a::QQAbFieldElem; cached::Bool = false)
 end
 
 function Hecke.number_field(K::QQField, a::AbstractVector{<: QQAbFieldElem}; cached::Bool = false)
-  k, mp = sub(K, a; cached)
+  k, mp = sub(parent(a[1]), a; cached)
   return k, gen(k)
 end
 
