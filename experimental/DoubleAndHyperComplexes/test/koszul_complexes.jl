@@ -50,6 +50,18 @@ end
   @test compose(f[2], map(KG, 1)) == compose(map(KF, 2), f[1])
 end
 
+
+@testset "homogeneous Koszul complexes" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  kosz = Oscar.HomogKoszulComplex(R, [x, y])
+  @test [ngens(kosz[i]) for i in 0:2] == [1, 2, 1]
+  G = grading_group(R)
+  @test [degrees_of_generators(kosz[i]) for i in 0:2] == [[zero(G)], [G[1], G[1]], [2*G[1]]]
+  @test !is_zero(map(kosz, 2))
+  @test !is_zero(map(kosz, 1))
+  @test is_zero(compose(map(kosz, 2), map(kosz, 1)))
+end
+
 @testset "homogeneous Koszul complexes and their induced maps" begin
   S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
 
