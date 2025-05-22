@@ -264,6 +264,17 @@ and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with a
 $\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
 """
 function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  return _induce(Omega, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  return _induce(Omega, phi)
+end
+
+function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
   @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
   Omega_fun = action_function(Omega)
   fun = function (omega::S, g)
