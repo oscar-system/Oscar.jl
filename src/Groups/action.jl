@@ -155,7 +155,7 @@ of `set`, and then turning the result into a sorted vector/tuple or a set,
 respectively.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 

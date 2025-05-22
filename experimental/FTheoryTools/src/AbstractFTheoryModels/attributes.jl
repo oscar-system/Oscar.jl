@@ -72,7 +72,7 @@ Return the model sections in explicit form, that is as polynomials
 of the base space coordinates. The set of keys of the returned
 dictionary matches the output of `model_sections`. 
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -104,7 +104,7 @@ Return a dictionary that defines how the "default" parameters of
 the given model type are defined in terms of the tunable sections
 (those returned by `tunable_sections`).
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -131,7 +131,7 @@ Return the divisor classes of all model sections. The set
 of keys of the returned dictionary matches the output
 of `model_sections`.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
@@ -1408,7 +1408,7 @@ end
 Return a vector containing all sections that can be tuned.
 This is a list of the names of all parameters appearing in the model.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -1434,7 +1434,7 @@ This includes the sections returned by `tunable_sections` and all sections param
 them (the keys of the dictionary returned by `model_section_parametrization`). These are
 the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -1463,7 +1463,7 @@ Returns a dictionary giving the classes of all parameters (tunable sections)
 in terms of Kbar and the defining classes. Each value gives the divisor
 class of the corresponding section/key in this basis. This information is currently only available for literature models.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
 Assuming that the first row of the given grading is the grading under Kbar
 

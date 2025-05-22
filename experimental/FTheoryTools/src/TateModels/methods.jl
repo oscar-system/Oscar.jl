@@ -87,7 +87,7 @@ trivial sections and do not delete them, say from `explicit_model_sections`
 or `classes_of_model_sections`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
