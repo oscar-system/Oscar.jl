@@ -49,7 +49,7 @@ function (fac::HomogKoszulComplexMapFactory)(self::AbsHyperComplex, p::Int, I::T
   cfac = chain_factory(self)
   n = length(cfac.seq)
   dom = self[I]
-  cod = self[i+1]
+  cod = self[i-1]
   img_gens = elem_type(cod)[]
   for omi in combinations(n, i)
     img = zero(cod)
@@ -67,7 +67,7 @@ end
 
 function can_compute(fac::HomogKoszulComplexMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   isone(p) || return false
-  return 0 <= first(i) < length(chain_factory(self).seq)
+  return 0 < first(i) <= length(chain_factory(self).seq)
 end
 
 ### The concrete struct
