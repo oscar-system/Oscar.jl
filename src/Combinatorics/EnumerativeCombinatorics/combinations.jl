@@ -150,7 +150,7 @@ julia> Oscar.linear_index(C, 7)
 ```
 """
 function linear_index(C::Combination, n::IntegerUnion)
-  @req C[end] <= n "Combination must be bounded by n"
+  @req is_empty(C) || C[end] <= n "Combination must be bounded by n"
   k = length(C)
   iszero(k) && return 1
   isone(k) && return Int(C[1])
