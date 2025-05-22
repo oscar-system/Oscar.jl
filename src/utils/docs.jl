@@ -77,6 +77,7 @@ page: ../src/PolyhedralGeometry/Polyhedron/standard_constructions.jl:202-207
   0.020471 seconds (69.71 k allocations: 1.828 MiB)
 """
 macro doc_init()
+  isdefined(Oscar, :docsproject) && isdefined(Main, :Documenter) && return nothing
   doc_init()
   return :(using Documenter)
 end
