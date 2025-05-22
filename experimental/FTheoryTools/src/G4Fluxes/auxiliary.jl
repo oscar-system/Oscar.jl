@@ -620,7 +620,7 @@ computationally expensive. The optional argument `check` can be set to `false`
 to skip these tests.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir))), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 

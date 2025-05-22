@@ -873,7 +873,7 @@ is_simplicial(PF::_FanLikeType) = pm_object(PF).SIMPLICIAL::Bool
 Return the primitive collections of a polyhedral fan.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> primitive_collections(normal_fan(simplex(3)))
 1-element Vector{Set{Int64}}:
  Set([4, 2, 3, 1])

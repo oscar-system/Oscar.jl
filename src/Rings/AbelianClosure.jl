@@ -106,7 +106,7 @@ sparse representation. Depending on the application this can be much faster
 or slower.
 
 # Examples
-```jldoctest; setup = :(using Oscar)
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K, z = abelian_closure(QQ);
 
 julia> z(36)
