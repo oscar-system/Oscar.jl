@@ -252,6 +252,28 @@ as_gset(G::T, Omega) where T<:Union{GAPGroup,FinGenAbGroup} = as_gset(G, ^, Omeg
 
 #############################################################################
 ##
+##  induce G-sets along homomorphisms
+
+@doc raw"""
+    induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+
+Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
+
+That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with action function
+$\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
+"""
+function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  Omega_fun = action_function(Omega)
+  fun = function (omega::S, g)
+    return Omega_fun(omega, phi(g))
+  end
+  return GSetByElements(domain(phi), fun, Omega.seeds; check=false)
+end
+
+#############################################################################
+##
 ##  wrapper objects for elements of G-sets,
 ##  with fields `gset` (the G-set) and `objects` (the unwrapped object)
 ##

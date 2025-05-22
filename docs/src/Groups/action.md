@@ -74,6 +74,7 @@ rank_action(Omega::GSet)
 is_primitive(Omega::GSet)
 is_regular(Omega::GSet)
 is_semiregular(Omega::GSet)
+induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
 ```
 
 ## Block systems of a G-set
