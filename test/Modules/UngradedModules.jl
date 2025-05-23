@@ -1419,6 +1419,17 @@ end
         @test is_welldefined(proj)
     end
 
+    @testset "Submodule Membership over ZZ" begin
+       R = ZZ
+       F = FreeMod(R, 3)
+       gens_submodule = [2*F[1], 3*F[2]]
+       S, _ = sub(F, gens_submodule)
+       x = 4*F[1]+3*F[2]
+       @test in(x, S)
+       coord = coordinates(x, S)
+       @test coord == sparse_row(R, [1, 2], [2, 1])
+    end
+
     @testset "Module Homomorphisms over ZZ" begin
         F1 = FreeMod(ZZ, 2)
         F2 = FreeMod(ZZ, 2)
