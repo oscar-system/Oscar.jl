@@ -483,7 +483,7 @@ function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{
     return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
 
-@attr function solve_ctx(M::SubModuleOfFreeModule)
+@attr Any function solve_ctx(M::SubModuleOfFreeModule)
     F = ambient_free_module(M)
     d, n = rank(F), ngens(M)
     R = base_ring(F)

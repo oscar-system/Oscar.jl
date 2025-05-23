@@ -470,7 +470,7 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
   return sub(F, v)
 end
 
-@attr function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+@attr Any function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
     solve_init(transpose(matrix(h)))
 end
 
