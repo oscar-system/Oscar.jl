@@ -262,6 +262,9 @@ Return the action function of the G-set that is obtained by inducing the G-set `
 That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
 and a homomorphism ``\phi: H \to G``, construct the action function
 $\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
+
+This function is semantically equivalent to `action_function(induce(Omega, phi))`,
+but it is more efficient as it avoids the construction of the induced G-set.
 """
 function induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
   return _induced_action_function(Omega, phi)

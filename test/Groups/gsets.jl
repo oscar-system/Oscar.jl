@@ -588,6 +588,8 @@ end
   H = permutation_group(8, [cperm([1,3], [2,4]), cperm([1,5], [2,6], [3,7], [4,8])])
   phi = hom(H, G, [cperm([1,2]), cperm([1,3], [2,4])])
 
+  # This check is a bit surprising that it works, but it does.
+  # We just need that the two functions are same as mathematical functions, not as objects.
   @test induced_action_function(Omega, phi) == induced_action(action_function(Omega), phi)
 
   orb = orbit(H, induced_action_function(Omega, phi), [1,1,2,3])
