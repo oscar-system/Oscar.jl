@@ -788,6 +788,8 @@ export index_of_leading_term
 export indicator
 export induce
 export induce_shift
+export induced_action
+export induced_action_function
 export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power

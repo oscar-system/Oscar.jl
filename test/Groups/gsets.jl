@@ -587,6 +587,16 @@ end
   Omega = gset(G, permuted, [[1,1,2,3]])
   H = permutation_group(8, [cperm([1,3], [2,4]), cperm([1,5], [2,6], [3,7], [4,8])])
   phi = hom(H, G, [cperm([1,2]), cperm([1,3], [2,4])])
+
+  @test induced_action_function(Omega, phi) == induced_action(action_function(Omega), phi)
+
+  orb = orbit(H, induced_action_function(Omega, phi), [1,1,2,3])
+  @test acting_group(orb) == H
+  @test length(orb) == 4
+  stab = stabilizer(orb)[1]
+  @test order(stab) == 2
+  @test cperm([1,3], [2,4]) in stab
+
   Omega2 = induce(Omega, phi)
   @test acting_group(Omega2) == H
   @test elements(Omega2) == elements(Omega)
