@@ -21,3 +21,5 @@ include("variety.jl")
 include("positive_variety.jl")
 include("intersection.jl")
 include("groebner_fan.jl")
+include("TropicalPolyhedron.jl")
+
