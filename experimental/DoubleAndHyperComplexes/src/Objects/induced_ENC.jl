@@ -27,7 +27,10 @@ function (fac::InducedENCChainFactory)(self::AbsHyperComplex, ind::Tuple)
   end
   Ip, _ = sub(amb_ext_power, new_gens)
   fac.ext_powers[i] = Ip
-  result = tensor_product(_symmetric_power(enc, i), Ip)#; ambient_tensor_product=enc[i])
+  ambient_tensor_product = enc[i]
+  pure = tensor_pure_function(ambient_tensor_product)
+  res_gens = elem_type(ambient_tensor_product)[pure((a, b)) for a in gens(_symmetric_power(enc, i)) for b in new_gens]
+  result, _ = sub(ambient_tensor_product, res_gens)
   return result
 end
 
@@ -60,30 +63,8 @@ function (fac::InducedENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   end
 
   # TODO: This can probably be sped up by lifting directly on the exterior powers.
-  img_gens = elem_type(cod)[]
   ambient_map = map(enc, i)
-  # The following does not hold anymore since the fix in #4810
-  #@assert domain(ambient_map) === ambient_free_module(dom) 
-  decomp_dom = tensor_generator_decompose_function(dom)
-  pure_orig_dom = tensor_pure_function(domain(ambient_map))
-  decomp_orig_cod = tensor_generator_decompose_function(codomain(ambient_map))
-  cod_facs = get_attribute(cod, :tensor_product)::Tuple
-  pure_cod = tensor_pure_function(cod)
-
-  for g in gens(dom)
-    img_gen = zero(cod)
-    for (i, c) in coordinates(g)
-      decomp_gen = decomp_dom(gen(dom, i))
-      v = Tuple([repres(a) for a in decomp_gen])
-      w = pure_orig_dom(v)
-      ww = ambient_map(w)
-      dec_img_rep = decomp_orig_cod(ww)
-      u = Tuple([cod_fac(b) for (cod_fac, b) in zip(cod_facs, dec_img_rep)])
-      uu = pure_cod(u)
-      img_gen += c*uu
-    end
-    push!(img_gens, img_gen)
-  end
+  img_gens = elem_type(cod)[cod(ambient_map(repres(g))) for g in gens(dom)]
   return hom(dom, cod, img_gens)
 end
 

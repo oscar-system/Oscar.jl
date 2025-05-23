@@ -29,7 +29,7 @@ function (fac::HomogKoszulComplexChainFactory)(self::AbsHyperComplex, I::Tuple)
   G = grading_group(fac.S)
   is_zero(i) && return graded_free_module(fac.S, [zero(G)])
   n = length(fac.seq)
-  degs = elem_type(G)[-sum(fac.degs[data(omi)]; init=zero(G)) for omi in combinations(n, i)]
+  degs = elem_type(G)[sum(fac.degs[data(omi)]; init=zero(G)) for omi in combinations(n, i)]
   result = graded_free_module(fac.S, degs)
 end
 
@@ -49,16 +49,16 @@ function (fac::HomogKoszulComplexMapFactory)(self::AbsHyperComplex, p::Int, I::T
   cfac = chain_factory(self)
   n = length(cfac.seq)
   dom = self[I]
-  cod = self[i+1]
+  cod = self[i-1]
   img_gens = elem_type(cod)[]
-  inds = [Combination([k]) for k in 1:n]
   for omi in combinations(n, i)
     img = zero(cod)
-    for (m, v) in zip(inds, cfac.seq)
-      sign, mult_ind = _wedge(omi, m)
-      is_zero(sign) && continue
-      res_ind = Oscar.linear_index(mult_ind, n)
-      img += sign*v*cod[res_ind]
+    inds = data(omi)::Vector{Int}
+    sign = 1
+    for (k, i) in enumerate(inds)
+      truncated_idx = vcat(inds[1:k-1], inds[k+1:end])
+      img += sign*cfac.seq[i]*cod[linear_index(Combination(truncated_idx), n)]
+      sign *= -1
     end
     push!(img_gens, img)
   end
@@ -67,7 +67,7 @@ end
 
 function can_compute(fac::HomogKoszulComplexMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   isone(p) || return false
-  return 0 <= first(i) < length(chain_factory(self).seq)
+  return 0 < first(i) <= length(chain_factory(self).seq)
 end
 
 ### The concrete struct
