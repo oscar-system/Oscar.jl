@@ -588,7 +588,7 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   return M_new, phi
 end
 
-@attr function presentation_ctx(M::SubquoModule{ZZRingElem})
+@attr Any function presentation_ctx(M::SubquoModule{ZZRingElem})
     R = base_ring(M)
     F = ambient_free_module(M)
     m = ngens(F)
