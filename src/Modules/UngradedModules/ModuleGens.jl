@@ -425,10 +425,7 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
     end
     for (i, g) in enumerate(gens(M))
         if a == g
-            row = sparse_row(R)
-            push!(row.pos, i)
-            push!(row.values, one(R))
-            return row
+            return sparse_row(R, [i], [one(R)])
         end
     end
     return coordinates_atomic(a, M; task=task)
@@ -456,34 +453,17 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::S
     end
 end
 
-function sparse_row_from_dense(R::Ring, dense_vec::Vector{T}) where T
-    positions = Int[]
-    values = T[]
-    for (i, val) in enumerate(dense_vec)
-        if !iszero(val)
-            push!(positions, i)
-            push!(values, val)
-        end
-    end
-    return sparse_row(R, positions, values)
-end
-
 function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol=:auto) where {T<:Union{ZZRingElem, FieldElem}}
-    ensure_solve_ctx!(M)
-    solve_ctx = get_attribute(M, :solve_ctx)
+    ctx = solve_ctx(M)
     R = base_ring(ambient_free_module(M))
     d = rank(ambient_free_module(M))
-    vec_a = zeros(R, d)
-    for (i, val) in coordinates(a)
-        vec_a[i] = val
-    end
-    is_solvable, sol = can_solve_with_solution(solve_ctx, vec_a, side=:right)
+    vec_a = matrix(dense_row(coordinates(a), d))
+    is_solvable, sol = can_solve_with_solution(ctx, vec_a; side=:left)
     if !is_solvable
         error("Element is not contained in the module.")
     end
-    return sparse_row_from_dense(R, sol)
+    return sparse_row(sol)
 end
-
 
 function coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symbol = :auto)
     error("The function coordinates_atomic is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")

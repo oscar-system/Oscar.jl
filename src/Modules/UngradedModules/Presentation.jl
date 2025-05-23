@@ -588,53 +588,42 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   return M_new, phi
 end
 
-function ensure_presentation_ctx!(M::SubquoModule)
-    ensure_presentation_ctx!(base_ring(M), M)
+@attr function presentation_ctx(M::SubquoModule{ZZRingElem})
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    m = ngens(F)
+    rels = relations(M)
+    n = length(rels)
+    A = zero_matrix(R, m, n)
+    for (j, rel) in enumerate(rels)
+        for (i, v) in coordinates(rel)
+            A[i, j] = v
+        end
+    end
+    D, U, V = snf_with_transform(A)
+    return (D=D, U=U, V=V)
 end
 
-function ensure_presentation_ctx!(M::SubquoModule{ZZRingElem})
-    if !has_attribute(M, :presentation_ctx)
-        R = base_ring(M)
-        F = ambient_free_module(M)
-        m = ngens(F)
-        rels = relations(M)
-        n = length(rels)
+@attr function presentation_ctx(M::SubquoModule{T}) where {T<:FieldElem}
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    m = ngens(F)
+    rels = relations(M)
+    n = length(rels)
 
-        A = zero_matrix(R, m, n)
-        for (j, rel) in enumerate(rels)
-            for (i, v) in coordinates(rel)
-                A[i, j] = v
-            end
+    A = zero_matrix(R, m, n)
+    for (j, rel) in enumerate(rels)
+        for (i, v) in coordinates(rel)
+            A[i, j] = v
         end
-
-        D, U, V = snf_with_transform(A)
-        set_attribute!(M, :presentation_ctx, (D=D, U=U, V=V))
     end
-end
 
-function ensure_presentation_ctx!(M::SubquoModule{T}) where {T<:FieldElem}
-    if !has_attribute(M, :presentation_ctx)
-        R = base_ring(M)
-        F = ambient_free_module(M)
-        m = ngens(F)
-        rels = relations(M)
-        n = length(rels)
-
-        A = zero_matrix(R, m, n)
-        for (j, rel) in enumerate(rels)
-            for (i, v) in coordinates(rel)
-                A[i, j] = v
-            end
-        end
-
-        D, U, V = snf_with_transform(A)
-        set_attribute!(M, :presentation_ctx, (D=D, U=U, V=V))
-    end
+    D, U, V = snf_with_transform(A)
+    return (D=D, U=U, V=V)
 end
 
 function prune_with_map_atomic(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
-    ensure_presentation_ctx!(M)
-    ctx = get_attribute(M, :presentation_ctx)
+    ctx = presentation_ctx(M)
     R = base_ring(M)
     F = ambient_free_module(M)
     m = ngens(F)
@@ -646,7 +635,7 @@ function prune_with_map_atomic(M::SubquoModule{T}) where {T<:Union{ZZRingElem, F
     col_indices = setdiff(1:size(D, 2), unit_diag_indices)
     D_prime_matrix = sub(D, row_indices, col_indices)
     F_prime = FreeMod(R, length(row_indices))
-    rels_prime = [F_prime(sparse_row_from_dense(R, D_prime_matrix[:, j])) for j in 1:size(D_prime_matrix, 2)]
+    rels_prime = [F_prime(sparse_row(transpose(D_prime_matrix[:, j:j]))) for j in 1:size(D_prime_matrix, 2)]
     N_prime, _ = sub(F_prime, rels_prime)
     M_prime, _ = quo(F_prime, N_prime)
     U_inv = inv(U)

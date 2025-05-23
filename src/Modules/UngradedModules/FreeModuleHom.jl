@@ -470,22 +470,16 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
   return sub(F, v)
 end
 
-function ensure_kernel_ctx!(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    if !has_attribute(h, :kernel_ctx)
-        mat_h = transpose(matrix(h))
-        set_attribute!(h, :kernel_ctx, solve_init(mat_h))
-    end
+@attr function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+    solve_init(transpose(matrix(h)))
 end
 
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    ensure_kernel_ctx!(h)
-    kernel_ctx = get_attribute(h, :kernel_ctx)
-    K = kernel(kernel_ctx, side=:right)
+    K = kernel(kernel_ctx(h); side=:right)
     F = domain(h)
-    v = [F(sparse_row_from_dense(base_ring(F), vec(K[:, j]))) for j in 1:ncols(K)]
+    v = [F(sparse_row(transpose(K[:, j:j]))) for j in 1:ncols(K)]
     return sub(F, v)
 end
-
 
 function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   I, inc = kernel_atomic(h)

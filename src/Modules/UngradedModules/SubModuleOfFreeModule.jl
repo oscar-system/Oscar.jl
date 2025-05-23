@@ -483,29 +483,21 @@ function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{
     return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
 
-function ensure_solve_ctx!(M::SubModuleOfFreeModule)
-    if !has_attribute(M, :solve_ctx)
-        F = ambient_free_module(M)
-        d, n = rank(F), ngens(M)
-        R = base_ring(F)
-        mat = zero_matrix(R, d, n)
-        for (j, g) in enumerate(gens(M)), (i, val) in coordinates(g)
-            mat[i, j] = val
-        end
-        set_attribute!(M, :solve_ctx, solve_init(mat))
+@attr function solve_ctx(M::SubModuleOfFreeModule)
+    F = ambient_free_module(M)
+    d, n = rank(F), ngens(M)
+    R = base_ring(F)
+    mat = zero_matrix(R, n, d)
+    for (j, g) in enumerate(gens(M)), (i, val) in coordinates(g)
+        mat[j, i] = val
     end
+    return solve_init(mat)
 end
 
 function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {T<:Union{ZZRingElem, FieldElem}}
-    ensure_solve_ctx!(M)
-    solve_ctx = get_attribute(M, :solve_ctx)
-    R = base_ring(ambient_free_module(M))
-    d = rank(ambient_free_module(M))
-    vec_a = zeros(R, d)
-    for (i, val) in coordinates(a)
-        vec_a[i] = val
-    end
-    return can_solve(solve_ctx, vec_a, side=:right)
+    ctx = solve_ctx(M)
+    vec_a = dense_row(coordinates(a), rank(ambient_free_module(M)))
+    return can_solve(ctx, vec_a; side=:left)
 end
 
 function in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
