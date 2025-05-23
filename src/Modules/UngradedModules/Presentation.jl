@@ -604,7 +604,7 @@ end
     return (D=D, U=U, V=V)
 end
 
-@attr function presentation_ctx(M::SubquoModule{T}) where {T<:FieldElem}
+@attr Any function presentation_ctx(M::SubquoModule{T}) where {T<:FieldElem}
     R = base_ring(M)
     F = ambient_free_module(M)
     m = ngens(F)
