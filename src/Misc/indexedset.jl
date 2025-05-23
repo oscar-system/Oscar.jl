@@ -12,7 +12,7 @@ where efficient membership checks and indexed retrieval are beneficial.
 
 ```jldoctest
 julia> s = IndexedSet(["ball", "flower", "house"])
-Indexed set ["ball", "flower", "house"]
+IndexedSet(["ball", "flower", "house"])
 
 julia> "ball" in s
 true
@@ -30,7 +30,7 @@ julia> s("stone")    # the "position" of objects not in there is 0
 0
 
 julia> push!(s, "ball", "stone")    # only "new" things are actually added
-Indexed set ["ball", "flower", "house", "stone"]
+IndexedSet(["ball", "flower", "house", "stone"])
 ```
 """
 struct IndexedSet{T}
@@ -53,7 +53,7 @@ function Base.show(io::IO, s::IndexedSet)
     io = IOContext(io, :typeinfo => typeof(s.data))
     print(io, s.data)
   else
-    print(io, "Indexed set ", s.data)
+    print(io, "IndexedSet(", s.data, ")")
   end
 end
 
