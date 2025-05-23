@@ -22,11 +22,21 @@
      if p == 7
        # the order of 2 mod 7 is odd
        @test length(filt) == 0
+     elseif p == 3 || p == 11
+       @test length(filter(x -> x[1] == "Q8", filt)) == 2
+       @test length(filter(x -> x[1] == "QD", filt)) == 2
      else
        @test length(filter(x -> x[1] == "Q8", filt)) == 2
        @test length(filter(x -> x[1] == "QD", filt)) > 2
      end
    end
+
+   ids = map(small_group_identification,
+             filter(x -> Oscar._Riese_Schmid_type(x)[1] != "",
+                    all_small_groups(8:8:100)))
+   @test ids == [(8, 4), (48, 15), (48, 16), (48, 40), (48, 41), (80, 15),
+                 (80, 16), (80, 17), (80, 18), (96, 33), (96, 34), (96, 35),
+                 (96, 36)]
 end
 
 @testset "Yamada's examples" begin
