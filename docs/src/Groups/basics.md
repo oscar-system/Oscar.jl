@@ -91,6 +91,8 @@ is_finitely_generated(G::GAPGroup)
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 abelian_invariants(G::GAPGroup)
 abelian_invariants_schur_multiplier(G::GAPGroup)
+abelian_invariants(v::Vector{S}) where S <: IntegerUnion
+elementary_divisors(v::Vector{S}) where S <: IntegerUnion
 cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
