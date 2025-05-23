@@ -1341,10 +1341,10 @@ end
 K3_surface_automorphism_group(S::ZZLat, ample_class::Vector{QQFieldElem}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
 
 
-function borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1, not_virtually_abelian_abort::Bool=false)
   @req n in [10,18,26] "n(=$(n)) must be one of 10,18 or 26"
   L, S, weyl = borcherds_method_preprocessing(S, n)
-  return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
+  return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers, not_virtually_abelian_abort)
 end
 
 @doc raw"""
@@ -1361,12 +1361,12 @@ Compute the symmetry group of a Weyl chamber up to finite index.
 - `max_nchambers`: break the computation after `max_nchambers` are found;
 - `entropy_abort` abort if an automorphism of positive entropy is found.
 """
-function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1, not_virtually_abelian_abort=false)
   data,_ = BorcherdsCtx(L, S, w; compute_OR=compute_OR)
-  return borcherds_method(data, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
+  return borcherds_method(data; entropy_abort, max_nchambers, not_virtually_abelian_abort)
 end
 
-function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers=-1)
+function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool=false, max_nchambers=-1, not_virtually_abelian_abort::Bool=false)
   S = data.S
   # for G-sets
   F = free_module(ZZ,rank(S))
@@ -1414,6 +1414,10 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
               return data, automorphisms, chambers, rational_curves, false
             end
           end
+          if not_virtually_abelian_abort && !is_virtually_abelian(S, automorphisms)
+            @vprintln :K3Auto 1 "aborted on request because the automorphism group is not virtually abelian"
+            return data, automorphisms, chambers, rational_curves, false
+          end 
         end
         is_explored = true
         break
@@ -2039,4 +2043,60 @@ function has_zero_entropy(S::ZZLat; rank_unimod=26)
   d = diagonal(rational_span(C))
 
   return maximum(push!([sign(i) for i in d],-1)), data, K3Autgrp, chambers, rational_curves
+end
+
+  
+function _get_pos_entropy_element(gensAutL)
+  G = [first(gensAutL)^0]
+  f = first(gensAutL)^0
+  n = nrows(f)
+  n<= 4 || error("not implemented")
+  for i in 1:20
+    Gnew = []
+    for g in G
+      for h in gensAutL
+        f = g*h
+        push!(Gnew, f)
+        if rank(f^12-1)==2   # positive entropy
+          return f
+        end
+      end
+    end
+    G = Gnew
+  end
+  @assert false
+end
+
+function is_virtually_abelian(L::ZZLat, gensAutL)
+  length(gensAutL)==0 && return true
+  @assert rank(L)==3
+  if has_zero_entropy(L, gensAutL)
+    return true
+  end
+  # search an automorphism of positive entropy.
+  f = _get_pos_entropy_element(gensAutL)
+  K = kernel(f^12-1)
+  k = nrows(K)
+  @assert k==1
+  for g in gensAutL
+    r = rank(vcat(K,K*g))
+    if r > k
+      return false
+    end
+  end
+  return true
+end
+
+function has_zero_entropy(L::ZZLat, gensAutL)
+  length(gensAutL)==0 && return true
+  C = lattice(rational_span(L), _common_invariant(gensAutL)[2])
+  d = diagonal(rational_span(C))
+  return 0<= maximum(push!([sign(i) for i in d],-1))
+end
+
+function is_finite(L::ZZLat, gensAutL)
+  length(gensAutL)==0 && return true
+  C = lattice(rational_span(L), _common_invariant(gensAutL)[2])
+  d = diagonal(rational_span(C))
+  return 0< maximum(push!([sign(i) for i in d],-1))
 end
