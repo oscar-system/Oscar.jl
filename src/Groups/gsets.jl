@@ -252,6 +252,63 @@ as_gset(G::T, Omega) where T<:Union{GAPGroup,FinGenAbGroup} = as_gset(G, ^, Omeg
 
 #############################################################################
 ##
+##  induce G-sets along homomorphisms
+
+@doc raw"""
+    induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+
+Return the action function of the G-set that is obtained by inducing the G-set `Omega` along `phi`.
+
+That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the action function
+$\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
+
+This function is semantically equivalent to `action_function(induce(Omega, phi))`,
+but it is more efficient as it avoids the construction of the induced G-set.
+"""
+function induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  return _induced_action_function(Omega, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induced_action_function(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  return _induced_action_function(Omega, phi)
+end
+
+function _induced_action_function(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return induced_action(action_function(Omega), phi)
+end
+
+@doc raw"""
+    induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+
+Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
+
+That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with action function
+$\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
+"""
+function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  return _induce(Omega, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  return _induce(Omega, phi)
+end
+
+function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
+end
+
+#############################################################################
+##
 ##  wrapper objects for elements of G-sets,
 ##  with fields `gset` (the G-set) and `objects` (the unwrapped object)
 ##
