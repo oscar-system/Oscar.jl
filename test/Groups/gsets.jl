@@ -588,8 +588,10 @@ end
   H = permutation_group(8, [cperm([1,3], [2,4]), cperm([1,5], [2,6], [3,7], [4,8])])
   phi = hom(H, G, [cperm([1,2]), cperm([1,3], [2,4])])
   Omega2 = induce(Omega, phi)
-  @test length(orbits(Omega2)) == 1
-  @test length(only(orbits(Omega2))) == 4
+  @test acting_group(Omega2) == H
+  @test elements(Omega2) == elements(Omega)
+  @test length(orbits(Omega2)) == 2
+  @test issetequal(length.(orbits(Omega2)), [4, 8])
   stab2 = stabilizer(Omega2)[1]
   @test order(stab2) == 2
   @test cperm([1,3], [2,4]) in stab2

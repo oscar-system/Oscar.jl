@@ -280,7 +280,7 @@ function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Gr
   fun = function (omega::S, g)
     return Omega_fun(omega, phi(g))
   end
-  return GSetByElements(domain(phi), fun, Omega.seeds; check=false)
+  return GSetByElements(domain(phi), fun, Omega; closed=true, check=false)
 end
 
 #############################################################################
