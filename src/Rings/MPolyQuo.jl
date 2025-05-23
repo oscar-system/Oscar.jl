@@ -1522,7 +1522,7 @@ end
 Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));

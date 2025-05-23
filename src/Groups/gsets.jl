@@ -938,7 +938,7 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Omega = gset(sylow_subgroup(symmetric_group(4), 2)[1])
 G-set of
   permutation group of degree 4 and order 8
@@ -971,7 +971,7 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Omega = gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
@@ -1004,7 +1004,7 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Omega = gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
@@ -1037,7 +1037,7 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Omega = gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
