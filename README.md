@@ -127,8 +127,8 @@ If you are using BibTeX, you can use the following BibTeX entries:
     @misc{OSCAR,
       key          = {OSCAR},
       organization = {The OSCAR Team},
-      title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.4.0-DEV},
+      title        = {{OSCAR} -- {O}pen {S}ource {C}omputer {A}lgebra {R}esearch system,
+                      {V}ersion 1.4.0-DEV},
       year         = {2025},
       url          = {https://www.oscar-system.org},
       }
