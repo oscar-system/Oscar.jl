@@ -16,8 +16,8 @@ function canonical_basis_elem(U::QuantumGroup, b::Vector{Int})
 end
 
 function _canonical_basis_elem(U::QuantumGroup, b::Memory{Int})
-  bar = bar_involution(U)
   return get!(U.canonical_basis, b) do
+    bar = bar_involution(U)
     F = zero(U.algebra)
     add_monomial!(F.poly, b)
     for i in 1:length(b)

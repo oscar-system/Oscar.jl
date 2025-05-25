@@ -17,15 +17,16 @@ function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
   return z
 end
 
-function bar!(z::LaurentPolyWrap, x::LaurentPolyWrap)
+function _bar!(z::LaurentPolyWrap, x::LaurentPolyWrap)
   reverse!(z.poly, x.poly, length(x.poly))
   z.mindeg = -degree(x.poly) - x.mindeg
   return z
 end
 
-function bar!(z::FracFieldElem{T}, x::FracFieldElem{T}) where {T<:LaurentPolyWrap}
-  bar!(z.num, x.num)
-  bar!(z.den, x.den)
+function bar!(z::QuantumFieldElem, x::QuantumFieldElem)
+  check_parent(z, x)
+  z.d.num = _bar!(z.d.num, x.d.num)
+  z.d.den = _bar!(z.d.den, x.d.den)
   return z
 end
 
