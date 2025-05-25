@@ -1,7 +1,7 @@
 export QuantumField, QuantumFieldElem
 export QuantumGroup, QuantumGroupElem
 
-export bar_involution
+export bar_automorphism
 export canonical_basis_elem
 export canonical_basis_expansion
 export chevalley_gens

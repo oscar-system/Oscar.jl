@@ -223,6 +223,10 @@ function zero!(x::PBWAlgebraElem)
   return x
 end
 
+function length(x::PBWAlgebraElem)
+  return length(x.poly)
+end
+
 ###############################################################################
 #
 #   Arithemtic

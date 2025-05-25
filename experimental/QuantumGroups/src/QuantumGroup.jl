@@ -107,6 +107,10 @@ end
 #
 ###############################################################################
 
+function coefficient_ring(U::QuantumGroup)
+  return coefficient_ring(U.algebra)
+end
+
 @doc raw"""
     root_system(U::QuantumGroup) -> RootSystem
     
