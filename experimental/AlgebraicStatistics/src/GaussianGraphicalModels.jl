@@ -80,7 +80,7 @@ julia> covariance_matrix(GM)
 ```
 """
 function covariance_matrix(GM::GaussianGraphicalModel)
-  S = probability_ring(GM)
+  S = model_ring(GM)
   cov_mat = upper_triangular_matrix(gens(S))
   n = n_vertices(graph(GM))
   # turn upper triangular matrix into a symmetric one
@@ -198,7 +198,7 @@ defined by
 ```
 """
 function parametrization(M::GaussianGraphicalModel{Directed, T}) where T
-  S = probability_ring(M)
+  S = model_ring(M)
   R = parameter_ring(M)
   G = graph(M)
   L = directed_edges_matrix(M)
@@ -289,7 +289,7 @@ defined by
 """
 function parametrization(M::GaussianGraphicalModel{Undirected, T}) where T
   G = graph(M)
-  S = probability_ring(M)
+  S = model_ring(M)
   R = parameter_ring(M)
   K = concentration_matrix(M)
   Rloc, iota = localization(R, powers_of_element(det(K)))
