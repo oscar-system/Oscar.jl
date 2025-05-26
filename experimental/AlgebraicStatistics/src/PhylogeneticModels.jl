@@ -2,13 +2,33 @@
 #### PHYLOGENETIC DATA STRUCTURES ####
 ######################################
 
-struct PhylogeneticModel
+@attributes mutable struct PhylogeneticModel{L} <: GraphicalModel{Directed, L}
+  # do need to for T to be directed here?
   graph::Graph{Directed}
+  labelings::L
+  trans_mat_signature::Matrix{VarName}
   n_states::Int
-  prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any} #this need to become more precise
-  trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
+  
+  function PhylogeneticModel(G::Graph{Directed},
+                             trans_mat_signature::Matrix{VarName},
+                             n_states::Int = 4)
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{typeof(graph_maps)}(G, graph_maps, trans_mat_signature, n_states)
+  end
 end
+
+# these should be attrs
+n_states(M::PhylogeneticModel) = M.n_states
+var_names(M:PhylogeneticModel) = unique(M.trans_mat_signature)
+
+@attrs function probability_ring(M::PhylogeneticModel; cached=false)
+  
+end
+# prob_ring::MPolyRing{QQFieldElem}
+# root_distr::Vector{Any} #this need to become more precise
+# trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
+
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
@@ -391,6 +411,7 @@ end
 ##############################
 #### GENERAL MARKOV MODEL ####
 ##############################
+
 @doc raw"""
     general_markov_model(graph::Graph{Directed})
 
