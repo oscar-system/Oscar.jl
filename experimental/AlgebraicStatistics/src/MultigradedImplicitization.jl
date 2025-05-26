@@ -114,12 +114,37 @@ function component_of_kernel(deg::FinGenAbGroupElem,
   return mon_basis * K
 end
 
+function compute_component(mon_basis, phi::MPolyAnyMap,jac::MatElem)
+
+  # if the basis only has 1 element, then there are no generators by assumption
+  length(mon_basis) < 2 && return MPolyDecRingElem[]
+
+  # find the indices of all variables involved in this component
+  supp = component_support(mon_basis)
+  
+  # check if the corresponding submatrix drops rank
+  # if it does not, then this component cannot contain any generator of the kernel
+  if rank(jac[:, supp]) == length(supp)
+    print("skipped component")
+    print("\n")
+    return MPolyDecRingElem[]
+  end
+
+  image_polys = [phi(m) for m in mon_basis]
+  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
+  coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
+  (r, K) = nullspace(coeffs)
+  print("computed component")
+  return mon_basis * K
+end
+
+
 function components_of_kernel(d::Int, phi::MPolyAnyMap;
                               wp::Union{OscarWorkerPool, Nothing}=nothing)
   # Compute a maximal grading on the domain
   A = Oscar.max_grading(phi)[:, ngens(codomain(phi)) + 1:end]
   
-  # grade the domain 
+  # grade the domain
   graded_dom = grade(domain(phi), A)[1]
   
   # grade the domain by the standard grading as well and compute the jacobian at a random point over a finite field
@@ -132,24 +157,37 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
 
   for i in 1:d
     all_mons = graded_dom.(monomial_basis(total_deg_dom, [i]))
-    all_degs = unique!(degree.(all_mons))
+    all_degs = degree.(all_mons)
+    mon_bases = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
+    # avoid redundant degree computation
+    for (d, m) in zip(all_degs, all_mons)
+      if haskey(mon_bases, d)
+        push!(mon_bases[d], m)
+      else
+        mon_bases[d] = [m]
+      end
+    end
+
+    print("computed monomial bases")
+    print("\n")
+
+    # find the previous generators 
     if isempty(gens_dict)
       prev_gens = MPolyDecRingElem[]
     else
       prev_gens = reduce(vcat, values(gens_dict))
     end
+
     if !isempty(all_degs)
       if isnothing(wp)
-        results = pmap(component_of_kernel, all_degs,
+        results = pmap(compute_component, values(mon_bases),
                        [graded_phi for _ in all_degs],
-                       [prev_gens for _ in all_degs],
                        [jac for _ in all_degs];
                        distributed=false)
       else
-        results = pmap(component_of_kernel, wp, all_degs,
+        results = pmap(compute_component, wp, values(mon_bases),
                        [graded_phi for _ in all_degs],
-                       [prev_gens for _ in all_degs],
                        [jac for _ in all_degs])
       end
     else
@@ -161,3 +199,4 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
 
   return gens_dict
 end
+
