@@ -21,6 +21,7 @@ export is_generic
 
 export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra
-export parametrized_drinfeld_hecke_algebra
+export generic_drinfeld_hecke_algebra
+export symmetric_algebra
 
 # Aliases

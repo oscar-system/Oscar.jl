@@ -2,17 +2,22 @@
 # Drinfeld Hecke Algebra
 ################################################################################
 
-mutable struct DrinfeldHeckeAlgebra{T <: RingElem} <: NCRing
+mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
   drinfeld_hecke_form::DrinfeldHeckeForm{T}
   
   # Create from a Drinfeld-Hecke form
-  function DrinfeldHeckeAlgebra(κ::DrinfeldHeckeForm{T}) where {T <: RingElem}
-    return new{T}(κ)
+  function DrinfeldHeckeAlgebra(κ::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem}
+    return new{T, S}(κ)
   end
 
   # Create the zero Drinfeld-Hecke algebra from a group
   function DrinfeldHeckeAlgebra(G::MatrixGroup)
-    κ = drinfeld_hecke_form(G)
+    return DrinfeldHeckeAlgebra(G, base_ring(G))
+  end
+
+  # Create the zero Drinfeld-Hecke algebra from a group and a ring
+  function DrinfeldHeckeAlgebra(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
+    κ = drinfeld_hecke_form(G, R)
 
     return DrinfeldHeckeAlgebra(κ)
   end
@@ -22,16 +27,16 @@ end
 # Drinfeld Hecke Algebra Element
 ################################################################################
 
-mutable struct DrinfeldHeckeAlgebraElem{T <: RingElem} <: NCRingElem
-  parent::DrinfeldHeckeAlgebra{T}
+mutable struct DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRingElem
+  parent::DrinfeldHeckeAlgebra{T, S}
   element::GroupAlgebraElem
   
-  function DrinfeldHeckeAlgebraElem(A::DrinfeldHeckeAlgebra{T}, a::GroupAlgebraElem) where {T <: RingElem}
+  function DrinfeldHeckeAlgebraElem(A::DrinfeldHeckeAlgebra{T, S}, a::GroupAlgebraElem) where {T <: FieldElem, S <: RingElem}
     if (a.parent != group_algebra(A))
         throw(ArgumentError("Element does not belong to the underlying group algebra")) 
     end
 
-    return new{T}(A, a)
+    return new{T, S}(A, a)
   end
 end
 
@@ -58,10 +63,9 @@ end
 # Generic functions
 ################################################################################
 
-is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(A.drinfeld_hecke_form)
-dimension(A::DrinfeldHeckeAlgebra) = degree(group(A))
+is_zero(A::DrinfeldHeckeAlgebra) = is_zero(A.drinfeld_hecke_form)
 base_ring(A::DrinfeldHeckeAlgebra) = base_ring(A.drinfeld_hecke_form)
-ring(A::DrinfeldHeckeAlgebra) = ring(A.drinfeld_hecke_form)
+symmetric_algebra(A::DrinfeldHeckeAlgebra) = symmetric_algebra(A.drinfeld_hecke_form)
 group(A::DrinfeldHeckeAlgebra) = group(A.drinfeld_hecke_form)
 group_algebra(A::DrinfeldHeckeAlgebra) = group_algebra(A.drinfeld_hecke_form)
 
@@ -71,8 +75,8 @@ group_algebra(A::DrinfeldHeckeAlgebra) = group_algebra(A.drinfeld_hecke_form)
 
 const drinfeld_hecke_algebra = DrinfeldHeckeAlgebra
 
-function parametrized_drinfeld_hecke_algebra(G::MatrixGroup{T}) where {T <: RingElem}
-  κ = parametrized_drinfeld_hecke_form(G)
+function generic_drinfeld_hecke_algebra(G::MatrixGroup{T}) where {T <: FieldElem}
+  κ = generic_drinfeld_hecke_form(G)
 
   return drinfeld_hecke_algebra(κ)
 end
@@ -95,9 +99,9 @@ end
 # Data type and parent object methods
 ################################################################################
 
-parent_type(::Type{DrinfeldHeckeAlgebraElem{T}}) where {T <: RingElem} = DrinfeldHeckeAlgebra{T}
-elem_type(::Type{DrinfeldHeckeAlgebra{T}}) where {T <: RingElem} = DrinfeldHeckeAlgebraElem{T}
-ring_type(::Type{DrinfeldHeckeAlgebra{T}}) where {T <: RingElem} = parent_type(T)
+parent_type(::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebra{T, S}
+elem_type(::Type{DrinfeldHeckeAlgebra{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
+ring_type(::Type{DrinfeldHeckeAlgebra{T, S}}) where {T <: FieldElem, S <: RingElem} = parent_type(T)
 parent(a::DrinfeldHeckeAlgebraElem) = a.parent
 is_domain_type(::Type{DrinfeldHeckeAlgebraElem}) = false
 is_exact_type(::Type{DrinfeldHeckeAlgebraElem}) = true
@@ -173,9 +177,9 @@ rand(A::DrinfeldHeckeAlgebra) = DrinfeldHeckeAlgebraElem(A, rand(group_algebra(A
 # Promotion rules
 ################################################################################
 
-AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T}}, ::Type{DrinfeldHeckeAlgebraElem{T}}) where {T <: RingElem} = DrinfeldHeckeAlgebraElem{T}
-function AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
- promote_rule(T, U) == T ? DrinfeldHeckeAlgebraElem{T} : Union{}
+AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
+function AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{U}) where {T <: FieldElem, S <: RingElem, U <: RingElement}
+ promote_rule(T, U) == T ? DrinfeldHeckeAlgebraElem{T, S} : Union{}
 end
 # TODO
 
@@ -191,13 +195,13 @@ function *(a::DrinfeldHeckeAlgebraElem, g::MatrixGroupElem)
 end
 
 # Multiply with scalar from left and right
-function *(c::T, a::DrinfeldHeckeAlgebraElem{T}) where {T <: RingElement}
+function *(c::S, a::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
   A = a.parent
 
-  return A(ring(A)(c) * a.element)
+  return A(symmetric_algebra(A)(c) * a.element)
 end
 
-*(a::DrinfeldHeckeAlgebraElem{T}, c::T) where {T <: RingElement} = c * a
+*(a::DrinfeldHeckeAlgebraElem{T, S}, c::S) where {T <: FieldElem, S <: RingElem} = c * a
 
 # Multiply general elements a and b
 function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
@@ -234,7 +238,7 @@ function multiply_a_with_x(a::DrinfeldHeckeAlgebraElem, x::DrinfeldHeckeAlgebraE
   (c, m, g, tail) = split_element(a)
  
   # Let g act on x
-  gx = generator_to_polynomial(x)^g
+  gx = x^g
   
   # a * x 
   # = (c * m * g + tail) * x 
@@ -377,21 +381,35 @@ end
 # Helper functions for multiplication
 ################################################################################
 
-(κ::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(κ(to_vector(x), to_vector(y)))
+(κ::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(κ(generator_to_vector(x), generator_to_vector(y)))
 
-function to_vector(x::DrinfeldHeckeAlgebraElem)
-  R = base_ring(x.parent)
-  v = [R(0) for _ in 1:dimension(x.parent)]
+function generator_to_vector(x::DrinfeldHeckeAlgebraElem)
+  A = x.parent
+  R = base_ring(A)
+  n = degree(group(A))
+  v = [R(0) for _ in 1:n]
   v[index_of_generator(x)] = R(1)
   
   return v
 end
 
+function vector_to_algebra_element(A::DrinfeldHeckeAlgebra{T, S}, v::Vector{S}) where {T <: FieldElem, S <: RingElem}
+  RV = symmetric_algebra(A)
+  res = RV()
+  
+  for i in 1:length(v)
+    res = res + v[i] * RV[i]
+  end
+  
+  return A(res)
+end
+
 function index_of_generator(x::DrinfeldHeckeAlgebraElem)
   A = x.parent
+  n = degree(group(A))
   
-  for i in 1:dimension(A)
-    if A(gen(ring(A), i)) == x
+  for i in 1:n
+    if A(gen(symmetric_algebra(A), i)) == x
       return i
     end
   end
@@ -402,7 +420,15 @@ end
 function generator_to_polynomial(x::DrinfeldHeckeAlgebraElem)
   i = index_of_generator(x)
   
-  return gen(ring(x.parent), i)
+  return gen(symmetric_algebra(x.parent), i)
 end
+
+function ^(x::DrinfeldHeckeAlgebraElem{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}
+  v = generator_to_vector(x)
+  gv = matrix(g) * v
+  
+  return vector_to_algebra_element(x.parent, gv)
+end
+
 
 

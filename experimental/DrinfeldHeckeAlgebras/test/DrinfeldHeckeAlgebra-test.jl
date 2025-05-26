@@ -6,34 +6,31 @@
       
   @testset "create trivial drinfeld-hecke algebra" begin
     A = drinfeld_hecke_algebra(G)
-    @test is_trivial(A)
+    @test is_zero(A)
   end
 
   @testset "create drinfeld-hecke algebra from drinfeld-hecke form" begin
-    κ = drinfeld_hecke_form(G)
-    κ[e] = MS([0 1;-1 0])
-    κ[g] = MS([0 2;-2 0])
+    κ = generic_drinfeld_hecke_form(G)
     
     A = drinfeld_hecke_algebra(κ)
-    @test !is_trivial(A)
+    @test !is_zero(A)
   end
 
   @testset "create parametrized drinfeld-hecke algebra" begin
-    A = parametrized_drinfeld_hecke_algebra(G)
-    @test !is_trivial(A)
+    A = generic_drinfeld_hecke_algebra(G)
+    @test !is_zero(A)
     @test ngens(base_ring(A)) == 2
   end
 
   @testset "multiplication" begin
-    κ = drinfeld_hecke_form(G)
-    κ[e] = MS([0 -8//7;8//7 0])
-    κ[g] = MS([0 4;-4 0])
+    κ = generic_drinfeld_hecke_form(G)
+    κ = evaluate_parameters(κ, [-8//7, 4])
     A = drinfeld_hecke_algebra(κ)
     RG = group_algebra(A)
-    R = ring(A)
+    R = symmetric_algebra(A)
     
-    x = gen(R,1)
-    y = gen(R,2)
+    x = R[1]
+    y = R[2]
     
     @testset "multiply with scalar" begin
       @test 2 * A(x) == A(2*x)
@@ -56,7 +53,7 @@
     end
   
     @testset "multiply h * x" begin
-      gx = A(RG(x^g) * RG(g))
+      gx = A(RG(-x) * RG(g))
       @test A(g) * A(x) == gx
 #       @test g * A(x) == gx
 #       @test A(g) * x == gx

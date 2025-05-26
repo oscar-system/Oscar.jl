@@ -200,6 +200,8 @@ function deepcopy_internal(κ::DrinfeldHeckeForm)
   
   κ_copy = DrinfeldHeckeForm(G, R)
   κ_copy.forms = κ.forms
+  
+  return κ_copy
 end
 
 function Base.getindex(κ::DrinfeldHeckeForm{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}

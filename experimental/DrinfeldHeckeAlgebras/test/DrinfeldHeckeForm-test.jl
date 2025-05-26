@@ -17,8 +17,8 @@
       t1 = S[1]
       t2 = S[2]
       
-      g = G[1]
-      h = one(G)
+      g = one(G)
+      h = G[1]
       
       κ_g = alternating_bilinear_form(matrix(S, [0 t1; -t1 0]))
       κ_h = alternating_bilinear_form(matrix(S, [0 t2; -t2 0]))
@@ -34,8 +34,8 @@
       κ2 = evaluate_parameters(κ, [2,3])
       
       S = base_ring(κ2)
-      g = G[1]
-      h = one(G)
+      g = one(G)
+      h = G[1]
 
       κ_g = alternating_bilinear_form(matrix(S, [0 2; -2 0]))
       κ_h = alternating_bilinear_form(matrix(S, [0 3; -3 0]))
@@ -111,16 +111,20 @@
     end
   
     @testset "can't create from non-alternating forms" begin
-      κ = drinfeld_hecke_form(G)
       g = one(G)
+      T = elem_type(typeof(QQ))
+      forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
+      forms[g] = MS([1 0;-1 0])
       
-      @test_throws ArgumentError κ[g] = MS([1 0;-1 0])
+      @test_throws ArgumentError drinfeld_hecke_form(forms)
     end
   
     @testset "apply form" begin
-      κ = drinfeld_hecke_form(G)
       g = one(G)
-      κ[g] = MS([0 1;-1 0])
+      T = elem_type(typeof(QQ))
+      forms = Dict{MatrixGroupElem{T}, MatElem{T}}()
+      forms[g] = MS([0 1;-1 0])
+      κ = drinfeld_hecke_form(forms)
       RG = κ.group_algebra
       v1 = [QQ(1), QQ()]
       v2 = [QQ(), QQ(1)]
@@ -137,7 +141,7 @@
     end
   
     @testset "Z/5Z" begin
-      F, _ = residue_ring(ZZ, 5)
+      F, _ = residue_field(ZZ, 5)
       G = matrix_group(matrix(F, [-1 0;0 -1]))
       κ = generic_drinfeld_hecke_form(G)
       @test ngens(base_ring(κ)) == 2
