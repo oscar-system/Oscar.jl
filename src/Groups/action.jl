@@ -155,7 +155,7 @@ of `set`, and then turning the result into a sorted vector/tuple or a set,
 respectively.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
@@ -491,6 +491,32 @@ julia> orb = orbit(G, on_echelon_form_mats, m);  length(orb)
 """
 function on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
   return echelon_form(m * x)
+end
+
+@doc raw"""
+    induced_action(actfun::Function, phi::GAPGroupHomomorphism)
+
+Return the action function that is obtained by inducing `actfun` along `phi`.
+
+That means, given a groups ``G`` and ``H``, a set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the action function
+$\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
+"""
+function induced_action(actfun::Function, phi::GAPGroupHomomorphism)
+  return _induced_action(actfun, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induced_action(actfun::Function, phi::Map{<:Union{Group,FinGenAbGroup}, <:Union{Group,FinGenAbGroup}})
+  return _induced_action(actfun, phi)
+end
+
+function _induced_action(actfun::Function, phi::Map{<:Union{Group,FinGenAbGroup}, <:Union{Group,FinGenAbGroup}})
+  return function (omega, g)
+    return actfun(omega, phi(g))
+  end
 end
 
 @doc raw"""

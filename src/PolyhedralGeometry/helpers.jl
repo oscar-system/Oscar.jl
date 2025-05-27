@@ -136,7 +136,7 @@ number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
  [1, 2, 3]

@@ -31,7 +31,7 @@ lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 GAP_lib_jll = "c863536a-3901-11e9-33e7-d5cd0df7b904"
 
 [compat]
-AbstractAlgebra = "0.45.0"
+AbstractAlgebra = "0.45.1"
 AlgebraicSolving = "0.9.0"
 Compat = "4.13.0"
 Distributed = "1.6"

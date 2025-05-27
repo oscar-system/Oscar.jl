@@ -30,6 +30,18 @@ function doctestfilters()
   ]
 end
 
+# https://github.com/JuliaLang/julia/pull/57509 changed hashing for many base types.
+# We thus filter doctestoutputs that show Sets, Dicts, etc. for julia versions with
+# this change to still have the doctests passing.
+function doctestfilter_hash_changes_in_1_13()
+  if VERSION >= v"1.13.0-DEV.570"
+    # The filter in place here checks that the number of lines in the output matches the input.
+    [r".*"]
+  else
+    return []
+  end
+end
+
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
   global docsproject = path

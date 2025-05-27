@@ -8,7 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 Monomials in a set $x=\{x_1, \ldots, x_n\}$ of variables are written using
 multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$,
-set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and
+set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$, and consider the monoid
 
 $\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \mathbb{N}^n\}.$
 
@@ -43,8 +43,8 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 In this section, we show how to create monomial orderings in OSCAR. 
 
 !!! note
-    For the convenient construction of block orderings on the set of monomials in the variables of a given multivariate polynomial ring,
-    we allow to construct orderings on the monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
+    For the convenient construction of block orderings on $\text{Mon}_n(x)$, we allow to construct orderings
+    on the monomials in blocks (that is, subsets) of variables, viewing these orderings as partial orderings on $\text{Mon}_n(x)$.
 
 Here are some illustrating examples:
 
@@ -61,13 +61,16 @@ julia> canonical_matrix(o)
 [1   0]
 [0   1]
 
+```
+
+```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
 
-julia> is_global(o1)
+julia> is_global_block(o1)
 true
 
 julia> canonical_matrix(o1)
@@ -77,7 +80,7 @@ julia> canonical_matrix(o1)
 julia> o2 = neglex([y, z])
 neglex([y, z])
 
-julia> is_local(o2)
+julia> is_local_block(o2)
 true
 
 julia> canonical_matrix(o2)
@@ -95,6 +98,7 @@ julia> canonical_matrix(o3)
 
 julia> is_mixed(o3)
 true
+
 ```
 
 ## Monomial Comparisons
@@ -357,7 +361,15 @@ is_global(ord::MonomialOrdering)
 ```
 
 ```@docs
+is_global_block(ord::MonomialOrdering)
+```
+
+```@docs
 is_local(ord::MonomialOrdering)
+```
+
+```@docs
+is_local_block(ord::MonomialOrdering)
 ```
 
 ```@docs

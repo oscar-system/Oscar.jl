@@ -53,11 +53,13 @@ function _print_banner(;is_dev = Oscar.is_dev)
 
   if displaysize(stdout)[2] >= 80 
     println(
-      raw"""  ___   ____   ____    _    ____
-             / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-            | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-            | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
+      raw"""  ___   ___   ___    _    ____
+             / _ \ / __\ / __\  / \  |  _ \  | Combining and extending ANTIC, GAP,
+            | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
+             \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information""")
+    printstyled(raw"""o--------o-----o-----o--------o""", color = :yellow)
+    println(raw"""  | Documentation: https://docs.oscar-system.org""")
+    println(raw"""  S Y M B O L I C   T O O L S    | """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
@@ -262,6 +264,8 @@ include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PartiallyOrderedSet/structs.jl")
+include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
 
