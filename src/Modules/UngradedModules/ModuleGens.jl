@@ -101,6 +101,37 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc raw"""
+    singular_ordering(M::ModuleGens)
+
+Return the ordering of `M` from Singular side.
+"""
+function singular_ordering(M::ModuleGens)
+    singular_assure(M)
+    return Singular.ordering(base_ring(M.SF))
+end
+
+@doc raw"""
+    singular_freemodule(M::ModuleGens)
+
+Return the ambient free module of `M` from Singular side.
+"""
+function singular_freemodule(M::ModuleGens)
+    singular_assure(M)
+    return M.SF
+end
+
+
+@doc raw"""
+    has_global_singular_ordering(M::ModuleGens)
+
+Return whether the ordering of `M` from the Singular side is global.
+"""
+function has_global_singular_ordering(M::ModuleGens)
+    singular_assure(M)
+    return Singular.has_global_ordering(base_ring(M.SF))
+end
+
+@doc raw"""
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the Oscar side.
@@ -151,24 +182,14 @@ Return the number of elements of the module generating set.
 """
 number_of_generators(F::ModuleGens) = length(oscar_generators(F))
 
-# i-th entry of module generating set on Oscar side
-# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:O}, i::Int)
-  if !isassigned(F.O, i)
-    F.O[i] = F.F(singular_generators(F)[i])
-  end
   return oscar_generators(F)[i]
 end
 
-# i-th entry of module generating set on Singular side
-# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
-  singular_assure(F)
-  if !isdefined(F, :S)
-    F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
-  end
-  return F.S[i]
+    return singular_generators(F)[i]
 end
+
 
 @doc raw"""
     oscar_assure(F::ModuleGens)
@@ -330,10 +351,8 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRin
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
-  singular_assure(generators)
   S = singular_generators(generators)
   b = ModuleGens([a], generators.SF)
-  singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
@@ -348,12 +367,11 @@ end
 Compute a sparse row `r` such that `a = sum([r[i]*gen(generators,i) for i in 1:ngens(generators)])`.
 If no such `r` exists, an exception is thrown.
 """
-function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRingElem}
-  singular_assure(generators)
-  if !Singular.has_global_ordering(base_ring(generators.SF))
-    error("Ordering must be global")
-  end
-  return lift(a, generators)
+function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T<:MPolyRingElem}
+    if !has_global_singular_ordering(generators)
+        error("Ordering must be global")
+    end
+    return lift(a, generators)
 end
 
 @doc raw"""
@@ -376,11 +394,9 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
     end
   end
 
-  singular_assure(generators)
   S = singular_generators(generators)
   S.isGB = generators.isGB
   b = ModuleGens([a], generators.SF)
-  singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b)) # Possibly use division with remainder
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
@@ -444,10 +460,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  singular_assure(P)
-  singular_assure(M)
-
-  red = _reduce(M.S, P.S)
+  red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(M.F, red)
   oscar_assure(res)
   return res
@@ -470,10 +483,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  singular_assure(P)
-  singular_assure(M)
-
-  red = _reduce(M.S, P.S)
+  red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(M.F, red)
   oscar_assure(res)
   return res, [R(1) for _ in 1:ngens(M)]
