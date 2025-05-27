@@ -144,7 +144,7 @@ function lift_with_unit(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <
   # TODO allow optional argument ordering
   # To do this efficiently we need better infrastructure in Singular.jl
   R = base_ring(parent(a))
-  if Singular.has_global_ordering(singular_ordering(generators))
+  if has_global_singular_ordering(generators)
     l = lift(a, generators)
     return l, R(1)
   end

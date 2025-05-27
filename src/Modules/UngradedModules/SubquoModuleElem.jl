@@ -730,33 +730,33 @@ elements of `S`.
 If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
 function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
-    if length(O) > 0
-        @assert parent(O[1]) === F.F
-    end
-    if isdefined(F, :quo)
-        SF = singular_freemodule(F.quo.gens)
-        s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
-        Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
-        phi = hom(F, Q, gens(Q), check=false)
-        cache_morphism && register_morphism!(phi)
-        return Q, phi
-    end
-    Q = SubquoModule(F, O)
+  if length(O) > 0
+    @assert parent(O[1]) === F.F
+  end
+  if isdefined(F, :quo)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
+    Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
     phi = hom(F, Q, gens(Q), check=false)
     cache_morphism && register_morphism!(phi)
     return Q, phi
+  end
+  Q = SubquoModule(F, O)
+  phi = hom(F, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(phi)
+  return Q, phi
 end
 
 function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}) where T
-    if length(O) > 0
-        @assert parent(O[1]) === F.F
-    end
-    if isdefined(F, :quo)
-        SF = singular_freemodule(F.quo.gens)
-        s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
-        return SubquoModule(F.F, singular_generators(F.sub.gens), s)
-    end
-    return SubquoModule(F, O)
+  if length(O) > 0
+    @assert parent(O[1]) === F.F
+  end
+  if isdefined(F, :quo)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
+    return SubquoModule(F.F, singular_generators(F.sub.gens), s)
+  end
+  return SubquoModule(F, O)
 end
 
 @doc raw"""
