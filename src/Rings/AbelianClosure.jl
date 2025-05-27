@@ -581,23 +581,171 @@ Hecke.minpoly(a::QQAbFieldElem) = minpoly(data(a))
 
 ################################################################################
 #
+#  Subfields and such
+#
+################################################################################
+"""
+To parametrize subfields of the n-cyclotomic field we use blocks:
+ - pick a prime n = 1 % p (so thre is a n-th root of 1 mod p)
+ - pick an n-th root Z of one
+ - the roots are exactly Z^i for i coprime to n as the images
+   of the n-th root of 1 in the QQab field
+This way the ordering of the roots is mentained across different primes
+(choice of Z correpsonds to fixing a prime ideal above p)
+"""
+struct RootData
+   p::Int # n = 1 % p
+   r::Vector{Int} # the roots in this order as described above
+
+   function RootData(n::Int, p::Int)
+     @assert p % n == 1
+     k = Native.GF(p)
+     @assert((p-1)%n == 0)
+     lf = factor(n)
+     local Z, Zn
+     while true
+       Z = rand(k)
+       iszero(Z) && continue
+       Zn = Z^divexact(p-1, n)
+       if all(x->!isone(Zn^divexact(n, x)), keys(lf.fac))
+         break
+       end
+     end
+     r, mr = quo(ZZ, n)
+     u, mu = unit_group(r)
+     c = sort(Int[preimage(mr, mu(g)) for g = u])
+     
+     z = Int(lift(Zn))
+     return new(p, Int[powermod(z, x, p) for x = c])
+   end
+end
+
+function block_system(a::AbsSimpleNumFieldElem, rd::RootData)
+  p = rd.p
+  if denominator(a) % p == 0
+    return Vector{Vector{Int}}()
+  end
+  kp = Native.GF(p; check = false, cached = false)
+  Qx = parent(defining_polynomial(parent(a)))
+  pol = Qx(a)
+  v = [map_coefficients(kp, pol)(t) for t = rd.r]
+  D = Dict{fpFieldElem, Vector{Int}}()
+  for i=1:length(v)
+    if haskey(D, v[i])
+      push!(D[v[i]], i)
+    else
+      D[v[i]] = [i]
+    end
+  end
+  s = sort(collect(values(D)), lt = (a,b) -> isless(a[1], b[1]))
+  if any(x->length(x) != length(s[1]), s)
+    return Vector{Vector{Int}}()
+  end
+  return s
+end
+
+function block_system(k::AbsSimpleNumField, a::QQAbFieldElem)
+  if degree(k) == 1
+    return [[1]]
+  end
+  A = parent(a)
+  rda = get_attribute(A, :RootData)
+  if rda === nothing
+    rda = Dict{Int, Vector{RootData}}()
+    set_attribute!(A, :RootData => rda)
+  end
+  n = Hecke.is_cyclotomic_type(parent(k(data(a))))[2]
+  if !haskey(rda, n)
+    rda[n] = Vector{Vector{Int}}()
+  end
+  p = 1
+  for rd = rda[n]
+    p = max(p, rd.p)
+    b = block_system(k(data(a)), rd)
+    if length(b) != 0
+      return b
+    end
+  end
+  nq = 1
+  for q = PrimesSet(p+1, -1, n, 1)
+    rd = RootData(n, q)
+    push!(rda[n], rd)
+    b = block_system(k(data(a)), rd)
+    if length(b) != 0
+      return b
+    end
+    nq += 1
+    if nq > 100 # not plausible, s.th. is going badly wrong
+      #a will need to be divisible at 100 primes...
+      error("dnw")
+    end
+  end
+end
+
+function intersect_block_systems(a::Vector{Vector{Int}}, b::Vector{Vector{Int}})
+  c = [intersect(x, y) for x = a for y = b]
+  return sort([x for x = c if length(x) > 0], lt = (a,b) -> isless(a[1], b[1]))
+end
+
+function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true)
+  f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = s])
+  k = cyclotomic_field(f)[1]
+  b = [[i for i = 1:degree(k)]] #block system for QQ as a subfield
+  pe = zero(K)
+  for mu = s
+    bs = block_system(k, mu)
+    if issubset(b[1], bs[1])
+      continue #nothing new in element
+    end
+    b = intersect_block_systems(b, bs)
+    i = 1
+    while block_system(k, pe+i*mu) != b
+      i += 1
+      if i> 10 #in theory the number of failures is finite
+          #this is just a safety valve, could be removed
+        error("dnw")
+      end
+    end
+    pe += i*mu
+  end
+  if iszero(pe) #to catch QQ as a subfield, we prefer x-1 over x
+    pe = one(K)
+  end
+  if cached
+    old = get_attribute(K, :subfields)
+    if old === nothing
+      old = Dict{Tuple{Int, Vector{Int}}, Map}()
+      set_attribute!(K, :subfields=>old)
+    end
+    if haskey(old, (f, b[1]))
+      hh = old[(f, b[1])]
+      return domain(hh), hh
+    end
+  end
+  g = minpoly(pe)
+  @assert degree(g) == length(b)
+  s, _ = number_field(g; check = false, cached = false)
+  h = hom(s, k, k(pe.data))
+  hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
+  if cached
+    old = get_attribute(K, :subfields)
+    old[(f, b[1])] = hh
+  end
+  return s, hh
+end
+    
+################################################################################
+#
 #  Syntactic sugar
 #
 ################################################################################
 
-function Hecke.number_field(::QQField, a::QQAbFieldElem; cached::Bool = false)
-  f = minpoly(a)
-  k, b = number_field(f, check = false, cached = cached)
-  return k, b
+function Hecke.number_field(K::QQField, a::QQAbFieldElem; cached::Bool = false)
+  return number_field(K, [a]; cached)
 end
 
-function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbFieldElem}; cached::Bool = false)
-  if length(a) == 0
-    return Hecke.rationals_as_number_field()[1]
-  end
-  f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = a])
-  K = cyclotomic_field(f)[1]
-  k, mkK = Hecke.subfield(K, [K(data(x)) for x = a])
+function Hecke.number_field(K::QQField, a::AbstractVector{<: QQAbFieldElem}; cached::Bool = false)
+  k, mp = sub(parent(a[1]), a; cached)
   return k, gen(k)
 end
 
