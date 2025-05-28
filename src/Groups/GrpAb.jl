@@ -326,7 +326,6 @@ function action_homomorphism(Omega::GSetByElements{FinGenAbGroup, S}) where S
 
   # Compute a permutation group `G` isomorphic with `A`.
   phi = isomorphism(PermGroup, A)
-  G = codomain(phi)
 
   # Let `G` act on `Omega` as `A` does.
   OmegaG = induce(Omega, inv(phi))
