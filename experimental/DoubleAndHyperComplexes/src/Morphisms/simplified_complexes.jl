@@ -643,20 +643,12 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   if !isdefined(und, :boundary_cache) 
     und.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(und.boundary_cache, (i, p))
-    inc = und.boundary_cache[(i, p)]
-    return domain(inc), inc
+  inc = get!(und.boundary_cache, (i, p)) do
+    orig_boundary, orig_inc = boundary(c.original_complex, p, i)
+    from_orig = map_from_original_complex(c)[i]
+    sub(c[i], filter!(!is_zero, from_orig.(orig_inc.(gens(orig_boundary)))))[2]
   end
-
-  # compute the boundary from scratch
-  orig_boundary, orig_inc = boundary(c.original_complex, p, i)
-  from_orig = map_from_original_complex(c)[i]
-  result, inc = sub(c[i], from_orig.(orig_inc.(gens(orig_boundary))))
-
-  # Cache the result
-  und.boundary_cache[(i, p)] = inc
-
-  return result, inc
+  return domain(inc), inc
 end
 
 function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
@@ -665,23 +657,19 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   if !isdefined(c, :kernel_cache) 
     c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(c.kernel_cache, (i, p))
-    inc = c.kernel_cache[(i, p)]
-    return domain(inc), inc
-  end
 
-  if !can_compute_map(simp, p, i)
-    M = simp[i]
-    K, inc = sub(simp[i], gens(simp[i]))
-    c.kernel_cache[(i, p)] = inc
-    return K, inc
-  end
+  inc = get!(c.kernel_cache, (i, p)) do
+    if !can_compute_map(simp, p, i)
+      M = simp[i]
+      return sub(simp[i], gens(simp[i]))[2]
+    end
 
-  psi = map_to_original_complex(simp)[i]
-  phi = map(original_complex(simp), p, i)
-  K, inc = kernel(compose(psi, phi))
-  c.kernel_cache[(i, p)] = inc
-  return K, inc
+    psi = map_to_original_complex(simp)[i]
+    phi = map(original_complex(simp), p, i)
+    kernel(compose(psi, phi))[2]
+  end
+  
+  return domain(inc), inc
 end
 
 function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
