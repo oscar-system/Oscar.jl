@@ -755,11 +755,16 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
   i1 = i - p 
   j1 = j + p - 1
 
-  new_lifted_kernel_gens = lifted_kernel_generators(cssp, i1, j1)
-
   # assemble the actual induced morphism
   dom = cssp[i, j]
   cod = cssp[i1, j1]
+
+  # take the chance for early return
+  if (is_known(is_zero, dom) && is_zero(dom)) || (is_known(is_zero, cod) && is_zero(cod))
+    return hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
+  end
+  
+  new_lifted_kernel_gens = lifted_kernel_generators(cssp, i1, j1)
   F = ambient_free_module(cod)
   img_gens = elem_type(F)[]
   cod_degs = degrees_of_generators(graded_complex(cssp)[i1])
@@ -1221,3 +1226,4 @@ end
 function Base.show(io::IO, cssp::CSSPage)
   print(io, "page $(page_number(cssp)) of $(spectral_sequence(cssp))")
 end
+
