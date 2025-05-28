@@ -988,7 +988,7 @@ julia> is_zero(M)
 false
 ```
 """
-function is_zero(M::SubquoModule)
+@attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
