@@ -138,7 +138,7 @@ function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Abstr
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
-    set_attribute!(v, :coordinate_names, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names, Symbol.(coordinate_names))
 end
 
 
@@ -164,7 +164,7 @@ function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_nam
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
-    set_attribute!(v, :coordinate_names_of_torus, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names_of_torus, Symbol.(coordinate_names))
 end
 
 
@@ -209,11 +209,11 @@ julia> coordinate_names(antv)
  "x1"
 ```
 """
-@attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
+@attr Vector{Symbol} function coordinate_names(v::NormalToricVarietyType)
   if has_attribute(v, :cox_ring)
-    return string.(symbols(cox_ring(v)))
+    return symbols(cox_ring(v))
   end
-  return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
+  return [Symbol("x$(i)") for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -529,8 +529,8 @@ end
 Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
-@attr Vector{String} function coordinate_names_of_torus(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:ambient_dim(v)]
+@attr Vector{Symbol} function coordinate_names_of_torus(v::NormalToricVarietyType)
+  return [Symbol("x$(i)") for i in 1:ambient_dim(v)]
 end
 
 
@@ -567,7 +567,7 @@ Quotient
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+  S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [Symbol(String(x)*"_") for x in coordinate_names_of_torus(v)]); cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 
