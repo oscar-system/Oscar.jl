@@ -72,7 +72,7 @@ end
 #
 ###############################################################################
 
-function monomial_cmp(R::MPolyRing, x::Memory{Int}, i::Int, y::Memory{Int}, j::Int)
+function monomial_cmp(R::MPolyRing, x::Vector{Int}, i::Int, y::Vector{Int}, j::Int)
   xk = (i - 1) * R.N
   yk = (j - 1) * R.N
   for _ in 1:(R.N)
@@ -87,7 +87,7 @@ function monomial_cmp(R::MPolyRing, x::Memory{Int}, i::Int, y::Memory{Int}, j::I
   return 0
 end
 
-function monomial_set!(dst::Memory{Int}, i::Int, src::Memory{Int}, j::Int, N)
+function monomial_set!(dst::Vector{Int}, i::Int, src::Vector{Int}, j::Int, N)
   unsafe_copyto!(dst, (i - 1) * N + 1, src, (j - 1) * N + 1, N)
 end
 
@@ -95,11 +95,11 @@ function monomial_set!(x::MPolyRingElem, i::Int, y::MPolyRingElem, j::Int)
   monomial_set!(x.exps, i, y.exps, j, parent(x).N)
 end
 
-function monomial_set!(x::MPolyRingElem, i::Int, m::Memory{Int})
+function monomial_set!(x::MPolyRingElem, i::Int, m::Vector{Int})
   monomial_set!(x.exps, i, m, 1, parent(x).N)
 end
 
-function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
+function add_monomial!(x::MPolyRingElem{T}, m::Vector{Int}) where {T}
   i = 1
   while i <= length(x)
     cmp = monomial_cmp(parent(x), x.exps, i, m, 1)
@@ -112,32 +112,17 @@ function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
   end
 
   N = parent(x).N
-  if length(x.coeffs) > length(x)
-    if isnothing(x.coeffs[length(x) + 1])
-      x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
-    end
-    c = x.coeffs[length(x) + 1]::T
-
-    unsafe_copyto!(x.coeffs, i + 1, x.coeffs, i, length(x) + 1 - i)
-    unsafe_copyto!(x.exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
-
-    x.coeffs[i] = zero!(c)
-    unsafe_copyto!(x.exps, (i - 1) * N + 1, m, 1, N)
-  else
-    coeffs, exps = fit(x, length(x) + 1)
-
-    unsafe_copyto!(coeffs, 1, x.coeffs, 1, i - 1)
-    unsafe_copyto!(exps, 1, x.exps, 1, (i - 1) * N)
-
-    coeffs[i] = zero(coefficient_ring(x))
-    unsafe_copyto!(exps, (i - 1) * N + 1, m, 1, N)
-
-    unsafe_copyto!(coeffs, i + 1, x.coeffs, i, length(x.coeffs) + 1 - i)
-    unsafe_copyto!(exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
-
-    x.coeffs = coeffs
-    x.exps = exps
+  fit!(x, length(x) + 1)
+  if isnothing(x.coeffs[length(x) + 1])
+    x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
   end
+  c = x.coeffs[length(x) + 1]::T
+
+  unsafe_copyto!(x.coeffs, i + 1, x.coeffs, i, length(x) + 1 - i)
+  unsafe_copyto!(x.exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
+
+  x.coeffs[i] = zero!(c)
+  monomial_set!(x, i, m)
 
   x.len += 1
   return i
@@ -149,38 +134,12 @@ end
 #
 ###############################################################################
 
-function fit(x::MPolyRingElem{T}, len::Int) where {T}
-  R = parent(x)
-  if length(x.coeffs) >= len
-    return x.coeffs, x.exps
-  end
-
-  if 2 * length(x.coeffs) > len
-    len = 2 * length(x.coeffs)
-    if length(x.coeffs) >= 256
-      cap = length(x.coeffs)
-      while true
-        cap += (cap + 3 * 256) >> UInt(2)
-        if UInt(cap) >= UInt(len)
-          break
-        end
-      end
-      if cap >= 0
-        len = cap
-      end
-    end
-  end
-
-  return fill!(Memory{Union{T,Nothing}}(undef, len), nothing), Memory{Int}(undef, R.N * len)
-end
-
 function fit!(x::MPolyRingElem{T}, len::Int) where {T}
-  coeffs, exps = fit(x, len)
-  if coeffs !== x.coeffs
-    unsafe_copyto!(coeffs, 1, x.coeffs, 1, length(x.coeffs))
-    unsafe_copyto!(exps, 1, x.exps, 1, length(x.exps))
-    x.coeffs = coeffs
-    x.exps = exps
+  ol = length(x.coeffs)
+  x.coeffs = resize!(x.coeffs, len)
+  x.exps = resize!(x.exps, parent(x).N * len)
+  for i in (ol + 1):len
+    x.coeffs[i] = nothing
   end
 end
 
@@ -600,8 +559,9 @@ function exponent_vector(x::MPolyRingElem, i::Int)
   return m
 end
 
-function exponent_vector!(exp::Memory{Int}, x::MPolyRingElem, i::Int)
+function exponent_vector!(exp::Vector{Int}, x::MPolyRingElem, i::Int)
   unsafe_copyto!(exp, 1, x.exps, (i - 1) * parent(x).N + 1, ngens(parent(x)))
+  return exp
 end
 
 function length(x::MPolyRingElem)
