@@ -2179,3 +2179,14 @@ function (==)(F::FreeMod, G::SubquoModule)
   all(in(G), gens(F)) || return false
   return true
 end
+
+is_known(::typeof(is_zero), F::FreeMod) = true
+
+function is_known(::typeof(is_zero), M::SubquoModule)
+  has_attribute(M, :is_zero) && return true
+  is_zero(ambient_free_module(M)) && return true
+  is_zero(ngens(M)) && return true
+  is_zero(M.quo) && return true
+  return false
+end
+
