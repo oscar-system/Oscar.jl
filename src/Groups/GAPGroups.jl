@@ -2189,7 +2189,7 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
   end
   res = init !== nothing ? init : one(genimgs[1])
   for i in v
-    res *= _map_word_syllable(i, genimgs, genimgs_inv)
+    res = mul!(res, _map_word_syllable(i, genimgs, genimgs_inv))
   end
   return res
 end
@@ -2206,7 +2206,7 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
   end
   res = init !== nothing ? init : zero(parent(genimgs[1]))
   for i in v
-    res += _map_word_syllable_additive(i, genimgs, genimgs_inv)
+    res = add!(res, _map_word_syllable_additive(i, genimgs, genimgs_inv))
   end
   return res
 end
