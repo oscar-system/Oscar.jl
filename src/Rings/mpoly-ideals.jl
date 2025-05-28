@@ -137,7 +137,7 @@ function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(I)
   oscar_assure(J)
   check_base_rings(I, J)
-  newgens = filter!(!iszero, unique!(vcat(I.gens.O,J.gens.O)))
+  newgens = filter!(!iszero, unique!(vcat(I.gens.gens.O, J.gens.gens.O)))
   return ideal(base_ring(I), newgens)
 end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
@@ -172,8 +172,8 @@ function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(J)
   check_base_rings(I, J)
   newgens = elem_type(base_ring(I))[]
-  for g in I.gens.O
-    for h in J.gens.O
+  for g in I.gens.gens.O
+    for h in J.gens.gens.O
       gh = g * h
       if !iszero(gh)
         push!(newgens, gh)
@@ -1939,7 +1939,7 @@ Multivariate polynomial ring in 2 variables x, y
 ```
 """
 function base_ring(I::MPolyIdeal{S}) where {S}
-  return I.gens.Ox::parent_type(S)
+  return I.gens.gens.Ox::parent_type(S)
 end
 
 base_ring_type(::Type{MPolyIdeal{S}}) where {S} = parent_type(S)
@@ -2298,7 +2298,7 @@ function small_generating_set(
 
     # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
-    ring = I.gens.Ox
+    ring = I.gens.gens.Ox
     computed_gb = IdealGens(ring, sing_gb, true)
     if !haskey(I.gb,computed_gb.ord)
       # if not yet present, store gb for later use

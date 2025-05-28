@@ -209,41 +209,6 @@ mutable struct IdealGens{S}
   end
 end
 
-function Base.getproperty(idealgens::IdealGens, name::Symbol)
-  if name == :Ox
-    return getfield(idealgens, :gens).Ox
-  elseif name == :O
-    return getfield(idealgens, :gens).O
-  elseif name == :Sx
-    return getfield(idealgens, :gens).Sx
-  elseif name == :S
-    #singular_assure(idealgens)
-    return getfield(idealgens, :gens).S
-  elseif name == :gens
-    return getfield(idealgens, name)
-  elseif name == :isGB
-    return getfield(idealgens, name)
-  elseif name == :isReduced
-    return getfield(idealgens, name)
-  elseif name == :ord
-    return getfield(idealgens, name)
-  elseif name == :keep_ordering
-    return getfield(idealgens, name)
-  else
-    error("undefined property: ", name)
-  end
-end
-
-function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
-  if name == :Ox || name == :O || name == :Sx || name == :S
-    setfield!(idealgens.gens, name, x)
-  elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
-    setfield!(idealgens, name, x)
-  else
-    error("undefined property: ", name)
-  end
-end
-
 function show(io::IO, ::MIME"text/plain", I::IdealGens)
   io = pretty(io)
   if I.isGB
@@ -380,11 +345,11 @@ end
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
-  isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
-  g = iso_oscar_singular_poly_ring(B.Ox, monorder)
+  isa(base_ring(B), MPolyQuoRing) && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gens.S))) == B.ord && return B.gens.S
+  g = iso_oscar_singular_poly_ring(base_ring(B), monorder)
   SR = codomain(g)
-  f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
+  f = Singular.AlgebraHomomorphism(B.gens.Sx, SR, gens(SR))
   S = Singular.map_ideal(f, B.gens.S)
   if isdefined(B, :ord) && B.ord == monorder
     S.isGB = B.isGB
@@ -636,7 +601,7 @@ Fields:
   function MPolyIdeal(B::IdealGens{T}) where T
     if length(B) >= 1
       oscar_assure(B)
-      R = B.gens.Ox
+      R = base_ring(B)
       if is_graded(R)
         @req all(is_homogeneous, B.gens.O) "The generators of an ideal in a graded ring must be homogeneous"
       end
@@ -685,12 +650,12 @@ end
 
 function singular_assure(I::IdealGens)
   if !isdefined(I.gens, :S)
-    g = iso_oscar_singular_poly_ring(I.Ox; keep_ordering = I.keep_ordering)
+    g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
     I.gens.Sx = codomain(g)
     I.gens.f = g
     I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x = I.gens.O])
   end
-  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(I.gens.Ox, internal_ordering(I.gens.Sx)))
+  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
   end
 end
@@ -704,8 +669,8 @@ end
 function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   if !isdefined(I.gens, :S)
       I.ord = ordering
-      I.gens.Sx = singular_poly_ring(I.Ox, ordering)
-      I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+      I.gens.Sx = singular_poly_ring(base_ring(I), ordering)
+      I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[I.gens.Sx(x) for x = I.O])
       if I.isGB
           I.gens.S.isGB = true
       end
@@ -714,8 +679,8 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
        = attached, thus we have to create a new singular ring and map the ideal. =#
       if !isdefined(I, :ord) || I.ord != ordering
           I.ord = ordering
-          SR    = singular_poly_ring(I.Ox, ordering)
-          f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+          SR    = singular_poly_ring(base_ring(I), ordering)
+          f     = Singular.AlgebraHomomorphism(I.gens.Sx, SR, gens(SR))
           I.gens.S   = Singular.map_ideal(f, I.S)
           I.gens.Sx  = SR
       end
@@ -724,7 +689,8 @@ end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens.gens, :O)
-    I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
+    R = base_ring(I)
+    I.gens.gens.O = [R(x) for x in gens(I.gens.gens.S)]
   end
 end
 

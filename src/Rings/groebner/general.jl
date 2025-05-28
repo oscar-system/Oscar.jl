@@ -32,7 +32,7 @@ with respect to the ordering
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
+  BA = IdealGens(B.gens.Ox, i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)

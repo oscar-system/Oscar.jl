@@ -19,9 +19,9 @@ function coordinates(f::MPolyRingElem, I::MPolyIdeal)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   f in I || error("polynomial does not belong to the ideal")
   singular_assure(I)
-  Rsing = I.gens.Sx
+  Rsing = I.gens.gens.Sx
   fsing = Singular.Ideal(Rsing, [Rsing(f)])
-  a_s, u_s = Singular.lift(I.gens.S, fsing)
+  a_s, u_s = Singular.lift(singular_generators(I), fsing)
   A_s = Matrix(a_s)
   U_s = Matrix(u_s)
   (ncols(U_s) == nrows(U_s) == 1 && iszero(U_s[1,1])) || error("no suitable ordering was used")

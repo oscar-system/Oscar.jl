@@ -193,7 +193,7 @@ function reduce!(a::NfNSGenElem)
   GS = singular_groebner_generators(I, false, false)
   Sx = base_ring(GS)
   f = a.f
-  a.f = I.gens.Ox(reduce(Sx(f), GS))
+  a.f = I.gens.gens.Ox(reduce(Sx(f), GS))
   return a
 end
 
