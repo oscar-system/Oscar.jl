@@ -59,6 +59,6 @@
     @test codomain(map_from_picard_group_to_class_group(F5)) == class_group_with_map(F5)[1]
     @test gorenstein_index(F5) == 1
     @test picard_index(F5) == 1
-    @test coordinate_names(F5) == ["t1", "x1", "t2", "x2"]
+    @test coordinate_names(F5) == [:t1, :x1, :t2, :x2]
   end
 end
