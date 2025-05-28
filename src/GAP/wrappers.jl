@@ -354,9 +354,11 @@ GAP.@wrap RootSystem(x::GapObj)::GapObj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap Set(x::GapObj)::GapObj
+GAP.@wrap SetConjugacyClasses(x::Any, y::Any)::Nothing
 GAP.@wrap SetIsIrreducibleCharacter(x::Any, y::Bool)::Nothing
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
+GAP.@wrap SetUnderlyingGroup(x::Any, y::Any)::Nothing
 GAP.@wrap ShrinkRowVector(x::GapObj)::Nothing
 GAP.@wrap SignPerm(x::GapObj)::Int
 GAP.@wrap SignPermGroup(x::GapObj)::Int
