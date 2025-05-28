@@ -268,7 +268,7 @@ If the field is not given then `QQ` is used during the computation.
 If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = real_projective_plane()
 Abstract simplicial complex of dimension 2 on 6 vertices
 

@@ -144,7 +144,10 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   end
   
   decompose_generator = function(v::SubquoModuleElem)
-    w = canonical_projection(tot[0], 1)(preimage(pr_res, v))
+    ind = findfirst(==(v), images_of_generators(pr_res))
+    isnothing(ind) && error("the given element is not the image of a generator under the projection map")
+    vv = gen(tot[0], ind::Int)
+    w = canonical_projection(tot[0], 1)(vv)
     w_dec = tensor_generator_decompose_function(res_prod[z])(w)
     return Tuple([augs[i](x) for (i, x) in enumerate(w_dec)])
   end

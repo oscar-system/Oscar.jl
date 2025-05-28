@@ -581,3 +581,30 @@ end
   @test describe(image(acthom)[1]) == "C3"
   @test all(x -> permutation(o, x) == acthom(x), gens(u))
 end
+
+@testset "inducing G-sets" begin
+  G = symmetric_group(4)
+  Omega = gset(G, permuted, [[1,1,2,3]])
+  H = permutation_group(8, [cperm([1,3], [2,4]), cperm([1,5], [2,6], [3,7], [4,8])])
+  phi = hom(H, G, [cperm([1,2]), cperm([1,3], [2,4])])
+
+  # This check is a bit surprising that it works, but it does.
+  # We just need that the two functions are same as mathematical functions, not as objects.
+  @test induced_action_function(Omega, phi) == induced_action(action_function(Omega), phi)
+
+  orb = orbit(H, induced_action_function(Omega, phi), [1,1,2,3])
+  @test acting_group(orb) == H
+  @test length(orb) == 4
+  stab = stabilizer(orb)[1]
+  @test order(stab) == 2
+  @test cperm([1,3], [2,4]) in stab
+
+  Omega2 = induce(Omega, phi)
+  @test acting_group(Omega2) == H
+  @test elements(Omega2) == elements(Omega)
+  @test length(orbits(Omega2)) == 2
+  @test issetequal(length.(orbits(Omega2)), [4, 8])
+  stab2 = stabilizer(Omega2)[1]
+  @test order(stab2) == 2
+  @test cperm([1,3], [2,4]) in stab2
+end

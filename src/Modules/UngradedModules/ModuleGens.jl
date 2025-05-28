@@ -178,8 +178,13 @@ are computed, given the Singular side.
 """
 function oscar_assure(F::ModuleGens)
   if !isdefined(F, :O)
-    F.O = [F.F(singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
+    if iszero(singular_generators(F))
+      F.O = elem_type(F.F)[zero(F.F) for _ in 1:number_of_generators(singular_generators(F))]
+    else
+      F.O = [F.F(singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
+    end
   end
+  F.O
 end
 
 @doc raw"""
@@ -236,7 +241,7 @@ end
 
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
-function singular_module(F::FreeMod, ordering::ModuleOrdering)
+function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
   Sx = singular_poly_ring(base_ring(F), singular(ordering))
   return Singular.FreeModule(Sx, dim(F))
 end

@@ -258,7 +258,7 @@ See also `hilbert_series_reduced`.
     ignored for certain backends.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -302,7 +302,7 @@ $A$ as a rational function written in lowest terms.
 See also `hilbert_series`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -525,7 +525,7 @@ Return the Hilbert series of the graded affine algebra `A`.
     see the code for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)

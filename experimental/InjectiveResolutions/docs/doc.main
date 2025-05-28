@@ -1,0 +1,9 @@
+[
+  "Local Cohomology" => [
+    "introduction.md",
+    "monoid_algebras.md",
+    "injective_resolutions.md",
+    "local_cohomology.md"
+  ]
+]
+

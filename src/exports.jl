@@ -103,6 +103,7 @@ export HilbertData
 export Hyperplane
 export IdealSheaf
 export IncidenceMatrix
+export IndexedSet
 export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
@@ -788,6 +789,8 @@ export index_of_leading_term
 export indicator
 export induce
 export induce_shift
+export induced_action
+export induced_action_function
 export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power

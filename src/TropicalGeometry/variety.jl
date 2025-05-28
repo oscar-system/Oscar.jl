@@ -330,7 +330,7 @@ Internal function for computing zero-dimensional tropical varieties over p-adic 
 finite precision Eigenvalue computation.  Assumes without test that `I` is zero-dimensional.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R,(x1,x2,x3) = polynomial_ring(QQ,3);
 
 julia> I = ideal([28*x3^2 - 1*x3 - 1,

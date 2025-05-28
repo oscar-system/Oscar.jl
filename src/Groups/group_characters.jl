@@ -1357,11 +1357,45 @@ julia> println(proj)
 """
 function quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
   @req characteristic(tbl) == 0 "supported only for ordinary character tables"
-  gap_fact = GAPWrap.CharacterTableFactorGroup(GapObj(tbl), GapObj(nclasses))
+  gap_tbl = GapObj(tbl)::GapObj
+  gap_nclasses = GapObj(nclasses)::GapObj
+  gap_fact = GAPWrap.CharacterTableFactorGroup(gap_tbl, gap_nclasses)
   fact = GAPGroupCharacterTable(gap_fact, 0)
   flag, fus = known_class_fusion(tbl, fact)
   @assert flag
+
+  if isdefined(tbl, :group)
+    # set a group (together with its conjugacy classes) in the factor table
+    G = group(tbl)
+    gap_N = GAPWrap.NormalSubgroupClasses(gap_tbl, gap_nclasses)
+    iso = isomorphism_to_GAP_group(tbl)
+    N = preimages(iso, gap_N)[1]
+    Q, epi = quo(G, N)
+    fact.group = Q
+    fact.isomorphism = isomorphism_to_GAP_group(Q)
+    gap_fact = GapObj(fact)::GapObj
+    Gclasses = conjugacy_classes(tbl)
+    choice = _projection_of_class_fusion(fus)
+    gap_Q = GapObj(Q)::GapObj
+    class_reps = [epi(representative(Gclasses[i])) for i in choice]
+    GAPWrap.SetUnderlyingGroup(gap_fact, gap_Q)
+    factclasses = GapObj([GAPWrap.ConjugacyClass(gap_Q, GapObj(x)) for x in class_reps])::GapObj
+    GAPWrap.SetConjugacyClasses(gap_fact, factclasses)
+    GAPWrap.SetConjugacyClasses(gap_Q, factclasses)
+  end
+
   return fact, fus
+end
+
+function _projection_of_class_fusion(fus::Vector{Int})
+  res = zeros(Int, maximum(fus))
+  for i in 1:length(fus)
+    img = fus[i]
+    if res[img] == 0
+      res[img] = i
+    end
+  end
+  return res
 end
 
 

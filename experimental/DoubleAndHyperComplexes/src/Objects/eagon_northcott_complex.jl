@@ -27,7 +27,7 @@ function (fac::ENCChainFactory)(self::AbsHyperComplex, I::Tuple)
   if is_zero(i)
     return is_graded(R) ? graded_free_module(R, [zero(grading_group(R))]) : FreeMod(R, 1)
   end
-  Sd = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:length(fac.exps[i])]) : FreeMod(R, length(fac.exps[i]))
+  Sd = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:length(fac.exps[i])], "s") : FreeMod(R, length(fac.exps[i]), "s")
   n = ncols(fac.A)
   k = nrows(fac.A)
   wedge_power, _ = exterior_power(fac.F, k + i - 1)
@@ -146,7 +146,7 @@ function eagon_northcott_complex(
     A::MatrixElem{T};
     F::FreeMod{T}=begin
       R = base_ring(A)
-      F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)]) : FreeMod(R, ncols(A))
+      F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)], "f") : FreeMod(R, ncols(A), "f")
     end
   ) where {T}
   return EagonNorthcottComplex(A; F)
