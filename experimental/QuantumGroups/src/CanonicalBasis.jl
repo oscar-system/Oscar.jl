@@ -12,36 +12,40 @@ julia> canonical_basis_elem(U, [0, 1, 0])
 q^-1*F[1]*F[3] + F[2]
 """
 function canonical_basis_elem(U::QuantumGroup, b::Vector{Int})
-  return QuantumGroupElem(U, _canonical_basis_elem(U, b.ref.mem))
+  return QuantumGroupElem(U, _canonical_basis_elem(U, b))
 end
 
-function _canonical_basis_elem(U::QuantumGroup, b::Memory{Int})
-  return get!(U.canonical_basis, b) do
-    F = one(U.algebra)
-    monomial_set!(F.poly, 1, b)
-    for i in 1:length(b)
-      mul!(F, inv(q_factorial(b[i], U.qi[i])))
-    end
-
-    G = F
-    F = sub!(U.bar_automorphism(F), F)
-    cf = zero(coefficient_ring(U))
-    while !iszero(F)
-      exponent_vector!(b, F, length(F))
-      elem = _canonical_basis_elem(U, b)
-      cf = div!(cf, coeff(F, length(F)), coeff(elem, length(elem)))
-      F = submul!(F, elem, cf)
-
-      # cf is a bar-invariant Laurent polynomial, i.e. cf = p(q) / q^k
-      # split the coefficient into positive and negative powers of q
-      # use postive powers for the canoncial basis element and discard the negative powers
-      cf.d.d.num = shift_right!(cf.d.d.num, degree(cf.d.d.den))
-      cf.d.d.den = one!(cf.d.d.den)
-      G = addmul!(G, elem, cf)
-    end
-
+function _canonical_basis_elem(U::QuantumGroup, b::Vector{Int})
+  G = get(U.canonical_basis, b, nothing)
+  if !isnothing(G)
     return G
   end
+
+  F = one(U.algebra)
+  monomial_set!(F.poly, 1, b)
+  for i in 1:length(b)
+    mul!(F, inv(q_factorial(b[i], U.qi[i])))
+  end
+
+  G = F
+  F = sub!(U.bar_automorphism(F), F)
+  cf = zero(coefficient_ring(U))
+  exp = Vector{Int}(undef, ngens(U))
+  while !iszero(F)
+    elem = _canonical_basis_elem(U, exponent_vector!(exp, F, length(F)))
+    cf = div!(cf, coeff(F, length(F)), coeff(elem, length(elem)))
+    F = submul!(F, elem, cf)
+
+    # cf is a bar-invariant Laurent polynomial, i.e. cf = p(q) / q^k
+    # split the coefficient into positive and negative powers of q
+    # use postive powers for the canoncial basis element and discard the negative powers
+    cf.d.d.num = shift_right!(cf.d.d.num, degree(cf.d.d.den))
+    cf.d.d.den = one!(cf.d.d.den)
+    G = addmul!(G, elem, cf)
+  end
+
+  U.canonical_basis[copy(b)] = G
+  return G
 end
 
 @doc raw"""
@@ -56,7 +60,7 @@ function canonical_basis_expansion(x::QuantumGroupElem)
   rep = Tuple{QuantumFieldElem,Vector{Int}}[]
 
   y = deepcopy(x.elem)
-  b = Memory{Int}(undef, ngens(U))
+  b = Vector{Int}(undef, ngens(U))
   while !iszero(y)
     exponent_vector!(b, y, length(y))
     elem = _canonical_basis_elem(U, b)
