@@ -17,29 +17,27 @@ end
 
 function _canonical_basis_elem(U::QuantumGroup, b::Memory{Int})
   return get!(U.canonical_basis, b) do
-    bar = bar_involution(U)
-    F = zero(U.algebra)
-    add_monomial!(F.poly, b)
+    F = one(U.algebra)
+    monomial_set!(F.poly, 1, b)
     for i in 1:length(b)
-      mul!(F, inv(quantum_factorial(b[i], U.qi[i])))
+      mul!(F, inv(q_factorial(b[i], U.qi[i])))
     end
 
     G = F
-    F = sub!(bar(F), F)
+    F = sub!(U.bar_automorphism(F), F)
+    cf = zero(coefficient_ring(U))
     while !iszero(F)
       exponent_vector!(b, F, length(F))
       elem = _canonical_basis_elem(U, b)
-      cf1 = numerator(div(coeff(F, length(F)), coeff(elem, length(elem))))
+      cf = div!(cf, coeff(F, length(F)), coeff(elem, length(elem)))
+      F = submul!(F, elem, cf)
 
+      # cf is a bar-invariant Laurent polynomial, i.e. cf = p(q) / q^k
       # split the coefficient into positive and negative powers of q
       # use postive powers for the canoncial basis element and discard the negative powers
-      # this corresponds to b and bar(b)
-      cf2 = coefficient_ring(U)(
-        parent(cf1.poly)([coeff(cf1, n) for n in 0:degree(cf1.poly)])
-      )
-
-      G = addmul!(G, elem, cf2)
-      F = submul!(F, elem, coefficient_ring(U)(cf1))
+      cf.d.d.num = shift_right!(cf.d.d.num, degree(cf.d.d.den))
+      cf.d.d.den = one!(cf.d.d.den)
+      G = addmul!(G, elem, cf)
     end
 
     return G

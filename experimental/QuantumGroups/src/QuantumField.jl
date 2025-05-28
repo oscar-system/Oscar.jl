@@ -17,17 +17,20 @@ function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
   return z
 end
 
-function _bar!(z::LaurentPolyWrap, x::LaurentPolyWrap)
-  reverse!(z.poly, x.poly, length(x.poly))
-  z.mindeg = -degree(x.poly) - x.mindeg
+function image!(z::QuantumFieldElem, ::Type{_BarAutomorphism}, x::QuantumFieldElem)
+  s = degree(x.d.d.num) - degree(x.d.d.den)
+  if s < 0
+    z.d.d.num = reverse!(z.d.d.num, x.d.d.num, length(x.d.d.num) - s)
+    z.d.d.den = reverse!(z.d.d.den, x.d.d.den, length(x.d.d.den))
+  else
+    z.d.d.num = reverse!(z.d.d.num, x.d.d.num, length(x.d.d.num))
+    z.d.d.den = reverse!(z.d.d.den, x.d.d.den, length(x.d.d.den) + s)
+  end
   return z
 end
 
-function bar!(z::QuantumFieldElem, x::QuantumFieldElem)
-  check_parent(z, x)
-  z.d.num = _bar!(z.d.num, x.d.num)
-  z.d.den = _bar!(z.d.den, x.d.den)
-  return z
+function image!(z::QuantumFieldElem, ::_BarAutomorphism, x::QuantumFieldElem)
+  return image!(z, _BarAutomorphism, x)
 end
 
 ###############################################################################
@@ -37,8 +40,8 @@ end
 ###############################################################################
 
 function quantum_field()
-  A, _ = laurent_polynomial_ring(ZZ, :q; cached=false)
-  QF = QuantumField(fraction_field(A), Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}())
+  QQq, _ = rational_function_field(QQ, :q; cached=false)
+  QF = QuantumField(QQq, Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}())
   return QF, gen(QF)
 end
 
@@ -107,8 +110,24 @@ function zero!(x::QuantumFieldElem)
   return x
 end
 
+function inv!(z::QuantumFieldElem, x::QuantumFieldElem)
+  z.d = inv!(z.d, x.d)
+  return z
+end
+
 function inv(x::QuantumFieldElem)
   return QuantumFieldElem(x.parent, inv(x.d))
+end
+
+function neg!(z::QuantumFieldElem, x::QuantumFieldElem)
+  z.d = neg!(z.d, x.d)
+  return z
+end
+
+function set!(x::QuantumFieldElem, y::QuantumFieldElem)
+  check_parent(x, y)
+  x.d = set!(x.d, y.d)
+  return x
 end
 
 ###############################################################################
