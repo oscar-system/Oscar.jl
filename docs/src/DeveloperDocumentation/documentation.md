@@ -52,6 +52,14 @@ them some code that they can copy-paste and manipulate, and, as a bonus,
 provides a testcase as well.
 
 
+The docstrings can be tested separately by function or path name substring; or all at once:
+
+```@docs
+doctest(f::Function; set_meta::Bool = false, doctest = true)
+doctest(path::String; set_meta::Bool = false, doctest = true)
+doctest(; doctest = true)
+```
+
 ## The folder `docs`
 
 The folder `docs/src` contains the OSCAR documentation website. Most of the

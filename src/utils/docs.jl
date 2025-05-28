@@ -51,25 +51,47 @@ function doc_init(;path=mktempdir())
   Pkg.activate(docsproject) do
     # we dev all "our" packages with the paths from where they are currently
     # loaded
-    for pkg in [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
-      Pkg.develop(path=Base.pkgdir(pkg))
-    end
+    pkglist = [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
+    Pkg.develop([PackageSpec(path=Base.pkgdir(pkg)) for pkg in pkglist])
     Pkg.develop(path=oscardir)
     Pkg.instantiate()
     Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
+  docsproject in Base.LOAD_PATH || pushfirst!(Base.LOAD_PATH, docsproject)
+  return nothing
 end
 
-function get_document(set_meta::Bool)
+"""
+    @doc_init
+
+Initialize a new temporary project with Documenter and Oscar for doctesting.
+Adds that project to the load path and runs `using Documenter` in the calling module.
+
+# Examples
+```julia
+julia> Oscar.@doc_init
+<...>
+
+julia> Oscar.doctest(cube)
+page: ../src/PolyhedralGeometry/Polyhedron/standard_constructions.jl:202-207
+  0.020471 seconds (69.71 k allocations: 1.828 MiB)
+"""
+macro doc_init()
+  isdefined(Oscar, :docsproject) && isdefined(Main, :Documenter) && return nothing
+  doc_init()
+  return :(using Documenter)
+end
+
+function get_document(set_meta::Bool; doctest=:fix)
   if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` first")
+    error("you need to do `using Documenter` or `Oscar.@doc_init` first")
   end
   Documenter = Main.Documenter
   if pkgversion(Documenter) < v"1-"
     error("you need to use Documenter.jl version 1.0.0 or later")
   end
 
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = :fix, doctestfilters=Oscar.doctestfilters())
+  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters())
 
   if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
@@ -89,9 +111,16 @@ The following call fixes all doctests for the function `symmetric_group`:
 julia> Oscar.doctest_fix(symmetric_group)
 ```
 """
-function doctest_fix(f::Function; set_meta::Bool = false)
+doctest_fix(f::Function; set_meta::Bool = false) = doctest(f; set_meta = set_meta, doctest = :fix)
+
+"""
+    doctest(f::Function; set_meta::Bool = false)
+
+Run all doctests for the given function `f`.
+"""
+function doctest(f::Function; set_meta::Bool = false, doctest = true)
   S = Symbol(f)
-  doc, doctest = get_document(set_meta)
+  doc, doctest = get_document(set_meta; doctest=doctest)
 
   withenv("COLUMNS"=>80, "LINES"=>24) do
     with_unicode(false) do
@@ -119,8 +148,17 @@ called `Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
 julia> Oscar.doctest_fix("/Rings/")
 ```
 """
-function doctest_fix(path::String; set_meta::Bool=false)
-  doc, doctest = get_document(set_meta)
+doctest_fix(path::String; set_meta::Bool = false) = doctest(path; set_meta = set_meta, doctest = :fix)
+
+
+"""
+    doctest(path::String; set_meta::Bool = false)
+
+Run all doctests for all files in Oscar where
+`path` occurs in the full pathname.
+"""
+function doctest(path::String; set_meta::Bool = false, doctest = true)
+  doc, doctest = get_document(set_meta; doctest = doctest)
 
   withenv("COLUMNS"=>80, "LINES"=>24) do
     with_unicode(false) do
@@ -138,6 +176,13 @@ function doctest_fix(path::String; set_meta::Bool=false)
     end
   end
 end
+
+"""
+    doctest()
+
+Run all doctests for Oscar, calls [`build_doc`](@ref) with `doctest=true`.
+"""
+doctest(; doctest = true) = build_doc(; doctest = doctest, warnonly = false, open_browser = false, start_server = false)
 
 # copied from JuliaTesting/Aqua.jl
 function walkmodules(f, x::Module)
