@@ -86,7 +86,7 @@ function _bar_automorphism(A::PBWAlgebra{QuantumFieldElem}, R::RootSystem, cvx::
     barred = zero(coefficient_ring(A))
     c = zero(coefficient_ring(A))
 
-    exp = Memory{Int}(undef, ngens(A))
+    exp = Vector{Int}(undef, ngens(A))
     for i in 1:length(rel)
       exponent_vector!(exp, rel, i)
       if exp[cvx[m]] != 0
