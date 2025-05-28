@@ -593,3 +593,42 @@ end
 function inner_direct_product(L::WeylGroup, Ls::WeylGroup...; morphisms::Bool=false)
   return inner_direct_product([L, Ls...]; morphisms=morphisms)
 end
+
+###############################################################################
+# G-set functionality (can get moved to src/ once `isomorphism(PermGroup, ::WeylGroup)` gets moved)
+
+Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
+
+function gset_by_type(W::WeylGroup, Omega, ::Type{RootSpaceElem}; closed::Bool=false)
+  return GSetByElements(W, *, Omega; closed=closed, check=false)
+end
+
+function gset_by_type(W::WeylGroup, Omega, ::Type{WeightLatticeElem}; closed::Bool=false)
+  return GSetByElements(W, *, Omega; closed=closed, check=false)
+end
+
+function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
+  W = acting_group(Omega) # our base group
+
+  # Compute a permutation group `G` isomorphic with `W`.
+  phi = isomorphism(PermGroup, W)
+  G = codomain(phi) # permutation group
+
+  # Let `G` act on `Omega` as `W` does.
+  phiinv = inv(phi)
+  actfun = action_function(Omega)
+  fun = function (omega::S, g::PermGroupElem)
+    return actfun(omega, phiinv(g))
+  end
+
+  OmegaG = GSetByElements(G, fun, Omega; closed=true, check=false)
+
+  # Compute the permutation action on `1:length(Omega)`
+  # corresponding to the action of `W` on `Omega`.
+  return compose(phi, action_homomorphism(OmegaG))
+end
+
+# Currently implemented to allow gset computations that require image.
+function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
+  return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
+end
