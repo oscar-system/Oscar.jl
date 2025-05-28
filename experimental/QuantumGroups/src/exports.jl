@@ -1,5 +1,6 @@
 export QuantumField, QuantumFieldElem
 export QuantumGroup, QuantumGroupElem
+export QuantumGroupHom
 
 export bar_automorphism
 export canonical_basis_elem

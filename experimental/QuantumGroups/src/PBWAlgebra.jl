@@ -133,6 +133,10 @@ function addmul!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}, a::T) where {T}
   return x
 end
 
+function mul!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  return mul!(zero(x), x, y)
+end
+
 function mul!(
   z::PBWAlgebraElem{T}, x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}
 ) where {T}
@@ -164,7 +168,12 @@ function pow!(z::PBWAlgebraElem, x::PBWAlgebraElem, n::Int)
   return z
 end
 
-function sub!(z::PBWAlgebraElem, x::PBWAlgebraElem, y::PBWAlgebraElem)
+function sub!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  x.poly = sub!(x.poly, y.poly)
+  return x
+end
+
+function sub!(z::PBWAlgebraElem{T}, x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
   z.poly = sub!(z.poly, x.poly, y.poly)
   return z
 end
@@ -181,6 +190,10 @@ end
 
 function exponent_vector!(exp::Memory{Int}, x::PBWAlgebraElem, i::Int)
   exponent_vector!(exp, x.poly, i)
+end
+
+function exponent(x::PBWAlgebraElem, i::Int, j::Int)
+  return exponent(x.poly, i, j)
 end
 
 ###############################################################################
@@ -325,14 +338,14 @@ function _addmul_m_m!(
   xl = findlast(!iszero, x)
   if isnothing(xl)
     n = add_monomial!(z, y)
-    z.coeffs[n] = add!(z.coeffs[n], cf)
+    z.coeffs[n] = add!(coeff(z, n), cf)
     return z
   end
 
   yf = findfirst(!iszero, y)
   if isnothing(yf)
     n = add_monomial!(z, x)
-    z.coeffs[n] = add!(z.coeffs[n], cf)
+    z.coeffs[n] = add!(coeff(z, n), cf)
     return z
   end
 
@@ -341,7 +354,7 @@ function _addmul_m_m!(
     m = copy(x)
     m .+= y
     n = add_monomial!(z, m)
-    z.coeffs[n] = add!(z.coeffs[n], cf)
+    z.coeffs[n] = add!(coeff(z, n), cf)
     return z
   end
 
@@ -390,7 +403,7 @@ function _addmul_gens(
   if length(A.mult[ind][1, 1]) == 1
     mon[i], mon[j] = n, m
     k = add_monomial!(z, mon)
-    z.coeffs[k] = addmul!(z.coeffs[k], coeff(A.mult[ind][1, 1], 1)^(n * m), cf)
+    z.coeffs[k] = addmul!(z.coeffs[k]::T, coeff(A.mult[ind][1, 1], 1)^(n * m), cf)
     return z
   end
 

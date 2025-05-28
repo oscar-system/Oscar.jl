@@ -63,36 +63,27 @@ function PBWAlgebraElem(A::PBWAlgebra{T}) where {T}
   return PBWAlgebraElem(A, zero(A.R))
 end
 
-struct PBWAlgebraHom{T}
+struct PBWAlgebraHom{T,S,H<:Map} <:
+       Map{PBWAlgebra{T},PBWAlgebra{S},Hecke.HeckeMap,PBWAlgebraHom{T,S,H}}
   domain::PBWAlgebra{T}
-  codomain::PBWAlgebra{T}
+  codomain::PBWAlgebra{S}
+  field_automorphism::H
   img::Vector{PBWAlgebraElem{T}}
 end
 
 struct QuantumField <: Field
-  d::AbstractAlgebra.Generic.FracField{
-    AbstractAlgebra.Generic.LaurentPolyWrap{
-      ZZRingElem,
-      ZZPolyRingElem,
-      AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
-    },
-  }
-
+  d::AbstractAlgebra.Generic.RationalFunctionField{QQFieldElem,QQPolyRingElem}
   q_factorial::Dict
 end
 
 mutable struct QuantumFieldElem <: FieldElem
   parent::QuantumField
-  d::FracFieldElem{
-    LaurentPolyWrap{
-      ZZRingElem,
-      ZZPolyRingElem,
-      AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem,ZZPolyRing},
-    },
-  }
+  d::AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem,QQPolyRingElem}
 end
 
-mutable struct QuantumGroup
+struct _BarAutomorphism <: Map{QuantumField,QuantumField,Hecke.HeckeMap,_BarAutomorphism} end
+
+mutable struct QuantumGroup <: NCRing
   algebra::PBWAlgebra{QuantumFieldElem}
 
   root_system::RootSystem
@@ -100,13 +91,14 @@ mutable struct QuantumGroup
   w0::Vector{Int}
 
   cvx::Vector{Int} # permutation of roots (by index) to convex order
+  qi::Vector{QuantumFieldElem}
 
   # cache
   canonical_basis::Dict{
     Vector{Int},PBWAlgebraElem{QuantumFieldElem}
   }
 
-  #bar_involution::PBWAlgebraHom{QuantumFieldElem}
+  bar_automorphism::PBWAlgebraHom{QuantumFieldElem,QuantumFieldElem,_BarAutomorphism}
 end
 
 mutable struct QuantumGroupElem <: NCRingElem
@@ -114,8 +106,8 @@ mutable struct QuantumGroupElem <: NCRingElem
   elem::PBWAlgebraElem{QuantumFieldElem}
 end
 
-struct QuantumGroupHom
+struct QuantumGroupHom <: Map{QuantumGroup,QuantumGroup,Hecke.HeckeMap,QuantumGroupHom}
   domain::QuantumGroup
   codomain::QuantumGroup
-  img::Vector{QuantumGroupElem}
+  hom::PBWAlgebraHom{QuantumFieldElem,QuantumFieldElem}
 end
