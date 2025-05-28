@@ -88,9 +88,9 @@ function quantum_group(
     bilinear_form,
     w0,
     cvx,
-    # [q^div(r * gapBil * r, 2) for r in GAP.Globals.PositiveRootsInConvexOrder(gapR)],
+    [q^div(r * gapBil * r, 2) for r in GAP.Globals.PositiveRootsInConvexOrder(gapR)],
     Dict{Vector{Int},PBWAlgebraElem}(),
-    #_bar_involution(),
+    _bar_automorphism(alg, R, cvx),
   )
 end
 
@@ -136,8 +136,18 @@ function gens(U::QuantumGroup)
   return [gen(U, i) for i in 1:ngens(U)]
 end
 
+@doc raw"""
+    chevalley_gens(U::QuantumGroup) -> Vector{QuantumGroupElem}
+"""
 function chevalley_gens(U::QuantumGroup)
   return [gen(U, U.cvx[i]) for i in 1:rank(root_system(U))]
+end
+
+@doc raw"""
+    pbw_gens(U::QuantumGroup) -> Vector{QuantumGroupElem}
+"""
+function pbw_gens(U::QuantumGroup)
+  return gens(U)
 end
 
 function one(U::QuantumGroup)

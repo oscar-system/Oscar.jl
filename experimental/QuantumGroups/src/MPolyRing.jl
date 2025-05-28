@@ -72,13 +72,13 @@ end
 #
 ###############################################################################
 
-function monomial_cmp(x::MPolyRingElem, i::Int, m::Memory{Int})
-  return monomial_cmp(parent(x), pointer(x.exps, (i - 1) * parent(x).N + 1), pointer(m))
-end
-
-function monomial_cmp(R::MPolyRing, m::Memory{Int}, n::Memory{Int})
-  for i in 1:(R.N)
-    @inbounds cmp = m[i] - n[i]
+function monomial_cmp(R::MPolyRing, x::Memory{Int}, i::Int, y::Memory{Int}, j::Int)
+  xk = (i - 1) * R.N
+  yk = (j - 1) * R.N
+  for _ in 1:(R.N)
+    xk += 1
+    yk += 1
+    @inbounds cmp = x[xk] - y[yk]
     if cmp != 0
       return cmp
     end
@@ -87,31 +87,22 @@ function monomial_cmp(R::MPolyRing, m::Memory{Int}, n::Memory{Int})
   return 0
 end
 
-function monomial_cmp(R::MPolyRing, m::Ptr{Int}, n::Ptr{Int})
-  for i in 1:(R.N)
-    cmp = unsafe_load(m, i) - unsafe_load(n, i)
-    if cmp != 0
-      return cmp
-    end
-  end
-
-  return 0
+function monomial_set!(dst::Memory{Int}, i::Int, src::Memory{Int}, j::Int, N)
+  unsafe_copyto!(dst, (i - 1) * N + 1, src, (j - 1) * N + 1, N)
 end
 
 function monomial_set!(x::MPolyRingElem, i::Int, y::MPolyRingElem, j::Int)
-  N = parent(x).N
-  unsafe_copyto!(x.exps, (i - 1) * N + 1, y.exps, (j - 1) * N + 1, N)
+  monomial_set!(x.exps, i, y.exps, j, parent(x).N)
 end
 
 function monomial_set!(x::MPolyRingElem, i::Int, m::Memory{Int})
-  N = parent(x).N
-  unsafe_copyto!(x.exps, (i - 1) * N + 1, m, 1, N)
+  monomial_set!(x.exps, i, m, 1, parent(x).N)
 end
 
 function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
   i = 1
   while i <= length(x)
-    cmp = monomial_cmp(x, i, m)
+    cmp = monomial_cmp(parent(x), x.exps, i, m, 1)
     if cmp == 0
       return i
     elseif cmp < 0
@@ -125,7 +116,7 @@ function add_monomial!(x::MPolyRingElem{T}, m::Memory{Int}) where {T}
     if isnothing(x.coeffs[length(x) + 1])
       x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
     end
-    c = x.coeffs[length(x) + 1]
+    c = x.coeffs[length(x) + 1]::T
 
     unsafe_copyto!(x.coeffs, i + 1, x.coeffs, i, length(x) + 1 - i)
     unsafe_copyto!(x.exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
@@ -195,7 +186,6 @@ end
 
 function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   R = parent(x)
-
   len = length(x) + length(y)
   fit!(x, len)
 
@@ -208,17 +198,15 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   j = k = 1
 
   while i <= len && j <= length(y)
-    cmp = monomial_cmp(
-      R, pointer(x.exps, (i - 1) * R.N + 1), pointer(y.exps, (j - 1) * R.N + 1)
-    )
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
     if cmp > 0
       x.coeffs[k] = x.coeffs[i]
       x.coeffs[i] = nothing
       monomial_set!(x, k, x, i)
       i += 1
     elseif cmp == 0
-      x.coeffs[k] = add!(x.coeffs[i], y.coeffs[j])
-      if !iszero(x.coeffs[k])
+      x.coeffs[k] = add!(x.coeffs[i]::T, y.coeffs[j]::T)
+      if !iszero(x.coeffs[k]::T)
         x.coeffs[i] = nothing
         monomial_set!(x, k, x, i)
       else
@@ -233,6 +221,11 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
       j += 1
     end
     k += 1
+  end
+
+  if k == i
+    x.len = len
+    return x
   end
 
   while i <= len
@@ -260,9 +253,7 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
 
   i = j = k = 1
   while i <= length(x) && j <= length(y)
-    cmp = monomial_cmp(
-      R, pointer(x.exps, (i - 1) * R.N + 1), pointer(y.exps, (j - 1) * R.N + 1)
-    )
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
     if cmp > 0
       if isnothing(z.coeffs[k])
         z.coeffs[k] = deepcopy(x.coeffs[i])
@@ -338,17 +329,15 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
   j = k = 1
 
   while i <= len && j <= length(y)
-    cmp = monomial_cmp(
-      R, pointer(x.exps, (i - 1) * R.N + 1), pointer(y.exps, (j - 1) * R.N + 1)
-    )
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
     if cmp > 0
       x.coeffs[k] = x.coeffs[i]
       x.coeffs[i] = nothing
       monomial_set!(x, k, x, i)
       i += 1
     elseif cmp == 0
-      x.coeffs[k] = addmul!(x.coeffs[i], y.coeffs[j], a)
-      if !iszero(x.coeffs[k])
+      x.coeffs[k] = addmul!(x.coeffs[i]::T, y.coeffs[j]::T, a)
+      if !iszero(x.coeffs[k]::T)
         x.coeffs[i] = nothing
         monomial_set!(x, k, x, i)
       else
@@ -358,11 +347,16 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
       i += 1
       j += 1
     else
-      x.coeffs[k] = y.coeffs[j] * a
+      x.coeffs[k] = y.coeffs[j]::T * a
       monomial_set!(x, k, y, j)
       j += 1
     end
     k += 1
+  end
+
+  if k == i
+    x.len = len
+    return x
   end
 
   while i <= len
@@ -374,7 +368,7 @@ function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
   end
 
   while j <= length(y)
-    x.coeffs[k] = y.coeffs[j] * a
+    x.coeffs[k] = y.coeffs[j]::T * a
     monomial_set!(x, k, y, j)
     j += 1
     k += 1
@@ -394,9 +388,9 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
   fit!(z, length(x))
   for i in 1:length(x)
     if isnothing(z.coeffs[i])
-      z.coeffs[i] = x.coeffs[i] * a
+      z.coeffs[i] = x.coeffs[i]::T * a
     else
-      z.coeffs[i] = mul!(z.coeffs[i], x.coeffs[i], a)
+      z.coeffs[i] = mul!(z.coeffs[i]::T, x.coeffs[i]::T, a)
     end
     monomial_set!(z, i, x, i)
   end
@@ -405,7 +399,112 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
   return z
 end
 
-function submul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
+function _merge(op, x::MPolyRingElem{T}, y::MPolyRingElem{T}, shift::Bool) where {T}
+  R = parent(x)
+
+  i, len = 1, length(x)
+  if shift
+    for n in length(x):-1:1
+      x.coeffs[length(y) + n] = x.coeffs[n]
+      monomial_set!(x, length(y) + n, x, n)
+    end
+
+    i = length(y) + 1
+    len = length(x) + length(y)
+  end
+
+  j = k = 1
+  while i <= len && j <= length(y)
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
+    if cmp > 0
+      op(k, i, -1)
+      i += 1
+    elseif cmp == 0
+      k -= op(k, i, j)
+      i += 1
+      j += 1
+    else
+      op(k, -1, j)
+      j += 1
+    end
+    k += 1
+  end
+
+  while i <= len
+    op(k, i, -1)
+    i += 1
+    k += 1
+  end
+
+  while j <= length(y)
+    op(k, -1, j)
+    j += 1
+    k += 1
+  end
+
+  return k - 1
+end
+
+function sub!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  if iszero(y)
+    return x
+  end
+
+  fit!(x, length(x) + length(y))
+  x.len = _merge(x, y, true) do k, i, j
+    if i == -1
+      x.coeffs[k] = -y.coeffs[j]::T
+      monomial_set!(x, k, y, j)
+    elseif j == -1
+      x.coeffs[k] = x.coeffs[i]
+      monomial_set!(x, k, x, i)
+      x.coeffs[i] = nothing
+    else
+      x.coeffs[k] = sub!(x.coeffs[i]::T, y.coeffs[j]::T)
+      if iszero(x.coeffs[k]::T)
+        return 1
+      end
+
+      monomial_set!(x, k, x, i)
+      x.coeffs[i] = nothing
+    end
+
+    return 0
+  end
+
+  return x
+end
+
+function submul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
+  if iszero(y) || iszero(a)
+    return x
+  elseif isone(a)
+    return sub!(x, y)
+  end
+
+  fit!(x, length(x) + length(y))
+  x.len = _merge(x, y, true) do k, i, j
+    if i == -1
+      x.coeffs[k] = neg!(y.coeffs[j]::T * a)
+      monomial_set!(x, k, y, j)
+    elseif j == -1
+      x.coeffs[k] = x.coeffs[i]
+      monomial_set!(x, k, x, i)
+      x.coeffs[i] = nothing
+    else
+      x.coeffs[k] = submul!(x.coeffs[i]::T, y.coeffs[j]::T, a)
+      if iszero(x.coeffs[k]::T)
+        return 1
+      end
+
+      monomial_set!(x, k, x, i)
+      x.coeffs[i] = nothing
+    end
+
+    return 0
+  end
+
+  return x
 end
 
 function set!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
@@ -418,7 +517,7 @@ function set!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
     if isnothing(x.coeffs[i])
       x.coeffs[i] = deepcopy(y.coeffs[i])
     else
-      x.coeffs[i] = set!(x.coeffs[i], y.coeffs[i])
+      x.coeffs[i] = set!(x.coeffs[i]::T, y.coeffs[i]::T)
     end
     monomial_set!(x, i, y, i)
   end
@@ -456,9 +555,20 @@ function nvars(R::MPolyRing)
 end
 
 function one(R::MPolyRing)
-  x = zero(R)
+  return one!(zero(R))
+end
+
+function one!(x::MPolyRingElem{T}) where {T}
   fit!(x, 1)
-  x.coeffs[1] = one(coefficient_ring(R))
+  if isnothing(x.coeffs[1])
+    x.coeffs[1] = one(coefficient_ring(x))
+  else
+    x.coeffs[1] = one!(x.coeffs[1]::T)
+  end
+  for i in 1:(parent(x).N)
+    x.exps[i] = 0
+  end
+  x.len = 1
   return x
 end
 
@@ -475,8 +585,12 @@ function zero!(x::MPolyRingElem)
   return x
 end
 
-function coeff(x::MPolyRingElem, i::Int)
-  return x.coeffs[i]
+function coeff(x::MPolyRingElem{T}, i::Int) where {T}
+  return x.coeffs[i]::T
+end
+
+function exponent(x::MPolyRingElem, i::Int, j::Int)
+  return x.exps[(i - 1) * parent(x).N + j]
 end
 
 function exponent_vector(x::MPolyRingElem, i::Int)
@@ -496,6 +610,24 @@ end
 
 function symbols(R::MPolyRing)
   return R.vars
+end
+
+function Base.:(==)(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  check_parent(x, y)
+  if length(x) != length(y)
+    return false
+  end
+
+  for i in 1:length(x)
+    if monomial_cmp(parent(x), x.exps, i, y.exps, i) != 0
+      return false
+    end
+    if x.coeffs[i] != y.coeffs[i]
+      return false
+    end
+  end
+
+  return true
 end
 
 ###############################################################################
