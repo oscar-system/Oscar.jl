@@ -188,8 +188,8 @@ function swap!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
   return x
 end
 
-function exponent_vector!(exp::Memory{Int}, x::PBWAlgebraElem, i::Int)
-  exponent_vector!(exp, x.poly, i)
+function exponent_vector!(exp::Vector{Int}, x::PBWAlgebraElem, i::Int)
+  return exponent_vector!(exp, x.poly, i)
 end
 
 function exponent(x::PBWAlgebraElem, i::Int, j::Int)
@@ -297,8 +297,8 @@ function _mul_p_p!(
 ) where {T}
   z = zero!(z)
   cf = zero(coefficient_ring(z))
-  mx = Memory{Int}(undef, ngens(parent(z)))
-  my = Memory{Int}(undef, ngens(parent(z)))
+  mx = Vector{Int}(undef, ngens(parent(z)))
+  my = Vector{Int}(undef, ngens(parent(z)))
 
   for i in 1:length(x)
     exponent_vector!(mx, x, i)
@@ -311,10 +311,10 @@ function _mul_p_p!(
 end
 
 function _mul_p_m!(
-  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::Memory{Int}
+  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::Vector{Int}
 ) where {T}
   z = zero!(z)
-  mx = Memory{Int}(undef, ngens(parent(z)))
+  mx = Vector{Int}(undef, ngens(parent(z)))
   for i in 1:length(x)
     exponent_vector!(mx, x, i)
     _addmul_m_m!(A, z, mx, y, coeff(x, i))
@@ -322,10 +322,10 @@ function _mul_p_m!(
 end
 
 function _mul_m_p!(
-  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::Memory{Int}, y::MPolyRingElem{T}
+  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::Vector{Int}, y::MPolyRingElem{T}
 ) where {T}
   z = zero!(z)
-  my = Memory{Int}(undef, ngens(parent(z)))
+  my = Vector{Int}(undef, ngens(parent(z)))
   for j in 1:length(y)
     exponent_vector!(my, y, j)
     _addmul_m_m!(A, z, x, my, coeff(y, j))
@@ -333,7 +333,7 @@ function _mul_m_p!(
 end
 
 function _addmul_m_m!(
-  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::Memory{Int}, y::Memory{Int}, cf::T
+  A::PBWAlgebra{T}, z::MPolyRingElem{T}, x::Vector{Int}, y::Vector{Int}, cf::T
 ) where {T}
   xl = findlast(!iszero, x)
   if isnothing(xl)
@@ -394,7 +394,7 @@ function _addmul_gens(
   A::PBWAlgebra{T}, z::MPolyRingElem{T}, i::Int, n::Int, j::Int, m::Int, cf::T
 ) where {T}
   ind = _linear_index(A, j, i)
-  mon = Memory{Int}(undef, ngens(A))
+  mon = Vector{Int}(undef, ngens(A))
   for k in 1:ngens(A)
     mon[k] = 0
   end
