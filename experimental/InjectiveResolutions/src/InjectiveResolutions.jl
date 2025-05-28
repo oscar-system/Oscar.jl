@@ -50,8 +50,7 @@ import ..Oscar:
   oscar_generators,
   singular_poly_ring,
   _simple_kernel,
-  _extend_free_resolution, 
-  free_show
+  _extend_free_resolution
 
 
 import ..Oscar.Singular: 
