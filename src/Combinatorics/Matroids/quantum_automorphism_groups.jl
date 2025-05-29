@@ -79,6 +79,8 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
     sets = circuits(M)
   elseif structure == :flats
     sets = flats(M)
+  else
+    error("unreachable")
   end
 
   #Computing the sizehint for the relations
