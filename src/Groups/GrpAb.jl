@@ -324,10 +324,10 @@ end
 function action_homomorphism(Omega::GSetByElements{FinGenAbGroup, S}) where S
   A = acting_group(Omega)
 
-  # Compute a permutation group `G` isomorphic with `A`.
+  # Compute a permutation group isomorphic with `A`.
   phi = isomorphism(PermGroup, A)
 
-  # Let `G` act on `Omega` as `A` does.
+  # Let the image of `phi` act on `Omega` as `A` does.
   OmegaG = induce(Omega, inv(phi))
 
   # Compute the permutation action on `1:length(Omega)`
