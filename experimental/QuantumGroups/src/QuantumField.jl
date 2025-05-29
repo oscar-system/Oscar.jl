@@ -125,8 +125,8 @@ function neg!(z::QuantumFieldElem, x::QuantumFieldElem)
 end
 
 function set!(x::QuantumFieldElem, y::QuantumFieldElem)
-  check_parent(x, y)
-  x.d = set!(x.d, y.d)
+  x.d.d.num = set!(x.d.d.num, y.d.d.num)
+  x.d.d.den = set!(x.d.d.den, y.d.d.den)
   return x
 end
 
