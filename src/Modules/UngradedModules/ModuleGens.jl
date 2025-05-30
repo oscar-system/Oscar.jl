@@ -141,7 +141,7 @@ end
 @doc raw"""
     oscar_free_module(M::ModuleGens)  
 
-Return the Oscar free module underlying the generators `M`.
+Return the ambient free module of `M` on the Oscar side.
 """
 function oscar_free_module(M::ModuleGens)
     return M.F
