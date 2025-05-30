@@ -28,7 +28,7 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
 [extras]
-GAP_lib_jll = "c863536a-3901-11e9-33e7-d5cd0df7b904"
+GAP_lib_jll = "de1ad85e-c930-5cd4-919d-ccd3fcafd1a3"
 
 [compat]
 AbstractAlgebra = "0.45.1"
