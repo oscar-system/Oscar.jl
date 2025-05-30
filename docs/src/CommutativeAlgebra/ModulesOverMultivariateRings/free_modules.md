@@ -7,7 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 # [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, `MPolyQuoLocRing`, `ZZ`, or `Field`.
+over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, `MPolyQuoLocRing`, `ZZRing`, or `Field`.
 More concretely, given a ring $R$ of one of these types, the free $R$-modules considered are of
 type $R^p$, where we think of $R^p$ as a free module with a given basis, namely the basis of
 standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors,
@@ -36,8 +36,8 @@ free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
 ```@docs
-free_module_sparse(R::ZZRing, n::Int, name::VarName = :e; cached::Bool = false)
-free_module_sparse(R::Field, n::Int, name::VarName = :e; cached::Bool = false)
+free_module(::Type{<:FreeMod}, R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+                n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
 Over graded multivariate polynomial rings and their quotients,  there are two basic ways of
