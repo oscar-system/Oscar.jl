@@ -480,7 +480,7 @@ function in(a::FreeModElem, M::SubModuleOfFreeModule)
     return in_atomic(a, M)
 end
 
-function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,<:FieldElem}, T<:MPolyRingElem{S}}
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
     F = ambient_free_module(M)
     return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end

@@ -432,7 +432,7 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
 end
 
 
-function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol = :auto) where {S<:Union{ZZRingElem,<:FieldElem}, T<:MPolyRingElem{S}}
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol = :auto) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
     if task == :auto
         task = coefficient_ring(base_ring(parent(a))) isa Field ? :via_transform : :via_lift
     end

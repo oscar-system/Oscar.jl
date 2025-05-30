@@ -1406,7 +1406,7 @@ end
 @testset "Modules over ZZ and QQ" begin
 
     @testset "Module Constructors over ZZ" begin
-        F0 = free_module_sparse(ZZ,3)
+        F0 = free_module(:FreeMod, ZZ,3)
         @test rank(F0) == 3
         @test base_ring(F0) == ZZ
 
@@ -1579,7 +1579,7 @@ end
 
 
     @testset "Module Constructors over QQ" begin
-        F0 = free_module_sparse(QQ,3)
+        F0 = free_module(:FreeMod, QQ,3)
         @test rank(F0) == 3
         @test base_ring(F0) == QQ
 
