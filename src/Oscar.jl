@@ -181,12 +181,6 @@ const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
 
 const is_dev = (function()
-        deps = Pkg.dependencies()
-        if Base.haskey(deps, PROJECT_UUID)
-          if deps[PROJECT_UUID].is_tracking_path
-            return true
-          end
-        end
         return occursin("-dev", lowercase(string(VERSION_NUMBER)))
     end)()
 
