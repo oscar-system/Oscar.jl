@@ -134,7 +134,6 @@ which we think might affect some users directly.
 
 - [#4613](https://github.com/oscar-system/Oscar.jl/pull/4613) Optimize conversions from/to Singular
 
-
 ## [1.3.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.1) - 2025-03-14
 
 The following gives an overview of the changes compared to the previous release. This list is not
