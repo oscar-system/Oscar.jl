@@ -124,7 +124,7 @@ which we think might affect some users directly.
 
 ### Changes related to the package Nemo
 
-- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4894) Bump Nemo to v0.50
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Nemo to v0.50
 
 ### Changes related to the package Polymake
 
