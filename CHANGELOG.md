@@ -21,6 +21,7 @@ which we think might affect some users directly.
 - [#4735](https://github.com/oscar-system/Oscar.jl/pull/4735) Add iterator for combinations
 - [#4663](https://github.com/oscar-system/Oscar.jl/pull/4663) Add labelings for graphs
 - [#3928](https://github.com/oscar-system/Oscar.jl/pull/3928) Add partially ordered sets
+- [#3928](https://github.com/oscar-system/Oscar.jl/pull/3928) Add `indegree` and `outdegree` for graphs
 
 ### Commutative Algebra
 
@@ -36,11 +37,13 @@ which we think might affect some users directly.
 
 - [#4876](https://github.com/oscar-system/Oscar.jl/pull/4876) Rename `global_gauge_quotients` to `global_gauge_group_quotient`
 - [#4869](https://github.com/oscar-system/Oscar.jl/pull/4869) Update QSM Artifact
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Improve printing of G4-flux and families thereof
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Bug fix in computing smallest containing flux family for a given individual G4-flux
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Update .mrdi-files (artifact) for model 1511.03209
 - [#4779](https://github.com/oscar-system/Oscar.jl/pull/4779) Add exceptional classes and indices
 - [#4728](https://github.com/oscar-system/Oscar.jl/pull/4728) Include 1/2 c2 in identification of flux families
 - [#4711](https://github.com/oscar-system/Oscar.jl/pull/4711) Add convenience constructors for flux instances
 - [#4694](https://github.com/oscar-system/Oscar.jl/pull/4694) Rename `is_vertical` to `passes_transversality_checks` and execute related checks
-- [#4636](https://github.com/oscar-system/Oscar.jl/pull/4636) Add attribute for more detailed info on tunable sections
 
 ### Groups
 
@@ -86,6 +89,7 @@ which we think might affect some users directly.
 ### Changes related to serializing data in the MRDI file format
 
 - [#4331](https://github.com/oscar-system/Oscar.jl/pull/4331) Unify type encoding for similar types
+- [#4162](https://github.com/oscar-system/Oscar.jl/pull/4162) Cleaner handling of type parameter serialization. This update forces entries of container types to share the same output of `Oscar.type_params` when serializing. Deserialization speed improvements.
 
 ### New features or extended functionality
 
@@ -106,13 +110,25 @@ which we think might affect some users directly.
 
 - [#4758](https://github.com/oscar-system/Oscar.jl/pull/4758) Collapse docstrings in documentation to allow for easier navigation
 
+### Changes related to the package AbstractAlgebra
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump AbstractAlgebra to v0.45
+
 ### Changes related to the package AlgebraicSolving
 
 - [#4894](https://github.com/oscar-system/Oscar.jl/pull/4894) Bump AlgebraicSolving to v0.9.0
 
+### Changes related to the package Hecke
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Hecke to v0.36
+
 ### Changes related to the package Nemo
 
-- [#4645](https://github.com/oscar-system/Oscar.jl/pull/4645) Update Nemo to 0.49
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4894) Bump Nemo to v0.50
+
+### Changes related to the package Polymake
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Polymake.jl to v0.12
 
 ### Changes related to the package Singular
 
@@ -123,9 +139,6 @@ which we think might affect some users directly.
 If there are any PRs listed below, check their title and labels.
 When done, change their label to "release notes: use title".
 
-- [#4895](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump AA to v0.45, Nemo to v0.50, Hecke to v0.36
-- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) [FTheoryTools] Some minor improvements
-- [#4162](https://github.com/oscar-system/Oscar.jl/pull/4162) Serialization Refactor
 
 ## [1.3.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.1) - 2025-03-14
 
