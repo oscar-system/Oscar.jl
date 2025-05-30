@@ -25,7 +25,9 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
   end
 end
 
-Base.show(io::IO, a::FreeAssociativeAlgebraIdeal) = print(io, "Ideal of ", base_ring(a), " with ", number_of_generators(a), " generators")
+function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
+  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), " generator"))
+end
 
 function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
   return is_subset(I1,I2) && is_subset(I2,I1)
