@@ -246,7 +246,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
-   r = new{T}(Ox, IdealGens(Ox, si), nothing)
+   r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
    r.gens.gens.O = [R(g) for g in gens(r.gens.gens.S)]
    B = r.gens
@@ -258,7 +258,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
     @req base_ring(Ox) === base_ring(I) "base rings must match"
-    r = new{T}(Ox, IdealGens(Ox, gens(I)), nothing)
+    r = new{T}(IdealGens(Ox, gens(I)), nothing)
     return r
   end
   
