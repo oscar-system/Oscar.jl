@@ -207,7 +207,8 @@ function reduce!(a::NfNSGenElem)
   GI = first(values(I.gb))
   Sx = base_ring(GI.gens.S)
   f = a.f
-  a.f = I.gens.gens.Ox(reduce(Sx(f), GI.gens.S))
+  R = base_ring(I)
+  a.f = R(reduce(Sx(f), GI.gens.S))
   return a
 end
 

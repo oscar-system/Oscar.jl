@@ -1939,7 +1939,7 @@ Multivariate polynomial ring in 2 variables x, y
 ```
 """
 function base_ring(I::MPolyIdeal{S}) where {S}
-  return I.gens.gens.Ox::parent_type(S)
+  return base_ring(I.gens)::parent_type(S)
 end
 
 base_ring_type(::Type{MPolyIdeal{S}}) where {S} = parent_type(S)
@@ -2298,7 +2298,7 @@ function small_generating_set(
 
     # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
-    ring = I.gens.gens.Ox
+    ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     if !haskey(I.gb,computed_gb.ord)
       # if not yet present, store gb for later use
