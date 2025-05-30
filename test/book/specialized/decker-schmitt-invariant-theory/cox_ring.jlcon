@@ -8,6 +8,14 @@ julia> g2 = matrix(K, 3, 3, [ 0 0 1; 1 0 0; 0 1 0 ]);
 julia> G = matrix_group(g1, g2)
 Matrix group of degree 3
   over cyclotomic field of order 3
+with 2 generators
+  [-1   0   0]
+  [ 0   1   0]
+  [ 0   0   1]
+
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
 
 julia> chi = character_table(G)[6];
 
