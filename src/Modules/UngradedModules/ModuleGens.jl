@@ -92,7 +92,7 @@ base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
 @doc raw"""
     singular_generators(M::ModuleGens)
 
-Return the generators of `M` from Singular side.
+Return the generators of `M` from the Singular side.
 """
 function singular_generators(M::ModuleGens)
   singular_assure(M)
@@ -102,7 +102,7 @@ end
 @doc raw"""
     singular_ordering(M::ModuleGens)
 
-Return the ordering of `M` from Singular side.
+Return the ordering of `M` from the Singular side.
 """
 function singular_ordering(M::ModuleGens)
     return Singular.ordering(base_ring(singular_freemodule(M)))
@@ -111,7 +111,7 @@ end
 @doc raw"""
     singular_freemodule(M::ModuleGens)
 
-Return the ambient free module of `M` from Singular side.
+Return the ambient free module of `M` from the Singular side.
 """
 function singular_freemodule(M::ModuleGens)
     singular_assure(M)
