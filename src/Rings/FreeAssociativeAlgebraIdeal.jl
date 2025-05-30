@@ -59,7 +59,7 @@ end
 
 
 function base_ring(I::FreeAssociativeAlgebraIdeal{T}) where T
-  return I.gens.gens.Ox::parent_type(T)
+  return base_ring(I.gens)::parent_type(T)
 end
 
 function base_ring_type(::Type{<:FreeAssociativeAlgebraIdeal{T}}) where T

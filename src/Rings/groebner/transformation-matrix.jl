@@ -24,7 +24,8 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   istd, m = Singular.lift_std(singular_generators(B, ordering), complete_reduction = complete_reduction)
-  return IdealGens(B.gens.Ox, istd), map_entries(B.gens.Ox, m)
+  R = base_ring(B)
+  return IdealGens(R, istd), map_entries(R, m)
 end
 
 @doc raw"""

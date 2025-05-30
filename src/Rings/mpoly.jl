@@ -131,7 +131,7 @@ end
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx # Singular Poly Ring or Algebra, poss. with different ordering
+  Sx::NCRing # Singular Poly Ring or Algebra, poss. with different ordering
   f #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
@@ -174,8 +174,7 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false, isReduced::Bool = false) where {T <: NCRingElem}
-    r = new{T}()
-    r.gens = BiPolyArray(Ox, O)
+    r = new{T}(BiPolyArray(Ox, O))
     r.ord = ordering
     r.isGB = isGB
     r.isReduced = isReduced
@@ -184,9 +183,8 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
-    r = new{T}()
+    r = new{T}(BiPolyArray(Ox, O))
     r.isGB = false
-    r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
   end

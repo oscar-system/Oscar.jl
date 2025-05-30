@@ -243,14 +243,10 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
   gens::IdealGens{T}
   dim::Union{Int, Nothing, NegInf}
   gb::IdealGens{T}
-  qRing::MPolyQuoRing
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
-   r = new{T}()
-   r.gens  = IdealGens(Ox, si)
-   r.qRing = Ox
-   r.dim   = nothing
+   r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
    r.gens.gens.O = [R(g) for g in gens(r.gens.gens.S)]
    B = r.gens
@@ -262,10 +258,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
     @req base_ring(Ox) === base_ring(I) "base rings must match"
-    r = new{T}()
-    r.gens = IdealGens(Ox, gens(I))
-    r.qRing = Ox
-    r.dim = nothing
+    r = new{T}(IdealGens(Ox, gens(I)), nothing)
     return r
   end
   
@@ -303,8 +296,8 @@ Quotient
   by ideal (-x^2 + y, -x^3 + z)
 ```
 """
-function base_ring(a::MPolyQuoIdeal)
-  return a.qRing
+function base_ring(a::MPolyQuoIdeal{T}) where T
+  return base_ring(a.gens)::MPolyQuoRing{T}
 end
 
 function oscar_assure(I::MPolyQuoIdeal)
@@ -352,10 +345,10 @@ julia> gens(a)
 """
 function gens(a::MPolyQuoIdeal)
   oscar_assure(a)
-  return map(a.gens.gens.Ox, a.gens.gens.O)
+  return map(base_ring(a), a.gens.gens.O)
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = a.gens.gens.Ox(a.gens.gens.O[i])
+gen(a::MPolyQuoIdeal, i::Int) = base_ring(a)(a.gens.gens.O[i])
 
 @doc raw"""
     number_of_generators(a::MPolyQuoIdeal)
@@ -1866,7 +1859,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
     return filter(!iszero, (Q).(gens(sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
-    I.gb = IdealGens(I.gens.gens.Ox, sing_gb, true)
+    I.gb = IdealGens(base_ring(I), sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
   end

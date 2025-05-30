@@ -12,7 +12,7 @@ function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering
     #= apply highest corner standard basis variant in Singular =#
     ssb = Singular.LibStandard.groebner(singular_groebner_generators(I, ordering), "HC")
 
-    sb = IdealGens(I.gens.gens.Ox, ssb, false)
+    sb = IdealGens(base_ring(I), ssb, false)
     sb.isGB = true
     sb.ord  = ordering
     if isdefined(sb, :S)
