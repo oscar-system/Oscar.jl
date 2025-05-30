@@ -243,10 +243,9 @@ function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyRingEl
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
- singular_assure(I)
  MX = singular_module(F)
  SG = Singular.Module(base_ring(MX), MX(zero(F)))
- res = Singular.LibHomolog.isReg(I.gens.S, SG)
+ res = Singular.LibHomolog.isReg(singular_generators(I), SG)
  if res == 1 return true end
  return false
 end
@@ -257,11 +256,10 @@ function is_regular_sequence(V::Vector{T}, M::SubquoModule{T}) where T <: MPolyR
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
- singular_assure(I)
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens) 
- res = Singular.LibHomolog.isReg(I.gens.S, SG)
+ res = Singular.LibHomolog.isReg(singular_generators(I), SG)
  if res == 1 return true end
  return false
 end
@@ -394,10 +392,9 @@ function _koszul_homology_from_singular(V::Vector{T},F::FreeMod{T}, i::Int) wher
   @assert parent(V[1]) == R
   @assert all(x->parent(x) == R, V)
   I = ideal(R, V)
-  singular_assure(I)
   MX = singular_module(F)
   SG = Singular.Module(base_ring(MX), MX(zero(F)))
-  SU = Singular.LibHomolog.KoszulHomology(I.gens.S, SG, i)
+  SU = Singular.LibHomolog.KoszulHomology(singular_generators(I), SG, i)
   FFF = free_module(R, rank(SU))
   MG = ModuleGens(FFF, SU)
   UO = SubModuleOfFreeModule(FFF, MG)
@@ -410,11 +407,10 @@ function _koszul_homology_from_singular(V::Vector{T}, M::SubquoModule{T}, i::Int
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
- singular_assure(I)
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
- SU = Singular.LibHomolog.KoszulHomology(I.gens.S, SG, i)
+ SU = Singular.LibHomolog.KoszulHomology(singular_generators(I), SG, i)
  FFF = free_module(R, rank(SU))
  MG = ModuleGens(FFF, SU)
  UO = SubModuleOfFreeModule(FFF, MG)
@@ -549,8 +545,7 @@ function _depth_from_singular(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyR
  if is_zero(F) || is_equal((I*F)[1], F) return -1 end
  MX = singular_module(F)
  SG = Singular.Module(base_ring(MX), MX(zero(F)))
- singular_assure(I)
- return Singular.LibHomolog.depth(SG, I.gens.S)
+ return Singular.LibHomolog.depth(SG, singular_generators(I))
 end
 
 function _depth_from_singular(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: MPolyRingElem
@@ -558,11 +553,10 @@ function _depth_from_singular(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: M
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(M)
  if is_zero(M) || is_equal((I*M)[1], M) return -1 end
- singular_assure(I)
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
- return Singular.LibHomolog.depth(SG, I.gens.S)
+ return Singular.LibHomolog.depth(SG, singular_generators(I))
 end
 
 ##############################################################################
@@ -621,8 +615,7 @@ function _koszul_matrix_from_singular(V::Vector{T}, i::Int) where T <: MPolyRing
   R = parent(V[1])
   @assert all(x->parent(x) == R, V)
   I = ideal(R, V)
-  singular_assure(I)
-  return transpose(map_entries(R, Singular.LibHomolog.KoszulMap(I.gens.S, i)))
+  return transpose(map_entries(R, Singular.LibHomolog.KoszulMap(singular_generators(I), i)))
 end
 
 @doc raw"""
