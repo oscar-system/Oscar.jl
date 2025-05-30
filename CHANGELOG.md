@@ -134,11 +134,6 @@ which we think might affect some users directly.
 
 - [#4613](https://github.com/oscar-system/Oscar.jl/pull/4613) Optimize conversions from/to Singular
 
-### **TODO** release notes: to be added
-
-If there are any PRs listed below, check their title and labels.
-When done, change their label to "release notes: use title".
-
 
 ## [1.3.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.1) - 2025-03-14
 
