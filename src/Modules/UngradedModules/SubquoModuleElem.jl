@@ -225,7 +225,6 @@ a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
   @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
-  #singular_assure(F)
   if reduced
     @assert has_global_singular_ordering(F)
   end
@@ -281,7 +280,7 @@ function leading_monomials(F::ModuleGens)
     #return ModuleGens(F.F, [lead(g) for g in F.O])
   #end
   singular_gens = singular_generators(F)
-  return ModuleGens(F.F, Singular.lead(singular_gens))
+  return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
 end
 
 function show(io::IO, b::SubquoModuleElem)

@@ -45,7 +45,6 @@ Construct `ModuleGens` from an array of free module elements, specifying the fre
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
-  #SF = singular_module(F)
   return ModuleGens{T}(O, F)
 end
 
@@ -106,8 +105,7 @@ end
 Return the ordering of `M` from Singular side.
 """
 function singular_ordering(M::ModuleGens)
-    singular_assure(M)
-    return Singular.ordering(base_ring(M.SF))
+    return Singular.ordering(base_ring(singular_freemodule(M)))
 end
 
 @doc raw"""
@@ -127,8 +125,7 @@ end
 Return whether the ordering of `M` from the Singular side is global.
 """
 function has_global_singular_ordering(M::ModuleGens)
-    singular_assure(M)
-    return Singular.has_global_ordering(base_ring(M.SF))
+    return Singular.has_global_ordering(base_ring(singular_freemodule(M)))
 end
 
 @doc raw"""
@@ -139,6 +136,15 @@ Return the generators of `M` from the Oscar side.
 function oscar_generators(M::ModuleGens)
   oscar_assure(M)
   return M.O
+end
+
+@doc raw"""
+    oscar_free_module(M::ModuleGens)  
+
+Return the Oscar free module underlying the generators `M`.
+"""
+function oscar_free_module(M::ModuleGens)
+    return M.F
 end
 
 @doc raw"""
@@ -352,7 +358,7 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRin
     return sparse_row(base_ring(parent(a)))
   end
   S = singular_generators(generators)
-  b = ModuleGens([a], generators.SF)
+  b = ModuleGens([a], singular_freemodule(generators))
   s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
@@ -396,7 +402,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
 
   S = singular_generators(generators)
   S.isGB = generators.isGB
-  b = ModuleGens([a], generators.SF)
+  b = ModuleGens([a], singular_freemodule(generators))
   s, r = Singular.lift(S, singular_generators(b)) # Possibly use division with remainder
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
