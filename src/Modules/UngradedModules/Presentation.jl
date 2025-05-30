@@ -714,7 +714,7 @@ This is done by computing a minimal presentation.
 ```jldoctest
 julia> R = ZZ;
 
-julia> F = free_module_sparse(R, 2);
+julia> F = free_module(FreeMod, R, 2);
 
 julia> A = matrix(ZZ, [2 0; 0 3]);
 
@@ -739,7 +739,7 @@ false
 
 julia> K, a = finite_field(7, "a");
 
-julia> G = free_module_sparse(K, 3);
+julia> G = free_module(FreeMod, K, 3);
 
 julia> C = matrix(K, [1 0 0; 0 1 0; 0 0 1]);
 
@@ -748,7 +748,7 @@ julia> L = cokernel(hom(G, G, C));
 julia> is_finite(L)
 true
 
-julia> H = free_module_sparse(QQ, 1);
+julia> H = free_module(FreeMod, QQ, 1);
 
 julia> P = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
 
