@@ -471,13 +471,13 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
 end
 
 @attr Any function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    solve_init(transpose(matrix(h)))
+    solve_init(matrix(h))
 end
 
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    K = kernel(kernel_ctx(h); side=:right)
+    K = kernel(kernel_ctx(h); side=:left)
     F = domain(h)
-    v = [F(sparse_row(transpose(K[:, j:j]))) for j in 1:ncols(K)]
+    v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
     return sub(F, v)
 end
 
