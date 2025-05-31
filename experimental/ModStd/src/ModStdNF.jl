@@ -2,7 +2,7 @@ module ModStdNF
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray, IdealGens, Hecke, AbstractAlgebra
+import Oscar: MPolyIdeal, IdealGens, Hecke, AbstractAlgebra
 import Hecke: modular_lift, modular_proj, modular_env, RecoCtx, 
               induce_rational_reconstruction
 
@@ -28,16 +28,16 @@ end
 
 function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
-    R = Oscar.singular_poly_ring(B.Ox, ord)
+    R = Oscar.singular_poly_ring(base_ring(B), ord)
     hdata = convert(Int32,h.coeffs)
     hdata = push!(hdata,0)
     i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), hdata, complete_reduction = complete_reduction)
-    return IdealGens(B.Ox, i)
+    return IdealGens(base_ring(B), i)
   end
-  if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+  if !isdefined(B.gens, :S)
+    B.gens.S = Singular.Ideal(B.gens.Sx, [convert(B.Sgens.x, x) for x = B.gens.O])
   end 
-  return IdealGens(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
+  return IdealGens(base_ring(B), stdhilb(B.gens.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
 end
 
 #TODO (to dream)

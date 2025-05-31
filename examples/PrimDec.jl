@@ -35,7 +35,7 @@ function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
     trivial = Vector{Singular.sideal}(undef, 0)
     n = 1
     Is = I.gens.S
-    J = changeOrderOfBasering(I.gens.S, :lex)
+    J = changeOrderOfBasering(Is, :lex)
     check = oneideal(J.base_ring)
     PDint = decomp_internal(J, trivial, n, check, usefglm)
     

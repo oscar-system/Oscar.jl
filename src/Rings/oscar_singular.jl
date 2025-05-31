@@ -286,18 +286,6 @@ function iso_oscar_singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{<:MP
   return OscarSingularCoefficientRingMapFractionField(F, S, g, Sx)
 end
 
-# helper
-function _map_oscar_singular_multivariate(Rx, g, f::Singular.spoly)
-  O = base_ring(Rx)
-  Sx = parent(f)
-  @assert ngens(Sx) == ngens(Ox)
-  g = MPolyBuildCtx(Rx)
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-    push_term!(g, preimage(g, c), e)
-  end
-  return finish(g)
-end
-
 function image(f::OscarSingularCoefficientRingMapFractionField{<:AbstractAlgebra.Generic.FracField{<:MPolyRingElem}}, a)
   parent(a) !== domain(f) && error("Element not in domain")
   x = Singular.transcendence_basis(codomain(f))
