@@ -9,15 +9,14 @@ import ..Oscar:
   _graded_kernel,
   _reduce,
   _saturation,
-  _simple_kernel,
   annihilator,
   coefficient_ring,
   coefficients,
   cone,
   coordinates,
+  coordinates_atomic,
+  coordinates_via_transform,
   degree,
-  degree,
-  dim,
   dim,
   elem_type,
   evaluate,
@@ -26,6 +25,8 @@ import ..Oscar:
   gens,
   grading_group,
   hyperplanes,
+  images_of_generators,
+  in_atomic,
   intersect,
   inv,
   is_normal,
@@ -33,6 +34,7 @@ import ..Oscar:
   is_subset,
   is_zm_graded,
   kernel,
+  kernel_atomic,
   lift_std,
   ModuleGens,
   normal_form,
@@ -50,7 +52,6 @@ import ..Oscar:
   twist,
   zero,
   zonotope
-
 
 import ..Oscar.Singular:
   FreeModule,

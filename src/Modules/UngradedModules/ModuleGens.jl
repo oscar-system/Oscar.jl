@@ -436,13 +436,6 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::S
     if task == :auto
         task = coefficient_ring(base_ring(parent(a))) isa Field ? :via_transform : :via_lift
     end
-    for i in 1:ngens(M)
-        g = gen(M,i)
-        if a == g
-            R = base_ring(M)
-            return sparse_row(R, [(i,R(1))])
-        end
-    end
     if task == :via_transform
         std, _ = lift_std(M)
         return coordinates_via_transform(a, std)
