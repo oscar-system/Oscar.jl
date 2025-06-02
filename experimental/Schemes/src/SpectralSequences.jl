@@ -263,7 +263,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
   v = lifted_kernel_generators(prev_page, ii, jj) # lifts of the kernel generators on the previous page
 
   # The generators of the kernel Zₚ = ker ∂ₚ₋₁ are extracted from this page.
-  u_next = [repres(simplify(g)) for g in gens(cssp[i0, j0])] # effectively discard zero generators
+  u_next = [repres(simplify!(g)) for g in gens(cssp[i0, j0])] # effectively discard zero generators
 
   orig_cplx = graded_complex(cssp)
   # The degrees of the generators in the original graded complex 
