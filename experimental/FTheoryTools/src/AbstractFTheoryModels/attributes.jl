@@ -1295,7 +1295,7 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
     coeffs_list = coefficients(toric_divisor(toric_divisor_class(ambient_space(m), diff)))
     indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
     poly = sum(QQ(coeffs_list[k]) * indets[k] for k in 1:length(indets))
-    cs[2] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
+    cs[2] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
     set_attribute!(m, :chern_classes, cs)
   end
 
@@ -1316,11 +1316,11 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
   coeff_ring = coefficient_ring(ambient_space(m))
   poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
-  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly))
+  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
   ck_ambient = chern_class(ambient_space(m), k, check = check)
   ckm1 = chern_class(m, k-1, check = check)
   new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
-  cs[k+1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly))
+  cs[k+1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly), true)
   set_attribute!(m, :chern_classes, cs)
   return cs[k+1]
 end

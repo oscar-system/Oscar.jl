@@ -111,7 +111,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m), check = check)
-    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r)))
+    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r), true))
   end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
