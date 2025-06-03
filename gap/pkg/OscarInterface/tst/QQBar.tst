@@ -60,10 +60,20 @@ gap> Eigenvalues( F, M );
 [ <Root 1.41421 of x^2 - 2>, <Root -1.41421 of x^2 - 2> ]
 
 #
-gap> IsRealQQBarFieldElement( Sqrt( y ) );
+gap> r:= Sqrt( QQBarFieldElement( 2 ) );;
+gap> IsRealQQBarFieldElement( r );
 true
-gap> IsRealQQBarFieldElement( Sqrt( -y ) );
+gap> ComplexConjugate( r ) = r;
+true
+gap> r:= Sqrt( QQBarFieldElement( -2 ) );;
+gap> IsRealQQBarFieldElement( r );
 false
+gap> ComplexConjugate( r ) = -r;
+true
+
+#
+gap> Random( F ) in F;
+true
 
 #
 gap> STOP_TEST( "QQBar.tst" );

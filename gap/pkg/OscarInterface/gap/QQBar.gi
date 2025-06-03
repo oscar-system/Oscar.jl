@@ -12,8 +12,8 @@ BindGlobal( "QQBarFieldType",
 
 BindGlobal( "QQBarField_Julia", Oscar.algebraic_closure( Oscar.QQ ) );
 
-# We cannot assign the Julia type at load time.
-QQBarFieldElementMatrixType:= fail;
+BindGlobal( "QQBarFieldElementMatrixType",
+  Oscar_jl.eval( Julia.Meta.parse( Julia.String( "Matrix{QQBarFieldElem}" ) ) ) );
 
 InstallMethod( _QQBarFieldElement,
   [ "IsRat" ],
@@ -25,7 +25,6 @@ InstallMethod( _QQBarFieldElement,
   local iso;
 
   iso:= Oscar.iso_gap_oscar( Cyclotomics );
-#T cached?
   return Oscar.QQBarFieldElem( QQBarField_Julia( iso( x ) ) );
   end );
 
@@ -144,11 +143,11 @@ InstallMethod( \*,
 
 InstallMethod( InverseOp,
   [ "IsQQBarFieldElement" ],
-  x -> QQBarFieldElement( Oscar.inv( JuliaPointer( x ) ) ) );
+  x -> QQBarFieldElement( Oscar.inv( x ) ) );
 
 InstallMethod( ComplexConjugate,
   [ "IsQQBarFieldElement" ],
-  x -> QQBarFieldElement( Julia.conj( JuliaPointer( x ) ) ) );
+  x -> QQBarFieldElement( Julia.conj( x ) ) );
 
 InstallMethod( Sqrt,
   [ "IsQQBarFieldElement" ],
@@ -175,16 +174,13 @@ InstallMethod( Random,
 
 InstallOtherMethod( AbsoluteValue,
   [ "IsQQBarFieldElement" ], SUM_FLAGS,
-  x -> QQBarFieldElement( Julia.abs( JuliaPointer( x ) ) ) );
+  x -> QQBarFieldElement( Julia.abs( x ) ) );
 
 InstallMethod( Eigenvalues,
   [ "IsQQBarField", "IsMatrix and IsQQBarFieldElementCollColl" ],
   function( F, M )
   local MM;
 
-  if QQBarFieldElementMatrixType = fail then
-    QQBarFieldElementMatrixType:= JuliaEvalString( "Matrix{QQBarFieldElem}" );
-  fi;
   MM:= Oscar.matrix( QQBarField_Julia,
          GAPToJulia( QQBarFieldElementMatrixType, M ) );
   return List( JuliaToGAP( IsList, Oscar.eigenvalues( MM ) ),
@@ -192,4 +188,4 @@ InstallMethod( Eigenvalues,
   end);
 
 BindGlobal( "IsRealQQBarFieldElement",
-  x -> IsQQBarFieldElement( x ) and Oscar.is_real( JuliaPointer( x ) ) );
+  x -> IsQQBarFieldElement( x ) and Oscar.is_real( x ) );
