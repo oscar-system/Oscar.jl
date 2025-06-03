@@ -588,3 +588,11 @@ end
   @test d isa ZZRingElem
 end
 
+@testset "issue #4949" begin
+  for F in [QQ, GF(7)]
+    R, (x,y) = graded_polynomial_ring(F, [:x, :y])
+    I = ideal([x,y])
+    gb = groebner_basis_f4(I)
+    @test issetequal(minimal_generating_set(ideal(gb)), [x, y])
+  end
+end

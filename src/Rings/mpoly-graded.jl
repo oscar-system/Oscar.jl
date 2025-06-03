@@ -2567,7 +2567,6 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # make sure to not recompute a GB from scratch on the singular
     # side if we have one
     G = first(values(I.gb))
-    G.gens.S.isGB = true
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
     return filter(!iszero, (R).(gens(sing_min)))
   else
