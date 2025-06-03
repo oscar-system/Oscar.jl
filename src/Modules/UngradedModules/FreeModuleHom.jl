@@ -460,7 +460,7 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   error("not implemented for modules over rings of type $(typeof(base_ring(domain(h))))")
 end
 
-function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {S<:Union{ZZRingElem, <:FieldElem}, T<:MPolyRingElem{S}}
+function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {S<:Union{ZZRingElem, FieldElem}, T<:MPolyRingElem{S}}
   F = domain(h)
   G = codomain(h)
   gens_h = images_of_generators(h)
@@ -471,14 +471,14 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
 end
 
 @attr Any function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    solve_init(matrix(h))
+  solve_init(matrix(h))
 end
 
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    K = kernel(kernel_ctx(h); side=:left)
-    F = domain(h)
-    v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
-    return sub(F, v)
+  K = kernel(kernel_ctx(h); side=:left)
+  F = domain(h)
+  v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
+  return sub(F, v)
 end
 
 function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})

@@ -58,12 +58,11 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
 end
 
 function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task=:auto) where {T <: MonoidAlgebraElem}
-    if task != :auto && task != :via_transform
-        error("Only task=:via_transform is supported for MonoidAlgebra.")
-    end
-
-    std, _ = lift_std(M)  
-    return coordinates_via_transform(a, std)
+  if task != :auto && task != :via_transform
+    error("Only task=:via_transform is supported for MonoidAlgebra.")
+  end
+  std, _ = lift_std(M)
+  return coordinates_via_transform(a, std)
 end
 
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
@@ -86,25 +85,25 @@ function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: Monoid
 end
 
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-    A = get_attribute(generators, :transformation_matrix)
-    A === nothing && error("No transformation matrix in the Gröbner basis.")    
-    if iszero(a)
-        return sparse_row(base_ring(parent(a)))
-    end
-    if !is_global(generators.ordering)
-        error("Ordering is not global")
-    end
-    @assert generators.isGB
-    S = singular_generators(generators)
-    S.isGB = generators.isGB
-    b = ModuleGens([a], singular_freemodule(generators))
-    s, _ = Singular.lift(S, singular_generators(b))
-    if Singular.ngens(s) == 0 || iszero(s[1])
-        error("The free module element is not liftable to the given generating system.")
-    end
-    Rx = base_ring(generators)
-    coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
-    return coords_wrt_groebner_basis * sparse_matrix(A)
+  A = get_attribute(generators, :transformation_matrix)
+  A === nothing && error("No transformation matrix in the Gröbner basis.")
+  if iszero(a)
+    return sparse_row(base_ring(parent(a)))
+  end
+  if !is_global(generators.ordering)
+    error("Ordering is not global")
+  end
+  @assert generators.isGB
+  S = singular_generators(generators)
+  S.isGB = generators.isGB
+  b = ModuleGens([a], singular_freemodule(generators))
+  s, _ = Singular.lift(S, singular_generators(b))
+  if Singular.ngens(s) == 0 || iszero(s[1])
+    error("The free module element is not liftable to the given generating system.")
+  end
+  Rx = base_ring(generators)
+  coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
+  return coords_wrt_groebner_basis * sparse_matrix(A)
 end
 
 function sparse_row(
@@ -142,8 +141,8 @@ function kernel_atomic(
 end
 
 function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:FieldElem, T<:MonoidAlgebraElem{S}}
-    F = ambient_free_module(M)
-    return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
+  F = ambient_free_module(M)
+  return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
 
 
