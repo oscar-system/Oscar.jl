@@ -532,7 +532,7 @@ e[2]
 ```
 """
 function prune_with_map(M::ModuleFP)
-    return prune_with_map_atomic(M)
+  return prune_with_map_atomic(M)
 end
 
 # generic fallback
@@ -589,61 +589,61 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
 end
 
 @attr Any function presentation_ctx(M::SubquoModule{ZZRingElem})
-    R = base_ring(M)
-    F = ambient_free_module(M)
-    m = ngens(F)
-    rels = relations(M)
-    n = length(rels)
-    A = zero_matrix(R, m, n)
-    for (j, rel) in enumerate(rels)
-        for (i, v) in coordinates(rel)
-            A[i, j] = v
-        end
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  rels = relations(M)
+  n = length(rels)
+  A = zero_matrix(R, m, n)
+  for (j, rel) in enumerate(rels)
+    for (i, v) in coordinates(rel)
+      A[i, j] = v
     end
-    D, U, V = snf_with_transform(A)
-    return (D=D, U=U, V=V)
+  end
+  D, U, V = snf_with_transform(A)
+  return (D=D, U=U, V=V)
 end
 
 @attr Any function presentation_ctx(M::SubquoModule{T}) where {T<:FieldElem}
-    R = base_ring(M)
-    F = ambient_free_module(M)
-    m = ngens(F)
-    rels = relations(M)
-    n = length(rels)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  rels = relations(M)
+  n = length(rels)
 
-    A = zero_matrix(R, m, n)
-    for (j, rel) in enumerate(rels)
-        for (i, v) in coordinates(rel)
-            A[i, j] = v
-        end
+  A = zero_matrix(R, m, n)
+  for (j, rel) in enumerate(rels)
+    for (i, v) in coordinates(rel)
+      A[i, j] = v
     end
+  end
 
-    D, U, V = snf_with_transform(A)
-    return (D=D, U=U, V=V)
+  D, U, V = snf_with_transform(A)
+  return (D=D, U=U, V=V)
 end
 
 function prune_with_map_atomic(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
-    ctx = presentation_ctx(M)
-    R = base_ring(M)
-    F = ambient_free_module(M)
-    m = ngens(F)
-    D = ctx.D
-    U = ctx.U
-    diag_length = min(size(D)...)
-    unit_diag_indices = [i for i in 1:diag_length if is_unit(D[i,i])]
-    row_indices = setdiff(1:size(D, 1), unit_diag_indices)
-    col_indices = setdiff(1:size(D, 2), unit_diag_indices)
-    D_prime_matrix = sub(D, row_indices, col_indices)
-    F_prime = FreeMod(R, length(row_indices))
-    rels_prime = [F_prime(sparse_row(transpose(D_prime_matrix[:, j:j]))) for j in 1:size(D_prime_matrix, 2)]
-    N_prime, _ = sub(F_prime, rels_prime)
-    M_prime, _ = quo(F_prime, N_prime)
-    U_inv = inv(U)
-    iso_basis_ambient = [sum(U_inv[j, row_indices[i]] * gens(F)[j] for j in 1:m) for i in 1:length(row_indices)]
-    proj_to_M = hom(F, M, gens(M))
-    iso_basis = [proj_to_M(b) for b in iso_basis_ambient]
-    iso_map = hom(M_prime, M, iso_basis)
-    return M_prime, iso_map
+  ctx = presentation_ctx(M)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  D = ctx.D
+  U = ctx.U
+  diag_length = min(size(D)...)
+  unit_diag_indices = [i for i in 1:diag_length if is_unit(D[i,i])]
+  row_indices = setdiff(1:size(D, 1), unit_diag_indices)
+  col_indices = setdiff(1:size(D, 2), unit_diag_indices)
+  D_prime_matrix = sub(D, row_indices, col_indices)
+  F_prime = FreeMod(R, length(row_indices))
+  rels_prime = [F_prime(sparse_row(transpose(D_prime_matrix[:, j:j]))) for j in 1:size(D_prime_matrix, 2)]
+  N_prime, _ = sub(F_prime, rels_prime)
+  M_prime, _ = quo(F_prime, N_prime)
+  U_inv = inv(U)
+  iso_basis_ambient = [sum(U_inv[j, row_indices[i]] * gens(F)[j] for j in 1:m) for i in 1:length(row_indices)]
+  proj_to_M = hom(F, M, gens(M))
+  iso_basis = [proj_to_M(b) for b in iso_basis_ambient]
+  iso_map = hom(M_prime, M, iso_basis)
+  return M_prime, iso_map
 end
 
 function _presentation_minimal(SQ::ModuleFP{T};
@@ -762,23 +762,23 @@ true
 ```
 """
 function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
-    M_prime, _ = prune_with_map_atomic(M)
-    R = base_ring(M_prime)
-    pres = presentation(M_prime)
-    rel_map = map(pres, 1)
-    rel_matrix = matrix(rel_map)
-    nc = size(rel_matrix, 2)
-    nr = size(rel_matrix, 1)
-    has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
-    if isa(R, ZZRing)
-        return !has_free_generator && nc > 0
-    elseif isa(R, Field)
-        if is_finite(R)
-            return true
-        else
-            return nc == 0
-        end
+  M_prime, _ = prune_with_map_atomic(M)
+  R = base_ring(M_prime)
+  pres = presentation(M_prime)
+  rel_map = map(pres, 1)
+  rel_matrix = matrix(rel_map)
+  nc = size(rel_matrix, 2)
+  nr = size(rel_matrix, 1)
+  has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
+  if isa(R, ZZRing)
+    return !has_free_generator && nc > 0
+  elseif isa(R, Field)
+    if is_finite(R)
+      return true
     else
-        error("The base ring $(typeof(R)) is not supported.")
+      return nc == 0
     end
+  else
+    error("The base ring $(typeof(R)) is not supported.")
+  end
 end
