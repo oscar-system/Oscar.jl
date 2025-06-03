@@ -13,7 +13,7 @@ BindGlobal( "QQBarFieldType",
 BindGlobal( "QQBarField_Julia", Oscar.algebraic_closure( Oscar.QQ ) );
 
 BindGlobal( "QQBarFieldElementMatrixType",
-  Oscar_jl.eval( Julia.Meta.parse( Julia.String( "Matrix{QQBarFieldElem}" ) ) ) );
+  Oscar.OscarInterfaceConstants._Matrix_QQBarFieldElem );
 
 InstallMethod( _QQBarFieldElement,
   [ "IsRat" ],
