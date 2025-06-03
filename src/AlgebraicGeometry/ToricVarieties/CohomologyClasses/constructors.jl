@@ -5,7 +5,7 @@
 @attributes mutable struct CohomologyClass
     v::NormalToricVarietyType
     p::MPolyQuoRingElem
-    function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = false)
+    function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem, quick::Bool)
         @req parent(p) == cohomology_ring(v, check = quick) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
@@ -59,12 +59,12 @@ function cohomology_class(d::ToricDivisor; quick::Bool = false)
     indets = gens(cohomology_ring(toric_variety(d)))
     coeff_ring = coefficient_ring(toric_variety(d))
     poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
-    return CohomologyClass(toric_variety(d), poly)
+    return CohomologyClass(toric_variety(d), poly, false)
   end
   indets = gens(parent(cohomology_ring(toric_variety(d), check = false)))
   coeff_ring = coefficient_ring(toric_variety(d))
   poly = cohomology_ring(toric_variety(d))(sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)))
-  return CohomologyClass(toric_variety(d), poly, quick = quick)
+  return CohomologyClass(toric_variety(d), poly, true)
 end
 
 
