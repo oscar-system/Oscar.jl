@@ -33,11 +33,10 @@ function _derived_pushforward(M::FreeMod)
   d = sum((d[i] < 0 ? 0 : d[i])*G[i] for i in 1:r; init=zero(G))
 
   g = vcat([[x^(Int(d[i])) for x in v] for (i, v) in enumerate(variables)]...)
-  kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[0:length(v)-1], length(v)-1) for (i, v) in enumerate(variables)]
+  kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[1:length(v)], 1) for (i, v) in enumerate(variables)]
   K = simplify(total_complex(tensor_product(kosz)))
 
-  delta = sum((n+1)*d[i]*G[i] for (i, n) in enumerate(dims); init=zero(G))
-  KoM = hom(K, twist(M, delta))
+  KoM = hom(K, M)
   st = strand(KoM, zero(G))[1]
   return st
 end
