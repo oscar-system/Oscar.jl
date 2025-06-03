@@ -78,15 +78,19 @@ function _Riese_Schmid_type(G::GAPGroup)
   mord = modord(ZZRingElem(2), r)
   twopart, mord = ppio(mord, 2)
   p = order(P)
-  if x == 8 && small_group_identification(X) == id_q8 &&
-     p != x && x * twopart == p
-    Q = quo(P, X)[1]
-    if is_cyclic(Q)
-      cpx = centralizer(P, X)[1]
-      inter = intersect(X, cpx)
-      C = sub(P, vcat(gens(X), gens(cpx)))[1]
-      is_subset(inter[1], center(P)[1]) && order(C) == p && return ("Q8", r)
+  if x == 8 && small_group_identification(X) == id_q8 && x * twopart == p
+    if p != x
+      Q = quo(P, X)[1]
+      if is_cyclic(Q)
+        cpx = centralizer(P, X)[1]
+        inter = intersect(X, cpx)
+        C = sub(P, vcat(gens(X), gens(cpx)))[1]
+        is_subset(inter[1], center(P)[1]) && order(C) == p && return ("Q8", r)
+      end
     end
+
+    # f is odd and X has type Q8
+    return no_type
   end
 
   # check for type ("QD", r), i.e.,
@@ -97,7 +101,7 @@ function _Riese_Schmid_type(G::GAPGroup)
   # and the order of 2 modulo r has the form 2^s f where f is a (not nec. odd)
   # integer and |P/X| = 2^s.
   # (We exclude groups where f is odd and X is isomorphic with Q8;
-  # these have been detected above with result ("Q8", r),
+  # these have been detected above,
   # hence we need not check this property.)
   Z = derived_subgroup(P)[1]
   (is_cyclic(Z) && order(Z) >= 4) || return no_type
@@ -110,6 +114,79 @@ function _Riese_Schmid_type(G::GAPGroup)
   return ("QD", r)
 end
 
+
+# Return the 2-local Schur index of `chi` via a
+# reduction from (G, chi) = (G_0, chi_0) to (G_n, chi_n)
+# such that chi_n is faithful and all proper subgroups H of G_n satisfy
+# that for all eta in Irr(H),
+# scalar_product(eta^{G_n}, chi_n) [\Q_2(chi, eta):\Q_2(chi)] is even.
+# - If chi_i is not faithful then G_{i+1} = G_i/ker(chi_i)
+#   and chi_{i+1} in Irr(G_{i+1}) inflates to chi_i.
+#   In this case, chi_i and chi
+# - If chi_i is faithful then G_{i+1} is a subgroup of G_i such that
+#   scalar_product(chi_{i+1}^{G_i}, chi_i) [\Q_2(chi_i, chi_{i+1}):\Q_2(chi_i)]
+#   is odd.
+#   In this case, if [\Q_2(chi_i, chi_{i+1}):\Q_2(chi_{i+1})] is even then
+#   return m_2(chi) = 1.
+#   Otherwise m_2(chi) = m_2(chi_n), which is computed by Theorem 5.2 in
+#   [Ung19].
+#
+function _Riese_Schmid_reduction(chi::GAPGroupClassFunction)
+  minimal = false
+  tblG = parent(chi)
+  G = group(tblG)
+  while !minimal
+    K = class_positions_of_kernel(chi)
+    if length(K) > 1
+      F, fus = quo(tblG, K)
+      chi = class_function(F, values(chi)[_projection_of_class_fusion(fus)])
+      tblG = parent(chi)
+      G = group(tblG)
+    else
+      # Try to find a suitable proper subgroup of G.
+      found = false
+      for C in subgroup_classes(G)
+        H = representative(C)
+        order(H) == order(G) && continue
+        for eta in character_table(H)
+          if is_odd(scalar_product(ZZRingElem, induce(eta, tblG), chi))
+            # Check the degree of the field extension
+            # [\Q_2(chi_i, chi_{i+1}):\Q_2(chi_i)].
+            vals_chi = Vector{GapObj}(filter(x -> isa(x, GapObj),
+                                             [x for x in GapObj(chi)]))
+            GAPfield_chi = _Q_p_chi(GapObj(vals_chi), ZZRingElem(2))
+            deg_chi = div(GAPfield_chi[3], length(GAPfield_chi[2]))
+            vals_eta = Vector{GapObj}(filter(x -> isa(x, GapObj),
+                                             [x for x in GapObj(eta)]))
+            GAPfield_eta = _Q_p_chi(GapObj(vals_eta), ZZRingElem(2))
+            deg_eta = div(GAPfield_eta[3], length(GAPfield_eta[2]))
+            append!(vals_chi, vals_eta)
+            GAPfield_chieta = _Q_p_chi(GapObj(vals_chi), ZZRingElem(2))
+            deg_chieta = div(GAPfield_chieta[3], length(GAPfield_chieta[2]))
+            index = div(deg_chieta, deg_chi)
+            if is_odd(index)
+              # Check the degree of the field extension
+              # [\Q_2(chi_i, chi_{i+1}):\Q_2(chi_{i+1})].
+              index = div(deg_chieta, deg_eta)
+              is_even(index) && return 1
+              G = H
+              chi = eta
+              tblG = parent(chi)
+              found = true
+              break
+            end
+          end
+        end
+        found && break
+      end
+      (!found) && (minimal = true)
+    end
+  end
+
+  # Now Condition 5.1 is satisfied, and we apply Theorem 5.2.
+  type, _ = _Riese_Schmid_type(G)
+  return (type == "") ? 1 : 2
+end
 
 #TODO: to be replaced in Hecke or so
 """
@@ -540,8 +617,7 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
             m_p_eta = 1
           else
             # p = q = 2
-            type, r = _Riese_Schmid_type(H)
-            m_p_eta = (type == "") ? 1 : 2
+            m_p_eta = _Riese_Schmid_reduction(eta::GAPGroupClassFunction)
             @vprintln :SchurIndices 1 "step 3, m_$p(eta) = $m_p_eta (p = q = 2)"
           end
 

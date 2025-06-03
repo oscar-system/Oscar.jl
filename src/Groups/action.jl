@@ -75,11 +75,11 @@ julia> (1, 2, 4)^g[1]
 """
 on_tuples(tuple::GapObj, x::GAPGroupElem) = GAPWrap.OnTuples(tuple, GapObj(x))
 
-on_tuples(tuple::Vector{T}, x::GAPGroupElem) where T = T[pnt^x for pnt in tuple]
-^(tuple::Vector{T}, x::GAPGroupElem) where T = on_tuples(tuple, x)
+on_tuples(tuple::Vector{T}, x::GroupElem) where {T} = T[pnt^x for pnt in tuple]
+^(tuple::Vector{T}, x::GroupElem) where {T} = on_tuples(tuple, x)
 
-on_tuples(tuple::T, x::GAPGroupElem) where T <: Tuple = T(pnt^x for pnt in tuple)
-^(tuple::T, x::GAPGroupElem) where T <: Tuple = on_tuples(tuple, x)
+on_tuples(tuple::T, x::GroupElem) where {T <: Tuple} = T(pnt^x for pnt in tuple)
+^(tuple::T, x::GroupElem) where {T <: Tuple} = on_tuples(tuple, x)
 
 
 """
@@ -127,21 +127,21 @@ BitSet with 2 elements:
 """
 on_sets(set::GapObj, x::GAPGroupElem) = GAPWrap.OnSets(set, GapObj(x))
 
-function on_sets(set::Vector{T}, x::GAPGroupElem) where T
+function on_sets(set::Vector{T}, x::GroupElem) where {T}
     res = T[pnt^x for pnt in set]
     sort!(res)
     return res
 end
 
-on_sets(set::T, x::GAPGroupElem) where T <: AbstractSet = T(pnt^x for pnt in set)
+on_sets(set::T, x::GroupElem) where {T<:AbstractSet} = T(pnt^x for pnt in set)
 
-function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
+function on_sets(set::T, x::GroupElem) where {T<:Tuple}
     res = [pnt^x for pnt in set]
     sort!(res)
     return T(res)
 end
 
-^(set::AbstractSet, x::GAPGroupElem) = on_sets(set, x)
+^(set::AbstractSet, x::GroupElem) = on_sets(set, x)
 
 """
     on_sets_sets(set::GapObj, x::GAPGroupElem)
@@ -155,7 +155,7 @@ of `set`, and then turning the result into a sorted vector/tuple or a set,
 respectively.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
@@ -191,15 +191,16 @@ true
 """
 on_sets_sets(set::GapObj, x::GAPGroupElem) = GAPWrap.OnSetsSets(set, GapObj(x))
 
-function on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+function on_sets_sets(set::Vector{T}, x::GroupElem) where {T}
     res = T[on_sets(pnt, x) for pnt in set]
     sort!(res)
     return res
 end
 
-on_sets_sets(set::T, x::GAPGroupElem) where T <: AbstractSet = T(on_sets(pnt, x) for pnt in set)
+on_sets_sets(set::T, x::GroupElem) where {T<:AbstractSet} =
+  T(on_sets(pnt, x) for pnt in set)
 
-function on_sets_sets(set::T, x::GAPGroupElem) where T <: Tuple
+function on_sets_sets(set::T, x::GroupElem) where {T<:Tuple}
     res = [on_sets(pnt, x) for pnt in set]
     sort!(res)
     return T(res)
@@ -491,6 +492,32 @@ julia> orb = orbit(G, on_echelon_form_mats, m);  length(orb)
 """
 function on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
   return echelon_form(m * x)
+end
+
+@doc raw"""
+    induced_action(actfun::Function, phi::GAPGroupHomomorphism)
+
+Return the action function that is obtained by inducing `actfun` along `phi`.
+
+That means, given a groups ``G`` and ``H``, a set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the action function
+$\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
+"""
+function induced_action(actfun::Function, phi::GAPGroupHomomorphism)
+  return _induced_action(actfun, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induced_action(actfun::Function, phi::Map{<:Union{Group,FinGenAbGroup}, <:Union{Group,FinGenAbGroup}})
+  return _induced_action(actfun, phi)
+end
+
+function _induced_action(actfun::Function, phi::Map{<:Union{Group,FinGenAbGroup}, <:Union{Group,FinGenAbGroup}})
+  return function (omega, g)
+    return actfun(omega, phi(g))
+  end
 end
 
 @doc raw"""

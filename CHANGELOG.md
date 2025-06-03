@@ -5,6 +5,135 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.0) - 2025-05-30
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Algebraic Geometry
+
+- [#4452](https://github.com/oscar-system/Oscar.jl/pull/4452) Add `graph_curve(::Graph)`
+
+### Combinatorics
+
+- [#4746](https://github.com/oscar-system/Oscar.jl/pull/4746) Import `Multipartition` functionality from JuLie
+- [#4735](https://github.com/oscar-system/Oscar.jl/pull/4735) Add iterator for combinations
+- [#4663](https://github.com/oscar-system/Oscar.jl/pull/4663) Add labelings for graphs
+- [#3928](https://github.com/oscar-system/Oscar.jl/pull/3928) Add partially ordered sets
+- [#3928](https://github.com/oscar-system/Oscar.jl/pull/3928) Add `indegree` and `outdegree` for graphs
+
+### Commutative Algebra
+
+- [#4890](https://github.com/oscar-system/Oscar.jl/pull/4890) Restrict `is_global`, `is_local` to total monomial orderings, add `is_(global|local)_block`
+- [#4850](https://github.com/oscar-system/Oscar.jl/pull/4850) Add `quo` for `LaurentMPolyWrapRing`
+- [#4810](https://github.com/oscar-system/Oscar.jl/pull/4810) Fix `tensor_product` for `SubquoModules`
+- [#4765](https://github.com/oscar-system/Oscar.jl/pull/4765) New wrapper for Singular triangular decompositions
+- [#4706](https://github.com/oscar-system/Oscar.jl/pull/4706) Improve comparison of morphisms of modules
+- [#4683](https://github.com/oscar-system/Oscar.jl/pull/4683) Add hint for `eliminate` using a proper subring
+- [#4626](https://github.com/oscar-system/Oscar.jl/pull/4626) Allow sorting w.r.t. monomial orderings / module orderings
+
+### F-Theory Tools
+
+- [#4876](https://github.com/oscar-system/Oscar.jl/pull/4876) Rename `global_gauge_quotients` to `global_gauge_group_quotient`
+- [#4869](https://github.com/oscar-system/Oscar.jl/pull/4869) Update QSM Artifact
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Improve printing of G4-flux and families thereof
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Bug fix in computing smallest containing flux family for a given individual G4-flux
+- [#4844](https://github.com/oscar-system/Oscar.jl/pull/4844) Update .mrdi-files (artifact) for model 1511.03209
+- [#4779](https://github.com/oscar-system/Oscar.jl/pull/4779) Add exceptional classes and indices
+- [#4728](https://github.com/oscar-system/Oscar.jl/pull/4728) Include 1/2 c2 in identification of flux families
+- [#4711](https://github.com/oscar-system/Oscar.jl/pull/4711) Add convenience constructors for flux instances
+- [#4694](https://github.com/oscar-system/Oscar.jl/pull/4694) Rename `is_vertical` to `passes_transversality_checks` and execute related checks
+
+### Groups
+
+- [#4921](https://github.com/oscar-system/Oscar.jl/pull/4921) Allow inducing G-sets along group homomorphisms
+- [#4888](https://github.com/oscar-system/Oscar.jl/pull/4888) Document the relation between "abelian invariants" and "elementary divisors"
+- [#4839](https://github.com/oscar-system/Oscar.jl/pull/4839) Add accessors `group` and `subgroup` for `SubgroupTransversal`
+- [#4821](https://github.com/oscar-system/Oscar.jl/pull/4821) Export/document `character_table_complex_reflection_group`
+- [#4771](https://github.com/oscar-system/Oscar.jl/pull/4771) Use `Set` for `GSet` block systems
+- [#4698](https://github.com/oscar-system/Oscar.jl/pull/4698) Add `rank` and `torsion_free_rank` methods for permutation groups, pc groups, free groups
+- [#4692](https://github.com/oscar-system/Oscar.jl/pull/4692) Add `GSet` methods for `blocks` and related functions
+- [#4661](https://github.com/oscar-system/Oscar.jl/pull/4661) Add `dicyclic_group`, `is_dicyclic_group` and have `quaternion_group` and `is_quaternion_group` be aliases of those
+- [#4659](https://github.com/oscar-system/Oscar.jl/pull/4659) Implement `transitivity` and `rank_action` for G-sets
+- [#4628](https://github.com/oscar-system/Oscar.jl/pull/4628) Add local Schur indices for a character (Unger's algorithm)
+- [#4609](https://github.com/oscar-system/Oscar.jl/pull/4609) Generalize G-sets to Weyl groups
+
+### Lie Theory
+
+- [#4878](https://github.com/oscar-system/Oscar.jl/pull/4878) Fix `symmetric_power` of a dim 0 module
+- [#4807](https://github.com/oscar-system/Oscar.jl/pull/4807) Change default ordering in `universal_enveloping_algebra` to be admissible
+- [#4789](https://github.com/oscar-system/Oscar.jl/pull/4789) Add `highest_root(R::RootSystem)` for convenience
+- [#4729](https://github.com/oscar-system/Oscar.jl/pull/4729) Experimental: Add support for reducible types in `isomorphism(PermGroup, ::WeylGroup)`
+- [#4687](https://github.com/oscar-system/Oscar.jl/pull/4687) Experimental: Add braid moves for words in Weyl groups
+- [#4641](https://github.com/oscar-system/Oscar.jl/pull/4641) Experimental: Add `irreducible_factors` and `inner_direct_product` for Weyl groups
+
+### Number Theory
+
+- [#4905](https://github.com/oscar-system/Oscar.jl/pull/4905) Fix `pc_group_with_isomorphism(::FinGenAbGroup)`
+- [#4903](https://github.com/oscar-system/Oscar.jl/pull/4903) Fix irreducibility test for `AbsSimpleNumFieldOrderElem`
+- [#4879](https://github.com/oscar-system/Oscar.jl/pull/4879) Add `is_perfect` for algebraic closures of finite fields
+- [#4837](https://github.com/oscar-system/Oscar.jl/pull/4837) Fix `maximal_order` for `NfNSGen`
+- [#4740](https://github.com/oscar-system/Oscar.jl/pull/4740) Add `degree_of_character_field`
+
+### Tropical Geometry
+
+- [#4838](https://github.com/oscar-system/Oscar.jl/pull/4838) Fix `tropical_variety_zerodimensional`
+- [#4781](https://github.com/oscar-system/Oscar.jl/pull/4781) Add `roots` for tropical polynomials
+- [#4703](https://github.com/oscar-system/Oscar.jl/pull/4703) Add tropical prevarieties generated by intersecting tropical hypersurfaces
+- [#4697](https://github.com/oscar-system/Oscar.jl/pull/4697) Remove broken tropical Groebner basis shortcut for binomial ideals
+- [#4447](https://github.com/oscar-system/Oscar.jl/pull/4447) Add `positive_tropical_variety`
+- [#4445](https://github.com/oscar-system/Oscar.jl/pull/4445) Add tropical linear spaces from graphs
+- [#4061](https://github.com/oscar-system/Oscar.jl/pull/4061) Overhaul tropical varieties, add various new options
+
+### Changes related to serializing data in the MRDI file format
+
+- [#4331](https://github.com/oscar-system/Oscar.jl/pull/4331) Unify type encoding for similar types
+- [#4162](https://github.com/oscar-system/Oscar.jl/pull/4162) Cleaner handling of type parameter serialization. This update forces entries of container types to share the same output of `Oscar.type_params` when serializing. Deserialization speed improvements.
+
+### New features or extended functionality
+
+- [#4797](https://github.com/oscar-system/Oscar.jl/pull/4797) Add experimental support for wreath Macdonald polynomials
+
+### Only changes experimental parts of OSCAR
+
+- [#4899](https://github.com/oscar-system/Oscar.jl/pull/4899) IntersectionTheory: Rename `abstract_projective_bundle` -> `projective_bundle` and `abstract_flag_bundle` -> `flag_bundle`
+- [#4845](https://github.com/oscar-system/Oscar.jl/pull/4845) GroebnerWalk: Remove perturbed walk
+- [#4780](https://github.com/oscar-system/Oscar.jl/pull/4780) Oscar Worker Pool and parallel functions functionality such as pmap.
+- [#4772](https://github.com/oscar-system/Oscar.jl/pull/4772) Intersection theory: Introduce Gromov-Witten invariants
+- [#4769](https://github.com/oscar-system/Oscar.jl/pull/4769) Intersection theory: extend documentation on Bott formula
+- [#4764](https://github.com/oscar-system/Oscar.jl/pull/4764) Intersection Theory: Kontsevich spaces
+- [#4100](https://github.com/oscar-system/Oscar.jl/pull/4100) Injective and irreducible resolutions of Q-graded modules
+- [#2183](https://github.com/oscar-system/Oscar.jl/pull/2183) Add basics for quantum analogs
+
+### Improvements or additions to documentation
+
+- [#4758](https://github.com/oscar-system/Oscar.jl/pull/4758) Collapse docstrings in documentation to allow for easier navigation
+
+### Changes related to the package AbstractAlgebra
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump AbstractAlgebra to v0.45
+
+### Changes related to the package AlgebraicSolving
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4894) Bump AlgebraicSolving to v0.9.0
+
+### Changes related to the package Hecke
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Hecke to v0.36
+
+### Changes related to the package Nemo
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Nemo to v0.50
+
+### Changes related to the package Polymake
+
+- [#4894](https://github.com/oscar-system/Oscar.jl/pull/4895) Bump Polymake.jl to v0.12
+
+### Changes related to the package Singular
+
+- [#4613](https://github.com/oscar-system/Oscar.jl/pull/4613) Optimize conversions from/to Singular
+
 ## [1.3.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.3.1) - 2025-03-14
 
 The following gives an overview of the changes compared to the previous release. This list is not

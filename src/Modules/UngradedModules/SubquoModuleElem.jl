@@ -225,9 +225,8 @@ a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
   @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
-  singular_assure(F)
   if reduced
-    @assert Singular.has_global_ordering(base_ring(F.SF))
+    @assert has_global_singular_ordering(F)
   end
   if singular_generators(F).isGB && !reduced
     return F
@@ -242,7 +241,6 @@ Return a standard basis `G` of `F` as an object of type `ModuleGens` along with
 a transformation matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
-  singular_assure(M)
   R = base_ring(M)
   G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
   mg = ModuleGens(M.F, G)
@@ -281,9 +279,8 @@ function leading_monomials(F::ModuleGens)
   #if !isdefined(F, :S)
     #return ModuleGens(F.F, [lead(g) for g in F.O])
   #end
-  singular_assure(F)
   singular_gens = singular_generators(F)
-  return ModuleGens(F.F, Singular.lead(singular_gens))
+  return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
 end
 
 function show(io::IO, b::SubquoModuleElem)
@@ -736,9 +733,8 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bo
     @assert parent(O[1]) === F.F
   end
   if isdefined(F, :quo)
-    oscar_assure(F.quo.gens)
-    singular_assure(F.quo.gens)
-    s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
     Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
     phi = hom(F, Q, gens(Q), check=false)
     cache_morphism && register_morphism!(phi)
@@ -755,9 +751,8 @@ function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}) where T
     @assert parent(O[1]) === F.F
   end
   if isdefined(F, :quo)
-    oscar_assure(F.quo.gens)
-    singular_assure(F.quo.gens)
-    s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
     return SubquoModule(F.F, singular_generators(F.sub.gens), s)
   end
   return SubquoModule(F, O)
@@ -904,7 +899,6 @@ end
     syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
 """
 function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: MPolyRingElem}
-  singular_assure(F)
   # TODO Obtain the Gröbner basis and cache it
   s = Singular.syz(singular_generators(F))
   return SubquoModule(sub, s)
