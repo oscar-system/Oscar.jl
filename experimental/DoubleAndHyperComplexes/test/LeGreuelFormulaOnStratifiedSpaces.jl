@@ -68,6 +68,19 @@
   
   @test [ngens(coh.original_complex[i]) for i in -4:10] == [0, 169, 1817, 8412, 22848, 40967, 51448, 46849, 31338, 15027, 4749, 830, 54, 0, 0]
   
+  # Test for the cohomology spectral sequence in `experimental/Schemes/SpectralSequences.jl`
+  css = Oscar.CohomologySpectralSequence(S, tot);
+  cssp = css[4];
+  for i in 0:9
+    for j in 0:-1:-2
+      if i == 0 && j == 0
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
   #= The code below takes too long for the CI.
   # It is kept here for the purpose of reproducibility of the paper's results. 
   
