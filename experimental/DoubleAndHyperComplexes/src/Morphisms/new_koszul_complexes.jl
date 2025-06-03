@@ -19,11 +19,11 @@ function (fac::InducedKoszulMorFactory)(self::AbsHyperComplexMorphism, I::Tuple)
   n = ngens(fac.dom)
   m = ngens(fac.cod)
   img_gens = elem_type(cod)[]
-  for (i, ind_dom) in enumerate(OrderedMultiIndexSet(p, n))
-    ii = indices(ind_dom)::Vector{Int}
+  for (i, ind_dom) in enumerate(combinations(n, p))
+    ii = data(ind_dom)::Vector{Int}
     img = zero(cod)
-    for (j, ind_cod) in enumerate(OrderedMultiIndexSet(p, m))
-      jj = indices(ind_cod)::Vector{Int}
+    for (j, ind_cod) in enumerate(combinations(m, p))
+      jj = data(ind_cod)::Vector{Int}
       A_sub = A[ii, jj]
       c = det(A_sub)
       is_zero(c) && continue
