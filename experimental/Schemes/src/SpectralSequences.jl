@@ -22,6 +22,75 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   pages::Dict{Int, CSSPage}
   pfctx::PushForwardCtx
 
+@doc raw"""
+    CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
+
+Suppose `comp` is a left-bounded complex of graded `FreeMod`s over a (multi-)graded 
+polynomial ring ``S = R[xᵢⱼ : i = 1,…,m, j = 0,…,rᵢ]``. We assume 
+that ``S`` is the homogeneous coordinate ring of a product of projective 
+spaces ``ℙ = ℙʳ¹ × … × ℙʳᵐ → Spec R`` over ``R``, i.e. the grading group 
+is ``ℤᵐ = ⨁ ᵢ₌₁ᵐ ℤ ⋅eᵢ`` with ``deg(xᵢⱼ) = eᵢ``.
+
+Then `comp` represents a complex of coherent sheaves ``ℱ *`` on ``ℙ`` and 
+there is a spectral sequence 
+```math
+    Eᵢⱼ¹ = Rʲπ_* (ℱ ⁱ) ⇒ Rⁱ⁺ʲπ_* (ℱ *)
+```
+This is a constructor for that spectral sequence as a lazy object from 
+which subsequent pages and their entries can be computed.
+```jldoctest
+julia> R, (t,) = polynomial_ring(QQ, [:t]); # ring for the base with parameter t
+
+julia> S, (x, y, z, w) = graded_polynomial_ring(R, [:x, :y, :z, :w]); # IP^3 over R
+
+julia> f1 = sum(x^4 for x in gens(S); init=zero(S)); # a smooth K3 surface
+
+julia> f0 = prod(x for x in gens(S); init=one(S)); # a degenerate quartic
+
+julia> f = f0 + t*f1; # a family with degeneration for t=0
+
+julia> S1 = graded_free_module(S, [0]);
+
+julia> I, _ = ideal(f)*S1;
+
+julia> M, _ = quo(S1, I); # a module representing the structure sheaf of the family
+
+julia> res, _ = free_resolution(Oscar.SimpleFreeResolution, M);
+
+julia> css = Oscar.CohomologySpectralSequence(S, res) # the spectral sequence
+spectral sequence for the cohomology of graded complex with Betti table
+degree: 0  1
+------------
+     0: 1  -
+     1: -  -
+     2: -  -
+     3: -  1
+------------
+ total: 1  1
+
+julia> p1 = css[1]; # the first page
+
+julia> [p1[i, j] for j in 0:-1:-3, i in 0:2] # indices have reversed signs here for internal reasons!
+4×3 Matrix{FreeMod{QQMPolyRingElem}}:
+ B^1  0    0
+ 0    0    0
+ 0    0    0
+ 0    B^1  0
+
+julia> [!is_zero(css[2, i, j]) for j in 0:-1:-3, i in 0:2] # entries on the second page
+4×3 Matrix{Bool}:
+ 1  0  0
+ 0  0  0
+ 0  0  0
+ 0  1  0
+
+julia> map(p1, 1, -3) # the outgoing map on the first page at index (1, -3)
+Module homomorphism
+  from B^1
+  to 0
+
+```
+"""
   function CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     A = coefficient_ring(S)
