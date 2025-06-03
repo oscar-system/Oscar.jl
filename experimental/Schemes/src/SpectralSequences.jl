@@ -1,3 +1,8 @@
+########################################################################
+# Data structures and methods for the lazy computation of spectral 
+# sequences for ̌Cech cohomology. 
+########################################################################
+
 mutable struct CSSPage#{GradedRingType, CoeffRingType}
   parent::Any # The spectral sequence; type declaration below
   page_number::Int
@@ -99,14 +104,6 @@ function produce_entry(cssp::CSSPage, i::Int, j::Int)
   new_B, _ = sub(F, vcat(relations(H), repres.(gens(B))))
   g = ambient_representatives_generators(Z)
   return SubquoModule(ambient_free_module(H), g, ambient_representatives_generators(new_B))
-  # TODO: The code below gives wrong results; probably because too many 
-  # kernel generators are discarded? I have not fully understood why!
-  g = unique!(ambient_representatives_generators(Z))
-  g = filter!(x->!(x in new_B), g)
-  res = SubquoModule(ambient_free_module(H), g, elem_type(ambient_free_module(H))[])
-  res.quo = new_B.sub # Use the already computed GB
-  @assert length(relations(res)) == length(relations(H)) + ngens(B)
-  return res
 end
 
 function produce_entry_on_initial_page(cssp::CSSPage, i::Int, j::Int)
@@ -169,7 +166,6 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
   dom = cssp[i+1, j]
   result = Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem}}}[]
   is_zero(dom) && return result
-  #prs = canonical_projections(dom)
   rngs = get_attribute(dom, :ranges)::Vector{UnitRange{Int}}
   cur_rng_ind = 1
   summands = get_attribute(dom, :direct_product)::Vector{typeof(dom)}
@@ -208,7 +204,6 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
 end
 
 function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
-  #@show "production of lifted kernel generators on page $(page_number(cssp)) at place $i, $j"
   #@assert can_compute_index(graded_complex(cssp), i) "index out of bounds"
   @assert j <= 0 "index out of bounds"
 
@@ -322,35 +317,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
       end
     end
       
-    #=
-    if ii>0
-      # sanity check of the input
-      hor_map = get!(hor_maps, sup_exp) do
-        horizontal_map(css, sup_exp, ii, jj)
-      end
-      #inc = cohomology_injection_map(css, sup_exp, ii-1, jj+1; codomain=domain(hor_map))
-      v0 = sum(canonical_injection(domain(hor_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(hor_map)))
-      @show coordinates(v0)
-      res = is_zero(hor_map(v0))
-      @show res
-      @assert res
-    end
-    if jj > -ngens(S) + rank(grading_group(S))
-      vert_map = get!(vert_maps, sup_exp) do
-        vertical_map(css, sup_exp, ii, jj; domain=domain(hor_map))
-      end
-      v0 = sum(canonical_injection(domain(vert_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(vert_map)))
-      @show coordinates(v0)
-      res = is_zero(vert_map(v0))
-      @show res
-      @assert res
-    end
-    other_vert_map = get!(other_vert_maps, sup_exp) do
-      vertical_map(css, sup_exp, ii, jj+1; codomain=domain(hor_map))
-    end
-    v0 = sum(canonical_injection(codomain(other_vert_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(codomain(other_vert_map)))
-    @assert v0 in image(other_vert_map)[1]
-    =#
 
     # Now the buckets hold lifts of the kernel generators on page `p`. 
     # We need to lift them once more through the double complex.
@@ -422,22 +388,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
           end
         end
       end
-
-      # correctness check
-      #=
-      coh_rem = zero(css[1, ii, jj])
-      for (i, v) in buckets
-        is_zero(v) && continue
-        e0 = _minimal_exponent_vector(ctx, -inter_degs[i])
-        pr1 = ctx[sup_exp, e0, -inter_degs[i]][jj]
-        @assert parent(v) === domain(pr1)
-        pr2 = cohomology_model_projection(ctx, -inter_degs[i], jj)
-        @assert domain(pr2) === codomain(pr1)
-        v_img = pr2(pr1(v))
-        coh_rem += canonical_injection(parent(coh_rem), i)(v_img)
-      end
-      @assert is_zero(coh_rem)
-      =#
     end
 
     # Perform the lifting.
@@ -469,92 +419,17 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
       end
     end
     
-    mbc = deepcopy(mapped_buckets)
-    # Two sanity checks for the output
-    # First that the horizontal map takes these guys to zero.
-    if ii > 1 && false
-      next_mapped_buckets = Tuple{Int, FreeModElem}[]
-      orig_map = map(graded_complex(cssp), ii-1)
-      other_inter_degs = degrees_of_generators(graded_complex(cssp)[ii-1])
-      hor_map = get!(next_hor_maps, sup_exp) do 
-        horizontal_map(css, sup_exp, ii-1, jj+1)
-      end
-      #inc = cohomology_injection_map(css, sup_exp, ii-1, jj+1; codomain=domain(hor_map))
-      v0 = sum(canonical_injection(domain(hor_map), l)(v) for (l, v) in mapped_buckets; init=zero(domain(hor_map)))
-      vert_map = get!(next_vert_maps, sup_exp) do
-        vertical_map(css, sup_exp, ii-1, jj+1; domain=domain(hor_map))
-      end
-      @assert is_zero(hor_map(v0))
-      @assert is_zero(vert_map(v0))
-      #=
-      for (k, v) in mapped_buckets
-        # Check that the horizontal map takes this guy to zero.
-        img_gen = images_of_generators(orig_map)[k]
-        for (l, p) in coordinates(img_gen)
-          phi = multiplication_map(ctx, p, sup_exp, -other_inter_degs[k], jj+1)
-          vv = phi(v)
-          is_zero(vv) && continue
-          ind = findfirst(ll == l for (ll, _) in next_mapped_buckets)
-          if isnothing(ind)
-            push!(next_mapped_buckets, (l, vv))
-          else
-            _, ww = next_mapped_buckets[ind]
-            next_mapped_buckets[ind] = l, ww + vv
-          end
-        end
-        # Check that the Cech map takes it to zero.
-        cech_map = map(ctx[sup_exp, -other_inter_degs[k]], jj+1)
-        @assert parent(v) === domain(cech_map)
-        if !is_zero(cech_map(v))
-          @show ii, jj, page_number(cssp)
-          @show k, v
-          @show cech_map(v)
-          css = spectral_sequence(cssp)
-          hor_up = horizontal_map(css, sup_exp, ii, jj+1)
-          ver_right = vertical_map(css, sup_exp, ii, jj+1; domain=domain(hor_up))
-          hor_down = horizontal_map(css, sup_exp, ii, jj; domain=codomain(ver_right))
-          ver_left = vertical_map(css, sup_exp, ii-1, jj+1; domain=codomain(hor_up), codomain=codomain(hor_down))
-          a = compose(hor_up, ver_left)
-          b = compose(ver_right, hor_down)
-          @show a == b
-          @show a == -b
-
-          # build the actual vectors and map them around
-          v0 = sum(canonical_injection(domain(hor_up), l)(v) for (l, v) in lifted_buckets; init=zero(domain(hor_up)))
-          w1 = sum(canonical_injection(codomain(hor_up), l)(v) for (l, v) in mapped_buckets; init=zero(codomain(hor_up)))
-          @show w1 == hor_up(v0)
-          v1 = sum(canonical_injection(domain(hor_down), l)(v) for (l, v) in buckets; init=zero(domain(hor_down)))
-          # v1 and the image of v0 may differ
-          v0_im = ver_right(v0)
-          @show v1 == v0_im
-          mod = cssp[ii, jj].quo
-          inc = cohomology_injection_map(css, sup_exp, ii, jj; codomain=parent(v1))
-          I, inc_I = sub(parent(v1), inc.(gens(mod)))
-          @show [is_zero(hor_down(repres(v))) for v in gens(I)]
-          error()
-          @show v1 - v0_im in I
-          @show is_zero(hor_down(v1))
-          @show is_zero(hor_down(v0_im))
-          @show is_zero(ver_left(w1))
-          @show ver_left(w1) == hor_down(v0_im)
-          error()
-        end
-      end
-      @assert all(is_zero(v) for (_, v) in next_mapped_buckets)
-      =#
-    end
-
-    @assert mbc == mapped_buckets
-
     # store the result
     push!(new_lifted_kernel_gens, (sup_exp, mapped_buckets))
   end
-# for (v, (e, b)) in zip(u_next, new_lifted_kernel_gens)
-#   println("$(coordinates(v)) -> $e : $b")
-# end
   return new_lifted_kernel_gens
 end
 
+# Some internal methods for debugging. 
+# They are for turning the sparsely stored intermediate data for the 
+# `lifted_kernel_generators` into actual mathematical objects in the 
+# numerous direct limits and get instances of the maps on these objects 
+# to check coherence and validity of the data.
 function vertical_map(
     css::CohomologySpectralSequence, exps::Vector{Int}, i::Int, j::Int;
     domain::FreeMod=begin
@@ -788,181 +663,9 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
       coh_pr = cohomology_model_projection(ctx, d1, j1) # project to the cohomology model
       img_gen += canonical_injection(F, k)(coh_pr(vv)) # add the component to the result
     end
-    # sanity check
-    #= 
-    # We first find a set of minimal common denominators which allows for enough 
-    # room to represent all 
-    exps = Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in cod_degs]
-    sup_exp = Int[maximum(ex[i] for ex in exps; init=e[i]) for i in 1:ngens(S)]
-    inc = get!(incs, sup_exp) do
-      cohomology_injection_map(css, sup_exp, i1, j1)
-    end
-    ww = inc(img_gen) # the representative of the current image of the generator
-    # Bring the buckets for the current generator to the common denominator
-    com_den_buckets = [(k, (ctx[e, sup_exp, -cod_degs[k]])[j1](v)) for (k, v) in buckets]
-    # We compute the representative without losses for comparison
-    ww0 = sum(canonical_injection(codomain(inc), l)(v) for (l, v) in com_den_buckets; init=zero(codomain(inc)))
-    S = graded_ring(css)
-    # If there is an outgoing vertical map...
-    if j1 > -ngens(S) + rank(grading_group(S))
-      vert_map = get!(vert_maps, sup_exp) do
-        vertical_map(css, sup_exp, i1, j1; domain=codomain(inc))
-      end
-      # ...check that both representatives are taken to zero.
-      @assert is_zero(vert_map(ww))
-      @assert is_zero(vert_map(ww0))
-    end
-    if j1 < 0 # If there is an incoming vertical map...
-      other_vert_map = get!(other_vert_maps, sup_exp) do
-        vertical_map(css, sup_exp, i1, j1+1; codomain=codomain(inc))
-      end
-      # ...check that the difference of the representatives 
-      # is governed by the image of that map.
-      @assert ww - ww0 in image(other_vert_map)[1]
-    end
-    if i1 > 0 # if there is an outgoing horizontal map...
-      hor_map = get!(hor_maps, e) do
-        horizontal_map(css, sup_exp, i1, j1; domain=codomain(inc))
-      end
-      # ...check that it takes the full representative to zero.
-      @assert is_zero(hor_map(ww0))
-      # This does not necessarily hold for the truncated representative!
-      #@assert is_zero(hor_map(ww))
-    end
-    =#
-    # end sanity check
     push!(img_gens, img_gen)
   end
   return hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens]; check=false)
-
-  #=
-  css = spectral_sequence(cssp)
-  p = page_number(cssp)
-  cmplx = graded_complex(css)
-  orig_dom = cmplx[i]
-  orig_inter = cmplx[i-p+1]
-  orig_map2 = map(cmplx, i-p+1)
-  p1 = css[1]
-  ctx = pushforward_ctx(css)
-  S = graded_ring(ctx)
-  dom = cssp[i, j]
-  inter = p1[i-p+1, j]
-  cod = cssp[i-p, j+p-1]
-  if is_zero(dom) || is_zero(cod)
-    return hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
-  end
-  img_gens = elem_type(cod)[]
-  map_on_previous_page = map(css[p-1], i, j)
-  inter_injs = canonical_injections(inter)
-  inter_coh_incs = [cohomology_model_inclusion(ctx, d1, j) for d1 in degrees_of_generators(orig_inter)]
-  # We need to do a knights move 
-  #
-  #     p1[i-2, j+1] <-----  p1[i-1, j+1]
-  #
-  #                          p1[i-1, j]   <------ p1[i, j] 
-  #
-  # with a double complex of free modules behind it:
-  #
-  #         D        <--ψ---       C
-  #                                ↓∂
-  #                                B      <---ϕ----   A
-  #
-  # The horizontal maps are induced from those in the `graded_complex`.
-  # The vertical maps are direct sums of the standard Cech-complexes 
-  # for either of the summands in the `graded_complex`. 
-  # We exploit this block structure and construct the induced map 
-  # term by term.
-  for (ii, v) in enumerate(gens(dom))
-    @show v
-    @show is_zero(v)
-    if is_zero(v)
-      push!(img_gens, zero(cod))
-      continue
-    end
-    v1 = repres(v)::FreeModElem
-    v1_blocks = typeof(v1)[pr(v1) for pr in canonical_projections(parent(v1))]
-    exps = Vector{Int}[_minimal_exponent_vector(ctx, -degrees_of_generators(orig_dom)[k]) for (k, v1_block) in enumerate(v1_blocks) if !is_zero(v1_block)]
-    @show exps
-    sup_exp = [maximum([e[i] for e in exps]; init=0) for i in 1:ngens(S)]
-    @show sup_exp
-
-    @assert is_zero(map_on_previous_page(v1))
-    @show v1
-    F = parent(v1)
-    # to hold the block-pieces of the image of v in B.
-    img_buckets = [zero(ctx[_minimal_exponent_vector(ctx, -d1), -d1][j]) for d1 in degrees_of_generators(orig_inter)]
-    # we can lift v1 blockwise
-    for (k, v_block) in enumerate(v1_blocks)
-      @show k
-      d0 = -degree(orig_dom[k]) # the original shift 
-      is_zero(v_block) && continue
-      e0 = _minimal_exponent_vector(ctx, d0)
-      coh_mod = ctx[e0, d0]
-      inc = cohomology_model_inclusion(ctx, d0, j)
-      v3 = inc(v_block)
-      @show v3
-      @show j 
-      @assert codomain(inc) === coh_mod[j]
-      for (l, p) in coordinates(images_of_generators(orig_map1)[k])
-        @show l
-        d1 = d0 + degree(p; check=false)
-        @assert d1 == -degrees_of_generators(orig_inter)[l]
-        e1 = _minimal_exponent_vector(ctx, d1)
-        phi = multiplication_map(ctx, p, e0, d0, j)
-        w1 = phi(v3)
-        is_zero(w1) && continue
-        @show w1
-        str_pr = ctx[e0, e1, d1]
-        @show codomain(str_pr[j]) 
-        @show parent(img_buckets[l])
-        @assert codomain(str_pr[j]) === parent(img_buckets[l])
-        w2 = str_pr[j](w1)
-        cech_map = map(ctx[e1, d1], j+1)
-        @assert codomain(cech_map) === parent(w2)
-        @show w2
-        is_zero(w2) && continue
-        img_buckets[l] += w2
-      end
-    end
-    img_gen = zero(ambient_free_module(cod))
-    for (l, w, dd1) in zip(1:length(img_buckets), img_buckets, degrees_of_generators(orig_inter))
-      is_zero(w) && continue
-      d1 = -dd1
-      #is_zero(w) && continue
-      e1 = _minimal_exponent_vector(ctx, d1)
-      cech_map = map(ctx[e1, d1], j+1)
-      @assert codomain(cech_map) === parent(w)
-      ww = preimage(cech_map, w)
-      for (r, q) in coordinates(images_of_generators(orig_map2)[l])
-        d2 = d1 + degree(q; check=false)
-        ext_cod_strand = ctx[e1, d2][j+1]
-        mult_map = multiplication_map(ctx, q, e1, d1, j+1)
-        @assert domain(mult_map) === domain(cech_map)
-        @assert parent(ww) === domain(mult_map)
-        ww2 = mult_map(ww)
-        is_zero(ww2) && continue
-        e2 = _minimal_exponent_vector(ctx, d2)
-        ww3 = ctx[e1, e2, d2][j+1](ww2)
-        is_zero(ww3) && continue
-        ww4 = cohomology_model_projection(ctx, d2, j+1)(ww3)
-        is_zero(ww4) && continue
-        ww5 = canonical_injection(ambient_free_module(cod), r)(ww4)
-        @show ww5
-        @show i-2, j+1
-        if i > 2
-          bb = map(p1, i-2, j+1)
-          @show ambient_free_module(domain(bb)) 
-          @show parent(ww5)
-          @assert ambient_free_module(domain(bb)) === parent(ww5)
-          @show is_zero(bb(ww5))
-        end
-        img_gen += ww5
-      end
-    end
-    push!(img_gens, cod(img_gen))
-  end
-  return hom(dom, cod, img_gens)
-  =#
 end
 
 relations(F::FreeMod) = elem_type(F)[]
@@ -973,26 +676,14 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
-  #=
-  dd = get!(ctx.mult_map_cache, (e0, d0, j)) do
-    # Dict{typeof(p), FreeModuleHom}()
-    WeakKeyDict{typeof(p), MapFromFunc}()
-  end
-  #q = -p
-  #haskey(dd, q) && return -dd[q]
-  return get!(dd, p) do
-  =#
-    d1 = d0 + degree(p; check=false)
-    dom_cplx = ctx[e0, d0]
-    cod_cplx = ctx[e0, d1]
-    dom = dom_cplx[j]
-    cod = cod_cplx[j]
-    dom_strand_inc = inclusion_map(dom_cplx)[j]
-    cod_strand_pr = projection_map(cod_cplx)[j]
-    return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
-    img_gens = elem_type(cod)[cod_strand_pr(p*dom_strand_inc(v)) for v in gens(dom)]
-    hom(dom, cod, img_gens)
-  #end
+  d1 = d0 + degree(p; check=false)
+  dom_cplx = ctx[e0, d0]
+  cod_cplx = ctx[e0, d1]
+  dom = dom_cplx[j]
+  cod = cod_cplx[j]
+  dom_strand_inc = inclusion_map(dom_cplx)[j]
+  cod_strand_pr = projection_map(cod_cplx)[j]
+  return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
 end
 
 function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
@@ -1086,115 +777,6 @@ function produce_map_on_initial_page(cssp::CSSPage, i::Int, j::Int)
   end
   return result
 end
-
-function produce_map_on_second_page(cssp::CSSPage, i::Int, j::Int)
-  css = spectral_sequence(cssp)
-  cmplx = graded_complex(css)
-  orig_dom = cmplx[i]
-  orig_inter = cmplx[i-1]
-  orig_map1 = map(cmplx, i)
-  orig_map2 = map(cmplx, i-1)
-  p1 = css[1]
-  ctx = pushforward_ctx(css)
-  dom = cssp[i, j]
-  inter = p1[i-1, j]
-  cod = cssp[i-2, j+1]
-  if is_zero(dom) || is_zero(cod)
-    return hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
-  end
-  img_gens = elem_type(cod)[]
-  map_on_first_page = map(p1, i, j)
-  inter_injs = canonical_injections(inter)
-  inter_coh_incs = [cohomology_model_inclusion(ctx, d1, j) for d1 in degrees_of_generators(orig_inter)]
-  # We need to do a knights move 
-  #
-  #     p1[i-2, j+1] <-----  p1[i-1, j+1]
-  #
-  #                          p1[i-1, j]   <------ p1[i, j] 
-  #
-  # with a double complex of free modules behind it:
-  #
-  #         D        <--ψ---       C
-  #                                ↓∂
-  #                                B      <---ϕ----   A
-  #
-  # The horizontal maps are induced from those in the `graded_complex`.
-  # The vertical maps are direct sums of the standard Cech-complexes 
-  # for either of the summands in the `graded_complex`. 
-  # We exploit this block structure and construct the induced map 
-  # term by term.
-  for (ii, v) in enumerate(gens(dom))
-    if is_zero(v)
-      push!(img_gens, zero(cod))
-      continue
-    end
-    v1 = repres(v)::FreeModElem
-    @assert is_zero(map_on_first_page(v1))
-    F = parent(v1)
-    # to hold the block-pieces of the image of v in B.
-    img_buckets = [zero(ctx[_minimal_exponent_vector(ctx, -d1), -d1][j]) for d1 in degrees_of_generators(orig_inter)]
-    # we can lift v1 blockwise
-    for (k, pr) in enumerate(canonical_projections(F))
-      d0 = -degree(orig_dom[k]) # the original shift 
-      v2 = pr(v1)
-      is_zero(v2) && continue
-      e0 = _minimal_exponent_vector(ctx, d0)
-      coh_mod = ctx[e0, d0]
-      inc = cohomology_model_inclusion(ctx, d0, j)
-      @assert codomain(pr) === domain(inc)
-      v3 = inc(v2)
-      @assert codomain(inc) === coh_mod[j]
-      for (l, p) in coordinates(images_of_generators(orig_map1)[k])
-        d1 = d0 + degree(p; check=false)
-        @assert d1 == -degrees_of_generators(orig_inter)[l]
-        e1 = _minimal_exponent_vector(ctx, d1)
-        phi = multiplication_map(ctx, p, e0, d0, j)
-        w1 = phi(v3)
-        is_zero(w1) && continue
-        str_pr = ctx[e0, e1, d1]
-        @assert codomain(str_pr[j]) === parent(img_buckets[l])
-        w2 = str_pr[j](w1)
-        cech_map = map(ctx[e1, d1], j+1)
-        @assert codomain(cech_map) === parent(w2)
-        is_zero(w2) && continue
-        img_buckets[l] += w2
-      end
-    end
-    img_gen = zero(ambient_free_module(cod))
-    for (l, w, dd1) in zip(1:length(img_buckets), img_buckets, degrees_of_generators(orig_inter))
-      is_zero(w) && continue
-      d1 = -dd1
-      #is_zero(w) && continue
-      e1 = _minimal_exponent_vector(ctx, d1)
-      cech_map = map(ctx[e1, d1], j+1)
-      @assert codomain(cech_map) === parent(w)
-      ww = preimage(cech_map, w)
-      for (r, q) in coordinates(images_of_generators(orig_map2)[l])
-        d2 = d1 + degree(q; check=false)
-        ext_cod_strand = ctx[e1, d2][j+1]
-        mult_map = multiplication_map(ctx, q, e1, d1, j+1)
-        @assert domain(mult_map) === domain(cech_map)
-        @assert parent(ww) === domain(mult_map)
-        ww2 = mult_map(ww)
-        is_zero(ww2) && continue
-        e2 = _minimal_exponent_vector(ctx, d2)
-        ww3 = ctx[e1, e2, d2][j+1](ww2)
-        is_zero(ww3) && continue
-        ww4 = cohomology_model_projection(ctx, d2, j+1)(ww3)
-        is_zero(ww4) && continue
-        ww5 = canonical_injection(ambient_free_module(cod), r)(ww4)
-        if i > 2
-          bb = map(p1, i-2, j+1)
-          @assert ambient_free_module(domain(bb)) === parent(ww5)
-        end
-        img_gen += ww5
-      end
-    end
-    push!(img_gens, cod(img_gen))
-  end
-  return hom(dom, cod, img_gens)
-end
-
 
 function stable_index(css::CohomologySpectralSequence, i::Int, j::Int)
   # return a page number k from which onwards the cohomology 
