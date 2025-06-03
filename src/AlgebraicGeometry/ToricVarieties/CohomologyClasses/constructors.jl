@@ -6,7 +6,7 @@
     v::NormalToricVarietyType
     p::MPolyQuoRingElem
     function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem, quick::Bool)
-        @req parent(p) == cohomology_ring(v, check = quick) "The polynomial must reside in the cohomology ring of the toric variety"
+        @req parent(p) == cohomology_ring(v, check = !quick) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
 end
@@ -33,7 +33,7 @@ julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
 ```
 """
-cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = false) = CohomologyClass(v, p; quick = quick)
+cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = false) = CohomologyClass(v, p, quick)
 
 
 @doc raw"""
@@ -118,7 +118,7 @@ function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
     @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(ring, cc1) + polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly)
+    return CohomologyClass(toric_variety(cc1), poly, true)
 end
 
 
@@ -126,13 +126,13 @@ function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
     @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(ring, cc1) - polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly)
+    return CohomologyClass(toric_variety(cc1), poly, true)
 end
 
 
-Base.:*(c::QQFieldElem, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
-Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
-Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
+Base.:*(c::QQFieldElem, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
+Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
+Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
 
 
 #################################
@@ -141,13 +141,13 @@ Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(t
 
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
     @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
-    ring = cohomology_ring(toric_variety(cc1))
+    ring = cohomology_ring(toric_variety(cc1), check = false)
     poly = polynomial(ring, cc1) * polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly)
+    return CohomologyClass(toric_variety(cc1), poly, true)
 end
 
 
-Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), polynomial(cc)^p)
+Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), polynomial(cc)^p, true)
 
 
 ########################
