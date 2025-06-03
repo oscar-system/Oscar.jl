@@ -34,10 +34,10 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
     push!(ranges, i+1:j)
     i = j
   end
-  G.S = [Symbol("e$i") for i in 1:sum(rank, F)] #=vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
+  G.S = vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
                                           [string(F[j].S[i])], 
                                           ["0" for k in j+1:length(F)]), ", ")
-                            *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)=#
+                            *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)
   set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   i = 0
   for f = F
