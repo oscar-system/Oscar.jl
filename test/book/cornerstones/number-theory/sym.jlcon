@@ -8,7 +8,7 @@ Permutation group of degree 4
 julia> describe(G)
 "C2 x C2"
 
-julia> phi = m(first(Iterators.filter(x -> 1^x == 3, G)))
+julia> phi = m(G(@perm (1, 3)(2, 4)))
 Map
   from number field of degree 4 over QQ
   to number field of degree 4 over QQ
