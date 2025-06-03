@@ -81,7 +81,7 @@ end
     map_fac = HomogKoszulComplexMapFactory(R)
 
     # Assuming d is the dimension of the new complex
-    internal_complex = HyperComplex(1, chain_fac, map_fac, [:cochain],
+    internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
                                     upper_bounds=Union{Int, Nothing}[length(seq)],
                                     lower_bounds=Union{Int, Nothing}[0]
                                    )
