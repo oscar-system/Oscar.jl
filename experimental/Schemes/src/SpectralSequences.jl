@@ -72,10 +72,10 @@ julia> p1 = css[1]; # the first page
 
 julia> [p1[i, j] for j in 0:-1:-3, i in 0:2] # indices have reversed signs here for internal reasons!
 4×3 Matrix{FreeMod{QQMPolyRingElem}}:
- B^1  0    0
+ R^1  0    0
  0    0    0
  0    0    0
- 0    B^1  0
+ 0    R^1  0
 
 julia> [!is_zero(css[2, i, j]) for j in 0:-1:-3, i in 0:2] # entries on the second page
 4×3 Matrix{Bool}:
@@ -86,7 +86,7 @@ julia> [!is_zero(css[2, i, j]) for j in 0:-1:-3, i in 0:2] # entries on the seco
 
 julia> map(p1, 1, -3) # the outgoing map on the first page at index (1, -3)
 Module homomorphism
-  from B^1
+  from R^1
   to 0
 
 ```
