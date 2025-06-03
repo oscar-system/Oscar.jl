@@ -258,82 +258,10 @@ function _vdim(M::SubquoModule)
   return Singular.vdim(Singular.std(singular_generators(M.quo.gens)))
 end
 
-# A cache for several models of the pushforward of a free module 
-# of the form S[d] and the transitions between them.
-mutable struct PFComplex
-  S::MPolyRing
-  d::FinGenAbGroupElem # the twist
-  variable_groups::Vector{<:Vector{<:MPolyRingElem}}
-  basic_model::AbsHyperComplex
-  basic_model_index::Vector{Int}
-  models::Dict{Vector{Int}, AbsHyperComplex}
-  inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
-  projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
-
-  function PFComplex(S::MPolyRing, d::FinGenAbGroupElem)
-    @assert is_graded(S)
-    @assert parent(d) === grading_group(S)
-    return new(S, d)
-  end
-end
-
-ring(c::PFComplex) = c.S
-twist(c::PFComplex) = c.d
-
-function variable_groups(c::PFComplex)
-  if !isdefined(c, :variable_groups)
-    S = ring(c)
-    G = grading_group(S)
-    c.variable_groups = [elem_type(ring(c))[x for x in gens(S) if degree(x) == G[i]] for i in 1:rank(G)]
-  end
-  return c.variable_groups
-end
-
-
-basic_model(c::PFComplex) = c[basic_model_index(c)]
-
-function basic_model_index(c::PFComplex)
-  if !isdefined(c, :basic_model_index)
-    S = ring(c)
-    d = twist(c)
-    G = grading_group(S)
-    r = rank(G)
-    variables = variable_groups(c)
-    dims = [length(x)-1 for x in variables]
-
-    dd = twist(c)
-    d = Int[Int(dd[i])-n for (i, n) in enumerate(dims)]
-    c.basic_model_index = [a < 0 ? 0 : a for a in d]
-  end
-  return c.basic_model_index
-end
-
-function getindex(c::PFComplex, d::Vector{Int})
-  if !isdefined(c, :models)
-    c.models = Dict{Vector{Int}, AbsHyperComplex}()
-  end
-  return get!(c.models, d) do
-    _produce_model(c, d)
-  end
-end
-
-function _produce_model(c::PFComplex, d::Vector{Int})
-  variables = variable_groups(c)
-  dims = [length(x)-1 for x in variables]
-  S = ring(c)
-  g = vcat([elem_type(S)[x^k for x in v] for (k, v) in zip(d, variables)]...)
-  kosz = [shift(Oscar.HomogKoszulComplex(S, elem_type(S)[x^k for x in v])[0:length(v)-1], length(v)-1) for (k, v) in zip(d, variables)]
-  K = simplify(total_complex(tensor_product(kosz)))
-
-  G = grading_group(S)
-  delta = sum((n+1)*d[i]*G[i] for (i, n) in enumerate(dims); init=zero(G))
-  KoM = hom(K, graded_free_module(S, [twist(c)+delta]))
-  st = strand(KoM, zero(G))[1]
-  return st
-end
-
-
-
+########################################################################
+# A context object for computing the spectral sequence associated 
+# to a the ̌Cech double complex for a complex of coherent sheaves. 
+########################################################################
 mutable struct PushForwardCtx
   S::MPolyRing
   variable_groups::Vector{Vector{<:MPolyRingElem}}
@@ -453,7 +381,6 @@ function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
     di = Int(d[i])
     di >= 0 && continue # Nothing to do in this case
     for j in inds
-      # TODO: This is not yet sharp!
       result[j] = -di < dimension(ctx, i) ? 0 : -di - dimension(ctx, i)
     end
   end
