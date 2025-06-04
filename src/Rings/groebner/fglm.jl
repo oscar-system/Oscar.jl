@@ -155,7 +155,7 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
   isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
   haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   is_global(destination_ordering) || error("Destination ordering must be global.")
-  G = groebner_assure(I, true, true)
+  G = groebner_basis(I, complete_reduction=true)
   start_ordering = G.ord
   dim(I) == 0 || error("Dimension of ideal must be zero.")
   I.gb[destination_ordering] = _fglm(G, destination_ordering)
