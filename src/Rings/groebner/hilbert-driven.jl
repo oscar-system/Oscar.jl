@@ -110,7 +110,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     if characteristic(base_ring(I)) > 0 && ordering == wdegrevlex(base_ring(I), weights)
       return G
     end
-    h = Singular.hilbert_series(singular_generators(G), weights)
+    h = Singular.hilbert_series(singular_generators(G, G.ord), weights)
 
   else
     # Quoting from the documentation of Singular.hilbert_series:
