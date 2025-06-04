@@ -2453,7 +2453,7 @@ julia> letters(x) == lett
 true
 ```
 """
-function (G::FPGroup)(letters::AbstractVector{<:Integer})
+function (G::FPGroup)(letters::AbstractVector{<:IntegerUnion})
   famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
   if GAPWrap.IsFreeGroup(GapObj(G))
     w = GAPWrap.AssocWordByLetterRep(famG, GapObj(letters, true))
