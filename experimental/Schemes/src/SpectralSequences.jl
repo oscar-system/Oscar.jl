@@ -653,7 +653,9 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
         hor_map = get!(secondary_hor_maps, e) do
           horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
         end
-        hor_map = horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+        if codomain(vert_map) !== codomain(hor_map)
+          hor_map = horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+        end
         res in image(hor_map)[1] || (error_on_false ? error("vertical map does not take the generator to the image of the horizontal map") : return false)
       else
         is_zero(res) && (error_on_false ? error("vertical map does not annihilate lifted kernel generator") : return false)
