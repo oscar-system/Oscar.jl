@@ -36,7 +36,7 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   end
   G.S = function _direct_sum_symbols()
           return vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
-                                          [string(F[j].S[i])], 
+                                                   [string(symbol(F[j], i))], 
                                           ["0" for k in j+1:length(F)]), ", ")
                             *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)
          end

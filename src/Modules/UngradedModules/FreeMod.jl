@@ -408,6 +408,10 @@ function symbols(F::FreeMod)
   return _get_symbols!(F, F.S)
 end
 
+function symbol(F::FreeMod, i::Int)
+  return symbols(F)[i]
+end
+
 function _get_symbols!(F::FreeMod, S::Vector{Symbol})
   return S
 end
