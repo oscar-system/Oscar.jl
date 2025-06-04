@@ -207,16 +207,16 @@ function (==)(F::FreeMod, G::FreeMod)
   # TODO it this enough or e.g. stored morphisms also be considered?
   is_graded(F) == is_graded(G) || return false
   if is_graded(F) && is_graded(G) 
-    return F.R == G.R && F.d == G.d #&& F.S == G.S
+    return F.R == G.R && F.d == G.d && symbols(F) == symbols(G)
   end
-  return F.R == G.R && rank(F) == rank(G) #&& F.S == G.S
+  return F.R == G.R && rank(F) == rank(G) && symbols(F) == symbols(G)
 end
 
 function hash(F::FreeMod, h::UInt)
   b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
   h = hash(base_ring(F), h)
   h = hash(rank(F), h)
-  #h = hash(F.S, h)
+  h = hash(symbols(F), h)
   is_graded(F) && (h = hash(F.d, h))
   return xor(h, b)
 end
