@@ -70,9 +70,34 @@
   
   # Test for the cohomology spectral sequence in `experimental/Schemes/SpectralSequences.jl`
   css = Oscar.CohomologySpectralSequence(S, tot);
+  cssp = css[1];
+  for i in 0:9
+    for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
+      if (i, j) in [(0, 0), (1, 0), (2, -1), (3, -1), (4, -1), (4, -2), (5, -2), (6, -2), (7, -2), (8, -2), (9, -2)]
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
+  cssp = css[2];
+  for i in 0:9
+    for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
+      if (i, j) in [(0, 0), (2, -1), (4, -2)]
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
   cssp = css[4];
   for i in 0:9
     for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
       if i == 0 && j == 0
         @test !is_zero(cssp[i, j])
       else
@@ -168,6 +193,9 @@ end
 
   coh = Oscar._derived_pushforward(tot, gens(irr));
 
+  css = Oscar.CohomologySpectralSequence(S, tot);
+  css[4, 0, 0]
+  
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
   c = [y - z]
