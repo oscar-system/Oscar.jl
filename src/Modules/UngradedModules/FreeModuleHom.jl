@@ -372,7 +372,9 @@ function hom(F::FreeMod, G::FreeMod)
   else
     GH = FreeMod(F.R, rank(F) * rank(G))
   end
-  GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
+  GH.S = function _get_hom_symbols() 
+    return [Symbol("($i -> $j)") for i = symbols(F) for j = symbols(G)]
+  end
 
   #list is g1 - f1, g2-f1, g3-f1, ...
   X = Hecke.MapParent(F, G, "homomorphisms")

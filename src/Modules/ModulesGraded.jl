@@ -727,7 +727,7 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
@@ -2291,12 +2291,12 @@ end
 
 
 @doc raw"""
-    generator_symbols(F::FreeMod_dec)
+    symbols(F::FreeMod_dec)
 
 Return the list of symbols of the standard unit vectors.
 """
-function generator_symbols(F::FreeMod_dec)
-  return generator_symbols(forget_decoration(F))
+function symbols(F::FreeMod_dec)
+  return symbols(forget_decoration(F))
 end
 @enable_all_show_via_expressify FreeModElem_dec
 

@@ -65,27 +65,25 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   # Set the variable names for printing
   orig_symb = String.(symbols(F))
-  new_symb = Symbol[]
-  if iszero(p)
-    new_symb = [Symbol("1")]
-  else
-    for ind in combinations(n, p)
-      symb_str = orig_symb[ind[1]]
-      for i in 2:p
-        symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
+  result.S = function _get_koszul_symbols()
+    new_symb = Symbol[]
+    if iszero(p)
+      new_symb = [Symbol("1")]
+    else
+      for ind in combinations(n, p)
+        symb_str = orig_symb[ind[1]]
+        for i in 2:p
+          symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
+        end
+        push!(new_symb, Symbol(symb_str))
       end
-      push!(new_symb, Symbol(symb_str))
     end
+    return new_symb
   end
-  result.S = new_symb
 
   set_attribute!(result, :show => show_exterior_product)
 
   return result, mult_map
-end
-
-function symbols(F::FreeMod)
-  return F.S
 end
 
 
