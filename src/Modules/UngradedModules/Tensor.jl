@@ -15,10 +15,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   if !all(gs) && !all(!x for x in gs)
     error("All factors must either be graded or all must be ungraded.")
   end
-  s = G[1].S
+  s = symbols(G[1])
   t = [[x] for x = 1:ngens(G[1])]
   for H = G[2:end]
-    s = [Symbol("$x \\otimes $y") for x = s  for y = H.S]
+    s = [Symbol("$x \\otimes $y") for x = s  for y = symbols(H)]
     t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
   end
 
