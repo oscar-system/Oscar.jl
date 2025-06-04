@@ -2885,7 +2885,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref)).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples
@@ -3512,7 +3512,7 @@ where $a_k(\rho)$ is the number of cycles of length $k$ in $\rho$.
 Note that the returned list may contain zero class functions,
 and duplicates are not deleted.
 
-For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
+For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 [`anti_symmetric_parts`](@ref), [`orthogonal_components`](@ref),
 [`symplectic_components`](@ref), [`exterior_power`](@ref),
 [`symmetric_power`](@ref).
@@ -3530,7 +3530,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the trivial character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3545,7 +3545,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the sign character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
