@@ -2321,8 +2321,7 @@ function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
   vi = -vi
   @assert vi <= length(genimgs)
   isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
-  genimgs_inv[vi] = one(genimgs[1])
-  genimgs_inv[vi] = inv!(genimgs_inv[vi], genimgs[vi])
+  genimgs_inv[vi] = inv(genimgs[vi])
   return genimgs_inv[vi]
 end
 
@@ -2331,13 +2330,11 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
   @assert (x > 0 && x <= length(genimgs))
   e = vi[2]
   e == 1 && return genimgs[x]
-  res = one(genimgs[1])
-  e > 1 && return pow!(res, genimgs[x], e)
+  e > 1 && return pow(genimgs[x], e)
   isassigned(genimgs_inv, x) && return pow!(res, genimgs_inv[x], -e)
-  genimgs_inv[x] = one(genimgs[1])
-  genimgs_inv[x] = inv!(genimgs_inv[x], genimgs[x])
+  genimgs_inv[x] = inv(genimgs[x])
   e == -1 && return genimgs_inv[x]
-  return pow!(res, genimgs_inv[x], -e)
+  return pow(genimgs_inv[x], -e)
 end
 
 
