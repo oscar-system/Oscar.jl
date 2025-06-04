@@ -51,6 +51,12 @@ gap> AbsoluteValue( -r ) = r;
 true
 
 #
+gap> Sqrt(-x) = QQBarFieldElement(E(4));
+true
+gap> Sqrt(-x) = x*E(4);
+true
+
+#
 gap> M:= [ [ z, r ], [ r, z ] ];;
 gap> Determinant( M ) = -2;
 true
