@@ -80,7 +80,9 @@ option is set in suitable functions.
 @attributes mutable struct FreeMod{T <: AdmissibleModuleFPRingElem} <: AbstractFreeMod{T}
   R::NCRing
   n::Int
-  S::Vector{Symbol}
+  S::Union{Function, Vector{Symbol}} # The symbols for printing. This is either a 
+                                     # ready-made list, or a function to provide them 
+                                     # in a lazy way. 
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
   default_ordering::ModuleOrdering
 
@@ -104,6 +106,18 @@ option is set in suitable functions.
     r.n = n
     r.R = R
     r.S = S
+    r.d = nothing
+
+    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    return r
+  end
+  
+  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, symbol_fun::Function) where T <: AdmissibleModuleFPRingElem
+    r = new{elem_type(R)}()
+    r.n = n
+    r.R = R
+    r.S = symbol_fun
     r.d = nothing
 
     r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
