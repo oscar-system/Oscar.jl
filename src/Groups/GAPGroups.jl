@@ -2434,6 +2434,39 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    return FPGroupElem(G, w)
 end
 
+"""
+    (G::FPGroup)(letters::AbstractVector{<:Integer})
+
+Return the element `x` of the full finitely presented group `G`
+that is described by `letters` as a list of integers, each entry corresponding to
+a group generator. Inverses of the generators are represented by negative
+numbers, see [`letters`](@ref).
+
+# Examples
+```jldoctest
+julia> G = free_group(2); lett = [1, 1, 1, -2];
+
+julia> x = G(lett)
+f1^3*f2^-1
+
+julia> letters(x) == lett
+true
+```
+"""
+function (G::FPGroup)(letters::AbstractVector{<:Integer})
+  famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
+  if GAPWrap.IsFreeGroup(GapObj(G))
+    w = GAPWrap.AssocWordByLetterRep(famG, GapObj(letters, true))
+  else
+    F = GAP.getbangproperty(famG, :freeGroup)
+    famF = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+    w1 = GAPWrap.AssocWordByLetterRep(famF, GapObj(letters, true))
+    w = GAPWrap.ElementOfFpGroup(famG, w1)
+  end
+
+  return FPGroupElem(G, w)
+end
+
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
