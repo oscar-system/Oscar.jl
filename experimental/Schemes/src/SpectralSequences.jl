@@ -598,7 +598,9 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
 
   # check plausibility of the `lifted_kernel_generators`
   vert_maps = Dict{Vector{Int}, FreeModuleHom}()
+  secondary_vert_maps = Dict{Vector{Int}, FreeModuleHom}()
   hor_maps = Dict{Vector{Int}, FreeModuleHom}()
+  secondary_hor_maps = Dict{Vector{Int}, FreeModuleHom}()
   if j - p + 1 >= -ngens(S) + rank(G) # if there is an incoming map
     for (e, buckets) in lifted_kernel_generators(cssp, i, j)
       if i > 0
@@ -620,38 +622,42 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
       end
     end
   end
-  return true
+  # check sanity of the generators
+  exps = [_minimal_exponent_vector(ctx, -d) for d in degrees_of_generators(cplx[i])]
+  e = Int[maximum([a[i] for a in exps]) for i in 1:nvars(S)]
+  for (k, g) in enumerate(gens(cssp[i, j]))
+    rep_g = repres(g)
 
-  # check plausibility of the generators of the modulus
-  H = cssp[i, j]
-  Z_gens = ambient_representatives_generators(H)
-  B_gens = relations(H)
-  F = ambient_free_module(H)
-  degs = degrees_of_generators(cplx[i])
-  exps = Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in degs]
-  sup_exp = Int[maximum(e[i] for e in exps; init=0) for i in 1:ngens(S)]
-  inc = cohomology_injection_map(css, sup_exp, i, j)
-  if i > 0
-    hor_map = horizontal_map(css, sup_exp, i, j; domain = codomain(inc))
-    if j < 0
-      other_vert_map = vertical_map(css, sup_exp, i, j+1; codomain=domain(hor_map))
-      I, _ = image(compose(other_vert_map, hor_map))
-      if !all(hor_map(inc(v)) in I for v in B_gens)
-        error_on_false && error("horizontal map at entry ($i, $j) does not annihilate boundary element")
-        return false
+    if i > 0 && j < 0 && p > 1
+      # sanity check of the input
+      hor_map = get!(hor_maps, e) do
+        horizontal_map(css, e, i, j)
       end
-    else
-      if !all(is_zero(hor_map(inc(v))) for v in B_gens)
-        error_on_false && error("horizontal map at entry ($i, $j) does not annihilate boundary element")
-        return false
+      inc = cohomology_injection_map(css, e, i, j; codomain=domain(hor_map))
+      v0 = inc(rep_g)
+      res = hor_map(v0)
+      # `res` needs to be in the image of the vertical map
+      vert_map = get!(secondary_hor_maps, e) do
+        vertical_map(css, e, i-1, j+1; codomain=codomain(hor_map))
       end
+      res in image(vert_map)[1] || (error_on_false ? error("horizontal map does not take the generator to the image of the incoming vertical map") : return false)
     end
-  end
-  if j > -ngens(S) + rank(G)
-    vert_map = vertical_map(css, sup_exp, i, j; domain = codomain(inc))
-    if !all(is_zero(vert_map(inc(v))) for v in B_gens)
-      error_on_false && error("vertical map at entry ($i, $j) does not annihilate boundary element")
-      return false
+    if j > -ngens(S) + rank(grading_group(S))
+      vert_map = get!(vert_maps, e) do
+        vertical_map(css, e, i, j)
+      end
+      inc = cohomology_injection_map(css, e, i, j; codomain=domain(vert_map))
+      v0 = inc(rep_g)
+      res = vert_map(v0)
+      if can_compute_index(cplx, (i+1,))
+        hor_map = get!(secondary_hor_maps, e) do
+          horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+        end
+        hor_map = horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+        res in image(hor_map)[1] || (error_on_false ? error("vertical map does not take the generator to the image of the horizontal map") : return false)
+      else
+        is_zero(res) && (error_on_false ? error("vertical map does not annihilate lifted kernel generator") : return false)
+      end
     end
   end
   return true
