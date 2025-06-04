@@ -4,15 +4,23 @@
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
-  tr_mat = transition_matrices(pm)
+  par_gens = parameter_ring_gens(pm)
+  tr_mat = trans_matrix(pm)
   root_dist = root_distribution(pm)
 
   r = root(gr)
   monomial = root_dist[states[r]]
-  for edge in edges(gr)
-    stateParent = states[src(edge)]
-    stateChild = states[dst(edge)]
-    monomial = monomial * tr_mat[edge][stateParent, stateChild]
+  
+  for (i, edge) in enumerate(edges(gr))
+    state_parent = states[src(edge)]
+    state_child = states[dst(edge)]
+    # get the symbolfrom the transition matrix signature
+    sym = tr_mat[state_parent, state_child]
+    # we can try and avoid this here if this becomes a bottle neck
+    # it's related to the comment below about using a polynomial context
+    # i.e., this is just the adding of exponents which are integer vectors
+    # which would be much faster than polynomial multiplication
+    monomial = monomial * par_gens[(sym, i)]
   end
 
   return monomial
