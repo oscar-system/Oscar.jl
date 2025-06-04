@@ -245,7 +245,7 @@ include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
 
-include("../gap/pkg/OscarInterface/julia/alnuth.jl")
+include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
