@@ -139,8 +139,7 @@
 
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
     I = ideal(R,[x^2+x*y+y,x+y^2])
-    standard_basis(I, ordering=lex(R), complete_reduction=true)
-    G = Oscar.groebner_assure(I, true, true)
+    G = standard_basis(I, ordering=lex(R), complete_reduction=true)
     @test G.ord == lex(R)
 end
 
