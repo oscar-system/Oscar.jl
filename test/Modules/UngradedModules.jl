@@ -57,6 +57,17 @@ end
   @test is_bijective(phi)
 end
 
+@testset "Submodule Membership" begin
+    R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
+    F = FreeMod(R, 3)
+    gens_submodule = [x*F[1], 3*y*F[2]]
+    S, _ = sub(F, gens_submodule)
+    x = x*y*F[1]+3*y^2*F[2]
+    @test in(x, S)
+    coord = coordinates(x, S)
+    @test coord == sparse_row(R, [1, 2], [y, y])
+end
+
 @testset "Modules: Simplify elements of subquotients" begin
   Oscar.set_seed!(235)
     R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
@@ -431,6 +442,19 @@ end
   @test_throws ArgumentError groebner_basis(M)
 end
 
+@testset "Singular Ordering Test" begin
+  R, x = polynomial_ring(QQ, :x => 1:4)
+  F = FreeMod(R, 1)
+  lp = lex(gens(base_ring(F))) * lex(gens(F))
+  J = SubquoModule(F, [
+        (x[1] + x[2] + R(1)) * F[1],
+        (x[1] + x[2] + 2*x[3] + 2*x[4] + 1) * F[1],
+        (x[1] + x[2] + x[3] + x[4] + 1) * F[1]
+  ])
+  mg = reduced_groebner_basis(J, lp)
+  odr = Oscar.singular_ordering(mg)
+  @test Singular.ordering_as_symbol(odr) == :lex
+end
 
 @testset "Test kernel" begin
   Oscar.set_seed!(235)

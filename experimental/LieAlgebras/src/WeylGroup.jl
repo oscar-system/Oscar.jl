@@ -610,18 +610,11 @@ end
 function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
   W = acting_group(Omega) # our base group
 
-  # Compute a permutation group `G` isomorphic with `W`.
+  # Compute a permutation group isomorphic with `W`.
   phi = isomorphism(PermGroup, W)
-  G = codomain(phi) # permutation group
 
-  # Let `G` act on `Omega` as `W` does.
-  phiinv = inv(phi)
-  actfun = action_function(Omega)
-  fun = function (omega::S, g::PermGroupElem)
-    return actfun(omega, phiinv(g))
-  end
-
-  OmegaG = GSetByElements(G, fun, Omega; closed=true, check=false)
+  # Let the image of `phi` act on `Omega` as `W` does.
+  OmegaG = induce(Omega, inv(phi))
 
   # Compute the permutation action on `1:length(Omega)`
   # corresponding to the action of `W` on `Omega`.

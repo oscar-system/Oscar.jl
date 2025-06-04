@@ -73,7 +73,16 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
 
   rels = Vector{Tuple{Int,Int}}[]
 
-  sets  = getproperty(Oscar, structure)(M)
+  if structure == :bases
+    sets = bases(M)
+  elseif structure == :circuits
+    sets = circuits(M)
+  elseif structure == :flats
+    sets = flats(M)
+  else
+    error("unreachable")
+  end
+
   #Computing the sizehint for the relations
   setSizes = map(length, sets)
   sizes = unique(setSizes)

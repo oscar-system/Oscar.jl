@@ -43,9 +43,8 @@ end
   l = irreducible_modules(AbsSimpleNumField, small_group(48, 17), minimal_degree = true)
   ds = degree.(base_ring.(l))
   @test length(l) == 12
-  #the local schur indices at 2 for this group are wrong...
-  @test_broken count(isequal(1), ds) == 8
-  @test_broken count(isequal(2), ds) == 4
+  @test count(isequal(1), ds) == 8
+  @test count(isequal(2), ds) == 4
 
   l = irreducible_modules(AbsSimpleNumField, small_group(48, 29), minimal_degree = true)
   ds = degree.(base_ring.(l))
