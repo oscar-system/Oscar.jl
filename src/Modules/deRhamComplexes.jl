@@ -14,8 +14,10 @@ function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=t
   end
   n = ngens(R)
   result = FreeMod(R, n)
-  symb = symbols(R)
-  result.S = [Symbol(:d, symb[i]) for i in 1:n]
+  S = symbols(R)
+  result.S = function _get_symbols() 
+    return [Symbol(:d, S[i]) for i in 1:n]
+  end
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
