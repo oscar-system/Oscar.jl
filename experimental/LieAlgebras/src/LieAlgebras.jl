@@ -86,6 +86,7 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  vector_space_dim,
   zero_map,
   ⊕,
   ⊗
