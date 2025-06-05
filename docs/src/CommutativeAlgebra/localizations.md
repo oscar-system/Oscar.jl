@@ -53,7 +53,7 @@ julia> RQL, _ = localization(RQ, U);
 
 julia> RL, iota = localization(R, U);
 
-julia> RLQ, _ = quo(RL, iota(I))
+julia> RLQ, _ = quo(RL, iota(I));
 
 julia> typeof(RLQ) == typeof(RQL)
 true
