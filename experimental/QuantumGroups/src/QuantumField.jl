@@ -1,3 +1,33 @@
+@doc raw"""
+    q_integer(n::Int, q::QuantumFieldElem) -> QuantumFieldElem
+
+Return the q-integer $[n]_q$.
+
+# Examples
+```jldoctest
+julia> q_integer(3, q)
+(q^6 + q^4 + q^2 + 1)/q^3
+
+julia> q_integer(2, q^2)
+(q^4 + 1)/q^2
+"""
+function q_integer(n::Int, q::QuantumFieldElem)
+  return div(q^n - q^-n, q - q^-1)
+end
+
+@doc raw"""
+    q_factorial(n::Int, q::QuantumFieldElem) -> QuantumFieldElem
+
+Return the q-factorial $[n]_q!$.
+
+# Examples
+```jldoctest
+julia> q_factorial(3, q)
+(q^6 + q^4 + q^2 + 1)/q^3
+
+julia> q_integer(2, q^2)
+(q^4 + 1)/q^2
+"""
 function q_factorial(n::Int, q::QuantumFieldElem)
   return get!(
     parent(q).q_factorial::Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}, (n, q)
@@ -6,13 +36,18 @@ function q_factorial(n::Int, q::QuantumFieldElem)
   end
 end
 
+@doc raw"""
+    q_binomial(n::Int, k::Int, q::QuantumFieldElem) -> QuantumFieldElem
+
+Return the q-binomial coefficient.
+"""
 function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
   z = one(q)
   for i in 0:(k - 1)
-    z *= q^(n - i) - q^(i - n)
+    z = mul!(z, q^(n - i) - q^(i - n))
   end
   for i in 1:k
-    z /= q^i - q^-i
+    z = div!(z, q^i - q^-i)
   end
   return z
 end
@@ -65,12 +100,16 @@ end
 
 ###############################################################################
 #
-#   Arithmetic
+#   Copying / Hashing
 #
 ###############################################################################
 
 function Base.hash(x::QuantumFieldElem, h::UInt)
-  return hash(x.d, h)
+  b = 0xf37b7f4ddd4dbe54 % UInt
+  h = hash(parent(x), h)
+  h = hash(x.d, h)
+  
+  return xor(h, b)
 end
 
 function deepcopy_internal(x::QuantumFieldElem, dict::IdDict)
@@ -84,7 +123,7 @@ end
 
 ###############################################################################
 #
-#   Arithmetic
+#   Basic manipulation
 #
 ###############################################################################
 
@@ -96,13 +135,13 @@ function one(QF::QuantumField)
   return QuantumFieldElem(QF, one(QF.d))
 end
 
-function zero(QF::QuantumField)
-  return QuantumFieldElem(QF, zero(QF.d))
-end
-
 function one!(x::QuantumFieldElem)
   x.d = one!(x.d)
   return x
+end
+
+function zero(QF::QuantumField)
+  return QuantumFieldElem(QF, zero(QF.d))
 end
 
 function zero!(x::QuantumFieldElem)
@@ -110,13 +149,13 @@ function zero!(x::QuantumFieldElem)
   return x
 end
 
+function inv(x::QuantumFieldElem)
+  return QuantumFieldElem(x.parent, inv(x.d))
+end
+
 function inv!(z::QuantumFieldElem, x::QuantumFieldElem)
   z.d = inv!(z.d, x.d)
   return z
-end
-
-function inv(x::QuantumFieldElem)
-  return QuantumFieldElem(x.parent, inv(x.d))
 end
 
 function neg!(z::QuantumFieldElem, x::QuantumFieldElem)
@@ -130,6 +169,10 @@ function set!(x::QuantumFieldElem, y::QuantumFieldElem)
   return x
 end
 
+function rand(rng::AbstractRNG, Random.SamplerTrivial{QuantumField})
+  return QuantumFieldElem(QF, rand(QF.d))
+end
+
 ###############################################################################
 #
 #   Arithmetic
@@ -137,18 +180,21 @@ end
 ###############################################################################
 
 function Base.:+(x::QuantumFieldElem, y::QuantumFieldElem)
+  check_parent(x, y)
   return add!(zero(x), x, y)
 end
 
 function Base.:(//)(x::QuantumFieldElem, y::QuantumFieldElem)
-  return div!(zero(x), x, y)
+  return div(x, y)
 end
 
 function Base.:*(x::QuantumFieldElem, y::QuantumFieldElem)
+  check_parent(x, y)
   return mul!(zero(x), x, y)
 end
 
 function Base.:-(x::QuantumFieldElem, y::QuantumFieldElem)
+  check_parent(x, y)
   return sub!(zero(x), x, y)
 end
 
@@ -161,6 +207,7 @@ function Base.:^(x::QuantumFieldElem, n::Int)
 end
 
 function div(x::QuantumFieldElem, y::QuantumFieldElem)
+  check_parent(x, y)
   return div!(zero(x), x, y)
 end
 
@@ -235,6 +282,11 @@ end
 
 function mul!(z::QuantumFieldElem, x::QuantumFieldElem, y::QuantumFieldElem)
   z.d = mul!(z.d, x.d, y.d)
+  return z
+end
+
+function pow!(z::QuantumFieldElem, x::QuantumFieldElem, n::Int)
+  z.d = pow!(z.d, x.d, n)
   return z
 end
 

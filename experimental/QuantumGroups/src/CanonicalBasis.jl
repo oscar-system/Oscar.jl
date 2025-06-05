@@ -10,6 +10,7 @@ julia> U = quantum_group(:A, 2);
 
 julia> canonical_basis_elem(U, [0, 1, 0])
 q^-1*F[1]*F[3] + F[2]
+```
 """
 function canonical_basis_elem(U::QuantumGroup, b::Vector{Int})
   return QuantumGroupElem(U, _canonical_basis_elem(U, b))
