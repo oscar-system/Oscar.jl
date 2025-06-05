@@ -42,7 +42,7 @@ end
 
 function krull_dim(A::zzModRing)
   modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
+  return is_prime(modulus(A)) ? 0 : 1
 end
 
 function krull_dim(A::ZZModRing)
