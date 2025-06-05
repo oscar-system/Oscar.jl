@@ -2455,9 +2455,7 @@ true
 """
 function (G::FPGroup)(letters::AbstractVector{<:IntegerUnion})
   n = ngens(G)
-  for l in unique(letters)
-    @req 0 < abs(l) <= n "generator number is at most $n"
-  end
+  @req all(l -> 0 < abs(l) <= n, letters) "invalid generator index"
 
   famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
   if GAPWrap.IsFreeGroup(GapObj(G))

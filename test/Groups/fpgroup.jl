@@ -22,7 +22,7 @@
   @test G(Vector{Int}()) == one(G)
 
   # test general letters usage for quotient
-  @test letters(epi(x)) == l_1
+  @test G(letters(epi(x))) == G(l_1)
   @test G(l_1) == epi(x)
 end
 
@@ -50,6 +50,6 @@ end
   @test G(Vector{Pair{Int, Int}}()) == one(G)
 
   # check general syllable usage for quotient
-  @test syllables(epi(x)) == s_1
+  @test G(syllables(epi(x))) == G(s_1)
   @test G(s_1) == epi(x)
 end
