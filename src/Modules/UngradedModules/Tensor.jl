@@ -22,7 +22,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   F = FreeMod(G[1].R, prod([rank(g) for g in G]))
   F.S = function _get_tensor_symbols()
-    return Symbol.([join(["$(symbol(G[k], i[k]))" for k in 1:length(G)], " \\otimes ") for i in AbstractAlgebra.ProductIterator([1:ngens(g) for g in G])])
+    return Symbol.([join(["$(symbol(G[k], i[length(G)-k+1]))" for k in 1:length(G)], " \\otimes ") for i in AbstractAlgebra.ProductIterator([1:ngens(g) for g in reverse(G)])])
   end
 
   set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
