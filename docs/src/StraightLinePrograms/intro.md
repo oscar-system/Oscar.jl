@@ -188,7 +188,7 @@ return: true
 julia> SLP.evaluate(p1 & p2, [X, Y])
 test((xy^2), 2) & test(y, 4)
 
-julia> using AbstractAlgebra; perm1, perm2 = perm"(1, 4)", perm"(1, 3, 4, 2)";
+julia> perm1, perm2 = AbstractAlgebra.perm"(1, 4)", AbstractAlgebra.perm"(1, 3, 4, 2)";
 
 julia> SLP.evaluate(p1 & p2, [perm1, perm2])
 true
