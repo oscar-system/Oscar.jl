@@ -391,7 +391,6 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FreeMod{elem_type(S)}(ngens(F), S, F.S)
   FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
@@ -401,7 +400,7 @@ function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod(S, symbols(F))
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
