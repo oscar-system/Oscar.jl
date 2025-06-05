@@ -2259,7 +2259,7 @@ function oscar_genus_representatives(
               flag = true
               push!(inv_dict[invN], N)
               push!(l, N)
-              s = isometry_group_order(N)
+              s = automorphism_group_order(N)
               if save_partial
                 Hecke.save_lattice(N, save_path)
               end
