@@ -126,7 +126,7 @@ end
 @doc raw"""
     tropical_linear_space(k::Int, n::Int, p::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
 
-Return a tropical linear space from a tropical Pluecker vector with indices `AbstractAlgebra.combinations(1:n,k)` and values `p`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `p`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 ```jldoctest
@@ -140,7 +140,7 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
-    return tropical_linear_space(AbstractAlgebra.combinations(1:n,k), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    return tropical_linear_space(collect(combinations(n,k)), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 end
 
 
@@ -179,7 +179,7 @@ end
 @doc raw"""
     tropical_linear_space(k::Int, n::Int, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
-Return a tropical linear space from a tropical Pluecker vector with indices `AbstractAlgebra.combinations(1:n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 ```jldoctest
@@ -193,7 +193,7 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
-    TropL = tropical_linear_space(AbstractAlgebra.combinations(n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    TropL = tropical_linear_space(collect(combinations(n,k)), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
     if !weighted_polyhedral_complex_only
         set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
@@ -209,7 +209,7 @@ function compute_pluecker_indices_and_vector(A::MatElem)
     n = ncols(A)
     k = nrows(A)
     @req n>=k "matrix for Pluecker vector cannot have more rows than columns"
-    plueckerIndices = AbstractAlgebra.combinations(n,k)
+    plueckerIndices = collect(combinations(n,k))
     plueckerVector = AbstractAlgebra.minors(A,k)
     nonZeroIndices = findall(!iszero,plueckerVector)
     plueckerIndices = plueckerIndices[nonZeroIndices]
