@@ -124,11 +124,11 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
   i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
-  GB = IdealGens(I.gens.Ox, i, complete_reduction)
+  GB = IdealGens(base_ring(I), i, complete_reduction)
   GB.isGB = true
   GB.ord = ordering
-  if isdefined(GB, :S)
-    GB.S.isGB  = true
+  if isdefined(GB.gens, :S)
+    GB.gens.S.isGB  = true
   end
   I.gb[destination_ordering] = GB
   return GB
