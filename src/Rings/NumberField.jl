@@ -187,24 +187,13 @@ end
 #
 ################################################################################
 
-function assert_has_gb(K::NfNSGen)
-  I = defining_ideal(K)
-  if isdefined(I, :gb) && isdefined(I.gb, :S) && I.gb.S.isGB
-    return nothing
-  end
-  I = defining_ideal(K)
-  standard_basis(I, ordering=degrevlex(gens(base_ring(I))))
-  return nothing
-end
-
 function reduce!(a::NfNSGenElem)
   K = parent(a)
-  assert_has_gb(K)
   I = defining_ideal(K)
-  GI = collect(values(I.gb))[1]
-  Sx = base_ring(GI.S)
+  GS = singular_groebner_generators(I, false, false)
+  Sx = base_ring(GS)
   f = a.f
-  a.f = I.gens.Ox(reduce(Sx(f), GI.S))
+  a.f = I.gens.Ox(reduce(Sx(f), GS))
   return a
 end
 
@@ -552,13 +541,12 @@ function basis(K::NfNSGen; copy::Bool = true)
     return copy ? Base.deepcopy(B) : B
   else
     I = defining_ideal(K)
-    assert_has_gb(K)
-    GI = first(values(I.gb))
-    s = Singular.kbase(GI.S)
+    GS = singular_groebner_generators(I, false, false)
+    s = Singular.kbase(GS)
     if iszero(s)
       error("ideal was not zero-dimensional")
     end
-    B = elem_type(K)[K(base_ring(defining_ideal(K))(x)) for x = gens(s)]
+    B = elem_type(K)[K(base_ring(I)(x)) for x = gens(s)]
     if !isone(B[1])
       i = findfirst(isone, B)
       B[1], B[i] = B[i], B[1]
