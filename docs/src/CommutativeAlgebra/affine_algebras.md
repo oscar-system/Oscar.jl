@@ -305,6 +305,14 @@ intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
+#### Decomposition of Ideals
+
+With respect to the decomposition of an ideal `Ì` in an  affine algebra, we have
+
+- `radical(I)`,
+- `minimal_primes(I)`, and
+- `primary_decomposition(I)`.
+
 ### Tests on Ideals in Affine Algebras
 
 #### Basic Tests

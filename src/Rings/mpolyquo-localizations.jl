@@ -1854,16 +1854,20 @@ function _monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyCo
 end
 
 @doc raw"""
-    monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+    monomial_basis(RQL::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
 
-If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
-`K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
-such that the residue classes of these monomials form a basis of `A` as a `K`-vector
-space. 
+Given a localized ring $RQL$ of type $RQL = (R/I)_P$, where
+- ``R`` is a multivariate polynomial ring over a field $K$, say $R = K[x_1,\dots, x_n]$,
+- ``I`` is an ideal of $R$ such that $R/I$ is finite-dimensional as a $K$-vector space, and
+- ``P`` is of type $P = \langle x_1-a_1,...,x_n-a_n\rangle$, with $a_1,\dots, a_n\in K$,
+return a vector of monomials of $R$ such that the images of these monomials form a $K$-basis of $RQL$.
+
+!!! note
+    The conditions on $RQL$ are automatically checked.
+
 !!! note 
     The monomials are for readability in the variables of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
-!!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
+
 # Examples
 ```jldoctest
 julia> R, (x,y) = QQ["x","y"];
