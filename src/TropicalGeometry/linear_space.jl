@@ -179,7 +179,7 @@ end
 @doc raw"""
     tropical_linear_space(k::Int, n::Int, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
-Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex_only==true`, will not cache any extra information.
 
 # Examples
 ```jldoctest
