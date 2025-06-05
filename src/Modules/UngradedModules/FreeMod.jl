@@ -153,13 +153,15 @@ end
 @doc raw"""
     rank(F::FreeMod)
     number_of_generators(F::AbstractFreeMod)
-    dim(F::AbstractFreeMod)
+    dim(F::AbstractFreeMod{T}) where T <: FieldElem
+    vector_space_dim(F::AbstractFreeMod)
 
 Return the rank of `F`.
 """
-dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
+dim(F::AbstractFreeMod{T}) where T <: ZZRingElem = rank(F)
 number_of_generators(F::AbstractFreeMod) = rank(F)
+vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

@@ -19,19 +19,53 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing)
-  return dim(modulus(A))
+dim(A::Union{MPolyQuoRing, zzModRing, ZZModRing}) = krull_dim(A)
+
+@doc raw"""
+    krull_dim(A::MPolyQuoRing)
+
+Return the Krull dimension of `A`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
+
+julia> krull_dim(A)
+1
+```
+"""
+function krull_dim(A::MPolyQuoRing)
+  return krull_dim(modulus(A))
 end
 
-function dim(A::zzModRing)
+function krull_dim(A::zzModRing)
   modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
   return 0
 end
 
-function dim(A::ZZModRing)
+function krull_dim(A::ZZModRing)
   modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
   return 0
 end
+
+@doc raw"""
+    is_noetherian(A::MPolyQuoRing)
+
+Check if the ring $A$ is Noetherian.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> A, _ = quo(R, ideal(R, x));
+
+julia> is_noetherian(A)
+true
+```
+"""
+is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
