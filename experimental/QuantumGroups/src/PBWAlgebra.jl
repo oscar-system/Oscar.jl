@@ -50,6 +50,16 @@ function coefficient_ring(A::PBWAlgebra)
   return coefficient_ring(A.R)
 end
 
+function parent(x::PBWAlgebraElem)
+  return x.parent
+end
+
+###############################################################################
+#
+#   Basic
+#
+###############################################################################
+
 function gen(A::PBWAlgebra, i::Int)
   return PBWAlgebraElem(A, gen(A.R, i))
 end
@@ -62,17 +72,20 @@ function ngens(A::PBWAlgebra)
   return ngens(A.R)
 end
 
-function parent(x::PBWAlgebraElem)
-  return x.parent
+function set!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  check_parent(x, y)
+  x.poly = set!(x.poly, y.poly)
+  return x
 end
 
-function coeff(x::PBWAlgebraElem, i::Int)
-  return coeff(x.poly, i)
+function swap!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  x.poly, y.poly = y.poly, x.poly
+  return x
 end
 
 ###############################################################################
 #
-#   
+#   Copying / Hashing
 #
 ###############################################################################
 
@@ -119,7 +132,125 @@ end
 
 ###############################################################################
 #
-#   Unsafe methods
+#   Coefficients
+#
+###############################################################################
+
+function coeff(x::PBWAlgebraElem, i::Int)
+  return coeff(x.poly, i)
+end
+
+function setcoeff!(x::PBWAlgebraElem{T}, i::Int, a::T) where {T}
+  return setcoeff!(x.poly, i, a)
+end
+
+###############################################################################
+#
+#   Arithemtic
+#
+###############################################################################
+
+function one(A::PBWAlgebra)
+  return PBWAlgebraElem(A, one(A.R))
+end
+
+function one(x::PBWAlgebraElem)
+  return one(parent(x))
+end
+
+function one!(x::PBWAlgebraElem)
+  x.poly = one!(x.poly)
+  return x
+end
+
+function zero(A::PBWAlgebra)
+  return PBWAlgebraElem(A, zero(A.R))
+end
+
+function zero(x::PBWAlgebraElem)
+  return zero(parent(x))
+end
+
+function zero!(x::PBWAlgebraElem)
+  x.poly = zero!(x.poly)
+  return x
+end
+
+function length(x::PBWAlgebraElem)
+  return length(x.poly)
+end
+
+function exponent_vector!(exp::Vector{Int}, x::PBWAlgebraElem, i::Int)
+  return exponent_vector!(exp, x.poly, i)
+end
+
+function exponent(x::PBWAlgebraElem, i::Int, j::Int)
+  return exponent(x.poly, i, j)
+end
+
+###############################################################################
+#
+#   Comparison
+#
+###############################################################################
+
+function Base.:(==)(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  check_parent(x, y)
+  return x.poly == y.poly
+end
+
+function iszero(x::PBWAlgebraElem)
+  return iszero(x.poly)
+end
+
+function isone(x::PBWAlgebraElem)
+  return isone(x.poly)
+end
+
+function is_gen(x::PBWAlgebraElem)
+  return is_gen(x.poly)
+end
+
+###############################################################################
+#
+#   Arithemtic
+#
+###############################################################################
+
+function Base.:*(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  check_parent(x, y)
+  return mul!(zero(x), x, y)
+end
+
+function Base.:*(x::PBWAlgebraElem{T}, a::T) where {T}
+  return mul!(zero(x), x, a)
+end
+
+function Base.:*(a::T, x::PBWAlgebraElem{T}) where {T}
+  return mul!(zero(x), x, a)
+end
+
+function Base.:+(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  check_parent(x, y)
+  return add!(zero(x), x, y)
+end
+
+function Base.:-(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  check_parent(x, y)
+  return sub!(zero(x), x, y)
+end
+
+function Base.:-(x::PBWAlgebraElem)
+  return neg!(zero(x), x)
+end
+
+function Base.:^(x::PBWAlgebraElem, n::Int)
+  return pow!(zero(x), x, n)
+end
+
+###############################################################################
+#
+#   Unsafe arithmetic
 #
 ###############################################################################
 
@@ -181,105 +312,6 @@ end
 function submul!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}, a::T) where {T}
   x.poly = submul!(x.poly, y.poly, a)
   return x
-end
-
-function swap!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
-  x.poly, y.poly = y.poly, x.poly
-  return x
-end
-
-function exponent_vector!(exp::Vector{Int}, x::PBWAlgebraElem, i::Int)
-  return exponent_vector!(exp, x.poly, i)
-end
-
-function exponent(x::PBWAlgebraElem, i::Int, j::Int)
-  return exponent(x.poly, i, j)
-end
-
-###############################################################################
-#
-#   Arithemtic
-#
-###############################################################################
-
-function isone(x::PBWAlgebraElem)
-  return isone(x.poly)
-end
-
-function one(A::PBWAlgebra)
-  return PBWAlgebraElem(A, one(A.R))
-end
-
-function one(x::PBWAlgebraElem)
-  return one(parent(x))
-end
-
-function one!(x::PBWAlgebraElem)
-  x.poly = one!(x.poly)
-  return x
-end
-
-function iszero(x::PBWAlgebraElem)
-  return iszero(x.poly)
-end
-
-function zero(A::PBWAlgebra)
-  return PBWAlgebraElem(A, zero(A.R))
-end
-
-function zero(x::PBWAlgebraElem)
-  return zero(parent(x))
-end
-
-function zero!(x::PBWAlgebraElem)
-  x.poly = zero!(x.poly)
-  return x
-end
-
-function length(x::PBWAlgebraElem)
-  return length(x.poly)
-end
-
-###############################################################################
-#
-#   Arithemtic
-#
-###############################################################################
-
-function Base.:*(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
-  check_parent(x, y)
-  return mul!(zero(x), x, y)
-end
-
-function Base.:*(x::PBWAlgebraElem{T}, a::T) where {T}
-  return mul!(zero(x), x, a)
-end
-
-function Base.:*(a::T, x::PBWAlgebraElem{T}) where {T}
-  return mul!(zero(x), x, a)
-end
-
-function Base.:+(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
-  check_parent(x, y)
-  return add!(zero(x), x, y)
-end
-
-function Base.:-(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
-  check_parent(x, y)
-  return sub!(zero(x), x, y)
-end
-
-function Base.:-(x::PBWAlgebraElem)
-  return neg!(zero(x), x)
-end
-
-function Base.:^(x::PBWAlgebraElem, n::Int)
-  return pow!(zero(x), x, n)
-end
-
-function Base.:(==)(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
-  check_parent(x, y)
-  return x.poly == y.poly
 end
 
 ###############################################################################
