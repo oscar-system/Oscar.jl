@@ -5,6 +5,6 @@ export QuantumGroupHom
 export bar_automorphism
 export canonical_basis_elem
 export canonical_basis_expansion
-export chevalley_gens
+export negative_chevalley_gens
 export quantum_field
 export quantum_group

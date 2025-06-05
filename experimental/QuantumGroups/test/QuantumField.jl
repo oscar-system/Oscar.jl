@@ -4,5 +4,5 @@
   end
 
   QF, _ = quantum_field()
-  #AbstractAlgebra.ConformanceTests.test_Field_interface(QF)
+  AbstractAlgebra.ConformanceTests.test_Field_interface(QF)
 end

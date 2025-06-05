@@ -4,12 +4,25 @@
 #
 ###############################################################################
 
-@doc raw"""
+# We need to make this constructor internal for now,
+# since QuaGroup does not allow arbitrary Cartan matrices
+# and bilinear forms.
+
+function _quantum_group(
+  R::RootSystem;
+  bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
+  w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
+)
+  return _quantum_group(quantum_field(), R; bilinear_form=bilinear_form, w0=w0)
+end
+
+raw"""
     quantum_group(R::RootSystem; bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
       w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
     ) -> QuantumGroup
 """
-function quantum_group(
+function _quantum_group(
+  QF::QuantumField,
   R::RootSystem;
   bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
   w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
@@ -95,10 +108,22 @@ function quantum_group(
 end
 
 @doc raw"""
-    quantum_group(fam::Symbol, rk::Int) -> QuantumGroup
+    quantum_group(fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing) -> QuantumGroup
+    
+Return a quantum group for a finite root system with family `fam` with rank `rk`.
+Optionally, a reduced decomposition `w0` can be provided to choose a convex order for the positive roots.
+This choice determines the PBW basis of the quantum group.
 """
-function quantum_group(fam::Symbol, rk::Int)
-  return quantum_group(root_system(fam, rk))
+function quantum_group(fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing)
+  R = root_system(fam, rk)
+  if !is_finite(R)
+    error("Quantum groups are currently only supported for finite root systems.")
+  end
+  
+  if isnothing(w0)
+    w0 = word(longest_element(weyl_group(R)))
+  end
+  return _quantum_group(R; w0=w0)
 end
 
 ###############################################################################
@@ -137,17 +162,10 @@ function gens(U::QuantumGroup)
 end
 
 @doc raw"""
-    chevalley_gens(U::QuantumGroup) -> Vector{QuantumGroupElem}
+    negative_chevalley_gens(U::QuantumGroup) -> Vector{QuantumGroupElem}
 """
-function chevalley_gens(U::QuantumGroup)
+function negative_chevalley_gens(U::QuantumGroup)
   return [gen(U, U.cvx[i]) for i in 1:rank(root_system(U))]
-end
-
-@doc raw"""
-    pbw_gens(U::QuantumGroup) -> Vector{QuantumGroupElem}
-"""
-function pbw_gens(U::QuantumGroup)
-  return gens(U)
 end
 
 function one(U::QuantumGroup)
@@ -160,7 +178,7 @@ end
 
 ###############################################################################
 #
-#   
+#   Copying / Hashing
 #
 ###############################################################################
 
