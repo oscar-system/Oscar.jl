@@ -391,7 +391,8 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod(S, F.S) # the symbols of F
+  FreeMod{elem_type(S)}(ngens(F), S, F.S)
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
