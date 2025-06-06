@@ -1842,11 +1842,11 @@ space.
 function _monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
   base_ring(I) == L || error("ideal does not belong to the correct ring")
   G = numerator.(gens(I))
-  shift,_ = base_ring_shifts(L)
+  shift, back_shift = base_ring_shifts(L)
   G_0 = shift.(G) 
   R = base_ring(L)
   LI = leading_ideal(ideal(R, G_0), ordering = negdeglex(R))
-  return L.(monomial_basis(quo(R, LI)[1]))
+  return L.(back_shift.(monomial_basis(quo(R, LI)[1])))
 end
 
 @doc raw"""
