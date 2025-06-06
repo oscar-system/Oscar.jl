@@ -20,6 +20,8 @@ GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap AntiSymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap AsList(x::GapObj)::GapObj
 GAP.@wrap AsSet(x::GapObj)::GapObj
+GAP.@wrap AssocWordByLetterRep(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap AssocWordByLetterRep(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap AtlasIrrationality(x::GapObj)::GAP.Obj
 GAP.@wrap AutomorphismGroup(x::GapObj)::GapObj
 GAP.@wrap Basis(x::GapObj)::GapObj
