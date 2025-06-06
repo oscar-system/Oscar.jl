@@ -114,11 +114,7 @@ option is set in suitable functions.
   end
   
   function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, symbol_fun::Function) where T <: AdmissibleModuleFPRingElem
-    r = new{elem_type(R)}()
-    r.n = n
-    r.R = R
-    r.S = symbol_fun
-    r.d = nothing
+    r = new{elem_type(R)}(R, n, symbol_fun, nothing)
 
     r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
     r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()

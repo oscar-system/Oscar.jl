@@ -417,8 +417,8 @@ function _get_symbols!(F::FreeMod, S::Vector{Symbol})
 end
 
 function _get_symbols!(F::FreeMod, symbol_fun::Function)
-  F.S = symbol_fun()::Vector{Symbol}
-  return F.S
+  F.S = symbol_fun()
+  return F.S::Vector{Symbol}
 end
 
 
