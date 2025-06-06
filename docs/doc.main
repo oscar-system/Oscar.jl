@@ -277,6 +277,7 @@
 
   "Combinatorics" => [
     "Combinatorics/graphs.md",
+    "Combinatorics/posets.md",
     "Combinatorics/matroids.md",
     "Combinatorics/simplicialcomplexes.md",
     "Combinatorics/phylogenetic_trees.md",
@@ -313,6 +314,5 @@
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
-    "DeveloperDocumentation/parallel.md"
   ],
 ]

@@ -119,7 +119,7 @@ BindGlobal("PolynomialFactorsDescriptionOscar", function(F, coeffs)
 
   K := _OscarField(F);
 
-  cf := Oscar.Alnuth._Vector_nf_elem(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
+  cf := Oscar.OscarInterfaceConstants._Vector_nf_elem(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
   poly := Oscar.polynomial(K, cf);
   facs := Oscar.factor(poly);
   Assert(0, Oscar.is_one(facs.unit));

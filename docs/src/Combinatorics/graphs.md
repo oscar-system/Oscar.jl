@@ -62,6 +62,8 @@ connectivity(g::Graph{Undirected})
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 degree(g::Graph, v::Int)
+indegree(g::Graph{Directed}, v::Int)
+outdegree(g::Graph{Directed}, v::Int)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}

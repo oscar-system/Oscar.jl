@@ -79,7 +79,7 @@ end
       sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
     end
     for (k,v) in sampled_dict
-      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly))
+      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly), true)
       @test v == integrate(desired_class, check = false)
     end
   end

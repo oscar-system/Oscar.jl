@@ -156,7 +156,7 @@ julia> (x1, x2, x3) = gens(cohomology_ring(P2))
  x2
  x3
 
-julia> cc = CohomologyClass(P2, x1+x2)
+julia> cc = cohomology_class(P2, x1+x2)
 Cohomology class on a normal toric variety given by x1 + x2
 
 julia> rational_equivalence_class(cc)

@@ -61,7 +61,8 @@ function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
     C = base_ring(R)
-    Cx, x, xinv = polynomial_ring(C,"x#" => 1:n, "x#^-1" => 1:n; cached = false)
+    var_names = symbols(R.mpolyring)
+    Cx, x, xinv = polynomial_ring(C, var_names, [Symbol("inv(", name, ")")  for name in var_names]; cached = false)
     I = ideal(Cx, [x[i]*xinv[i] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
@@ -241,3 +242,13 @@ end
 
 
 
+function quo(R::LaurentMPolyWrapRing, I::LaurentMPolyIdeal)
+  @req R === base_ring(I) "ring and ideal do not match"
+  poly_repr = Oscar._polyringquo(R)
+  underlying_poly_ring_quo = codomain(poly_repr)
+  II = ideal(underlying_poly_ring_quo, poly_repr.(gens(I)))
+  Q,phi = quo(underlying_poly_ring_quo, II)
+  map_down(f::LaurentMPolyWrap) = phi(poly_repr(f))
+  lift_up(f::MPolyQuoRingElem) = poly_repr.inv(preimage(phi,f))
+  return Q, MapFromFunc(R,Q, map_down, lift_up)
+end

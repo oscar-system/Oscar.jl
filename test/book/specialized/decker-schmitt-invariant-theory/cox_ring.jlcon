@@ -42,21 +42,21 @@ Linear quotient by matrix group of degree 3 over K
 julia> B, BtoR = cox_ring(VG)
 (Quotient of multivariate polynomial ring by ideal (), Hom: B -> graded multivariate polynomial ring)
 
-julia> map(BtoR, gens(B))
+julia> sort(map(BtoR, gens(B)), by=f->representation_matrix(leading_coefficient(f))[1,1])
 3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
+ (-z_3 - 1)*x[1]^2 + z_3*x[2]^2 + x[3]^2
  z_3*x[1]^2 + (-z_3 - 1)*x[2]^2 + x[3]^2
  x[1]^2 + x[2]^2 + x[3]^2
- (-z_3 - 1)*x[1]^2 + z_3*x[2]^2 + x[3]^2
 
-julia> f1 = BtoR(B[1]); f2 = BtoR(B[2]); f3 = BtoR(B[3]);
+julia> f1, f2, f3 = ans;
 
-julia> f1^G(g2) == z_3*f1
+julia> f1^G(g2) == z_3^(-1)*f1
 true
 
-julia> f2^G(g2) == f2
+julia> f2^G(g2) == z_3*f2
 true
 
-julia> f3^G(g2) == z_3^(-1)*f3
+julia> f3^G(g2) == f3
 true
 
 julia> grading_group(B)

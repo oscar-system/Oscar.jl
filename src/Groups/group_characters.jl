@@ -1357,11 +1357,45 @@ julia> println(proj)
 """
 function quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
   @req characteristic(tbl) == 0 "supported only for ordinary character tables"
-  gap_fact = GAPWrap.CharacterTableFactorGroup(GapObj(tbl), GapObj(nclasses))
+  gap_tbl = GapObj(tbl)::GapObj
+  gap_nclasses = GapObj(nclasses)::GapObj
+  gap_fact = GAPWrap.CharacterTableFactorGroup(gap_tbl, gap_nclasses)
   fact = GAPGroupCharacterTable(gap_fact, 0)
   flag, fus = known_class_fusion(tbl, fact)
   @assert flag
+
+  if isdefined(tbl, :group)
+    # set a group (together with its conjugacy classes) in the factor table
+    G = group(tbl)
+    gap_N = GAPWrap.NormalSubgroupClasses(gap_tbl, gap_nclasses)
+    iso = isomorphism_to_GAP_group(tbl)
+    N = preimages(iso, gap_N)[1]
+    Q, epi = quo(G, N)
+    fact.group = Q
+    fact.isomorphism = isomorphism_to_GAP_group(Q)
+    gap_fact = GapObj(fact)::GapObj
+    Gclasses = conjugacy_classes(tbl)
+    choice = _projection_of_class_fusion(fus)
+    gap_Q = GapObj(Q)::GapObj
+    class_reps = [epi(representative(Gclasses[i])) for i in choice]
+    GAPWrap.SetUnderlyingGroup(gap_fact, gap_Q)
+    factclasses = GapObj([GAPWrap.ConjugacyClass(gap_Q, GapObj(x)) for x in class_reps])::GapObj
+    GAPWrap.SetConjugacyClasses(gap_fact, factclasses)
+    GAPWrap.SetConjugacyClasses(gap_Q, factclasses)
+  end
+
   return fact, fus
+end
+
+function _projection_of_class_fusion(fus::Vector{Int})
+  res = zeros(Int, maximum(fus))
+  for i in 1:length(fus)
+    img = fus[i]
+    if res[img] == 0
+      res[img] = i
+    end
+  end
+  return res
 end
 
 
@@ -2851,7 +2885,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref)).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples
@@ -3478,7 +3512,7 @@ where $a_k(\rho)$ is the number of cycles of length $k$ in $\rho$.
 Note that the returned list may contain zero class functions,
 and duplicates are not deleted.
 
-For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
+For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 [`anti_symmetric_parts`](@ref), [`orthogonal_components`](@ref),
 [`symplectic_components`](@ref), [`exterior_power`](@ref),
 [`symmetric_power`](@ref).
@@ -3496,7 +3530,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the trivial character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3511,7 +3545,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the sign character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]

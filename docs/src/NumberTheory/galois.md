@@ -83,7 +83,7 @@ galois_group(f::PolyRingElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
-```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
+```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1)), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Qt, t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt[:x];
@@ -195,7 +195,7 @@ of `s[1]+s[3]` evaluated at the roots.
 Once the orbit is known, the coefficients of the minimal polynomial are just the elementary
 symmetric functions evaluated at the roots: 
 
-```jldoctest galois1
+```jldoctest galois1; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> o = collect(orbit(G, s[1]+s[3]))
 4-element Vector{ZZMPolyRingElem}:
  x1 + x3
