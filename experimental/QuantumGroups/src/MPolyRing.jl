@@ -553,14 +553,12 @@ function exponent(x::MPolyRingElem, i::Int, j::Int)
 end
 
 function exponent_vector(x::MPolyRingElem, i::Int)
-  R = parent(x)
-  m = Vector{Int}(undef, ngens(R))
-  copyto!(m, 1, x.exps, (i - 1) * R.N + 1, ngens(R))
-  return m
+  return exponent_vector!(Vector{Int}(undef, ngens(parent(x))), x, i)
 end
 
 function exponent_vector!(exp::Vector{Int}, x::MPolyRingElem, i::Int)
-  unsafe_copyto!(exp, 1, x.exps, (i - 1) * parent(x).N + 1, ngens(parent(x)))
+  R = parent(x)
+  unsafe_copyto!(exp, 1, x.exps, (i - 1) * R.N + 1, ngens(R))
   return exp
 end
 
@@ -599,4 +597,29 @@ end
 function Base.:+(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   check_parent(x, y)
   return add!(zero(x), x, y)
+end
+
+function divexact(x::MPolyRingElem{T}, a::T) where {T}
+  return div!(zero(x), x, a)
+end
+
+function div!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
+  if iszero(a)
+    throw(DivideError())
+  elseif isone(a)
+    return set!(z, x)
+  end
+
+  fit!(z, length(x))
+  for i in 1:length(x)
+    if isnothing(z.coeffs[i])
+      z.coeffs[i] = div(x.coeffs[i]::T, a)
+    else
+      z.coeffs[i] = div!(z.coeffs[i]::T, x.coeffs[i]::T, a)
+    end
+    monomial_set!(z, i, x, i)
+  end
+
+  z.len = length(x)
+  return z
 end
