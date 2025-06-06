@@ -706,7 +706,7 @@ end
 @doc raw"""
     is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
 
-Determine whether the finitely presented module `M` over `ZZ` or a field is finite as a set.
+Determine whether the finitely presented module `M` over `ZZRing` or a `Field` is finite as a set.
 
 This is done by computing a minimal presentation.
 
@@ -780,5 +780,64 @@ function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
     end
   else
     error("The base ring $(typeof(R)) is not supported.")
+  end
+end
+
+@doc raw"""
+    size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+
+Compute the cardinality of the finitely presented module `M` over `ZZRing` or a `Field` as a set.
+Returns `PosInf` if the module is infinite.
+
+This is done by computing a minimal presentation.
+
+# Examples
+```jldoctest
+julia> R = ZZ;
+
+julia> F = free_module(FreeMod, R, 2);
+
+julia> M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
+
+julia> size(M)
+6
+
+julia> N = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
+
+julia> size(N)
+infinity
+
+julia> K, a = finite_field(7, "a");
+
+julia> G = free_module(FreeMod, K, 3);
+
+julia> H = free_module(FreeMod, K, 1);
+
+julia> L = cokernel(hom(H, G, matrix(K, [1 0 0])));
+
+julia> size(L)
+49
+```
+"""
+function size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+  M_prime, _ = prune_with_map_atomic(M)
+  R = base_ring(M_prime)
+  pres = presentation(M_prime)
+  rel_matrix = matrix(map(pres, 1))
+  nc, nr = size(rel_matrix, 2), size(rel_matrix, 1)
+  has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
+  if isa(R, ZZRing)
+    if has_free_generator
+      return PosInf()
+    end
+    return prod(abs(rel_matrix[i,i]) for i in 1:min(nr,nc))
+  elseif isa(R, Field)
+    if is_finite(R)
+      q = order(R)
+      dim = ngens(M_prime)
+      return q^dim
+    else
+      return nc == 0 ? 1 : PosInf()
+    end
   end
 end
