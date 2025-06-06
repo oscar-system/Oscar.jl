@@ -12,6 +12,7 @@ import ..Oscar:
   elem_type,
   singular_module, 
   singular_generators,
+  singular_freemodule,
   cone,
   faces,
   hyperplanes,
@@ -26,6 +27,8 @@ import ..Oscar:
   dim,
   is_subset,
   coordinates,
+  coordinates_atomic,
+  coordinates_via_transform,
   intersect,
   primitive_generator,
   evaluate,
@@ -47,9 +50,11 @@ import ..Oscar:
   oscar_assure,
   _graded_kernel,
   oscar_free_module,
+  images_of_generators,
+  kernel_atomic,
+  in_atomic,
   oscar_generators,
   singular_poly_ring,
-  _simple_kernel,
   _extend_free_resolution
 
 
