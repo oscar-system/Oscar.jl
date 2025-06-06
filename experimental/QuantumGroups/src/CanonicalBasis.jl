@@ -61,14 +61,13 @@ function canonical_basis_expansion(x::QuantumGroupElem)
   rep = Tuple{QuantumFieldElem,Vector{Int}}[]
 
   y = deepcopy(x.elem)
-  b = Vector{Int}(undef, ngens(U))
   while !iszero(y)
-    exponent_vector!(b, y, length(y))
+    b = exponent_vector(y, length(y))
     elem = _canonical_basis_elem(U, b)
 
-    coeff = coeff(y, length(y)) / coeff(elem, length(elem))
-    push!(rep, (coeff, exp))
-    y = submul!(y, elem, coeff)
+    cf = coeff(y, length(y)) // coeff(elem, length(elem))
+    push!(rep, (cf, b))
+    y = submul!(y, elem, cf)
   end
 
   return rep

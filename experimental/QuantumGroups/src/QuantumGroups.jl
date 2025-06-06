@@ -2,7 +2,9 @@ module QuantumGroups
 
 using ..Oscar
 
-import Base: hash, deepcopy_internal
+import Base: hash, deepcopy_internal, rand
+
+import Random
 
 import AbstractAlgebra.Generic:
   FracFieldElem,
@@ -16,8 +18,12 @@ import ..Oscar:
   addmul!,
   coeff,
   coefficient_ring,
+  characteristic,
   div,
   div!,
+  divexact,
+  divexact!,
+  divexact_right,
   elem_type,
   exponent_vector,
   expressify,
@@ -30,6 +36,7 @@ import ..Oscar:
   isone,
   iszero,
   length,
+  monomial,
   mul!,
   neg!,
   ngens,
@@ -41,7 +48,6 @@ import ..Oscar:
   q_integer,
   q_binomial,
   q_factorial,
-  rand,
   root_system,
   setcoeff!,
   sub!,
