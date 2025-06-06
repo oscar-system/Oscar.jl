@@ -84,7 +84,7 @@ function (QF::QuantumField)()
   return zero(QF)
 end
 
-function (QF::QuantumField)(n::Int)
+function (QF::QuantumField)(n::Integer)
   return QuantumFieldElem(QF, QF.d(n))
 end
 
@@ -169,8 +169,12 @@ function set!(x::QuantumFieldElem, y::QuantumFieldElem)
   return x
 end
 
-function rand(rng::AbstractRNG, Random.SamplerTrivial{QuantumField})
-  return QuantumFieldElem(QF, rand(QF.d))
+function characteristic(QF::QuantumField)
+  return characteristic(QF.d)
+end
+
+function is_unit(x::QuantumFieldElem)
+  return is_unit(x.d)
 end
 
 ###############################################################################
@@ -184,8 +188,12 @@ function Base.:+(x::QuantumFieldElem, y::QuantumFieldElem)
   return add!(zero(x), x, y)
 end
 
+function Base.:(/)(x::QuantumFieldElem, y::QuantumFieldElem)
+  return divexact(x, y)
+end
+
 function Base.:(//)(x::QuantumFieldElem, y::QuantumFieldElem)
-  return div(x, y)
+  return divexact(x, y)
 end
 
 function Base.:*(x::QuantumFieldElem, y::QuantumFieldElem)
@@ -206,7 +214,7 @@ function Base.:^(x::QuantumFieldElem, n::Int)
   return QuantumFieldElem(parent(x), x.d^n)
 end
 
-function div(x::QuantumFieldElem, y::QuantumFieldElem)
+function divexact(x::QuantumFieldElem, y::QuantumFieldElem)
   check_parent(x, y)
   return div!(zero(x), x, y)
 end
@@ -298,4 +306,14 @@ end
 function submul!(z::QuantumFieldElem, x::QuantumFieldElem, y::QuantumFieldElem)
   z.d = submul!(z.d, x.d, y.d)
   return z
+end
+
+###############################################################################
+#
+#   Conformance 
+#
+###############################################################################
+
+function ConformanceTests.generate_element(QF::QuantumField)
+  return QuantumFieldElem(ConformanceTests.generate_element(QF.d))
 end

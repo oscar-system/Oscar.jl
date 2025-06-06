@@ -97,7 +97,7 @@ end
 
 function deepcopy_internal(x::PBWAlgebraElem{T}, dict::IdDict) where {T}
   return get!(dict, x) do
-    PBWAlgebraElem(parent(x), deepcopy_internal(x.poly, dict))
+    PBWAlgebraElem(parent(x), deepcopy_internal(x.poly, dict)::MPolyRingElem{T})
   end
 end
 
@@ -180,12 +180,16 @@ function length(x::PBWAlgebraElem)
   return length(x.poly)
 end
 
+function exponent(x::PBWAlgebraElem, i::Int, j::Int)
+  return exponent(x.poly, i, j)
+end
+
 function exponent_vector!(exp::Vector{Int}, x::PBWAlgebraElem, i::Int)
   return exponent_vector!(exp, x.poly, i)
 end
 
-function exponent(x::PBWAlgebraElem, i::Int, j::Int)
-  return exponent(x.poly, i, j)
+function exponent_vector(x::PBWAlgebraElem, i::Int)
+  return exponent_vector(x.poly, i)
 end
 
 ###############################################################################
@@ -248,6 +252,10 @@ function Base.:^(x::PBWAlgebraElem, n::Int)
   return pow!(zero(x), x, n)
 end
 
+function divexact_right(x::PBWAlgebraElem{T}, a::T) where {T}
+  return PBWAlgebraElem(parent(x), divexact(x.poly, a))
+end
+
 ###############################################################################
 #
 #   Unsafe arithmetic
@@ -264,6 +272,11 @@ function addmul!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}, a::T) where {T}
   return x
 end
 
+function div!(z::PBWAlgebraElem{T}, x::PBWAlgebraElem{T}, a::T) where {T}
+  z.poly = div!(z.poly, x.poly, a)
+  return z
+end
+
 function mul!(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
   return mul!(zero(x), x, y)
 end
@@ -271,7 +284,14 @@ end
 function mul!(
   z::PBWAlgebraElem{T}, x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}
 ) where {T}
-  _mul_p_p!(parent(z), z.poly, x.poly, y.poly)
+  if z === x || z === y
+    p = zero(z.poly)
+    _mul_p_p!(parent(z), p, x.poly, y.poly)
+    z.poly = p
+  else
+    _mul_p_p!(parent(z), z.poly, x.poly, y.poly)
+  end
+
   return z
 end
 

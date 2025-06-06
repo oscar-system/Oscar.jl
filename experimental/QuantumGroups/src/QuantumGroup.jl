@@ -13,7 +13,8 @@ function _quantum_group(
   bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
   w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
 )
-  return _quantum_group(quantum_field(), R; bilinear_form=bilinear_form, w0=w0)
+  QF, _ = quantum_field()
+  return _quantum_group(QF, R; bilinear_form=bilinear_form, w0=w0)
 end
 
 raw"""
@@ -27,7 +28,7 @@ function _quantum_group(
   bilinear_form::ZZMatrix=Oscar.bilinear_form(R),
   w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
 )
-  QF, q = quantum_field()
+  q = gen(QF)
   P, theta = polynomial_ring(QF, :F => 1:length(w0))
 
   # for now we rely on the QuaGroup package to compute the PBW relations
@@ -116,10 +117,10 @@ This choice determines the PBW basis of the quantum group.
 """
 function quantum_group(fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing)
   R = root_system(fam, rk)
-  if !is_finite(R)
+  if !is_finite(weyl_group(R))
     error("Quantum groups are currently only supported for finite root systems.")
   end
-  
+
   if isnothing(w0)
     w0 = word(longest_element(weyl_group(R)))
   end
@@ -209,9 +210,34 @@ function Base.show(io::IO, U::QuantumGroup)
   print(io, "Quantum Group over ", root_system(U))
 end
 
-function Base.show(io::IO, x::QuantumGroupElem)
-  show(io, x.elem)
+#function Base.show(io::IO, x::QuantumGroupElem)
+#  show(io, x.elem)
+#end
+
+function expressify(x::QuantumGroupElem; context=nothing)
+  expr = Expr(:call, :+)
+
+  U = parent(x)
+  exp = Vector{Int}(undef, ngens(U))
+  for i in 1:length(x)
+    cf = deepcopy(coeff(x, i))
+    exponent_vector!(exp, x.elem, i)
+    for i in 1:length(exp)
+      cf = mul!(cf, q_factorial(exp[i], U.qi[i]))
+    end
+
+    expr2 = Expr(:call, :*, expressify(cf; context=context))
+    for j in 1:length(exp)
+      if exp[j] != 0
+        push!(expr2.args, string("F[$j]", exp[j] > 1 ? "^($(exp[j]))" : ""))
+      end
+    end
+    push!(expr.args, expr2)
+  end
+  return expr
 end
+
+@enable_all_show_via_expressify QuantumGroupElem
 
 ###############################################################################
 #
@@ -221,6 +247,11 @@ end
 
 function add!(z::QuantumGroupElem, x::QuantumGroupElem, y::QuantumGroupElem)
   z.elem = add!(z.elem, x.elem, y.elem)
+  return z
+end
+
+function div!(z::QuantumGroupElem, x::QuantumGroupElem, a::QuantumFieldElem)
+  z.elem = div!(z.elem, x.elem, a)
   return z
 end
 
@@ -281,6 +312,19 @@ function Base.:*(x::QuantumGroupElem, y::QuantumGroupElem)
   return mul!(zero(x), x, y)
 end
 
+function Base.:/(x::QuantumGroupElem, a::QuantumFieldElem)
+  return divexact_right(x, a)
+end
+
+function divexact_right(x::QuantumGroupElem, a::QuantumFieldElem)
+  return QuantumGroupElem(parent(x), divexact_right(x.elem, a))
+end
+
+function divexact_right(x::QuantumGroupElem, y::QuantumGroupElem)
+  check_parent(x, y)
+  return QuantumGroupElem(parent(x), divexact(x.elem, y.elem))
+end
+
 ###############################################################################
 #
 #   Comparison
@@ -298,4 +342,51 @@ end
 
 function iszero(x::QuantumGroupElem)
   return iszero(x.elem)
+end
+
+function coeff(x::QuantumGroupElem, i::Int)
+  return coeff(x.elem, i)
+end
+
+function length(x::QuantumGroupElem)
+  return length(x.elem)
+end
+
+###############################################################################
+#
+#   Monomial
+#
+###############################################################################
+
+@doc raw"""
+    monomial(F::Vector{QuantumGroupElem}, m::Vector{Tuple{Int,Int}}) -> QuantumGroupElem
+    
+For a vector `F` of generators of a quantum group `U` return the monomial
+defined by the vector `m` of tuples `(i, n)`, where `i` is the index of a generator in `F`
+and `n` is the divided power of the generator.
+"""
+function monomial(U::QuantumGroup, m::Vector{Tuple{Int,Int}})
+  f = one(U)
+  for (i, n) in m
+    f = mul!(f, gen(U, U.cvx[i])^n)
+    f = div!(f, q_factorial(n, U.qi[i]))
+  end
+
+  return f
+end
+
+@doc raw"""
+    monomial(F::Vector{QuantumGroupElem}, m::Vector{Tuple{Int,Int}}) -> QuantumGroupElem
+    
+For a vector `F` of generators of a quantum group `U` return the monomial
+for the word `i` with divided powers `n`.
+"""
+function monomial(U::QuantumGroup, i::Vector{Int}, n::Vector{Int})
+  f = one(U)
+  for (i, n) in Iterators.zip(i, n)
+    f = mul!(f, gen(U, U.cvx[i])^n)
+    f = div!(f, q_factorial(n, U.qi[i]))
+  end
+
+  return f
 end
