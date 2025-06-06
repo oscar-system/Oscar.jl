@@ -503,7 +503,7 @@ The optional argument allows to specify a free module of rank one over the
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
 function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
-    codomain::FreeMod=FreeMod(base_ring(domain(f)), 1), 
+    codomain::FreeMod=is_graded(f) ? graded_free_module(base_ring(domain(f)), [zero(grading_group(domain(f)))]) : FreeMod(base_ring(domain(f)), 1), 
     domain_dual::ModuleFP=dual(Oscar.domain(f), codomain=codomain)[1],
     codomain_dual::ModuleFP=dual(Oscar.codomain(f), codomain=codomain)[1]
   )
