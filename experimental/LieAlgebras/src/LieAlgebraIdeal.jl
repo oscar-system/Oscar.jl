@@ -48,7 +48,8 @@ end
 
 Return the dimension of the ideal `I`.
 """
-dim(I::LieAlgebraIdeal) = length(basis(I))
+dim(I::LieAlgebraIdeal) = vector_space_dim(I)
+vector_space_dim(I::LieAlgebraIdeal) = length(basis(I))
 
 coefficient_ring(I::LieAlgebraIdeal) = coefficient_ring(base_lie_algebra(I))
 
