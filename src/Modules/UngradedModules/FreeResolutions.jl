@@ -240,11 +240,43 @@ Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
 Current options for `algorithm` are `:fres`, `:nres`, and `:mres` for modules over
-polynomial rings and `:sres` for modules over quotients of polynomial rings.
+polynomial rings and `:sres` for modules over quotients of polynomial rings (see below).
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
-    higher syzygy modules.
+    higher syzygy modules. In the illustrating example below, the free resolution is
+    first computed up to length 1:
+    ```@julia
+    julia> fr = free_resolution(M, length = 1)
+    Free resolution of M
+    R^2 <---- R^6
+    0         1
+    ```
+    This resolution is not yet complete
+    ```@julia
+    julia> is_complete(fr)
+    false
+    ```
+    Continuing the session as follows, the resolution is extended up to length 4,
+    without computing its first part again:
+    ```@julia
+    julia> fr[4]
+    Free module of rank 0 over R
+
+    julia> fr
+    Free resolution of M
+    R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+    0         1         2         3         4
+    ``` 
+    As we already see from the output, the extended resolution is complete:
+    ```@julia
+    julia> is_complete(fr)
+    true
+    ```
+
+!!! note
+    If `M` is a module over a quotient of a polynomial ring, then the `length` keyword must
+    be set to a nonzero value (recall that free resolutions over quotient rings may be infinite).
 
 !!! note
     - If `algorithm == mres`, and `M` is positively graded, then a minimal free resolution is returned.
@@ -254,14 +286,23 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings.
 
 !!! note
     If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
-    [EMSS16](@cite). Typically, this is more efficient than the approaches above, but the
-    resulting resolution is far from being minimal. If `algorithm == sres` in the case of modules
+    [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
+    may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
+    ```@julia
+    julia> FM = free_resolution(M)
+    Free resolution of M
+    Pn^44 <---- Pn^296 <---- Pn^808 <---- Pn^1019 <---- Pn^618 <---- Pn^169 <---- Pn^14 <---- 0
+    0           1            2            3             4            5            6           7
+
+    julia> free_resolution(M, algorithm = :mres)
+    Free resolution of M
+    Pn^6 <---- Pn^10 <---- Pn^4 <---- 0
+    0          1           2          3
+
+    ```
+    If `algorithm == sres` in the case of modules
     over quotients of polynomial rings (this is currently the only option available for that case),
     then again a version of Schreyer's approach is used.
-
-!!! note
-    If `M` is a module over a quotient of a polynomial ring, then the `length` keyword must
-    be set to a nonzero value.
 
 # Examples
 ```jldoctest
@@ -288,7 +329,7 @@ by submodule with 4 generators
   3: y^2*e[1]
   4: z^4*e[1]
 
-julia> fr = free_resolution(M, length=1)
+julia> fr = free_resolution(M, length = 1)
 Free resolution of M
 R^2 <---- R^6
 0         1
