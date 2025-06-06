@@ -1731,4 +1731,28 @@ end
     @test_throws AssertionError graded_free_module(ZZ, [1])
   end
 
+  @testset "size of modules" begin
+    R = ZZ
+    F = free_module(FreeMod, R, 2)
+    M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
+    @test size(M) == 6
+
+    N = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
+    @test size(N) == PosInf()
+
+    K, a = finite_field(7, "a")
+    G = free_module(FreeMod, K, 3)
+    H = free_module(FreeMod, K, 1)
+    L = cokernel(hom(H, G, matrix(K, [1 0 0])))
+    @test size(L) == 49
+
+    K, a = finite_field(7, "a")
+    G = free_module(FreeMod, K, 3)
+    L = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
+    @test size(L) == 1
+
+    G = free_module(FreeMod, QQ, 3)
+    L = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
+    @test size(L) == 1
+  end
 end

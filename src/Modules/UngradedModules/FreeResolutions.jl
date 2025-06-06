@@ -543,39 +543,11 @@ function free_resolution(M::SubquoModule{T};
   return FreeResolution(cc)
 end
 
-# kept for the comments
-# function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
-#   # This generic code computes a free resolution in a lazy way.
-#   # We start out with a presentation of M and implement 
-#   # an iterative fill function to compute every higher term 
-#   # on request.
-#   R = base_ring(M)
-#   p = presentation(M)
-#   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
-#     # TODO: Use official getter and setter methods instead 
-#     # of messing manually with the internals of the complex.
-#     for i in first(chain_range(C)):k-1
-#       N = domain(map(C, i))
-
-#       if iszero(N) # Fill up with zero maps
-#         C.complete = true
-#         phi = hom(N, N, elem_type(N)[]; check=false)
-#         pushfirst!(C.maps, phi)
-#         continue
-#       end
-
-#       K, inc = kernel(map(C, i))
-#       nz = findall(!is_zero, gens(K))
-#       F = FreeMod(R, length(nz))
-#       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
-#       pushfirst!(C.maps, phi)
-#     end
-#     return first(C.maps)
-#   end
-#   return p
-# end
-
 function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
+  # This generic code computes a free resolution in a lazy way.
+  # We start out with a presentation of M and implement
+  # an iterative fill function to compute every higher term
+  # on request.
   R = base_ring(M)
   p = presentation(M)
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
