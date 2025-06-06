@@ -65,11 +65,11 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   # Set the variable names for printing
   orig_symb = String.(symbols(F))
-  result.S = function _get_koszul_symbols()
-    new_symb = Symbol[]
-    if iszero(p)
-      new_symb = [Symbol("1")]
-    else
+  if iszero(p)
+    result.S = [Symbol("1")]
+  else
+    result.S = function _get_koszul_symbols()
+      new_symb = Symbol[]
       for ind in combinations(n, p)
         symb_str = orig_symb[ind[1]]
         for i in 2:p
