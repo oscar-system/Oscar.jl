@@ -176,6 +176,9 @@ end
    @test is_full_wreath_product(W)
    @test W==sub(W,gens(W))[1]
    @test permutation_group(W) isa PermGroup
+   x = rand(W)
+   gs, h = Oscar.decompose_wreath_product_element(x)
+   @test x == W(gs..., h)
 
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)
@@ -186,6 +189,7 @@ end
    @test rand(W) isa elem_type(WreathProductGroup)
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
+   @test Oscar.decompose_wreath_product_element(x) == ([f1,one(C),f1,one(C)], cperm([1,4,2]))
    @test canonical_injection(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
    @test canonical_injection(W,4)(f1)==W(one(C),one(C),one(C),f1,one(H))
    @test_throws ArgumentError canonical_injection(W,7)(f1) in W
@@ -203,6 +207,9 @@ end
    @test is_cyclic(K)
    @test index(W,K)==8
    @test_throws ArgumentError canonical_injection(K,1)(f1) in K
+   x = rand(K)
+   gs, h = Oscar.decompose_wreath_product_element(x)
+   @test x == K(gs..., h)
 
    C = cyclic_group(3)
    a = hom(C,H,[C[1]],[cperm([1,2,4])])
@@ -216,4 +223,7 @@ end
    @test W(C[1],one(C),one(C),C[1]) isa elem_type(WreathProductGroup)
    @test image(canonical_projection(W))[1]==C
    @test_throws ArgumentError canonical_injection(W,5)(C[1])
+   x = rand(W)
+   gs, h = Oscar.decompose_wreath_product_element(x)
+   @test x == W(gs..., h)
 end
