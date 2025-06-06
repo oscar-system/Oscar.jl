@@ -210,7 +210,7 @@ function compute_pluecker_indices_and_vector(A::MatElem)
     k = nrows(A)
     @req n>=k "matrix for Pluecker vector cannot have more rows than columns"
     plueckerIndices = data.(combinations(n,k))
-    plueckerVector = [det(M[:, cols]) for cols in plueckerIndices]
+    plueckerVector = [det(A[:, cols]) for cols in plueckerIndices]
     nonZeroIndices = findall(!iszero,plueckerVector)
     plueckerIndices = plueckerIndices[nonZeroIndices]
     plueckerVector = plueckerVector[nonZeroIndices]
