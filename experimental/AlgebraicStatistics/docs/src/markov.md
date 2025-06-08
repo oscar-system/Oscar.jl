@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Discrete random variables
 
 The joint probability distribution of random variables ``X_1, \ldots, X_n``

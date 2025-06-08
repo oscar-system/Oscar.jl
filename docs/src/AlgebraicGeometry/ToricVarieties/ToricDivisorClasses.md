@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # Toric Divisor Classes
 
 ## Introduction

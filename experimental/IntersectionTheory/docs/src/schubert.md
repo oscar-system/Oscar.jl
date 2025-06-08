@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Schubert Calculus
 
 To recall the definition of Schubert cycles on a Grassmannian $\mathrm{G}(k,n)$, we think of $\mathrm{G}(k, n)$ as the

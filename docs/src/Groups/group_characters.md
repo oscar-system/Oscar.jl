@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Group characters
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``

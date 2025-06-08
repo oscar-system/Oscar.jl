@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Sheaves on Projective Space
 
 We present two algorithms for computing sheaf cohomology over projective $n$-space.

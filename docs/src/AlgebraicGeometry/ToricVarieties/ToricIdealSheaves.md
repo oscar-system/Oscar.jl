@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # Toric Ideal Sheaves (Experimental)
 
 Ideal sheaves on toric varieties are currently in experimental state.

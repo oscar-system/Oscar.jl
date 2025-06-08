@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # GR-Algebras: Quotients of PBW-Algebras
 
 In analogy to the [affine algebras](@ref affine_algebras) section in the [commutative algebra](@ref commutative_algebra) chapter, we describe OSCAR

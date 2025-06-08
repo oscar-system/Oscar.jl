@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Projective Algebraic Sets
 For finitely many homogeneous polynomials $f_1,\dots f_r \in k[x_0,\dots x_n]$,
 and $I=(f_1,\dots , f_n) \leq k[x_0,\dots x_n]$ the homogeneous ideal they generate, we denote by $X = V(I) \subseteq \mathbb{P}^n$ the
@@ -22,7 +16,7 @@ for instance, whether $X$ is irreducible or not depends on its base field.
 See [`is_irreducible(X::AbsProjectiveScheme)`](@ref) for details.
 Further exceptions are documented in the individual methods.
 
-# Relation to schemes
+## Relation to schemes
 
 One can view a projective algebraic set as a scheme.
 See [Projective schemes](@ref).

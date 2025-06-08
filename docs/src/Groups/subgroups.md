@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Subgroups](@id subgroups)
 
 The following functions are available in OSCAR for subgroup properties:

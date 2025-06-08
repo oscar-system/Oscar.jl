@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Algebraic Phylogenetics
 
 The Algebraic Phylogenetics part of OSCAR provides functionality for

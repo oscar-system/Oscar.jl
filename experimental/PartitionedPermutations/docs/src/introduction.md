@@ -1,16 +1,10 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Partitioned Permutations
 
 Partitioned Permutations are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants, see e.g. [CMS07](@cite).
 
 We provide basic functions for working with partitioned permutations. The focus is on factorizing partitioned permutations.
 
-# Basics
+## Basics
 
 Formally, a partitioned permutation $(V, \pi)$ consists of a permutation $\pi$ and a partition $V$ of the set $\{1, ..., n\}$ such that the partition dominates the permutation in the sense that every cycle of $\pi$ is contained in one block of $V$. We call $n$ the length of $(V, \pi)$. Mathematically, another length function is more important. It is given by
 $$|(V, \pi)| := n - ( 2 \cdot \text{number of blocks of } V - \text{number of cycles of } \pi),$$
@@ -22,7 +16,7 @@ length(pp::PartitionedPermutation)
 adjusted_length(pp::PartitionedPermutation)
 ```
 
-# Products of Partitioned Permutations
+## Products of Partitioned Permutations
 
 For two partitioned permutations $(V, \pi)$ and $(W, \sigma)$ one defines their product as
 $$(V, \pi) \cdot (W, \sigma) = (V \vee W, \pi \sigma)$$

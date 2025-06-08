@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Localization and Bott's Formula
 
 Recall that our focus in this chapter is on computations which manipulate collections of data

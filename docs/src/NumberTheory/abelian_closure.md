@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abelian closure of the rationals
 
 The abelian closure $\mathbf{Q}^\text{ab}$ is the maximal abelian extension of $\mathbf{Q}$
