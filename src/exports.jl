@@ -113,10 +113,20 @@ export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
 export LinearSystem
+export MPolyComplementOfKPointIdeal
+export MPolyComplementOfPrimeIdeal
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
+export MPolyLocalizedIdeal
+export MPolyLocRing
+export MPolyLocRingElem
+export MPolyPowersOfElement
+export MPolyProductOfMultSets
 export MPolyQuoIdeal
+export MPolyQuoLocalizedIdeal
+export MPolyQuoLocRing
+export MPolyQuoLocRingElem
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
