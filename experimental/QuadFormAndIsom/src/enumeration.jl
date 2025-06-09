@@ -650,9 +650,28 @@ function representatives_of_hermitian_type(
 
   n = order_of_isometry(Lf)
   @req is_finite(n) "Isometry must be of finite order"
+  k = n*m
+  _reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(k), fix_root; cond, genusDB, root_test, info_depth)
 
-  reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(n*m), fix_root; cond, genusDB, root_test, info_depth)
-  filter!(M -> is_of_same_type(M^m, Lf), reps)
+  # We test the type condition
+  if fix_root == k
+    # In this case, we have fixed a generator for a cyclic group: we need
+    # to find a generator which satisfies the type condition. If there is
+    # one, we keep it, otherwise we discard the lattice with isometry
+    Sk = Int[i for i in 1:k if isone(gcd(i, k))]
+    reps = empty(_reps)
+    while !isempty(_reps)
+      M = pop!(_reps)
+      j = findfirst(l -> is_of_same_type(M^(l*m), Lf), Sk)
+      if isnothing(j)
+        continue
+      end
+      l = Sk[j]
+      push!(reps, M^l)
+    end
+  else
+    reps = filter!(M -> is_of_same_type(M^m, Lf), _reps)
+  end
   return reps
 end
 
@@ -1073,6 +1092,9 @@ function splitting_of_hermitian_type(
     return reps
   end
 
+  if fix_root == k
+    Sk = Int[i for i in 1:k if isone(gcd(i, k))]
+  end
   reps = ZZLatWithIsom[]
   # If p does not divide n, then the characteristic polynomials of the
   # isometries in output are of the form \Phi_n^a*\Phi_k^b where a,b are
@@ -1148,8 +1170,21 @@ function splitting_of_hermitian_type(
       end
       isempty(Bs) && continue
       for LA in As, LB in Bs
-        Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false)
-        append!(reps, Es)
+        Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false)
+        if fix_root == k
+          while !isempty(Es)
+            M = pop!(Es)
+            j = findfirst(l -> is_of_same_type(M^(l*p), Lf), Sk)
+            if isnothing(j)
+              continue
+            end
+            l = Sk[j]
+            push!(reps, M^l)
+          end
+        else
+          filter!(M -> is_of_same_type(M^p, Lf), Es)
+          append!(reps, Es)
+        end
       end
     end
   end
