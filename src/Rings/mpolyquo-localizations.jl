@@ -2497,14 +2497,14 @@ function inverse(phi::MPolyQuoLocalizedRingHom)
 end
 
 @doc raw"""
-    minimal_generating_set(I::MPolyLocalizedIdeal)
+    minimal_generating_set(I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, <:Any,<:Any})
 
-Given an ideal `I` in the localization of a quotient of a  multivariate
-polynomial ring over a field at a point, return an array containing a
-minimal set of generators of `I`. If `I` is the zero ideal an empty list
-is returned.
+Given an ideal $I$ in a localized ring $RQL$ of type $RQL = (R/J)_P$, where
+- ``R`` is a multivariate polynomial ring over a field $K$, say $R = K[x_1,\dots, x_n]$, and
+- ``P`` is of type $P = \langle x_1-a_1,...,x_n-a_n\rangle$, with $a_1,\dots, a_n\in K$,
+return a vector containing a minimal set of generators of `I`.
 
-Note: This is only available for localizations at rational points. 
+If `I` is the zero ideal, then an empty list is returned.
 """
 @attr Vector{<:MPolyQuoLocRingElem} function minimal_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:Any,

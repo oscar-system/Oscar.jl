@@ -493,7 +493,13 @@ If `I` is an ideal of a localized multivariate polynomial ring  `RL`, then
 - `number_of_generators(I)` / `ngens(I)` to the number of these generators, and
 - `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
-Similarly, if `I` is an ideal of a localized quotient of a multivariate polynomial ring.
+We also have:
+
+```@docs
+minimal_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}})
+```
+
+Retrieving data as above works similarly if `I` is an ideal of a localized quotient of a multivariate polynomial ring `RQL`.
 
 ### Operations on Ideals
 
