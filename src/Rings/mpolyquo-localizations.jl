@@ -1866,7 +1866,7 @@ julia> I = ideal(R, [f, g]);  # tangential cusps at  [0, 1] and transversal
 julia> RQ, _ = quo(R, I);
 
 julia> monomial_basis(RQ)
-10-element Vector{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}:
+10-element Vector{QQMPolyRingElem}:
  x*y^2
  y^2
  x^3*y
@@ -1886,12 +1886,12 @@ julia> P = [0, 1]
 julia> U = complement_of_point_ideal(R, P)
 Complement
   of maximal ideal corresponding to rational point with coordinates (0, 1)
-  in multivariate polynomial ring in 2 variables over K
+  in multivariate polynomial ring in 2 variables over QQ
 
 julia> RQL, _ = localization(RQ, U);
 
 julia> monomial_basis(RQL)
-6-element Vector{Oscar.MPolyLocRingElem{AbsSimpleNumField, AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPolyRing{AbsSimpleNumFieldElem}, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}, Oscar.MPolyComplementOfKPointIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPolyRing{AbsSimpleNumFieldElem}, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}}:
+6-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  x*y^2
  y^2
  x*y
@@ -1929,20 +1929,20 @@ julia> monomial_basis(Tf)
 julia> TfL0,_ = localization(Tf, complement_of_point_ideal(R, [0,0]));
 
 julia> monomial_basis(TfL0)
-2-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+2-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  y
  1
 
 julia> TfL1,_ = localization(Tf, complement_of_point_ideal(R, [1,1]));
 
 julia> monomial_basis(TfL1)
-1-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+1-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  1
 
 julia> TfL2,_ = localization(Tf, complement_of_point_ideal(R, [-1,1]));
 
 julia> monomial_basis(TfL2)
-1-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+1-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  1
 
 julia> vector_space_dimension(Tf) == vector_space_dimension(TfL0) + vector_space_dimension(TfL1) + vector_space_dimension(TfL2)
