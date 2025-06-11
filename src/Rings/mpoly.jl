@@ -651,7 +651,7 @@ oscar_generators(I::MPolyIdeal) = oscar_generators(I.gens)
 oscar_generators(IG::IdealGens) = oscar_generators(IG.gens)
 
 function oscar_generators(B::BiPolyArray)
-  if !isdefined(B, :O) || !isassigned(B.O, 1)
+  if !isdefined(B, :O)
     if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
