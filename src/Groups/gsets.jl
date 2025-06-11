@@ -219,13 +219,43 @@ end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
-## natural action of a permutation group on the integers 1, ..., degree
-gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
+#############################################################################
+##
+##  natural method with implicit action function
 
-## natural action of a matrix group over a finite field on vectors
-function gset(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
-    V = free_module(base_ring(G), degree(G))
-    return gset(G, collect(V); closed = true)
+"""
+    natural_gset(G::PermGroup)
+
+Return the G-set `Omega` that consists of the closure of integers 1, ..., degree
+under the natural action of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> length(natural_gset(G))
+4
+```
+"""
+natural_gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
+
+"""
+    natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+
+Return the G-set `Omega` that consists of the closure of vectors
+under the natural action of `G` over a finite field.
+
+# Examples
+```jldoctest
+julia> G = matrix_group(GF(2), 2);
+
+julia> length(natural_gset(G))
+4
+```
+"""
+function natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+  V = free_module(base_ring(G), degree(G))
+  return gset(G, collect(V); closed = true)
 end
 
 
