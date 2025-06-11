@@ -1794,6 +1794,7 @@ julia> dim(a)
 ```
 """
 dim(a::MPolyQuoIdeal) = krull_dim(a)
+krull_dimension(a::MPolyQuoIdeal) = krull_dim(a)
 
 function krull_dim(a::MPolyQuoIdeal)
   @req is_noetherian(base_ring(a)) "Krull dimension is only supported for Noetherian rings."

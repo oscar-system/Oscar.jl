@@ -164,6 +164,7 @@ dim(kk::Field) = error("The value of `dim` is ambiguous for fields, see `krull_d
 number_of_generators(F::AbstractFreeMod) = rank(F)
 vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
 vector_space_dim(F::Field) = 1
+vector_space_dimension(F::Union{AbstractFreeMod{T}, Field}) where T <: FieldElem = vector_space_dim(F)
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

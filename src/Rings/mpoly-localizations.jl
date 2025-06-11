@@ -1,4 +1,4 @@
-# import Base: issubset
+import Base: issubset
 
 import AbstractAlgebra: Ring, RingElem
 
