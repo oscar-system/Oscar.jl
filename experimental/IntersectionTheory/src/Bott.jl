@@ -73,7 +73,7 @@ tn_representation(w::Vector{<:IntegerUnion}) = TnRep(w)
 # A Tⁿ-abstract_variety X is represented as the set of fixed points X.points, each
 # labeled using some value of type P (e.g. an array), and has a multiplicity e
 # (orbifold multiplicity);
-# 
+#
 # A Tⁿ-equivariant bundle on X is represented by its localization/restriction
 # to each of the points in X.points, which will be of type `TnRep`.
 # They are stored as a function to allow lazy evaluation: this is crucial for
@@ -115,7 +115,7 @@ julia> T = tangent_bundle(G)
 TnBundle of rank 2 on TnVariety of dim 2 with 3 fixed points
 
 julia> V = fixed_points(G)
-3-element Vector{Pair{Vector{Int64}, Int64}}:
+3-element Vector{Pair{Combination{Int64}, Int64}}:
  [1] => 1
  [2] => 1
  [3] => 1
@@ -165,7 +165,7 @@ Base.show(io::IO, X::TnVariety) = print(io,
 
 Return an abstract equivariant vector bundle on `X` by specifying its rank together with a function which gives the localization of the vector bundle at each fixed point of the torus action on `X`.
 """
-tn_bundle(X::TnVariety, r::Int, f::Function) = TnBundle(X, r, f) 
+tn_bundle(X::TnVariety, r::Int, f::Function) = TnBundle(X, r, f)
 
 @doc raw"""
     tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P
@@ -206,22 +206,20 @@ Return the fixed points representing `X` and their multiplicities.
 julia> G = tn_grassmannian(2, 5);
 
 julia> V = fixed_points(G)
-10-element Vector{Pair{Vector{Int64}, Int64}}:
+10-element Vector{Pair{Combination{Int64}, Int64}}:
  [1, 2] => 1
  [1, 3] => 1
- [2, 3] => 1
  [1, 4] => 1
- [2, 4] => 1
- [3, 4] => 1
  [1, 5] => 1
+ [2, 3] => 1
+ [2, 4] => 1
  [2, 5] => 1
+ [3, 4] => 1
  [3, 5] => 1
  [4, 5] => 1
 
 julia> P = V[10][1]
-2-element Vector{Int64}:
- 4
- 5
+[4, 5]
 
 ```
 """
@@ -493,7 +491,7 @@ end
 @doc raw"""
     tn_grassmannian(k::Int, n::Int; weights = :int)
 
-Return the Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an 
+Return the Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an
 `n`-dimensional standard vector space as a `TnVariety`, where the action is induced by
 the diagonal action with `weights` on the standard vector space.
 
@@ -506,23 +504,20 @@ julia> G = tn_grassmannian(3,5)  # all weights are 1
 TnVariety of dim 6 with 10 fixed points
 
 julia> V = fixed_points(G)
-10-element Vector{Pair{Vector{Int64}, Int64}}:
+10-element Vector{Pair{Combination{Int64}, Int64}}:
  [1, 2, 3] => 1
  [1, 2, 4] => 1
- [1, 3, 4] => 1
- [2, 3, 4] => 1
  [1, 2, 5] => 1
+ [1, 3, 4] => 1
  [1, 3, 5] => 1
- [2, 3, 5] => 1
  [1, 4, 5] => 1
+ [2, 3, 4] => 1
+ [2, 3, 5] => 1
  [2, 4, 5] => 1
  [3, 4, 5] => 1
 
 julia> P = V[10][1]
-3-element Vector{Int64}:
- 3
- 4
- 5
+[3, 4, 5]
 
 ```
 """
@@ -543,14 +538,14 @@ end
 @doc raw"""
     tn_flag_variety(dims::Int...; weights = :int)
 
-Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$, 
-return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of 
-dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional standard vector space as a `TnVariety`, where the 
+Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$,
+return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of
+dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional standard vector space as a `TnVariety`, where the
 action is induced by the diagonal action with `weights` on the standard vector space.
 
 # Examples
 ```jldoctest
-julia> F = tn_flag_variety(1,3,4)  # all weights are 1 
+julia> F = tn_flag_variety(1,3,4)  # all weights are 1
 TnVariety of dim 5 with 12 fixed points
 
 julia> fixed_points(F)
@@ -595,7 +590,7 @@ end
 @doc raw"""
     linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
 
-If $n=\frac1{k+1}\binom{d+k}d+k$ is an integer, return the number of $k$-dimensional subspaces 
+If $n=\frac1{k+1}\binom{d+k}d+k$ is an integer, return the number of $k$-dimensional subspaces
 on a generic hypersurface of degree $d$ in a projective space of dimension $n$.
 
     lines_on_hypersurface(n::Int; bott::Bool = true)
