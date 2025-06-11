@@ -578,7 +578,7 @@ julia> map(length, orbs)
  2
 ```
 """
-@attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(gset(G))
+@attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(natural_gset(G))
 
 
 """
@@ -600,7 +600,7 @@ If `check` is `false` then it is not checked whether `omega` is in `Omega`.
 
 # Examples
 ```jldoctest
-julia> Omega = gset(symmetric_group(4));
+julia> Omega = natural_gset(symmetric_group(4));
 
 julia> stabilizer(Omega)
 (Permutation group of degree 4 and order 6, Hom: permutation group -> Sym(4))
@@ -940,7 +940,7 @@ To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_conjugate(Omega, 1, 2)
 true
@@ -966,7 +966,7 @@ If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_conjugate_with_data(Omega, 1, 2)
 (true, (1,2))
@@ -1026,7 +1026,7 @@ An exception is thrown if this action is not transitive.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> Omega = gset(sylow_subgroup(symmetric_group(4), 2)[1])
+julia> Omega = natural_gset(sylow_subgroup(symmetric_group(4), 2)[1])
 G-set of
   permutation group of degree 4 and order 8
   with seeds 1:4
@@ -1059,7 +1059,7 @@ An exception is thrown if this action is not transitive.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> Omega = gset(transitive_group(8, 2))
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1092,7 +1092,7 @@ An exception is thrown if this action is not transitive.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> Omega = gset(transitive_group(8, 2))
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1125,7 +1125,7 @@ An exception is thrown if this action is not transitive.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> Omega = gset(transitive_group(8, 2))
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1161,10 +1161,10 @@ An exception is thrown if the group action is not transitive on `Omega`.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(4); Omega = gset(G); rank_action(Omega)  # 4-transitive
+julia> G = symmetric_group(4); Omega = natural_gset(G); rank_action(Omega)  # 4-transitive
 2
 
-julia> G = dihedral_group(PermGroup, 8); Omega = gset(G); rank_action(Omega)  # not 2-transitive
+julia> G = dihedral_group(PermGroup, 8); Omega = natural_gset(G); rank_action(Omega)  # not 2-transitive
 3
 ```
 """
@@ -1187,10 +1187,10 @@ The output is `0` if the group acts intransitively on `Omega`.
 
 # Examples
 ```jldoctest
-julia> G = mathieu_group(24); Omega = gset(G); transitivity(Omega)
+julia> G = mathieu_group(24); Omega = natural_gset(G); transitivity(Omega)
 5
 
-julia> G = symmetric_group(4); Omega = gset(G); transitivity(Omega)
+julia> G = symmetric_group(4); Omega = natural_gset(G); transitivity(Omega)
 4
 ```
 """
@@ -1211,7 +1211,7 @@ In other word, this tests if `Omega` consists of precisely one orbit.
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_transitive(Omega)
 false
@@ -1238,9 +1238,9 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
 Permutation group of degree 6
 
-julia> OmegaG = gset(G);
+julia> OmegaG = natural_gset(G);
 
-julia> OmegaH = gset(H);
+julia> OmegaH = natural_gset(H);
 
 julia> is_regular(OmegaH)
 true
@@ -1264,7 +1264,7 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
 Permutation group of degree 6
 
-julia> OmegaH = gset(H);
+julia> OmegaH = natural_gset(H);
 
 julia> is_semiregular(H)
 true
@@ -1286,14 +1286,14 @@ the action is transitive and admits no nontrivial block systems.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(4); Omega = gset(G);
+julia> G = symmetric_group(4); Omega = natural_gset(G);
 
 julia> is_primitive(Omega)
 true
 
 julia> H, _ = sub(G, [cperm([2, 3, 4])]);
 
-julia> is_primitive(gset(H))
+julia> is_primitive(natural_gset(H))
 false
 ```
 """
