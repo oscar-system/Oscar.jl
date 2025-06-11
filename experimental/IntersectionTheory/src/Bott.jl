@@ -238,7 +238,7 @@ julia> T = tangent_bundle(G)
 TnBundle of rank 2 on TnVariety of dim 2 with 3 fixed points
 
 julia> V = fixed_points(G)
-3-element Vector{Pair{Vector{Int64}, Int64}}:
+3-element Vector{Pair{Combination{Int64}, Int64}}:
  [1] => 1
  [2] => 1
  [3] => 1
