@@ -639,13 +639,6 @@ function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord
   return (singular_generators(G, monorder)).base_ring
 end
 
-function singular_assure(I::BiPolyArray)
-  if !isdefined(I, :S)
-    I.Sx = singular_poly_ring(I.Ox)
-    I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-  end
-end
-
 function singular_assure(I::IdealGens)
   if !isdefined(I.gens, :S)
     g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
@@ -655,33 +648,6 @@ function singular_assure(I::IdealGens)
   end
   if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
-  end
-end
-
-# will be removed TODO
-function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
-   singular_assure(I.gens, ordering)
-end
-
-# will be removed TODO
-function singular_assure(I::IdealGens, ordering::MonomialOrdering)
-  if !isdefined(I.gens, :S)
-      I.ord = ordering
-      I.gens.Sx = singular_poly_ring(base_ring(I), ordering)
-      I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[I.gens.Sx(x) for x = I.O])
-      if I.isGB
-          I.gens.S.isGB = true
-      end
-  else
-      #= singular ideal exists, but the singular ring has the wrong ordering
-       = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering
-          I.ord = ordering
-          SR    = singular_poly_ring(base_ring(I), ordering)
-          f     = Singular.AlgebraHomomorphism(I.gens.Sx, SR, gens(SR))
-          I.gens.S   = Singular.map_ideal(f, I.S)
-          I.gens.Sx  = SR
-      end
   end
 end
 
