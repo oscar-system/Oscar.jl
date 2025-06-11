@@ -75,6 +75,7 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  natural_gset,
   normalizer,
   number_of_generators,
   ngens,
