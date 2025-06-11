@@ -1242,6 +1242,7 @@ export n_vertices
 export name
 export names_of_fusion_sources
 export natural_character
+export natural_gset
 export nef_cone
 export negative_coroot
 export negative_coroots
