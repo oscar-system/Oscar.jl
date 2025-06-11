@@ -350,9 +350,9 @@ function simplify(c::FreeResolution{T}) where T
   result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
     cc[i-1] # make sure cache is up to date
     if is_zero(i)
-      push!(cc.maps, compose(phi[0], map(c, 0)))
+      pushfirst!(cc.maps, compose(phi[0], map(c, 0)))
     else
-      push!(cc.maps, map(simp, i))
+      pushfirst!(cc.maps, map(simp, i))
     end
     last(cc.maps)
   end
