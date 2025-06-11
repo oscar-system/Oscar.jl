@@ -77,8 +77,8 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
         end
         push!(new_symb, Symbol(symb_str))
       end
+      return new_symb
     end
-    return new_symb
   end
 
   set_attribute!(result, :show => show_exterior_product)
