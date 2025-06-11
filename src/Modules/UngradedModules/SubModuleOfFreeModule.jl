@@ -228,7 +228,6 @@ function compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
   gb = standard_basis(mg, reduced)
-  oscar_assure(gb)
   gb.isGB = true
   gb.S.isGB = true
   gb.ordering = ordering

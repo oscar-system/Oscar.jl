@@ -259,16 +259,13 @@ end
 
 function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
+    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x in oscar_generators(A)])
   end
   return A.S[i]
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-    if !isdefined(A, :O)
-      oscar_assure(A)
-  end
-  return A.O[i]
+  return oscar_generators(A)[i]
 end
 
 function Base.length(A::BiPolyArray)
@@ -297,8 +294,7 @@ function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
 end
 
 function gen(A::IdealGens, i::Int)
-  oscar_assure(A)
-  return A.gens.O[i]
+  return oscar_generators(A)[i]
 end
 
 Base.getindex(A::IdealGens, i::Int) = gen(A, i)
@@ -598,10 +594,9 @@ Fields:
 
   function MPolyIdeal(B::IdealGens{T}) where T
     if length(B) >= 1
-      oscar_assure(B)
       R = base_ring(B)
       if is_graded(R)
-        @req all(is_homogeneous, B.gens.O) "The generators of an ideal in a graded ring must be homogeneous"
+        @req all(is_homogeneous, oscar_generators(B)) "The generators of an ideal in a graded ring must be homogeneous"
       end
     end
     r = new{T}()
@@ -644,33 +639,27 @@ function singular_assure(I::IdealGens)
     g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
     I.gens.Sx = codomain(g)
     I.gens.f = g
-    I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x = I.gens.O])
+    I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x in oscar_generators(I)])
   end
   if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
   end
 end
 
-function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens.gens, :O)
-    R = base_ring(I)
-    I.gens.gens.O = [R(x) for x in gens(I.gens.gens.S)]
-  end
-end
+oscar_generators(I::MPolyIdeal) = oscar_generators(I.gens)
 
-function oscar_assure(B::BiPolyArray)
+oscar_generators(IG::IdealGens) = oscar_generators(IG.gens)
+
+function oscar_generators(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
     if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
       R = B.Ox
     end
-    B.O = [R(x) for x = gens(B.S)]
+    B.O = [R(x) for x in gens(B.S)]
   end
-end
-
-function oscar_assure(B::IdealGens)
-  oscar_assure(B.gens)
+  return B.O
 end
 
 function map_entries(R, M::Singular.smatrix)
