@@ -658,33 +658,6 @@ function singular_assure(I::IdealGens)
   end
 end
 
-# will be removed TODO
-function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
-   singular_assure(I.gens, ordering)
-end
-
-# will be removed TODO
-function singular_assure(I::IdealGens, ordering::MonomialOrdering)
-  if !isdefined(I.gens, :S)
-      I.ord = ordering
-      I.gens.Sx = singular_poly_ring(base_ring(I), ordering)
-      I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[I.gens.Sx(x) for x = I.O])
-      if I.isGB
-          I.gens.S.isGB = true
-      end
-  else
-      #= singular ideal exists, but the singular ring has the wrong ordering
-       = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering
-          I.ord = ordering
-          SR    = singular_poly_ring(base_ring(I), ordering)
-          f     = Singular.AlgebraHomomorphism(I.gens.Sx, SR, gens(SR))
-          I.gens.S   = Singular.map_ideal(f, I.S)
-          I.gens.Sx  = SR
-      end
-  end
-end
-
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens.gens, :O)
     R = base_ring(I)
