@@ -19,52 +19,20 @@ julia> dim(A)
 1
 ```
 """
-dim(A::Union{MPolyQuoRing, zzModRing, ZZModRing}) = krull_dim(A)
+dim(A::MPolyQuoRing) = krull_dim(A)
 
-@doc raw"""
-    krull_dim(A::MPolyQuoRing)
-
-Return the Krull dimension of `A`.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
-
-julia> krull_dim(A)
-1
-```
-"""
-function krull_dim(A::MPolyQuoRing)
-  return krull_dim(modulus(A))
-end
-
-function krull_dim(A::zzModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return is_prime(modulus(A)) ? 0 : 1
-end
-
-function krull_dim(A::ZZModRing)
+function dim(A::Union{zzModRing, ZZModRing})
   modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
   return 0
 end
 
-@doc raw"""
-    is_noetherian(A::MPolyQuoRing)
+krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-Check if the ring $A$ is Noetherian.
+function krull_dim(A::Union{zzModRing, ZZModRing})
+  modulus(A) == 1 && error("Function `krull_dim` gives wrong answers if the base ring is the zero ring.")
+  return is_prime(modulus(A)) ? 0 : 1
+end
 
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> A, _ = quo(R, ideal(R, x));
-
-julia> is_noetherian(A)
-true
-```
-"""
 is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
@@ -148,6 +116,8 @@ function vector_space_dimension(A::MPolyQuoRing)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
 end
+
+vector_space_dim(A::MPolyQuoRing) = vector_space_dimension(A)
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing)

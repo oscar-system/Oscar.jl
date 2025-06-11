@@ -1,4 +1,4 @@
-import Base: issubset
+# import Base: issubset
 
 import AbstractAlgebra: Ring, RingElem
 
@@ -254,8 +254,6 @@ function prime_ideal(S::MPolyComplementOfKPointIdeal)
   end
   return S.m
 end
-
-dim(kk::Field) = 0
 
 maximal_ideal(S::MPolyComplementOfKPointIdeal{<:Field}) = prime_ideal(S)
 
@@ -2792,7 +2790,8 @@ small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
   filter(!iszero, I_min)
 end
 
-dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = krull_dim(R)
+krull_dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - krull_dim(prime_ideal(inverted_set(R)))
 
 ########################################################################
 # Localizations of graded rings                                        #

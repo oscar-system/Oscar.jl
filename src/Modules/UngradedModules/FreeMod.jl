@@ -154,14 +154,16 @@ end
     rank(F::FreeMod)
     number_of_generators(F::AbstractFreeMod)
     dim(F::AbstractFreeMod{T}) where T <: FieldElem
-    vector_space_dim(F::AbstractFreeMod)
+    vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem
 
 Return the rank of `F`.
 """
 rank(F::FreeMod) = F.n
-dim(F::AbstractFreeMod{T}) where T <: ZZRingElem = rank(F)
+dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
+dim(kk::Field) = error("The value of `dim` is ambiguous for fields, see `krull_dim` or `vector_space_dim`.")
 number_of_generators(F::AbstractFreeMod) = rank(F)
 vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
+vector_space_dim(F::Field) = 1
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)
