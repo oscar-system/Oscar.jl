@@ -14,7 +14,9 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   else
     C = presentation(M)
     phi = map(C, 1)
-    codomain(phi).S = Symbol.(["$e" for e in gens(M)])
+    codomain(phi).S = function _get_symbol()
+      return [Symbol("$e") for e in gens(M)]
+    end
     result, mm = _exterior_power(phi, p)
   end
 
