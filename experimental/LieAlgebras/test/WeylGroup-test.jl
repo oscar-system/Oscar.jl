@@ -465,7 +465,8 @@
     # blocks
     bl = blocks(Omega)
     @test length(bl) == 3
-    @test elements(bl) == map(Set, [[Omega[1], Omega[4]], [Omega[5], Omega[2]], [Omega[6], Omega[3]]])
+    @test elements(bl) ==
+      map(Set, [[Omega[1], Omega[4]], [Omega[5], Omega[2]], [Omega[6], Omega[3]]])
     @test length(orbits(bl)) == 1
   end
 end
