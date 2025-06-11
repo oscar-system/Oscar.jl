@@ -639,13 +639,6 @@ function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord
   return (singular_generators(G, monorder)).base_ring
 end
 
-function singular_assure(I::BiPolyArray)
-  if !isdefined(I, :S)
-    I.Sx = singular_poly_ring(I.Ox)
-    I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-  end
-end
-
 function singular_assure(I::IdealGens)
   if !isdefined(I.gens, :S)
     g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
