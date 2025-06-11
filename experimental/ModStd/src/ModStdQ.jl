@@ -2,7 +2,7 @@ module ModStdQ
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray, IdealGens, Hecke, AbstractAlgebra
+import Oscar: MPolyIdeal, IdealGens, Hecke, AbstractAlgebra
 import Hecke: induce_rational_reconstruction, induce_crt
 
 function __init__()

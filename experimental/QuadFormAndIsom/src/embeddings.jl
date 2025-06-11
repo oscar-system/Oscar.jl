@@ -1816,6 +1816,7 @@ end
       p::IntegerUnion,
       q::IntegerUnion = p;
       check::Bool=true,
+      test_type::Bool=true,
     ) -> Vector{ZZLatWithIsom}
 
 Given a triple of lattices with isometry $(A, f_A)$, $(B, f_B)$ and $(C, f_C)$,
@@ -1836,6 +1837,9 @@ are orthogonal if $A$, $B$ and $C$ lie in the same ambient quadratic space.
 Note moreover that the function computes the image of the natural map
 $O(C, f_C) \to O(D_C, D_{f_C})$ along the primitive extension
 $A\oplus B\subseteq C$ (see Algorithm 2, Line 22 of [BH23](@cite)).
+
+If one sets `test_type` to `false`, then the function does not check if the
+outputs satisfy the type condition.
 """
 function admissible_equivariant_primitive_extensions(
     A::ZZLatWithIsom,
@@ -1844,6 +1848,7 @@ function admissible_equivariant_primitive_extensions(
     p::IntegerUnion,
     q::IntegerUnion = p;
     check::Bool=true,
+    test_type::Bool=true,
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
@@ -1899,7 +1904,9 @@ function admissible_equivariant_primitive_extensions(
     C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
     # If not of the good type, we discard it
-    !is_of_type(C2fC2^q, type(C)) && return results
+    if test_type && !is_of_type(C2fC2^q, type(C))
+      return results
+    end
     qC2 = discriminant_group(C2)
     OqC2 = orthogonal_group(qC2)
     phi2 = hom(qC2, D, elem_type(D)[D(lift(x)) for x in gens(qC2)])
@@ -2036,7 +2043,9 @@ function admissible_equivariant_primitive_extensions(
       C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
-      !is_of_type(C2fC2^q, type(C)) && continue
+      if test_type && !is_of_type(C2fC2^q, type(C))
+        continue
+      end
 
       disc, stab = _glue_stabilizers(phig, actA, actB, OqAinOD, OqBinOD, extinD)
 

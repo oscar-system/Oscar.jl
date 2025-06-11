@@ -185,6 +185,7 @@ import Nemo:
 # By default we import everything exported by Hecke, and then also re-export
 # it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
+    Symbol("@perm_str"), # see https://github.com/oscar-system/Oscar.jl/issues/4963
     :change_uniformizer,
     :coefficients,
     :exponent_vectors,

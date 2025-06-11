@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.1) - 2025-06-07
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Commutative Algebra
+
+- [#4950](https://github.com/oscar-system/Oscar.jl/pull/4950) Fix `minimal_generating_set` for ideals created by a f4 groebner basis
+
+### F-Theory Tools
+
+- [#4957](https://github.com/oscar-system/Oscar.jl/pull/4957) Resolve hash error for FTM-1511-03209 artifact
+
 ## [1.4.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.0) - 2025-05-30
 
 The following gives an overview of the changes compared to the previous release. This list is not

@@ -475,3 +475,11 @@ end
     test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
   end
 end
+
+@testset "Fix type condition" begin
+  B = matrix(QQ, 6, 6 ,[-1//2, 0, 1//2, 0, 0, 0, 0, 1//2, 0, 0, -1//2, 0, 0, 0, 0, -1//2, 0, 1//2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 1, 0, -1, 0, -1, 0, 0, 0])
+  G = matrix(QQ, 6, 6 ,[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -13, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -91])
+  L = integer_lattice(B, gram = G)
+  r = enumerate_classes_of_lattices_with_isometry(L, 14; char_poly=cyclotomic_polynomial(14), fix_root=14)
+  @test length(r) == 3
+end
