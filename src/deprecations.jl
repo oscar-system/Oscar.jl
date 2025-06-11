@@ -154,5 +154,6 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate acting_domain(Omega::GSet) acting_group(Omega)
 @deprecate grid_morphism lattice_homomorphism
 
+# deprecated for 1.4
 @deprecate gset(G::PermGroup) natural_gset(G)
 @deprecate gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem} natural_gset(G)

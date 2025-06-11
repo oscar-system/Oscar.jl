@@ -604,8 +604,8 @@ Return the G-set `Omega` that consists of the closure of root space elements
 under the natural action of `W`.
 
 !!! warning
-    roots(R) will currently return the minimal roots of the root system. 
-    This may only be sane for finite types and that there may be changes for infinite root systems in the future.
+    Currently the seeds are the minimal roots of the root system. 
+    This may only be sane for finite types and there may be changes for infinite root systems in the future.
 
 # Examples
 ```jldoctest
