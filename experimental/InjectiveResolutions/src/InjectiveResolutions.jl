@@ -37,7 +37,6 @@ import ..Oscar:
   ModuleGens,
   normal_form,
   one,
-  oscar_assure,
   oscar_free_module,
   oscar_generators,
   primitive_generator,

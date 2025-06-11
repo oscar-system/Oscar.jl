@@ -132,9 +132,18 @@ end
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the Oscar side.
+
+If fields of `M` from the Oscar side are not defined, they
+are computed, given the Singular side.
 """
 function oscar_generators(M::ModuleGens)
-  oscar_assure(M)
+  if !isdefined(M, :O)
+    if iszero(singular_generators(M))
+      M.O = elem_type(M.F)[zero(M.F) for _ in 1:ngens(singular_generators(M))]
+    else
+      M.O = [M.F(singular_generators(M)[i]) for i=1:Singular.ngens(singular_generators(M))]
+    end
+  end
   return M.O
 end
 
@@ -153,8 +162,7 @@ end
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  oscar_assure(M)
-  return all(iszero, M.O)
+  return all(iszero, oscar_generators(M))
 end
 
 function show(io::IO, F::ModuleGens)
@@ -196,24 +204,6 @@ function getindex(F::ModuleGens, ::Val{:S}, i::Int)
     return singular_generators(F)[i]
 end
 
-
-@doc raw"""
-    oscar_assure(F::ModuleGens)
-
-If fields of `F` from the Oscar side are not defined, they
-are computed, given the Singular side.
-"""
-function oscar_assure(F::ModuleGens)
-  if !isdefined(F, :O)
-    if iszero(singular_generators(F))
-      F.O = elem_type(F.F)[zero(F.F) for _ in 1:number_of_generators(singular_generators(F))]
-    else
-      F.O = [F.F(singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
-    end
-  end
-  F.O
-end
-
 @doc raw"""
     singular_assure(F::ModuleGens)
 
@@ -249,7 +239,7 @@ Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
   @assert oscar_free_module(M) === oscar_free_module(M)
-  O = vcat(M.O, N.O)
+  O = vcat(oscar_generators(M), oscar_generators(N))
   return ModuleGens(oscar_free_module(M), O)
 end
 
@@ -468,7 +458,6 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res
 end
 
@@ -491,7 +480,6 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res, [R(1) for _ in 1:ngens(M)]
 end
 
@@ -507,7 +495,8 @@ Compute a normal_form of `v` with respect to the Gröbner basis `GB`.
 """
 function normal_form(v::AbstractFreeModElem, GB::ModuleGens)
   @assert GB.isGB
-  return normal_form(ModuleGens([v], parent(v)), GB).O[1]
+  nf = normal_form(ModuleGens([v], parent(v)), GB)
+  return oscar_generators(nf)[1]
 end
 
 @doc raw"""

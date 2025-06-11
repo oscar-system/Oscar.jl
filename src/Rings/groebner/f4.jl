@@ -60,7 +60,7 @@ function groebner_basis_f4(
         info_level::Int=0
         )
 
-    AI = AlgebraicSolving.Ideal(I.gens.gens.O)
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
     vars = gens(base_ring(I))[eliminate+1:end]
     ord = degrevlex(vars)
     if length(AI.gens) == 0

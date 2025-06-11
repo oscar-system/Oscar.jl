@@ -260,7 +260,7 @@ as an object of type `ModuleGens` along with a transformation
 matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
-  M = ModuleGens(M.O, M.F, ordering)
+  M = ModuleGens(oscar_generators(M), M.F, ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
@@ -277,7 +277,7 @@ function leading_monomials(F::ModuleGens)
   # The following doesn't work yet. When comparison / lead for module elements
   # is implemented this should be uncommented.
   #if !isdefined(F, :S)
-    #return ModuleGens(F.F, [lead(g) for g in F.O])
+    #return ModuleGens(F.F, [lead(g) for g in oscar_generators(F)])
   #end
   singular_gens = singular_generators(F)
   return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
