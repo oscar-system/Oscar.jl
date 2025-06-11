@@ -10,21 +10,21 @@ BindGlobal( "QQBarFieldType",
   NewType( QQBarFieldElementFam,
            IsQQBarFieldElement and IsQQBarFieldElementRep ) );
 
-BindGlobal( "QQBarField_Julia", Oscar.algebraic_closure( Oscar.QQ ) );
+BindGlobal( "QQBarField_Julia", Oscar_jl.algebraic_closure( Oscar_jl.QQ ) );
 
 BindGlobal( "QQBarFieldElementMatrixType",
-  Oscar.OscarInterfaceConstants._Matrix_QQBarFieldElem );
+  Oscar_jl.OscarInterfaceConstants._Matrix_QQBarFieldElem );
 
 InstallMethod( _QQBarFieldElement,
   [ "IsRat" ],
-  x -> Oscar.QQBarFieldElem( Oscar.QQ( x ) ) );
+  x -> Oscar_jl.QQBarFieldElem( Oscar_jl.QQ( x ) ) );
 
 InstallMethod( _QQBarFieldElement,
   [ "IsCyc" ],
   function( x )
   local iso;
 
-  iso:= Oscar.iso_gap_oscar( Cyclotomics );
+  iso:= IsoGapOscar( Cyclotomics );
   return QQBarField_Julia( iso( x ) );
   end );
 
@@ -143,21 +143,64 @@ InstallMethod( \*,
 
 InstallMethod( InverseOp,
   [ "IsQQBarFieldElement" ],
-  x -> QQBarFieldElement( Oscar.inv( x ) ) );
+  x -> QQBarFieldElement( Oscar_jl.inv( JuliaPointer( x ) ) ) );
 
 InstallMethod( ComplexConjugate,
   [ "IsQQBarFieldElement" ],
-  x -> QQBarFieldElement( Julia.conj( x ) ) );
+  x -> QQBarFieldElement( Julia.conj( JuliaPointer( x ) ) ) );
 
 InstallMethod( Sqrt,
   [ "IsQQBarFieldElement" ],
   function( x )
-  return QQBarFieldElement( Julia.sqrt( x ) );
+  return QQBarFieldElement( Julia.sqrt( JuliaPointer( x ) ) );
   end );
+
 
 InstallMethod( DefaultFieldOfMatrix,
   [ "IsMatrix and IsQQBarFieldElementCollColl" ],
   M -> QQBarField );
+
+BindGlobal( "_DisplayStringQQBarMatrixElement", function( x )
+  local str, pos;
+
+  str:= String( x );
+  if ValueOption( "short" ) = true then
+    pos:= Position( str, ' ' );
+    str:= str{ [ pos + 1 .. Position( str, ' ', pos ) - 1 ] };
+  fi;
+  return str;
+  end );
+
+InstallMethod( Display,
+  [ "IsMatrix and IsQQBarFieldElementCollColl" ],
+  function( M )
+  local m, n, F, strings, w, z, zstr, row, x;
+
+  m:= NrRows( M );
+  n:= NrCols( M );
+  if m = 0 or n = 0 then
+    TryNextMethod();
+  fi;
+  F:= DefaultFieldOfMatrix( M );
+
+  Print( m, "x", n, " matrix over ", F, ":\n" );
+  strings:= List( M, row -> List( row, _DisplayStringQQBarMatrixElement ) );
+
+  w:= Maximum( List( strings, row -> Maximum( List( row, Length ) ) ) ) + 1;
+  z:= _DisplayStringQQBarMatrixElement( Zero( F ) );
+  zstr:= String( ".", w );
+
+  for row in strings do
+    for x in row do
+      if x = z then
+        Print( zstr );
+      else
+        Print( String( x, w ) );
+      fi;
+    od;
+    Print( "\n" );
+  od;
+  end );
 
 InstallMethod( DefaultFieldByGenerators,
   [ "IsList and IsQQBarFieldElementCollection" ],
@@ -168,24 +211,25 @@ InstallMethod( DefaultFieldByGenerators,
 # thus `InstallMethodWithRandomSource` cannot be used.
 InstallMethod( Random,
   [ "IsQQBarField" ],
-  F -> QQBarFieldElement( CallJuliaFunctionWithKeywordArguments( Oscar.rand,
+  F -> QQBarFieldElement( CallJuliaFunctionWithKeywordArguments( Oscar_jl.rand,
                             [ QQBarField_Julia ],
                             rec( degree:= 4, bits:= 5 ) ) ) );
 
 InstallOtherMethod( AbsoluteValue,
   [ "IsQQBarFieldElement" ], SUM_FLAGS,
-  x -> QQBarFieldElement( Julia.abs( x ) ) );
+  x -> QQBarFieldElement( Julia.abs( JuliaPointer( x ) ) ) );
 
 InstallMethod( Eigenvalues,
   [ "IsQQBarField", "IsMatrix and IsQQBarFieldElementCollColl" ],
   function( F, M )
   local MM;
 
-  MM:= Oscar.matrix( QQBarField_Julia,
-         GAPToJulia( QQBarFieldElementMatrixType, M ) );
-  return List( JuliaToGAP( IsList, Oscar.eigenvalues( MM ) ),
+  MM:= Oscar_jl.matrix( QQBarField_Julia,
+         GAPToJulia( QQBarFieldElementMatrixType,
+                     List( M, row -> List( row, JuliaPointer ) ) ) );
+  return List( JuliaToGAP( IsList, Oscar_jl.eigenvalues( MM ) ),
                QQBarFieldElement );
   end);
 
 BindGlobal( "IsRealQQBarFieldElement",
-  x -> IsQQBarFieldElement( x ) and Oscar.is_real( x ) );
+  x -> IsQQBarFieldElement( x ) and Oscar_jl.is_real( JuliaPointer( x ) ) );
