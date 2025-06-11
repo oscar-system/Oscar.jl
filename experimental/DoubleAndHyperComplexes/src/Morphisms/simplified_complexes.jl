@@ -332,9 +332,31 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
   return can_compute_index(d, I)
 end
 
-
-function simplify(c::FreeResolution)
-  return simplify(SimpleComplexWrapper(c.C))
+#= 
+# `simplify` for `FreeResolution`
+#
+# `FreeResolution` is a wrapper-type for `ComplexOfMorphism` which indicates that 
+# this particular complex comes from a free resolution. For instance, it prints 
+# differently.
+=#
+function simplify(c::FreeResolution{T}) where T
+  i = 0
+  while !is_zero(c[i])
+    i += 1
+  end
+  simp = simplify(SimpleComplexWrapper(c.C[0:i]))
+  phi = map_to_original_complex(simp)
+  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
+  result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
+    cc[i-1] # make sure cache is up to date
+    if is_zero(i)
+      push!(cc.maps, compose(phi[0], map(c, 0)))
+    else
+      push!(cc.maps, map(simp, i))
+    end
+    last(cc.maps)
+  end
+  return FreeResolution(result)
 end
 
 function simplify(c::ComplexOfMorphisms)
