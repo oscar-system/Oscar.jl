@@ -141,7 +141,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
         end;
         sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
             if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
-      fₓ = map_from_func(fₓ, X.ring, Y.ring)
+      fₓ = MapFromFunc(X.ring, Y.ring, fₓ)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)
     try
@@ -179,4 +179,3 @@ end
     return X
   end
 end
-
