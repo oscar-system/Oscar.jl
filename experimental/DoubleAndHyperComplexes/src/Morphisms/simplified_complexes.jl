@@ -356,7 +356,15 @@ function simplify(c::FreeResolution{T}) where T
     end
     last(cc.maps)
   end
-  return FreeResolution(result)
+  final_res = FreeResolution(result)
+  final_res.length = length(c)
+  return final_res
+end
+
+# An alias to cater for the common phrasing of the CA community. 
+function minimize(c::FreeResolution)
+  @assert is_graded(c[-1]) "complex does not consist of graded modules"
+  return simplify(c)
 end
 
 function simplify(c::ComplexOfMorphisms)

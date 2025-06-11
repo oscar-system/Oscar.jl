@@ -763,11 +763,14 @@ Data structure for free resolutions.
 """
 mutable struct FreeResolution{T}
     C::Hecke.ComplexOfMorphisms
+    length::Union{Nothing, Int}
 
     function FreeResolution(C::Hecke.ComplexOfMorphisms{T}) where {T}
-        FR = new{T}()
+        FR = new{T}(C, nothing)
         FR.C = C
-
+        if C.complete
+          FR.length = length(C.maps)-3
+        end
         return FR
     end
 end

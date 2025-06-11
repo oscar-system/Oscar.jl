@@ -760,5 +760,8 @@ julia> length(fr)
 
 ```
 """
-length(F::FreeResolution) = length(F.C.maps)-3
+function length(F::FreeResolution)
+  isnothing(F.length) && error("length is not known (resolution is probably lazy and not computed)")
+  return F.length::Int
+end
 
