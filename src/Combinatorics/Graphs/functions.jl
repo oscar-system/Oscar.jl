@@ -1691,7 +1691,7 @@ end
 @doc raw"""
     maximal_cliques(g::Graph{Undirected})
 
-Returns the maximal cliques of a graph `g` as a `Vector{Set{Int}}`.
+Returns the maximal cliques of a graph `g` as a `Set{Set{Int}}`.
 
 # Examples
 ```jldoctest
@@ -1699,15 +1699,17 @@ julia> g = graph_from_edges([[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(3, 2)(4, 2)(4, 3)
 
-julia> maximal_cliques(g)
-2-element Vector{Set{Int64}}:
- Set([4, 2, 3])
- Set([2, 3, 1])
+julia> typeof(maximal_cliques(g))
+Set{Set{Int64}}
+
+julia> sort.(collect.(maximal_cliques(g)))
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [2, 3, 4]
 ```
 """
 function maximal_cliques(g::Graph{Undirected})
-  Polymake.to_one_based_indexing.(
-  Set{Set{Int}}(
-    Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).MAX_CLIQUES)
-  )
+  Set{Set{Int}}(Polymake.to_one_based_indexing.(
+    Polymake.call_function(:graph,:max_cliques,g.pm_graph)
+  ))
 end
