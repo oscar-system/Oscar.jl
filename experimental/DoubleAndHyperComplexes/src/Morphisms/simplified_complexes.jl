@@ -340,11 +340,8 @@ end
 # differently.
 =#
 function simplify(c::FreeResolution{T}) where T
-  i = 0
-  while !is_zero(c[i])
-    i += 1
-  end
-  simp = simplify(SimpleComplexWrapper(c.C[0:i]))
+  cut_off = length(c.C.maps)-2
+  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
   phi = map_to_original_complex(simp)
   result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
   result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
@@ -354,10 +351,10 @@ function simplify(c::FreeResolution{T}) where T
     else
       pushfirst!(cc.maps, map(simp, i))
     end
-    last(cc.maps)
+    first(cc.maps)
   end
   final_res = FreeResolution(result)
-  final_res.length = length(c)
+  final_res.length = cut_off
   return final_res
 end
 
