@@ -3,8 +3,7 @@ BindGlobal( "QQBarFieldElementFam",
 
 SetIsUFDFamily( QQBarFieldElementFam, true );
 
-DeclareRepresentation( "IsQQBarFieldElementRep",
-  IsJuliaWrapper and IsAttributeStoringRep );
+DeclareRepresentation( "IsQQBarFieldElementRep", IsAttributeStoringRep );
 
 BindGlobal( "QQBarFieldType",
   NewType( QQBarFieldElementFam,

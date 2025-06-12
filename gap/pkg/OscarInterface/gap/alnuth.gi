@@ -9,7 +9,6 @@ BindGlobal("_PolyRingIso", IsoGapOscar(PolynomialRing(Rationals)));
 
 # given a GAP number field, compute an isomorphic Oscar number field f
 # TODO: also store the isomorphism
-# TODO: turn this into an attribute resp. a method for JuliaWrapper / JuliaData ???
 BindGlobal("_OscarField", function(F)
   local f;
   if not IsBound(F!.oscarField) then
