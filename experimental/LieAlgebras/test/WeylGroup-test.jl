@@ -422,8 +422,7 @@
     @test is_semiregular(Omega)
 
     W = weyl_group([(:A, 2), (:B, 3)])
-    pts = roots(root_system(W))
-    Omega = gset(W, pts)
+    Omega = natural_gset(W)
     @test length(Omega) == 24
     @test length(orbits(Omega)) == 3
     @test !is_transitive(Omega)
@@ -446,29 +445,28 @@
 
     # orbit
     W = weyl_group([(:A, 2), (:B, 3)])
-    pts = roots(root_system(W))
-    Omega = gset(W, pts)
+    Omega = natural_gset(W)
     orbs = orbits(Omega)
     @test length(orbs) == 3
-    @test length(orbit(Omega, pts[2])) == 6
+    @test length(orbit(Omega, Omega[2])) == 6
     @test sort(map(length, orbs)) == [6, 6, 12]
 
     # action homomorphism
     W = weyl_group(:A, 2)
-    pts = roots(root_system(W))
-    Omega = gset(W, pts)
+    Omega = natural_gset(W)
     acthom = action_homomorphism(Omega)
     @test order(image(acthom)[1]) == order(W)
 
     # all_blocks
     bl = all_blocks(Omega)
     @test length(bl) == 4
-    @test Set([pts[1], pts[5]]) in bl
+    @test Set([Omega[1], Omega[5]]) in bl
 
     # blocks
     bl = blocks(Omega)
     @test length(bl) == 3
-    @test elements(bl) == map(Set, [[pts[1], pts[4]], [pts[6], pts[3]], [pts[5], pts[2]]])
+    @test elements(bl) ==
+      map(Set, [[Omega[1], Omega[4]], [Omega[5], Omega[2]], [Omega[6], Omega[3]]])
     @test length(orbits(bl)) == 1
   end
 end
