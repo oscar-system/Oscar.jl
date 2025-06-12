@@ -270,3 +270,26 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
 end
 
 export oscar_worker_pool
+
+################################################################################
+# Parallel processing on a collection
+
+function collection_queue(f, c, wp::OscarWorkerPool, limit::Int)
+  next = iterate(c)
+  batch = []
+  futures = Future[]
+  count = 0
+  while !isnothing(next)
+    (i, state) = next
+    push!(batch, i)
+    count += 1
+    if count == limit
+      println("pushed to worker")
+      push!(futures, remotecall(f, wp, batch))
+      batch = []
+      count = 0
+    end
+    next = iterate(c, state)
+  end
+  return fetch.(futures)
+end
