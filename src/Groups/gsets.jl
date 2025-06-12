@@ -226,7 +226,7 @@ end
 """
     natural_gset(G::PermGroup)
 
-Return the G-set `Omega` that consists of the closure of integers 1, ..., degree
+Return the G-set `Omega` that consists of integers 1, ..., degree
 under the natural action of `G`.
 
 # Examples
@@ -242,8 +242,8 @@ natural_gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
 """
     natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
 
-Return the G-set `Omega` that consists of the closure of vectors
-under the natural action of `G` over a finite field.
+Return the G-set `Omega` that consists of vectors under the 
+natural action of `G` over a finite field.
 
 # Examples
 ```jldoctest
@@ -541,7 +541,7 @@ Return the vector of transitive G-sets in `Omega`.
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> orbs = orbits(gset(G));
+julia> orbs = orbits(natural_gset(G));
 
 julia> map(collect, orbs)
 2-element Vector{Vector{Int64}}:
