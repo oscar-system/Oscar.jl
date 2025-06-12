@@ -603,9 +603,8 @@ end
 Return the G-set `Omega` that consists of the closure of root space elements
 under the natural action of `W`.
 
-!!! warning
-    Currently the seeds are the minimal roots of the root system.
-    This may only be sane for finite types and there may be changes for infinite root systems in the future.
+!!! note
+    This function is only implemented for finite Weyl groups, that is root systems of classical type.
 
 # Examples
 ```jldoctest
@@ -616,8 +615,8 @@ julia> length(natural_gset(W))
 ```
 """
 function natural_gset(W::WeylGroup)
-  @req is_finite(W) "Weyl group is not finite"
-  return gset(W, *, roots(root_system(W)); closed=true)
+  @req is_finite(W) "only implemented for finite Weyl groups"
+  return gset(W, roots(root_system(W)); closed=true)
 end
 
 Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
