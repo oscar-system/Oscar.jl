@@ -124,11 +124,11 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   codomain::V2
   dim::Int
   pullback::AffAlgHom
-  pushforward::FunctionalMap
+  pushforward::MapFromFunc
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
   function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
-    if !(fₓ isa FunctionalMap) && isdefined(X, :point) && isdefined(Y, :point)
+    if !(fₓ isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
