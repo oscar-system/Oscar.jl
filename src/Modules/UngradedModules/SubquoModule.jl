@@ -49,7 +49,7 @@ julia> O = [x*F[1]+F[2],y*F[2]]
  x*e[1] + e[2]
  y*e[2]
 
-julia> M = subquotient(F, O)
+julia> M = SubquoModule(F, O)
 Submodule with 2 generators
   1: x*e[1] + e[2]
   2: y*e[2]
@@ -180,6 +180,11 @@ where `a` and `b` are free module homomorphisms with codomain `F` represented by
 Given matrices `A` and `B` with the same number of columns, create a free module `F` whose rank 
 is that number, and return $(\text{im } a + \text{im } b)/\text{im } b$, where `a` and `b` are 
 free module homomorphisms with codomain `F` represented by `A` and `B`.
+    
+    subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T 
+
+Given vectors `G` and `R` of elements of `F`, return the subquotient whose ambient representatives 
+of the generators are the entries of `G`, and whose relations are the entries of `R`.
 
 # Examples
 
@@ -355,6 +360,7 @@ function subquotient(a::FreeModuleHom, b::FreeModuleHom)
 end
 subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(F, A, B)
 subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(A, B)
+subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T = SubquoModule(F, G, R)
 #######################################################
 
 function show(io::IO, SQ::SubquoModule)
