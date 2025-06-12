@@ -39,7 +39,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem},
   elem = MPolyBuildCtx(parent_algebra)
 
   load_array_node(s) do _
-    loaded_coeff = load_object(s, coeff_type, 2)
+    loaded_coeff = load_object(s, coeff_type, base_ring(parent_algebra), 2)
     loaded_term = parent_algebra(loaded_coeff)
     e = load_array_node(s, 1) do _
       load_object(s, Int)

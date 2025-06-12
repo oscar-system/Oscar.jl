@@ -1,6 +1,10 @@
 cases = [
   (QQ, QQ(1//2), QQ(3//4), "Rational Coefficients"),
   (ZZ, ZZ(5), ZZ(7), "Integers Coefficients"),
+  begin
+    F, i = cyclotomic_field(4)
+    (F, i, F(1//2), "Cyclotomic Field Coefficients")
+  end,
 ]
 
 @testset "Serialization.Algebras" begin

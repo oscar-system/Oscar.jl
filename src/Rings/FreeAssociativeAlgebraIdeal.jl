@@ -26,7 +26,7 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
 end
 
 function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
-  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), " generator"))
+  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
 end
 
 function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)

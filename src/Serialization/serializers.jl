@@ -178,6 +178,8 @@ function handle_refs(s::SerializerState)
   end
 end
 
+function handle_refs(s::SerializerState{IPCSerializer}) end
+
 function serializer_close(s::SerializerState)
   finish_writing(s)
 end
