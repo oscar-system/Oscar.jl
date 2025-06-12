@@ -13,14 +13,14 @@ function singular_module(F::FreeMod{<:MonoidAlgebraElem}, ordering::ModuleOrderi
 end
 
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MonoidAlgebraElem}
-  singular_assure(F)
   if reduced
     @assert Singular.has_global_ordering(base_ring(F.SF))
   end
-  if singular_generators(F).isGB && !reduced
+  s = singular_generators(F)
+  if s.isGB && !reduced
     return F
   end
-  return ModuleGens(F.F, Singular.std(singular_generators(F), complete_reduction=reduced))
+  return ModuleGens(oscar_free_module(F), Singular.std(s, complete_reduction=reduced))
 end
 
 function (F::FreeMod{T})(svec::Singular.svector) where {T<:MonoidAlgebraElem}
@@ -47,35 +47,31 @@ end
 
 # copied and modified from ModuleGens.jl
 function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  @assert M.F === GB.F
+  @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce with non-GB remove this
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  singular_assure(P)
-  singular_assure(M)
-
-  red = _reduce(M.S, P.S)
-  res = ModuleGens(M.F, red)
+  red = _reduce(singular_generators(M), singular_generators(P))
+  res = ModuleGens(oscar_free_module(M), red)
   oscar_assure(res)
   return res
 end
 
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  singular_assure(M)
   R = base_ring(M)
   G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
-  mg = ModuleGens(M.F, G)
+  mg = ModuleGens(oscar_free_module(M), G)
   mg.isGB = true
   mg.S.isGB = true
-  mg.ordering = default_ordering(M.F)
+  mg.ordering = default_ordering(oscar_free_module(M))
   mat = map_entries(R, transpose(Trans_mat))
   set_attribute!(mg, :transformation_matrix => mat)
   return mg, mat
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
-  M = ModuleGens(M.O, M.F, ordering)
+  M = ModuleGens(M.O, oscar_free_module(M), ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
@@ -97,8 +93,7 @@ function sparse_row(
   return map_entries(A, pre_res)
 end
 
-function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: MonoidAlgebraElem}
-  singular_assure(F)
+function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F), length(oscar_generators(F)))) where {T <: MonoidAlgebraElem}
   # TODO Obtain the Gröbner basis and cache it
   s = Singular.syz(singular_generators(F))
   return SubquoModule(sub, s)

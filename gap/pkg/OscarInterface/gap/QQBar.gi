@@ -25,7 +25,7 @@ InstallMethod( _QQBarFieldElement,
   local iso;
 
   iso:= Oscar.iso_gap_oscar( Cyclotomics );
-  return Oscar.QQBarFieldElem( QQBarField_Julia( iso( x ) ) );
+  return QQBarField_Julia( iso( x ) );
   end );
 
 InstallMethod( _QQBarFieldElement,

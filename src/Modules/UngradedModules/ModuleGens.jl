@@ -248,9 +248,9 @@ getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
-  @assert M.F === N.F
+  @assert oscar_free_module(M) === oscar_free_module(M)
   O = vcat(M.O, N.O)
-  return ModuleGens(M.F, O)
+  return ModuleGens(oscar_free_module(M), O)
 end
 
 @doc raw"""
@@ -461,13 +461,13 @@ end
 Compute a normal form of `M` (that is of each element of `M`) with respect to the Gröbner basis `GB`.
 """
 function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingElem}
-  @assert M.F === GB.F
+  @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce with non-GB remove this
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
   red = _reduce(singular_generators(M), singular_generators(P))
-  res = ModuleGens(M.F, red)
+  res = ModuleGens(oscar_free_module(M), red)
   oscar_assure(res)
   return res
 end
@@ -480,7 +480,7 @@ Moreover, return a vector `U` of unit elements such that
 `U[i]*M[i]` is the `i`th element of the normal form `ModuleGens`.
 """
 function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingElem}
-  @assert M.F === GB.F
+  @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce/nf with non-GB remove this
   if !is_global(GB.ordering)
     error("normal_form_with_unit not yet implemented for non-global orderings") # This function doesn't exist yet in Singular.jl
@@ -490,7 +490,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
   red = _reduce(singular_generators(M), singular_generators(P))
-  res = ModuleGens(M.F, red)
+  res = ModuleGens(oscar_free_module(M), red)
   oscar_assure(res)
   return res, [R(1) for _ in 1:ngens(M)]
 end

@@ -26,7 +26,7 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
 end
 
 function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
-  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), " generator"))
+  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
 end
 
 function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
@@ -59,7 +59,7 @@ end
 
 
 function base_ring(I::FreeAssociativeAlgebraIdeal{T}) where T
-  return I.gens.Ox::parent_type(T)
+  return base_ring(I.gens)::parent_type(T)
 end
 
 function base_ring_type(::Type{<:FreeAssociativeAlgebraIdeal{T}}) where T
