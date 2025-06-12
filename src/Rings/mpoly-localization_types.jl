@@ -144,7 +144,7 @@ end
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 
 !!! note 
-The coefficient ring is required to be a field.
+    The coefficient ring is required to be a field.
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);

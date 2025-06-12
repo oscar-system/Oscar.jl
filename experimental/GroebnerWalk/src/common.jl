@@ -4,7 +4,6 @@
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = ngens(base_ring(I)),
       algorithm::Symbol = :standard
     )
 
@@ -15,15 +14,13 @@ from a Groebner basis with respect to the ordering `start` using the Groebner Wa
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
 - `target::MonomialOrdering=:lex`: monomial ordering one wants to compute a Groebner basis for.
 - `start::MonomialOrdering=:degrevlex`: monomial ordering to begin the conversion.
-- `perturbationDegree::Int=2`: the perturbation degree for the perturbed Walk.
 - `algorithm::Symbol=:standard`: strategy of the Groebner Walk. One can choose between:
     - `standard`: Standard Walk [CLO05](@cite),
     - `generic`: Generic Walk [FJLT07](@cite),
-    - `perturbed`: Perturbed Walk [AGK96](@cite).
 
 # Examples
 
-```jldoctest
+```jldoctest; setup=:(oldverb=get_verbosity_level(:groebner_walk);), teardown=:(set_verbosity_level(:groebner_walk, oldverb))
 julia> R,(x,y) = polynomial_ring(QQ, [:x,:y]);
 
 julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
@@ -64,15 +61,12 @@ function groebner_walk(
   I::MPolyIdeal, 
   target::MonomialOrdering = lex(base_ring(I)),
   start::MonomialOrdering = default_ordering(base_ring(I));
-  perturbation_degree = ngens(base_ring(I)), # meaning, n=#gens(R)
   algorithm::Symbol = :standard
 )
   if algorithm == :standard
     walk = (x) -> standard_walk(x, target)
   elseif algorithm == :generic
     walk = (x) -> generic_walk(x, start, target)
-  elseif algorithm == :perturbed
-    walk = (x) -> perturbed_walk(x, start, target, perturbation_degree)
   else
     throw(NotImplementedError(:groebner_walk, algorithm))
   end

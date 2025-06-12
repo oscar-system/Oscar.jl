@@ -79,7 +79,7 @@ julia> K, z = abelian_closure(QQ);
 
 julia> val = z(5) + z(5)^4;
 
-julia> str = Oscar.atlas_description(val)
+julia> str = atlas_description(val)
 "b5"
 
 julia> val == atlas_irrationality(str)
@@ -1357,11 +1357,45 @@ julia> println(proj)
 """
 function quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
   @req characteristic(tbl) == 0 "supported only for ordinary character tables"
-  gap_fact = GAPWrap.CharacterTableFactorGroup(GapObj(tbl), GapObj(nclasses))
+  gap_tbl = GapObj(tbl)::GapObj
+  gap_nclasses = GapObj(nclasses)::GapObj
+  gap_fact = GAPWrap.CharacterTableFactorGroup(gap_tbl, gap_nclasses)
   fact = GAPGroupCharacterTable(gap_fact, 0)
   flag, fus = known_class_fusion(tbl, fact)
   @assert flag
+
+  if isdefined(tbl, :group)
+    # set a group (together with its conjugacy classes) in the factor table
+    G = group(tbl)
+    gap_N = GAPWrap.NormalSubgroupClasses(gap_tbl, gap_nclasses)
+    iso = isomorphism_to_GAP_group(tbl)
+    N = preimages(iso, gap_N)[1]
+    Q, epi = quo(G, N)
+    fact.group = Q
+    fact.isomorphism = isomorphism_to_GAP_group(Q)
+    gap_fact = GapObj(fact)::GapObj
+    Gclasses = conjugacy_classes(tbl)
+    choice = _projection_of_class_fusion(fus)
+    gap_Q = GapObj(Q)::GapObj
+    class_reps = [epi(representative(Gclasses[i])) for i in choice]
+    GAPWrap.SetUnderlyingGroup(gap_fact, gap_Q)
+    factclasses = GapObj([GAPWrap.ConjugacyClass(gap_Q, GapObj(x)) for x in class_reps])::GapObj
+    GAPWrap.SetConjugacyClasses(gap_fact, factclasses)
+    GAPWrap.SetConjugacyClasses(gap_Q, factclasses)
+  end
+
   return fact, fus
+end
+
+function _projection_of_class_fusion(fus::Vector{Int})
+  res = zeros(Int, maximum(fus))
+  for i in 1:length(fus)
+    img = fus[i]
+    if res[img] == 0
+      res[img] = i
+    end
+  end
+  return res
 end
 
 
@@ -1701,15 +1735,23 @@ function _translate_parameter(para)
 end
 
 function _translate_parameter_list(paras)
-    if all(x -> GAPWrap.IsList(x) && length(x) == 2 && x[1] == 1, paras)
-      # If all parameters are lists of length 2 with first entry `1` then
-      # take the second entry.
-      paras = [x[2] for x in paras]
-      return [_translate_parameter(x) for x in paras]
+    if all(x -> GAPWrap.IsList(x) && length(x) == 2, paras)
+      # All parameters consist of parameter type and value for this type.
+      # This happens for the generic character tables from the table library.
+      if all(x -> x[1] == 1, paras)
+        # Omit the superfluous type parameter.
+        paras = [x[2] for x in paras]
+        return [_translate_parameter(x) for x in paras]
+      else
+        # Create tuples `(t, v)` where `t` is the parameter type
+        # and `v` is the value for this type.
+        return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      end
     else
-      # Create tuples `(t, v)` where `t` is the parameter type
-      # and `v` is the value for this type.
-      return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      # There is no type parameter.
+      # This happens for example for tables constructed with
+      # `GAPWrap.CharacterTableWreathSymmetric`.
+      return [_translate_parameter(x) for x in paras]
     end
 end
 
@@ -2843,7 +2885,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref)).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples
@@ -3470,7 +3512,7 @@ where $a_k(\rho)$ is the number of cycles of length $k$ in $\rho$.
 Note that the returned list may contain zero class functions,
 and duplicates are not deleted.
 
-For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
+For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 [`anti_symmetric_parts`](@ref), [`orthogonal_components`](@ref),
 [`symplectic_components`](@ref), [`exterior_power`](@ref),
 [`symmetric_power`](@ref).
@@ -3488,7 +3530,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the trivial character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3503,7 +3545,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the sign character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3583,11 +3625,83 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
                          GapObj(characters; recursive = true), n)]
 end
 
+@doc raw"""
+    character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+
+Return the character table of the wreath product (see [`wreath_product`](@ref))
+of the group with character table `tbl` and the symmetric group on `n` points.
+
+The implementation follows Chapter 4 of [JK81](@cite).
+In particular, the labels for the rows and columns of the result are
+multipartitions with sum `n` that consist of $s$ partitions
+such that $s$ is the number of columns of `tbl`.
+
+Note that the result does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> t = character_table_wreath_symmetric(character_table(:Cyclic, 2), 2)
+C2wrS2
+
+  2  3  2  3  2  2
+                  
+    1a 2a 2b 2c 4a
+ 2P 1a 1a 1a 1a 2b
+                  
+X_1  1  1  1 -1 -1
+X_2  2  . -2  .  .
+X_3  1 -1  1 -1  1
+X_4  1  1  1  1  1
+X_5  1 -1  1  1 -1
+```
+"""
+function character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+    @req characteristic(tbl) == 0 "tbl must be an ordinary character table"
+    @req n > 0 "n must be positive"
+    return GAPGroupCharacterTable(
+               GAPWrap.CharacterTableWreathSymmetric(GapObj(tbl), n), 0)
+end
+
+@doc raw"""
+    character_table_complex_reflection_group(m::Int, p::Int, n::Int)
+
+Return the character table of the complex reflection group that is given by
+the input parameters.
+
+Note that this character table does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> tbl = character_table_complex_reflection_group(3, 1, 2);
+
+julia> identifier(tbl)
+"C3wrS2"
+
+julia> order(tbl) == 3^2 * factorial(2)
+true
+
+julia> class_parameters(tbl)
+9-element Vector{Vector{Vector{Int64}}}:
+ [[1, 1], [], []]
+ [[1], [1], []]
+ [[1], [], [1]]
+ [[], [1, 1], []]
+ [[], [1], [1]]
+ [[], [], [1, 1]]
+ [[2], [], []]
+ [[], [2], []]
+ [[], [], [2]]
+```
+
+!!! warning
+    Currently only the case `p = 1` is supported,
+    that is, the character table belongs to the wreath product
+    of the cyclic group of order `m` with the symmetric group on `n` points,
+    see [`character_table_wreath_symmetric`](@ref).
+"""
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
-    @req p == 1 "the case G(m,p,n) with p != 1 is not (yet) supported"
-    tbl = GAPWrap.CharacterTableWreathSymmetric(
-            GAPWrap.CharacterTable(GapObj("Cyclic"), m), n)
-    tbl = GAPGroupCharacterTable(tbl, 0)
+    @req p == 1 "the case G(m,p,n) with p != 1 is not yet supported"
+    tbl = character_table_wreath_symmetric(character_table(:Cyclic, m), n)
     set_attribute!(tbl, :type, (m, p, n))
 
     return tbl

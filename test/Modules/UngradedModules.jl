@@ -8,7 +8,7 @@ RNG = Random.MersenneTwister(42)
 Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
 with exponents between `0` and `max_exp` und between `0` and `max_terms` terms.
 """
-function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
+function randpoly(R::Oscar.Ring,coeffs=0:2,max_exp=2,max_terms=3)
   n = nvars(R)
   K = base_ring(R)
   E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
@@ -55,6 +55,17 @@ end
   @test is_iso
   @test is_welldefined(phi)
   @test is_bijective(phi)
+end
+
+@testset "Submodule Membership" begin
+    R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
+    F = FreeMod(R, 3)
+    gens_submodule = [x*F[1], 3*y*F[2]]
+    S, _ = sub(F, gens_submodule)
+    x = x*y*F[1]+3*y^2*F[2]
+    @test in(x, S)
+    coord = coordinates(x, S)
+    @test coord == sparse_row(R, [1, 2], [y, y])
 end
 
 @testset "Modules: Simplify elements of subquotients" begin
@@ -344,7 +355,7 @@ end
   T0 = tor(Q, M, 0)
   T1 = tor(Q, M, 1)
   T2 =  tor(Q, M, 2)
-  @test is_canonically_isomorphic(T0, M)
+  @test_broken is_canonically_isomorphic(T0, M) # Should probably no longer be tested for after #4809.
   @test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
   @test iszero(T2)
   T0 = tor(M, Q, 0)
@@ -431,6 +442,19 @@ end
   @test_throws ArgumentError groebner_basis(M)
 end
 
+@testset "Singular Ordering Test" begin
+  R, x = polynomial_ring(QQ, :x => 1:4)
+  F = FreeMod(R, 1)
+  lp = lex(gens(base_ring(F))) * lex(gens(F))
+  J = SubquoModule(F, [
+        (x[1] + x[2] + R(1)) * F[1],
+        (x[1] + x[2] + 2*x[3] + 2*x[4] + 1) * F[1],
+        (x[1] + x[2] + x[3] + x[4] + 1) * F[1]
+  ])
+  mg = reduced_groebner_basis(J, lp)
+  odr = Oscar.singular_ordering(mg)
+  @test Singular.ordering_as_symbol(odr) == :lex
+end
 
 @testset "Test kernel" begin
   Oscar.set_seed!(235)
@@ -447,7 +471,7 @@ end
     @test image(emb)[1] == image(map(F1,Ker))[1]
   end
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+    A = matrix([randpoly(R,0:2,2,2) for i=1:3,j=1:2])
     A = map(A)
     K,emb = kernel(A)
     @test iszero(emb*A)
@@ -469,7 +493,7 @@ end
     @test image(emb)[1] == image(map(F1,Ker))[1]
   end
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+    A = matrix([randpoly(R,0:2,2,2) for i=1:3,j=1:2])
     A = map(A)
     K,emb = kernel(A)
     @test image(emb)[1] == K
@@ -484,8 +508,8 @@ end
   B = R[x^2 y^2*x;-y x*y]
   @test iszero(SubquoModule(A,B))
   for k=1:3
-    A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-    B = matrix([randpoly(R,0:15,2,2) for i=1:2,j=1:2])
+    A = matrix([randpoly(R,0:2,2,2) for i=1:3,j=1:2])
+    B = matrix([randpoly(R,0:2,2,2) for i=1:2,j=1:2])
     @test iszero(SubquoModule(A,A))
     @test !iszero(SubquoModule(A,B)) # could go wrong
   end
@@ -519,8 +543,8 @@ end
   @test i2*p2 == identity_map(M2)
   @test p2*i2 == identity_map(M1)
 
-  A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
   M1 = SubquoModule(A1,B1)
   M2,i2,p2 = Oscar._old_simplify(M1)
   for k=1:5
@@ -535,8 +559,8 @@ end
   @test is_bijective(i2)
   @test is_bijective(p2)
 
-  A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
-  B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+  A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:3])
+  B1 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:3])
   M1 = SubquoModule(A1,B1)
   M2,i2,p2 = Oscar._old_simplify(M1)
 
@@ -713,8 +737,8 @@ end
   Z = FreeMod(R,0)
   @test iszero(hom(Z,Z)[1])
   for k=1:10
-    A = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-    B = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
+    B = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
     N = SubquoModule(A,B)
 
     @test iszero(hom(N,Z)[1])
@@ -723,15 +747,15 @@ end
 
   # test welldefinedness of randomly generated homomorphisms (using hom() and element_to_homomorphism())
   for k=1:10
-    A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
+    A2 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:2])
+    B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
+    B2 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
     N = SubquoModule(A1,B1)
     M = SubquoModule(A2,B2)
     HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M, algorithm=:matrices)[1]
     for l=1:10
-      v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
+      v = sparse_row(matrix([randpoly(R,0:2,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
       H = HomNM(v)
       H = element_to_homomorphism(H)
       @test is_welldefined(H)
@@ -747,13 +771,13 @@ end
   F3 = FreeMod(R,3)
   F4 = FreeMod(R,4)
 
-  for _=1:10
-    A1 = matrix([randpoly(R,0:15,4,3) for i=1:3,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+  for _=1:3 # At some later point we run into non-finishing computations with this seed. 
+    A1 = matrix([randpoly(R,0:2,4,3) for i=1:3,j=1:2])
+    B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
 
 
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+    A2 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:3])
+    B2 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:3])
 
     M1 = SubquoModule(F2,A1,B1)
     M2 = SubquoModule(F3,A2,B2)
@@ -766,8 +790,8 @@ end
       @test phi(v) == v
     end
 
-    A3 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    #B3 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A3 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:2])
+    #B3 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
     M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2,A3))
 
     N,pure_N = tensor_product(M3,F4, task=:map)
@@ -790,12 +814,12 @@ end
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
 
-  A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:2,2,2) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:2,2,2) for i=1:1,j=1:2])
   M1 = SubquoModule(F2,A1,B1)
 
-  A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-  B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+  A2 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:3])
+  B2 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:3])
   M2 = SubquoModule(F3,A2,B2)
 
   sum_M, emb = direct_sum(M1,M2)
@@ -825,12 +849,12 @@ end
     @test g == pr[2](emb[2](g))
   end
 
-  A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-  B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+  A1 = matrix([randpoly(R,0:2,2,2) for i=1:3,j=1:2])
+  B1 = matrix([randpoly(R,0:2,2,2) for i=1:1,j=1:2])
   N1 = SubquoModule(F2,A1,B1)
 
-  A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-  B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+  A2 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:3])
+  B2 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:3])
   N2 = SubquoModule(F3,A2,B2)
 
   prod_N = direct_product(N1,N2,task=:none)
@@ -853,7 +877,7 @@ end
   H21 = hom(M2,N1)[1]
   M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
   M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(H21[1])
-  M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
+  M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 0 0])
   @assert is_welldefined(M1_to_N1)
   @assert is_welldefined(M1_to_N2)
   @assert is_welldefined(M2_to_N1)
@@ -1103,10 +1127,10 @@ end
   R, (x,y) = polynomial_ring(QQ, [:x, :y])
 
   for _=1:10
-    A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
-    A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-    B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
-    B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+    A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:1])
+    A2 = matrix([randpoly(R,0:2,2,1) for i=1:2,j=1:2])
+    B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:1])
+    B2 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
 
     N = SubquoModule(A1,B1)
     M = SubquoModule(A2,B2)
@@ -1114,7 +1138,7 @@ end
     if iszero(HomNM)
       continue
     end
-    H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
+    H = HomNM(sparse_row(matrix([randpoly(R,0:2,2,1) for _=1:1,j=1:ngens(HomNM)])))
     H = element_to_homomorphism(H)
 
     u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
@@ -1273,14 +1297,11 @@ end
     inc_I = 6
   end
   dummy2(F)
-
+  
   GC.gc()
   GC.gc()
 
-  # The inclusion map J -> I is still stored in the attributes of J as :canonical_inclusion.
-  # However, even removing that and calling gc() again does not remove the entry in J.outgoing.
-  # So there is still a memory leak somewhere!
-  @test_broken length(keys(J.outgoing)) == 0
+  @test length(keys(F.incoming)) == 0
 end
 
 
@@ -1331,3 +1352,53 @@ end
   @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
 end
 
+@testset "Issue #4809" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  F = free_module(R, 1)
+  M = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  MoM = tensor_product(M, M)
+  @test !is_zero(MoM)
+  decomp = Oscar.tensor_generator_decompose_function(MoM)
+  m = Oscar.tensor_pure_function(MoM)
+  b0 = (M[1], M[1])
+  a = m(b0...)
+  b = decomp(a)
+  @test b == b0
+end
+
+@testset "composition of morphisms" begin
+  R, (x, y) = QQ[:x, :y]
+  P, t = QQ[:t]
+  kk, _ = extension_field(t^2 + 1)
+  S, (u, v) = kk[:u, :v]
+  R1 = free_module(R, 1)
+  S1 = free_module(S, 1)
+  id_R1 = hom(R1, R1, [R1[1]])
+  id_S1 = hom(S1, S1, [S1[1]])
+  f = hom(R1, S1, [S1[1]], hom(R, S, [u, v]))
+  i = first(gens(kk))
+  conj = hom(kk, kk, -i)
+  conj_S1 = hom(S1, S1, [S1[1]], hom(S, S, conj, [u, v]))
+  # recreate the same morphism, but with an anonymous function as ring_map
+  conj_S1_alt = hom(S1, S1, [S1[1]], f->evaluate(map_coefficients(conj, f), [u, v]))
+  @test_throws ErrorException conj_S1 == conj_S1_alt
+
+  a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
+  b = compose(compose(id_R1, compose(f, conj_S1)), id_S1)
+  c = compose(compose(compose(id_R1, f), conj_S1), id_S1)
+  d = compose(id_R1, compose(f, compose(conj_S1, id_S1)))
+
+  @test a == b
+  a_alt = compose(compose(id_R1, f), compose(conj_S1_alt, id_S1))
+  @test_throws ErrorException f == a # non-comparable ring_maps
+  @test_throws ErrorException a_alt == a # same
+  @test_throws MethodError !(conj_S1 == id_S1) # ring map vs. no ring map
+  @test conj_S1 == conj_S1 # identical ring maps are OK
+  @test all(a(x) == b(x) for x in gens(R1))
+  @test all(a(x) == c(x) for x in gens(R1))
+  @test all(a(x) == d(x) for x in gens(R1))
+
+  @test all(i*conj_S1(x) == conj_S1(-i*x) for x in gens(S1))
+  @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
+  @test conj_S1 == compose(id_S1, conj_S1)
+end

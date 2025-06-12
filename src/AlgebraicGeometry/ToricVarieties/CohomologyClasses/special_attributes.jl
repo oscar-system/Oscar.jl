@@ -50,7 +50,7 @@ julia> polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
     indets = gens(cohomology_ring(v))
     poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
     @req !iszero(poly) && degree(poly)[1] == dim(v) "The volume class does not exist"
-    return CohomologyClass(v, poly)
+    return CohomologyClass(v, poly, true)
 end
 
 
@@ -178,7 +178,7 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
     push_term!(my_builder, one(QQ), exps)
   end
   desired_class = finish(my_builder)
-  cs[k+1] = CohomologyClass(v, cohomology_ring(v, check = check)(desired_class))
+  cs[k+1] = CohomologyClass(v, cohomology_ring(v, check = check)(desired_class), true)
   set_attribute!(v, :chern_classes, cs)
   return cs[k+1]
 end

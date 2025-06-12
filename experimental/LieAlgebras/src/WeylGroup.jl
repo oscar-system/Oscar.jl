@@ -208,7 +208,7 @@ function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=false)
     is_finite(W) && set_order(G, order(W))
 
     iso = function (w::WeylGroupElem)
-      return G(syllables(w)) # TODO: change to letters once G supports that input
+      return G(letters(w))
     end
 
     isoinv = function (g::FPGroupElem)
@@ -291,9 +291,9 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   if length(type) != 1
     # Apply recursion to the irreducible factors
     # Note that the gens of each irreducible factor are in canonical ordering
-    factors = irreducible_factors(W; morphisms=false)
+    factors = irreducible_factors(W; morphisms=false)::Vector{WeylGroup}
     factors_as_perm = [_isomorphic_group_on_gens(PermGroup, factor) for factor in factors]
-    G = inner_direct_product(factors_as_perm; morphisms=false)
+    G = inner_direct_product(factors_as_perm; morphisms=false)::PermGroup
     # gens(G) corresponds to gens(W)[ordering], so
     # gens(G)[invperm(ordering)] corresponds to gens(W)
     G_sorted, _ = sub(G, gens(G)[invperm(ordering)])
@@ -305,25 +305,35 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   coxeter_type, n = only(type)
   if coxeter_type == :A
     Sym = symmetric_group(n + 1)
-    gen_G = [cperm(Sym, [i, i + 1]) for i in 1:n]
+    gen_G = let Sym = Sym # closure boxing
+      [cperm(Sym, [i, i + 1]) for i in 1:n]
+    end
   elseif coxeter_type == :B || coxeter_type == :C
     Sym = symmetric_group(2n)
-    gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)], cperm(Sym, [n, 2n])
-    )
+    gen_G = let Sym = Sym # closure boxing
+      vcat(
+        [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+        cperm(Sym, [n, 2n]),
+      )
+    end
   elseif coxeter_type == :D
     Sym = symmetric_group(2n)
-    gen_G = vcat(
-      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
-      cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
-    )
+    gen_G = let Sym = Sym # closure boxing
+      vcat(
+        [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+        cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
+      )
+    end
   elseif coxeter_type == :E
     # Permutation representation on the root system. The permutation degree is not optimal for E_6 and E_7.
     m = number_of_roots(R)
     Sym = symmetric_group(m)
-    gen_G = [
-      perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n
-    ]
+    gen_G = let Sym = Sym # closure boxing
+      [
+        perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for
+        i in 1:n
+      ]
+    end
   elseif coxeter_type == :F
     Sym = symmetric_group(24)
     #! format: off
@@ -582,4 +592,36 @@ end
 
 function inner_direct_product(L::WeylGroup, Ls::WeylGroup...; morphisms::Bool=false)
   return inner_direct_product([L, Ls...]; morphisms=morphisms)
+end
+
+###############################################################################
+# G-set functionality (can get moved to src/ once `isomorphism(PermGroup, ::WeylGroup)` gets moved)
+
+Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
+
+function gset_by_type(W::WeylGroup, Omega, ::Type{RootSpaceElem}; closed::Bool=false)
+  return GSetByElements(W, *, Omega; closed=closed, check=false)
+end
+
+function gset_by_type(W::WeylGroup, Omega, ::Type{WeightLatticeElem}; closed::Bool=false)
+  return GSetByElements(W, *, Omega; closed=closed, check=false)
+end
+
+function action_homomorphism(Omega::GSetByElements{WeylGroup,S}) where {S}
+  W = acting_group(Omega) # our base group
+
+  # Compute a permutation group isomorphic with `W`.
+  phi = isomorphism(PermGroup, W)
+
+  # Let the image of `phi` act on `Omega` as `W` does.
+  OmegaG = induce(Omega, inv(phi))
+
+  # Compute the permutation action on `1:length(Omega)`
+  # corresponding to the action of `W` on `Omega`.
+  return compose(phi, action_homomorphism(OmegaG))
+end
+
+# Currently implemented to allow gset computations that require image.
+function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
+  return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
 end

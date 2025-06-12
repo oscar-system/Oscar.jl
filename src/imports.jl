@@ -100,6 +100,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_equal_as_morphism,
   is_known,
   is_terse,
   is_trivial,
@@ -181,6 +182,7 @@ import Nemo:
 # By default we import everything exported by Hecke, and then also re-export
 # it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
+    Symbol("@perm_str"), # see https://github.com/oscar-system/Oscar.jl/issues/4963
     :change_uniformizer,
     :coefficients,
     :exponent_vectors,

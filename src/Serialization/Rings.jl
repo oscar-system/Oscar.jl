@@ -337,7 +337,7 @@ function save_object(s::SerializerState, obj::SMatSpace)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::Ring)
+function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::NCRing)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)
@@ -351,7 +351,7 @@ end
 
 # elems
 function save_object(s::SerializerState, obj::MatElem)
-  save_object(s, Array(obj))
+  save_object(s, Matrix(obj))
 end
 
 function save_object(s::SerializerState, obj::SMat)
@@ -710,14 +710,13 @@ function load_object(
   return MPolyLocRing(R, mult_set)
 end
 
-@register_serialization_type MPolyLocRingElem uses_params
+@register_serialization_type MPolyLocRingElem
 
 type_params(a::MPolyLocRingElem) = TypeParams(MPolyLocRingElem, parent(a))
 
 function save_object(s::SerializerState, a::MPolyLocRingElem)
-  # Because the `parent` of `a` is a `Ring` the generic implementation
-  # for `uses_params` above calls `save_type_params` and that stores 
-  # the ring. Hopefully. 
+  # `save_type_params` will store the output of type_params
+  # in this case the parent ring
   save_data_array(s) do
     save_object(s, numerator(a))
     save_object(s, denominator(a))
@@ -751,7 +750,7 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRing}, params::Di
   return MPolyQuoLocRing(R, modulus(Q), inverted_set(L), Q, L)
 end
 
-@register_serialization_type MPolyQuoLocRingElem uses_params
+@register_serialization_type MPolyQuoLocRingElem
 
 type_params(a::T) where {T<:MPolyQuoLocRingElem} = TypeParams(T, parent(a))
 

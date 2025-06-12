@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Schur polynomials
 
 Given a partition $\lambda$ with $n$ parts, the **Schur polynomial** is defined to be

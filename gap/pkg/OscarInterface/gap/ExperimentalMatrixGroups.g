@@ -89,10 +89,10 @@ InstallOtherMethod(Display, [IsJuliaMatrixRep], function( m )
                 fi;
             od;
             if (i < NumberRows(m)) then
-                Print(" ] \n");
+                Print(" ] \n");
                 Print("  ");
             else
-                Print(" ] ] \n");
+                Print(" ] ] \n");
             fi;
         od;
     end);

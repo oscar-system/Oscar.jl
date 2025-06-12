@@ -1075,6 +1075,17 @@ end
   @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
 end
 
+@testset "character tables of factor groups" begin
+  g = symmetric_group(4)
+  gtbl = character_table(g)
+  n = class_positions_of_pcore(gtbl, 2)
+  ftbl, fus = quo(gtbl, n)
+  f = group(ftbl)
+  @test conjugacy_classes(f) == conjugacy_classes(ftbl)
+  @test fus == known_class_fusion(gtbl, ftbl)[2]
+  @test all(x -> restrict(x, gtbl) in gtbl, ftbl)
+end
+
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
   degrees = [degree_of_character_field(chi) for chi in tbl]
@@ -1201,6 +1212,11 @@ end
     @test length(character_parameters(t)) == length(t)
     @test length(class_parameters(t)) == length(t)
   end
+
+  t = character_table_complex_reflection_group(4, 1, 3)
+  @test length(character_parameters(t)) == length(t)
+  @test length(class_parameters(t)) == length(t)
+  @test get_attribute(t, :type) == (4, 1, 3)
 end
 
 @testset "symmetrizations" begin

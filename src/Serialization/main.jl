@@ -81,7 +81,7 @@ with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_a
 # (De|En)coding types
 
 # parameters of type should not matter here
-const reverse_type_map = Dict{String, Type}()
+const reverse_type_map = Dict{String, Union{Dict{String, Type}, Type}}()
 
 function encode_type(::Type{T}) where T
   error(
@@ -118,11 +118,17 @@ function decode_type(s::DeserializerState)
   end
 
   if :name in keys(s.obj)
-    return load_node(s, :name) do _
-      decode_type(s)
+    if :_instance in keys(s.obj)
+      return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
+        unsupported_instance = s.obj[:_instance]
+        error("unsupported instance '$unsupported_instance' for decoding")
+      end
+    else
+      return load_node(s, :name) do _
+        decode_type(s)
+      end
     end
   end
-  return decode_type(s.obj)
 end
 
 ################################################################################
@@ -235,7 +241,15 @@ end
 
 function save_type_params(s::SerializerState, tp::TypeParams)
   save_data_dict(s) do
-    save_object(s, encode_type(type(tp)), :name)
+    T = type(tp)
+    type_encoding = encode_type(T)
+    if reverse_type_map[type_encoding] isa Dict
+      # here we get "$T" = "fpField"
+      # see comment in register_serialization_type
+      save_object(s, convert_type_to_string(T), :_instance)
+    end
+    
+    save_object(s, type_encoding, :name)
     # this branching needs to be better understood,
     # seems like params(tp) wont be a TypeParams if
     # the type is not some container type
@@ -249,7 +263,15 @@ end
 
 function save_type_params(s::SerializerState,
                           ::TypeParams{T, Nothing}) where T
-  save_object(s, encode_type(T))
+  type_encoding = encode_type(T)
+  if reverse_type_map[type_encoding] isa Dict
+    save_data_dict(s) do
+      save_object(s, type_encoding, :name)
+      save_object(s, convert_type_to_string(T), :_instance)
+    end
+  else
+    save_object(s, type_encoding)
+  end
 end
 
 function save_type_params(s::SerializerState,
@@ -358,6 +380,8 @@ function load_type_params(s::DeserializerState, T::Type)
       # need to implement their own method, see for example containers
       return T, params
     end
+  elseif haskey(s, :_instance)
+    T, nothing
   else
     return T, load_typed_object(s)
   end
@@ -428,10 +452,16 @@ end
 ################################################################################
 # Type Registration
 function register_serialization_type(@nospecialize(T::Type), str::String)
-  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
-    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
+  if haskey(reverse_type_map, str) 
+    init = reverse_type_map[str]
+    # promote the value to a dictionary if necessary
+    if init isa Type
+      init = Dict{String, Type}(convert_type_to_string(init) => init)
+    end
+    reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
+  else
+    reverse_type_map[str] = T
   end
-  reverse_type_map[str] = T
 end
 
 function register_attr_list(@nospecialize(T::Type),
@@ -452,8 +482,7 @@ import Distributed.AbstractSerializer
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
 
-function register_serialization_type(ex::Any, str::String, uses_id::Bool,
-                                     uses_params::Bool, attrs::Any)
+function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any)
   return esc(
     quote
       Oscar.register_serialization_type($ex, $str)
@@ -515,7 +544,6 @@ indicates which attributes will be serialized when using save with `with_attrs=t
 """
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
-  uses_params = false
   str = nothing
   attrs = nothing
   for el in args
@@ -523,19 +551,19 @@ macro register_serialization_type(ex::Any, args...)
       str = el
     elseif el == :uses_id
       uses_id = true
-    elseif el == :uses_params
-      uses_params = true
     else
       attrs = el
     end
   end
   if str === nothing
+    # here we use string since on an expression.
+    # this choice means we should write types without the namespace in front
+    # when registering, and in convert_type_to_string
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
+  return register_serialization_type(ex, str, uses_id, attrs)
 end
-
 
 ################################################################################
 # Utility macro
