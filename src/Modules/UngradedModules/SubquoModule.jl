@@ -49,7 +49,7 @@ julia> O = [x*F[1]+F[2],y*F[2]]
  x*e[1] + e[2]
  y*e[2]
 
-julia> M = SubquoModule(F, O)
+julia> M = subquotient(F, O)
 Submodule with 2 generators
   1: x*e[1] + e[2]
   2: y*e[2]
@@ -133,7 +133,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B)
+julia> M = subquotient(A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -198,7 +198,7 @@ julia> BR = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MR = SubquoModule(FR, AR, BR)
+julia> MR = subquotient(FR, AR, BR)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -225,7 +225,7 @@ julia> BRL = RL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRL = SubquoModule(FRL, ARL, BRL)
+julia> MRL = subquotient(FRL, ARL, BRL)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -248,7 +248,7 @@ julia> BRQ = RQ[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQ = SubquoModule(FRQ, ARQ, BRQ)
+julia> MRQ = subquotient(FRQ, ARQ, BRQ)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -271,7 +271,7 @@ julia> BRQL = RQL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQL = SubquoModule(FRQL, ARQL, BRQL)
+julia> MRQL = subquotient(FRQL, ARQL, BRQL)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -338,7 +338,7 @@ julia> B = Rg[4*x*y^3 (2*x+y)^4]
 julia> F2 = graded_free_module(Rg,[0,0])
 Graded free module Rg^2([0]) of rank 2 over Rg
 
-julia> M1 = SubquoModule(F2, A1, B)
+julia> M1 = subquotient(F2, A1, B)
 Graded subquotient of graded submodule of F2 with 2 generators
   1: x*e[1] + y*e[2]
   2: 2*x^2*e[1] + 3*y^2*e[2]
@@ -502,7 +502,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -859,7 +859,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -876,7 +876,7 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -900,7 +900,7 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
+julia> M1 = subquotient(F, O1, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1] + y*e[2]
   2: y*e[2]
@@ -908,7 +908,7 @@ by graded submodule of F with 2 generators
   1: x^2*e[1] + y^2*e[2]
   2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
+julia> M2 = subquotient(F, O1a, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[2]
@@ -987,7 +987,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1004,7 +1004,7 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -1028,7 +1028,7 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
+julia> M1 = subquotient(F, O1, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1] + y*e[2]
   2: y*e[2]
@@ -1036,7 +1036,7 @@ by graded submodule of F with 2 generators
   1: x^2*e[1] + y^2*e[2]
   2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
+julia> M2 = subquotient(F, O1a, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[2]
@@ -1183,7 +1183,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1199,7 +1199,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1250,7 +1250,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1262,7 +1262,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1343,7 +1343,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1359,7 +1359,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1386,7 +1386,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1398,7 +1398,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1446,7 +1446,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1462,7 +1462,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1501,7 +1501,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1513,7 +1513,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1601,7 +1601,7 @@ julia> AN = R[y;];
 
 julia> BN = R[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1633,7 +1633,7 @@ julia> AN = R[y;];
 
 julia> BN = R[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1695,7 +1695,7 @@ julia> B = R[x^2; y^3; z^4];
 
 julia> AM = R[x;];
 
-julia> M = SubquoModule(F, AM, B)
+julia> M = subquotient(F, AM, B)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1705,7 +1705,7 @@ by graded submodule of F with 3 generators
 
 julia> AN = R[y;];
 
-julia> N = SubquoModule(F, AN, B)
+julia> N = subquotient(F, AN, B)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1753,7 +1753,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1796,7 +1796,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: (-y - z)*e[1]
 by submodule with 3 generators
@@ -1882,7 +1882,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1962,7 +1962,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -2005,7 +2005,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: (-y - z)*e[1]
 by submodule with 3 generators
