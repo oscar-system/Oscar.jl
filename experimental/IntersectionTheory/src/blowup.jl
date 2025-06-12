@@ -195,7 +195,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 	      xf -= q * ζ.f^k
 	    end;
 	    Bl(ans))
-  jₓ = MapFromFunc(AE, AX, jₓ)
+  jₓ = MapFromFunc(AE, ABl, jₓ)
   j = AbstractVarietyMap(E, Bl, jˣ, jₓ)
 
   # the normal bundle of E in Bl is O(-1)
