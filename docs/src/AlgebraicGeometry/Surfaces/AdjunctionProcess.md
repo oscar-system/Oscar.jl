@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Adjunction Process for Surfaces
 
 A surface in this section is a smooth projective surface over $\mathbb C$.

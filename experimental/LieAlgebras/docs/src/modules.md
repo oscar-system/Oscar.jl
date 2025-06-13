@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebra modules
 
 Lie algebra modules in OSCAR are always finite dimensional and represented by the type

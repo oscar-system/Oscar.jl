@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Functionality for all F-theory models
 
 All F-theory models focus on elliptic (or genus-one) fibrations. Details depend on the specific

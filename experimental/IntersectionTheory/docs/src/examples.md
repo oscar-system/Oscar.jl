@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Illustrating Examples From Enumerative Geometry
 
 #### How Many Lines in $\mathbb P^3$ Meet Four General Lines in $\mathbb P^3$?

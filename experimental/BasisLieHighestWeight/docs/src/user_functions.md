@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Functions for a monomial basis of highest weight modules
 ```@docs
 basis_lie_highest_weight_operators

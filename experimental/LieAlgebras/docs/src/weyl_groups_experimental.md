@@ -1,14 +1,8 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Weyl groups (experimental features)
 
 This page is an addition to the documentation of [Weyl groups](@ref) with the additional experimental features.
 
-# Exchange lemma and Braid moves
+## Exchange lemma and Braid moves
 
 ```@docs
 braid_moves(::WeylGroup, ::Vector{UInt8}, ::Vector{UInt8})

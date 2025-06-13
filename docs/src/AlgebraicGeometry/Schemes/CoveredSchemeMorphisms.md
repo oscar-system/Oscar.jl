@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Morphisms of covered schemes
 
 Suppose ``f : X \to Y`` is a morphism of `AbsCoveredScheme`s. Theoretically, and hence 

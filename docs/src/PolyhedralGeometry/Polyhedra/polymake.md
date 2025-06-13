@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # `Polyhedron` and `polymake`'s `Polytope`
 
 Many polyhedral computations are done through `polymake`. `polymake`

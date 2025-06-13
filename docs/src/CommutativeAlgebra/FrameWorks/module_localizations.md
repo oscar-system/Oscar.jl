@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Localizations of modules over computable rings
 
 For localizations of modules, there exists a generic implementation of 

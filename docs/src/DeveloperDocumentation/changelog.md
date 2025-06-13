@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Updating `CHANGELOG.md`
 
 Before every release, `CHANGELOG.md` should be updated. Ideally most of this is taken care of

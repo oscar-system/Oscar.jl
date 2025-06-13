@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Caching Parent Objects
 
 Many functions in OSCAR that construct parent objects (such as rings, modules,

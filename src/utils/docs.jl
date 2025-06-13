@@ -91,7 +91,16 @@ function get_document(set_meta::Bool; doctest=:fix)
     error("you need to use Documenter.jl version 1.0.0 or later")
   end
 
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters())
+  doc = Documenter.Document(
+    root = joinpath(oscardir, "docs");
+    doctest = doctest,
+    doctestfilters=Oscar.doctestfilters(),
+    meta=Dict(
+      :CurrentModule => Oscar,
+      :CollapsedDocStrings => true,
+      :DocTestSetup => Oscar.doctestsetup(),
+    ),
+  )
 
   if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
