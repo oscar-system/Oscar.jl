@@ -774,10 +774,9 @@ function standard_basis(M::SubquoModule{<:MPolyRingElem{T}}; ordering::ModuleOrd
       gb = compute_standard_basis(sub_union_gb_of_quo, ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(oscar_generators(gb))
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, oscar_generators(gb)[i])
+      for (vs, vo) in zip(singular_generators(gb), oscar_generators(gb))
+        if !iszero(_reduce(vs, singular_generators(gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -808,10 +807,9 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
       gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(oscar_generators(gb))
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, oscar_generators(gb)[i])
+      for (vs, vo) in zip(singular_generators(gb), oscar_generators(gb))
+        if !iszero(_reduce(vs, singular_generators(gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
