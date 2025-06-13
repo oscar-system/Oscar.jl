@@ -15,6 +15,7 @@ import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
 import Oscar: root_system
+import Oscar: vector_space_dim
 
 import Base: length
 
