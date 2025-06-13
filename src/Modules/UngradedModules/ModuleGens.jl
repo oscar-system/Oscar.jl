@@ -138,10 +138,11 @@ are computed, given the Singular side.
 """
 function oscar_generators(M::ModuleGens)
   if !isdefined(M, :O)
-    if iszero(singular_generators(M))
-      M.O = elem_type(M.F)[zero(M.F) for _ in 1:ngens(singular_generators(M))]
+    SI = singular_generators(M)
+    if iszero(SI)
+      M.O = elem_type(M.F)[zero(M.F) for _ in 1:ngens(SI)]
     else
-      M.O = [M.F(singular_generators(M)[i]) for i=1:Singular.ngens(singular_generators(M))]
+      M.O = [M.F(SI[i]) for i=1:Singular.ngens(SI)]
     end
   end
   return M.O
