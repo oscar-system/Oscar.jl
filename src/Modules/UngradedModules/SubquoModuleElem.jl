@@ -62,7 +62,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -182,7 +182,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -970,7 +970,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 1 generator
   1: (x^2 + y^2)*e[1]
 by submodule with 3 generators
@@ -1027,7 +1027,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -1058,7 +1058,7 @@ julia> B = Rg[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]

@@ -244,22 +244,22 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
-    higher syzygy modules. In the illustrating example below, the free resolution is
-    first computed up to length 1:
-    ```@julia
+    higher syzygy modules. In the first example of the examples section below, the free
+    resolution is initially computed up to length 1:
+    ```julia-repl
     julia> fr = free_resolution(M, length = 1)
     Free resolution of M
     R^2 <---- R^6
     0         1
     ```
     This resolution is not yet complete
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     false
     ```
     Continuing the session as follows, the resolution is extended up to length 4,
     without computing its first part again:
-    ```@julia
+    ```julia-repl
     julia> fr[4]
     Free module of rank 0 over R
 
@@ -269,7 +269,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     0         1         2         3         4
     ``` 
     As we already see from the output, the extended resolution is complete:
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     true
     ```
@@ -288,7 +288,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
     [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
     may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
-    ```@julia
+    ```julia-repl
     julia> FM = free_resolution(M)
     Free resolution of M
     Pn^44 <---- Pn^296 <---- Pn^808 <---- Pn^1019 <---- Pn^618 <---- Pn^169 <---- Pn^14 <---- 0
