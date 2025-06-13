@@ -1167,6 +1167,7 @@ export maximal_associated_points
 export maximal_blocks
 export maximal_cells
 export maximal_chains
+export maximal_cliques
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
