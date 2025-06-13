@@ -126,6 +126,8 @@ end
 @doc raw"""
     tropical_linear_space(k::Int, n::Int, p::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
 
+This usage of `tropical_linear_space` is now deprecated.
+
 Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `p`.  If `weighted_polyhedral_complex_only==true`, will not cache any extra information.
 
 # Examples
@@ -140,6 +142,8 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
     return tropical_linear_space(data.(combinations(n,k)), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 end
 
@@ -179,6 +183,8 @@ end
 @doc raw"""
     tropical_linear_space(k::Int, n::Int, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
+This usage of `tropical_linear_space` is now deprecated.
+
 Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex_only==true`, will not cache any extra information.
 
 # Examples
@@ -193,6 +199,8 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
     TropL = tropical_linear_space(data.(combinations(n,k)), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
     if !weighted_polyhedral_complex_only
