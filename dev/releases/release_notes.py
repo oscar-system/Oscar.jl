@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 
 
 def usage(name: str) -> None:
-    print(f"Usage: `{name} [NEWVERSION]`")
+    print(f"Usage: `{name} [NEWVERSION] [OLDVERSION]`")
     sys.exit(1)
 
 
@@ -120,7 +120,7 @@ def get_tag_date(tag: str) -> str:
                 "gh",
                 "release",
                 "view",
-                tag,
+                f"{tag}",
                 "--json=createdAt"
             ],
             shell=False,
@@ -265,29 +265,45 @@ which we think might affect some users directly.
         os.rename(newfile, finalfile)
 
 
-def main(new_version: str) -> None:
+def main(new_version: str, old_version: str = "") -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
+    extra = ""
+    release_type = 0 # 0 by default, 1 for point release, 2 for patch release
     if major != 1:
         error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
         # "major" OSCAR release which changes just the minor version
+        release_type = 1
         previous_minor = minor - 1
-        basetag = f"v{major}.{minor}dev"
+        basetag = f"v{major}.{minor}-dev"
         # *exclude* PRs backported to previous stable-1.X branch
-        extra = f'-label:"backport-to-{major}.{previous_minor}-DONE"'
+        extra = f'-label:"backport {major}.{previous_minor}.x"'
     else:
         # "minor" OSCAR release which changes just the patchlevel
+        release_type = 2
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
-        extra = f'label:"backport-to-{major}.{minor}-DONE"'
-        extra = ''
+        extra = f'label:"backport {major}.{minor}.x"'
 
+    if old_version != "":
+        basetag = f"v{old_version}"
+    if release_type == 2:
+        startdate = get_tag_date(basetag)
+    else:
+        # Find the date when the last version bump happened
+        # step 1 : find the PR number of the version bump
+        l = subprocess.run([
+            "gh",
+            "pr",
+            "list",
+            f'--search="Version 1.{minor}.0-dev"',
+            "--state=merged",
+            "--json=id,title,number,closedAt",
+        ], shell=False, capture_output=True)
+        j = list(json.loads(l.stdout.decode()))
+        startdate = [k['closedAt'] for k in j if k['title'] == f"Version 1.{minor}.0-dev"][0][0:10]
     print("Base tag is", basetag)
-
-    #startdate = get_tag_date(basetag)
-    # HACK HACK HACK FIXME TODO WORKAROUND
-    startdate = "2024-10-30"
     print("Base tag was created ", startdate)
 
     print("Downloading filtered PR list")
@@ -321,7 +337,9 @@ if __name__ == "__main__":
         itag[-1] = str(int(itag[-1])+1)
         itag = ".".join(itag)
         main(itag)
-    elif len(sys.argv) != 2:
+    elif len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) >3:
         usage(sys.argv[0])
     else:
         main(sys.argv[1])
