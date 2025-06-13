@@ -127,7 +127,7 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = singular_poly_ring(Q)
+  SQ = Oscar.singular_poly_ring(Q)
   SI = I.gens.gens.S
   @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
