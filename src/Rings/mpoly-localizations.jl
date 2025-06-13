@@ -1280,6 +1280,8 @@ is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BR
   return shift, back_shift
 end
 
+is_noetherian(W::MPolyLocRing) = is_noetherian(base_ring(W)) || throw(NotImplementedError(:is_noetherian, W))
+
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
 ########################################################################
