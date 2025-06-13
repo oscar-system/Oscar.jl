@@ -10,7 +10,7 @@
   index_of_exceptional_ray::Integer
   exceptional_prime_divisor::ToricDivisor
 
-  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::String)
+  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::Symbol)
     # Construct the new variety
     Y = normal_toric_variety(star_subdivision(X, primitive_vector))
 
@@ -23,9 +23,9 @@
     @req index_of_exceptional_ray !== nothing "Could not identify position of exceptional ray"
 
     # Set variable names of Y
-    var_names_X = string.(symbols(cox_ring(X)))
+    var_names_X = symbols(cox_ring(X))
     @req !(coordinate_name in var_names_X) "The name for the blowup coordinate is already taken"
-    var_names_Y = Vector{String}(undef, n_rays(Y))
+    var_names_Y = Vector{Symbol}(undef, n_rays(Y))
     rays_X = matrix(ZZ, rays(X))
     indices_X = Dict{AbstractVector, Int64}([rays_X[i,:]=>i for i in 1:n_rays(X)])
     for i in 1:n_rays(Y)
