@@ -147,6 +147,7 @@ but `PcGroup` is the default type in all cases except `abelian_group`.)
 ```@docs
 abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
 elementary_abelian_group
+extraspecial_group
 cyclic_group
 dihedral_group
 quaternion_group

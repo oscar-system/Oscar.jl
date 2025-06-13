@@ -186,6 +186,25 @@ end
   
 end
 
+@testset "Extraspecial groups" begin
+   @testset for p in [2, 3, 5], n in [1, 2], type in [:+, :-]
+      G = extraspecial_group(p, n, type)
+      @test is_extraspecial_group(G)
+      @test G isa PcGroup
+
+      for T in [PcGroup, SubPcGroup, PermGroup, FPGroup, SubFPGroup]
+         G = extraspecial_group(T, p, n, type)
+         @test is_extraspecial_group(G)
+         @test G isa T
+         @test (p == 2) ? (exponent(G) == 4) :
+                          ((type == :+) ? exponent(G) == p : exponent(G) == p^2)
+      end
+   end
+   @test_throws ArgumentError extraspecial_group(2, 0, :+)
+   @test_throws ArgumentError extraspecial_group(4, 1, :+)
+   @test_throws MethodError extraspecial_group(2, 1, "+")
+end
+
 @testset "Classical groups" begin
    @testset for n in [2,5], q in [4,9]
       G = GL(n,q)
