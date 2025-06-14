@@ -35,7 +35,7 @@ function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; or
     return IdealGens(base_ring(B), i)
   end
   if !isdefined(B.gens, :S)
-    B.gens.S = Singular.Ideal(B.gens.Sx, [convert(B.Sgens.x, x) for x = B.gens.O])
+    B.gens.S = Singular.Ideal(B.gens.Sx, [convert(B.Sgens.x, x) for x in oscar_generators(B)])
   end 
   return IdealGens(base_ring(B), stdhilb(B.gens.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
 end
