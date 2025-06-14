@@ -964,6 +964,7 @@ export is_negative_coroot_with_index
 export is_negative_root
 export is_negative_root_with_index
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
+export is_noetherian
 export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
@@ -1075,6 +1076,8 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
+export krull_dim
+export krull_dimension
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
@@ -1759,6 +1762,7 @@ export vanishing_sets
 export variety
 export vector_matrix
 export vector_space_basis
+export vector_space_dim
 export vector_space_dimension
 export vertex_and_ray_indices
 export vertex_edge_graph

@@ -19,19 +19,23 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing)
-  return dim(modulus(A))
-end
+dim(A::MPolyQuoRing) = krull_dim(A)
 
-function dim(A::zzModRing)
+function dim(A::Union{zzModRing, ZZModRing})
   modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
   return 0
 end
 
-function dim(A::ZZModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
+krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
+
+function krull_dim(A::Union{zzModRing, ZZModRing})
+  modulus(A) == 1 && error("Function `krull_dim` gives wrong answers if the base ring is the zero ring.")
+  return is_prime(modulus(A)) ? 0 : 1
 end
+
+krull_dimension(A::Union{MPolyQuoRing, ZZModRing, zzModRing}) = krull_dim(A)
+
+is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
@@ -114,6 +118,8 @@ function vector_space_dimension(A::MPolyQuoRing)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
 end
+
+vector_space_dim(A::MPolyQuoRing) = vector_space_dimension(A)
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing)

@@ -2044,8 +2044,12 @@ julia> dim(I)
 1
 ```
 """
-function dim(I::MPolyIdeal)
+dim(I::MPolyIdeal) = krull_dim(I)
+krull_dimension(I::MPolyIdeal) = krull_dim(I)
+
+function krull_dim(I::MPolyIdeal)
   if I.dim === nothing
+    @req is_noetherian(coefficient_ring(I)) "Krull dimension is only supported for Noetherian rings."
     if is_zero(ngens(base_ring(I))) # Catch a boundary case
       I.dim = dim(coefficient_ring(base_ring(I)))
     else
@@ -2088,10 +2092,9 @@ is_known(::typeof(codim), I::MPolyIdeal) = is_known(dim, I)
 
 
 # Some fixes which were necessary for the above
-dim(R::MPolyRing{<:FieldElem}) = nvars(R) # Needed, because `dim` for number fields implements something different from Krull dimension!
-dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
-dim(R::ZZRing) = 1
-
+dim(R::Union{MPolyRing, ZZRing}) = krull_dim(R)
+krull_dimension(R::Union{MPolyRing, ZZRing}) = krull_dim(R)
+krull_dim(R::ZZRing) = 1
 
 ################################################################################
 #
