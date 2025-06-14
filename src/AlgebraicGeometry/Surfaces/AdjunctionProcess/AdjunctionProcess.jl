@@ -198,7 +198,7 @@ function canonical_bundle(X::AbsProjectiveVariety)
   A = homogeneous_coordinate_ring(X)
   n = ngens(Pn)-1
   c = codim(X)
-  FA = free_resolution(A, algorithm = :fres)
+  FA, _ = free_resolution(SimpleFreeResolution, A)
   C_simp = simplify(FA)
   C_shift = shift(C_simp, c)
   OmegaPn = graded_free_module(Pn, [n+1])
