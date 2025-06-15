@@ -36,11 +36,13 @@ function save_object(s::SerializerState, m::Matroid)
 end
 
 
-function load_object(s::DeserializerState, m::Type{Matroid})
+function load_object(s::DeserializerState, m::Type{<:Matroid})
+  # TODO: for now only objects of type `Matroid{Int}` are supported, to preserve
+  # backwards compatibility.
   mt = load_object(s, Polymake.BigObject, :matroid)
   grds = load_object(s, Vector{Int}, :groundset)
   gs2num = load_object(s, Dict{Int,Int}, :gs2num)
-  return m(mt, grds, gs2num)
+  return Matroid{Int}(mt, grds, gs2num)
 end
 
 
