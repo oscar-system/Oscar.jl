@@ -54,7 +54,6 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res
 end
 
@@ -71,7 +70,7 @@ function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
-  M = ModuleGens(M.O, oscar_free_module(M), ordering)
+  M = ModuleGens(oscar_generators(M), oscar_free_module(M), ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat

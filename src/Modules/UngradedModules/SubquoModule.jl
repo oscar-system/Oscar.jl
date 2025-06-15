@@ -776,14 +776,14 @@ function standard_basis(M::SubquoModule{<:MPolyRingElem{T}}; ordering::ModuleOrd
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = compute_standard_basis(sub_union_gb_of_quo, ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -810,14 +810,14 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
       M.groebner_basis[ord] = reduced_groebner_basis(M.sub, ord)
     else
       quo_gb = reduced_groebner_basis(M.quo, ord)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
