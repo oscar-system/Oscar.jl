@@ -2015,10 +2015,10 @@ julia> gens(I)
 ```
 """
 function gens(I::MPolyIdeal)
-  return [I.gens[Val(:O), i] for i=1:ngens(I)]
+  return copy(oscar_generators(I))
 end
 
-gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
+gen(I::MPolyIdeal, i::Int) = oscar_generators(I)[i]
 
 #######################################################
 @doc raw"""

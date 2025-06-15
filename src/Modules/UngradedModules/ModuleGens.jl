@@ -197,14 +197,6 @@ Return the number of elements of the module generating set.
 """
 number_of_generators(F::ModuleGens) = length(oscar_generators(F))
 
-function getindex(F::ModuleGens, ::Val{:O}, i::Int)
-  return oscar_generators(F)[i]
-end
-
-function getindex(F::ModuleGens, ::Val{:S}, i::Int)
-    return singular_generators(F)[i]
-end
-
 @doc raw"""
     singular_assure(F::ModuleGens)
 
@@ -227,11 +219,10 @@ function singular_assure(F::ModuleGens)
     F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
     return
   end
-  #F[Val(:S), 1]
 end
 
 # i-th entry of module generating set (taken from Oscar side)
-getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
+getindex(F::ModuleGens, i::Int) = oscar_generators(F)[i]
 
 @doc raw"""
     union(M::ModuleGens, N::ModuleGens)

@@ -71,7 +71,7 @@ function number_of_generators(a::FreeAssociativeAlgebraIdeal)
 end
 
 function gen(a::FreeAssociativeAlgebraIdeal{T}, i::Int) where T
-  return a.gens[Val(:O), i]
+  return oscar_generators(a.gens)[i]
 end
 
 function gens(a::FreeAssociativeAlgebraIdeal{T}) where T
