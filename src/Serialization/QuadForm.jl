@@ -31,5 +31,5 @@ end
 function load_object(s::DeserializerState, ::Type{ZZLat}, params::Dict)
   mat_space = params[:basis]
   B = load_object(s, elem_type(mat_space), mat_space)
-  return lattice(params[:ambient_space], B)
+  return lattice(params[:ambient_space], B; check=false)
 end

@@ -235,7 +235,7 @@ G4-flux candidate
 
   # Identify the cohomology classes of all exceptional divisors
   gS = gens(cox_ring(ambient_space(m)))
-  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+$", x), string.(symbols(cox_ring(ambient_space(m)))))
+  exceptional_divisor_positions = exceptional_divisor_indices(m)
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
   c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]
 

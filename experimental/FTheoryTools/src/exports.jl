@@ -33,7 +33,10 @@ export arxiv_model_section
 export arxiv_version
 export associated_literature_models
 export base_space
-export basis_of_h22
+export basis_of_h22_ambient
+export basis_of_h22_ambient_indices
+export basis_of_h22_hypersurface
+export basis_of_h22_hypersurface_indices
 export birational_literature_models
 export blow_up
 export breaks_non_abelian_gauge_group
@@ -45,6 +48,8 @@ export classes_of_model_sections
 export classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes
 export components_of_dual_graph
 export components_of_simplified_dual_graph
+export converter_dict_h22_ambient
+export converter_dict_h22_hypersurface
 export coordinate_ring
 export defining_classes
 export model_section_parametrization
@@ -57,6 +62,8 @@ export dual_graph
 export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
+export exceptional_classes
+export exceptional_divisor_indices
 export explicit_model_sections
 export family_of_g4_fluxes
 export family_of_spaces
@@ -141,12 +148,19 @@ export literature_identifier
 export literature_model
 export matrix_integral
 export matrix_rational
+export matrix_integral_quant_transverse
+export matrix_rational_quant_transverse
+export matrix_integral_quant_transverse_nobreak
+export matrix_rational_quant_transverse_nobreak
 export max_lattice_pts_in_facet
 export model
 export model_description
 export model_index
 export model_parameters
 export model_sections
+export offset
+export offset_quant_transverse
+export offset_quant_transverse_nobreak
 export paper_authors
 export paper_buzzwords
 export paper_description
@@ -155,6 +169,7 @@ export passes_tadpole_cancellation_check
 export passes_transversality_checks
 export polytope_index
 export put_over_concrete_base
+export qsm_flux
 export random_flux
 export random_flux_instance
 export rational_coefficients

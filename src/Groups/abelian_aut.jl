@@ -264,7 +264,7 @@ function embedding_orthogonal_group(i::TorQuadModuleMap)
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
     imgf = data.(union(i.(f.(gens(A))), j.(gens(B))))
-    fab = hom(gene, imgf)
+    fab = hom(abelian_group(D), abelian_group(D), gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)
   end
