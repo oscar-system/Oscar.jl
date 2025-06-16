@@ -4,7 +4,7 @@
 #
 #######################################
 
-Base.:-(apre::ActionPolyRingElem) = parent(apre)(-apre.upoly_ring_elem)
+Base.:-(apre::ActionPolyRingElem) = parent(apre)(-apre.p)
 
 #######################################
 #
@@ -14,10 +14,44 @@ Base.:-(apre::ActionPolyRingElem) = parent(apre)(-apre.upoly_ring_elem)
 
 function Base.:+(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.upoly_ring_elem + apre2.upoly_ring_elem)
+  return parent(apre1)(apre1.p + apre2.p)
+end
+
+function Base.:-(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
+  check_parent(apre1, apre2)
+  return parent(apre1)(apre1.p - apre2.p)
 end
 
 function Base.:*(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.upoly_ring_elem * apre2.upoly_ring_elem)
+  return parent(apre1)(apre1.p * apre2.p)
+end
+
+function Base.:/(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
+  check_parent(apre1, apre2)
+  return parent(apre1)(apre1.p / apre2.p)
+end
+
+function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
+  check_parent(apre1, apre2)
+  return parent(apre1)(divexact(apre1.p, apre2.p))
+end
+
+#######################################
+#
+#  Comparison of elements 
+#
+#######################################
+
+Base.:(==)(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRingElem{T}) where {T<:RingElem} = __poly(dpre1) == __poly(dpre2) && parent(dpre1) === parent(dpre2)
+
+function Base.hash(dpre::DifferencePolyRingElem, h::UInt)
+  b = 0x475b3fa701aa3148 % UInt
+  h = hash(parent(dpre), h)
+  h = hash(__poly(dpre), h)
+  return xor(h, b)
+end
+
+function Base.isless(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRingElem{T}) where {T<:RingElem}
+  return 0
 end

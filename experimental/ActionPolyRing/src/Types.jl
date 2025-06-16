@@ -81,7 +81,7 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
 end
 
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
-  upoly_ring_elem::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
+  p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferencePolyRing{T}
   #leader::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
 
@@ -174,3 +174,10 @@ internal_ordering(dpr::DifferencePolyRing) = dpr.internal_ordering
 
 parent(dpre::DifferencePolyRingElem) = dpre.parent
 
+#######################################
+#
+#  Aux 
+#
+#######################################
+
+__poly(dpre::DifferencePolyRingElem) = dpre.p
