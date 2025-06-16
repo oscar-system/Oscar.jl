@@ -351,6 +351,8 @@ gaussian_ring(n::Int; s_var_name::VarName="s", cached=false) = gaussian_ring(QQ,
 
 gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM), covariance_matrix(GM))
 
+covariance_matrix(GR::GaussianRing) = GR.covariance_matrix
+
 function Base.show(io::IO, R::GaussianRing)
   coeffs = base_ring(R.ring)
   k = ngens(R.ring)
