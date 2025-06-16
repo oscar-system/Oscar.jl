@@ -53,7 +53,7 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   end
 end
 
-@attr function probability_ring(GM::GaussianGraphicalModel; cached=false)
+@attr function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
   varnames = ["$(GM.varnames[1])[$(i), $(j)]" for (i, j) in varindices]
