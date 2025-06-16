@@ -226,7 +226,7 @@ end
   a = ideal(A, V)
   dim(a) # cashes a.gb
   gens(a.gb)
-  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+  @test Oscar.oscar_generators(a.gb) == MPolyDecRingElem[y, z^2]
 end
 
 @testset "quotients as vector spaces" begin

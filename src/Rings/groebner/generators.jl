@@ -57,8 +57,7 @@ end
 
 function oscar_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   standard_basis(I, ordering=ordering, complete_reduction = complete_reduction)
-  oscar_assure(I.gb[ordering])
-  return I.gb[ordering].gens.O
+  return oscar_generators(I.gb[ordering])
 end
 
 function singular_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
