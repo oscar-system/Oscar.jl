@@ -116,7 +116,7 @@ p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
 p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
 p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 """
-function parameterization(M::GraphicalModel{Undirected, MarkovRing})
+function parameterization(M::DiscreteGraphicalModel{Undirected, L}) where L
 
   G = graph(M)
   cliques = maximal_cliques(G)

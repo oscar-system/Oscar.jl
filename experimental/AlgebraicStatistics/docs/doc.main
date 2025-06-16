@@ -3,8 +3,6 @@
      "introduction.md",
      "graphical_models.md",
      "gaussian_graphical_models.md",
-     "ci.md",
-     "markov.md",
      "phylogenetics.md",
    ]
 ]
