@@ -303,7 +303,7 @@ jobs:
         id: get-branch
         run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: Determine whether CI status changed
-        uses: gap-actions/should-i-notify-action@v1
+        uses: aaruni96/should-i-notify-action@v1
         id: should_notify
         with:
           branch: ${{ steps.get-branch.outputs.branch }}
