@@ -332,27 +332,19 @@ function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Gen
   return c
 end
 
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
+function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; error_tolerant::Bool = false)
   c = parent(a)()
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
+      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, error_tolerant = error_tolerant)
       fl || return fl, c
     end
   end
   return true, c
 end
 
-function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = zero_matrix(QQ, nrows(a), ncols(a))
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-      c[i,j] = n//d
-    end
-  end
-  return true, c
+function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; error_tolerant::Bool = false, unbalanced::Bool = false)
+  return Nemo._induce_rational_reconstruction_nosplit(a, pg; error_tolerant, unbalanced)
 end
 
 #############################################################################

@@ -63,6 +63,7 @@
         ],
         "hypersurface_equation": "s1*u^3*e1^2 + s2*u^2*v*e1^2 + s3*u*v^2*e1^2 + s4*v^3*e1^2 + s5*u^2*w*e1 + s6*u*v*w*e1 + s7*v^2*w*e1 + s8*u*w^2 + s9*v*w^2",
         "zero_section_class": "e1",
+        "exceptional_classes": ["e1"],
         "zero_section": ["s9", "-s8", "1", "0"],
         "generating_sections": [
             ["-s9", "s8", "s1 * s9^3 - s4 * s8^3 + s3 * s9 * s8^2 - s2 * s9^2 * s8", "s7 * s8^2 - s6 * s9 * s8 + s5 * s9^2"]

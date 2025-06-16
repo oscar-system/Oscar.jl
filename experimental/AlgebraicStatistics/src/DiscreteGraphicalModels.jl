@@ -1,3 +1,19 @@
+@attributes mutable struct DiscreteGraphicalModel{T, L} <: GraphicalModel{T, L}
+  graph::Graph{T}
+  labelings::L
+  varnames::Vector{VarName}
+  function DiscreteGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
+  end
+end
+
+function discrete_graphical_model(G::Graph{Undirected}; t_var_name::VarName="t")
+  
+end
+
+
 ###################################################################################
 #
 #       Undirected Discrete Graphical Models

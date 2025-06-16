@@ -78,7 +78,7 @@ testlist = Oscar._gather_tests("test")
 
 for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
-  if isdir(path)
+  if isdir(path) && exp != "Parallel"
     append!(testlist, Oscar._gather_tests(path))
   end
 end
@@ -157,6 +157,12 @@ stats = Dict{String,NamedTuple}()
 if test_subset == :long || test_subset == :default
   println("Starting tests for Serialization/IPC.jl")
   push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+
+  if "Parallel" in Oscar.exppkgs
+    path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
+    println("Starting tests for $path")
+    push!(stats, Oscar._timed_include(path, Main))
+  end
 end
 
 # if many workers, distribute tasks across them

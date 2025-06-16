@@ -108,9 +108,6 @@ end
 
 function stable_intersection(TropL1::TropicalLinearSpace{minOrMax,true}, TropL2::TropicalLinearSpace{minOrMax,true}) where minOrMax
 
-    plueckerIndices12 = Vector{Int}[]
-    plueckerVector12 = TropicalSemiringElem{minOrMax}[]
-
     d = dim(TropL1)-codim(TropL2)
     if d<=0
         # return empty polyhedral complex
@@ -119,6 +116,8 @@ function stable_intersection(TropL1::TropicalLinearSpace{minOrMax,true}, TropL2:
         return tropical_linear_space(Sigma,mults,convention(TropL1))
     end
 
+    plueckerIndices12 = Vector{Int}[]
+    plueckerVector12 = TropicalSemiringElem{minOrMax}[]
     for (I1,p1) in zip(pluecker_indices(TropL1),tropical_pluecker_vector(TropL1))
         for (I2,p2) in zip(pluecker_indices(TropL2),tropical_pluecker_vector(TropL2))
             I12 = intersect(I1,I2)

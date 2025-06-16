@@ -283,6 +283,15 @@ julia> center(quaternion_group(8))
 Return the centralizer of `H` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
 in `H`, together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  h = sylow_subgroup(g, 3)[1]
+Permutation group of degree 5 and order 3
+
+julia> centralizer(g, h)
+(Permutation group of degree 5 and order 6, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, H::GAPGroup)
   _check_compatible(G, H)
@@ -295,6 +304,15 @@ end
 Return the centralizer of `x` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
 together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  x = gen(g, 2)
+(1,2)
+
+julia> centralizer(g, x)
+(Permutation group of degree 4 and order 4, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
@@ -740,9 +758,13 @@ false
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
   Q = FPGroup(GapObj(G)/elems_in_gap)
-  function proj(x::FPGroupElem)
-    return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
-             GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
+  Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+  Qgens = GAPWrap.GeneratorsOfGroup(GapObj(Q))
+  if length(Ggens) == 0
+    proj = x::FPGroupElem -> one(Q)
+  else
+    proj = x::FPGroupElem -> group_element(Q, GAPWrap.MappedWord(GapObj(x),
+                                                  Ggens, Qgens))
   end
   return Q, hom(G, Q, proj)
 end

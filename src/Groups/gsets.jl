@@ -269,7 +269,7 @@ function (Omega::GSet{T, S})(obj::S) where {T, S}
     return ElementOfGSet(Omega, obj)
 end
 
-function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
+function ^(omega::ElementOfGSet, g::T) where {T<:GroupElem}
     Omega = omega.gset
     fun = action_function(Omega)
     return ElementOfGSet(Omega, fun(omega.obj, g))
@@ -376,7 +376,7 @@ function _orbit_generic(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 #T check whether omega lies in Omega?
@@ -409,7 +409,7 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
@@ -435,7 +435,7 @@ function orbit_via_Julia(Omega::GSet, omega)
 
     res = as_gset(acting_group(Omega), action_function(Omega), orbarray)
     # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [orbarray])
+    set_attribute!(res, :orbits => [res])
     return res
 end
 
@@ -926,11 +926,139 @@ Base.eltype(::Type{GSetByElements{T,S}}) where {T,S} = S
 
 Base.getindex(Omega::GSetByElements, i::Int) = elements(Omega)[i]
 
-blocks(G::GSet) = error("not implemented")
-maximal_blocks(G::GSet) = error("not implemented")
-minimal_block_reps(G::GSet) = error("not implemented")
-all_blocks(G::GSet) = error("not implemented")
+"""
+    blocks(Omega::GSet)
 
+Return a G-set that is a block system for the action on `Omega`,
+i.e., a non-trivial partition of the points of `Omega` preserved by the action on `Omega`.
+
+Here, the action on `Omega` must be transitive.
+
+An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> Omega = gset(sylow_subgroup(symmetric_group(4), 2)[1])
+G-set of
+  permutation group of degree 4 and order 8
+  with seeds 1:4
+
+julia> collect(blocks(Omega))
+2-element Vector{Set{Int64}}:
+ Set([2, 1])
+ Set([4, 3])
+```
+"""
+function blocks(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  L = moved_points(G)
+  bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
+  # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
+  return gset(acting_group(Omega), on_sets, bl; closed = true)
+end
+
+"""
+    maximal_blocks(Omega::GSet)
+
+Return a G-set that is a maximal block system for the action on `Omega`,
+i.e., a maximal non-trivial partition of `Omega` preserved by the action on `Omega`.
+
+Here, the action on `Omega` must be transitive.
+
+An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> Omega = gset(transitive_group(8, 2))
+G-set of
+  permutation group of degree 8
+  with seeds 1:8
+
+julia> collect(maximal_blocks(Omega))
+2-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 4, 6, 7])
+```
+"""
+function maximal_blocks(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  L = moved_points(G)
+  bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
+  # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
+  bl = map(A -> Set(map(x -> Omega[x], A)), bl)
+  return gset(acting_group(Omega), on_sets, bl; closed = true)
+end
+
+"""
+    minimal_block_reps(Omega::GSet)
+
+Return a vector of block representatives for all minimal non-trivial block
+systems for the action on `Omega`.
+
+Here, the action on `Omega` must be transitive.
+
+An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> Omega = gset(transitive_group(8, 2))
+G-set of
+  permutation group of degree 8
+  with seeds 1:8
+
+julia> minimal_block_reps(Omega)
+3-element Vector{Set{Int64}}:
+ Set([3, 1])
+ Set([5, 1])
+ Set([7, 1])
+```
+"""
+function minimal_block_reps(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  L = moved_points(G)
+  bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
+
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
+end
+
+"""
+    all_blocks(Omega::GSet)
+
+Return a vector of smallest representatives of all block systems
+for the action on `Omega`.
+
+Here, the action on `Omega` must be transitive.
+
+An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> Omega = gset(transitive_group(8, 2))
+G-set of
+  permutation group of degree 8
+  with seeds 1:8
+
+julia> all_blocks(Omega)
+6-element Vector{Set{Int64}}:
+ Set([2, 8, 3, 1])
+ Set([5, 1])
+ Set([5, 7, 3, 1])
+ Set([3, 1])
+ Set([4, 6, 3, 1])
+ Set([7, 1])
+```
+"""
+function all_blocks(Omega::GSet)
+  @assert is_transitive(Omega) "The group action is not transitive"
+  G = image(action_homomorphism(Omega))[1]
+  bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
+
+  return map(A -> Set(map(x -> Omega[x], A)), bl)
+end
 
 """
     rank_action(Omega::GSet)
