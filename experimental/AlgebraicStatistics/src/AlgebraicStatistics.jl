@@ -2,6 +2,7 @@ include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
 include("GaussianGraphicalModels.jl")
+include("DiscreteGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
@@ -11,7 +12,7 @@ include("LoadModels.jl")
 
 # export Abstract Graphical Model
 export GraphicalModel
-export probability_ring
+export model_ring
 export parameter_ring
 export parameter_ring_gens
 export parametrization
@@ -60,5 +61,5 @@ export covariance_matrix
 export gaussian_graphical_model
 export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
-
+export gaussian_ring, GaussianRing
 
