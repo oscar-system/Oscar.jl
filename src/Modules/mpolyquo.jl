@@ -119,9 +119,8 @@ end
   gb = G.quo.gens
   ord = default_ordering(M.quo)
   gb.ordering = ord
-  singular_assure(gb)
   gb.isGB = true
-  gb.S.isGB = true
+  singular_generators(gb).isGB = true
   M.quo.groebner_basis[ord] = gb
   return M
 end

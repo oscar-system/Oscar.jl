@@ -92,10 +92,19 @@ base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
 @doc raw"""
     singular_generators(M::ModuleGens)
 
-Return the generators of `M` from the Singular side.
+Return the generators of `M` from the Singular side. If they are
+not yet stored, they are computed from the Oscar side.
 """
 function singular_generators(M::ModuleGens)
-  singular_assure(M)
+  if !isdefined(M, :S)
+    SF = singular_freemodule(M)
+    sr = base_ring(SF)
+    if length(M) == 0
+      M.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
+    else
+      M.S = Singular.Module(sr, [SF(x) for x in oscar_generators(M)]...)
+    end
+  end
   return M.S
 end
 
@@ -111,11 +120,18 @@ end
 @doc raw"""
     singular_freemodule(M::ModuleGens)
 
-Return the ambient free module of `M` from the Singular side.
+Return the ambient free module of `M` from the Singular side. If
+it is not not yet stored, it is computed from the Oscar side.
 """
 function singular_freemodule(M::ModuleGens)
-    singular_assure(M)
-    return M.SF
+  if !isdefined(M, :SF)
+    if isdefined(M, :ordering)
+      M.SF = singular_module(M.F, M.ordering)
+    else
+      M.SF = singular_module(M.F)
+    end
+  end
+  return M.SF
 end
 
 
@@ -196,30 +212,6 @@ length(F::ModuleGens) = length(oscar_generators(F))
 Return the number of elements of the module generating set.
 """
 number_of_generators(F::ModuleGens) = length(oscar_generators(F))
-
-@doc raw"""
-    singular_assure(F::ModuleGens)
-
-If fields of `F` from the Singular side are not defined, they
-are computed, given the Oscar side.
-"""
-function singular_assure(F::ModuleGens)
-  if !isdefined(F, :S) || !isdefined(F, :SF)
-    if isdefined(F, :ordering)
-      SF = singular_module(F.F, F.ordering)
-    else
-      SF = singular_module(F.F)
-    end
-    sr = base_ring(SF)
-    F.SF = SF
-    if length(F) == 0
-      F.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
-      return 
-    end
-    F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
-    return
-  end
-end
 
 # i-th entry of module generating set (taken from Oscar side)
 getindex(F::ModuleGens, i::Int) = oscar_generators(F)[i]

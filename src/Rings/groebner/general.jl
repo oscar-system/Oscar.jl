@@ -8,7 +8,7 @@
 Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
 this function computes a Gröbner basis (if `complete_reduction = true` the reduced Gröbner basis) of the
 ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`. The Gröbner basis is then
-returned in `B.S`.
+returned as a new `IdealGens`.
 
 # Examples
 ```jldoctest

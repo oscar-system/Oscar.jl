@@ -319,7 +319,16 @@ function set_ordering!(G::IdealGens, monord::MonomialOrdering)
 end
 
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
-  singular_assure(B)
+  if !isdefined(B.gens, :S)
+    g = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
+    B.gens.Sx = codomain(g)
+    B.gens.f = g
+    B.gens.S = Singular.Ideal(B.gens.Sx, elem_type(B.gens.Sx)[g(x) for x in oscar_generators(B)])
+  end
+  if B.isGB && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gens.Sx))
+    B.gens.S.isGB = true
+  end
+
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(base_ring(B), MPolyQuoRing) && return B.gens.S
   isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gens.S))) == B.ord && return B.gens.S
@@ -600,10 +609,6 @@ function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
 end
 
-function singular_assure(I::MPolyIdeal)
-  singular_assure(I.gens)
-end
-
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
 end
@@ -614,18 +619,6 @@ end
 
 function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord)
   return (singular_generators(G, monorder)).base_ring
-end
-
-function singular_assure(I::IdealGens)
-  if !isdefined(I.gens, :S)
-    g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
-    I.gens.Sx = codomain(g)
-    I.gens.f = g
-    I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x in oscar_generators(I)])
-  end
-  if I.isGB && (I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
-    I.gens.S.isGB = true
-  end
 end
 
 oscar_generators(I::MPolyIdeal) = oscar_generators(I.gens)
