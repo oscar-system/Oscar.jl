@@ -41,14 +41,6 @@ function bron_kerbosch(G::Graph{Undirected}, R, P, X)
   return cliques
 end
 
-function maximal_cliques(G::Graph{Undirected})
-
-  max_cliques = bron_kerbosch(G, Vector{Int}[], vertices(G), Vector{Int}[]);
-
-  map(C -> Vector{Int64}(C), unique(sort.(max_cliques)))
-end
-
-
 
 @doc raw"""
    discrete_graphical_model(G::Graph{Undirected}; k_var_name::String="k")
