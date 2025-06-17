@@ -1325,7 +1325,7 @@ function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal is not zero-dimensional")
+    error("the vector space dimension of the quotient ring is not finite")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
