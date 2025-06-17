@@ -118,6 +118,9 @@ end
         @test !isone(zero(RR))
         @test divexact(one(RR), one(RR)) == one(RR)
 
+        @test is_gen(gen(RR, 1))
+        @test !is_gen(one(RR))
+
         @test (polys[1] + polys[2])^2 == polys[1]^2 + 2*polys[1]*polys[2] + polys[2]^2
         @test (polys[3] - polys[4])^2 == polys[3]^2 + 2*(-polys[3])*polys[4] + polys[4]^2
         @test polys[2] * (polys[3] + polys[4]) == Oscar.add!(Oscar.mul!(polys[1], polys[2], polys[3]), Oscar.mul!(polys[1], polys[2], polys[4]))
@@ -585,3 +588,11 @@ end
   @test d isa ZZRingElem
 end
 
+@testset "issue #4949" begin
+  for F in [QQ, GF(7)]
+    R, (x,y) = graded_polynomial_ring(F, [:x, :y])
+    I = ideal([x,y])
+    gb = groebner_basis_f4(I)
+    @test issetequal(minimal_generating_set(ideal(gb)), [x, y])
+  end
+end

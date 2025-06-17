@@ -534,7 +534,7 @@ Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots
     We follow the notation in [Dan14](@cite): The numbers $\tilde{n}_d^{(d_1, \dots, d_k)}$ are defined so that the equations $N_d^{(d_1, \dots, d_k)} = \sum \frac{\tilde{n}_{\frac{d}{k}}^{(d_1, \dots, d_k)}}{k^3}$ hold true.
 
 !!! note 
-    The $\tilde{n}_d^{(d_1, \dots, d_k)}$ are of particular interest in the context of enumerating rational curves of degree $d$ on complete intersection Calaby-Yau threefolds of type $(d_1, \dots, d_k)$ in $\mathbb P^{k+3}$. By classification, in addition to the quintic threefold in $\mathbb P^{4}$, these are of type $(4,2)$,  $(3,3)$, $(3,3,2)$, and $(2, 2, 2, 2)$. For example, for $1\leq d \leq 9$, the $\tilde{n}_d^{(5)}$ are precisely the numbers of rational curves of degree $d$ on the general quintic threefold. In particular, $\tilde{n}_3^{(5)}$ gives the number of twisted cubic curves on the general quintic threefold.
+    The $\tilde{n}_d^{(d_1, \dots, d_k)}$ are of particular interest in the context of enumerating rational curves of degree $d$ on general complete intersection Calaby-Yau threefolds of type $(d_1, \dots, d_k)$ in $\mathbb P^{k+3}$. By classification, in addition to the quintic threefold in $\mathbb P^{4}$, these are of type $(4,2)$,  $(3,3)$, $(3,3,2)$, and $(2, 2, 2, 2)$. For example, for $1\leq d \leq 9$, the $\tilde{n}_d^{(5)}$ are precisely the numbers of rational curves of degree $d$ on the general quintic threefold. In particular, $\tilde{n}_3^{(5)}$ gives the number of twisted cubic curves on the general quintic threefold.
 
 # Examples
 ```jldoctest

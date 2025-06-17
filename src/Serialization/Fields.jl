@@ -18,7 +18,7 @@ type_params(::PadicField) = TypeParams(PadicField, nothing)
 
 ################################################################################
 # non-ZZRingElem variant
-@register_serialization_type Nemo.fpField
+@register_serialization_type fpField "FiniteField"
 
 function save_object(s::SerializerState, F::fpField)
   save_object(s, string(characteristic(F)))
@@ -45,7 +45,7 @@ end
 
 ################################################################################
 # ZZRingElem variant
-@register_serialization_type Nemo.FpField
+@register_serialization_type FpField "FiniteField"
 
 function save_object(s::SerializerState, F::FpField)
   save_object(s, string(characteristic(F)))
@@ -135,7 +135,8 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type FqField uses_id
+
+@register_serialization_type FqField "FiniteField" uses_id
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)

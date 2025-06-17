@@ -199,7 +199,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, t::GlobalTateModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(t)
     push!(properties_string, "Partially resolved global Tate model over a")
@@ -224,4 +226,9 @@ function Base.show(io::IO, t::GlobalTateModel)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, t::GlobalTateModel)
+  print(io, "Global Tate model")
 end

@@ -2,7 +2,7 @@ module ModStdQ
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray, IdealGens, Hecke, AbstractAlgebra
+import Oscar: MPolyIdeal, IdealGens, Hecke, AbstractAlgebra
 import Hecke: induce_rational_reconstruction, induce_crt
 
 function __init__()
@@ -126,7 +126,6 @@ end
 function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
     I.gb[ord] = IdealGens(base_ring(I), QQMPolyRingElem[], ord, isGB = true, keep_ordering = false)
-    singular_assure(I.gb[ord])
     return QQMPolyRingElem[], matrix(base_ring(I), ngens(I), 0, QQMPolyRingElem[])
   end
     
@@ -208,7 +207,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord
             end
             if ord == I.gens.ord && !isdefined(I, :gb)
               I.gb[ord] = IdealGens(gd[1:length_gc], keep_ordering = false, isGB = true)
-              singular_assure(I.gb[ord])
+              Oscar.singular_assure(I.gb[ord])
             end
             return G, T
           else

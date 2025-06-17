@@ -50,6 +50,7 @@ end
   Q, q = quo(R,I)
   f = q(x*y)
   @test divides(one(Q), f) == (false, one(Q))
+  @test_throws ErrorException divexact(one(Q), f)
 
   A, _ = quo(R, 2*x^2-5*y^3)
   (x, y) = (A(x), A(y))
@@ -60,7 +61,9 @@ end
 
   @test !divides(x, y)[1]
   @test divides(x, x) == (true, one(A))
+  @test divexact(x, x) == one(A)
   @test divides(zero(A), x) == (true, zero(A))
+  @test divexact(zero(A), x) == zero(A)
 
   # promote rule
   K = GF(2)
@@ -124,9 +127,9 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = singular_poly_ring(Q)
+  SQ = Oscar.singular_poly_ring(Q)
   SI = I.gens.gens.S
-  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
+  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
@@ -223,7 +226,7 @@ end
   a = ideal(A, V)
   dim(a) # cashes a.gb
   gens(a.gb)
-  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+  @test Oscar.oscar_generators(a.gb) == MPolyDecRingElem[y, z^2]
 end
 
 @testset "quotients as vector spaces" begin

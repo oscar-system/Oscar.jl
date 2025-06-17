@@ -98,7 +98,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 
 julia> coordinate_ring(v)
 Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
@@ -155,7 +155,7 @@ julia> length(singular_loci(w))
 1
 ```
 Similarly, also hypersurface models are supported:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -234,12 +234,6 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
-    set_exceptional_classes(qsm_model, string.(model_dict["model_data"]["exceptional_classes"]))
-    # Set meta data attributes
-    #cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
-    #cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
-    #model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = cfs
-    #_set_all_attributes(qsm_model, model_dict, model_parameters)
     return qsm_model
   end
 
@@ -255,6 +249,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     base_space = load(directory)
     set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
     model = global_tate_model(base_space, completeness_check = false)
+    model_dict["literature_identifier"] = "1511_03209"
     _set_all_attributes(model, model_dict, model_parameters)
     return model
     =#
@@ -684,7 +679,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
-    set_global_gauge_quotients(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
+    set_global_gauge_group_quotient(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
   end
   
   if haskey(model_dict, "birational_models")
@@ -709,7 +704,7 @@ end
 
 Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occurring in index.json.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))
 Model 33:
 Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")

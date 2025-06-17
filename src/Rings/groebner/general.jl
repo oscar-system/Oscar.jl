@@ -32,7 +32,7 @@ with respect to the ordering
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
+  BA = IdealGens(base_ring(B), i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)
@@ -114,7 +114,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       R = base_ring(I)
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
-      gb = groebner_assure(K, degrevlex(S))
+      gb = standard_basis(K, ordering=degrevlex(S))
       # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
       H = homogenizer(S, "w")
       K_hom = H(K)

@@ -66,6 +66,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     F.d = tensor_degrees
   end
 
+  @assert _is_tensor_product(F)[1]
   if task == :none
     return F
   end
@@ -103,68 +104,63 @@ julia> T, t = tensor_product(M, M; task = :map);
 
 julia> gens(T)
 4-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
- x^2*e[1] \otimes e[1]
- x*y*e[1] \otimes e[1]
- x*y*e[1] \otimes e[1]
- y^2*e[1] \otimes e[1]
+ (e[1] \otimes e[1])
+ (e[1] \otimes e[2])
+ (e[2] \otimes e[1])
+ (e[2] \otimes e[2])
 
 julia> domain(t)
 parent of tuples of type Tuple{SubquoModuleElem{QQMPolyRingElem}, SubquoModuleElem{QQMPolyRingElem}}
 
 julia> t((M[1], M[2]))
-x*y*e[1] \otimes e[1]
+(e[1] \otimes e[2])
 ```
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
-  # We want to store a dict where the keys are tuples of indices and the values
-  # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
-  # 2nd, 1st and 5th generator of the 1st, 2nd and 3rd module, which we are 
-  # tensoring. The corresponding value is then G[1][2] ⊗ G[2][1] ⊗ G[2][5]). 
-  corresponding_tuples_as_indices = vec([x for x = Base.Iterators.ProductIterator(Tuple(1:ngens(x) for x = G))])
-  # In corresponding_tuples we store tuples of the actual generators, so in 
-  # the example above we would store (G[1][2], G[2][1], G[2][5]).
-  corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
-
-  generating_tensors::Vector{elem_type(F)} = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : repres(x), tuple), corresponding_tuples))
-  s, emb = sub(F, generating_tensors)
-  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
-  q::Vector{elem_type(F)} = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
-  local projection_map
-  if length(q) != 0
-    s, projection_map = quo(s, q)
+  resols = AbsHyperComplex[]
+  augs = ModuleFPHom[]
+  for M in G
+    res, aug = free_resolution(SimpleFreeResolution, M)
+    push!(resols, res)
+    push!(augs, aug[0])
   end
-
-  tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
-  set_attribute!(s, :show => Hecke.show_tensor_product, :tensor_product => G)
-
+  res_prod = tensor_product(resols)
+  tot = total_complex(res_prod)
+  pres = map(tot, 1)
+  I, inc_I = image(pres)
+  result, pr_res = quo(tot[0], I)
   
+  # assemble the multiplication and decomposition functions
+  z = Tuple([0 for _ in 1:length(G)])
+  @assert _is_tensor_product(res_prod[z])[1]
   function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
-    coeffs_tuples = vec([x for x in Base.Iterators.ProductIterator(coordinates.(tuple_elems))])
-    res = zero(s)
-    for coeffs_tuple in coeffs_tuples
-      indices = map(first, coeffs_tuple)
-      coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
-      res += coeff_for_pure*tuples_pure_tensors_dict[indices]
-    end
-    return res
+    w = [preimage(augs[i], x) for (i, x) in enumerate(tuple_elems)]
+    free_pure = tensor_pure_function(res_prod[z])
+    ww = free_pure(w...)
+    return pr_res(canonical_injection(tot[0], 1)(ww))
   end
   function pure(T::Tuple)
     return pure(T...)
   end
-
+  
   decompose_generator = function(v::SubquoModuleElem)
-    i = index_of_gen(v)
-    return corresponding_tuples[i]
+    ind = findfirst(==(v), images_of_generators(pr_res))
+    isnothing(ind) && error("the given element is not the image of a generator under the projection map")
+    vv = gen(tot[0], ind::Int)
+    w = canonical_projection(tot[0], 1)(vv)
+    w_dec = tensor_generator_decompose_function(res_prod[z])(w)
+    return Tuple([augs[i](x) for (i, x) in enumerate(w_dec)])
   end
 
-  set_attribute!(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
-
+  set_attribute!(result, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
+  set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
+  @assert _is_tensor_product(result)[1]
+  
   if task == :none
-    return s
+    return result
   end
 
-  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure, decompose_generator)
+  return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decompose_generator)
 end
 
 

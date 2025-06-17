@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -563,7 +564,7 @@ false
 Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> factor(ZZ(-6000361807272228723606))
 -1 * 2 * 229^3 * 43669^3 * 3
 
@@ -575,7 +576,7 @@ ERROR: ArgumentError: Argument is not non-zero
 
 * `unit(F::Fac) -> ZZRingElem`
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-12))
 -1 * 2^2 * 3
 
@@ -588,7 +589,7 @@ julia> unit(F)
 
 Once created, a factorisation is iterable:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
@@ -603,7 +604,7 @@ The pairs `(p, e)` in a factorisation represent the prime power factors
 ``p^e`` of the non-unit part of the factorisation. They can be placed in an
 array using `collect`:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
@@ -624,7 +625,7 @@ is not in a factorisation is requested, an exception is raised.
 For convenience, a `Int` can be used instead of an OSCAR integer for this
 functionality.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 

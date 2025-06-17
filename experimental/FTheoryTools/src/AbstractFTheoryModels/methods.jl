@@ -237,7 +237,7 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
       new_e_classes = Vector{CohomologyClass}()
       for i in indices
         poly = sum(coeff_ring(coefficients(divs[i])[k]) * indets[k] for k in 1:length(indets))
-        push!(new_e_classes, CohomologyClass(ambient_space(model), cohomology_ring(ambient_space(model), check = false)(poly)))
+        push!(new_e_classes, CohomologyClass(ambient_space(model), cohomology_ring(ambient_space(model), check = false)(poly), true))
       end
 
       set_attribute!(model, :exceptional_classes, new_e_classes)
@@ -751,7 +751,7 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
   set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
 end
 
-function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+function set_global_gauge_group_quotient(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
  set_attribute!(m, :global_gauge_quotients => quotients)
 end
 

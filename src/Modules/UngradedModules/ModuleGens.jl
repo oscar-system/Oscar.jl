@@ -45,7 +45,6 @@ Construct `ModuleGens` from an array of free module elements, specifying the fre
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
-  #SF = singular_module(F)
   return ModuleGens{T}(O, F)
 end
 
@@ -93,7 +92,7 @@ base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
 @doc raw"""
     singular_generators(M::ModuleGens)
 
-Return the generators of `M` from Singular side.
+Return the generators of `M` from the Singular side.
 """
 function singular_generators(M::ModuleGens)
   singular_assure(M)
@@ -101,13 +100,61 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc raw"""
+    singular_ordering(M::ModuleGens)
+
+Return the ordering of `M` from the Singular side.
+"""
+function singular_ordering(M::ModuleGens)
+    return Singular.ordering(base_ring(singular_freemodule(M)))
+end
+
+@doc raw"""
+    singular_freemodule(M::ModuleGens)
+
+Return the ambient free module of `M` from the Singular side.
+"""
+function singular_freemodule(M::ModuleGens)
+    singular_assure(M)
+    return M.SF
+end
+
+
+@doc raw"""
+    has_global_singular_ordering(M::ModuleGens)
+
+Return whether the ordering of `M` from the Singular side is global.
+"""
+function has_global_singular_ordering(M::ModuleGens)
+    return Singular.has_global_ordering(base_ring(singular_freemodule(M)))
+end
+
+@doc raw"""
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the Oscar side.
+
+If fields of `M` from the Oscar side are not defined, they
+are computed, given the Singular side.
 """
 function oscar_generators(M::ModuleGens)
-  oscar_assure(M)
+  if !isdefined(M, :O)
+    SI = singular_generators(M)
+    if iszero(SI)
+      M.O = elem_type(M.F)[zero(M.F) for _ in 1:ngens(SI)]
+    else
+      M.O = [M.F(SI[i]) for i=1:Singular.ngens(SI)]
+    end
+  end
   return M.O
+end
+
+@doc raw"""
+    oscar_free_module(M::ModuleGens)  
+
+Return the ambient free module of `M` on the Oscar side.
+"""
+function oscar_free_module(M::ModuleGens)
+    return M.F
 end
 
 @doc raw"""
@@ -116,8 +163,7 @@ end
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  oscar_assure(M)
-  return all(iszero, M.O)
+  return all(iszero, oscar_generators(M))
 end
 
 function show(io::IO, F::ModuleGens)
@@ -151,35 +197,12 @@ Return the number of elements of the module generating set.
 """
 number_of_generators(F::ModuleGens) = length(oscar_generators(F))
 
-# i-th entry of module generating set on Oscar side
-# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:O}, i::Int)
-  if !isassigned(F.O, i)
-    F.O[i] = F.F(singular_generators(F)[i])
-  end
   return oscar_generators(F)[i]
 end
 
-# i-th entry of module generating set on Singular side
-# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
-  singular_assure(F)
-  if !isdefined(F, :S)
-    F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
-  end
-  return F.S[i]
-end
-
-@doc raw"""
-    oscar_assure(F::ModuleGens)
-
-If fields of `F` from the Oscar side are not defined, they
-are computed, given the Singular side.
-"""
-function oscar_assure(F::ModuleGens)
-  if !isdefined(F, :O)
-    F.O = [F.F(singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
-  end
+    return singular_generators(F)[i]
 end
 
 @doc raw"""
@@ -216,9 +239,9 @@ getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
-  @assert M.F === N.F
-  O = vcat(M.O, N.O)
-  return ModuleGens(M.F, O)
+  @assert oscar_free_module(M) === oscar_free_module(M)
+  O = vcat(oscar_generators(M), oscar_generators(N))
+  return ModuleGens(oscar_free_module(M), O)
 end
 
 @doc raw"""
@@ -236,7 +259,7 @@ end
 
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
-function singular_module(F::FreeMod, ordering::ModuleOrdering)
+function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
   Sx = singular_poly_ring(base_ring(F), singular(ordering))
   return Singular.FreeModule(Sx, dim(F))
 end
@@ -325,10 +348,8 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRin
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
-  singular_assure(generators)
   S = singular_generators(generators)
-  b = ModuleGens([a], generators.SF)
-  singular_assure(b)
+  b = ModuleGens([a], singular_freemodule(generators))
   s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
@@ -343,12 +364,11 @@ end
 Compute a sparse row `r` such that `a = sum([r[i]*gen(generators,i) for i in 1:ngens(generators)])`.
 If no such `r` exists, an exception is thrown.
 """
-function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRingElem}
-  singular_assure(generators)
-  if !Singular.has_global_ordering(base_ring(generators.SF))
-    error("Ordering must be global")
-  end
-  return lift(a, generators)
+function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T<:MPolyRingElem}
+    if !has_global_singular_ordering(generators)
+        error("Ordering must be global")
+    end
+    return lift(a, generators)
 end
 
 @doc raw"""
@@ -371,11 +391,9 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
     end
   end
 
-  singular_assure(generators)
   S = singular_generators(generators)
   S.isGB = generators.isGB
-  b = ModuleGens([a], generators.SF)
-  singular_assure(b)
+  b = ModuleGens([a], singular_freemodule(generators))
   s, r = Singular.lift(S, singular_generators(b)) # Possibly use division with remainder
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("The free module element is not liftable to the given generating system.")
@@ -434,17 +452,13 @@ end
 Compute a normal form of `M` (that is of each element of `M`) with respect to the Gröbner basis `GB`.
 """
 function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingElem}
-  @assert M.F === GB.F
+  @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce with non-GB remove this
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  singular_assure(P)
-  singular_assure(M)
-
-  red = _reduce(M.S, P.S)
-  res = ModuleGens(M.F, red)
-  oscar_assure(res)
+  red = _reduce(singular_generators(M), singular_generators(P))
+  res = ModuleGens(oscar_free_module(M), red)
   return res
 end
 
@@ -456,7 +470,7 @@ Moreover, return a vector `U` of unit elements such that
 `U[i]*M[i]` is the `i`th element of the normal form `ModuleGens`.
 """
 function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingElem}
-  @assert M.F === GB.F
+  @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce/nf with non-GB remove this
   if !is_global(GB.ordering)
     error("normal_form_with_unit not yet implemented for non-global orderings") # This function doesn't exist yet in Singular.jl
@@ -465,12 +479,8 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  singular_assure(P)
-  singular_assure(M)
-
-  red = _reduce(M.S, P.S)
-  res = ModuleGens(M.F, red)
-  oscar_assure(res)
+  red = _reduce(singular_generators(M), singular_generators(P))
+  res = ModuleGens(oscar_free_module(M), red)
   return res, [R(1) for _ in 1:ngens(M)]
 end
 
@@ -486,7 +496,8 @@ Compute a normal_form of `v` with respect to the Gröbner basis `GB`.
 """
 function normal_form(v::AbstractFreeModElem, GB::ModuleGens)
   @assert GB.isGB
-  return normal_form(ModuleGens([v], parent(v)), GB).O[1]
+  nf = normal_form(ModuleGens([v], parent(v)), GB)
+  return oscar_generators(nf)[1]
 end
 
 @doc raw"""

@@ -1370,6 +1370,7 @@ base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+is_gen(a::MPolyDecRingElem) = is_gen(forget_grading(a))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
@@ -2566,12 +2567,11 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # make sure to not recompute a GB from scratch on the singular
     # side if we have one
     G = first(values(I.gb))
-    G.gens.S.isGB = true
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
     return filter(!iszero, (R).(gens(sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
-    ring = I.gens.Ox
+    ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
     return filter(!iszero, (R).(gens(sing_min)))

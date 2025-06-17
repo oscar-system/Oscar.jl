@@ -42,10 +42,10 @@ end );
 
 # Install the methods for `IsoGapOscar`,
 # in order to make Oscar's `iso_gap_oscar` work.
-Perform( Oscar._iso_gap_oscar_methods,
+Perform( Oscar_jl._iso_gap_oscar_methods,
          function( pair )
            InstallMethod( IsoGapOscar, [ JuliaToGAP( IsString, pair[1] ) ],
-               Oscar.GAP.WrapJuliaFunc( pair[2] ) );
+               GAP_jl.WrapJuliaFunc( pair[2] ) );
          end );
 
 ############################################################################
@@ -86,7 +86,7 @@ end );
 
 ############################################################################
 
-BindGlobal("_OSCAR_GroupElem", Oscar.AbstractAlgebra.GroupElem);
+BindGlobal("_OSCAR_GroupElem", Oscar_jl.AbstractAlgebra.GroupElem);
 
 # the following code ensures that `GAP.Globals.Group` accepts a GAP list
 # of Oscar group elements, as there is a GAP `OrbitStabilizerAlgorithm` method
@@ -127,21 +127,21 @@ InstallMethod( GroupGeneratorsDefinePresentation,
 ############################################################################
 
 
-Perform( Oscar._GAP_type_params,
+Perform( Oscar_jl._GAP_type_params,
          function( entry )
            InstallMethod( SerializationInOscarDependentObjects,
              [ JuliaToGAP( IsString, entry[1] ) ],
              GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
-Perform( Oscar._GAP_serializations,
+Perform( Oscar_jl._GAP_serializations,
          function( entry )
            InstallMethod( SerializeInOscar,
              [ JuliaToGAP( IsString, entry[1] ), "IsObject" ],
              GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
-Perform( Oscar._GAP_deserializations,
+Perform( Oscar_jl._GAP_deserializations,
          function( entry )
            if entry[3] then
              InstallMethod( DeserializeInOscar,

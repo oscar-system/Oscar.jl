@@ -41,7 +41,7 @@ The fields are
     action_function::Function
     seeds
 
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup}}
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{Group, FinGenAbGroup}}
         @req !isempty(seeds) "seeds for G-set must be nonempty"
         check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
         Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
@@ -56,6 +56,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.group)
+  io = IOContext(io, :typeinfo => typeof(x.seeds))
   print(io, "with seeds ", x.seeds)
   print(io, Dedent())
 end
@@ -65,7 +66,7 @@ function Base.show(io::IO, x::GSetByElements)
     print(io, "G-set")
   else
     print(io, "G-set of ")
-    io = pretty(io)
+    io = IOContext(pretty(io), :typeinfo => typeof(x.seeds))
     print(terse(io), Lowercase(), x.group, " with seeds ", x.seeds)
   end
 end
@@ -118,7 +119,7 @@ end
 ##  general method with explicit action function
 
 """
-    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
+    gset(G::Union{Group, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
 
 Return the G-set `Omega` that consists of the closure of the seeds `seeds`
 under the action of `G` defined by `fun`.
@@ -155,7 +156,7 @@ julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
 6
 ```
 """
-function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
+function gset(G::Union{Group, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
   return GSetByElements(G, fun, seeds; closed = closed, check = check)
 end
 
@@ -168,7 +169,7 @@ end
 ##  a default action depending on the element type of `seeds` (which can be
 ##  any iterable collection.)
 
-gset(G::T, seeds; closed::Bool = false) where T<:GAPGroup = gset_by_type(G, seeds, eltype(seeds); closed = closed)
+gset(G::T, seeds; closed::Bool = false) where T<:Group = gset_by_type(G, seeds, eltype(seeds); closed = closed)
 
 
 ## natural action of permutations on positive integers
@@ -218,13 +219,43 @@ end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
-## natural action of a permutation group on the integers 1, ..., degree
-gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
+#############################################################################
+##
+##  natural method with implicit action function
 
-## natural action of a matrix group over a finite field on vectors
-function gset(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
-    V = free_module(base_ring(G), degree(G))
-    return gset(G, collect(V); closed = true)
+"""
+    natural_gset(G::PermGroup)
+
+Return the G-set `Omega` that consists of integers 1, ..., degree
+under the natural action of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> length(natural_gset(G))
+4
+```
+"""
+natural_gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
+
+"""
+    natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+
+Return the G-set `Omega` that consists of vectors under the 
+natural action of `G` over a finite field.
+
+# Examples
+```jldoctest
+julia> G = matrix_group(GF(2), 2);
+
+julia> length(natural_gset(G))
+4
+```
+"""
+function natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+  V = free_module(base_ring(G), degree(G))
+  return gset(G, collect(V); closed = true)
 end
 
 
@@ -243,12 +274,69 @@ end
 ##
 ##  G-sets given by the complete set
 
-function as_gset(G::T, fun::Function, Omega) where T<:Union{GAPGroup,FinGenAbGroup}
+function as_gset(G::T, fun::Function, Omega) where T<:Union{Group, FinGenAbGroup}
     return GSetByElements(G, fun, Omega; closed = true)
 end
 
 as_gset(G::T, Omega) where T<:Union{GAPGroup,FinGenAbGroup} = as_gset(G, ^, Omega)
 
+
+#############################################################################
+##
+##  induce G-sets along homomorphisms
+
+@doc raw"""
+    induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+
+Return the action function of the G-set that is obtained by inducing the G-set `Omega` along `phi`.
+
+That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the action function
+$\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
+
+This function is semantically equivalent to `action_function(induce(Omega, phi))`,
+but it is more efficient as it avoids the construction of the induced G-set.
+"""
+function induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  return _induced_action_function(Omega, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induced_action_function(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  return _induced_action_function(Omega, phi)
+end
+
+function _induced_action_function(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return induced_action(action_function(Omega), phi)
+end
+
+@doc raw"""
+    induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+
+Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
+
+That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with action function
+$\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
+"""
+function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+  return _induce(Omega, phi)
+end
+
+# This method is not documented as we need `phi` to be a group homomorphism, but in many cases
+# there is no dedicated type for this (WeylGroup, FinGenAbGroup, etc.).
+# This should be restricted to group homomorphisms once we have a type for them.
+function induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  return _induce(Omega, phi)
+end
+
+function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Group,FinGenAbGroup}, U<:Union{Group,FinGenAbGroup}, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
+end
 
 #############################################################################
 ##
@@ -413,30 +501,29 @@ function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) wher
     return res
 end
 
-function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
+function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{Group, FinGenAbGroup}, S}
     return orbit_via_Julia(Omega, omega)
 end
 
 # simpleminded alternative directly in Julia
-function orbit_via_Julia(Omega::GSet, omega)
-    acts = gens(acting_group(Omega))
-    orbarray = [omega]
-    orb = Set(orbarray)
-    fun = action_function(Omega)
-    for p in orbarray
-      for g in acts
-        img = fun(p, g)
-        if !(img in orb)
-          push!(orbarray, img)
-          push!(orb, img)
-        end
+function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
+  acts = gens(acting_group(Omega))
+  orb = IndexedSet([omega])
+  fun = action_function(Omega)
+
+  for p in orb
+    for g in acts
+      img = fun(p, g)::S
+      if !(img in orb)
+        push!(orb, img)
       end
     end
+  end
 
-    res = as_gset(acting_group(Omega), action_function(Omega), orbarray)
-    # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [res])
-    return res
+  res = as_gset(acting_group(Omega), action_function(Omega), orb)
+  # We know that this G-set is transitive.
+  set_attribute!(res, :orbits => [res])
+  return res
 end
 
 
@@ -454,7 +541,7 @@ Return the vector of transitive G-sets in `Omega`.
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> orbs = orbits(gset(G));
+julia> orbs = orbits(natural_gset(G));
 
 julia> map(collect, orbs)
 2-element Vector{Vector{Int64}}:
@@ -462,7 +549,7 @@ julia> map(collect, orbs)
  [5, 6]
 ```
 """
-@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
+@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{Group, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
   for p_ in Omega.seeds
     p = p_::S
@@ -491,7 +578,7 @@ julia> map(length, orbs)
  2
 ```
 """
-@attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(gset(G))
+@attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(natural_gset(G))
 
 
 """
@@ -513,7 +600,7 @@ If `check` is `false` then it is not checked whether `omega` is in `Omega`.
 
 # Examples
 ```jldoctest
-julia> Omega = gset(symmetric_group(4));
+julia> Omega = natural_gset(symmetric_group(4));
 
 julia> stabilizer(Omega)
 (Permutation group of degree 4 and order 6, Hom: permutation group -> Sym(4))
@@ -611,6 +698,7 @@ function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGr
     # The following works only because GAP does not check
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
+    @req pi !== GAP.Globals.fail "no permutation is induced by $g"
 
     return group_element(action_range(Omega), pi)
 end
@@ -852,7 +940,7 @@ To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_conjugate(Omega, 1, 2)
 true
@@ -878,7 +966,7 @@ If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_conjugate_with_data(Omega, 1, 2)
 (true, (1,2))
@@ -937,8 +1025,8 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
-julia> Omega = gset(sylow_subgroup(symmetric_group(4), 2)[1])
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> Omega = natural_gset(sylow_subgroup(symmetric_group(4), 2)[1])
 G-set of
   permutation group of degree 4 and order 8
   with seeds 1:4
@@ -970,8 +1058,8 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
-julia> Omega = gset(transitive_group(8, 2))
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1003,8 +1091,8 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
-julia> Omega = gset(transitive_group(8, 2))
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1036,8 +1124,8 @@ Here, the action on `Omega` must be transitive.
 An exception is thrown if this action is not transitive.
 
 # Examples
-```jldoctest
-julia> Omega = gset(transitive_group(8, 2))
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> Omega = natural_gset(transitive_group(8, 2))
 G-set of
   permutation group of degree 8
   with seeds 1:8
@@ -1073,10 +1161,10 @@ An exception is thrown if the group action is not transitive on `Omega`.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(4); Omega = gset(G); rank_action(Omega)  # 4-transitive
+julia> G = symmetric_group(4); Omega = natural_gset(G); rank_action(Omega)  # 4-transitive
 2
 
-julia> G = dihedral_group(PermGroup, 8); Omega = gset(G); rank_action(Omega)  # not 2-transitive
+julia> G = dihedral_group(PermGroup, 8); Omega = natural_gset(G); rank_action(Omega)  # not 2-transitive
 3
 ```
 """
@@ -1099,10 +1187,10 @@ The output is `0` if the group acts intransitively on `Omega`.
 
 # Examples
 ```jldoctest
-julia> G = mathieu_group(24); Omega = gset(G); transitivity(Omega)
+julia> G = mathieu_group(24); Omega = natural_gset(G); transitivity(Omega)
 5
 
-julia> G = symmetric_group(4); Omega = gset(G); transitivity(Omega)
+julia> G = symmetric_group(4); Omega = natural_gset(G); transitivity(Omega)
 4
 ```
 """
@@ -1123,7 +1211,7 @@ In other word, this tests if `Omega` consists of precisely one orbit.
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
 
-julia> Omega = gset(G);
+julia> Omega = natural_gset(G);
 
 julia> is_transitive(Omega)
 false
@@ -1150,9 +1238,9 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
 Permutation group of degree 6
 
-julia> OmegaG = gset(G);
+julia> OmegaG = natural_gset(G);
 
-julia> OmegaH = gset(H);
+julia> OmegaH = natural_gset(H);
 
 julia> is_regular(OmegaH)
 true
@@ -1176,7 +1264,7 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
 Permutation group of degree 6
 
-julia> OmegaH = gset(H);
+julia> OmegaH = natural_gset(H);
 
 julia> is_semiregular(H)
 true
@@ -1198,14 +1286,14 @@ the action is transitive and admits no nontrivial block systems.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(4); Omega = gset(G);
+julia> G = symmetric_group(4); Omega = natural_gset(G);
 
 julia> is_primitive(Omega)
 true
 
 julia> H, _ = sub(G, [cperm([2, 3, 4])]);
 
-julia> is_primitive(gset(H))
+julia> is_primitive(natural_gset(H))
 false
 ```
 """

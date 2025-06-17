@@ -36,10 +36,14 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(
+    R::AdmissibleModuleFPRing, p::Int, 
+    W::Vector{FinGenAbGroupElem}=[zero(grading_group(R)) for i in 1:p], 
+    name::String="e"
+  )
   @assert length(W) == p
   @assert is_graded(R)
-  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  all(parent(x) === grading_group(R) for x in W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
   M.d = W
   return M
@@ -200,8 +204,8 @@ end
 @doc raw"""
     grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 
-Given a free module `F` over a graded ring with grading group $G = \mathbb Z^m$, and given
-a vector `W` of `ngens(F)` integer vectors of the same size `m`, say, define a $G$-grading on `F` 
+Given a free module `F` over a graded ring with a grading group $G = \mathbb Z^m$, and given
+a vector `W` of `ngens(F)` integer vectors of size `m`, define a $G$-grading on `F`
 by converting the vectors in `W` to elements of $G$, and assigning these elements as weights to 
 the variables. Return the new module.
 
@@ -212,7 +216,7 @@ As above, converting the columns of `W`.
     grade(F::FreeMod, W::Vector{<:IntegerUnion})
 
 Given a free module `F` over a graded ring with grading group $G = \mathbb Z$, and given
-a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` converting the entries 
+a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` by converting the entries
 of `W` to elements of `G`, and assigning these elements as weights to the variables. 
 Return the new module.
 
@@ -1259,7 +1263,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -1340,7 +1344,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -1380,7 +1384,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -2505,7 +2509,7 @@ end
     minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} 
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
-multivariate polynomial ring with coefficients in a field, return the Betti Table
+multivariate polynomial ring with coefficients in a field, return the Betti table
 of the minimal free resolution of `M`. Similarly for `A` and `I`.
 
 # Examples

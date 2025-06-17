@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -31,12 +32,35 @@ present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 
 ## Free Resolutions
 
+### Types
+
+The OSCAR type for the free resolutions discussed in this section is of parametrized form `FreeResolution{T}`.
+
+### Constructors
+
 ```@docs
-free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-    ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres
-  )
+free_resolution(M::SubquoModule{T};
+    length::Int = 0,
+    algorithm::Symbol = T <: MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 ```
+
+```@docs
+free_resolution(I::MPolyIdeal; length::Int = 0, algorithm::Symbol = :fres)
+```
+
+```@docs
+free_resolution(Q::MPolyQuoRing; length::Int = 0, algorithm::Symbol = :fres)
+```
+### Data Associated to Free Resolutions
+
+```@docs
+augmented_complex(F::FreeResolution)
+```
+
+```@docs
+length(F::FreeResolution)
+```
+
 
 ## Betti Tables
 

@@ -25,11 +25,20 @@
         @test n_vertices(g) == 7
         @test vertices(g) == 1:7
 
+        @test degree(g) == zeros(Int,7)
+        @test degree(g,2) == 0
+
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
         add_edge!(g, 2, 3)
         add_edge!(g, 3, 1)
         @test signed_incidence_matrix(g) == Matrix([-1 0 1; 1 -1 0; 0 1 -1; 0 0 0])
+
+        @test indegree(g) == [1,1,1,0]
+        @test outdegree(g) == [1,1,1,0]
+
+        @test indegree(g, 1) == 1
+        @test outdegree(g, 1) == 1
 
         e = Edge(1,2)
         @test 1 in e
@@ -227,5 +236,10 @@
 
       G1 = graph_from_edges([[1,2],[2,3],[3,4]])
       @test is_bipartite(G1) == true
+    end
+
+    @testset "maximal_cliques" begin
+      G = complete_bipartite_graph(2, 2)
+      @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
     end
 end

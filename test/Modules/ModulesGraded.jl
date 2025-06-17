@@ -610,7 +610,7 @@ end
     M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
-    N = SubquoModule(F1, Rg[x+2*x^2*z; x+y-z], Rg[z^4;])
+    N = SubquoModule(F1, Rg[x^3+2*x^2*z; x+y-z], Rg[z^4;])
     tensor_resolution = tensor_product(free_res,N)
     @test chain_range(tensor_resolution) == chain_range(free_res)
     for i in Hecke.map_range(tensor_resolution)
@@ -710,7 +710,6 @@ end
   T0 = tor(Q, M, 0)
   T1 = tor(Q, M, 1)
   T2 =  tor(Q, M, 2)
-  @test is_canonically_isomorphic(T0, M)
   @test ngens(present_as_cokernel(T1)) == ngens(M_coker)
   # Todo twist
   @test iszero(T2)
@@ -755,7 +754,7 @@ end
     F = graded_free_module(Rg, 1)
     lp = lex(gens(base_ring(F)))*lex(gens(F))
     J = SubquoModule(F, [(x[1]+x[2])*F[1], (x[1]+x[2]+2*x[3]+2*x[4])*F[1],(x[1]+x[2]+x[3]+x[4])*F[1]])
-    @test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2])*F[1]], F).O
+    @test Oscar.oscar_generators(reduced_groebner_basis(J, lp)) == Oscar.oscar_generators(Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2])*F[1]], F))
     @test haskey(J.groebner_basis, lp)
     Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
     F = graded_free_module(Rg, 1)

@@ -373,8 +373,16 @@ end
 
 Type of left/right transversals of subgroups in groups.
 
+For a group $G$ and a subgroup $H$ of $G$, $T$ is a right
+(resp. left) transversal for $H$ in $G$ if $T$ contains
+precisely one element of each right (resp. left) cosets of $H$ in $G$.
+
 Objects of this type are created by [`right_transversal`](@ref) and
 [`left_transversal`](@ref).
+
+- [`group(T::SubgroupTransversal)`](@ref) returns $G$.
+
+- [`subgroup(T::SubgroupTransversal)`](@ref) returns $H$.
 
 # Note for developers
 
@@ -436,6 +444,55 @@ function Base.keys(T::SubgroupTransversal)
     return keys(1:length(T))
 end
 
+"""
+    group(T::SubgroupTransversal)
+
+Return the group `G` that contains all of the elements in `T`.
+That is, `T` is a left or right transversal of a subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym(5)
+
+julia> H = sylow_subgroup(G, 2)[1]
+Permutation group of degree 5 and order 8
+
+julia> T = right_transversal(G, H)
+Right transversal of length 15 of
+  permutation group of degree 5 and order 8 in
+  Sym(5)
+
+julia> group(T) == G
+true
+```
+"""
+group(T::SubgroupTransversal) = T.G
+
+"""
+    subgroup(T::SubgroupTransversal)
+
+Return the group `H` such that `T` is a (left or right)
+transversal of `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym(5)
+
+julia> H = symmetric_group(3)
+Sym(3)
+
+julia> T = right_transversal(G, H)
+Right transversal of length 20 of
+  Sym(3) in
+  Sym(5)
+
+julia> subgroup(T) == H
+true
+```
+"""
+subgroup(T::SubgroupTransversal) = T.H
 
 """
     right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)

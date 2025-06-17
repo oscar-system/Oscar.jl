@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Notes for users of other computer algebra systems
 
 ## General differences
@@ -61,6 +67,23 @@ This section describes differences between GAP and Oscar.
     end
     ```
     (The situation with `while` loops is analogous.)
+
+- Also the semantics is slightly different.
+
+  In GAP, the sum of a matrix (a list of lists) and a scalar is defined
+  recursively as the pointwise sum.
+  ```
+  gap> [ [ 1, 2 ], [ 3, 4 ] ] + 2;
+  [ [ 3, 4 ], [ 5, 6 ] ]
+  ```
+  In Oscar, the sum of a matrix and a scalar is defined as the sum of
+  the given matrix and the multiple of the identity matrix that is given
+  by the scalar.
+  ```
+  julia> matrix(ZZ, [1 2; 3 4]) + 2
+  [3   2]
+  [3   6]
+  ```
 
 - The interactive sessions behave differently.
 
