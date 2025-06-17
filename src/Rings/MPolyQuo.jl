@@ -69,7 +69,7 @@ coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
@@ -247,7 +247,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
-   r.gens.gens.O = [R(g) for g in gens(r.gens.gens.S)]
+   r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]
    B = r.gens
    if length(B) >= 1 && is_graded(R)
      @req all(is_homogeneous, oscar_generators(B)) "The generators of the ideal must be homogeneous"
@@ -305,14 +305,14 @@ function _groebner_basis(a::MPolyQuoIdeal)
   # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
-    a.gb.gens.S.isGB = a.gb.isGB = true
+    a.gb.gensBiPolyArray.S.isGB = a.gb.isGB = true
   end
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
   _groebner_basis(a)
 
-  return a.gb.gens.S
+  return a.gb.gensBiPolyArray.S
 end
 
 @doc raw"""
@@ -762,8 +762,8 @@ function simplify(a::MPolyQuoIdeal)
   red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
-  a.gens.gens.S = si
-  a.gens.gens.O = [R(g) for g in gens(si)]
+  a.gens.gensBiPolyArray.S = si
+  a.gens.gensBiPolyArray.O = [R(g) for g in gens(si)]
   return a
 end
 
@@ -1852,7 +1852,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(base_ring(I), sing_gb, true)
-    I.gb.gens.S.isGB = I.gb.isGB = true
+    I.gb.gensBiPolyArray.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
