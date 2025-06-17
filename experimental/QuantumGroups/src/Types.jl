@@ -53,7 +53,7 @@ function PBWAlgebra(
   return PBWAlgebra(R, mult)
 end
 
-mutable struct PBWAlgebraElem{T} # <: NCRingElem
+mutable struct PBWAlgebraElem{T} <: NCRingElem
   parent::PBWAlgebra{T}
   poly::MPolyRingElem{T}
 end

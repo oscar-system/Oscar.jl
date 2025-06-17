@@ -18,6 +18,28 @@ function parent(x::MPolyRingElem)
   return x.parent
 end
 
+function is_gen(x::MPolyRingElem)
+  fl, _ = is_gen_with_index(x)
+  return fl
+end
+
+function is_gen_with_index(x::MPolyRingElem)
+  if length(x) != 1 || !isone(coeff(x, 1))
+    return false, 0
+  end
+
+  i = 0
+  for j in 1:ngens(parent(x))
+    if x.exps[j] != 0
+      if i != 0
+        return false, 0
+      end
+      i = j
+    end
+  end
+  return i > 0, i
+end
+
 ###############################################################################
 #
 #   Type system
@@ -99,12 +121,13 @@ function monomial_set!(x::MPolyRingElem, i::Int, m::Vector{Int})
   monomial_set!(x.exps, i, m, 1, parent(x).N)
 end
 
-function add_monomial!(x::MPolyRingElem{T}, m::Vector{Int}) where {T}
+function add_monomial!(x::MPolyRingElem{T}, m::Vector{Int}, cf::T) where {T}
   i = 1
   while i <= length(x)
     cmp = monomial_cmp(parent(x), x.exps, i, m, 1)
     if cmp == 0
-      return i
+      x.coeffs[i] = add!(x.coeffs[i]::T, cf)
+      return nothing
     elseif cmp < 0
       break
     end
@@ -113,19 +136,20 @@ function add_monomial!(x::MPolyRingElem{T}, m::Vector{Int}) where {T}
 
   N = parent(x).N
   fit!(x, length(x) + 1)
-  if isnothing(x.coeffs[length(x) + 1])
-    x.coeffs[length(x) + 1] = zero(coefficient_ring(x))
+  if !isnothing(x.coeffs[length(x) + 1])
+    cf = set!(x.coeffs[length(x) + 1]::T, cf)
+  else
+    cf = deepcopy(cf)
   end
-  c = x.coeffs[length(x) + 1]::T
 
   unsafe_copyto!(x.coeffs, i + 1, x.coeffs, i, length(x) + 1 - i)
   unsafe_copyto!(x.exps, i * N + 1, x.exps, (i - 1) * N + 1, (length(x) + 1 - i) * N)
 
-  x.coeffs[i] = zero!(c)
+  x.coeffs[i] = cf
   monomial_set!(x, i, m)
 
   x.len += 1
-  return i
+  return nothing
 end
 
 ###############################################################################
@@ -227,7 +251,7 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
       else
         z.coeffs[k] = add!(z.coeffs[k], x.coeffs[i], y.coeffs[j])
       end
-      if !iszero(x.coeffs[k])
+      if !iszero(z.coeffs[k])
         monomial_set!(z, k, x, i)
       else
         k -= 1
@@ -404,6 +428,42 @@ function _merge(op, x::MPolyRingElem{T}, y::MPolyRingElem{T}, shift::Bool) where
   return k - 1
 end
 
+function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  fit!(z, length(x) + length(y))
+  z.len = _merge(x, y, false) do k, i, j
+    if i == -1
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = -y.coeffs[j]::T
+      else
+        z.coeffs[k] = neg!(z.coeffs[k], y.coeffs[j]::T)
+      end
+      monomial_set!(z, k, y, j)
+    elseif j == -1
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = x.coeffs[i]::T
+      else
+        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i]::T)
+      end
+      monomial_set!(z, k, x, i)
+    else
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = x.coeffs[i]::T - y.coeffs[j]::T
+      else
+        z.coeffs[k] = sub!(z.coeffs[k], x.coeffs[i]::T, y.coeffs[j]::T)
+      end
+      if iszero(z.coeffs[k]::T)
+        return 1
+      end
+
+      monomial_set!(x, k, x, i)
+    end
+
+    return 0
+  end
+
+  return x
+end
+
 function sub!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   if iszero(y)
     return x
@@ -471,10 +531,10 @@ function set!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
     return x
   end
 
-  fit!(x, y.len)
-  for i in 1:length(y.coeffs)
+  fit!(x, length(y))
+  for i in 1:length(y)
     if isnothing(x.coeffs[i])
-      x.coeffs[i] = deepcopy(y.coeffs[i])
+      x.coeffs[i] = deepcopy(y.coeffs[i]::T)
     else
       x.coeffs[i] = set!(x.coeffs[i]::T, y.coeffs[i]::T)
     end
@@ -493,12 +553,27 @@ end
 
 ###############################################################################
 #
-#   Arithemtic
+#   
 #
 ###############################################################################
 
 function (R::MPolyRing)()
   return zero(R)
+end
+
+function (R::MPolyRing{T})(a::Union{T,Integer}) where {T}
+  if iszero(a)
+    return zero(R)
+  end
+
+  z = one(R)
+  z.coeffs[1] = a
+  return z
+end
+
+function (R::MPolyRing{T})(x::MPolyRingElem{T}) where {T}
+  @req R === parent(x) "parent mismatch"
+  return x
 end
 
 function (R::MPolyRing{T})(coeff::T, exp::Vector{Int}) where {T}
@@ -544,6 +619,21 @@ function zero!(x::MPolyRingElem)
   return x
 end
 
+function neg!(z::MPolyRingElem{T}, x::MPolyRingElem{T}) where {T}
+  fit!(z, length(x))
+  for i in 1:length(x)
+    if isnothing(z.coeffs[i])
+      z.coeffs[i] = -x.coeffs[i]::T
+    else
+      z.coeffs[i] = neg!(z.coeffs[i]::T, x.coeffs[i]::T)
+    end
+    monomial_set!(z, i, x, i)
+  end
+
+  z.len = length(x)
+  return z
+end
+
 function coeff(x::MPolyRingElem{T}, i::Int) where {T}
   return x.coeffs[i]::T
 end
@@ -560,6 +650,12 @@ function exponent_vector!(exp::Vector{Int}, x::MPolyRingElem, i::Int)
   R = parent(x)
   unsafe_copyto!(exp, 1, x.exps, (i - 1) * R.N + 1, ngens(R))
   return exp
+end
+
+function set_exponent_vector!(x::MPolyRingElem, i::Int, exp::Vector{Int})
+  R = parent(x)
+  unsafe_copyto!(x.exps, (i - 1) * R.N + 1, exp, 1, R.N)
+  return x
 end
 
 function length(x::MPolyRingElem)
@@ -622,4 +718,31 @@ function div!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
 
   z.len = length(x)
   return z
+end
+
+###############################################################################
+#
+#   Conformance 
+#
+###############################################################################
+
+function (R::MPolyRing{T})(coeffs::Vector{T}, exps::Vector{Vector{Int}}) where {T}
+  @req length(coeffs) == length(exps) "lengths must match"
+  z = zero(R)
+  fit!(z, length(coeffs))
+  for i in 1:length(coeffs)
+    if iszero(coeffs[i])
+      continue
+    end
+    add_monomial!(z, exps[i], coeffs[i])
+  end
+  return z
+end
+
+function ConformanceTests.generate_element(R::MPolyRing)
+  exp_bound = rand(1:5)
+  len = rand(0:8)
+  coeffs = [ConformanceTests.generate_element(coefficient_ring(R)) for _ in 1:len]
+  exps = [[rand(0:exp_bound) for _ in 1:ngens(R)] for _ in 1:len]
+  return R(coeffs, exps)
 end

@@ -40,6 +40,14 @@ function parent_type(::Type{PBWAlgebraElem{T}}) where {T}
   return PBWAlgebra{T}
 end
 
+function is_domain_type(::Type{PBWAlgebraElem{T}}) where {T}
+  return is_domain_type(T)
+end
+
+function is_exact_type(::Type{PBWAlgebraElem{T}}) where {T}
+  return is_exact_type(T)
+end
+
 ###############################################################################
 #
 #   Accessors
@@ -59,6 +67,23 @@ end
 #   Basic
 #
 ###############################################################################
+
+function (A::PBWAlgebra)()
+  return zero(A)
+end
+
+function (A::PBWAlgebra)(a::Integer)
+  return PBWAlgebraElem(A, A.R(a))
+end
+
+function (A::PBWAlgebra{T})(a::T) where {T}
+  return PBWAlgebraElem(A, A.R(a))
+end
+
+function (A::PBWAlgebra{T})(x::PBWAlgebraElem{T}) where {T}
+  @req A === parent(x) "parent mismatch"
+  return x
+end
 
 function gen(A::PBWAlgebra, i::Int)
   return PBWAlgebraElem(A, gen(A.R, i))
@@ -103,14 +128,15 @@ end
 
 function hash(A::PBWAlgebra, h::UInt)
   b = 0x1cd6ee4308df324a % UInt
-  h = hash(A.mult, h)
+  h = hash(A.R, h)
+  # h = hash(A.mult, h) hashing does not work, due to undef entries
 
   return xor(h, b)
 end
 
 function hash(x::PBWAlgebraElem, h::UInt)
   b = 0xa080ada44dcea378 % UInt
-  h = hash(parent(x), h)
+  h = hash(x.parent, h)
   h = hash(x.poly, h)
 
   return xor(h, b)
@@ -192,6 +218,11 @@ function exponent_vector(x::PBWAlgebraElem, i::Int)
   return exponent_vector(x.poly, i)
 end
 
+function set_exponent_vector!(x::PBWAlgebraElem, i::Int, exp::Vector{Int})
+  set_exponent_vector!(x.poly, i, exp)
+  return x
+end
+
 ###############################################################################
 #
 #   Comparison
@@ -211,8 +242,16 @@ function isone(x::PBWAlgebraElem)
   return isone(x.poly)
 end
 
+function is_unit(x::PBWAlgebraElem)
+  return is_unit(x.poly)
+end
+
 function is_gen(x::PBWAlgebraElem)
   return is_gen(x.poly)
+end
+
+function is_gen_with_index(x::PBWAlgebraElem)
+  return is_gen_with_index(x.poly)
 end
 
 ###############################################################################
@@ -221,25 +260,25 @@ end
 #
 ###############################################################################
 
-function Base.:*(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+function Base.:*(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T<:FieldElem}
   check_parent(x, y)
   return mul!(zero(x), x, y)
 end
 
-function Base.:*(x::PBWAlgebraElem{T}, a::T) where {T}
+function Base.:*(x::PBWAlgebraElem{T}, a::T) where {T<:FieldElem}
   return mul!(zero(x), x, a)
 end
 
-function Base.:*(a::T, x::PBWAlgebraElem{T}) where {T}
+function Base.:*(a::T, x::PBWAlgebraElem{T}) where {T<:FieldElem}
   return mul!(zero(x), x, a)
 end
 
-function Base.:+(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+function Base.:+(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T<:FieldElem}
   check_parent(x, y)
   return add!(zero(x), x, y)
 end
 
-function Base.:-(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+function Base.:-(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T<:FieldElem}
   check_parent(x, y)
   return sub!(zero(x), x, y)
 end
@@ -389,15 +428,13 @@ function _addmul_m_m!(
 ) where {T}
   xl = findlast(!iszero, x)
   if isnothing(xl)
-    n = add_monomial!(z, y)
-    z.coeffs[n] = add!(coeff(z, n), cf)
+    add_monomial!(z, y, cf)
     return z
   end
 
   yf = findfirst(!iszero, y)
   if isnothing(yf)
-    n = add_monomial!(z, x)
-    z.coeffs[n] = add!(coeff(z, n), cf)
+    add_monomial!(z, x, cf)
     return z
   end
 
@@ -405,8 +442,7 @@ function _addmul_m_m!(
   if xl <= yf
     m = copy(x)
     m .+= y
-    n = add_monomial!(z, m)
-    z.coeffs[n] = add!(coeff(z, n), cf)
+    add_monomial!(z, m, cf)
     return z
   end
 
@@ -454,8 +490,7 @@ function _addmul_gens(
   # quasi-commutative case
   if length(A.mult[ind][1, 1]) == 1
     mon[i], mon[j] = n, m
-    k = add_monomial!(z, mon)
-    z.coeffs[k] = addmul!(z.coeffs[k]::T, coeff(A.mult[ind][1, 1], 1)^(n * m), cf)
+    k = add_monomial!(z, mon, mul!(coeff(A.mult[ind][1, 1], 1)^(n * m), cf))
     return z
   end
 
@@ -492,4 +527,14 @@ function _addmul_gens(
   end
 
   return addmul!(z, A.mult[ind][n, m], cf)
+end
+
+###############################################################################
+#
+#   Conformance 
+#
+###############################################################################
+
+function ConformanceTests.generate_element(A::PBWAlgebra)
+  return PBWAlgebraElem(A, ConformanceTests.generate_element(A.R))
 end

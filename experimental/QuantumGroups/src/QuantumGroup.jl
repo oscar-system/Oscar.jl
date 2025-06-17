@@ -116,6 +116,16 @@ Optionally, a reduced decomposition `w0` can be provided to choose a convex orde
 This choice determines the PBW basis of the quantum group.
 """
 function quantum_group(fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing)
+  QF, _ = quantum_field()
+  return quantum_group(QF, fam, rk; w0=w0)
+end
+
+@doc raw"""
+    quantum_group(QF::QuantumField, fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing) -> QuantumGroup
+"""
+function quantum_group(
+  QF::QuantumField, fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing}=nothing
+)
   R = root_system(fam, rk)
   if !is_finite(weyl_group(R))
     error("Quantum groups are currently only supported for finite root systems.")
@@ -124,7 +134,7 @@ function quantum_group(fam::Symbol, rk::Int; w0::Union{Vector{<:Integer},Nothing
   if isnothing(w0)
     w0 = word(longest_element(weyl_group(R)))
   end
-  return _quantum_group(R; w0=w0)
+  return _quantum_group(QF, R; w0=w0)
 end
 
 ###############################################################################
@@ -150,6 +160,30 @@ function parent(x::QuantumGroupElem)
   return x.parent
 end
 
+###############################################################################
+#
+#   Type system
+#
+###############################################################################
+
+function elem_type(::Type{QuantumGroup})
+  return QuantumGroupElem
+end
+
+function parent_type(::Type{QuantumGroupElem})
+  return QuantumGroup
+end
+
+function is_exact_type(::Type{QuantumGroupElem})
+  return is_exact_type(QuantumFieldElem)
+end
+
+###############################################################################
+#
+#   Basic manipulation
+#
+###############################################################################
+
 function ngens(U::QuantumGroup)
   return ngens(U.algebra)
 end
@@ -160,6 +194,14 @@ end
 
 function gens(U::QuantumGroup)
   return [gen(U, i) for i in 1:ngens(U)]
+end
+
+function is_gen(x::QuantumGroupElem)
+  return is_gen(x.elem)
+end
+
+function is_gen_with_index(x::QuantumGroupElem)
+  return is_gen_with_index(x.elem)
 end
 
 @doc raw"""
@@ -175,6 +217,23 @@ end
 
 function zero(U::QuantumGroup)
   return QuantumGroupElem(U, zero(U.algebra))
+end
+
+function coeff(x::QuantumGroupElem, i::Int)
+  return coeff(x.elem, i)
+end
+
+function length(x::QuantumGroupElem)
+  return length(x.elem)
+end
+
+function exponent_vector(x::QuantumGroupElem, i::Int)
+  return exponent_vector(x.elem, i)
+end
+
+function set_exponent_vector!(x::QuantumGroupElem, i::Int, exp::Vector{Int})
+  set_exponent_vector!(x.elem, i, exp)
+  return x
 end
 
 ###############################################################################
@@ -344,36 +403,11 @@ function iszero(x::QuantumGroupElem)
   return iszero(x.elem)
 end
 
-function coeff(x::QuantumGroupElem, i::Int)
-  return coeff(x.elem, i)
-end
-
-function length(x::QuantumGroupElem)
-  return length(x.elem)
-end
-
 ###############################################################################
 #
-#   Monomial
+#   Monomials
 #
 ###############################################################################
-
-@doc raw"""
-    monomial(F::Vector{QuantumGroupElem}, m::Vector{Tuple{Int,Int}}) -> QuantumGroupElem
-    
-For a vector `F` of generators of a quantum group `U` return the monomial
-defined by the vector `m` of tuples `(i, n)`, where `i` is the index of a generator in `F`
-and `n` is the divided power of the generator.
-"""
-function monomial(U::QuantumGroup, m::Vector{Tuple{Int,Int}})
-  f = one(U)
-  for (i, n) in m
-    f = mul!(f, gen(U, U.cvx[i])^n)
-    f = div!(f, q_factorial(n, U.qi[i]))
-  end
-
-  return f
-end
 
 @doc raw"""
     monomial(F::Vector{QuantumGroupElem}, m::Vector{Tuple{Int,Int}}) -> QuantumGroupElem
@@ -385,8 +419,30 @@ function monomial(U::QuantumGroup, i::Vector{Int}, n::Vector{Int})
   f = one(U)
   for (i, n) in Iterators.zip(i, n)
     f = mul!(f, gen(U, U.cvx[i])^n)
-    f = div!(f, q_factorial(n, U.qi[i]))
+    f = div!(f, q_factorial(n, U.qi[U.cvx[i]]))
   end
 
   return f
+end
+
+function pbw_monomial(U, n::Vector{Int})
+  @req ngens(U) == length(n) "length must match number of generators"
+
+  f = one(U)
+  set_exponent_vector!(f.elem, 1, n)
+  for i in 1:length(n)
+    f = div!(f, q_factorial(n[i], U.qi[i]))
+  end
+
+  return f
+end
+
+###############################################################################
+#
+#   Conformance 
+#
+###############################################################################
+
+function ConformanceTests.generate_element(U::QuantumGroup)
+  return QuantumGroupElem(U, ConformanceTests.generate_element(U.algebra))
 end
