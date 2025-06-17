@@ -33,7 +33,7 @@ With *FTheoryTools*, you can create elliptic fibrations using one of the followi
 * Weierstrass model,
 * Global Tate model,
 * Hypersurface model.
-In each case, the base space can be a family of spaces (as used in the literature when an explicit base is not specified) or a toric space. We anticipate an extension to schemes as bases. The dimension of those bases is not limited to $1$, $2$, or $3$, but of course includes those cases important to the physics.
+In each case, the base space can be a family of spaces (as used in the literature when an explicit base is not specified) or a toric space. We anticipate an extension to schemes as bases. The dimension of those bases is not limited to ``1``, ``2``, or ``3``, but of course includes those cases important to the physics.
 
 We also offer a database of models frequently studied in the literature. For those models we use the term 'literature_models.' In essence, you should be able to create a model described in a paper at the click of a button. We anticipate that this feature will greatly simplify future research in F-Theory.
 
@@ -45,12 +45,12 @@ We anticipate the following workflow:
 ### User Input:
 - Create your desired F-Theory model by using one of the methods described above.
 - Choose a resolved phase/crepant resolution.
-- Select generating sections for $\operatorname{U}(1)$ symmetries.
+- Select generating sections for ``\operatorname{U}(1)`` symmetries.
 
 ### Output:
 - (Crepantly) resolved geometry.
-- Singular loci in suitable codimension (e.g., $1$, $2$, and $3$ if the base space has dimension $3$).
-- Fiber diagrams of the resolved fiber over the originally singular loci, including intersections of $\operatorname{U}(1)$-sections.
+- Singular loci in suitable codimension (e.g., ``1``, ``2``, and ``3`` if the base space has dimension ``3``).
+- Fiber diagrams of the resolved fiber over the originally singular loci, including intersections of ``\operatorname{U}(1)``-sections.
 - Gauge group.
 - Topological data (e.g., Euler number).
 
@@ -61,8 +61,8 @@ We are also actively expanding our database of supported literature models. At t
 - F-Theory on all Toric Hypersurface Fibrations and its Higgs Branches [KM-POPR15](@cite),
 - Quadrillion F-Theory Compactifications with the Exact Chiral Spectrum of the Standard Model [CHLLT19](@cite).
 
-Consequently, we are already covering infinite families of models (e.g., with $SU(k)$ gauge group, where $k \geq 1$).
-Still, the total number of papers in our database is at this point limited to about $6$. This is to be extended a lot.
+Consequently, we are already covering infinite families of models (e.g., with ``SU(k)`` gauge group, where ``k \geq 1``).
+Still, the total number of papers in our database is at this point limited to about ``6``. This is to be extended a lot.
 
 
 ## Tutorial
@@ -74,7 +74,7 @@ We encourage you to take a look at the tutorials on FTheoryTools, which can be f
 ## Possible future extensions
 
 Future extensions include, but are not necessarily limited to, the following:
-* Specify a $G_4$-flux and work out the chiral spectra,
+* Specify a ``G_4``-flux and work out the chiral spectra,
 * Specify a gauge potential and work out (candidates for) the line bundles whose cohomologies encode the vector-like spectra,
 * Other singularity types (non-minimal, terminal, etc.,)
 * Base blowups for singularity resolution.

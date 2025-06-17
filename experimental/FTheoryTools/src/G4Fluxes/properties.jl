@@ -6,16 +6,16 @@
     is_well_quantized(gf::G4Flux)
 
 G4-fluxes are subject to the quantization condition
-[Wit97](@cite) $G_4 + \frac{1}{2} c_2(Y) \in H^{(2,2)}(Y, \mathbb{Z})$.
+[Wit97](@cite) ``G_4 + \frac{1}{2} c_2(Y) \in H^{(2,2)}(Y, \mathbb{Z})``.
 It is hard to verify that this condition is met. However,
 we can execute a number of simple consistency checks, by
-verifying that $\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} \in \mathbb{Z}$
-for any two toric divisors $D_1$, $D_2$. If all of these
+verifying that ``\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} \in \mathbb{Z}``
+for any two toric divisors ``D_1``, ``D_2``. If all of these
 simple consistency checks are met, this method will return
 `true` and otherwise `false`.
 
 It is worth mentioning that currently (August 2024), we only
-support this check for $G_4$-fluxes defined on Weierstrass,
+support this check for ``G_4``-fluxes defined on Weierstrass,
 global Tate and hypersurface models. If this condition is not
 met, this method will return an error.
 
@@ -140,7 +140,7 @@ end
     passes_tadpole_cancellation_check(gf::G4Flux)
 
 G4-fluxes are subject to the D3-tadpole cancellation condition described in [Wei18](@cite).
-This check verifies that $euler_characteristic(Y)/24 - 1/2 * \int_{Y}{G_4 \wedge G_4}$ is a non-negative integer.
+This check verifies that ``euler_characteristic(Y)/24 - 1/2 * \int_{Y}{G_4 \wedge G_4}`` is a non-negative integer.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))

@@ -5,7 +5,7 @@
 @doc raw"""
     model(gf::G4Flux)
 
-Return the F-theory model for which this $G_4$-flux candidate is defined.
+Return the F-theory model for which this ``G_4``-flux candidate is defined.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -32,7 +32,7 @@ model(gf::G4Flux) = gf.model
 @doc raw"""
     cohomology_class(gf::G4Flux)
 
-Return the cohomology class which defines the $G_4$-flux candidate.
+Return the cohomology class which defines the ``G_4``-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -65,7 +65,7 @@ cohomology_class(gf::G4Flux) = gf.class
     d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
 
 Return the d3-tapdole constraint of a G4-flux, that is compute the quantity
-$- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$.
+``- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0``.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -150,9 +150,9 @@ end
 @doc raw"""
     g4_flux_family(gf::G4Flux; check::Bool = true)
 
-Return the family of $G_4$-fluxes that possesses, such
+Return the family of ``G_4``-fluxes that possesses, such
 that all fluxes in this family share the following properties
-with the given $G_4$-flux: Transversality and breaking of the
+with the given ``G_4``-flux: Transversality and breaking of the
 non-Abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -183,7 +183,7 @@ end
 @doc raw"""
     integral_coefficients(gf::G4Flux)
 
-Return the integral coefficients of a given $G_4$-flux.
+Return the integral coefficients of a given ``G_4``-flux.
 If these coefficients are not known, an error is raised.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -215,7 +215,7 @@ end
 @doc raw"""
     rational_coefficients(gf::G4Flux)
 
-Return the integral coefficients of a given $G_4$-flux.
+Return the integral coefficients of a given ``G_4``-flux.
 If these coefficients are not known, an error is raised.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
