@@ -65,7 +65,7 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   end
 end
 
-@attr function model_ring(GM::GaussianGraphicalModel; cached=false)
+@attr MPolyRing function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
   varnames = ["$(GM.varnames[1])[$(i), $(j)]" for (i, j) in varindices]
@@ -110,7 +110,7 @@ end
 #
 ###################################################################################
 
-@attr function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
+@attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
   varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[3])[$(v)]" for v in vertices(G)])
   polynomial_ring(QQ, varnames; cached=cached)[1]
@@ -225,7 +225,7 @@ end
 #       Undirected parametrization
 #
 ###################################################################################
-@attr function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
+@attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
   varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[2])[$(v), $(v)]" for v in vertices(G)])
   polynomial_ring(QQ, varnames; cached=cached)[1]
