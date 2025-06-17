@@ -124,31 +124,6 @@ end
 
 
 @doc raw"""
-    tropical_linear_space(k::Int, n::Int, p::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
-
-This usage of `tropical_linear_space` is now deprecated.
-
-Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `p`.  If `weighted_polyhedral_complex_only==true`, will not cache any extra information.
-
-# Examples
-```jldoctest
-julia> T = tropical_semiring();
-
-julia> plueckerVector = T.([0,0,0,0,0,0]);
-
-julia> tropical_linear_space(2,4,plueckerVector)
-Min tropical linear space
-
-```
-"""
-function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
-    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
-    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
-    return tropical_linear_space(data.(combinations(n,k)), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
-end
-
-
-@doc raw"""
     tropical_linear_space(Lambda::Vector{Vector{Int}}, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
 
 Return a tropical linear space from a tropical Pluecker vector with indices `Lambda` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
@@ -171,37 +146,6 @@ function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVec
     TropL = tropical_linear_space(plueckerIndices,
                                   nu.(plueckerVector),
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
-
-    if !weighted_polyhedral_complex_only
-        set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
-        set_attribute!(TropL,:tropical_semiring_map,nu)
-    end
-    return TropL
-end
-
-
-@doc raw"""
-    tropical_linear_space(k::Int, n::Int, p::Vector[, nu::TropicalSemiringMap]; weighted_polyhedral_complex_only::Bool=false)
-
-This usage of `tropical_linear_space` is now deprecated.
-
-Return a tropical linear space from a tropical Pluecker vector with indices `combinations(n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex_only==true`, will not cache any extra information.
-
-# Examples
-```jldoctest
-julia> nu = tropical_semiring_map(QQ);
-
-julia> plueckerVector = QQ.([1,3,5,5,3,1]);
-
-julia> tropical_linear_space(2,4,plueckerVector,nu)
-Min tropical linear space
-
-```
-"""
-function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
-    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
-    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
-    TropL = tropical_linear_space(data.(combinations(n,k)), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
     if !weighted_polyhedral_complex_only
         set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
