@@ -13,13 +13,13 @@ function codomain(hom::QuantumGroupHom)
 end
 
 function image!(z::QuantumGroupElem, hom::QuantumGroupHom, x::QuantumGroupElem)
-  z.elem = image!(hom.hom, z.elem, x.elem)
+  z.elem = image!(z.elem, hom.hom, x.elem)
   return z
 end
 
 function image(hom::QuantumGroupHom, x::QuantumGroupElem)
   @req parent(x) === hom.domain "parent mismatch"
-  return image!(hom, zero(hom.codomain), x)
+  return image!(zero(hom.codomain), hom, x)
 end
 
 function (hom::QuantumGroupHom)(x::QuantumGroupElem)

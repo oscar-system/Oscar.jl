@@ -40,6 +40,14 @@ end
     q_binomial(n::Int, k::Int, q::QuantumFieldElem) -> QuantumFieldElem
 
 Return the q-binomial coefficient.
+
+# Examples
+```jldoctest
+julia> q_binomial(4, 2, q)
+(q^8 + q^6 + 2*q^4 + q^2 + 1)//q^4
+
+julia> q_binomial(5, 3, q^2)
+(q^24 + q^20 + 2*q^16 + 2*q^12 + 2*q^8 + q^4 + 1)//q^12
 """
 function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
   z = one(q)
@@ -75,7 +83,20 @@ end
 ###############################################################################
 
 function quantum_field()
-  QQq, _ = rational_function_field(QQ, :q; cached=false)
+  return quantum_field(:q)
+end
+
+@doc raw"""
+    quantum_field(s::Symbol) -> QuantumField, QuantumFieldElem
+
+# Examples
+```jldoctest
+julia> QF, v = quantum_field(:v)
+(Rational function field over QQ, v)
+```
+"""
+function quantum_field(s::Symbol)
+  QQq, _ = rational_function_field(QQ, s; cached=false)
   QF = QuantumField(QQq, Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}())
   return QF, gen(QF)
 end
@@ -108,7 +129,7 @@ function Base.hash(x::QuantumFieldElem, h::UInt)
   b = 0xf37b7f4ddd4dbe54 % UInt
   h = hash(parent(x), h)
   h = hash(x.d, h)
-  
+
   return xor(h, b)
 end
 
@@ -242,6 +263,10 @@ end
 #   Printing
 #
 ###############################################################################
+
+function Base.show(io::IO, QF::QuantumField)
+  print(io, "Rational function field over QQ")
+end
 
 function expressify(x::QuantumFieldElem; context=nothing)
   return expressify(x.d; context=context)

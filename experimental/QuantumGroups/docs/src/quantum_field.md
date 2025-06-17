@@ -4,8 +4,11 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
+This represents the field of rational functions over $\mathbb{Q}$. By default the indeterminate is labelled `q`.
+
 ```@docs
 quantum_field()
+quantum_field(::Symbol)
 ```
 
 ```@docs
