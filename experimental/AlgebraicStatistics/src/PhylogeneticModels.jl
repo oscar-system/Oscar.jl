@@ -34,13 +34,13 @@ n_states(M::PhylogeneticModel) = M.n_states
 var_names(M::PhylogeneticModel) = unique(M.trans_mat_signature)
 trans_matrix(M::PhylogeneticModel) = M.trans_mat_signature
 
-@attr function parameter_ring(M::PhylogeneticModel; cached=false)
+@attr MPolyRing function parameter_ring(M::PhylogeneticModel; cached=false)
   edge_gens = [x => 1:n_edges(graph(M)) for x in var_names(M)]
   R, _ = polynomial_ring(QQ,  edge_gens...; cached=cached)
   return R
 end
 
-@attr function parameter_ring_gens(M::PhylogeneticModel;)
+@attr MPolyRing function parameter_ring_gens(M::PhylogeneticModel;)
   vn = var_names(M)
   edge_gens = [x => 1:n_edges(graph(M)) for x in vn]
   R = parameter_ring(M)
