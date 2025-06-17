@@ -12,20 +12,20 @@ currently limited to
 - hypersurface models.
 Furthermore, our functionality requires a concrete geometry. That is,
 the base space as well as the ambient space must be toric varieties.
-In the toric ambient space $X_\Sigma$, the elliptically fibered space $Y$
+In the toric ambient space ``X_\Sigma``, the elliptically fibered space ``Y``
 that defines the F-theory model, is given by a hypersurface (cut out by
 the Weierstrass, Tate or hypersurface polynomial, respectively).
 
-In this setting, we assume that a $G_4$-flux candidate is represented by a
-cohomology class $h$ in $H^{(2,2)} (X_\Sigma)$. The actual $G_4$-flux candidate
-is then obtained by restricting $h$ to $Y$.
+In this setting, we assume that a ``G_4``-flux candidate is represented by a
+cohomology class ``h`` in ``H^{(2,2)} (X_\Sigma)``. The actual ``G_4``-flux candidate
+is then obtained by restricting ``h`` to ``Y``.
 
-It is worth recalling that the $G_4$-flux candidate is subject to the quantization
-condition $G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})$ (see [Wit97](@cite)).
+It is worth recalling that the ``G_4``-flux candidate is subject to the quantization
+condition ``G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})`` (see [Wit97](@cite)).
 This condition is very hard to verify. However, it is relatively easy to gather
 evidence for this condition to be satisfied/show that it is violated. To this end, let
-$D_1$, $D_2$ be two toric divisors in $X_\Sigma$, then the topological intersection number
-$\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]$
+``D_1``, ``D_2`` be two toric divisors in ``X_\Sigma``, then the topological intersection number
+``\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]``
 must be an integer. Even this rather elementary check can be computationally expensive.
 Users can therefore decide to skip this check upon construction by setting the parameter
 `check` to the value `false`.
