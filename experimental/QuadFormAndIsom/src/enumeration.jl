@@ -1178,7 +1178,23 @@ end
 
 function representatives_of_hermitian_type(
     signature::Tuple{Int, Int},
-    determinants::Union{Hecke.IntegerUnion, AbstractVector{T}},
+    determinant::Hecke.IntegerUnion,
+    min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
+    fix_root::Int = -1;
+    kwargs...,
+  )
+  return representatives_of_hermitian_type(
+                                           Tuple{Int, Int}[signature],
+                                           typeof(determinant)[determinant],
+                                           min_poly,
+                                           fix_root;
+                                           kwargs...,
+                                          )
+end
+
+function representatives_of_hermitian_type(
+    signature::Tuple{Int, Int},
+    determinants::AbstractVector{T},
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
     fix_root::Int = -1;
     kwargs...,
