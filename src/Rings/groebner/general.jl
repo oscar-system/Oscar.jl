@@ -114,14 +114,15 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       R = base_ring(I)
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
-      gb = standard_basis(K, ordering=degrevlex(S))
+      ord = degrevlex(S)
+      gb = standard_basis(K, ordering=ord)
       # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
       H = homogenizer(S, "w")
       K_hom = H(K)
       gb_hom = IdealGens(H.(gens(gb)))
       gb_hom.isGB = true
-      K_hom.gb[degrevlex(S)] = gb_hom
-      singular_assure(K_hom.gb[degrevlex(S)])
+      gb_hom.ord = ord
+      K_hom.gb[ord] = gb_hom
       hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
       H2 = homogenizer(R, "w")
       J = H2(I)
