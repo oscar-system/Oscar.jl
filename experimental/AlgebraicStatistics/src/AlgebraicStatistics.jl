@@ -17,6 +17,7 @@ export parameter_ring
 export parameter_ring_gens
 export parametrization
 export graph
+export vanishing_ideal
 
 #export models
 export cavender_farris_neyman_model

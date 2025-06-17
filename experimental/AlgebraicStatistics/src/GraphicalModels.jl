@@ -1,8 +1,3 @@
-export GraphicalModel, graph, ring, param_ring, param_gens, vanishing_ideal
-
-import Oscar.graph
-import Oscar.vertices
-import Oscar.gens
 import Base.show
 
 ###################################################################################
