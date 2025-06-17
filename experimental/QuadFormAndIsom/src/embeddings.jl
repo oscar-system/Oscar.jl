@@ -630,7 +630,7 @@ function _primitive_extensions_generic(
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
   if !isempty(glue_order)
-    _glue_order = deepcopy(glue_order)
+    _glue_order = sort!(unique!(deepcopy(glue_order)))
     @req all(>(0), _glue_order) "Orders of glue groups must be positive integers"
     filter!(o -> is_divisible_by(numerator(gcd(det(M), det(N))), o), _glue_order)
     isempty(_glue_order) && return false, results
@@ -643,6 +643,7 @@ function _primitive_extensions_generic(
       filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _form_over)
       isempty(_form_over) && return false, results
       Gs = ZZGenus[genus(q, (aM+aN, bM+bN); parity) for q in _form_over]
+      unique!(Gs) # In case someone inputs several times the same form in `form_over`
       filter!(o -> any(q -> o^2*order(q) == abs(det(M)*det(N)), _form_over), _glue_order)
       isempty(_glue_order) && return false, results
     else
@@ -666,6 +667,8 @@ function _primitive_extensions_generic(
       push!(Gs, genus(q, (aM+aN, bM+bN); parity))
     end
     isempty(_glue_order) && return false, results
+    sort!(unique!(_glue_order))
+    unique!(Gs)
   else
     _glue_order = ZZRingElem[]
     Gs = ZZGenus[]
