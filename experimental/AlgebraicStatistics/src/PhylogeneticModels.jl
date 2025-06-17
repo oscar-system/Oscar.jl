@@ -188,8 +188,8 @@ Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3]
   over rational field
 ```
 """
-#probability_ring(pm::PhylogeneticModel) = pm.prob_ring
-#probability_ring(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.prob_ring
+probability_ring(pm::PhylogeneticModel) = pm.prob_ring
+probability_ring(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.prob_ring
 
 @doc raw"""
     root_distribution(pm::PhylogeneticModel)

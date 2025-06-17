@@ -40,10 +40,29 @@ const GraphTypes = Union{Directed, Undirected} # TODO add Mixed
 abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 
 graph(M::GraphicalModel) = M.graph
+
+@doc raw"""
+    model_ring(GM::GraphicalModel)
+
+Returns a polynomial ring where the indeterminants correspond to the defining parameters of the model.
+```
+"""
 model_ring(M::T) where T <: GraphicalModel = error("Please implement the method model_ring for $T")
 model_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method model_ring_gens for $T")
+
+@doc raw"""
+    parameter_ring(GM::GraphicalModel)
+
+Returns a polynomial ring where the indeterminants parametrize the variety of possible defining parameter values for the model.
+"""
 parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring for $T")
 parameter_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring_gens for $T")
+
+@doc raw"""
+    parametrization(GM::GraphicalModel)
+
+Returns a map from the model ring to the parameter ring.
+"""
 parametrization(M::T) where T <: GraphicalModel = error("Please implement the method parametrization for $T")
 
 @doc raw"""
@@ -55,7 +74,7 @@ This is done by computing the kernel of the parametrization.
 ## Examples
 
 ```jldoctest
-julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 

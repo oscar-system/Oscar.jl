@@ -75,7 +75,7 @@ end
 @doc raw"""
     covariance_matrix(GM::GaussianGraphicalModel)
 
-Return the covariance matrix associated to the graphical model `GM` as a matrix over the underlying probability ring of `GM`,
+Return the covariance matrix associated to the graphical model `GM` as a matrix over the underlying model ring of `GM`,
 see [`model_ring`](@ref)
 
 ## Examples
