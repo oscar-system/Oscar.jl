@@ -354,7 +354,6 @@ function simplify(c::FreeResolution{T}) where T
     first(cc.maps)
   end
   final_res = FreeResolution(result)
-  final_res.length = cut_off
   return final_res
 end
 
