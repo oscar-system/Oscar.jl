@@ -137,13 +137,13 @@ Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose ent
 
 ```jldoctest
 julia> GM = gaussian_graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
-Gaussian graphical model on a directed graph with edges:
-(1, 2), (2, 3)
+Gaussian Graphical Model on a Directed graph with 3 nodes and 2 edges
 
 julia> directed_edges_matrix(GM)
 [0   l[1, 2]         0]
 [0         0   l[2, 3]]
 [0         0         0]
+
 ```
 """
 function directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
@@ -165,9 +165,8 @@ Create the covariance matrix $ \Omega $ of the independent error terms in a dire
 ## Examples
 
 ```jldoctest
-julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
-Gaussian graphical model on a directed graph with edges:
-(1, 2), (2, 3)
+julia> M = gaussian_graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
+Gaussian Graphical Model on a Directed graph with 3 nodes and 2 edges
 
 julia> error_covariance_matrix(M)
 [w[1]      0      0]
@@ -192,9 +191,8 @@ $(Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{T} \mapsto \Sigma$ where $\Lambda =$
 ## Examples
 
 ```jldoctest
-julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
-Gaussian graphical model on a directed graph with edges:
-(1, 2), (2, 3)
+julia> M = gaussian_graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
+Gaussian Graphical Model on a Directed graph with 3 nodes and 2 edges
 
 julia> parametrization(M)
 Ring homomorphism
@@ -207,6 +205,7 @@ defined by
   s[2, 2] -> l[1, 2]^2*w[1] + w[2]
   s[2, 3] -> l[1, 2]^2*l[2, 3]*w[1] + l[2, 3]*w[2]
   s[3, 3] -> l[1, 2]^2*l[2, 3]^2*w[1] + l[2, 3]^2*w[2] + w[3]
+
 ```
 """
 function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
@@ -252,13 +251,13 @@ whose nonzero entries correspond to the edges of the associated graph.
 
 ```jldoctest
 julia> M = gaussian_graphical_model(graph_from_edges([[1,2], [2,3]]))
-Gaussian graphical model on an undirected graph with edges:
-(1, 2), (2, 3)
+Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges
 
 julia> concentration_matrix(M)
 [k[1, 1]   k[1, 2]         0]
 [k[1, 2]   k[2, 2]   k[2, 3]]
 [      0   k[2, 3]   k[3, 3]]
+
 ```
 """
 function concentration_matrix(M::GaussianGraphicalModel{Undirected, T}) where T
@@ -336,6 +335,14 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+
+julia> M = gaussian_graphical_model(graph_from_edges([[1,2], [2,3]]))
+Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges
+
+julia> gaussian_ring(M)
+Gaussian ring over Rational field in 6 variables
+s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+
 ```
 """
 function gaussian_ring(F::Field, n::Int; s_var_name::VarName="s", cached=false)
