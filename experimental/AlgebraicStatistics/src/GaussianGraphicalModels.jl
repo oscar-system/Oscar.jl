@@ -34,7 +34,7 @@ julia> typeof(GM)
 GaussianGraphicalModel{Directed, Nothing}
 
 julia> CG = graph_from_labeled_edges(Dict((1, 2) => "red", (2, 3) => "green"); name=:color)
-Undirected graph with 3 nodes and the following labeling(s)
+Undirected graph with 3 nodes and the following labeling(s):
 label: color
 (2, 1) -> red
 (3, 2) -> green
