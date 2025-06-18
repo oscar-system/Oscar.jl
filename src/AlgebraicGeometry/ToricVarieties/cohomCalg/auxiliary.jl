@@ -18,7 +18,7 @@ function command_string(v::NormalToricVarietyType, c::Vector{ZZRingElem})
     
     # Add information about the Stanley-Reisner ideal to string_list
     current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
-    new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
+    new_coordinate_names = [Symbol("x$i") for i = 1:length(current_coordinate_names)]
     new_ring, _ = polynomial_ring(coefficient_ring(v), new_coordinate_names; cached=false)
     generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring, v))]
     push!(string_list, "srideal [" * joincomma(generators) * "]")
@@ -121,7 +121,7 @@ end
 function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom::String)
     
     # (1) which variables appear in the monom?
-    present_variables = [occursin(coordinate_names(variety)[i], monom) for i in 1:ngens(cox_ring(variety))]
+    present_variables = [occursin(string(coordinate_names(variety)[i]), monom) for i in 1:ngens(cox_ring(variety))]
     
     # (2) compute generators of the semigroup
     weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
