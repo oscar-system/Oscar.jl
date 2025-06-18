@@ -2561,7 +2561,7 @@ Betti table of the minimal free resolution arising from `F`.
     The algorithm proceeds without actually minimizing the resolution.
 
 !!! note
-    In the case of a non-complete free resolution, the minimal Betti table is computed only up to the second last known non-zero entry. To look further, the resolution must first be extended.
+    In the case of a non-complete free resolution, the minimal Betti table is computed only up to the second last known non-zero module. To look further, the resolution must first be extended.
 
 # Examples
 ```jldoctest
