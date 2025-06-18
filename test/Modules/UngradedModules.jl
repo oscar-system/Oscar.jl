@@ -1402,3 +1402,357 @@ end
   @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
   @test conj_S1 == compose(id_S1, conj_S1)
 end
+
+@testset "Modules over ZZ and QQ" begin
+
+  @testset "Module Constructors over ZZ" begin
+    F0 = free_module(FreeMod, ZZ,3)
+    @test rank(F0) == 3
+    @test base_ring(F0) == ZZ
+
+    F = FreeMod(ZZ, 3)
+    M, inc = sub(F, [2*F[1], 3*F[2]])
+    N, proj = quo(F, [F[1] + 2*F[3]])
+
+    @test rank(F) == 3
+    @test is_welldefined(inc)
+    @test is_welldefined(proj)
+  end
+
+  @testset "Submodule Membership over ZZ" begin
+    R = ZZ
+    F = FreeMod(R, 3)
+    gens_submodule = [2*F[1], 3*F[2]]
+    S, _ = sub(F, gens_submodule)
+    x = 4*F[1]+3*F[2]
+    @test in(x, S)
+    coord = coordinates(x, S)
+    @test coord == sparse_row(R, [1, 2], [2, 1])
+  end
+
+  @testset "Module Homomorphisms over ZZ" begin
+    F1 = FreeMod(ZZ, 2)
+    F2 = FreeMod(ZZ, 2)
+    phi = hom(F1, F2, [F2[1] + 2*F2[2], 3*F2[1]+ 6*F2[2]])
+
+    @test is_welldefined(phi)
+
+    K, emb = kernel(phi)
+    @test ngens(K) == 1
+    @test is_welldefined(emb)
+
+    I, im = image(phi)
+    @test ngens(I) == 2
+    @test is_welldefined(im)
+  end
+
+  @testset "Presentations over ZZ" begin
+    F = FreeMod(ZZ, 2)
+    M, inc = sub(F, [2*F[1] + 3*F[2]])
+    pres_M, iso = present_as_cokernel(M, :both)
+
+    @test is_welldefined(iso)
+    @test is_bijective(iso)
+    @test pres_M isa SubquoModule
+    @test ngens(pres_M) == 1
+
+    F = FreeMod(ZZ, 3)
+    M, inc = sub(F, [5*F[1],3*F[2],F[3]])
+    N, inc = sub(F, [10*F[1], 3*F[2]])
+    W, _ = quo(M, N)
+    pres_W, iso = present_as_cokernel(W, :both)
+    @test is_welldefined(iso)
+    @test is_bijective(iso)
+    @test pres_W isa SubquoModule
+    @test ngens(pres_W) == 3
+    presentation(W)
+    ppW, iso2 = prune_with_map(pres_W)
+    @test is_welldefined(iso2)
+    @test is_bijective(iso2)
+    @test ppW isa SubquoModule
+    @test ngens(ppW) == 2
+  end
+
+  @testset "Ext and Tor over ZZ" begin
+    F = FreeMod(ZZ, 1)
+    M, _ = sub(F, [2*F[1]])
+    N, _ = quo(F, [3*F[1]])
+
+    T0 = tor(M, N, 0)
+    T1 = tor(M, N, 1)
+
+    @test T0 isa SubquoModule
+    @test T1 isa SubquoModule
+
+    E0 = ext(M, N, 0)
+    E1 = ext(M, N, 1)
+
+    @test E0 isa SubquoModule
+    @test E1 isa SubquoModule
+  end
+
+  @testset "Free resolutions over ZZ" begin
+    F = FreeMod(ZZ, 1)
+    M, _ = quo(F, [4*F[1]])
+
+    fr = free_resolution(M, length=3)
+
+    @test length(fr.C.maps) == 3
+    @test iszero(homology(fr.C)[1])
+  end
+
+  @testset "Tensoring morphisms over ZZ" begin
+    R = ZZ
+    F2 = FreeMod(R, 2)
+    F4 = FreeMod(R, 4)
+    A1 = matrix(ZZ, [1 2; 3 4; 5 6])
+    B1 = matrix(ZZ, [7 8])
+    A2 = matrix(ZZ, [2 0 1; 0 1 3; 1 1 1])
+    B2 = matrix(ZZ, [0 1 1])
+    M1 = SubquoModule(F2, A1, B1)
+    F3 = FreeMod(R, 3)
+    M2 = SubquoModule(F3, A2, B2)
+    M, pure_M = tensor_product(M1, M2, task=:map)
+    A3 = matrix(ZZ, [1 2; 3 4])
+    M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
+    N, pure_N = tensor_product(M3, F4, task=:map)
+    M3_to_M1 = SubQuoHom(M3, M1, matrix(ZZ, [1 0 0; 0 1 0]))
+    @test is_welldefined(M3_to_M1)
+    F4_to_M2 = FreeModuleHom(F4, M2, matrix(ZZ, [1 0 0; 0 1 0; 0 0 1; 0 0 0]))
+    phi2 = hom_tensor(N, M, [M3_to_M1, F4_to_M2])
+    u1 = M3[1]
+    u2 = F4[1]
+    @test phi2(pure_N((u1, u2))) == pure_M((M3_to_M1(u1), F4_to_M2(u2)))
+    F3 = FreeMod(R, 3)
+    A1 = matrix(ZZ, [1 2; 3 4; 5 6])
+    B1 = matrix(ZZ, [7 8])
+    A2 = matrix(ZZ, [2 0 1; 0 1 3; 1 1 1])
+    B2 = matrix(ZZ, [0 1 1])
+    M1 = SubquoModule(F2, A1, B1)
+    M2 = SubquoModule(F3, A2, B2)
+    M, pure_M = tensor_product(M1, M2, task=:map)
+    phi_M1 = hom(M1, M1, identity_matrix(ZZ, 3))
+    phi_M2 = hom(M2, M2, identity_matrix(ZZ, 3))
+    phi = hom_tensor(M, M, [phi_M1, phi_M2])
+    @test is_welldefined(phi)
+    @test is_bijective(phi)
+    for u1 in gens(M1), u2 in gens(M2)
+      input_elem = pure_M((u1, u2))
+      output_elem = pure_M((phi_M1(u1), phi_M2(u2)))
+      @test phi(input_elem) == output_elem
+    end
+  end
+
+  @testset "Direct product over ZZ" begin
+    R = ZZ
+    F2 = FreeMod(R, 2)
+    F3 = FreeMod(R, 3)
+    A1 = matrix(ZZ, [1 0; 0 1; 2 2])
+    B1 = matrix(ZZ, [0 1])
+    M1 = SubquoModule(F2, A1, B1)
+    A2 = matrix(ZZ, [1 2 3; 0 0 1])
+    B2 = matrix(ZZ, [1 0 1])
+    M2 = SubquoModule(F3, A2, B2)
+    sum_M, emb = direct_sum(M1, M2)
+    @test domain(emb[1]) === M1
+    @test domain(emb[2]) === M2
+    @test codomain(emb[1]) === sum_M
+    @test codomain(emb[2]) === sum_M
+    sum_M2, pr = direct_sum(M1, M2, task=:prod)
+    @test codomain(pr[1]) === M1
+    @test codomain(pr[2]) === M2
+    @test domain(pr[1]) === sum_M2
+    @test domain(pr[2]) === sum_M2
+    prod_M, emb, pr = direct_sum(M1, M2, task=:both)
+    @test length(pr) == length(emb) == 2
+    @test ngens(prod_M) == ngens(M1) + ngens(M2)
+    for g in gens(prod_M)
+      @test g == sum([emb[i](pr[i](g)) for i in 1:length(pr)])
+    end
+    prod_N = direct_product(M1, M2, task=:none)
+    @test ngens(prod_N) == ngens(M1) + ngens(M2)
+    for g in gens(prod_N)
+      @test g == sum([canonical_injection(prod_N, i)(canonical_projection(prod_N, i)(g)) for i in 1:2])
+    end
+  end
+
+
+
+  @testset "Module Constructors over QQ" begin
+    F0 = free_module(FreeMod, QQ,3)
+    @test rank(F0) == 3
+    @test base_ring(F0) == QQ
+
+    F = FreeMod(QQ, 3)
+    M, inc = sub(F, [QQ(1//2)*F[1], QQ(2//3)*F[2]])
+    N, proj = quo(F, [F[1] + QQ(1//3)*F[3]])
+
+    @test ngens(M) == 2
+    @test ngens(N) == 3
+    F = FreeMod(QQ, 3)
+    M, inc = sub(F, [QQ(1//2)*F[1], QQ(2//3)*F[2]])
+    N, proj = quo(F, [F[1] + QQ(1//3)*F[3]])
+
+    @test is_welldefined(inc)
+    @test is_welldefined(proj)
+    @test is_welldefined(inc)
+    @test is_welldefined(proj)
+  end
+
+  @testset "Module Homomorphisms over QQ" begin
+    F1 = FreeMod(QQ, 2)
+    F2 = FreeMod(QQ, 2)
+    phi = hom(F1, F2, [F2[1] + QQ(1//2)*F2[2], QQ(3//4)*F2[1]])
+
+    @test is_welldefined(phi)
+
+    K, emb = kernel(phi)
+    @test is_welldefined(emb)
+
+    I, im = image(phi)
+    @test is_welldefined(im)
+  end
+
+  @testset "Presentations over QQ" begin
+    F = FreeMod(QQ, 2)
+    M, inc = sub(F, [QQ(1//2)*F[1] + QQ(1//3)*F[2]])
+    pres_M, iso = present_as_cokernel(M, :both)
+
+    @test is_welldefined(iso)
+    @test is_bijective(iso)
+    @test pres_M isa SubquoModule
+    @test ngens(pres_M) == 1
+
+    F = FreeMod(QQ, 3)
+    M, inc = sub(F, [5*F[1], 3*F[2], F[3]])
+    N, inc = sub(F, [10*F[1], 3*F[2]])
+    W, _ = quo(M, N)
+    pres_W, iso = present_as_cokernel(W, :both)
+    MP, iso2 = prune_with_map(pres_W)
+    @test is_welldefined(iso2)
+    @test is_bijective(iso2)
+    @test MP isa SubquoModule
+    @test ngens(MP) == 1
+  end
+
+  @testset "Ext and Tor over QQ" begin
+    F = FreeMod(QQ, 1)
+    M, _ = sub(F, [QQ(1//2)*F[1]])
+    N, _ = quo(F, [QQ(1//3)*F[1]])
+
+    T0 = tor(M, N, 0)
+    T1 = tor(M, N, 1)
+
+    @test T0 isa SubquoModule
+    @test T1 isa SubquoModule
+
+    E0 = ext(M, N, 0)
+    E1 = ext(M, N, 1)
+
+    @test E0 isa SubquoModule
+    @test E1 isa SubquoModule
+  end
+
+  @testset "Free resolutions over QQ" begin
+    F = FreeMod(QQ, 1)
+    M, _ = quo(F, [QQ(1//4)*F[1]])
+
+    fr = free_resolution(M, length=3)
+
+    @test length(fr.C.maps) == 3
+    @test iszero(homology(fr.C)[1])
+    MP, _ = prune_with_map(M)
+    @test is_zero(MP)
+  end
+
+  @testset "Tensoring morphisms over QQ" begin
+    R = QQ
+    F2 = FreeMod(R, 2)
+    F3 = FreeMod(R, 3)
+    A1 = matrix(R, [1 2; 3 4; 5 6])
+    B1 = matrix(R, [7 8])
+    A2 = matrix(R, [2 0 1; 0 1 3; 1 1 1])
+    B2 = matrix(R, [0 1 1])
+    M1 = SubquoModule(F2, A1, B1)
+    M2 = SubquoModule(F3, A2, B2)
+    M, pure_M = tensor_product(M1, M2, task=:map)
+    phi_M1 = SubQuoHom(M1, M1, matrix(R, [1 1 0; 0 2 1; 1 0 1]))
+    phi_M2 = SubQuoHom(M2, M2, matrix(R, [0 1 0; 1 0 1; 1 1 0]))
+    phi = hom_tensor(M, M, [phi_M1, phi_M2])
+    v = M[1] + 2*M[2]
+    @test phi(v) == pure_M((phi_M1(M1[1]), phi_M2(M2[1]))) + 2*pure_M((phi_M1(M1[1]), phi_M2(M2[2])))
+    F4 = FreeMod(R, 4)
+    A3 = matrix(R, [1 2; 3 4])
+    M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
+    N, pure_N = tensor_product(M3, F4, task=:map)
+    M3_to_M1 = SubQuoHom(M3, M1, matrix(R, [1 2 0; 0 1 3]))
+    @test is_welldefined(M3_to_M1)
+    F4_to_M2 = FreeModuleHom(F4, M2, matrix(R, [1 0 2; 0 1 0; 1 1 1; 2 0 0]))
+    phi2 = hom_tensor(N, M, [M3_to_M1, F4_to_M2])
+    u1 = M3[1]
+    u2 = F4[1]
+    @test phi2(pure_N((u1, u2))) == pure_M((M3_to_M1(u1), F4_to_M2(u2)))
+  end
+
+  @testset "Direct product over QQ" begin
+    R = QQ
+    F2 = FreeMod(R, 2)
+    F3 = FreeMod(R, 3)
+    A1 = matrix(R, [1 0; 0 1; 2 2])
+    B1 = matrix(R, [0 1])
+    M1 = SubquoModule(F2, A1, B1)
+    A2 = matrix(R, [1 2 3; 0 0 1])
+    B2 = matrix(R, [1 0 1])
+    M2 = SubquoModule(F3, A2, B2)
+    sum_M, emb = direct_sum(M1, M2)
+    @test domain(emb[1]) === M1
+    @test domain(emb[2]) === M2
+    @test codomain(emb[1]) === sum_M
+    @test codomain(emb[2]) === sum_M
+    sum_M2, pr = direct_sum(M1, M2, task=:prod)
+    @test codomain(pr[1]) === M1
+    @test codomain(pr[2]) === M2
+    @test domain(pr[1]) === sum_M2
+    @test domain(pr[2]) === sum_M2
+    prod_M, emb, pr = direct_sum(M1, M2, task=:both)
+    @test length(pr) == length(emb) == 2
+    @test ngens(prod_M) == ngens(M1) + ngens(M2)
+    for g in gens(prod_M)
+      @test g == sum([emb[i](pr[i](g)) for i in 1:length(pr)])
+    end
+    prod_N = direct_product(M1, M2, task=:none)
+    @test ngens(prod_N) == ngens(M1) + ngens(M2)
+    for g in gens(prod_N)
+      @test g == sum([canonical_injection(prod_N, i)(canonical_projection(prod_N, i)(g)) for i in 1:2])
+    end
+  end
+
+  @testset "gradings over non-graded rings" begin
+    @test_throws AssertionError graded_free_module(ZZ, [1])
+  end
+
+  @testset "size of modules" begin
+    R = ZZ
+    F = free_module(FreeMod, R, 2)
+    M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
+    @test size(M) == 6
+
+    N = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
+    @test size(N) == PosInf()
+
+    K, a = finite_field(7, "a")
+    G = free_module(FreeMod, K, 3)
+    H = free_module(FreeMod, K, 1)
+    L = cokernel(hom(H, G, matrix(K, [1 0 0])))
+    @test size(L) == 49
+
+    K, a = finite_field(7, "a")
+    G = free_module(FreeMod, K, 3)
+    L = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
+    @test size(L) == 1
+
+    G = free_module(FreeMod, QQ, 3)
+    L = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
+    @test size(L) == 1
+  end
+end
