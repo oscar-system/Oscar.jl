@@ -839,5 +839,7 @@ function size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
     else
       return nc == 0 ? 1 : PosInf()
     end
+  else
+    error("Unhandled base ring: $(typeof(R))")
   end
 end

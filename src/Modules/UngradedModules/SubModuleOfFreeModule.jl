@@ -476,7 +476,7 @@ Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
   iszero(a) && return true
-  any(==(a), gens(M)) && return true
+  a in gens(M) && return true
   return in_atomic(a, M)
 end
 

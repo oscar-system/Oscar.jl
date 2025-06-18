@@ -438,7 +438,7 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::S
   end
   if task == :via_transform
     std, _ = lift_std(M)
-      return coordinates_via_transform(a, std)
+    return coordinates_via_transform(a, std)
   elseif task == :via_lift
     return coordinates(a, M.gens)
   else

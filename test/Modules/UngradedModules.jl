@@ -1383,7 +1383,7 @@ end
   conj_S1_alt = hom(S1, S1, [S1[1]], f->evaluate(map_coefficients(conj, f), [u, v]))
   @test_throws ErrorException conj_S1 == conj_S1_alt
 
-   a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
+  a = compose(compose(id_R1, f), compose(conj_S1, id_S1))
   b = compose(compose(id_R1, compose(f, conj_S1)), id_S1)
   c = compose(compose(compose(id_R1, f), conj_S1), id_S1)
   d = compose(id_R1, compose(f, compose(conj_S1, id_S1)))
