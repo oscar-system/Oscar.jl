@@ -43,7 +43,7 @@ julia> GM = gaussian_graphical_model(CG)
 Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges with labeling(s) [:color]
 
 julia> typeof(GM)
-GaussianGraphicalModel{Undirected, @NamedTuple{color::GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
+GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
 function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
