@@ -1075,7 +1075,6 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export krull_dim
-export krull_dimension
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix

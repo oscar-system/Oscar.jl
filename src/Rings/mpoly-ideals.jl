@@ -2045,7 +2045,6 @@ julia> dim(I)
 ```
 """
 dim(I::MPolyIdeal) = krull_dim(I)
-krull_dimension(I::MPolyIdeal) = krull_dim(I)
 
 function krull_dim(I::MPolyIdeal)
   if I.dim === nothing
@@ -2093,7 +2092,6 @@ is_known(::typeof(codim), I::MPolyIdeal) = is_known(dim, I)
 
 # Some fixes which were necessary for the above
 dim(R::Union{MPolyRing, ZZRing}) = krull_dim(R)
-krull_dimension(R::Union{MPolyRing, ZZRing}) = krull_dim(R)
 
 ################################################################################
 #

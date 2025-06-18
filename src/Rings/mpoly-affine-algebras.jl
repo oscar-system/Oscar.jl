@@ -28,8 +28,6 @@ end
 
 krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-krull_dimension(A::MPolyQuoRing) = krull_dim(A)
-
 is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
