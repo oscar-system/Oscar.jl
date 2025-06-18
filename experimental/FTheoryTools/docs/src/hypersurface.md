@@ -151,13 +151,17 @@ These models can then be accessed with the following functions:
 weierstrass_model(h::HypersurfaceModel)
 global_tate_model(h::HypersurfaceModel)
 ```
-Provided that the corresponding Weierstrass model is known for a hypersurface
-model, the following functionality is available. It returns the attribute in question
-of the corresponding Weierstrass model.
+Provided that the corresponding Weierstrass model is known for a hypersurface model, we can compute the discriminant locus of this corresponding Weierstrass model:
 ```@docs
 discriminant(h::HypersurfaceModel)
+```
+Even more critical than the discriminant itself is its decomposition into irreducible components. Over each of these components, the singularities of the elliptic fiber are classified. The function below returns the list of irreducible base loci -- arising from the discriminant of the associated Weierstrass model -- along with the corresponding singularity types:
+```@docs
 singular_loci(h::HypersurfaceModel)
 ```
+!!! warning
+    The classification of singularities is performed using a Monte Carlo algorithm, i.e. it involves random sampling. While the implementation has been extensively tested and meets high standards, its probabilistic nature may occasionally yield non-deterministic results.
+
 
 
 ## Methods
