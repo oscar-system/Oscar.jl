@@ -67,8 +67,7 @@ end
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
-  push!(wp.wids, id) # update the list of associated workers
-  return push!(wp.wp, a)
+  push!(wp.wp, id) # update the list of associated workers
 end
 
 # Take a worker from the pool; this marks it as being busy.
@@ -255,7 +254,6 @@ else
   end
 end
 
-
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)
   for a in args
@@ -269,27 +267,49 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   return result
 end
 
-export oscar_worker_pool
+struct TimeoutException <: Exception end
 
-################################################################################
-# Parallel processing on a collection
-
-function collection_queue(f, c, wp::OscarWorkerPool, limit::Int)
-  next = iterate(c)
-  batch = []
-  futures = Future[]
-  count = 0
-  while !isnothing(next)
-    (i, state) = next
-    push!(batch, i)
-    count += 1
-    if count == limit
-      println("pushed to worker")
-      push!(futures, remotecall(f, wp, batch))
-      batch = []
-      count = 0
-    end
-    next = iterate(c, state)
+function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
+                                 timeout=1,
+                                 args...; kwargs...)
+  wid = take!(wp)
+  
+  # Prepare type parameters
+  for a in args
+    put_type_params(get_channel(wp, wid), a)
   end
-  return fetch.(futures)
+  for a in kwargs
+    put_type_params(get_channel(wp, wid), a)
+  end
+  
+  local fut
+  try
+    fut = @async remotecall_fetch(f, wid, args...; kwargs...)
+  catch
+    put!(wp, wid)  # Return worker to pool on setup failure
+    rethrow()
+  end
+  
+  try
+    if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
+      # Add replacement worker
+      new_wid = first(addprocs(1))
+      push!(wp, new_wid)
+      println("pushed worker to pool")
+      # Remove the problematic worker
+      rmprocs(wid)
+      println("removed worker")
+      throw(TimeoutException())
+    end
+  catch e
+    if !(e isa TimeoutException)
+      put!(wp, wid)  # Return worker if it's not a timeout error
+    end
+    rethrow(e)
+  end
+  
+  put!(wp, wid)  # Return worker to pool on success
+  return fetch(fut) 
 end
+
+export oscar_worker_pool, remotecall_with_timeout
