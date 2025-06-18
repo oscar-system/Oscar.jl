@@ -1477,7 +1477,7 @@ function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothin
   @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
-  n = isnothing(F.length) ? first(Hecke.map_range(C)) : F.length::Int
+  n = first(Hecke.map_range(C))
   for i in 0:n
     module_degrees = F[i].d
     for degree in module_degrees
