@@ -162,11 +162,11 @@ function Hecke.modular_proj(B::IdealGens{Generic.MPoly{AbsSimpleNumFieldElem}}, 
   return [IdealGens(x, keep_ordering = false) for x = g] 
 end
 
-function Hecke.modular_lift(f::Vector{IdealGens{zzModMPolyRingElem}}, me::Hecke.modular_env)
+function Hecke.modular_lift(fs::Vector{IdealGens{zzModMPolyRingElem}}, me::Hecke.modular_env)
   g = []
-  @assert allequal(length, f)
-  for i=1:length(f[1])
-    lp = zzModMPolyRingElem[ f[j][Val(:O), i] for j=1:length(f)]
+  @assert allequal(length, fs)
+  for i=1:length(fs[1])
+    lp = zzModMPolyRingElem[f[i] for f in fs]
     push!(g, Hecke.modular_lift(lp, me))
   end
   return g

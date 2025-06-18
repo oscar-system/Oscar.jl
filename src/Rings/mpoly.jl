@@ -257,16 +257,6 @@ function show(io::IO, I::IdealGens)
   end
 end
 
-function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
-  if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x in oscar_generators(A)])
-  end
-  return A.S[i]
-end
-
-function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-  return oscar_generators(A)[i]
-end
 
 function Base.length(A::BiPolyArray)
   if isdefined(A, :S)
@@ -280,18 +270,10 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return oscar_generators(A)[s], s+1
 end
 
 Base.eltype(::Type{<:BiPolyArray{S}}) where S = S
-
-function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
-  return A.gens[Val(:S), i]
-end
-
-function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
-  return A.gens[Val(:O), i]
-end
 
 function gen(A::IdealGens, i::Int)
   return oscar_generators(A)[i]
@@ -312,7 +294,7 @@ function Base.iterate(A::IdealGens, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return gen(A, s), s+1
 end
 
 Base.eltype(::Type{IdealGens{S}}) where S = S
