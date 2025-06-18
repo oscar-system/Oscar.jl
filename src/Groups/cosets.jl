@@ -484,15 +484,20 @@ That is, `T` is a left or right transversal of a subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5 and order 120 with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> H = sylow_subgroup(G, 2)[1]
-Permutation group of degree 5 and order 8
+Permutation group of degree 5 and order 8 with 3 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
 
 julia> T = right_transversal(G, H)
 Right transversal of length 15 of
   permutation group of degree 5 and order 8 in
-  Sym(5)
+  symmetric group of degree 5 and order 120
 
 julia> group(T) == G
 true
@@ -509,15 +514,19 @@ transversal of `H`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5 and order 120 with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 and order 6 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> T = right_transversal(G, H)
 Right transversal of length 20 of
-  Sym(3) in
-  Sym(5)
+  symmetric group of degree 3 and order 6 in
+  symmetric group of degree 5 and order 120
 
 julia> subgroup(T) == H
 true

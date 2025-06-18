@@ -1273,7 +1273,8 @@ julia> F = free_group(3)
 Free group of rank 3 with 3 generators f1, f2, f3
 
 julia> G = quo(F, [gen(F,1)])[1]
-Finitely presented group of infinite order with 3 generators f1, f2, f3
+Finitely presented group of infinite order with 3 generators f1, f2, f3 and with 1 relator
+  f1
 
 julia> simplified_fp_group(G)[1]
 Finitely presented group of infinite order with 2 generators f2, f3

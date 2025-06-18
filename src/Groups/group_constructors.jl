@@ -867,7 +867,10 @@ Permutation group of degree 8 with 2 generators
   (1,2,3,4)(5,6,7,8)
 
 julia> g = dicyclic_group(FPGroup, 8)
-Finitely presented group of order 8 with 2 generators r, s and 3 relators
+Finitely presented group of order 8 with 2 generators r, s and with 3 relators
+  r^2*s^-2
+  s^4
+  r^-1*s*r*s
 
 julia> relators(g)
 3-element Vector{FPGroupElem}:
@@ -973,7 +976,7 @@ of order 8 and one quaternion group of order 8 if `p` is 2.
 # Examples
 ```jldoctest
 julia> extraspecial_group(3, 2, :-)
-Pc group of order 243
+Pc group of order 243 with 5 generators f1, f2, f3, f4, f5
 
 julia> describe(extraspecial_group(2, 1, :+))
 "D8"
