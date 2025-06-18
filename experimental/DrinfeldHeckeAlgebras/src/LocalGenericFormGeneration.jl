@@ -97,13 +97,13 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
 
   # Check det(h⊥) = 1 for elements in the centralizer restricted to (V^g)⊥
   ZGg, _ = centralizer(G,g)
-  
-  # Compute left-inverse of basis_Vg⊥ (via Moore-Penrose pseudoinverse formula)
-  left_inverse = inv(transpose(basis_Vg⊥) * basis_Vg⊥) * transpose(basis_Vg⊥)
+
+  # Compute Moore-Penrose pseudoinverse of basis_Vg⊥
+  basis_Vg⊥_pseudoinverse = inv(transpose(basis_Vg⊥) * basis_Vg⊥) * transpose(basis_Vg⊥)
   
   for h in ZGg
     # Restrict h to the space (V^g)⊥
-    h⊥ = left_inverse * matrix(h) * basis_Vg⊥
+    h⊥ = basis_Vg⊥_pseudoinverse * matrix(h) * basis_Vg⊥
     
     if det(h⊥) != one(R) 
       return zero_matrix(R, n, n)  
@@ -159,7 +159,7 @@ end
 #
 # For this note that
 # - we only need to solve the relations for basis elements {v1,...,vn} of V
-# - due to skew-symmetry it is enough to solve the relations for all combinations of i < j < k
+# - due to skew-symmetry it is enough to solve the relations for all combinations of i < j
 # - if A = (a_ij) is the matrix corresponding to g in the given basis, then gvi = sum_l (a_li * vl). 
 #
 # With this the relations translate to
@@ -172,36 +172,36 @@ function build_group_invariant_relation_matrix(G::MatrixGroup)
   map = build_local_map(n)
   m = length(map)
   
-  # Start to collect rows for relations
-  rows = []
-  
-  for g in G
+  # Start to collect equations for relations
+  M = zero_matrix(K, 0, m)
+
+  for g in gens(G)
     # For g = 1 the relations are always true
     if is_one(g) continue end
   
     A = matrix(g)
-    row = fill(K(), m)
-
-    # The relations translate to 
+    row = zero_matrix(K, 1, m)
+  
+    # The relations translate to the equation
     # sum_{l < k} (a_li a_kj − a_ki a_lj) κ(vl,vk) − κ(vi,vj) = 0
+    # for each i < j
     for i in 1:n, j in (i+1):n
+      # Build the equation
       for l in 1:n, k in (l+1):n
-        if l == i && k == j
-          row[map[(l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j] - K(1)
-        else
-          row[map[(l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
+        if l == i && k == j 
+          row[1,map[(i,j)]] = A[i,i] * A[j,j] - A[j,i] * A[i,j] - K(1)
+        else 
+          row[1,map[(l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
         end
       end
-    end
-  
-    if !is_zero(row)
-      push!(rows, row)
+    
+      # Add the equation as a row
+      if !is_zero(row)
+        M = vcat(M, row)
+      end
     end
   end
 
-  # Combine collected rows to matrix
-  M = matrix(K, length(rows), m, vcat(rows...))
-  
   return (M, map)
 end
 

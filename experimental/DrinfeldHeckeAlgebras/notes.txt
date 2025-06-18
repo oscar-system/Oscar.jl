@@ -29,8 +29,18 @@ A = generic_drinfeld_hecke_form(G)
 using Revise, Oscar
 
 S = symmetric_group(5)
-R, _ = residue_ring(ZZ, 5)
-mat_gens = [permutation_matrix(QQ, g) for g in gens(S)]
+R, _ = residue_field(ZZ, 3)
+mat_gens = [permutation_matrix(R, g) for g in gens(S)]
+G = matrix_group(mat_gens)
+A = generic_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
+S = symmetric_group(3)
+R, _ = residue_field(ZZ, 3)
+mat_gens = [permutation_matrix(R, g) for g in gens(S)]
 G = matrix_group(mat_gens)
 A = generic_drinfeld_hecke_form(G)
 
@@ -86,3 +96,19 @@ x = R[1]
 y = R[2]
 
 A(y) * A(x)
+
+##########################################################
+
+using Revise, Oscar
+
+generators = [matrix(QQ, [-1 0 0 0;0 -1 0 0; 0 0 1 0; 0 0 0 1]), matrix(QQ, [1 0 0 0;0 1 0 0; 0 0 -1 0; 0 0 0 -1])]
+G = matrix_group(generators)
+κ = generic_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
+MS = matrix_space(QQ,2,2)
+G = matrix_group(matrix(MS([-1 0;0 -1])))
+κ = generic_drinfeld_hecke_form(G)
