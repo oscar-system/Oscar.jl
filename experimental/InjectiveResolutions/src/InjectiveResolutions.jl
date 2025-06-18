@@ -42,6 +42,7 @@ import ..Oscar:
   oscar_free_module,
   oscar_generators,
   primitive_generator,
+  singular_freemodule,
   singular_generators,
   singular_module,
   singular_poly_ring,
