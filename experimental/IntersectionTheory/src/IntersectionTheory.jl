@@ -4,7 +4,6 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
 import ..Oscar: trivial_line_bundle
@@ -57,7 +56,7 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
@@ -156,7 +155,7 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
@@ -196,5 +195,3 @@ export TnBundle
 export TnBundleChern
 export TnRep
 export TnVariety
-
-
