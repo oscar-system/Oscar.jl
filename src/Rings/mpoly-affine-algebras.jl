@@ -28,12 +28,7 @@ end
 
 krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-function krull_dim(A::Union{zzModRing, ZZModRing})
-  modulus(A) == 1 && error("Function `krull_dim` gives wrong answers if the base ring is the zero ring.")
-  return is_prime(modulus(A)) ? 0 : 1
-end
-
-krull_dimension(A::Union{MPolyQuoRing, ZZModRing, zzModRing}) = krull_dim(A)
+krull_dimension(A::MPolyQuoRing) = krull_dim(A)
 
 is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
