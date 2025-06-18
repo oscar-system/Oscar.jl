@@ -623,7 +623,7 @@ function singular_assure(I::IdealGens)
     I.gens.f = g
     I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x in oscar_generators(I)])
   end
-  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
+  if I.isGB && (I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
   end
 end
