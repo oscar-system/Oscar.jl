@@ -254,9 +254,9 @@ julia> M = gaussian_graphical_model(graph_from_edges([[1,2], [2,3]]))
 Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges
 
 julia> concentration_matrix(M)
-[k[1, 1]   k[1, 2]         0]
-[k[1, 2]   k[2, 2]   k[2, 3]]
-[      0   k[2, 3]   k[3, 3]]
+[k[1, 1]   k[2, 1]         0]
+[k[2, 1]   k[2, 2]   k[3, 2]]
+[      0   k[3, 2]   k[3, 3]]
 
 ```
 """
