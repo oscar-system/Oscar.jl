@@ -73,13 +73,15 @@ solvable, otherwise it will be of type `PermGroup`.
 # Examples
 ```jldoctest
 julia> small_group(60, 4)
-Pc group of order 60
+Pc group of order 60 with 4 generators f1, f2, f3, f4
 
 julia> small_group(60, 5)
-Permutation group of degree 5 and order 60
+Permutation group of degree 5 and order 60 with 2 generators
+  (1,2,3,4,5)
+  (1,2,3)
 
 julia> small_group(PcGroup, 60, 4)
-Pc group of order 60
+Pc group of order 60 with 4 generators f1, f2, f3, f4
 ```
 """
 function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T
@@ -188,17 +190,17 @@ List all abelian non-cyclic groups of order 12:
 ```jldoctest
 julia> all_small_groups(12, !is_cyclic, is_abelian)
 1-element Vector{PcGroup}:
- Pc group of order 12
+ Pc group of order 12 with 3 generators f1, f2, f3
 ```
 
 List groups of order 1 to 10 which are not abelian:
 ```jldoctest
 julia> all_small_groups(1:10, !is_abelian)
 4-element Vector{PcGroup}:
- Pc group of order 6
- Pc group of order 8
- Pc group of order 8
- Pc group of order 10
+ Pc group of order 6 with 2 generators f1, f2
+ Pc group of order 8 with 3 generators f1, f2, f3
+ Pc group of order 8 with 3 generators f1, f2, f3
+ Pc group of order 10 with 2 generators f1, f2
 ```
 """
 function all_small_groups(L...)

@@ -98,7 +98,9 @@ The type `T` can be either `PermGroup` or `FPGroup`.
 # Examples
 ```jldoctest
 julia> perfect_group(60, 1)
-Permutation group of degree 5 and order 60
+Permutation group of degree 5 and order 60 with 2 generators
+  (1,2)(4,5)
+  (2,3,4)
 
 julia> gens(ans)
 2-element Vector{PermGroupElem}:
@@ -106,7 +108,10 @@ julia> gens(ans)
  (2,3,4)
 
 julia> perfect_group(FPGroup, 60, 1)
-Finitely presented group of order 60
+Finitely presented group of order 60 with 2 generators a, b and with 3 relators
+  a^2
+  b^3
+  (a*b)^5
 
 julia> gens(ans)
 2-element Vector{FPGroupElem}:
