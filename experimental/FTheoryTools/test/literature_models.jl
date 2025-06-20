@@ -359,7 +359,7 @@ end
 
 h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
 
-@testset "Test for literature hypersurface model over arbitary base" begin
+@testset "Test for literature hypersurface model over arbitrary base" begin
   @test parent(hypersurface_equation(h)) == coordinate_ring(ambient_space(h))
   @test dim(base_space(h)) == 2
   @test is_smooth(fiber_ambient_space(h)) == true

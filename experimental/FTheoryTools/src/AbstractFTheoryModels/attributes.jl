@@ -1044,8 +1044,8 @@ end
 
 Return the zero section class of a model as a cohomology class in the toric ambient space.
 If no zero section class is known, an error is raised.
-This information is not typically available for
-Weierstrass and global Tate models, whose zero section classs are known.
+This information is always available for
+Weierstrass and global Tate models, whose zero section classes are known.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -1058,6 +1058,36 @@ Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
 function zero_section_class(m::AbstractFTheoryModel)
   @req has_zero_section_class(m) "No zero section class stored for this model"
   return get_attribute(m, :zero_section_class)
+end
+
+
+@doc raw"""
+    zero_section_index(m::AbstractFTheoryModel)
+
+Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model.
+If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class.
+This information is always available for
+Weierstrass and global Tate models, whose zero section classes are known.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> zero_section_index(foah15_B3)
+5
+```
+"""
+function zero_section_index(m::AbstractFTheoryModel)
+  @req has_zero_section_class(m) "No zero section class stored for this model"
+  return get_attribute(m, :zero_section_index)::Int
 end
 
 
@@ -1318,8 +1348,8 @@ For a 3-dimensional reflexive polytope in the Kreuzer-Skarke list, the list of
 full (sometimes also called fine), regular, star triangulations can be extremely
 large. Consequently, one may wonder if the triangulations can be enumerated in a
 somewhat reasonable time (say 5 minutes on a personal computer). This method tries
-to provide an answer to this. It returns `true` if one should expect a timly response
-to the atttempt to enumerate all (full, regular, star) triangulations. Otherwise, this
+to provide an answer to this. It returns `true` if one should expect a timely response
+to the attempt to enumerate all (full, regular, star) triangulations. Otherwise, this
 method returns `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -1650,7 +1680,7 @@ This method returns a vector with labels for each node/vertex of the dual graph 
 model in question. Those labels allow to understand the geometric origin of the node/vertex.
 
 Specifically, recall that those nodes are associated to the Ci-curves, which are in turn
-given by Ci = V(xi, s). xi is a homogenous coordinate of the 3-dimensional toric base space
+given by Ci = V(xi, s). xi is a homogeneous coordinate of the 3-dimensional toric base space
 B3 of the QSM in question, and s is a generic section of the anticanonical bundle of B3.
 
 Only non-trivial Ci = V(xi, s) correspond to vertices/nodes of the dual graph.

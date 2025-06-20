@@ -16,7 +16,7 @@ This part of OSCAR is in an experimental state; please see [Adding new projects 
 
 Please direct questions about this part of OSCAR to the following people:
 * [Lars Göttgens](https://lgoe.li/)
-* [Laura Voggesberger](https://www.ruhr-uni-bochum.de/ffm/Lehrstuehle/Lehrstuhl-VI/voggesberger.html)
+* [Felix Röhrich](https://www.art.rwth-aachen.de/cms/~xlgua)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

@@ -169,7 +169,12 @@
     kk = coefficient_ring(R)::Field
 
     G = grading_group(S)
-    w = degree.(gens(S))
+    if !is_trivial(S)
+      w = degree.(gens(S))
+    else
+      # if S is trivial, the weights don't matter
+      w = [zero(G) for i in 1:ngens(S)]
+    end
     new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
 
     # Before building S_flat, we have to create a polynomial 

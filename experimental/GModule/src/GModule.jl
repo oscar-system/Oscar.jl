@@ -516,18 +516,18 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     Step 5:
       restrict sigma to Gal(K/E) and obtain a 1-boundary d
     Step 6:
-      Y = X restriced to K/E * d is a 1-chain in GL(n, K)
+      Y = X restricted to K/E * d is a 1-chain in GL(n, K)
       split by A in GL(n, K)
       Now, technically, A V A^-1 has values in Gl(n, E)
     Step 7:
       Replacing V -> A V A^-1 changes 
                 X_g -> A^g X A^-1
-      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normlized (mult. by
+      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normalized (mult. by
       scalar in K) to be in Gl(n, E)
     Step 8: Find F using Grunwald Wang
       The Galois group FF/k is the direct product, so
       inflate the "new" X and (re)-compute sigma
-    Step 9: is_coboundary and new transformatio matrix
+    Step 9: is_coboundary and new transformation matrix
     =#
 
 

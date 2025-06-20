@@ -1,5 +1,6 @@
 include("UniformHypergraph.jl")
 include("PartialShift.jl")
+include("SymmetricShift.jl")
 include("PartialShiftGraph.jl")
 
 export UniformHypergraph

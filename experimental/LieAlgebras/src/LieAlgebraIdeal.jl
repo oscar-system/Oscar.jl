@@ -262,7 +262,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(I::LieAlgebraIdeal) -> LieAlgebra
+    lie_algebra(I::LieAlgebraIdeal) -> LieAlgebra, LieAlgebraHom
 
 Return `I` as a Lie algebra `LI`, together with an embedding `LI -> L`,
 where `L` is the Lie algebra where `I` lives in.

@@ -34,7 +34,7 @@ reduceCol(a, b, i::Int) = b[i] * a - a[i] * b
 for each pivot of sp.A we make entry of v zero and return the result
 0 => linear dependent
 * => linear independent, new column element of sp.A since it increases basis
-invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
+invariants: the row of a pivot element in any column in A is 0 (except the pivot element)
            elements of A are integers, gcd of each column is 1
 """
 function addAndReduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})
@@ -119,7 +119,7 @@ function kron(A, B)
   return res
 end
 
-# temprary fix sparse in Oscar does not work
+# temporary fix sparse in Oscar does not work
 function tensorProduct(A, B)
   temp_mat = kron(A, spid(nrows(B))) + kron(spid(nrows(A)), B)
   res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))

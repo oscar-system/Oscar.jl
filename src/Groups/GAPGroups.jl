@@ -2057,8 +2057,7 @@ julia> invs
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
+  if ngens(G) == 0
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
@@ -2107,18 +2106,11 @@ x*y^4
 ```
 """
 function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
+  if ngens(parent(g)) == 0
+    @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  gX = GapObj(g)
-
-  if GAPWrap.IsPcGroup(GapObj(G))
-    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(GapObj(G)), gX)
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    l = GAP.Globals.Exponents(gX)
-  end
+  l = _exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2216,26 +2208,44 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 julia> F = @free_group(:F1, :F2);
 
 julia> syllables(F1^5*F2^-3)
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 
 julia> syllables(one(F))
-Pair{Int64, Int64}[]
+Pair{Int64, ZZRingElem}[]
 
 julia> G, epi = quo(F, [F1^10, F2^10]);
 
 julia> syllables(epi(F1^5*F2^-3))
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 ```
 """
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
-  return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+  return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
 end
 
+function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
+  gX = GapObj(g)
+  G = parent(g)
+  GX = GapObj(G)
+  if GAPWrap.IsPcGroup(GX)
+    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
+  else  # GAP.Globals.IsPcpGroup(GapObj(G))
+    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
+  end
+end
+
+function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
+  v = zeros(ZZRingElem, ngens(parent(g)))
+  for (i, e) in syllables(g)
+    v[i] = v[i] + e
+  end
+  return v
+end
 
 @doc raw"""
     letters(g::FPGroupElem)
@@ -2333,19 +2343,15 @@ true
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
    n = ngens(G)
-   ll = IntegerUnion[]
+   extrep = IntegerUnion[]
    for p in pairs
      @req 0 < p.first && p.first <= n "generator number is at most $n"
      if p.second != 0
-       push!(ll, p.first)
-       push!(ll, p.second)
+       push!(extrep, p.first)
+       push!(extrep, p.second)
      end
    end
-   return G(ll)
-end
 
-# This format is used in the serialization of `FPGroupElem`.
-function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
    famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
    if GAP.Globals.IsFreeGroup(GapObj(G))
      w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
@@ -2359,7 +2365,6 @@ function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
 
    return FPGroupElem(G, w)
 end
-
 
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)

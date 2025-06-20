@@ -212,8 +212,21 @@ julia> cones(PF, 2)
 """
 function cones(PF::_FanLikeType, cone_dim::Int)
   l = cone_dim - length(lineality_space(PF))
-  l < 1 && return nothing
-  return SubObjectIterator{Cone{_get_scalar_type(PF)}}(
+  t = Cone{_get_scalar_type(PF)}
+  (l < 0 || dim(PF) == -1) && return _empty_subobjectiterator(t, PF)
+
+  if l == 0
+    return SubObjectIterator{t}(
+      PF,
+      (_, _, _) -> positive_hull(
+        coefficient_field(PF), zeros(Int, ambient_dim(PF)), lineality_space(PF)
+      ),
+      1,
+      NamedTuple(),
+    )
+  end
+
+  return SubObjectIterator{t}(
     PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim=l,)
   )
 end

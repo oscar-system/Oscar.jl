@@ -244,7 +244,7 @@ function base_ring_module(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
   return get_attribute(F, :base_ring_module)::base_ring_module_type(F)
 end
 
-base_ring_module_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = FreeMod{base_ring_elem_type(T)}
+base_ring_module_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = FreeMod{elem_type(base_ring_type(T))}
 base_ring_module_type(F::FreeMod{T}) where {T<:AbsLocalizedRingElem} = base_ring_module_type(typeof(F))
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
@@ -262,7 +262,7 @@ end
 # which contains all generators and relations for the saturation that have already 
 # been cached. 
 function pre_saturated_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
-  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{base_ring_elem_type(T)}
+  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{elem_type(base_ring_type(T))}
   if !has_attribute(M, :pre_saturated_module)
     (A, D) = clear_denominators(generator_matrix(M))
     (B, E) = clear_denominators(relations_matrix(M))
@@ -275,7 +275,7 @@ function pre_saturated_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem
     set_attribute!(M, :pre_saturation_data_rels, change_base_ring(S, E))
     set_attribute!(M, :pre_saturated_module, Mb)
   end
-  return get_attribute(M, :pre_saturated_module)::SubquoModule{base_ring_elem_type(T)}
+  return get_attribute(M, :pre_saturated_module)::SubquoModule{elem_type(base_ring_type(T))}
 end
 
 # For a SubquoModule M over a localized ring S = R[U⁻¹] and its current 
@@ -637,7 +637,7 @@ end
 
 function base_ring_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   has_attribute(M, :base_ring_module) || error("there is no associated module over the base ring")
-  get_attribute(M, :base_ring_module)::SubquoModule{base_ring_elem_type(T)}
+  get_attribute(M, :base_ring_module)::SubquoModule{elem_type(base_ring_type(T))}
 end
 
 function set_base_ring_module(F::FreeMod{LRET}, N::FreeMod{BRET}) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}

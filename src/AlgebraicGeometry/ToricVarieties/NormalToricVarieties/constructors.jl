@@ -66,8 +66,7 @@ end
     normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
-as vector of vectors. By default, this method assumes that the input is not
-non-redundant (e.g. that a ray was entered twice by accident). If the user
+as vector of vectors. By default, this method allows redundancies in the input, e.g. duplicate rays and non-maximal cones. If the user
 is certain that no redundancy exists in the entered information, one can
 pass `non_redundant = true` as third argument. This will bypass these consistency
 checks. In addition, this will ensure that the order of the rays is not

@@ -22,6 +22,7 @@ import ..Oscar:
   _vec,
   action,
   add!,
+  addmul!,
   basis_matrix,
   basis,
   canonical_injection,
@@ -36,6 +37,7 @@ import ..Oscar:
   coefficient_ring,
   coefficients,
   compose,
+  demazure_character,
   derived_series,
   dim,
   direct_sum,
@@ -58,6 +60,7 @@ import ..Oscar:
   inv,
   is_abelian,
   is_finite,
+  is_gen,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
@@ -68,6 +71,7 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  mul!,
   neg!,
   normalizer,
   number_of_generators,
@@ -122,6 +126,7 @@ include("Util.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
+include("WeightLattice.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 

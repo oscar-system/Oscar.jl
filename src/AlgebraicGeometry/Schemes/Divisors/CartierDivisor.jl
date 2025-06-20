@@ -88,6 +88,10 @@ function +(C::CartierDivisor, D::CartierDivisor)
   return CartierDivisor(ambient_scheme(C), coefficient_ring(C), coeff_dict)
 end
 
+function -(C::CartierDivisor, E::EffectiveCartierDivisor)
+  return C - 1*E
+end
+
 function +(C::CartierDivisor, D::EffectiveCartierDivisor) 
   return C + CartierDivisor(D)
 end
@@ -322,17 +326,16 @@ function weil_divisor(C::CartierDivisor)
 end
 
 @doc raw"""
-    intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
+    intersect(W::AbsWeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
     
 Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
 returns an `AbsAlgebraicCycle` of codimension ``2``.
 """
-function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
+function intersect(W::AbsWeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
   X = ambient_scheme(W)
   result = zero(W)
   for I in components(irreducible_decomposition(W))
     inc_Y = CoveredClosedEmbedding(X, I, check=false)
-    #inc_Y = CoveredClosedEmbedding(X, I, covering=trivializing_covering(C), check=false)
     Y = domain(inc_Y)
     pbC = pullback(inc_Y)(C) # Will complain if the defining equation of C is vanishing identically on Y
     W_sub = weil_divisor(pbC)
@@ -342,7 +345,7 @@ function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
 end
 
 @doc raw"""
-    intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
+    intersect(W::AbsWeilDivisor, C::CartierDivisor; check::Bool=true)
 
 Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
 returns an `AbsAlgebraicCycle` of codimension ``2``.

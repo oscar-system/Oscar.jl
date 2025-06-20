@@ -1,0 +1,36 @@
+{
+  "_ns": { "Oscar": [ "https://github.com/oscar-system/Oscar.jl", "1.0.0" ]  },
+  "_type": {
+    "name": "MPolyRingElem",
+    "params": "869a359a-43d3-43f4-9821-0af9346be019"
+  },
+  "data": [[["3", "4"], [["0", "2"]]],
+           [["0", "2"], [["0", "3"], ["1", "1"]]],
+	   [["1", "0"], [["1", "5"]]],
+	   [["0", "0"], [["0", "1"]]]],
+  "_refs": {
+    "152ac7bd-e85a-4b36-acc2-743ade2cad4f": {
+      "data": { "base_ring": { "data": "7",  "_type": "FqField"},
+		"symbols": ["x"] },
+      "_type": "PolyRing"
+    },
+    "869a359a-43d3-43f4-9821-0af9346be019": {
+      "data": {
+        "base_ring": "a8309b96-caec-443c-bedb-e23bb0634c14",
+        "symbols": [ "y", "z" ]
+      },
+      "_type": "MPolyRing"  },
+    "a8309b96-caec-443c-bedb-e23bb0634c14": {
+      "data": {
+        "def_pol": {
+	  "data": [["0", "1"], ["2", "1"]],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "152ac7bd-e85a-4b36-acc2-743ade2cad4f"
+          }
+        }
+      },
+      "_type": "FqField"
+    }
+  }
+}

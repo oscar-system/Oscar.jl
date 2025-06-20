@@ -207,9 +207,9 @@ end
 @doc raw"""
     simulate_valuation(w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}, nu::TropicalSemiringMap{K,p,<:Union{typeof(min),typeof(max)}) where {K,p}
 
-Return an integer vector `wSim` so that the (tropical) Groebner basis of an ideal `I` with respect to `w` corresponds to the standard basis of its simulation with respect to `wSim`.  If `pertubation!=nothing`, also returns a corresponding `perturbationSim`.
+Return an integer vector `wSim` so that the (tropical) Groebner basis of an ideal `I` with respect to `w` corresponds to the standard basis of its simulation with respect to `wSim`.  If `perturbation!=nothing`, also returns a corresponding `perturbationSim`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nuMin = tropical_semiring_map(QQ,2);
 
@@ -305,7 +305,7 @@ end
 
 Given a weight vector `wSim` on the simulation ring, return weight vector `w` on the original polynomial ring so that a standard basis with respect to `wSim` corresponds to a (tropical) Groebner basis with respect to `w`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nuMin = tropical_semiring_map(QQ,2);
 

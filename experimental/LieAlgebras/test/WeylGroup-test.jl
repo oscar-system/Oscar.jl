@@ -6,10 +6,14 @@ include(
 )
 
 @testset "LieAlgebras.WeylGroup" begin
-  b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
-  b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
-  f4_w0 = UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
-  g2_w0 = UInt8[2, 1, 2, 1, 2, 1]
+  function is_in_normal_form(x::WeylGroupElem)
+    return word(parent(x)(word(x))) == word(x)
+  end
+
+  b3_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3]
+  b4_w0 = UInt8[1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 4, 3, 4]
+  f4_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4]
+  g2_w0 = UInt8[1, 2, 1, 2, 1, 2]
 
   @testset "weyl_group(::ZZMatrix)" begin
     W = weyl_group(cartan_matrix(:A, 2))
@@ -117,6 +121,7 @@ include(
               @test v * w == inv(iso)(iso(v) * iso(w))
             end
             g = rand_pseudo(G)
+            @test is_in_normal_form(inv(iso)(g))
             @test g == iso(inv(iso)(g))
             h = rand_pseudo(G)
             @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
@@ -155,6 +160,7 @@ include(
                   @test v * w == inv(iso)(iso(v) * iso(w))
                 end
                 g = rand_pseudo(G)
+                @test is_in_normal_form(inv(iso)(g))
                 @test g == iso(inv(iso)(g))
                 h = rand_pseudo(G)
                 @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
@@ -195,11 +201,11 @@ include(
         return true
       end
 
-      wt = x * weyl_vector(root_system(parent(x)))
+      wt = weyl_vector(root_system(parent(x))) * x
       j = length(x)
-      for i in 1:length(y)
-        if wt[Int(y[i])] < 0
-          reflect!(wt, Int(y[i]))
+      for y_i in Iterators.reverse(word(y))
+        if wt[Int(y_i)] < 0
+          reflect!(wt, Int(y_i))
 
           j -= 1
           if j == 0
@@ -237,6 +243,7 @@ include(
       W = weyl_group(fam, rk)
       for x in W
         ix = inv(x)
+        @test is_in_normal_form(ix)
         @test length(ix) == length(x)
         @test isone(ix * x) == isone(x * ix) == true
       end
@@ -250,33 +257,46 @@ include(
       elems = collect(W)
       @test allunique(elems)
       @test length(elems) == order(W)
+      @test all(is_in_normal_form, W)
     end
   end
 
   @testset "longest_element(W::WeylGroup)" begin
     # A1
     W = weyl_group(:A, 1)
-    @test longest_element(W) == gen(W, 1)
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test w0 == gen(W, 1)
 
     # A2
     W = weyl_group(:A, 2)
-    @test word(longest_element(W)) == UInt8[1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[1, 2, 1]
 
     # B2
     W = weyl_group(:B, 2)
-    @test word(longest_element(W)) == UInt8[2, 1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[1, 2, 1, 2]
 
     # B3
     W = weyl_group(:B, 3)
-    @test word(longest_element(W)) == b3_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == b3_w0
 
     # F4
     W = weyl_group(:F, 4)
-    @test word(longest_element(W)) == f4_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == f4_w0
 
     # G2
     W = weyl_group(:G, 2)
-    @test word(longest_element(W)) == g2_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == g2_w0
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -309,8 +329,8 @@ include(
     s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
-    @test word(s[3] * s[1]) == UInt8[3, 1]
-    @test word(s[1] * s[3]) == UInt8[3, 1]
+    @test word(s[3] * s[1]) == UInt8[1, 3]
+    @test word(s[1] * s[3]) == UInt8[1, 3]
     @test word(s[1] * s[3] * s[1]) == UInt8[3]
     @test word(s[3] * s[1] * s[3]) == UInt8[1]
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
@@ -352,22 +372,13 @@ include(
       W = weyl_group(R)
 
       a = positive_root(R, n_positive_roots(R)) # highest root
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == simple_root(R, 2)
       @test a * W([1]) == simple_root(R, 2)
-      @test W([2]) * a == simple_root(R, 1)
       @test a * W([2]) == simple_root(R, 1)
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == -simple_root(R, 1)
       @test a * W([1, 2]) == -simple_root(R, 2)
-      @test W([1, 2]) * a != a * W([1, 2])
 
       a_copy = deepcopy(a)
-      b = W([1]) * a
-      @test a != b
-      @test a == a_copy
       b = a * W([1])
       @test a != b
       @test a == a_copy
@@ -380,30 +391,18 @@ include(
       W = weyl_group(R)
 
       a = positive_root(R, n_positive_roots(R)) # highest (long) root
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == a
       @test a * W([1]) == a
-      @test W([2]) * a == simple_root(R, 1)
       @test a * W([2]) == simple_root(R, 1)
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == -simple_root(R, 1)
       @test a * W([1, 2]) == simple_root(R, 1)
-      @test W([1, 2]) * a != a * W([1, 2])
 
       a = simple_root(R, 1)
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == -a
       @test a * W([1]) == -a
-      @test W([2]) * a == positive_root(R, n_positive_roots(R))
       @test a * W([2]) == positive_root(R, n_positive_roots(R))
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == positive_root(R, n_positive_roots(R))
       @test a * W([1, 2]) == -positive_root(R, n_positive_roots(R))
-      @test W([1, 2]) * a != a * W([1, 2])
     end
   end
 
@@ -412,11 +411,7 @@ include(
     W = weyl_group(R)
 
     rho = weyl_vector(R)
-    @test longest_element(W) * rho == -rho
     @test rho * longest_element(W) == -rho
-
-    x = W([1, 2])
-    @test x * rho != rho * x
   end
 
   @testset "parent(::WeylGroupElem)" begin
@@ -452,7 +447,7 @@ include(
     re = collect(iter)
     @test length(re) == 16
     @test re[1] == word(w0)
-    @test re[16] == UInt8[3, 2, 1, 3, 2, 3]
+    @test re[16] == UInt8[3, 2, 3, 1, 2, 3]
 
     iter = reduced_expressions(w0; up_to_commutation=true)
     @test iter.el === w0
@@ -461,7 +456,7 @@ include(
     re = collect(iter)
     @test length(re) == 8
     @test re[1] == word(w0)
-    @test re[8] == UInt8[3, 2, 3, 1, 2, 3]
+    @test re[8] == UInt8[3, 2, 1, 3, 2, 3]
   end
 
   @testset "WeylIteratorNoCopy" begin
@@ -491,7 +486,8 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * ow == dom_wt
+        @test is_in_normal_form(x)
+        @test ow * x == dom_wt
       end
 
       gap_num = 0
@@ -527,7 +523,8 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * ow == dom_wt
+        @test is_in_normal_form(x)
+        @test ow * x == dom_wt
       end
 
       gap_num = 0
@@ -564,7 +561,6 @@ include(
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
       orb = collect(WeylOrbitIterator(wt))
 
       @test !isnothing(findfirst(==(wt), orb))

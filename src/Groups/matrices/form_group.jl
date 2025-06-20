@@ -555,13 +555,13 @@ end
 # return the GAP matrix of the form preserved by the GAP standard group
 function _standard_form(descr::Symbol, e::Int, n::Int, q::Int)
    if descr==:quadratic
-      return GAP.Globals.InvariantQuadraticForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantQuadraticForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:symmetric #|| descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:hermitian
-      return GAP.Globals.InvariantSesquilinearForm(GU(n,q).X).matrix
+      return GAP.Globals.InvariantSesquilinearForm(GapObj(GU(n,q))).matrix
    elseif descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(Sp(n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(Sp(n,q))).matrix
    else
       error("unsupported description")
    end      

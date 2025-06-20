@@ -130,7 +130,7 @@ end
 # of the quotient rings to begin with. 
 #
 # To make sure that the data structure for quotient rings can 
-# nevertheless also accomodate more exotic coefficient rings we 
+# nevertheless also accommodate more exotic coefficient rings we
 # provide the following functionality to decide the existence and use 
 # of a Singular backend depending on the type.
 #

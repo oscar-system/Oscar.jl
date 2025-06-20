@@ -248,7 +248,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings.
 !!! note
     - If `algorithm == mres`, and `M` is positively graded, a minimal free resolution is returned.
     - If `algorithm == nres`, and `M` is positively graded, the function proceeds as above except 
-      that it starts by computing a presentation which is not neccessarily minimal.
+      that it starts by computing a presentation which is not necessarily minimal.
     In both cases, if `M` is not (positively) graded, the function still aims at returning an ''improved'' resolution.
 
 !!! note

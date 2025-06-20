@@ -109,6 +109,9 @@
           end
         end
       end
+      if T == RayVector
+        @test length(Set(ray_vector.(Ref(f), [[1,2,3],[2,4,6],[-1,-2,-3]]))) == 2
+      end
     end
   end
 

@@ -19,7 +19,7 @@ end
 
 Compute the JuliaMatrixRep of `m` in GAP.
 
-# Example
+# Examples
 ```jldoctest
 julia> m = matrix(ZZ, [0 1 ; -1 0]);
 
@@ -43,7 +43,7 @@ A nice monomorphism from `G` to a GAP matrix group `G2` over a finite field
 is stored in `G`, such that calculations in `G` can be handled automatically
 by transferring them to `G2`.
 
-# Example
+# Examples
 ```jldoctest
 julia> m1 = matrix(QQ, [0 1 ; -1 0]);
 

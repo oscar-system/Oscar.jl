@@ -59,6 +59,7 @@ end
     rothe_matrix(F::Field, p::PermGroupElem)
     rothe_matrix(R::MPolyRing, w::WeylGroupElem)
     rothe_matrix(R::MPolyRing, p::PermGroupElem)
+
 For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
 root system of the Weyl group.
@@ -255,16 +256,17 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
 end
 
 @doc raw"""
-    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
-    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
-    exterior_shift(K::SimplicialComplex, w::WeylGroupElem)
-    exterior_shift(K::UniformHypergraph, w::WeylGroupElem)
-    exterior_shift(K::SimplicialComplex)
-    exterior_shift(K::UniformHypergraph)
+    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::SimplicialComplex; las_vegas=false)
+    exterior_shift(K::UniformHypergraph; las_vegas=false)
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
-If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
+If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used.
+Setting `las_vegas=true` will run the algorithm with a random change of basis matrix and repeat the algorithm until the shift is found.
 
 # Examples
 ```jldoctest
@@ -316,184 +318,122 @@ julia> L = exterior_shift(GF(2), K, w)
 Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
-function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+function exterior_shift(F::Field, K::ComplexOrHypergraph,
+                        p::PermGroupElem; las_vegas::Bool=false)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
+  las_vegas && return exterior_shift_lv(F, K, p)
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
-function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
+function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem; kw...)
   n = n_vertices(K)
   phi = isomorphism(PermGroup, parent(w))
-  return exterior_shift(F, K, phi(w))
+  return exterior_shift(F, K, phi(w); kw...)
 end
 
-function exterior_shift(F::Field, K::ComplexOrHypergraph)
+function exterior_shift(F::Field, K::ComplexOrHypergraph; kw...)
   n = n_vertices(K)
   W = weyl_group(:A, n - 1)
-  return exterior_shift(F, K, longest_element(W))
+  return exterior_shift(F, K, longest_element(W); kw...)
 end
 
-exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)
+exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 
 ################################################################################
 # Las Vegas Partial Shifting
 
-# returns a random invertible matrices of the given sample size
-function random_invertible_matrices(n::Int; range::Int = 100, sample_size::Int=100, F::Field=QQ)
-  n_samples = 0
-  samples = Set{MatElem}()
-  n_non_inv = 0
-  while (n_samples < sample_size)
-    a = matrix(F, round.(Integer, range .* rand(n,n)) .- range // 2)
-    if iszero(det(a))
-      n_non_inv += 1
-      continue
-    end
-    push!(samples, a)
-    n_samples = length(samples)
+function random_rothe_matrix(F::QQField, p::PermGroupElem)
+  n = degree(parent(p))
+  u = identity_matrix(F, n)
+  for (i, j) in inversions(p)
+    u[i, j] = F(Rational(rand() - 0.5))
   end
-  # @info "probability of non invertible matrix" n_non_inv / (n_non_inv + sample_size)
-  return collect(samples)
+  return u * permutation_matrix(F, p)
 end
 
-function random_unipotent_matrix(F::Field, n::Int)
-  char = characteristic(F)
-  range = char == 0 ? 100 : char
-  upper_triangular_matrix(
-    reduce(vcat, [
-      [F(1); F.(round.(Integer, range .* rand(i)) .- (range // 2))] for i in reverse(0:n-1)
-        ]))
+function random_rothe_matrix(F::Field, p::PermGroupElem)
+  @req !iszero(characteristic(F)) "Field should have positive characteristic"
+  range = characteristic(F)
+  n = degree(parent(p))
+  u = identity_matrix(F, n)
+  for (i, j) in inversions(p)
+    u[i, j] = F(rand(1:range))
+  end
+  return u * permutation_matrix(F, p)
 end
 
-function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem;)
+function random_shift(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
-  exterior_shift(K, random_unipotent_matrix(F, n) * permutation_matrix(F, p))
+  exterior_shift(K, random_rothe_matrix(F, p))
+end
+
+function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+  n = n_vertices(K)
+  exterior_shift(K, random_rothe_matrix(F, p))
 end
 
 random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
 
-# returns true if the dst is the partial shift of src with respect to w
-function check_shifted(F::Field, w::WeylGroupElem,
-                       src::UniformHypergraph, dst::UniformHypergraph)
-  dst_faces = faces(dst)
-  if length(dst_faces) == 1
-    max_face = dst_faces[1]
-  else
-    max_face = max(dst_faces...)
-  end
-  num_rows = length(dst_faces)
+# returns true if the target is the partial shift of src with respect to p
+function check_shifted(F::Field, src::UniformHypergraph,
+                       target::UniformHypergraph, p::PermGroupElem)
+  target_faces = sort(faces(target))
+  max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
+  # currently number of faces of src and target are the same
+  # this may change in the future
+  num_rows = length(faces(src)) 
   n = n_vertices(src)
   k = face_size(src)
   nCk = sort(subsets(n, k))
   max_face_index = findfirst(x -> x == max_face, nCk)
+  # limits the columns by the max face of source
   cols = nCk[1:max_face_index - 1]
-  r = rothe_matrix(F, w)
-  
-  if max_face_index > num_rows 
+  r = rothe_matrix(F, p)
+
+  if max_face_index > num_rows
     M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
     Oscar.ModStdQt.ref_ff_rc!(M)
-    nCk[independent_columns(M)] == dst_faces && return false
+    nCk[independent_columns(M)] != target_faces[1:end - 1] && return false
   end
   return true
 end
 
-function check_shifted(F::Field, w::WeylGroupElem,
-                       src::SimplicialComplex, dst::SimplicialComplex)
+function check_shifted(F::Field, src::SimplicialComplex,
+                       target::SimplicialComplex, p::PermGroupElem)
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = length(f_vec)
-
   while k > 1
     uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
-    uhg_dst = uniform_hypergraph(complex_faces(dst, k - 1), n)
-    !check_shifted(F, w, uhg_src, uhg_dst) && return false
+    uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
+    !check_shifted(F, uhg_src, uhg_target, p) && return false
     k -= 1
   end
   return true
 end
 
-function partial_ext_shift_lv(F::Field, w::WeylGroupElem, K::ComplexOrHypergraph)
-  sample_size = characteristic(F) == 0 ? 10 : 100
-  W = parent(w)
-  phi = isomorphism(PermGroup, W)
+function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+  # this might need to be changed based on the characteristic
+  # we expect that the larger the characteristic the smaller the sample needs to be
+  # setting to 100 now for good measure
+  sample_size = 100
+  shift = partialsort!([random_shift(F, K, p) for _ in 1:sample_size], 1;
+                       lt=isless_lex)
 
-  shift = partialsort!([random_shift(F, K, phi(w)) for _ in 1:sample_size], 1;
-                      lt=isless_lex)
-  check_shifted(F, w, K, shift) && return shift
-  return nothing # partial_ext_shift_lv(F, w, K)
+  check_shifted(F, K, shift, p) && return shift
+
+  # this should be updated to not throw an error
+  error("Could not find the full shift using $sample_size samples")
 end
 
-###############################################################################
-# Symmetric shift
-###############################################################################
-
-"""
-    symmetric_shift(F::Field, K::SimplicialComplex)
-
-Returns the symmetric shift of `K`
-
-TODO: add more docs and and expose for users
-"""
-function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
-  n = n_vertices(K)
-  Fy, y = polynomial_ring(F, :y => (1:n, 1:n); cached=false)
-  change_of_basis = rothe_matrix(Fy, p) * permutation_matrix(ZZ, p) * generic_unipotent_matrix(Fy)
-  
-  Rx, x = polynomial_ring(Fy, n)
-  # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
-  R_K, _ = stanley_reisner_ring(Rx, K)
-
-  # the computation is a over the field of fractions Fyx
-  # we use a different ring to generate monomial_basis, coefficients need to be a field,
-  # but we want to avoid using fraction field of Ry during row reduction
-  mb_ring, z = graded_polynomial_ring(F, n; cached=false)
-  input_faces = Vector{Int}[]
-  for r in 2:dim(K) + 1
-    mb = reverse(monomial_basis(mb_ring, r))
-    A = Vector{elem_type(Fy)}[]
-    mb_exponents = first.(collect.(exponents.(mb))) # gets monomial exponents
-
-    for b in mb
-      # need to compare with some alternatives
-      transformed_monomial = evaluate(b, change_of_basis * gens(R_K))
-
-      # we need to iterate through exponents here since the functions terms, coefficients or exponents
-      # do not return 0 terms and we need to make sure the generic col aligns with the others
-      # this is needed for the case when the field has finite characteristic
-      # we use the lift because currently there is no function to get the coeff of
-      # a MPolyQuoRingElem, which means we also need to check if it's zero before adding the coefficient
-      col = [
-        !is_zero(R_K(monomial(Rx, e))) ? coeff(lift(transformed_monomial), e) : Fy(0)
-        for e in mb_exponents]
-      push!(A, col)
-    end
-    C = matrix(Fy, reduce(hcat, A))
-    Oscar.ModStdQt.ref_ff_rc!(C)
-    smallest_basis_el = z[r]^r
-    smallest_index = findfirst(a -> a == smallest_basis_el, mb)
-    col_indices = filter(x -> x >= smallest_index, independent_columns(C))
-    monomial_exponents = first.(exponents.(mb[col_indices]))
-
-    # adjustment to convert monomial to simplex
-    for me in monomial_exponents
-      shifted_set = Int[]
-      index_count = 1
-      for (i, e) in enumerate(me)
-        for j in 1:e
-          push!(shifted_set, i - (r - index_count))
-          index_count += 1
-        end
-      end
-      push!(input_faces, shifted_set)
-    end
+function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
+  shift = random_shift(F, K, p) 
+  count = 1
+  while !check_shifted(F, K, shift, p)
+    count += 1
+    shift = random_shift(F, K, p) 
   end
-
-  return simplicial_complex(input_faces)
+  @vprint :AlgebraicShifting 1 "Number of random shifts computed: $count\n"
+  return shift
 end
-
-function symmetric_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
-  iso = isomorphism(PermGroup, parent(w))
-  return symmetric_shift(F, K, iso(w))
-end
-

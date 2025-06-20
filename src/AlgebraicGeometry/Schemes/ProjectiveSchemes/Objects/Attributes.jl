@@ -24,7 +24,7 @@ base_scheme(P::AbsProjectiveScheme) =base_scheme(underlying_scheme(P))
 On a projective scheme ``P = Proj(S)`` for a standard
 graded finitely generated algebra ``S`` this returns ``S``.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, _ = grade(QQ[:x, :y, :z][1]);
 
@@ -52,7 +52,7 @@ homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_rin
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, _ = grade(QQ[:x, :y, :z][1]);
 
@@ -89,7 +89,7 @@ On a projective scheme ``P = Proj(S)`` with ``S = P/I``
 for a standard graded polynomial ring ``P`` and a
 homogeneous ideal ``I`` this returns ``P``.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, _ = grade(QQ[:x, :y, :z][1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -133,7 +133,7 @@ end
 
 On ``X ⊂ ℙʳ_A`` this returns ``ℙʳ_A``.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, _ = grade(QQ[:x, :y, :z][1]);
 
@@ -229,7 +229,7 @@ end
 On ``X ⊂ ℙʳ_A`` this returns the homogeneous
 ideal ``I ⊂ A[s₀,…,sᵣ]`` defining ``X``.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (u, v) = QQ[:u, :v];
 
@@ -265,7 +265,7 @@ from the `homogeneous_coordinate_ring` to the `coordinate_ring` of the affine co
 
 
 Note that if the base scheme is not affine, then the affine cone is not affine.
-# Example
+# Examples
 ```jldoctest
 julia> R, (u, v) = QQ[:u, :v];
 
@@ -388,7 +388,7 @@ On ``X ⊂ ℙʳ_A`` this returns a vector with the homogeneous
 coordinates ``[s₀,…,sᵣ]`` as entries where each one of the
 ``sᵢ`` is a function on the `affine cone` of ``X``.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (u, v) = QQ[:u, :v];
 
@@ -485,7 +485,6 @@ projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme
 projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} =
 ProjectiveScheme{T, mpoly_dec_ring_type(mpoly_ring_type(T))}
 
-base_ring_type(P::ProjectiveScheme) = base_ring_type(typeof(P))
 base_ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = S
 
 ring_type(P::ProjectiveScheme) = ring_type(typeof(P))

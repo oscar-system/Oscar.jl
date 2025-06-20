@@ -180,7 +180,7 @@ end
 #
 function isomorphism_to_GAP_group(G::GAPGroup)
     finv = function(x::GAP.Obj) return group_element(G, x); end
-    return MapFromFunc(G, G.X, GapObj, finv)
+    return MapFromFunc(G, GapObj(G), GapObj, finv)
 end
 
 function isomorphism_to_GAP_group(G::FinGenAbGroup)
@@ -189,9 +189,9 @@ function isomorphism_to_GAP_group(G::FinGenAbGroup)
     iso = isomorphism(SubPcGroup, G)
     C = codomain(iso)
     @assert C isa GAPGroup
-    f = function(x) return iso(x).X; end
+    f = function(x) return GapObj(iso(x)) end
     finv = function(x::GAP.Obj) return preimage(iso, group_element(C, x)); end
-    return MapFromFunc(G, C.X, f, finv)
+    return MapFromFunc(G, GapObj(C), f, finv)
 end
 
 function isomorphism_to_GAP_group(tbl::GAPGroupCharacterTable)

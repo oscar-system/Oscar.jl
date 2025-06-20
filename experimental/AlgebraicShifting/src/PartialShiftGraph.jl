@@ -1,3 +1,4 @@
+# TODO: change Vector -> Set
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
@@ -15,10 +16,12 @@ end
 isless_lex(K1::ComplexOrHypergraph, K2::ComplexOrHypergraph) = isless_lex(Set(facets(K1)), Set(facets(K2)))
 
 @doc raw"""
-    partial_shift_graph_vertices(F::Field,::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
+    partial_shift_graph_vertices(F::Field,K::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
+    partial_shift_graph_vertices(F::Field,K::UniformHypergraph, W::Union{WeylGroup, Vector{WeylGroupElem}};)
 
-Given a field `F` discover the vertices of the partial shift graph starting from `K`
-using exterior partial shifts corresponding to elements in `W`.
+
+Given a field `F` find the vertices of the partial shift graph starting from `K`
+and discoverable from elements in `W`.
 Returns a `Vector{SimplicialCompplex}` ordered lexicographically.
 
 # Examples
@@ -71,6 +74,12 @@ function partial_shift_graph_vertices(F::Field,
       union(Set.(facets.(unvisited)), new_facets))
   end
   return sort(collect(visited); lt=isless_lex)
+end
+
+function partial_shift_graph_vertices(F::Field,
+                                      K::UniformHypergraph,
+                                      W::Union{WeylGroup, Vector{WeylGroupElem}})
+  return partial_shift_graph_vertices(F, simplicial_complex(K), W)
 end
 
 """ Compute the multi edges, that is, for each complex `K`  compute which
@@ -157,10 +166,10 @@ julia> collect(edges(G))
 
 julia> EL[6, 5]
 4-element Vector{WeylGroupElem}:
- s1 * s2
  s2
- s3 * s1 * s2
+ s1 * s2
  s3 * s2
+ s1 * s3 * s2
 
 julia> facets.(VL[[6, 5]])
 2-element Vector{Vector{Set{Int64}}}:
@@ -173,6 +182,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
                              parallel::Bool = false,
                              show_progress::Bool = true,
                              task_size::Int=100) where T <: ComplexOrHypergraph
+  # see TODO above about changing EdgeLabels type
   # Deal with trivial case
   if length(complexes) == 1
     @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
@@ -207,18 +217,11 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
     Oscar.put_params(channels, codomain(phi))
     map_function = pmap
   end
-  try 
-    if show_progress
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           @showprogress map_function(
+  try
+    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                           @showprogress enabled=show_progress map_function(
                              Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
-    else
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
-                             Iterators.partition(enumerate(complexes), task_size)))
-    end
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
     return (graph,
             Dict(k => inv(phi).(v) for (k, v) in edge_labels),

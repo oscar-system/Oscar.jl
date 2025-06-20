@@ -191,7 +191,7 @@ function save_object(s::SerializerState, K::FqField)
     save_object(s, order(K))
   else
     save_data_dict(s) do
-      save_typed_object(s, defining_polynomial(K))
+      save_typed_object(s, defining_polynomial(K), :def_pol)
     end
   end
 end
@@ -202,7 +202,7 @@ function load_object(s::DeserializerState, ::Type{<: FqField})
       order = ZZRingElem(node)
       return finite_field(order)[1]
     else
-      def_pol = load_typed_object(s)
+      def_pol = load_typed_object(s, :def_pol)
       return finite_field(def_pol, cached=false)[1]
     end
   end

@@ -9,10 +9,11 @@
     cartan_matrix(fam::Symbol, rk::Int) -> ZZMatrix
 
 Return the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
-and `rk` is the rank of the associated the root system; for $B$ and $C$ the rank has to be at least 2, for $D$ at least 4.
-The convention is $(a_{ij}) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
+and `rk` is the rank of the associated the root system.
 
-# Example
+The input must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
+
+# Examples
 ```jldoctest
 julia> cartan_matrix(:B, 2)
 [ 2   -1]
@@ -81,17 +82,27 @@ end
 
 @doc raw"""
     cartan_matrix(type::Vector{Tuple{Symbol,Int}}) -> ZZMatrix
+    cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
-Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
-For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
+Construct a block diagonal matrix of indecomposable Cartan matrices as defined by `type`
+that are constructed by [`cartan_matrix(::Symbol, ::Int)`](@ref).
 
-# Example
+Each element of `type` must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
+The vararg version needs at least one element.
+
+# Examples
 ```jldoctest
 julia> cartan_matrix([(:A, 2), (:B, 2)])
 [ 2   -1    0    0]
 [-1    2    0    0]
 [ 0    0    2   -1]
 [ 0    0   -2    2]
+
+julia> cartan_matrix((:C, 2), (:A, 2))
+[ 2   -2    0    0]
+[-1    2    0    0]
+[ 0    0    2   -1]
+[ 0    0   -1    2]
 ```
 """
 function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
@@ -101,34 +112,17 @@ function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
   return block_diagonal_matrix(blocks)
 end
 
-@doc raw"""
-    cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
-
-Return a block diagonal matrix of indecomposable Cartan matrices as defined by type.
-For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
-
-# Example
-```jldoctest
-julia> cartan_matrix((:A, 2), (:B, 2))
-[ 2   -1    0    0]
-[-1    2    0    0]
-[ 0    0    2   -1]
-[ 0    0   -2    2]
-```
-"""
-function cartan_matrix(type::Tuple{Symbol,Int}...)
-  @req length(type) > 0 "At least one type is required"
-
-  return cartan_matrix(collect(type))
+function cartan_matrix(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
+  return cartan_matrix([type1; type...])
 end
 
 @doc raw"""
     is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true) -> Bool
 
-Checks if `mat` is a generalized Cartan matrix. The keyword argument `generalized`
-can be set to `false` to restrict this to Cartan matrices of finite type.
+Check if `mat` is a generalized Cartan matrix.
+If `generalized=false` this check is restricted to Cartan matrices of finite type.
 
-# Example
+# Examples
 ```jldoctest
 julia> is_cartan_matrix(ZZ[2 -2; -2 2])
 true
@@ -172,9 +166,13 @@ end
 
 Return a vector $d$ of coprime integers such that $(d_i a_{ij})_{ij}$ is a symmetric matrix,
 where $a_{ij}$ are the entries of the Cartan matrix `gcm`.
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 
-# Example
+If `check=true` the function will verify that `gcm` is indeed a generalized Cartan matrix.
+
+!!! warning
+    Currently only Cartan matrices of finite type are supported.
+
+# Examples
 ```jldoctest
 julia> cartan_symmetrizer(cartan_matrix(:B, 2))
 2-element Vector{ZZRingElem}:
@@ -183,82 +181,55 @@ julia> cartan_symmetrizer(cartan_matrix(:B, 2))
 ```
 """
 function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
-  rk = nrows(gcm)
-  diag = ones(ZZRingElem, rk)
+  ct, ord = cartan_type_with_ordering(gcm; check=check)
 
-  # used for traversal
-  undone = trues(rk)
-  plan = zeros(Int, rk) # roots planned sorted asc grouped by component
-  head = 0
-  tail = 0
-
-  # we collect roots of the same length
-  # once we know if they are short or long we scale approriately
-  while any(undone)
-    if head == tail
-      head += 1
-      plan[head] = findfirst(undone)::Int
-      undone[plan[head]] = false
-    end
-
-    prev = head
-    i = plan[head]
-    for j in 1:rk
-      if i == j
-        continue
+  i = 1
+  d = ones(ZZRingElem, length(ord))
+  for (fam, rk) in ct
+    if fam == :A
+      i += rk
+    elseif fam == :B
+      for j in i:(i + rk - 2)
+        d[j] = 2
       end
-
-      if !undone[j] || is_zero_entry(gcm, i, j)
-        continue
-      end
-
-      head += 1
-      plan[head] = j
-      undone[j] = false
-
-      if diag[i] * gcm[i, j] == diag[j] * gcm[j, i]
-        continue
-      elseif gcm[i, j] == gcm[j, i]
-        diag[i] = lcm(diag[i], diag[j])
-        diag[j] = diag[i]
-        continue
-      end
-
-      if gcm[j, i] < -1
-        tail += 1
-        v = -gcm[j, i]
-        while tail < head
-          diag[plan[tail]] *= v
-          tail += 1
-        end
-      end
-      if gcm[i, j] < -1
-        diag[j] *= -gcm[i, j]
-        tail = head - 1
-      end
-    end
-
-    # we found new roots, meaning we are done with this component of the root system
-    if prev == head
-      tail = head
+      i += rk
+    elseif fam == :C
+      i += rk
+      d[i - 1] = 2
+    elseif fam == :D
+      i += rk
+    elseif fam == :E
+      i += rk
+    elseif fam == :F
+      d[i] = d[i + 1] = 2
+      i += rk
+    elseif fam == :G
+      d[i + 1] = 3
+      i += rk
+    else
+      error("unreachable")
     end
   end
 
-  return diag
+  return invpermute!(d, ord)
 end
 
 @doc raw"""
     cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true) -> ZZMatrix
 
-Return the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_symmetrizer`.
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
+Return the matrix of the symmetric bilinear form associated to the Cartan matrix from
+[`cartan_symmetrizer`](@ref).
 
-# Example
+If `check=true` the function will verify that `gcm` is indeed a generalized Cartan matrix.
+
+# Examples
 ```jldoctest
-julia> cartan_bilinear_form(cartan_matrix(:B, 2))
+julia> bil = cartan_bilinear_form(cartan_matrix(:B, 2))
 [ 4   -2]
 [-2    2]
+
+julia> is_symmetric(bil)
+true
 ```
 """
 function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
@@ -273,15 +244,22 @@ end
 @doc raw"""
     cartan_type(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}
 
-Return the Cartan type of a Cartan matrix `gcm` (currently only Cartan matrices of finite type are supported).
-This function is left inverse to `cartan_matrix`, i.e. in the case of isomorphic types (e.g. $B_2$ and $C_2$)
-the ordering of the roots does matter (see the example below).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
+Return the Cartan type of a Cartan matrix `gcm`.
 
-The order of returned components is, in general, not unique and might change between versions.
-If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type`.
+This function is left inverse to [`cartan_matrix`](@ref),
+i.e., in the case of isomorphic types (e.g. $B_2$ and $C_2$) the ordering of the roots does matter (see the example below).
 
-# Example
+If `check=true` the function will verify that `gcm` is indeed a Cartan matrix.
+
+!!! note
+    The order of returned components is, in general, not unique and might change between versions.
+    But we guarantee that if this function is called with the output of [`cartan_matrix(::Vector{Tuple{Symbol,Int}})`](@ref cartan_matrix(type::Vector{Tuple{Symbol,Int}})),
+    it will keep the order of `type`.
+
+!!! warning
+    Currently only Cartan matrices of finite type are supported.
+
+# Examples
 ```jldoctest
 julia> cartan_type(ZZ[2 -1; -2 2])
 1-element Vector{Tuple{Symbol, Int64}}:
@@ -301,15 +279,19 @@ end
     cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}, Vector{Int}
 
 Return the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
-of the roots in the Dynkin diagram (currently only Cartan matrices of finite type are supported).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a
-Cartan matrix of finite type.
+of the roots in the Dynkin diagram.
 
-The order of returned components and the ordering is, in general, not unique and might change between versions.
-If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type` and the
-returned ordering will be the identity.
+If `check=true` the function will verify that `gcm` is indeed a Cartan matrix.
 
-# Example
+!!! note
+    The order of returned components is, in general, not unique and might change between versions.
+    But we guarantee that if this function is called with the output of [`cartan_matrix(::Vector{Tuple{Symbol,Int}})`](@ref cartan_matrix(type::Vector{Tuple{Symbol,Int}})),
+    it will keep the order of `type` and the ordering will be the identity.
+
+!!! warning
+    Currently only Cartan matrices of finite type are supported.
+
+# Examples
 ```jldoctest
 julia> cartan_type_with_ordering(cartan_matrix(:E, 6))
 ([(:E, 6)], [1, 2, 3, 4, 5, 6])
@@ -319,7 +301,8 @@ julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
 ```
 """
 function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm; generalized=false) "requires Cartan matrix of finite type"
+  check &&
+    @req is_cartan_matrix(gcm; generalized=false) "not a Cartan matrix of finite type"
 
   rk = nrows(gcm)
   type = Tuple{Symbol,Int}[]
@@ -461,8 +444,15 @@ end
 @doc raw"""
     is_cartan_type(fam::Symbol, rk::Int) -> Bool
 
-Checks if the pair (`fam`, `rk`) is a valid Cartan type,
-i.e. one of `A_l` (l >= 1), `B_l` (l >= 2), `C_l` (l >= 2), `D_l` (l >= 4), `E_6`, `E_7`, `E_8`, `F_4`, `G_2`.
+Check if the pair (`fam`, `rk`) is a valid Cartan type,
+i.e., one of
+- `A_l` ($l >= 1$),
+- `B_l` ($l >= 2$),
+- `C_l` ($l >= 2$),
+- `D_l` ($l >= 4$),
+- `E_6`, `E_7`, `E_8`,
+- `F_4`,
+- `G_2`.
 """
 function is_cartan_type(fam::Symbol, rk::Int)
   fam in [:A, :B, :C, :D, :E, :F, :G] || return false

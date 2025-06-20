@@ -6,7 +6,7 @@ together with their index.
 Operators $f_\alpha$ of negative roots are shown as the coefficients of the corresponding positive root.
 w.r.t. the simple roots $\alpha_i$.
 
-# Example
+# Examples
 ```jldoctest
 julia> basis_lie_highest_weight_operators(:B, 2)
 4-element Vector{Tuple{Int64, Vector{QQFieldElem}}}:
@@ -162,7 +162,7 @@ for a simple Lie algebra $L$ of type `type_rank`.
 
 Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
-Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\beta_1 := \alpha_{i_1}$ and \beta_k := s_{i_1} \cdots s_{i_{k-1}} \alpha_{i_k}$ for $k = 2, \dots, N$.
+Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\beta_1 := \alpha_{i_1}$ and \beta_k := \alpha_{i_k} s_{i_{k-1}} \cdots s_{i_1}$ for $k = 2, \dots, N$.
 
 The monomial ordering is fixed to `wdegrevlex` (weighted degree reverse lexicographic order).
 
@@ -407,7 +407,7 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 `monomial_ordering` describes the monomial ordering used for the basis.
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
-# Example
+# Examples
 ```jldoctest
 julia> bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
@@ -510,7 +510,7 @@ The the birational sequence used consists of all operators in descening height o
 
 The monomial ordering is fixed to `degrevlex`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:

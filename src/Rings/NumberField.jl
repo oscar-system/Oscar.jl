@@ -457,6 +457,11 @@ function ==(a::NfNSGenElem{T, S}, b::NfNSGenElem{T, S}) where {T, S}
   return a.f == b.f
 end
 
+function Base.hash(a::NfNSGenElem, h::UInt)
+  reduce!(a)
+  return hash(a.f, h)
+end
+
 ################################################################################
 #
 #  Ad hoc comparisons

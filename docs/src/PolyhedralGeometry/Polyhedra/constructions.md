@@ -103,7 +103,7 @@ true
 ```
 
 ## Regular polytopes
-A polytope is regular, in the strict sense, if it admits a flag-transtive group
+A polytope is regular, in the strict sense, if it admits a flag-transitive group
 of (linear) automorphisms. There are three infinite families of regular
 polytopes which exist in each dimension: the (regular) simplices, cubes and
 cross polytopes. In addition there are two exceptional regular 3-polytopes
@@ -114,7 +114,7 @@ The regular 3-polytopes are also known as the Platonic solids. Here we also
 list the Archimedean, Catalan and Johnson solids, which form various
 generalizations of the Platonic solids. However, here we implement "disjoint
 families", i.e., the proper Archimedean solids exclude the Platonic solids;
-similarly, the proper Johnson solids exclude the Archmidean solids.
+similarly, the proper Johnson solids exclude the Archimedean solids.
 ```@docs
 simplex
 cross_polytope
@@ -134,7 +134,7 @@ regular_600_cell
 Like some of the Johnson solids, the following four Archimedean and Catalan
 solids are constructed using [serialized data](@ref serialization).
 In order to properly document the respective sources, they also come as
-seperate functions. 
+separate functions.
 
 ```@docs
 snub_cube

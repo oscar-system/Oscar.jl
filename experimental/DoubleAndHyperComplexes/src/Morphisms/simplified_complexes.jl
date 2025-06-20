@@ -495,7 +495,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
 
     # clear the q-th column
     for (i, b) in a_col_del
-      #A[i] = A[i] - uinv*b*a_row # original operation, replaced by inplace arithmetic below
+      #A[i] = A[i] - uinv*b*a_row # original operation, replaced by in-place arithmetic below
       addmul!(A[i], a_row, -uinv*b)
     end
 
@@ -504,7 +504,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # Adjust S
     v = S[p]
     for (i, b) in a_col_del
-      #S[i] = S[i] - uinv*b*v # original operation, replaced by inplace arithmetic below
+      #S[i] = S[i] - uinv*b*v # original operation, replaced by in-place arithmetic below
       addmul!(S[i], v, -uinv*b)
     end
 
@@ -614,7 +614,7 @@ end
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
 with the injection map $N \to M$ and the projection map $M \to N$. These maps are
 isomorphisms.
-The simplifcation is heuristical and includes steps like for example removing
+The simplification is heuristical and includes steps like for example removing
 zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """

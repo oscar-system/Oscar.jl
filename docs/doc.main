@@ -108,6 +108,11 @@
         "Hecke/manual/orders/ideals.md",
         "Hecke/manual/orders/frac_ideals.md",
      ],
+     "Elliptic Curves" => [
+        "Hecke/manual/elliptic_curves/intro.md",
+        "Hecke/manual/elliptic_curves/basics.md",
+        "Hecke/manual/elliptic_curves/finite_fields.md"
+     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],

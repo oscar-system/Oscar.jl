@@ -35,7 +35,7 @@ end
 ## entries of ex_div corresponding to normalization steps are only exceptional divisors at the very end
 ## so only return them at the very end or on specific demand 
 function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=false)
-  phi.resolves_sing || seq_unclean || error("excpetional divisor list not available for intermediate steps.")
+  phi.resolves_sing || seq_unclean || error("exceptional divisor list not available for intermediate steps.")
   return phi.ex_div
 end
 
@@ -55,7 +55,7 @@ end
 Return a `CartierDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
@@ -90,7 +90,7 @@ end
 Return a `WeilDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
@@ -125,7 +125,7 @@ end
 @doc raw"""
     exceptional_divisor_with_multiplicities(f::BlowUpSequence) --> CartierDivisor
 
-Return a `CartierDivisor` `C` on the `domain` of the emmbedded desingularization morphism `f` 
+Return a `CartierDivisor` `C` on the `domain` of the embedded desingularization morphism `f`
 which is the exceptional divisor of the sequence of blow-ups `f` in the ambient scheme.
 """
 function exceptional_divisor_with_multiplicities(f::BlowUpSequence)
@@ -387,7 +387,7 @@ function initialize_blow_up_sequence(phi::BlowupMorphism)
   f.ex_div = [exceptional_divisor(phi)]
   f.is_trivial = is_one(center(phi))
   f.is_strong = false
-  f.resolves_sing = false                                # we have no information, wether we are done
+  f.resolves_sing = false                                # we have no information, whether we are done
                                                          # without further computation
   f.is_embedded = false
   return f
@@ -398,7 +398,7 @@ function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::AbsIde
   f.ex_div = [pullback(phi,I)]
   f.is_trivial = is_one(I)
   f.is_strong = false
-  f.resolves_sing = false                                # we have no information, wether we are done
+  f.resolves_sing = false                                # we have no information, whether we are done
                                                          # without further computation
   return f
 end
@@ -629,7 +629,7 @@ function weak_to_strong_desingularization_surface(phi::BlowUpSequence)
 end
 
 function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
-  dim(domain(phi)) == 2 || error("not implmemented yet")
+  dim(domain(phi)) == 2 || error("not implemented yet")
 
   !phi.is_strong || return phi
   ex_divs = phi.ex_div

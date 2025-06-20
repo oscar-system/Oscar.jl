@@ -647,6 +647,7 @@ function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
   cox_gens = string.(gens(cox_ring(ambient_space(m))))
   @req desired_value in cox_gens "Specified zero section is invalid"
   index = findfirst(==(desired_value), cox_gens)
+  set_attribute!(m, :zero_section_index => index::Int)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
 end
 

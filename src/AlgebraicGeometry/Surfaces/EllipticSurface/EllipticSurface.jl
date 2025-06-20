@@ -287,7 +287,7 @@ end
 Compute the primitive closure of the algebraic lattice of ``X`` inside its
 numerical lattice and update the generators of its Mordell--Weil group accordingly.
 
-The algorithm works by computing suitable divison points in its Mordell Weil group.
+The algorithm works by computing suitable division points in its Mordell Weil group.
 """
 function algebraic_lattice_primitive_closure!(X::EllipticSurface)
   S = X

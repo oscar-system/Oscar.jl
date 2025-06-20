@@ -372,7 +372,6 @@ export codomain_covering
 export coefficient_field
 export coefficient_ring
 export coefficient_ring_type
-export coefficient_type
 export coefficients
 export coefficients_and_exponents
 export cohomology
@@ -450,6 +449,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_length
 export cycle_matroid
 export cycle_structure
 export cycle_structures

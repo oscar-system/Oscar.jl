@@ -12,7 +12,7 @@ Return the stable intersection of `TropV1` and `TropV2`.
 function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, TropV2::TropicalVarietySupertype{minOrMax,true},
                              perturbation::Union{Vector{Int},Nothing}=nothing) where minOrMax
 
-    @req ambient_dim(TropV1)==ambient_dim(TropV2) "different ambient dimenions of tropical varieties"
+    @req ambient_dim(TropV1)==ambient_dim(TropV2) "different ambient dimensions of tropical varieties"
     if isnothing(perturbation)
         perturbation = rand(Int,ambient_dim(TropV1))
     end

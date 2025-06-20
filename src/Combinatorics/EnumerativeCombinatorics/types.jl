@@ -179,7 +179,7 @@ function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::In
 end
 
 # Iterator type: partitions of n into k parts with values in v and every value
-# occuring according to the multiplicities in mu
+# occurring according to the multiplicities in mu
 struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
   n::T
   k::Int

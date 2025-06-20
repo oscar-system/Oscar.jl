@@ -1353,7 +1353,7 @@ $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to
 be descending instead of ascending, as used in [JKS22](@cite), i.e. `alpha` has parameters
 $(a_1,\dots,a_n)$ such that $a_1 \geq \dots \geq a_n \geq 0$.  
 
-# Example
+# Examples
 To produce a $2$-dimensional SIM-body, use for example the following code. 
 Note that the polytope lives in $3$-space, so we project it down to $2$-space 
 by eliminating the last coordinate. 
@@ -1392,7 +1392,7 @@ We use the facet description given in section 9.2. of [Zie95](@cite).
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the polytope. For details, see [CSZ15](@cite).
 
-# Example
+# Examples
 Produce the $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices
 and $5$ facets.
 ```jldoctest
@@ -1455,7 +1455,7 @@ binary_markov_graph_polytope(observation::AbstractVector{<:Base.Integer}) =
 
 Produce the $d$-dimensional dwarfed cube as defined in [ABS97](@cite). 
 
-# Example
+# Examples
 The $3$-dimensional dwarfed cube is illustrated in [Jos03](@cite).
 
 ```jldoctest
@@ -1487,7 +1487,7 @@ end
 Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [ABS97](@cite).
 It must be $d\geq4$ and even as well as $s\geq 3$.
 
-# Example
+# Examples
 ```jldoctest
 julia> p = dwarfed_product_polygons(4,3)
 Polytope in ambient dimension 4
@@ -1522,7 +1522,7 @@ as defined in [SS12](@cite).
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the simplex.  
 
-# Example
+# Examples
 The $3$-dimensional lecture hall simplex:
 ```jldoctest
 julia> S = lecture_hall_simplex(3) 
@@ -1576,7 +1576,7 @@ Produce a $d$-dimensional cyclic polytope with $n$ points. Clearly $n\geq d$ is 
 It is a prototypical example of a neighborly polytope whose combinatorics completely known 
 due to Gale's evenness criterion. The coordinates are chosen on the trigonometric moment curve.
 
-# Example
+# Examples
 ```jldoctest
 julia> C= cyclic_caratheodory_polytope(4,5)
 Polytope in ambient dimension 4
@@ -1628,7 +1628,7 @@ Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$
 - `no_facets::Bool`: If set equal to `true`, facets of the underlying `polymake` object are not computed.
 - `no_vif::Bool`: If set equal to `true`, vertices in facets of the underlying `polymake` object are not computed.
 
-# Example
+# Examples
 ```jldoctest
 julia> H = hypersimplex(3,4)
 Polytope in ambient dimension 4
@@ -1714,7 +1714,7 @@ Here we use the description as a deformed product due to [AZ99](@cite).
 For $g=0$ we obtain a Klee-Minty cube, 
 in particular for $e=g=0$ we obtain the standard cube. 
 
-# Example
+# Examples
 The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}$.
 ```jldoctest
 julia> c = goldfarb_cube(3,1//3,0)
@@ -1785,7 +1785,7 @@ Produce a $d$-dimensional hypertruncated cube with symmetric linear objective fu
 - `k`: cutoff parameter
 - `lambda`: scaling of extra vertex
 
-# Example
+# Examples
 ```jldoctest
 julia> H = hypertruncated_cube(3,2,3)
 Polytope in ambient dimension 3
@@ -1823,7 +1823,7 @@ Warning: Some of the $k-$cyclic polytopes are not simplicial.
 Since the components are rounded, this function might output a polytope which is 
 not a $k-$cyclic polytope! More information see [Sch95](@cite).
 
-# Example
+# Examples
 To produce a (not exactly) regular pentagon, type this:
 ```jldoctest
 julia> p = k_cyclic_polytope(5,[1])
@@ -1873,7 +1873,7 @@ Produce a `d`-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log
 integrally infeasible. With symmetric linear objective function $(1,1..,1)$. 
 Construction due to Pokutta and Schulz, see [PS11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> c = max_GC_rank_polytope(3)
 Polytope in ambient dimension 3
@@ -1936,7 +1936,7 @@ end
 
 Create an $8$-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> perles_nonrational_8_polytope()
 Polytope in ambient dimension 8 with EmbeddedAbsSimpleNumFieldElem type coefficients
@@ -2013,7 +2013,7 @@ pitman_stanley_polytope(y::AbstractVector{<:IntegerUnion}) = pitman_stanley_poly
 Produce a `d`-dimensional del-Pezzo polytope, which is the convex hull of the cross polytope 
 together with the all-ones vector. All coordinates are plus or minus one.
 
-# Example
+# Examples
 ```jldoctest
 julia> DP = pseudo_del_pezzo_polytope(4)
 Polytope in ambient dimension 4
@@ -2039,7 +2039,7 @@ Produce a `d`-dimensional $0/1$-polytope with `n` random vertices. Uniform distr
 # Optional Argument
 -`seed::Int`: Seed for random number generation
 
-# Example
+# Examples
 ```jldoctest
 julia> s = rand01_polytope(2, 4; seed=3)
 Polytope in ambient dimension 2
@@ -2074,7 +2074,7 @@ points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 # Optional Argument
 -`seed`: Seed for random number generation.
 
-# Example
+# Examples
 ```jldoctest
 julia> r = rand_box_polytope(3, 10, 3, seed=1)
 Polyhedron in ambient dimension 3
@@ -2192,7 +2192,7 @@ normally distributed in the unit ball.
 -`seed`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
 -`precision`: number of bits for MPFR sphere approximation
 
-# Example
+# Examples
 ```jldoctest
 julia> rnp = rand_normal_polytope(2,4; seed=42, precision=4)
 Polytope in ambient dimension 2
@@ -2421,7 +2421,7 @@ Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex 
   Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
   Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\frac{1}{2}$. 
 
-# Example
+# Examples
 To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
 ```jldoctest
 julia> T = vertex_figure(cube(3), 8) 

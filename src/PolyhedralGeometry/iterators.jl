@@ -106,6 +106,10 @@ Base.:(==)(::PointVector, ::RayVector) =
 Base.:(==)(::RayVector, ::PointVector) =
   throw(ArgumentError("Cannot compare PointVector to RayVector"))
 
+Base.isequal(x::RayVector, y::RayVector) = x == y
+
+Base.hash(x::RayVector, h::UInt) = hash(collect(sign.(x)), hash(coefficient_field(x), h))
+
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################

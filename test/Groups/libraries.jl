@@ -123,7 +123,7 @@ end
    @test Gs == all_perfect_groups(1:200)
    @test length(all_perfect_groups(7200)) == number_of_perfect_groups(7200)
 
-   # all_perfect_groups with additional attributse
+   # all_perfect_groups with additional attributes
    @test filter(G -> number_of_conjugacy_classes(G) in 5:8, Gs) == all_perfect_groups(1:200, number_of_conjugacy_classes => 5:8)
    @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple)
    @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple => true)

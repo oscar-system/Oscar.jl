@@ -10,9 +10,10 @@
   
   @testset "Partial Shift Graph" begin
     s = gens(W)
-    all_shifts = partial_shift_graph_vertices(QQ, K, W)
+    U = uniform_hypergraph(K, 2)
+    all_shifts = partial_shift_graph_vertices(QQ, U, W)
     directed_graph, edge_labels = partial_shift_graph(QQ, all_shifts)
     @test collect(edges(directed_graph)) ==  [Edge(t...) for t in [[2, 1], [3, 1], [3, 2]]]
-    @test word.(edge_labels[2, 1]) == word.([s[1], s[1] * s[2], s[1] * s[2] * s[1], s[2] * s[1]])
+    @test issetequal(word.(edge_labels[2, 1]), word.([s[1], s[2] * s[1], s[1] * s[2] * s[1], s[1] * s[2]]))
   end
 end

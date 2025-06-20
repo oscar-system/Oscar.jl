@@ -795,7 +795,7 @@ end
 Return a Cartan subalgebra of `L`.
 
 If `L` knows its root system, this function uses the Chevalley basis to construct a Cartan subalgebra.
-Otherise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
+Otherwise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
 The return value of this function may change when the root system of `L` is first computed.
 """
 function cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
@@ -854,7 +854,7 @@ Return the abelian Lie algebra of dimension `n` over the field `R`.
 The first argument can be optionally provided to specify the type of the returned
 Lie algebra.
 
-# Example
+# Examples
 ```jldoctest
 julia> abelian_lie_algebra(LinearLieAlgebra, QQ, 3)
 Linear Lie algebra with 3x3 matrices

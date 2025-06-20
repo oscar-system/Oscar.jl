@@ -5,7 +5,7 @@
 # ring L[x₁,…,xₙ] over a number field L = ℚ[α₁,…,αᵣ] it is better to 
 # first translate the respective problem to one in a polynomial ring 
 # ℚ [θ₁,…,θᵣ,x₁,…,xₙ] over ℚ by adding further variables for the 
-# algebraic elemnts αᵢ and dividing by their minimum polynomials.
+# algebraic elements αᵢ and dividing by their minimum polynomials.
 #
 # This might seem counter intuitive, but it has proved to provide 
 # significant speedup in most cases. The reason is that Singular does 

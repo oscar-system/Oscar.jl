@@ -128,12 +128,11 @@ end
 
 function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
   R = coefficient_ring(C)
-  C = CartierDivisor(domain(f), R)
-  pb = pullback(f)
-  for (c,D) in coefficient_dict(C)
-    C += c*pb(C)
+  result = CartierDivisor(domain(f), R)
+  for (D, c) in coefficient_dict(C)
+    result += c*pullback(f, D)
   end
-  return C
+  return result
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
@@ -389,7 +388,7 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
 end
 
 ### Take a complex of graded modules and twist all 
-# modules so that the (co-)boundary maps become homogenous 
+# modules so that the (co-)boundary maps become homogeneous
 # of degree zero. 
 function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])

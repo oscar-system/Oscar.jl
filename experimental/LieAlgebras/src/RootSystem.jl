@@ -6,10 +6,11 @@
 
 @doc raw"""
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{Int}; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
-Construct the root system defined by the Cartan matrix.
-If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
+Construct the root system defined by the given (generalized) Cartan matrix.
+
+If `check=true` the function will verify that `cartan_matrix` is indeed a generalized Cartan matrix.
 Passing `detect_type=false` will skip the detection of the root system type.
 
 # Examples
@@ -38,7 +39,9 @@ end
 @doc raw"""
     root_system(fam::Symbol, rk::Int) -> RootSystem
 
-Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+Construct the root system of the given type.
+
+The input must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
 
 # Examples
 ```jldoctest
@@ -56,8 +59,12 @@ end
 
 @doc raw"""
     root_system(type::Vector{Tuple{Symbol,Int}}) -> RootSystem
+    root_system(type::Tuple{Symbol,Int}...) -> RootSystem
 
-Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations of tuples.
+Construct the root system of the given type.
+
+Each element of `type` must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
+The vararg version needs at least one element.
 
 # Examples
 ```jldoctest
@@ -77,8 +84,8 @@ function root_system(type::Vector{Tuple{Symbol,Int}})
   return R
 end
 
-function root_system(type::Tuple{Symbol,Int}...)
-  return root_system(collect(type))
+function root_system(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
+  return root_system([type1; type...])
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", R::RootSystem)
@@ -109,7 +116,6 @@ function Base.show(io::IO, R::RootSystem)
     print(io, "Root system")
     if has_root_system_type(R) &&
       ((type, ord) = root_system_type_with_ordering(R); !isempty(type))
-      type, ord = root_system_type_with_ordering(R)
       print(io, " of type ", _root_system_type_string(type))
       if !issorted(ord)
         print(io, " (non-canonical ordering)")
@@ -164,74 +170,22 @@ end
   return diagonal_matrix(ZZ, cartan_symmetrizer(R))
 end
 
-@doc raw"""
-    coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system of `R`.
-This is a more efficient version for `coroots(R)[i]`.
-
-Also see: `coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function coroot(R::RootSystem, i::Int)
-  if i <= n_positive_roots(R)
-    return positive_coroot(R, i)
-  else
-    return negative_coroot(R, i - n_positive_roots(R))
-  end
-end
-
-@doc raw"""
-    coroots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the coroots of `R`, starting with the coroots of positive roots and then the negative roots,
-in the order of `positive_coroots` and `negative_coroots`.
-
-Also see: `coroot`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function coroots(R::RootSystem)
-  return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
-end
-
-function fundamental_weight(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
-end
-
-@doc raw"""
-    fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
-
-Return the fundamental weights corresponding to the `simple_roots` of `R`.
-
-# Examples
-```jldoctest
-julia> fundamental_weights(root_system(:A, 2))
-2-element Vector{WeightLatticeElem}:
- w_1
- w_2
-```
-"""
-function fundamental_weights(R::RootSystem)
-  return [fundamental_weight(R, i) for i in 1:rank(R)]
-end
-
 function Base.hash(R::RootSystem, h::UInt)
   # even though we don't have a == method for RootSystem, we add a hash method
-  # to make hashing of RootSpaceElem and WeightLatticeElem more deterministic
+  # to make hashing of RootSpaceElem and WeightLattice more deterministic
   b = 0xeb5362118dea2a0e % UInt
   h = hash(cartan_matrix(R), h)
   return xor(b, h)
 end
 
+@doc raw"""
+    is_simple(R::RootSystem) -> Bool
+
+Check if `R` is a simple root system.
+
+!!! warning
+    Currently only root systems of finite type are supported.
+"""
 function is_simple(R::RootSystem)
   if is_finite(weyl_group(R))
     return length(root_system_type(R)) == 1
@@ -240,95 +194,11 @@ function is_simple(R::RootSystem)
 end
 
 @doc raw"""
-    negative_root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th negative root of `R`.
-This is a more efficient version for `negative_roots(R)[i]`.
-
-Also see: `negative_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function negative_root(R::RootSystem, i::Int)
-  return -(R.positive_roots::Vector{RootSpaceElem})[i]
-end
-
-@doc raw"""
-    negative_roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
-
-Also see: `negative_root`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> negative_roots(root_system(:A, 2))
-3-element Vector{RootSpaceElem}:
- -a_1
- -a_2
- -a_1 - a_2
-```
-"""
-function negative_roots(R::RootSystem)
-  return [-r for r in positive_roots(R)]
-end
-
-@doc raw"""
-    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroot corresponding to the `i`-th negative root of `R`
-This is a more efficient version for `negative_coroots(R)[i]`.
-
-Also see: `negative_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function negative_coroot(R::RootSystem, i::Int)
-  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
-end
-
-@doc raw"""
-    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the negative coroots of `R`. The $i$-th element of the returned vector is the negative coroot corresponding to the $i$-th positive coroot.
-
-Also see: `negative_coroot`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> negative_coroots(root_system(:A, 2))
-3-element Vector{DualRootSpaceElem}:
- -a^v_1
- -a^v_2
- -a^v_1 - a^v_2
-```
-"""
-function negative_coroots(R::RootSystem)
-  return [-r for r in positive_coroots(R)]
-end
-
-@doc raw"""
     number_of_positive_roots(R::RootSystem) -> Int
 
-Returns the number of positive roots of `R`. This is the same as the number of negative roots.
+Return the number of positive roots of `R`. This is the same as the number of negative roots.
 
-Also see: `positive_roots`, `negative_roots`.
+See also: [`positive_roots(::RootSystem)`](@ref positive_roots), [`negative_roots(::RootSystem)`](@ref negative_roots).
 """
 function number_of_positive_roots(R::RootSystem)
   return length(positive_roots(R))
@@ -337,9 +207,9 @@ end
 @doc raw"""
     number_of_roots(R::RootSystem) -> Int
 
-Returns the number of roots of `R`.
+Return the number of roots of `R`.
 
-Also see: `roots`.
+See also: [`roots(::RootSystem)`](@ref roots).
 """
 function number_of_roots(R::RootSystem)
   return 2 * number_of_positive_roots(R)
@@ -348,118 +218,73 @@ end
 @doc raw"""
     number_of_simple_roots(R::RootSystem) -> Int
 
-Returns the number of simple roots of `R`.
+Return the number of simple roots of `R`.
 
-Also see: `simple_roots`.
+See also: [`simple_roots(::RootSystem)`](@ref simple_roots).
 """
 function number_of_simple_roots(R::RootSystem)
   return rank(R)
 end
 
 @doc raw"""
-    positive_root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th positive root of `R`.
-This is a more efficient version for `positive_roots(R)[i]`.
-
-Also see: `positive_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function positive_root(R::RootSystem, i::Int)
-  return (R.positive_roots::Vector{RootSpaceElem})[i]
-end
-
-@doc raw"""
-    positive_roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`,
-and then increasing in height.
-
-Also see: `positive_root`, `number_of_positive_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> positive_roots(root_system(:A, 2))
-3-element Vector{RootSpaceElem}:
- a_1
- a_2
- a_1 + a_2
-```
-"""
-function positive_roots(R::RootSystem)
-  return R.positive_roots::Vector{RootSpaceElem}
-end
-
-@doc raw"""
-    positive_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroot corresponding to the `i`-th positive root of `R`
-This is a more efficient version for `positive_coroots(R)[i]`.
-
-Also see: `positive_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function positive_coroot(R::RootSystem, i::Int)
-  return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
-end
-
-@doc raw"""
-    positive_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroots corresponding to the positive roots of `R`
-
-Also see: `positive_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> positive_coroots(root_system(:A, 2))
-3-element Vector{DualRootSpaceElem}:
- a^v_1
- a^v_2
- a^v_1 + a^v_2
-```
-"""
-function positive_coroots(R::RootSystem)
-  return R.positive_coroots::Vector{DualRootSpaceElem}
-end
-
-@doc raw"""
     rank(R::RootSystem) -> Int
 
-Return the rank of `R`, i.e. the number of simple roots.
+Return the rank of `R`, i.e., the number of simple roots.
+
+See also: [`number_of_simple_roots(::RootSystem)`](@ref number_of_simple_roots).
 """
 function rank(R::RootSystem)
   return nrows(cartan_matrix(R))
 end
 
+@doc raw"""
+    root_system_type(R::RootSystem) -> Vector{Tuple{Symbol,Int}}
+
+Return the Cartan type of `R`.
+
+If the type is already known, it is returned directly.
+This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
+
+If the type is not known, it is determined and stored in `R`.
+
+See also: [`root_system_type_with_ordering(::RootSystem)`](@ref).
+
+!!! warning
+    This function will error if the type is not known yet and the Weyl group is infinite.
+"""
 function root_system_type(R::RootSystem)
   assure_root_system_type(R)
   return R.type
 end
 
+@doc raw"""
+    root_system_type_with_ordering(R::RootSystem) -> Vector{Tuple{Symbol,Int}}, Vector{Int}
+
+Return the Cartan type of `R`, together with the ordering of the simple roots.
+
+If the type is already known, it is returned directly.
+This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
+
+If the type is not known, it is determined and stored in `R`.
+
+See also: [`root_system_type(::RootSystem)`](@ref).
+
+!!! warning
+    This function will error if the type is not known yet and the Weyl group is infinite.
+"""
 function root_system_type_with_ordering(R::RootSystem)
   assure_root_system_type(R)
   return R.type, R.type_ordering
 end
 
+@doc raw"""
+    has_root_system_type(R::RootSystem) -> Bool
+
+Check if the root system `R` already knows its Cartan type.
+
+The type can then be queried with [`root_system_type(::RootSystem)`](@ref)
+and [`root_system_type_with_ordering(::RootSystem)`](@ref).
+"""
 function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
 end
@@ -467,7 +292,7 @@ end
 function assure_root_system_type(R::RootSystem)
   has_root_system_type(R) && return nothing
   @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
-  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
+  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R); check=false)...)
 end
 
 function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
@@ -483,109 +308,32 @@ function set_root_system_type!(
 end
 
 @doc raw"""
-    root(R::RootSystem, i::Int) -> RootSpaceElem
+    weight_lattice(R::RootSystem) -> WeightLattice
 
-Returns the `i`-th root of `R`.
-This is a more efficient version for `roots(R)[i]`.
+Return the weight lattice of `R`, i.e. the lattice spanned by the fundamental weights.
 
-Also see: `roots`.
+This is the parent of all weights of `R`.
 
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
+# Examples
+```jldoctest
+julia> weight_lattice(root_system([2 -1; -1 2]))
+Weight lattice
+  of root system of rank 2
+    of type A2
+
+julia> weight_lattice(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+Weight lattice
+  of root system of rank 2
+    of unknown type
+
+julia> weight_lattice(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
+Weight lattice
+  of root system of rank 3
+    of type C3 (with non-canonical ordering of simple roots)
+```
 """
-function root(R::RootSystem, i::Int)
-  if i <= n_positive_roots(R)
-    return positive_root(R, i)
-  else
-    return negative_root(R, i - n_positive_roots(R))
-  end
-end
-
-@doc raw"""
-    roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the roots of `R`, starting with the positive roots and then the negative roots,
-in the order of `positive_roots` and `negative_roots`.
-
-Also see: `root`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function roots(R::RootSystem)
-  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
-end
-
-@doc raw"""
-    simple_root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th simple root of `R`.
-This is a more efficient version for `simple_roots(R)[i]`.
-
-Also see: `simple_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_root(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "Invalid index"
-  return positive_root(R, i)
-end
-
-@doc raw"""
-    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the simple roots of `R`.
-
-Also see: `simple_root`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_roots(R::RootSystem)
-  return positive_roots(R)[1:rank(R)]
-end
-
-@doc raw"""
-    simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroot corresponding to the `i`-th simple root of `R`
-This is a more efficient version for `simple_coroots(R)[i]`.
-
-Also see: `simple_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_coroot(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "Invalid index"
-  return positive_coroot(R, i)
-end
-
-@doc raw"""
-    simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroots corresponding to the simple roots of `R`
-
-Also see: `simple_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_coroots(R::RootSystem)
-  return positive_coroots(R)[1:rank(R)]
+function weight_lattice(R::RootSystem)
+  return R.weight_lattice::WeightLattice
 end
 
 @doc raw"""
@@ -615,11 +363,381 @@ function weyl_group(R::RootSystem)
   return R.weyl_group::WeylGroup
 end
 
+###############################################################################
+# root constructors
+
+@doc raw"""
+    root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Return the `i`-th root of `R`.
+
+This is a more efficient version for `roots(R)[i]`.
+
+See also: [`roots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function root(R::RootSystem, i::Int)
+  if i <= n_positive_roots(R)
+    return positive_root(R, i)
+  else
+    return negative_root(R, i - n_positive_roots(R))
+  end
+end
+
+@doc raw"""
+    roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Return the roots of `R`, starting with the positive roots and then the negative roots,
+in the order of [`positive_roots(::RootSystem)`](@ref positive_roots) and [`negative_roots(::RootSystem)`](@ref negative_roots).
+
+See also: [`root(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function roots(R::RootSystem)
+  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
+end
+
+@doc raw"""
+    positive_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Return the `i`-th positive root of `R`.
+
+This is a more efficient version for `positive_roots(R)[i]`.
+
+See also: [`positive_roots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function positive_root(R::RootSystem, i::Int)
+  return (R.positive_roots::Vector{RootSpaceElem})[i]
+end
+
+@doc raw"""
+    positive_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Return the positive roots of `R`, starting with the simple roots in the order
+of [`simple_roots(::RootSystem)`](@ref simple_roots), and then increasing in height.
+
+See also: [`positive_root(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ a_1
+ a_2
+ a_1 + a_2
+```
+"""
+function positive_roots(R::RootSystem)
+  return R.positive_roots::Vector{RootSpaceElem}
+end
+
+@doc raw"""
+    negative_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Return the `i`-th negative root of `R`, i.e. the negative of the `i`-th positive root.
+
+This is a more efficient version for `negative_roots(R)[i]`.
+
+See also: [`negative_roots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function negative_root(R::RootSystem, i::Int)
+  return -(R.positive_roots::Vector{RootSpaceElem})[i]
+end
+
+@doc raw"""
+    negative_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Return the negative roots of `R`.
+
+The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
+
+See also: [`positive_root(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ -a_1
+ -a_2
+ -a_1 - a_2
+```
+"""
+function negative_roots(R::RootSystem)
+  return [-r for r in positive_roots(R)]
+end
+
+@doc raw"""
+    simple_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Return the `i`-th simple root of `R`.
+
+This is a more efficient version for `simple_roots(R)[i]`.
+
+See also: [`simple_roots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_root(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_root(R, i)
+end
+
+@doc raw"""
+    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Return the simple roots of `R`.
+
+See also: [`simple_root(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_roots(R::RootSystem)
+  return positive_roots(R)[1:rank(R)]
+end
+
+###############################################################################
+# coroot constructors
+
+@doc raw"""
+    coroot(R::RootSystem, i::Int) -> DualRootSpaceElem
+
+Return the coroot of the `i`-th root of `R`.
+
+This is a more efficient version for `coroots(R)[i]`.
+
+See also: [`coroots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function coroot(R::RootSystem, i::Int)
+  if i <= n_positive_roots(R)
+    return positive_coroot(R, i)
+  else
+    return negative_coroot(R, i - n_positive_roots(R))
+  end
+end
+
+@doc raw"""
+    coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
+
+Return the coroots of `R` in the order of [`roots(::RootSystem)`](@ref roots),
+i.e. starting with the coroots of positive roots and then those of negative roots,
+each in the order of [`positive_coroots(::RootSystem)`](@ref positive_coroots) and [`negative_coroots(::RootSystem)`](@ref negative_coroots), respectively.
+
+See also: [`coroot(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function coroots(R::RootSystem)
+  return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
+end
+
+@doc raw"""
+    positive_coroot(R::RootSystem, i::Int) -> DualRootSpaceElem
+
+Return the coroot of the `i`-th positive root of `R`.
+
+This is a more efficient version for `positive_coroots(R)[i]`.
+
+See also: [`positive_coroots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function positive_coroot(R::RootSystem, i::Int)
+  return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
+end
+
+@doc raw"""
+    positive_coroots(R::RootSystem) -> DualRootSpaceElem
+
+Return the coroots corresponding to the positive roots of `R`,
+in the order of [`positive_roots(::RootSystem)`](@ref positive_roots).
+
+See also: [`positive_coroot(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ a_1^v
+ a_2^v
+ a_1^v + a_2^v
+```
+"""
+function positive_coroots(R::RootSystem)
+  return R.positive_coroots::Vector{DualRootSpaceElem}
+end
+
+@doc raw"""
+    negative_coroot(R::RootSystem, i::Int) -> DualRootSpaceElem
+
+Return the coroot of the `i`-th negative root of `R`.
+
+This is a more efficient version for `negative_coroots(R)[i]`.
+
+See also: [`negative_coroots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function negative_coroot(R::RootSystem, i::Int)
+  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
+end
+
+@doc raw"""
+    negative_coroots(R::RootSystem) -> DualRootSpaceElem
+
+Return the coroots corresponding to the negative roots of `R`,
+in the order of [`negative_roots(::RootSystem)`](@ref negative_roots).
+
+See also: [`negative_coroot(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ -a_1^v
+ -a_2^v
+ -a_1^v - a_2^v
+```
+"""
+function negative_coroots(R::RootSystem)
+  return [-r for r in positive_coroots(R)]
+end
+
+@doc raw"""
+    simple_coroot(R::RootSystem, i::Int) -> DualRootSpaceElem
+
+Return the coroot of the `i`-th simple root of `R`.
+
+This is a more efficient version for `simple_coroots(R)[i]`.
+
+See also: [`simple_coroots(::RootSystem)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_coroot(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_coroot(R, i)
+end
+
+@doc raw"""
+    simple_coroots(R::RootSystem) -> DualRootSpaceElem
+
+Return the coroots corresponding to the simple roots of `R`,
+in the order of [`simple_roots(::RootSystem)`](@ref simple_roots).
+
+See also: [`simple_coroot(::RootSystem, ::Int)`](@ref).
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_coroots(R::RootSystem)
+  return positive_coroots(R)[1:rank(R)]
+end
+
+###############################################################################
+# weight constructors
+
+@doc raw"""
+    fundamental_weight(R::RootSystem, i::Int) -> WeightLatticeElem
+
+Return the `i`-th fundamental weight of `R`.
+
+This is a more efficient version for `fundamental_weights(R)[i]`.
+
+See also: [`fundamental_weight(::RootSystem)`](@ref).
+"""
+function fundamental_weight(R::RootSystem, i::Int)
+  return gen(weight_lattice(R), i)
+end
+
+@doc raw"""
+    fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
+
+Return the fundamental weights corresponding to the simple roots of `R`,
+in the order of [`simple_roots(::RootSystem)`](@ref simple_roots).
+
+See also: [`fundamental_weight(::RootSystem, ::Int)`](@ref).
+
+# Examples
+```jldoctest
+julia> fundamental_weights(root_system(:A, 2))
+2-element Vector{WeightLatticeElem}:
+ w_1
+ w_2
+```
+"""
+function fundamental_weights(R::RootSystem)
+  return gens(weight_lattice(R))
+end
+
 @doc raw"""
     weyl_vector(R::RootSystem) -> WeightLatticeElem
 
-Return the Weyl vector $\rho$ of `R`, which is the sum of all fundamental weights,
-or half the sum of all positive roots.
+Return the Weyl vector $\rho$ of `R`,
+that is the sum of all fundamental weights or,
+equivalently, half the sum of all positive roots.
 """
 function weyl_vector(R::RootSystem)
   return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), fill(1, rank(R))))
@@ -631,16 +749,31 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    RootSpaceElem(R::RootSystem, vec::Vector{<:RationalUnion}) -> RootSpaceElem
+
+Construct a root space element in the root system `R` with the given coefficients w.r.t. the simple roots of `R`.
+"""
 function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
+@doc raw"""
+    RootSpaceElem(w::WeightLatticeElem) -> RootSpaceElem
+
+Construct a root space element from the weight lattice element `w`.
+"""
 function RootSpaceElem(w::WeightLatticeElem)
   R = root_system(w)
   coeffs = coefficients(w) * cartan_matrix_inv_tr(R)
   return RootSpaceElem(R, matrix(QQ, coeffs))
 end
 
+@doc raw"""
+    zero(::Type{RootSpaceElem}, R::RootSystem) -> RootSpaceElem
+
+Return the neutral additive element in the root space of `R`.
+"""
 function zero(::Type{RootSpaceElem}, R::RootSystem)
   return RootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
 end
@@ -651,6 +784,10 @@ end
 
 function Base.:*(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
+end
+
+function Base.:*(r::RootSpaceElem, q::RationalUnion)
+  return RootSpaceElem(root_system(r), r.vec * q)
 end
 
 function Base.:+(r::RootSpaceElem, r2::RootSpaceElem)
@@ -692,6 +829,34 @@ function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
   return rr
 end
 
+function mul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function mul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, q, r.vec)
+  return rr
+end
+
+function addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion, t) = addmul!(rr, r, q)
+addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem, t) = addmul!(rr, q, r)
+
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
 end
@@ -706,28 +871,41 @@ function Base.deepcopy_internal(r::RootSpaceElem, dict::IdDict)
   return w2
 end
 
-@doc raw"""
-    getindex(r::RootSpaceElem, i::Int) -> QQRingElem
-
-Return the coefficient of the `i`-th simple root in `r`.
-"""
-function Base.getindex(r::RootSpaceElem, i::Int)
-  return coeff(r, i)
-end
-
 function Base.hash(r::RootSpaceElem, h::UInt)
   b = 0xbe7603eb38c985ad % UInt
-  h = hash(r.root_system, h)
+  h = hash(root_system(r), h)
   h = hash(r.vec, h)
   return xor(b, h)
 end
 
+@doc raw"""
+    coefficients(r::RootSpaceElem) -> QQMatrix
+
+Return the coefficients of the root space element `r`
+w.r.t. the simple roots as a row vector.
+
+!!! note
+    The return type may not be relied on;
+    we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
+    that can be indexed with integers.
+"""
 function coefficients(r::RootSpaceElem)
   return r.vec
 end
 
+@doc raw"""
+    coeff(r::RootSpaceElem, i::Int) -> QQFieldElem
+
+Return the coefficient of the `i`-th simple root in `r`.
+
+This can be also accessed via `r[i]`.
+"""
 function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
+end
+
+function Base.getindex(r::RootSpaceElem, i::Int)
+  return coeff(r, i)
 end
 
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
@@ -766,10 +944,27 @@ function height(r::RootSpaceElem)
   return sum(coefficients(r))
 end
 
+@doc raw"""
+    is_root(r::RootSpaceElem) -> Bool
+
+Check if `r` is a root of its root system.
+
+See also: [`is_root_with_index(::RootSpaceElem)`](@ref).
+"""
 function is_root(r::RootSpaceElem)
   return is_positive_root(r) || is_negative_root(r)
 end
 
+@doc raw"""
+    is_root_with_index(r::RootSpaceElem) -> Bool, Int
+
+Check if `r` is a root of its root system
+and return this together with the index of the root in [`roots(::RootSystem)`](@ref).
+
+If `r` is not a root, the second return value is arbitrary.
+
+See also: [`is_root(::RootSpaceElem)`](@ref).
+"""
 function is_root_with_index(r::RootSpaceElem)
   fl, i = is_positive_root_with_index(r)
   if fl
@@ -782,10 +977,27 @@ function is_root_with_index(r::RootSpaceElem)
   return false, 0
 end
 
+@doc raw"""
+    is_positive_root(r::RootSpaceElem) -> Bool
+
+Check if `r` is a positive root of its root system.
+
+See also: [`is_positive_root_with_index(::RootSpaceElem)`](@ref).
+"""
 function is_positive_root(r::RootSpaceElem)
   return haskey(root_system(r).positive_roots_map, coefficients(r))
 end
 
+@doc raw"""
+    is_positive_root_with_index(r::RootSpaceElem) -> Bool, Int
+
+Check if `r` is a positive root of its root system
+and return this together with the index of the root in [`positive_roots(::RootSystem)`](@ref).
+
+If `r` is not a positive root, the second return value is arbitrary.
+
+See also: [`is_positive_root(::RootSpaceElem)`](@ref).
+"""
 function is_positive_root_with_index(r::RootSpaceElem)
   i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
   if isnothing(i)
@@ -795,10 +1007,27 @@ function is_positive_root_with_index(r::RootSpaceElem)
   end
 end
 
+@doc raw"""
+    is_negative_root(r::RootSpaceElem) -> Bool
+
+Check if `r` is a negative root of its root system.
+
+See also: [`is_negative_root_with_index(::RootSpaceElem)`](@ref).
+"""
 function is_negative_root(r::RootSpaceElem)
   return haskey(root_system(r).positive_roots_map, -coefficients(r))
 end
 
+@doc raw"""
+    is_negative_root_with_index(r::RootSpaceElem) -> Bool, Int
+
+Check if `r` is a negative root of its root system
+and return this together with the index of the root in [`negative_roots(::RootSystem)`](@ref).
+
+If `r` is not a negative root, the second return value is arbitrary.
+
+See also: [`is_negative_root(::RootSpaceElem)`](@ref).
+"""
 function is_negative_root_with_index(r::RootSpaceElem)
   i = get(root_system(r).positive_roots_map, -coefficients(r), nothing)
   if isnothing(i)
@@ -808,10 +1037,27 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+@doc raw"""
+    is_simple_root(r::RootSpaceElem) -> Bool
+
+Check if `r` is a simple root of its root system.
+
+See also: [`is_simple_root_with_index(::RootSpaceElem)`](@ref).
+"""
 function is_simple_root(r::RootSpaceElem)
   return is_simple_root_with_index(r)[1]
 end
 
+@doc raw"""
+    is_simple_root_with_index(r::RootSpaceElem) -> Bool, Int
+
+Check if `r` is a simple root of its root system
+and return this together with the index of the root in [`simple_roots(::RootSystem)`](@ref).
+
+If `r` is not a simple root, the second return value is arbitrary.
+
+See also: [`is_simple_root(::RootSpaceElem)`](@ref).
+"""
 function is_simple_root_with_index(r::RootSpaceElem)
   i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
   if isnothing(i) || i > number_of_simple_roots(root_system(r))
@@ -821,14 +1067,33 @@ function is_simple_root_with_index(r::RootSpaceElem)
   end
 end
 
+@doc raw"""
+    iszero(r::RootSpaceElem) -> Bool
+
+Check if `r` is the neutral additive element in the root space of its root system.
+"""
 function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
 end
 
+@doc raw"""
+    reflect(r::RootSpaceElem, s::Int) -> RootSpaceElem
+  
+Return the reflection of `r` in the hyperplane orthogonal to the `s`-th simple root.
+
+See also: [`reflect!(::RootSpaceElem, ::Int)`](@ref).
+"""
 function reflect(r::RootSpaceElem, s::Int)
   return reflect!(deepcopy(r), s)
 end
 
+@doc raw"""
+    reflect!(r::RootSpaceElem, s::Int) -> RootSpaceElem
+
+Reflect `r` in the hyperplane orthogonal to the `s`-th simple root, and return it.
+
+This is a mutating version of [`reflect(::RootSpaceElem, ::Int)`](@ref).
+"""
 function reflect!(r::RootSpaceElem, s::Int)
   sub!(
     Nemo.mat_entry_ptr(r.vec, 1, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec)
@@ -836,6 +1101,11 @@ function reflect!(r::RootSpaceElem, s::Int)
   return r
 end
 
+@doc raw"""
+    root_system(r::RootSpaceElem) -> RootSystem
+
+Return the root system `r` belongs to.
+"""
 function root_system(r::RootSpaceElem)
   return r.root_system
 end
@@ -846,10 +1116,20 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    DualRootSpaceElem(R::RootSystem, vec::Vector{<:RationalUnion}) -> DualRootSpaceElem
+
+Construct a dual root space element in the root system `R` with the given coefficients w.r.t. the simple coroots of `R`.
+"""
 function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
+@doc raw"""
+    zero(::Type{DualRootSpaceElem}, R::RootSystem) -> DualRootSpaceElem
+
+Return the neutral additive element in the dual root space of `R`.
+"""
 function zero(::Type{DualRootSpaceElem}, R::RootSystem)
   return DualRootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
 end
@@ -860,6 +1140,10 @@ end
 
 function Base.:*(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
+end
+
+function Base.:*(r::DualRootSpaceElem, q::RationalUnion)
+  return DualRootSpaceElem(root_system(r), r.vec * q)
 end
 
 function Base.:+(r::DualRootSpaceElem, r2::DualRootSpaceElem)
@@ -901,6 +1185,36 @@ function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceEle
   return rr
 end
 
+function mul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function mul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, q, r.vec)
+  return rr
+end
+
+function addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion, t) =
+  addmul!(rr, r, q)
+addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem, t) =
+  addmul!(rr, q, r)
+
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
 end
@@ -915,42 +1229,55 @@ function Base.deepcopy_internal(r::DualRootSpaceElem, dict::IdDict)
   return w2
 end
 
-@doc raw"""
-    getindex(r::DualRootSpaceElem, i::Int) -> QQRingElem
-
-Returns the coefficient of the `i`-th simple root in `r`.
-"""
-function Base.getindex(r::DualRootSpaceElem, i::Int)
-  return coeff(r, i)
-end
-
 function Base.hash(r::DualRootSpaceElem, h::UInt)
   b = 0x721bec0418bdbe0f % UInt
-  h = hash(r.root_system, h)
+  h = hash(root_system(r), h)
   h = hash(r.vec, h)
   return xor(b, h)
 end
 
+@doc raw"""
+    coefficients(r::DualRootSpaceElem) -> QQMatrix
+
+Return the coefficients of the dual root space element `r`
+w.r.t. the simple coroots as a row vector.
+
+!!! note
+    The return type may not be relied on;
+    we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
+    that can be indexed with integers.
+"""
 function coefficients(r::DualRootSpaceElem)
   return r.vec
 end
 
+@doc raw"""
+    coeff(r::DualRootSpaceElem, i::Int) -> QQFieldElem
+
+Returns the coefficient of the `i`-th simple coroot in `r`.
+
+This can be also accessed via `r[i]`.
+"""
 function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
+end
+
+function Base.getindex(r::DualRootSpaceElem, i::Int)
+  return coeff(r, i)
 end
 
 function expressify(r::DualRootSpaceElem; context=nothing)
   if is_unicode_allowed()
     return expressify(r, :α̌; context)
   else
-    return expressify(r, Symbol("a^v"); context)
+    return expressify(r, :a, Symbol("^v"); context)
   end
 end
 
-function expressify(r::DualRootSpaceElem, s; context=nothing)
+function expressify(r::DualRootSpaceElem, s, s_suffix=Symbol(""); context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(r.vec)
-    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)$(s_suffix)"))
   end
   return sum
 end
@@ -966,10 +1293,27 @@ function height(r::DualRootSpaceElem)
   return sum(coefficients(r))
 end
 
+@doc raw"""
+    is_coroot(r::DualRootSpaceElem) -> Bool
+
+Check if `r` is a coroot of its root system.
+
+See also: [`is_coroot_with_index(::DualRootSpaceElem)`](@ref).
+"""
 function is_coroot(r::DualRootSpaceElem)
   return is_positive_coroot(r) || is_negative_coroot(r)
 end
 
+@doc raw"""
+    is_coroot_with_index(r::DualRootSpaceElem) -> Bool, Int
+
+Check if `r` is a coroot of its root system
+and return this together with the index of the coroot in [`coroots(::RootSystem)`](@ref).
+
+If `r` is not a coroot, the second return value is arbitrary.
+
+See also: [`is_coroot(::DualRootSpaceElem)`](@ref).
+"""
 function is_coroot_with_index(r::DualRootSpaceElem)
   fl, i = is_positive_coroot_with_index(r)
   if fl
@@ -982,10 +1326,27 @@ function is_coroot_with_index(r::DualRootSpaceElem)
   return false, 0
 end
 
+@doc raw"""
+    is_positive_coroot(r::DualRootSpaceElem) -> Bool
+
+Check if `r` is a positive coroot of its root system.
+
+See also: [`is_positive_coroot_with_index(::DualRootSpaceElem)`](@ref).
+"""
 function is_positive_coroot(r::DualRootSpaceElem)
   return haskey(root_system(r).positive_coroots_map, coefficients(r))
 end
 
+@doc raw"""
+    is_positive_coroot_with_index(r::DualRootSpaceElem) -> Bool, Int
+
+Check if `r` is a positive coroot of its root system
+and return this together with the index of the coroot in [`positive_coroots(::RootSystem)`](@ref).
+
+If `r` is not a positive coroot, the second return value is arbitrary.
+
+See also: [`is_positive_coroot(::DualRootSpaceElem)`](@ref).
+"""
 function is_positive_coroot_with_index(r::DualRootSpaceElem)
   i = get(root_system(r).positive_coroots_map, coefficients(r), nothing)
   if isnothing(i)
@@ -995,10 +1356,27 @@ function is_positive_coroot_with_index(r::DualRootSpaceElem)
   end
 end
 
+@doc raw"""
+    is_negative_coroot(r::DualRootSpaceElem) -> Bool
+
+Check if `r` is a negative coroot of its root system.
+
+See also: [`is_negative_coroot_with_index(::DualRootSpaceElem)`](@ref).
+"""
 function is_negative_coroot(r::DualRootSpaceElem)
   return haskey(root_system(r).positive_coroots_map, -coefficients(r))
 end
 
+@doc raw"""
+    is_negative_coroot_with_index(r::DualRootSpaceElem) -> Bool, Int
+
+Check if `r` is a negative coroot of its root system
+and return this together with the index of the coroot in [`negative_coroots(::RootSystem)`](@ref).
+
+If `r` is not a negative coroot, the second return value is arbitrary.
+
+See also: [`is_negative_coroot(::DualRootSpaceElem)`](@ref).
+"""
 function is_negative_coroot_with_index(r::DualRootSpaceElem)
   i = get(root_system(r).positive_coroots_map, -coefficients(r), nothing)
   if isnothing(i)
@@ -1008,10 +1386,27 @@ function is_negative_coroot_with_index(r::DualRootSpaceElem)
   end
 end
 
+@doc raw"""
+    is_simple_coroot(r::DualRootSpaceElem) -> Bool
+
+Check if `r` is a simple coroot of its root system.
+
+See also: [`is_simple_coroot_with_index(::DualRootSpaceElem)`](@ref).
+"""
 function is_simple_coroot(r::DualRootSpaceElem)
   return is_simple_coroot_with_index(r)[1]
 end
 
+@doc raw"""
+    is_simple_coroot_with_index(r::DualRootSpaceElem) -> Bool, Int
+
+Check if `r` is a simple coroot of its root system
+and return this together with the index of the coroot in [`simple_coroots(::RootSystem)`](@ref).
+
+If `r` is not a simple coroot, the second return value is arbitrary.
+
+See also: [`is_simple_coroot(::DualRootSpaceElem)`](@ref).
+"""
 function is_simple_coroot_with_index(r::DualRootSpaceElem)
   i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
   if isnothing(i) || i > number_of_simple_roots(root_system(r))
@@ -1021,243 +1416,22 @@ function is_simple_coroot_with_index(r::DualRootSpaceElem)
   end
 end
 
+@doc raw"""
+    iszero(r::DualRootSpaceElem) -> Bool
+
+Check if `r` is the neutral additive element in the dual root space of its root system.
+"""
 function Base.iszero(r::DualRootSpaceElem)
   return iszero(r.vec)
 end
 
+@doc raw"""
+    root_system(r::DualRootSpaceElem) -> RootSystem
+
+Return the root system `r` belongs to.
+"""
 function root_system(r::DualRootSpaceElem)
   return r.root_system
-end
-
-###############################################################################
-#
-#   Weight lattice elements
-#
-###############################################################################
-
-@doc raw"""
-    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
-
-Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
-"""
-function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))
-end
-
-function WeightLatticeElem(r::RootSpaceElem)
-  R = root_system(r)
-  coeffs = coefficients(r) * cartan_matrix_tr(R)
-  @req all(is_integer, coeffs) "RootSpaceElem does not correspond to a weight"
-  return WeightLatticeElem(R, matrix(ZZ, coeffs))
-end
-
-function zero(::Type{WeightLatticeElem}, R::RootSystem)
-  return WeightLatticeElem(R, zero_matrix(ZZ, 1, rank(R)))
-end
-
-function zero(r::WeightLatticeElem)
-  return zero(WeightLatticeElem, root_system(r))
-end
-
-function Base.:*(n::IntegerUnion, w::WeightLatticeElem)
-  return WeightLatticeElem(root_system(w), n * w.vec)
-end
-
-function Base.:+(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent root system mismatch"
-
-  return WeightLatticeElem(root_system(w), w.vec + w2.vec)
-end
-
-function Base.:-(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent root system mismatch"
-
-  return WeightLatticeElem(root_system(w), w.vec - w2.vec)
-end
-
-function Base.:-(w::WeightLatticeElem)
-  return WeightLatticeElem(root_system(w), -w.vec)
-end
-
-function zero!(w::WeightLatticeElem)
-  w.vec = zero!(w.vec)
-  return w
-end
-
-function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
-  wr.vec = add!(wr.vec, w1.vec, w2.vec)
-  return wr
-end
-
-function neg!(wr::WeightLatticeElem, w::WeightLatticeElem)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
-  wr.vec = neg!(wr.vec, w.vec)
-  return wr
-end
-
-function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
-  wr.vec = sub!(wr.vec, w1.vec, w2.vec)
-  return wr
-end
-
-function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  return w.root_system === w2.root_system && w.vec == w2.vec
-end
-
-function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
-  if haskey(dict, w)
-    return dict[w]
-  end
-
-  w2 = WeightLatticeElem(root_system(w), deepcopy_internal(w.vec, dict))
-  dict[w] = w2
-  return w2
-end
-
-@doc raw"""
-    getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
-
-Return the coefficient of the `i`-th fundamental weight in `w`.
-"""
-function Base.getindex(w::WeightLatticeElem, i::Int)
-  return coeff(w, i)
-end
-
-function Base.hash(w::WeightLatticeElem, h::UInt)
-  b = 0x7b2fefadacf46f4e % UInt
-  h = hash(w.root_system, h)
-  h = hash(w.vec, h)
-  return xor(b, h)
-end
-
-@doc raw"""
-    iszero(w::WeightLatticeElem) -> Bool
-
-Return whether `w` is zero.
-"""
-function Base.iszero(w::WeightLatticeElem)
-  return iszero(w.vec)
-end
-
-function coefficients(w::WeightLatticeElem)
-  return w.vec
-end
-
-function coeff(w::WeightLatticeElem, i::Int)
-  return w.vec[i]
-end
-
-@doc raw"""
-    conjugate_dominant_weight(w::WeightLatticeElem) -> WeightLatticeElem
-
-Return the unique dominant weight conjugate to `w`.
-"""
-function conjugate_dominant_weight(w::WeightLatticeElem)
-  return conjugate_dominant_weight!(deepcopy(w))
-end
-
-function conjugate_dominant_weight!(w::WeightLatticeElem)
-  # w will be dominant once all fundamental weights have a positive coefficient,
-  # so search for negative coefficients and make them positive by applying the corresponding reflection.
-  s = 1
-  while s <= rank(root_system(w))
-    if w[s] < 0
-      reflect!(w, s)
-      s = 1
-    else
-      s += 1
-    end
-  end
-
-  return w
-end
-
-@doc raw"""
-    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
-
-Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
-such that `x*w == dom`.
-"""
-function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
-  return conjugate_dominant_weight_with_elem!(deepcopy(w))
-end
-
-function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
-  R = root_system(w)
-
-  # determine the Weyl group element taking w to the fundamental chamber
-  word = UInt8[]
-  #sizehint!(word, count(<(0), coefficients(w))^2)
-  s = 1
-  while s <= rank(R)
-    if w[s] < 0
-      push!(word, UInt8(s))
-      reflect!(w, s)
-      s = 1
-    else
-      s += 1
-    end
-  end
-
-  # reversing word means it is in short revlex normal form
-  # and it is the element taking original w to new w
-  return w, weyl_group(R)(reverse!(word); normalize=false)
-end
-
-function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w1) === root_system(w2) "parent root system mismatch"
-  R = root_system(w1)
-
-  return dot(
-    coefficients(w1),
-    (coefficients(w2) * _cartan_symmetrizer_mat(R)) * cartan_matrix_inv(R),
-  )
-end
-
-function expressify(w::WeightLatticeElem; context=nothing)
-  if is_unicode_allowed()
-    return expressify(w, :ω; context)
-  else
-    return expressify(w, :w; context)
-  end
-end
-
-function expressify(w::WeightLatticeElem, s; context=nothing)
-  sum = Expr(:call, :+)
-  for i in 1:length(w.vec)
-    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$(s)_$(i)"))
-  end
-  return sum
-end
-@enable_all_show_via_expressify WeightLatticeElem
-
-function is_dominant(w::WeightLatticeElem)
-  return all(>=(0), coefficients(w))
-end
-
-@doc raw"""
-    reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
-    
-Return the `w` reflected at the `s`-th simple root.
-"""
-function reflect(w::WeightLatticeElem, s::Int)
-  return reflect!(deepcopy(w), s)
-end
-
-@doc raw"""
-    reflect!(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
-    
-Reflects the `w` at the `s`-th simple root in place and returns `w`.
-"""
-function reflect!(w::WeightLatticeElem, s::Int)
-  w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
-  return w
-end
-
-function root_system(w::WeightLatticeElem)
-  return w.root_system
 end
 
 ###############################################################################
@@ -1294,7 +1468,7 @@ Compute the dimension of the simple module of the Lie algebra defined by the roo
 with highest weight `hw` using Weyl's dimension formula.
 The return value is of type `T`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1302,6 +1476,10 @@ julia> dim_of_simple_module(R, [1, 0])
 5
 ```
 """
+function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, R, hw)
+end
+
 function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
@@ -1321,49 +1499,35 @@ function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion}
 end
 
 function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(Int, R, hw)
-end
-
-function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
-  return dim_of_simple_module(Int, R, hw)
+  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
 end
 
 @doc raw"""
-    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
-    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+    dominant_weights(R::RootSystem, hw::WeightLatticeElem) -> Vector{WeightLatticeElem}
+    dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{WeightLatticeElem}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`,
 sorted ascendingly by the total height of roots needed to reach them from `hw`.
 
-When supplying `T = Vector{Int}`, the weights are returned as vectors of integers.
-
 See [MP82](@cite) for details and the implemented algorithm.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
-7-element Vector{Vector{Int64}}:
- [3, 0, 1]
- [1, 1, 1]
- [0, 0, 3]
- [2, 0, 1]
- [0, 1, 1]
- [1, 0, 1]
- [0, 0, 1]
+julia> dominant_weights(R, [3, 0, 1])
+7-element Vector{WeightLatticeElem}:
+ 3*w_1 + w_3
+ w_1 + w_2 + w_3
+ 2*w_1 + w_3
+ 3*w_3
+ w_2 + w_3
+ w_1 + w_3
+ w_3
 ```
 """
 function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
-  return dominant_weights(WeightLatticeElem, R, hw)
-end
-
-function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(::Type{WeightLatticeElem}, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
 
@@ -1388,15 +1552,8 @@ function dominant_weights(::Type{WeightLatticeElem}, R::RootSystem, hw::WeightLa
   return first.(sort!(collect(ws_with_level); by=last)) # order by level needed for dominant_character
 end
 
-function dominant_weights(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(T, R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(
-  ::Type{T}, R::RootSystem, hw::WeightLatticeElem
-) where {T<:Vector{<:IntegerUnion}}
-  weights = dominant_weights(WeightLatticeElem, R, hw)
-  return [T(_vec(coefficients(w))) for w in weights]
+function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_weights(R, WeightLatticeElem(R, hw))
 end
 
 function _action_matrices_on_weights(W::WeylGroup)
@@ -1404,45 +1561,37 @@ function _action_matrices_on_weights(W::WeylGroup)
   return map(1:rank(R)) do i
     x = gen(W, i)
     matrix(
-      ZZ, reduce(vcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
+      ZZ, reduce(vcat, coefficients(fundamental_weight(R, j) * x) for j in 1:rank(R))
     )
   end
 end
 
 @doc raw"""
-    dominant_character(R::RootSystem, hw::WeightLatticeElem) -> Dict{Vector{Int}, Int}
-    dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}}
+    dominant_character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
+    dominant_character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`, together with their multiplicities.
 
-The return type may change in the future.
-
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
 julia> dominant_character(R, [2, 0, 1])
-Dict{Vector{Int64}, Int64} with 4 entries:
-  [1, 0, 1] => 3
-  [0, 0, 1] => 6
-  [2, 0, 1] => 1
-  [0, 1, 1] => 1
+Dict{WeightLatticeElem, Int64} with 4 entries:
+  w_2 + w_3   => 1
+  2*w_1 + w_3 => 1
+  w_1 + w_3   => 3
+  w_3         => 6
 ```
 """
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  char = _dominant_character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return dominant_character(Int, R, hw)
 end
 
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
-end
-
-function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  T = Int
+function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
@@ -1460,7 +1609,7 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   all_orbs = Dict{Vector{Int},Vector{Tuple{WeightLatticeElem,Int}}}()
   action_matrices_on_weights = _action_matrices_on_weights(W)
 
-  for w in Iterators.drop(todo, 1)
+  for w in Iterators.drop(todo, 1) # drop hw as its multiplicity is already known
     stab_inds = [i for (i, ci) in enumerate(coefficients(w)) if iszero(ci)]
     orbs = get!(all_orbs, stab_inds) do
       gens = action_matrices_on_weights[stab_inds]
@@ -1502,46 +1651,46 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
+function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(R, WeightLatticeElem(R, hw))
+end
+
+function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(T, R, WeightLatticeElem(R, hw))
+end
+
 @doc raw"""
-    character(R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
-    character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+    character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
+    character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes all weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`, together with their multiplicities.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
 
-The return type may change in the future.
-
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
 julia> character(R, [0, 0, 1])
-Dict{Vector{Int64}, Int64} with 8 entries:
-  [0, 1, -1]  => 1
-  [-1, 1, -1] => 1
-  [0, 0, 1]   => 1
-  [1, -1, 1]  => 1
-  [-1, 0, 1]  => 1
-  [1, 0, -1]  => 1
-  [0, 0, -1]  => 1
-  [0, -1, 1]  => 1
+Dict{WeightLatticeElem, Int64} with 8 entries:
+  -w_1 + w_2 - w_3 => 1
+  w_1 - w_3        => 1
+  -w_2 + w_3       => 1
+  w_3              => 1
+  w_2 - w_3        => 1
+  -w_3             => 1
+  w_1 - w_2 + w_3  => 1
+  -w_1 + w_3       => 1
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)
-  char = _character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return character(Int, R, hw)
 end
 
-function character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(R, WeightLatticeElem(R, hw))
-end
-
-function _character(R::RootSystem, hw::WeightLatticeElem)
-  T = Int
+function character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
-  dom_char = _dominant_character(R, hw)
+  dom_char = dominant_character(T, R, hw)
   char = Dict{WeightLatticeElem,T}()
 
   for (w, m) in dom_char
@@ -1551,6 +1700,14 @@ function _character(R::RootSystem, hw::WeightLatticeElem)
   end
 
   return char
+end
+
+function character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(R, WeightLatticeElem(R, hw))
+end
+
+function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(T, R, WeightLatticeElem(R, hw))
 end
 
 @doc raw"""
@@ -1563,7 +1720,7 @@ This function uses Klymik's formula.
 
 The return type may change in the future.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1597,7 +1754,7 @@ function tensor_product_decomposition(
 
   mults = multiset(WeightLatticeElem)
   for (w_, m) in dominant_character(R, hw1)
-    for w in weyl_orbit(WeightLatticeElem(R, w_))
+    for w in weyl_orbit(w_)
       add!(w, hw2_plus_rho)
       w_dom, x = conjugate_dominant_weight_with_elem!(w)
       if all(!iszero, coefficients(w_dom))
@@ -1620,6 +1777,142 @@ function tensor_product_decomposition(
   return tensor_product_decomposition(
     R, WeightLatticeElem(R, hw1), WeightLatticeElem(R, hw2)
   )
+end
+
+###############################################################################
+# demazures character formula
+function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  fl, index_of_r = is_simple_root_with_index(r)
+  @req fl "not a simple root"
+
+  d = 2 * dot(w, r)//dot(r, r)
+  list_of_occuring_weights = WeightLatticeElem[]
+
+  refl = reflect(w, index_of_r)
+
+  wlelem_r = WeightLatticeElem(r)
+  if d > -1
+    while w != refl
+      push!(list_of_occuring_weights, w)
+      w -= wlelem_r
+    end
+    push!(list_of_occuring_weights, w)
+    return 1, list_of_occuring_weights
+  elseif d < -1
+    w += wlelem_r
+    push!(list_of_occuring_weights, w)
+    while w != refl - wlelem_r
+      w += wlelem_r
+      push!(list_of_occuring_weights, w)
+    end
+    return -1, list_of_occuring_weights
+  else
+    return 0, list_of_occuring_weights
+  end
+end
+
+function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(r, Dict(w => 1))
+end
+
+function demazure_operator(
+  r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
+)
+  dict = empty(groupringelem)
+  for (w, dim) in groupringelem
+    sign, weights = _demazure_operator(r, w)
+    for w_ in weights
+      val = get(dict, w_, 0) + sign * dim
+      if is_zero(val)
+        delete!(dict, w_)
+      else
+        dict[w_] = val
+      end
+    end
+  end
+  return dict
+end
+
+@doc raw"""
+    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+
+Computes all weights occurring in the Demazure module of the Lie algebra defined by the root system `R`
+with extremal weight `w * x`, together with their multiplicities.
+
+Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
+This function may return arbitrary results if the provided expression is not reduced.
+
+# Examples
+```jldoctest
+julia> R = root_system(:B, 3);
+
+julia> demazure_character(R, [0, 1, 0], [1, 2, 3])
+Dict{WeightLatticeElem, Int64} with 4 entries:
+  w_1 + w_2 - 2*w_3 => 1
+  w_1               => 1
+  w_1 - w_2 + 2*w_3 => 1
+  w_2               => 1
+```
+"""
+function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return demazure_character(R, w, word(x))
+end
+
+function demazure_character(
+  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
+)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return demazure_character(T, R, w, word(x))
+end
+
+function demazure_character(
+  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(Int, R, w, reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  R::RootSystem,
+  w::WeightLatticeElem,
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  @req root_system(w) === R "parent root system mismatch"
+  @req is_dominant(w) "not a dominant weight"
+  char = Dict{WeightLatticeElem,T}(w => T(1))
+  for i in reduced_expression
+    char = demazure_operator(simple_root(root_system(w), Int(i)), char)
+  end
+  return char
+end
+
+function demazure_character(R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem)
+  return demazure_character(R, WeightLatticeElem(R, w), x)
+end
+
+function demazure_character(
+  T::DataType, R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem
+)
+  return demazure_character(T, R, WeightLatticeElem(R, w), x)
+end
+
+function demazure_character(
+  R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(R, WeightLatticeElem(R, w), reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  R::RootSystem,
+  w::Vector{<:IntegerUnion},
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  return demazure_character(T, R, WeightLatticeElem(R, w), reduced_expression)
 end
 
 ###############################################################################
