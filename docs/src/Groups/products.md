@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -10,7 +11,7 @@ DocTestSetup = Oscar.doctestsetup()
 ```@docs
 DirectProductGroup
 direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
-inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,FPGroup}
+inner_direct_product(L::AbstractVector{T}; morphisms=false) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}
 number_of_factors(G::DirectProductGroup)
 cartesian_power(G::GAPGroup, n::Int)
 inner_cartesian_power(G::T, n::Int; morphisms=false) where T<: GAPGroup
@@ -41,11 +42,11 @@ canonical_projection(G::SemidirectProductGroup)
 ```@docs
 WreathProductGroup
 wreath_product(G::T, H::PermGroup) where T<: GAPGroup
-normal_subgroup(W::WreathProductGroup)
-acting_subgroup(W::WreathProductGroup)
-homomorphism_of_wreath_product(G::WreathProductGroup)
-is_full_wreath_product(G::WreathProductGroup)
-canonical_projection(W::WreathProductGroup)
-canonical_injection(W::WreathProductGroup, n::Int)
-canonical_injections(W::WreathProductGroup)
+normal_subgroup(::WreathProductGroup)
+acting_subgroup(::WreathProductGroup)
+homomorphism_of_wreath_product(::WreathProductGroup)
+is_full_wreath_product(::WreathProductGroup)
+canonical_projection(::WreathProductGroup)
+canonical_injection(::WreathProductGroup, ::Int)
+canonical_injections(::WreathProductGroup)
 ```

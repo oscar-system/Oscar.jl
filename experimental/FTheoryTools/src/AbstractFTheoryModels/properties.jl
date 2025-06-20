@@ -98,8 +98,9 @@ has_weighted_resolution_generating_sections(m::AbstractFTheoryModel) = has_attri
 has_weighted_resolution_zero_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_zero_sections)
 has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
 has_zero_section_class(m::AbstractFTheoryModel) = has_attribute(m, :zero_section_class)
+has_torsion_sections(m::AbstractFTheoryModel) = has_attribute(m, :torsion_sections)
 has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
-has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
+has_global_gauge_group_quotient(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
 
 
 
@@ -120,11 +121,11 @@ raises an error.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> verify_euler_characteristic_from_hodge_numbers(qsm_model, check = false)
+julia> verify_euler_characteristic_from_hodge_numbers(qsm_model; check = false)
 true
 ```
 """
-function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+@attr Bool function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verification of Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
@@ -135,16 +136,14 @@ function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel;
   @req has_attribute(m, :h13) "Verification of Euler characteristic of F-theory model requires h13"
   @req has_attribute(m, :h22) "Verification of Euler characteristic of F-theory model requires h22"
 
-  return get_attribute!(m, :verify_euler_characteristic_from_hodge_numbers) do
-    # Computer Euler characteristic from integrating c4
-    ec = euler_characteristic(m, check = check)
+  # Computer Euler characteristic from integrating c4
+  ec = euler_characteristic(m; check)
 
-    # Compute Euler characteristic from adding Hodge numbers
-    ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
+  # Compute Euler characteristic from adding Hodge numbers
+  ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
 
-    # Compute result of verification
-    return ec == ec2
-  end::Bool
+  # Compute result of verification
+  return ec == ec2
 end
 
 
@@ -169,11 +168,9 @@ julia> is_calabi_yau(qsm_model, check = false)
 true
 ```
 """
-function is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
+@attr Bool function is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verification of Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
-  return get_attribute!(m, :is_calabi_yau) do
-    return is_trivial(chern_class(m, 1, check = check))
-  end::Bool
+  return is_trivial(chern_class(m, 1; check))
 end

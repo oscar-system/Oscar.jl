@@ -44,6 +44,8 @@ result = 0
     "src/InvariantTheory",
     "src/PolyhedralGeometry",
     "test/PolyhedralGeometry",
+    "src/LieTheory",
+    "test/LieTheory",
     "src/aliases.jl",
     "experimental/BasisLieHighestWeight",
     "experimental/ExperimentalTemplate",

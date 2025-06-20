@@ -17,7 +17,7 @@ import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
 import ..Oscar: pretty, Lowercase
 
 import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
-  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
+  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_perfect, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
 """
@@ -45,6 +45,7 @@ base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
 base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
+is_perfect(::AlgClosure) = true
 
 struct AlgClosureElem{T} <: FieldElem
   # T <: FinField
@@ -239,7 +240,7 @@ function minimize(::Type{FinField}, a::AbstractArray{<:AlgClosureElem})
   if length(a) == 0
     return a
   end
-  @assert all(x->parent(x) == parent(a[1]), a)
+  @assert allequal(parent, a)
   da = map(degree, a)
   l = reduce(lcm, da)
   k = ext_of_degree(parent(a[1]), l)
@@ -300,7 +301,7 @@ cached in `K`.
 
 # Examples
 ```jldoctest; setup = :(using Oscar)
-julia> K = algebraic_closure(GF(3, 1));
+julia> K = algebraic_closure(GF(3));
 
 julia> F2 = ext_of_degree(K, 2);
 
@@ -328,6 +329,12 @@ function has_preimage_with_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgC
   return true, preimage(mp, elm)
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(K::AlgClosure{T}) where T <: FinField
+  d = rand(1:8)
+  F = ext_of_degree(K, d)
+  return K(rand(F))
+end
 
 end # AlgClosureFp
 

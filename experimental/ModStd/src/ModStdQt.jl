@@ -8,11 +8,11 @@ function __init__()
   Hecke.add_verbosity_scope(:ModStdQt)
 end
 
-function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
+function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; error_tolerant::Bool = false)
   n = evaluate(numerator(f), v)
   d = evaluate(denominator(f), v)
   if iszero(d) 
-    if ErrorTolerant
+    if error_tolerant
       return n//1
     else
       throw(DivideError())
@@ -33,8 +33,8 @@ function points(p::Vector{T}, j::Int, z::Vector{T}, s::Vector{T}) where {T}
   return [[[pp[i]^l*zz[k]+ss[i] for i=1:length(pp)] for k=1:length(z)] for l=0:j]
 end
 
-function eval(f::FracElem{QQMPolyRingElem}, pt; ErrorTolerant::Bool = false)
-  return [[evaluate(f, x, ErrorTolerant= ErrorTolerant) for x = y] for y = pt]
+function eval(f::FracElem{QQMPolyRingElem}, pt; error_tolerant::Bool = false)
+  return [[evaluate(f, x, error_tolerant= error_tolerant) for x = y] for y = pt]
 end
 =#
 
@@ -77,8 +77,8 @@ end
 #does not exist in general... why
 Hecke.rem!(a::T, b::T, c::T) where {T <: RingElem} = rem(b, c)
 
-function Oscar.rational_reconstruction(f::PolyRingElem, I::InterpolateCtx; ErrorTolerant::Bool = false)
-  return rational_reconstruction(f, prod(I.C), ErrorTolerant = ErrorTolerant)
+function Oscar.rational_reconstruction(f::PolyRingElem, I::InterpolateCtx; error_tolerant::Bool = false)
+  return rational_reconstruction(f, prod(I.C), error_tolerant = error_tolerant)
 end
 
 """
@@ -112,8 +112,8 @@ mutable struct MPolyPt{T}
 end
 
 #=
-function eval(f::FracElem{QQMPolyRingElem}, P::MPolyPt; ErrorTolerant::Bool = false)
-  return eval(f, points(P.pt_p, P.j, P.pt_z, P.pt_s), ErrorTolerant = ErrorTolerant)
+function eval(f::FracElem{QQMPolyRingElem}, P::MPolyPt; error_tolerant::Bool = false)
+  return eval(f, points(P.pt_p, P.j, P.pt_z, P.pt_s), error_tolerant = error_tolerant)
 end
 =#
 
@@ -188,7 +188,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
       if is_integral(M)
         mu = (true, f, parent(f)(1))
       else
-        mu = rational_reconstruction(f, M.I, ErrorTolerant = true)
+        mu = rational_reconstruction(f, M.I, error_tolerant = true)
       end
       if !mu[1]
         set_status!(M, :univariate_failed)
@@ -208,7 +208,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
   for ii = 1:2
     cor = elem_type(Qx)[zero(Qx) for i=1:length(nd)]
     for i=maximum(degree(x[ii]) for x = nd):-1:0
-      bm = berlekamp_massey([coeff(nd[x][ii]-cor[x], i) for x = 1:length(nd)], ErrorTolerant = true)
+      bm = berlekamp_massey([coeff(nd[x][ii]-cor[x], i) for x = 1:length(nd)], error_tolerant = true)
       if !bm[1]
         set_status!(M, :BM_failed)
         return false, zero(M.R)
@@ -323,7 +323,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
       @vtime :ModStdQt 2 for g = gens(I)
         G = MPolyBuildCtx(Qy)
         for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
-          push_term!(G, evaluate(c, pt, ErrorTolerant = true), e)
+          push_term!(G, evaluate(c, pt, error_tolerant = true), e)
         end
         push!(gens_J, finish(G))
       end
@@ -596,7 +596,7 @@ Multivariate polynomial ring in 2 variables X[1], X[2]
 julia> parent(f[2][1])
 Multivariate polynomial ring in 2 variables X[1], X[2]
   over residue field of univariate polynomial ring modulo t^2 + a[1]
-```  
+```
 """
 function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
   Qtx = parent(f)                 # Q[t1,t2][x1,x2]

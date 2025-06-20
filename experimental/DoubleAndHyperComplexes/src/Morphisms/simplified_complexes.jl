@@ -208,9 +208,9 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     for i in 1:m
       w = Sinv[i]
       v = zero(new_dom)
-      for j in 1:length(I)
-        a = w[I[j]]
-        !iszero(a) && (v += a*new_dom[j])
+      for (j, ind) in enumerate(I)
+        success, a = _has_index(w, ind)
+        success && (v += a*new_dom[j])
       end
       push!(img_gens_dom, v)
     end
@@ -401,13 +401,13 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
   # Initialize the base change matrices in domain and codomain
   S = sparse_matrix(R, m, m)
   for i in 1:m
-    S[i] = sparse_row(R, [(i, one(R))])
+    S[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Sinv_transp = deepcopy(S)
 
   T = sparse_matrix(R, n, n)
   for i in 1:n
-    T[i] = sparse_row(R, [(i, one(R))])
+    T[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Tinv_transp = deepcopy(T)
 
@@ -479,7 +479,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # been treated.
 
     a_row = deepcopy(A[p])
-    a_row_del = a_row - sparse_row(R, [(q, u)])
+    a_row_del = a_row - sparse_row(R, [(q, u)]; sort=false)
 
     col_entries = Vector{Tuple{Int, elem_type(R)}}()
     for i in 1:m
@@ -488,8 +488,8 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
       success, c = _has_index(A, i, q)
       success && push!(col_entries, (i, c::elem_type(R)))
     end
-    a_col = sparse_row(R, col_entries)
-    a_col_del = a_col - sparse_row(R, [(p, u)])
+    a_col = sparse_row(R, col_entries; sort=false)
+    a_col_del = a_col - sparse_row(R, [(p, u)]; sort=false)
 
     uinv = inv(u)
 
@@ -643,20 +643,12 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   if !isdefined(und, :boundary_cache) 
     und.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(und.boundary_cache, (i, p))
-    inc = und.boundary_cache[(i, p)]
-    return domain(inc), inc
+  inc = get!(und.boundary_cache, (i, p)) do
+    orig_boundary, orig_inc = boundary(c.original_complex, p, i)
+    from_orig = map_from_original_complex(c)[i]
+    sub(c[i], filter!(!is_zero, from_orig.(orig_inc.(gens(orig_boundary)))))[2]
   end
-
-  # compute the boundary from scratch
-  orig_boundary, orig_inc = boundary(c.original_complex, p, i)
-  from_orig = map_from_original_complex(c)[i]
-  result, inc = sub(c[i], from_orig.(orig_inc.(gens(orig_boundary))))
-
-  # Cache the result
-  und.boundary_cache[(i, p)] = inc
-
-  return result, inc
+  return domain(inc), inc
 end
 
 function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
@@ -665,23 +657,19 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   if !isdefined(c, :kernel_cache) 
     c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(c.kernel_cache, (i, p))
-    inc = c.kernel_cache[(i, p)]
-    return domain(inc), inc
-  end
 
-  if !can_compute_map(simp, p, i)
-    M = simp[i]
-    K, inc = sub(simp[i], gens(simp[i]))
-    c.kernel_cache[(i, p)] = inc
-    return K, inc
-  end
+  inc = get!(c.kernel_cache, (i, p)) do
+    if !can_compute_map(simp, p, i)
+      M = simp[i]
+      return sub(simp[i], gens(simp[i]))[2]
+    end
 
-  psi = map_to_original_complex(simp)[i]
-  phi = map(original_complex(simp), p, i)
-  K, inc = kernel(compose(psi, phi))
-  c.kernel_cache[(i, p)] = inc
-  return K, inc
+    psi = map_to_original_complex(simp)[i]
+    phi = map(original_complex(simp), p, i)
+    kernel(compose(psi, phi))[2]
+  end
+  
+  return domain(inc), inc
 end
 
 function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}

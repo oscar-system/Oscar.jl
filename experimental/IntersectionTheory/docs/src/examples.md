@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -18,6 +19,7 @@ julia> integral(s1^4)
 2
 
 ```
+
 #### How Many Conics in $\mathbb P^3$ Meet Eight General Lines in $\mathbb P^3$?
 
 ```jldoctest
@@ -30,7 +32,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 3
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 3
 
-julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
+julia> PF = projective_bundle(F) # the parameter space of conics in P3
 AbstractVariety of dim 8
 
 julia> UQB = tautological_bundles(G)[2]
@@ -68,7 +70,7 @@ H
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blowup(i)
+julia> Bl, E, j = blow_up(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))
@@ -93,7 +95,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
-julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
+julia> PF = projective_bundle(F) # the parameter space of conics in P3
 AbstractVariety of dim 11
 
 julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)

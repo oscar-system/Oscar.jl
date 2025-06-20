@@ -59,6 +59,24 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\1 \2")
       lafter = length(result)
     end
+
+    # apply doctestfilters. this is heavily inspired by https://github.com/JuliaDocs/Documenter.jl/blob/9b27810d5e1875124a92f7a735a36ecd52c9ea42/src/doctests.jl#L309
+    # but we don't require a filter to match on both in- and output to be applied
+    for rs in Oscar.doctestfilters()
+      # If a doctest filter is just a string or regex, everything that matches gets
+      # removed before comparing the inputs and outputs of a doctest. However, it can
+      # also be a regex => substitution pair in which case the match gets replaced by
+      # the substitution string.
+      r, s = if isa(rs, Pair{Regex, T} where {T <: AbstractString})
+        rs
+      elseif isa(rs, Regex) || isa(rs, AbstractString)
+        rs, ""
+      else
+        error("Invalid doctest filter:\n$rs :: $(typeof(rs))")
+      end
+      result = replace(result, r => s)
+    end
+
     return strip(result)
   end
 
@@ -124,7 +142,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       mockdule = Module(sym)
       # make it accessible from Main
       @eval Main global $sym::Module
-      setproperty!(Main, sym, mockdule)
+      invokelatest(setproperty!, Main, sym, mockdule)
       Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
       Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
 

@@ -131,7 +131,7 @@ end
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx # Singular Poly Ring or Algebra, poss. with different ordering
+  Sx::NCRing # Singular Poly Ring or Algebra, poss. with different ordering
   f #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
@@ -174,8 +174,7 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false, isReduced::Bool = false) where {T <: NCRingElem}
-    r = new{T}()
-    r.gens = BiPolyArray(Ox, O)
+    r = new{T}(BiPolyArray(Ox, O))
     r.ord = ordering
     r.isGB = isGB
     r.isReduced = isReduced
@@ -184,9 +183,8 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
-    r = new{T}()
+    r = new{T}(BiPolyArray(Ox, O))
     r.isGB = false
-    r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
   end
@@ -206,41 +204,6 @@ mutable struct IdealGens{S}
       end
       r.keep_ordering = true
       return r
-  end
-end
-
-function Base.getproperty(idealgens::IdealGens, name::Symbol)
-  if name == :Ox
-    return getfield(idealgens, :gens).Ox
-  elseif name == :O
-    return getfield(idealgens, :gens).O
-  elseif name == :Sx
-    return getfield(idealgens, :gens).Sx
-  elseif name == :S
-    #singular_assure(idealgens)
-    return getfield(idealgens, :gens).S
-  elseif name == :gens
-    return getfield(idealgens, name)
-  elseif name == :isGB
-    return getfield(idealgens, name)
-  elseif name == :isReduced
-    return getfield(idealgens, name)
-  elseif name == :ord
-    return getfield(idealgens, name)
-  elseif name == :keep_ordering
-    return getfield(idealgens, name)
-  else
-    error("undefined property: ", name)
-  end
-end
-
-function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
-  if name == :Ox || name == :O || name == :Sx || name == :S
-    setfield!(idealgens.gens, name, x)
-  elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
-    setfield!(idealgens, name, x)
-  else
-    error("undefined property: ", name)
   end
 end
 
@@ -380,11 +343,11 @@ end
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
-  isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
-  g = iso_oscar_singular_poly_ring(B.Ox, monorder)
+  isa(base_ring(B), MPolyQuoRing) && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gens.S))) == B.ord && return B.gens.S
+  g = iso_oscar_singular_poly_ring(base_ring(B), monorder)
   SR = codomain(g)
-  f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
+  f = Singular.AlgebraHomomorphism(B.gens.Sx, SR, gens(SR))
   S = Singular.map_ideal(f, B.gens.S)
   if isdefined(B, :ord) && B.ord == monorder
     S.isGB = B.isGB
@@ -509,56 +472,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AbsSimpleNumField)
-  minpoly = defining_polynomial(K)
-  Qa = parent(minpoly)
-  a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, _variables_for_singular(symbols(Qa)))
-  Sminpoly = SQa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SQa(coeff(minpoly, i))*Sa^i
-  end
-  SK, _ = Singular.AlgebraicExtensionField(SQa, Sminpoly)
-  return SK
-end
-
-function singular_coeff_ring(F::fqPolyRepField)
-  # TODO: the Fp(Int(char)) can throw
-  minpoly = modulus(F)
-  Fa = parent(minpoly)
-  SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    _variables_for_singular(symbols(Fa)))
-  Sminpoly = SFa(coeff(minpoly, 0))
-  for i in 1:degree(minpoly)
-    Sminpoly += SFa(coeff(minpoly, i))*Sa^i
-  end
-  SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
-  return SF
-end
-
-# Nonsense for FqField (aka fq_default from flint)
-function singular_coeff_ring(F::FqField)
-  # we are way beyond type stability, so just do what you want
-  @assert is_absolute(F)
-  ctx = Nemo._fq_default_ctx_type(F)
-  if ctx == Nemo._FQ_DEFAULT_NMOD
-    return Singular.Fp(Int(characteristic(F)))
-  elseif nbits(characteristic(F)) <= 29
-    # TODO: the Fp(Int(char)) can throw
-    minpoly = modulus(F)
-    Fa = parent(minpoly)
-    SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                        _variables_for_singular(symbols(Fa)))
-    Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
-    for i in 1:degree(minpoly)
-      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
-    end
-    SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
-    return SF
-  else
-    return Singular.CoefficientRing(F)
-  end
-end
+singular_coeff_ring(R::Union{AbsSimpleNumField, fqPolyRepField, FqField}) = codomain(iso_oscar_singular_coeff_ring(R))
 
 function (K::FqField)(a::Singular.n_algExt)
   SK = parent(a)
@@ -577,10 +491,12 @@ end
 
 function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
   F = parent(a)
-  SFa = gen(SF)
+  Sa = gen(SF)
   res = SF(lift(ZZ, coeff(a, 0)))
+  var = one(SF)
   for i in 1:degree(F)-1
-    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+    var = mul!(var, Sa)
+    res = addmul!(res, SF(lift(ZZ, coeff(a, i))), var)
   end
   return res
 end
@@ -615,10 +531,12 @@ end
 
 function (SF::Singular.N_AlgExtField)(a::fqPolyRepFieldElem)
   F = parent(a)
-  SFa = gen(SF)
+  Sa = gen(SF)
   res = SF(coeff(a, 0))
+  var = one(SF)
   for i in 1:degree(F)-1
-    res += SF(coeff(a, i))*SFa^i
+    var = mul!(var, Sa)
+    res = addmul!(res, SF(coeff(a, i)), var)
   end
   return res
 end
@@ -661,7 +579,7 @@ Fields:
 @attributes mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::IdealGens{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
-  dim::Int
+  dim::Union{Int, NegInf, Nothing}
 
   function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyRingElem}
     return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
@@ -681,14 +599,14 @@ Fields:
   function MPolyIdeal(B::IdealGens{T}) where T
     if length(B) >= 1
       oscar_assure(B)
-      R = B.gens.Ox
+      R = base_ring(B)
       if is_graded(R)
-        @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
+        @req all(is_homogeneous, B.gens.O) "The generators of an ideal in a graded ring must be homogeneous"
       end
     end
     r = new{T}()
     r.gens = B
-    r.dim = -1
+    r.dim = nothing
     r.gb = Dict()
     if B.isGB
       r.gb[B.ord] = B
@@ -721,55 +639,22 @@ function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord
   return (singular_generators(G, monorder)).base_ring
 end
 
-function singular_assure(I::BiPolyArray)
-  if !isdefined(I, :S)
-    I.Sx = singular_poly_ring(I.Ox)
-    I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-  end
-end
-
 function singular_assure(I::IdealGens)
   if !isdefined(I.gens, :S)
-    g = iso_oscar_singular_poly_ring(I.Ox; keep_ordering = I.keep_ordering)
+    g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
     I.gens.Sx = codomain(g)
     I.gens.f = g
     I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x = I.gens.O])
   end
-  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(I.gens.Ox, internal_ordering(I.gens.Sx)))
+  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
-  end
-end
-
-# will be removed TODO
-function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
-   singular_assure(I.gens, ordering)
-end
-
-# will be removed TODO
-function singular_assure(I::IdealGens, ordering::MonomialOrdering)
-  if !isdefined(I.gens, :S)
-      I.ord = ordering
-      I.gens.Sx = singular_poly_ring(I.Ox, ordering)
-      I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-      if I.isGB
-          I.gens.S.isGB = true
-      end
-  else
-      #= singular ideal exists, but the singular ring has the wrong ordering
-       = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering
-          I.ord = ordering
-          SR    = singular_poly_ring(I.Ox, ordering)
-          f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
-          I.gens.S   = Singular.map_ideal(f, I.S)
-          I.gens.Sx  = SR
-      end
   end
 end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens.gens, :O)
-    I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
+    R = base_ring(I)
+    I.gens.gens.O = [R(x) for x in gens(I.gens.gens.S)]
   end
 end
 
@@ -1236,6 +1121,7 @@ end
 
 @doc raw"""
     divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
+
 Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
 for each polynomial in b, and a polynomial ri such that
 a[i] = sum_i b[i]*qi + ri.
@@ -1261,7 +1147,7 @@ function _is_integral_domain(R::MPolyRing)
 end
 
 @doc raw"""
-    total_degree(f::MPolyRingElem, w::Vector{Int})
+    weighted_degree(f::MPolyRingElem, w::Vector{Int})
 
 Given a multivariate polynomial `f` and a weight vector `w`
 return the total degree of `f` with respect to the weights `w`.

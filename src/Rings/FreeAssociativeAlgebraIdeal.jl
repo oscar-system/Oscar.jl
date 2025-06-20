@@ -25,7 +25,9 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
   end
 end
 
-Base.show(io::IO, a::FreeAssociativeAlgebraIdeal) = print(io, "Ideal of ", base_ring(a), " with ", number_of_generators(a), " generators")
+function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
+  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
+end
 
 function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
   return is_subset(I1,I2) && is_subset(I2,I1)
@@ -57,7 +59,7 @@ end
 
 
 function base_ring(I::FreeAssociativeAlgebraIdeal{T}) where T
-  return I.gens.Ox::parent_type(T)
+  return base_ring(I.gens)::parent_type(T)
 end
 
 function base_ring_type(::Type{<:FreeAssociativeAlgebraIdeal{T}}) where T
@@ -94,7 +96,7 @@ AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAs
 @doc raw"""
     ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
 
-Returns `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
+Return `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
 Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_bound`s give more confidence in a negative answer. 
 If `deg_bound` is not specified, the default value is `-1`, which means that no degree bound is imposed,
 resulting in a calculation using a much slower algorithm that may not terminate, but will return a full Groebner basis if it does.

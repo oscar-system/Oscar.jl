@@ -329,36 +329,88 @@ function is_welldefined(H::SubQuoHom)
   return true
 end
 
-function (==)(f::ModuleFPHom, g::ModuleFPHom)
+# An internal function comparing only the trivial things beyond potential `ring_map`s.
+function _cmp_internal(f::ModuleFPHom, g::ModuleFPHom)
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  M = domain(f)
-  for v in gens(M)
-    f(v) == g(v) || return false
-  end
-  return true
+  return all(f(v) == g(v) for v in gens(domain(f)))
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
-  b = 0x535bbdbb2bc54b46 % UInt
+# No ring map
+function (==)(f::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+  return _cmp_internal(f, g)
+end
+
+# With ring map
+#
+# Comparing ring maps is tricky, because for several types/implementations 
+# there is no algorithm to do that (think of using a julia-function and 
+# deciding what it does mathematically). Therefore we default to `is_equal_as_morphism`
+# to handle comparisons in a mathematically correct way or throw an error. 
+# If in doubt, one needs to introduce more methods for that function.
+
+function (==)(
+              f::ModuleFPHom{D, C, Nothing}, 
+              g::ModuleFPHom{D, C, <:Map}
+             ) where {D, C}
+  is_trivial(ring_map(g)) || return false
+  return _cmp_internal(f, g)
+end
+
+function (==)(
+              f::ModuleFPHom{D, C, <:Map}, 
+              g::ModuleFPHom{D, C, Nothing}
+             ) where {D, C}
+  is_trivial(ring_map(f)) || return false
+  return _cmp_internal(f, g)
+end
+
+function (==)(f::ModuleFPHom, g::ModuleFPHom)
+  _cmp_internal(f, g) || return false
+  return is_equal_as_morphism(ring_map(g), ring_map(f))
+end
+
+# Internal hash function to hash the trivially accessible information.
+# Then there might be more refined stuff in particular cases.
+function _hash_internal(f::ModuleFPHom, h::UInt)
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
   h = hash(codomain(f), h)
+  return h
+end
+
+# morphism over polynomial ring, no ring_map
+function Base.hash(f::ModuleFPHom{D, <:ModuleFP, Nothing}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, D<:ModuleFP{S}}
+  h = _hash_internal(f, h)
   for g in images_of_generators(f)
     h = hash(g, h)
   end
+  b = 0x535bbdbb2bc54b46 % UInt
   return xor(h, b)
 end
 
-function Base.hash(f::ModuleFPHom, h::UInt)
+function Base.hash(f::ModuleFPHom{D, <:ModuleFP, <:Map}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, D<:ModuleFP{S}}
+  h = _hash_internal(f, h)
+  h = hash(ring_map(f), h)
+  for g in images_of_generators(f)
+    h = hash(g, h)
+  end
   b = 0x535bbdbb2bc54b46 % UInt
-  h = hash(typeof(f), h)
-  h = hash(domain(f), h)
-  h = hash(codomain(f), h)
-  # We can not assume that the images of generators
-  # have a hash in general
   return xor(h, b)
 end
+
+# the generic case with abitrary `ring_map`
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  return xor(_hash_internal(f, h), b)
+end
+
+# the generic case with a `Map` as `ring_map` (for which we assume hashing to be implemented)
+function Base.hash(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, <:Map}, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  return xor(hash(ring_map(f), _hash_internal(f, h)), b)
+end
+
 ###################################################################
 
 @doc raw"""
@@ -1079,8 +1131,8 @@ function simplify_light(M::SubquoModule)
   M_gens = ambient_representatives_generators(M)
   M_rels = relations(M)
 
-  N_rels = unique(filter(!is_zero, M_rels))
-  N_gens = unique(setdiff(filter(!is_zero, M_gens), N_rels))
+  N_rels = unique!(filter(!is_zero, M_rels))
+  N_gens = unique!(setdiff!(filter(!is_zero, M_gens), N_rels))
 
   N = length(N_rels) == 0 ? SubquoModule(ambient_free_module(M), N_gens) : SubquoModule(ambient_free_module(M), N_gens, N_rels)
 

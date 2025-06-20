@@ -36,10 +36,14 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(
+    R::AdmissibleModuleFPRing, p::Int, 
+    W::Vector{FinGenAbGroupElem}=[zero(grading_group(R)) for i in 1:p], 
+    name::String="e"
+  )
   @assert length(W) == p
   @assert is_graded(R)
-  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  all(parent(x) === grading_group(R) for x in W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
   M.d = W
   return M
@@ -1535,7 +1539,7 @@ function Base.show(io::IO, b::BettiTable)
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
 
       # figure out width of first column
-      L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
+      L = sort(unique!(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
       # 6 = length(degree); we take length of mi into account in case it is negative
@@ -2505,7 +2509,7 @@ end
     minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} 
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
-multivariate polynomial ring with coefficients in a field, return the Betti Table
+multivariate polynomial ring with coefficients in a field, return the Betti table
 of the minimal free resolution of `M`. Similarly for `A` and `I`.
 
 # Examples

@@ -32,7 +32,7 @@ with respect to the ordering
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
+  BA = IdealGens(base_ring(B), i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)
@@ -55,6 +55,7 @@ The keyword `algorithm` can be set to
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
+- `:markov` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -113,7 +114,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       R = base_ring(I)
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
-      gb = groebner_assure(K, degrevlex(S))
+      gb = standard_basis(K, ordering=degrevlex(S))
       # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
       H = homogenizer(S, "w")
       K_hom = H(K)
@@ -142,6 +143,11 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
+  elseif algorithm == :markov
+    @req all(i -> length(i) == 2, gens(I)) "Ideal needs to be a lattice ideal to use markov algorithm"
+    @req all(iszero, sum.(coefficients.(gens(I)))) "Ideal needs to be a lattice ideal to use markov algorithm"
+    @req all(x -> all(is_unit.(x)), coefficients.(gens(I))) "Ideal needs to be a lattice ideal to use markov algorithm"
+    I.gb[ordering] = _groebner4ti2(I, ordering)
   end
   return I.gb[ordering]
 end
@@ -240,3 +246,12 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
+
+function is_known(
+    ::typeof(groebner_basis), I::MPolyIdeal; 
+    ordering::Union{MonomialOrdering, Nothing}=nothing
+  )
+  ordering === nothing && return !is_empty(I.gb) # Check whether there is any groebner basis
+  return haskey(I.gb, ordering)
+end
+

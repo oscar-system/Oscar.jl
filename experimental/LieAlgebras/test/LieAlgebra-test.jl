@@ -1,14 +1,21 @@
 @testset "LieAlgebras.LieAlgebra" begin
   @testset "universal_enveloping_algebra" begin
-    L = special_linear_lie_algebra(QQ, 2)
+    let L = special_linear_lie_algebra(QQ, 2)
+      U, L_to_U = universal_enveloping_algebra(L)
+      e, f, h = basis(L)
+      @test L_to_U(e) * L_to_U(f) - L_to_U(f) * L_to_U(e) == L_to_U(h)
 
-    U, L_to_U = universal_enveloping_algebra(L)
-    e, f, h = basis(L)
-    @test L_to_U(e) * L_to_U(f) - L_to_U(f) * L_to_U(e) == L_to_U(h)
+      x = L(rand(-10:10, dim(L)))
+      y = L(rand(-10:10, dim(L)))
+      @test L_to_U(x) * L_to_U(y) - L_to_U(y) * L_to_U(x) == L_to_U(x * y)
+    end
 
-    x = L(rand(-10:10, dim(L)))
-    y = L(rand(-10:10, dim(L)))
-    @test L_to_U(x) * L_to_U(y) - L_to_U(y) * L_to_U(x) == L_to_U(x * y)
+    let L = general_linear_lie_algebra(QQ, 4)
+      U, L_to_U = universal_enveloping_algebra(L)
+      x = L(rand(-10:10, dim(L)))
+      y = L(rand(-10:10, dim(L)))
+      @test L_to_U(x) * L_to_U(y) - L_to_U(y) * L_to_U(x) == L_to_U(x * y)
+    end
   end
 
   @testset "Hum72, Exercise 2.2" begin
@@ -113,5 +120,21 @@
       [:x, :h, :y],
     )
     @test killing_matrix(L) == matrix(F, [0 0 4; 0 8 0; 4 0 0])
+  end
+
+  @testset "Semisimplicity" begin
+    L = special_linear_lie_algebra(QQ, 3)
+    @test is_semisimple(L)
+    L = special_orthogonal_lie_algebra(QQ, 3)
+    @test is_semisimple(L)
+    L = general_linear_lie_algebra(QQ, 3)
+    @test !is_semisimple(L)
+
+    L = special_linear_lie_algebra(GF(5), 3)
+    @test is_semisimple(L)
+    L = special_orthogonal_lie_algebra(GF(5), 3)
+    @test is_semisimple(L)
+    L = general_linear_lie_algebra(GF(5), 3)
+    @test_broken !is_semisimple(L)
   end
 end

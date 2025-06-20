@@ -57,7 +57,7 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   B = coefficient_ring(Bt)
 
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
-  Rt, t1 = polynomial_ring(R,:t)
+  Rt, t1 = polynomial_ring(R, :t, cached=false)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
   b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)
@@ -192,9 +192,9 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 #   end
 #   phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
 #   # TODO: Verify that the construction below also works and replace by that, eventually.
-#   phi_alt = compose(phi1, extend_domain_to_fraction_field(phi2))
+#   phi_alt = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
 #   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
-   phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+   phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   elseif iszero(2*P) # P is a 2-torsion section
     eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case3)
     #eqn1, phi1 = _conversion_case_3(X, u)
@@ -206,7 +206,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
-    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+    phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
     eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case2)
     #eqn1, phi1 = _conversion_case_2(X, u)
@@ -218,7 +218,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
-    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+    phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   end
 
   return eqn2, phi
@@ -231,7 +231,7 @@ Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
 ``O`` is the zero section, ``P`` is any section and ``V`` is vertical.
 
-Returns a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
+Return a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
 ``D <= D1 = (n-1)O + P + n_1F_1 + ... n_k F_k`` with ``l = n_1 + ... n_k`` minimal
 and the `F_i` are some other fibers.
 The rational function `c=c(t)` has divisor of zeros and poles``
@@ -869,7 +869,7 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
   cod = parent(a)::MPolyRing
 
   #phi = hom(R, cod, cod.([a, b]))
-  #Phi = extend_domain_to_fraction_field(phi)
+  #Phi = Hecke.extend_domain_to_fraction_field(phi)
   
   result = elliptic_surface(E2, 2)
   W = weierstrass_chart(result)
@@ -881,7 +881,7 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
   B = help_map(b)
 
   res_map = hom(parent(g), FR, t->evaluate(t, FR(R[3])), [A, B])
-  return result, extend_domain_to_fraction_field(res_map)
+  return result, Hecke.extend_domain_to_fraction_field(res_map)
 end
 
 

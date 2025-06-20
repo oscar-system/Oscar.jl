@@ -14,7 +14,6 @@
 
 # character values are elements from QQAbField
 
-
 #############################################################################
 ##
 ##  Atlas irrationalities
@@ -80,7 +79,7 @@ julia> K, z = abelian_closure(QQ);
 
 julia> val = z(5) + z(5)^4;
 
-julia> str = Oscar.atlas_description(val)
+julia> str = atlas_description(val)
 "b5"
 
 julia> val == atlas_irrationality(str)
@@ -306,7 +305,7 @@ julia> Oscar.with_unicode() do
 ```
 """
 function character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
-    tbls = get_attribute!(G, :character_tables, Dict{Int,Any}())
+    tbls = get_attribute!(Dict{Int,Any}, G, :character_tables)
     return get!(tbls, p) do
       p != 0 && return mod(character_table(G, 0), p)
       iso = isomorphism_to_GAP_group(G)
@@ -439,6 +438,35 @@ function Base.hash(tbl::GAPGroupCharacterTable, h::UInt)
   else
     return Base.hash(identifier(tbl), h)
   end
+end
+
+"""
+    is_atlas_character_table(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is either an ordinary character table
+that belongs to the ATLAS of Finite Groups [CCNPW85](@cite)
+or a Brauer table whose underlying ordinary table
+belongs to the ATLAS of Finite Groups.
+
+One application of this function is to restrict the search with
+[`all_character_table_names`](@ref) to ATLAS tables.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> is_atlas_character_table(tbl)
+true
+
+julia> is_atlas_character_table(mod(tbl, 2))
+true
+
+julia> is_atlas_character_table(character_table("A4"))
+false
+```
+"""
+function is_atlas_character_table(tbl::GAPGroupCharacterTable)
+  return GAPWrap.IsAtlasCharacterTable(GapObj(tbl))
 end
 
 
@@ -904,12 +932,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     # Compute the degrees of the character fields if applicable.
     field_degrees = get(io, :character_field, false)::Bool
     if field_degrees
-      p = characteristic(tbl)
-      if p == 0
-        field_degrees = [[string(degree(character_field(x)[1])) for x in tbl]]
-      else
-        field_degrees = [[string(collect(factor(order_field_of_definition(x)))[1][2]) for x in tbl]]
-      end
+      field_degrees = [[string(degree_of_character_field(x)) for x in tbl]]
       field_label = ["d"]
       push!(emptycor, "")
     else
@@ -1216,6 +1239,11 @@ function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
 end
 #TODO: cache the irreducibles in the table
 
+function Base.getindex(tbl::GAPGroupCharacterTable, v::AbstractVector{Int})
+    irr = GAPWrap.Irr(GapObj(tbl))
+    return [class_function(tbl, irr[i]) for i in v]
+end
+
 # in order to make `tbl[end]` work
 Base.lastindex(tbl::GAPGroupCharacterTable) = length(tbl)
 
@@ -1256,7 +1284,7 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     @req is_prime(p) "p must be a prime integer"
     characteristic(tbl) == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute!(tbl, :brauer_tables, Dict{Int,Any}())
+    modtbls = get_attribute!(Dict{Int,Any}, tbl, :brauer_tables)
     if !haskey(modtbls, p)
       modtblgap = mod(GapObj(tbl), GAP.Obj(p))::GapObj
       if modtblgap === GAP.Globals.fail
@@ -1329,11 +1357,45 @@ julia> println(proj)
 """
 function quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
   @req characteristic(tbl) == 0 "supported only for ordinary character tables"
-  gap_fact = GAPWrap.CharacterTableFactorGroup(GapObj(tbl), GapObj(nclasses))
+  gap_tbl = GapObj(tbl)::GapObj
+  gap_nclasses = GapObj(nclasses)::GapObj
+  gap_fact = GAPWrap.CharacterTableFactorGroup(gap_tbl, gap_nclasses)
   fact = GAPGroupCharacterTable(gap_fact, 0)
   flag, fus = known_class_fusion(tbl, fact)
   @assert flag
+
+  if isdefined(tbl, :group)
+    # set a group (together with its conjugacy classes) in the factor table
+    G = group(tbl)
+    gap_N = GAPWrap.NormalSubgroupClasses(gap_tbl, gap_nclasses)
+    iso = isomorphism_to_GAP_group(tbl)
+    N = preimages(iso, gap_N)[1]
+    Q, epi = quo(G, N)
+    fact.group = Q
+    fact.isomorphism = isomorphism_to_GAP_group(Q)
+    gap_fact = GapObj(fact)::GapObj
+    Gclasses = conjugacy_classes(tbl)
+    choice = _projection_of_class_fusion(fus)
+    gap_Q = GapObj(Q)::GapObj
+    class_reps = [epi(representative(Gclasses[i])) for i in choice]
+    GAPWrap.SetUnderlyingGroup(gap_fact, gap_Q)
+    factclasses = GapObj([GAPWrap.ConjugacyClass(gap_Q, GapObj(x)) for x in class_reps])::GapObj
+    GAPWrap.SetConjugacyClasses(gap_fact, factclasses)
+    GAPWrap.SetConjugacyClasses(gap_Q, factclasses)
+  end
+
   return fact, fus
+end
+
+function _projection_of_class_fusion(fus::Vector{Int})
+  res = zeros(Int, maximum(fus))
+  for i in 1:length(fus)
+    img = fus[i]
+    if res[img] == 0
+      res[img] = i
+    end
+  end
+  return res
 end
 
 
@@ -1492,6 +1554,162 @@ function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 end
 
 
+# Return the vector `coeffs` such that `coeffs // order(tbl)`
+# is the vector of the block idempotent of the `b`-th `p`-block of `tbl`,
+# which is defined as $f_B = \sum_{\chi} e_{\chi}$
+# where the summation runs over the irreducible characters $\chi$ in the block
+# and $e_{\chi} = (\chi(1) / |G|) \sum_g \chi(g^{-1}) g$ is the primitive
+# idempotent corresponding to $\chi$.
+#
+function _coefficients_of_osima_idempotent(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int)
+  blocks = block_distribution(tbl, p)
+  block = findall(is_equal(b), blocks[:block])
+  @assert length(block) > 0
+  coeffs = sum(x -> degree(ZZRingElem, x) * x, tbl[block])
+
+  return conj(coeffs)
+end
+
+# In order to find a defect group, we do not need to determine a defect class
+# (which in general depends on the number theoretic choices)
+# but only the Galois orbit of a defect class.
+function _class_position_of_defect_class_up_to_galois_conjugacy(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int; blocks::Dict = block_distribution(tbl, p))
+  chi = tbl[findfirst(is_equal(b), blocks[:block])]
+  omega = central_character(chi)
+  coeffs = _coefficients_of_osima_idempotent(tbl, p, b)
+  maxdefect = blocks[:defect][1]
+  orders = orders_class_representatives(tbl)
+  centralizers = orders_centralizers(tbl)
+
+  # Consider Galois orbits of classes of `p`-regular elements
+  # whose centralizer has Sylow `p`-subgroup of order exactly `q'.
+  done = BitSet()
+  d = blocks[:defect][b]
+  for i in 1:length(orders)
+    if !(i in done) &&
+       mod(orders[i], p) != 0 &&
+       remove(centralizers[i], p)[1] == d
+      # Compute the Galois orbit.
+      oo = orders[i]
+      orb = Set([i])
+      for j in 2:(oo-1)
+        if gcd(oo, j) == 1
+          pow = power_map(tbl, j, i)
+          push!(orb, pow)
+          push!(done, pow)
+        end
+      end
+
+      # The denominators of the coefficients of the block idempotent
+      # are coprime to `p`, so they can be ignored when one is interested
+      # in whether or not the reduction modulo `p` is zero.
+      # Thus we have to check `omega[j] * coeffs[j] / |P|` for `j` in the
+      # Galois orbit of `i`, where `P` is a Sylow subgroup of `group(tbl)`.
+      # If at least one of these values is not divisible by `p` (as an
+      # algebraic integer) then one of the conjugates is a defect class.
+      if any(j -> any(x -> (!is_zero(x)) && valuation(x, p) <= maxdefect, coefficients((omega[j]*coeffs[j]).data)), orb)
+        return i
+      end
+    end
+  end
+
+  error("there must be a defect class")
+end
+
+"""
+    defect_group(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int)
+
+Return `D, emb` where `D` is a defect group of the `b`-th `p`-block of `tbl`
+and `emb` is the embedding of `D` into `group(tbl)`.
+
+`b` refers to the numbering of blocks given by [`block_distribution`](@ref).
+
+# Examples
+```jldoctest
+julia> G = alternating_group(5);  tbl = character_table(G);
+
+julia> block_distribution(tbl, 2)[:defect]
+2-element Vector{Int64}:
+ 2
+ 0
+
+julia> [order(defect_group(tbl, 2, b)[1]) for b in 1:2]
+2-element Vector{ZZRingElem}:
+ 4
+ 1
+```
+"""
+function defect_group(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int)
+  blocks = block_distribution(tbl, p)
+  @assert 0 < b <= length(blocks[:defect])
+  G = group(tbl)
+  defects = blocks[:defect]
+  defects[1] == defects[b] && return sylow_subgroup(G, p)
+  c = _class_position_of_defect_class_up_to_galois_conjugacy(tbl, p, b, blocks = blocks)
+  rep = representative(conjugacy_classes(tbl)[c])
+  cent = centralizer(G, rep)[1]
+  syl = sylow_subgroup(cent, p)[1]
+  return _as_subgroup(G, GapObj(syl))
+end
+
+# Return the vector of those `i` such that the `i`-th conjugacy class of `tbl`
+# contains elements from a `p`-defect group of the `c`-th conjugacy class.
+# We assume that the `c`-th conjugacy class consists of `p`-regular elements.
+#
+# The `p`-defect groups of a `G`-class `C` of `p`-regular elements are defined
+# as the Sylow `p`-subgroups of the centralizers of the elements in `C`.
+#
+function _class_positions_of_defect_group_of_class(tbl::GAPGroupCharacterTable, p::IntegerUnion, c::Int)
+  orders = orders_class_representatives(tbl)
+  nccl = length(orders)
+  @assert 0 < c <= nccl && mod(orders[c], p) != 0 "`c` must be the position of a `p`-regular class"
+
+  # start with the Galois conjugates of class `c`
+  newroots = Set([c])
+  o = orders[c]
+  for i in 2:(o-1)
+    if gcd(i, o) == 1
+      push!(newroots, power_map(tbl, i, c))
+    end
+  end
+
+  # collect root classes under `pow`
+  pow = power_map(tbl, p)
+  roots = Set(Int[])
+  while length(newroots) > 0
+    union!(roots, newroots)
+    newroots = Set(Int[])
+    for i in 1:nccl
+      if (!(i in roots)) && pow[i] in roots && orders[i] != orders[pow[i]]
+        push!(newroots, i)
+      end
+    end
+  end
+
+  # take the `p`-parts
+  res = Set(Int[])
+  for i in roots
+    _, ord = remove(orders[i], p)
+    push!(res, power_map(tbl, ord, i))
+  end
+
+  return sort(collect(res))
+end
+
+# We can compute from the character table whether the defect group
+# of a block is cyclic.
+#
+function is_block_with_cyclic_defect_group(tbl::GAPGroupCharacterTable, p::IntegerUnion, b::Int; blocks = block_distribution(tbl, p))
+  @assert 0 < b <= length(blocks[:defect])
+
+  blocks[:defect][b] < 2 && return true
+  orders = orders_class_representatives(tbl)
+  q = p^blocks[:defect][b]
+  c = _class_position_of_defect_class_up_to_galois_conjugacy(tbl, p, b, blocks = blocks)
+  pclasses = _class_positions_of_defect_group_of_class(tbl, p, c)
+  return q in orders[pclasses]
+end
+
 #############################################################################
 ##
 ##  character parameters, class parameters
@@ -1504,26 +1722,36 @@ function _translate_parameter(para)
     elseif GAPWrap.IsCyc(para)
       # happens for the `P:Q` table, only roots of unity occur
       return [x for x in GAPWrap.DescriptionOfRootOfUnity(para)]
-    elseif ! GAPWrap.IsList(para)
-      # What can this parameter be?
-      return GAP.gap_to_julia(para)
-    elseif length(para) == 0
-      return Int[]
+    elseif GAPWrap.IsList(para)
+      if isempty(para)
+        return Int[]
+      else
+        return [_translate_parameter(x) for x in para]
+      end
     else
-      return [_translate_parameter(x) for x in para]
+      # Unknown type of Gap object, we just keep it as is.
+      return para
     end
 end
 
 function _translate_parameter_list(paras)
-    if all(x -> GAPWrap.IsList(x) && length(x) == 2 && x[1] == 1, paras)
-      # If all parameters are lists of length 2 with first entry `1` then
-      # take the second entry.
-      paras = [x[2] for x in paras]
-      return [_translate_parameter(x) for x in paras]
+    if all(x -> GAPWrap.IsList(x) && length(x) == 2, paras)
+      # All parameters consist of parameter type and value for this type.
+      # This happens for the generic character tables from the table library.
+      if all(x -> x[1] == 1, paras)
+        # Omit the superfluous type parameter.
+        paras = [x[2] for x in paras]
+        return [_translate_parameter(x) for x in paras]
+      else
+        # Create tuples `(t, v)` where `t` is the parameter type
+        # and `v` is the value for this type.
+        return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      end
     else
-      # Create tuples `(t, v)` where `t` is the parameter type
-      # and `v` is the value for this type.
-      return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+      # There is no type parameter.
+      # This happens for example for tables constructed with
+      # `GAPWrap.CharacterTableWreathSymmetric`.
+      return [_translate_parameter(x) for x in paras]
     end
 end
 
@@ -1675,6 +1903,43 @@ see [`known_class_fusion`](@ref).
 function known_class_fusions(tbl::GAPGroupCharacterTable)
     return Tuple{String, Vector{Int64}}[(String(r.name), Vector{Int}(r.map))
              for r in GAPWrap.ComputedClassFusions(GapObj(tbl))]
+end
+
+
+@doc raw"""
+    power_map(tbl::GAPGroupCharacterTable, k::Int, i::Int)
+
+Return the value at `i` of the `k`-th power map of `tbl`.
+This is the position of the conjugacy class that contains the elements $g^k$
+where $g$ is in the `i`-th conjugacy class of `tbl`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> orders_class_representatives(tbl)
+5-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 5
+ 5
+
+julia> [power_map(tbl, 2, i) for i in 1:5]
+5-element Vector{Int64}:
+ 1
+ 1
+ 3
+ 5
+ 4
+```
+"""
+function power_map(tbl::GAPGroupCharacterTable, k::IntegerUnion, i::Int)
+  return GAPWrap.PowerMap(GapObj(tbl), GapObj(k), i)
+end
+
+function power_map(tbl::GAPGroupCharacterTable, k::IntegerUnion)
+  return Vector{Int}(GAPWrap.PowerMap(GapObj(tbl), GapObj(k)))
 end
 
 
@@ -1949,8 +2214,9 @@ true
 ```
 """
 function trivial_character(tbl::GAPGroupCharacterTable)
-    val = QQAbFieldElem(1)
-    return class_function(tbl, [val for i in 1:ncols(tbl)])
+    triv = GAPWrap.TrivialCharacter(GapObj(tbl))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(tbl, triv)
 end
 
 @doc raw"""
@@ -1968,8 +2234,9 @@ true
 ```
 """
 function trivial_character(G::GAPGroup)
-    val = QQAbFieldElem(1)
-    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
+    triv = GAPWrap.TrivialCharacter(GapObj(G))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(G, triv)
 end
 
 @doc raw"""
@@ -2041,7 +2308,7 @@ function natural_character(G::PermGroup)
 end
 
 @doc raw"""
-    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
+    natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
@@ -2064,7 +2331,7 @@ function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQField
 end
 
 @doc raw"""
-    natural_character(G::MatrixGroup{FinFieldElem})
+    natural_character(G::MatrixGroup{<:FinFieldElem})
 
 Return the character that maps each $p$-regular element of `G`,
 where $p$ is the characteristic of the base field of `G`,
@@ -2172,9 +2439,12 @@ julia> length(linear_characters(tbl))
 ```
 """
 function linear_characters(tbl::GAPGroupCharacterTable)
-    return [class_function(tbl, chi) for chi in GAPWrap.LinearCharacters(GapObj(tbl))]
+    lin = GAPWrap.LinearCharacters(GapObj(tbl))
+    for chi in lin
+      GAPWrap.SetIsIrreducibleCharacter(chi, true)
+    end
+    return [class_function(tbl, chi) for chi in lin]
 end
-
 
 @doc raw"""
     induce(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup})
@@ -2373,6 +2643,12 @@ function Base.getindex(chi::GAPGroupClassFunction, i::Int)
   return QQAbFieldElem(vals[i])
 end
 
+# access character values by positions
+function Base.getindex(chi::GAPGroupClassFunction, v::AbstractVector{Int})
+  vals = GAPWrap.ValuesOfClassFunction(GapObj(chi))
+  return [QQAbFieldElem(x) for x in vals]
+end
+
 # access character values by class name
 function Base.getindex(chi::GAPGroupClassFunction, nam::String)
   i = findfirst(is_equal(nam), class_names(parent(chi)))
@@ -2529,11 +2805,11 @@ multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), n * GapObj(chi))
+    return GAPGroupClassFunction(parent(chi), GapObj(n) * GapObj(chi))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ n)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ GapObj(n))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2609,7 +2885,7 @@ Return `true` if `chi` is an irreducible character, and `false` otherwise.
 A character is irreducible if it cannot be written as the sum of two
 characters.
 For ordinary characters this can be checked using the scalar product of
-class functions (see [`scalar_product`](@ref).
+class functions (see [`scalar_product`](@ref)).
 For Brauer characters there is no generic method for checking irreducibility.
 
 # Examples
@@ -2828,6 +3104,7 @@ end
 
 @doc raw"""
     character_field(chi::GAPGroupClassFunction)
+    character_field(l::Vector{GAPGroupClassFunction})
 
 If `chi` is an ordinary character then
 return the pair `(F, phi)` where `F` is a number field that is generated
@@ -2838,6 +3115,14 @@ If `chi` is a Brauer character in characteristic `p` then
 return the pair `(F, phi)` where `F` is the finite field that is generated
 by the `p`-modular reductions of the values of `chi`,
 and `phi` is the identity map on `F`.
+
+If a nonempty vector `l` of characters is given then `(F, phi)` is returned
+such that `F` is the smallest field that contains the character fields
+of the entries of `l`.
+
+If only the degree of the character field is needed then better call
+[`degree_of_character_field`](@ref),
+this avoids the construction of the field.
 
 # Examples
 ```jldoctest
@@ -2851,6 +3136,9 @@ julia> flds_2 = map(character_field, mod(t, 2));
 
 julia> println([degree(x[1]) for x in flds_2])
 [1, 2, 2, 1]
+
+julia> degree(character_field(collect(t))[1])
+2
 ```
 """
 function character_field(chi::GAPGroupClassFunction)
@@ -2864,8 +3152,31 @@ function character_field(chi::GAPGroupClassFunction)
       return (F, identity_map(F))
     end
 
-    values = GapObj(chi)  # a list of GAP cyclotomics
+    values = GapObj(chi)::GapObj
     gapfield = GAPWrap.Field(values)
+    return _character_field(gapfield)
+end
+
+function character_field(l::Vector{GAPGroupClassFunction})
+    @req length(l) > 0 "need at least one class function"
+    p = characteristic(l[1])
+    @req all(chi -> characteristic(chi) == p, l) "all entries must have the same characteristic"
+
+    if p != 0
+      # Brauer characters, construct a finite field
+      orders = [order_field_of_definition(chi) for chi in l]
+      exps = [is_prime_power_with_data(q)[2] for q in orders]
+      e = lcm(exps)
+      F = GF(p, e)
+      return (F, identity_map(F))
+    end
+
+    values = GapObj(l, recursive = true)::GapObj
+    gapfield = GAPWrap.Field(GAPWrap.Flat(values))
+    return _character_field(gapfield)
+end
+
+function _character_field(gapfield::GapObj)
     N = GAPWrap.Conductor(gapfield)
     FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)
@@ -2880,7 +3191,7 @@ function character_field(chi::GAPGroupClassFunction)
       gappol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
       gapcoeffs = GAPWrap.CoefficientsOfUnivariatePolynomial(gappol)
       v = Vector{QQFieldElem}(gapcoeffs)
-      R, = polynomial_ring(QQ, :x; cached=false)
+      R, = polynomial_ring(QQ, :x; cached = true)
       f = R(v)
       F, _ = number_field(f, "z"; cached = true, check = false)
       nfelm = QQAbFieldElem(gapgens[1])
@@ -2888,6 +3199,67 @@ function character_field(chi::GAPGroupClassFunction)
 
     return F, AbelianClosure._embedding(F, FF, nfelm)
 end
+
+@doc raw"""
+    degree_of_character_field(chi::GAPGroupClassFunction)
+    degree_of_character_field(l::Vector{GAPGroupClassFunction})
+
+If `chi` is an ordinary character then return
+the degree of the number field generated by the character values of `chi`.
+
+If `chi` is a Brauer character in characteristic `p` then
+return the degree of the finite field generated
+by the `p`-modular reductions of the values of `chi`.
+
+If a nonempty vector `l` of characters is given then return
+the degree of the smallest field that contains the character fields
+of the entries of `l`.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> degree_of_character_field(t[2])
+2
+
+julia> println(map(degree_of_character_field, mod(t, 2)))
+[1, 2, 2, 1]
+
+julia> degree_of_character_field(collect(t))
+2
+```
+"""
+function degree_of_character_field(chi::GAPGroupClassFunction)
+    p = characteristic(chi)
+    if p != 0
+      # Brauer character, degree of a finite field
+      q = order_field_of_definition(chi)
+      flag, e, pp = is_prime_power_with_data(q)
+      (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
+      return e
+    end
+
+    values = GapObj(chi)::GapObj
+    return GAPWrap.Dimension(GAPWrap.Field(values))
+end
+
+function degree_of_character_field(l::Vector{GAPGroupClassFunction})
+    @req length(l) > 0 "need at least one class function"
+    p = characteristic(l[1])
+    @req all(chi -> characteristic(chi) == p, l) "all entries must have the same characteristic"
+
+    if p != 0
+      # Brauer characters, degree of a finite field
+      orders = [order_field_of_definition(chi) for chi in l]
+      exps = [is_prime_power_with_data(q)[2] for q in orders]
+      e = lcm(exps)
+      return e
+    end
+
+    values = GapObj(l, recursive = true)::GapObj
+    return GAPWrap.Dimension(GAPWrap.Field(GAPWrap.Flat(values)))
+end
+
 
 @doc raw"""
     number_field(::QQField, chi::GAPGroupClassFunction; cached::Bool = false)
@@ -2976,10 +3348,10 @@ but the values of `psi` need not be rationals.
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> println([degree(character_field(x)[1]) for x in t])
+julia> println([degree_of_character_field(x) for x in t])
 [1, 2, 2, 1, 1]
 
-julia> println([degree(character_field(galois_orbit_sum(x))[1]) for x in t])
+julia> println([degree_of_character_field(galois_orbit_sum(x)) for x in t])
 [1, 1, 1, 1, 1]
 ```
 """
@@ -3005,14 +3377,77 @@ function galois_orbit_sum(chi::GAPGroupClassFunction)
     return class_function(tbl, GAPWrap.ClassFunction(GapObj(tbl), GapObj(sums)))
 end
 
+
+@doc raw"""
+    galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+
+Return `phi, n, m` where `phi` is an absolutely irreducible constituent
+of the rational ordinary character `chi` and `n`, `m` are positive
+`ZZRingElem`s such that `n` is the degree of the character field of `phi`
+(`phi` has `n` Galois conjugates)
+and `chi` is `m` times the sum of these Galois conjugates.
+If `chi` is the character of a rational *representation* that is irreducible
+over the rationals then `m` is equal to the Schur index of `phi`,
+see [`schur_index(chi::GAPGroupClassFunction)`](@ref).
+
+If `check` is `true` then an exception is thrown if `chi` is not rational
+or not an ordinary character or not a multiple of a Galois sum of an
+irreducible character.
+If `check` is `false` then these checks are omitted.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> chi = 3 * (t[2] + t[3]);  chi[1]
+18
+
+julia> phi, n, m = galois_representative_and_multiplicity(chi);
+
+julia> phi[1], n, m
+(3, 2, 3)
+
+julia> G = quaternion_group(8)
+Pc group of order 8
+
+julia> t = character_table(G);
+
+julia> chi = t[5]
+class_function(character table of G, [2, 0, 0, -2, 0])
+
+julia> galois_representative_and_multiplicity(chi)
+(class_function(character table of G, [2, 0, 0, -2, 0]), 1, 1)
+```
+"""
+function galois_representative_and_multiplicity(chi::GAPGroupClassFunction; check::Bool = true)
+    if check
+      @req characteristic(chi) == 0 "chi must be ordinary"
+      @req degree_of_character_field(chi) == 1 "chi must be rational"
+    end
+    tbl = parent(chi)
+    for phi in tbl
+      m = scalar_product(ZZRingElem, chi, phi)
+      if m != 0
+        # We assume `chi[1] == m * n * phi[1]`.
+        n = div(degree(ZZRingElem, chi), m * degree(ZZRingElem, phi))
+        if check
+          @req chi == m * galois_orbit_sum(phi) "chi must be a multiple of a Galois sum"
+        end
+        return (phi, n, m)
+      end
+    end
+    throw(ArgumentError("chi must be a character"))
+end
+
+
 @doc raw"""
     schur_index(chi::GAPGroupClassFunction) -> Int
 
 For an ordinary irreducible character `chi`,
 return the minimal integer `m` such that the character `m * chi`
 is afforded by a representation over the character field of `chi`,
-or throw an exception if the currently used character theoretic criteria
-do not suffice for computing `m`.
+or throw an exception if `group(chi)` is not defined and the currently used
+character theoretic criteria do not suffice for computing `m`.
 
 # Examples
 ```jldoctest
@@ -3022,80 +3457,40 @@ julia> println(map(schur_index, t))
 [1, 1, 1, 1, 2]
 ```
 """
-function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+function schur_index(chi::GAPGroupClassFunction)
     @req characteristic(chi) == 0 "defined only for ordinary characters"
-    deg = numerator(degree(chi))
-    deg == 1 && return 1
+
+    # Irreducible characters with indicator -1 have Schur index 2.
     indicator(chi) == -1 && return 2
 
-    # The character field contains an `m`-th root of unity.
-    values = GapObj(chi)
-    if conj(chi) == chi
-      bound = ZZRingElem(2)
-    else
-      # Compute the conductor of the largest cyclotomic field
-      # that is contained in the character field of `chi`.
-      gapfield = GAPWrap.Field(values)
-      N = GAPWrap.Conductor(gapfield)
-      for n in reverse(sort(divisors(N)))
-        if GAPWrap.E(n) in gapfield
-          if Base.isodd(n)
-            bound = ZZRingElem(2*n)
-          else
-            bound = ZZRingElem(n)
-          end
-          break
-        end
-      end
-    end
-
-    # `m` divides `deg`
-    bound = gcd(bound, deg)
-    bound == 1 && return 1
-
-    # `m` divides the multiplicity of `chi` in any rational character
-    # with trivial Schur index.
-    # - Consider permutation characters induced from cyclic subgroups.
-    tbl = parent(chi)
-    for psi in induced_cyclic(tbl)
-      bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
-      bound == 1 && return 1
-    end
-    # - Consider characters induced from other known subgroups.
-    for name in names_of_fusion_sources(tbl)
-      s = character_table(name)
-      if s !== nothing
-        known, fus = known_class_fusion(s, tbl)
-        @assert known "the class fusion is not stored"
-        if length(class_positions_of_kernel(fus)) == 1
-          psi = trivial_character(s)^(tbl)
-          bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
-          bound == 1 && return 1
-        end
-      end
-    end
-
-    if recurse
-      # Consider tensor products of rational characters with Schur index 1.
-      cand = filter(psi -> degree(character_field(psi)[1]) == 1 &&
-                           schur_index(psi, false) == 1, collect(tbl))
-      for i in 1:length(cand)
-        for j in 1:i
-          bound = gcd(bound, scalar_product(ZZRingElem, chi, cand[i] * cand[j]))
-          bound == 1 && return 1
-        end
-      end
-    end
-
-    if isdefined(tbl, :group) && hasproperty(GAP.Globals, :SchurIndexByCharacter)
-      # The function is defined in the Wedderga package.
-      g = group(tbl)
-      return GAPWrap.SchurIndexByCharacter(GAP.Globals.Rationals, codomain(isomorphism_to_GAP_group(tbl)), values)
-    end
-
-    # For the moment, we do not have more character theoretic criteria.
-    error("cannot determine the Schur index with the currently used criteria")
+    # Delegate to the computation of the local Schur indices.
+    return lcm([x[2] for x in local_schur_indices(chi)])
 end
+
+
+@doc raw"""
+    central_character(chi::GAPGroupClassFunction)
+
+Return the central character of `chi`,
+which is the class function `omega` that is defined by
+`omega(g) = |g^G| ⋅ chi(g)/chi(1)` for each `g` in the group `G` of `chi`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> chi = tbl[4]
+class_function(character table of A5, [4, 0, 1, -1, -1])
+
+julia> central_character(chi)
+class_function(character table of A5, [1, 0, 5, -3, -3])
+```
+"""
+function central_character(chi::GAPGroupClassFunction)
+  return GAPGroupClassFunction(parent(chi),
+           GAPWrap.CentralCharacter(GapObj(chi)))
+end
+
 
 @doc raw"""
     symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
@@ -3117,7 +3512,7 @@ where $a_k(\rho)$ is the number of cycles of length $k$ in $\rho$.
 Note that the returned list may contain zero class functions,
 and duplicates are not deleted.
 
-For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
+For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 [`anti_symmetric_parts`](@ref), [`orthogonal_components`](@ref),
 [`symplectic_components`](@ref), [`exterior_power`](@ref),
 [`symmetric_power`](@ref).
@@ -3135,7 +3530,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the trivial character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3150,7 +3545,7 @@ end
 
 Return the vector of symmetrizations of `characters`
 with the sign character of the symmetric group of degree `n`,
-see [`symmetrizations`](@ref).
+see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
@@ -3230,11 +3625,83 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
                          GapObj(characters; recursive = true), n)]
 end
 
+@doc raw"""
+    character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+
+Return the character table of the wreath product (see [`wreath_product`](@ref))
+of the group with character table `tbl` and the symmetric group on `n` points.
+
+The implementation follows Chapter 4 of [JK81](@cite).
+In particular, the labels for the rows and columns of the result are
+multipartitions with sum `n` that consist of $s$ partitions
+such that $s$ is the number of columns of `tbl`.
+
+Note that the result does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> t = character_table_wreath_symmetric(character_table(:Cyclic, 2), 2)
+C2wrS2
+
+  2  3  2  3  2  2
+                  
+    1a 2a 2b 2c 4a
+ 2P 1a 1a 1a 1a 2b
+                  
+X_1  1  1  1 -1 -1
+X_2  2  . -2  .  .
+X_3  1 -1  1 -1  1
+X_4  1  1  1  1  1
+X_5  1 -1  1  1 -1
+```
+"""
+function character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
+    @req characteristic(tbl) == 0 "tbl must be an ordinary character table"
+    @req n > 0 "n must be positive"
+    return GAPGroupCharacterTable(
+               GAPWrap.CharacterTableWreathSymmetric(GapObj(tbl), n), 0)
+end
+
+@doc raw"""
+    character_table_complex_reflection_group(m::Int, p::Int, n::Int)
+
+Return the character table of the complex reflection group that is given by
+the input parameters.
+
+Note that this character table does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> tbl = character_table_complex_reflection_group(3, 1, 2);
+
+julia> identifier(tbl)
+"C3wrS2"
+
+julia> order(tbl) == 3^2 * factorial(2)
+true
+
+julia> class_parameters(tbl)
+9-element Vector{Vector{Vector{Int64}}}:
+ [[1, 1], [], []]
+ [[1], [1], []]
+ [[1], [], [1]]
+ [[], [1, 1], []]
+ [[], [1], [1]]
+ [[], [], [1, 1]]
+ [[2], [], []]
+ [[], [2], []]
+ [[], [], [2]]
+```
+
+!!! warning
+    Currently only the case `p = 1` is supported,
+    that is, the character table belongs to the wreath product
+    of the cyclic group of order `m` with the symmetric group on `n` points,
+    see [`character_table_wreath_symmetric`](@ref).
+"""
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
-    @req p == 1 "the case G(m,p,n) with p != 1 is not (yet) supported"
-    tbl = GAPWrap.CharacterTableWreathSymmetric(
-            GAPWrap.CharacterTable(GapObj("Cyclic"), m), n)
-    tbl = GAPGroupCharacterTable(tbl, 0)
+    @req p == 1 "the case G(m,p,n) with p != 1 is not yet supported"
+    tbl = character_table_wreath_symmetric(character_table(:Cyclic, m), n)
     set_attribute!(tbl, :type, (m, p, n))
 
     return tbl

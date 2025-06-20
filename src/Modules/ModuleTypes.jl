@@ -583,7 +583,14 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
-      return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      # The following code is a slight manual speedup of the following original line:
+      # return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      cod_ring = base_ring(G)
+      res_coord = sparse_row(cod_ring)
+      for (i, b) in coordinates(x)
+        Hecke.add_scaled_row!(coordinates(a[i]), res_coord, b)
+      end
+      return G(res_coord)
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -766,11 +773,6 @@ mutable struct FreeResolution{T}
 end
 
 Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
-
-function Base.show(io::IO, FR::FreeResolution)
-    C = FR.C
-    show(io, C)
-end
 
 mutable struct BettiTable
   B::Dict{Tuple{Int, Any}, Int}

@@ -8,6 +8,7 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.0",
   function upgrade_0_12_0(s::UpgradeState, dict::Dict)
+    ref_types = ["MPolyRing", "MatSpace", "RationalFunctionField", "MPolyComplementOfPrimeIdeal", "Hecke.RelNonSimpleNumFieldEmbedding", "MPolyPowersOfElement", "PermGroup", "SMatSpace", "Hecke.RelSimpleNumFieldEmbedding", "FPGroup", "FinGenAbGroup", "Hecke.AbsSimpleNumFieldEmbedding", "Hecke.QuadSpace", "HypersurfaceModel", "GlobalTateModel", "FracField", "AbsSimpleNumField", "ZZLaurentSeriesRing", "SubFPGroup", "Hecke.RelSimpleNumField", "MPolyDecRing", "SeriesRing", "EmbeddedNumField", "TropicalCurve", "FreeAssociativeAlgebra", "WeierstrassModel", "Hecke.AbsNonSimpleNumFieldEmbedding", "AffineNormalToricVariety", "Polymake.BigObject", "WeylGroup", "MPolyLocalizedRingHom", "LaurentSeriesField", "MPolyComplementOfKPointIdeal", "UniversalPolyRing", "MPolyQuoLocRing", "GapObj", "AbstractLieAlgebra", "AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField", "fqPolyRepField", "PcGroup", "PolyRing", "NormalToricVariety", "SubPcGroup", "LaurentSeriesRing", "AbstractAlgebra.Generic.LaurentMPolyWrapRing"]
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
@@ -17,9 +18,8 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     if dict[:type] == string(backref_sym)
       backrefed_dict = s.id_to_dict[Symbol(dict[:id])]
-      T = reverse_type_map[backrefed_dict[:type]]
       
-      if serialize_with_id(T)
+      if backrefed_dict[:type] in ref_types
         #backref are still ok
         return dict
       else
@@ -51,12 +51,11 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = upgrade_0_12_0(s, dict[:data])
     end
 
-    T = reverse_type_map[upgraded_dict[:type]]
-    
-    # remove ids according to update
-    if serialize_with_id(T)
+    # check if type uses references
+    if upgraded_dict[:type] in ref_types
       s.id_to_dict[Symbol(dict[:id])] = upgraded_dict
     elseif haskey(dict, :id)
+      # remove ids for objects that dont require references
       id = pop!(upgraded_dict, :id)
       s.id_to_dict[Symbol(id)] = upgraded_dict
     end

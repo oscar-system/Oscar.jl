@@ -12,7 +12,7 @@ function ZZRingElem(obj::GapObj)
     return result
 end
 
-GAP.gap_to_julia(::Type{ZZRingElem}, obj::GapInt) = ZZRingElem(obj)
+GAP.gap_to_julia(::Type{ZZRingElem}, obj::GapInt; recursive::Bool = true) = ZZRingElem(obj)
 (::ZZRing)(obj::GapObj) = ZZRingElem(obj)
 
 ##
@@ -24,7 +24,7 @@ function QQFieldElem(obj::GapObj)
     return QQFieldElem(ZZRingElem(GAPWrap.NumeratorRat(obj)), ZZRingElem(GAPWrap.DenominatorRat(obj)))
 end
 
-GAP.gap_to_julia(::Type{QQFieldElem}, obj::GapInt) = QQFieldElem(obj)
+GAP.gap_to_julia(::Type{QQFieldElem}, obj::GapInt; recursive::Bool = true) = QQFieldElem(obj)
 (::QQField)(obj::GapObj) = QQFieldElem(obj)
 
 ###
@@ -93,7 +93,7 @@ function ZZMatrix(obj::GapObj)
     return m
 end
 
-GAP.gap_to_julia(::Type{ZZMatrix}, obj::GapObj) = ZZMatrix(obj) # TODO: deprecate/remove this
+GAP.gap_to_julia(::Type{ZZMatrix}, obj::GapObj; recursive::Bool = true) = ZZMatrix(obj) # TODO: deprecate/remove this
 
 ##
 ## matrix of GAP rationals or integers to `QQMatrix`
@@ -110,7 +110,7 @@ function QQMatrix(obj::GapObj)
     return m
 end
 
-GAP.gap_to_julia(::Type{QQMatrix}, obj::GapObj) = QQMatrix(obj) # TODO: deprecate/remove this
+GAP.gap_to_julia(::Type{QQMatrix}, obj::GapObj; recursive::Bool = true) = QQMatrix(obj) # TODO: deprecate/remove this
 
 ##
 ## generic matrix() method for GAP matrices which converts each element on its
@@ -160,9 +160,9 @@ function QQAbFieldElem(a::GapInt)
   return z
 end
 
-GAP.gap_to_julia(::Type{QQAbFieldElem}, a::GapInt) = QQAbFieldElem(a)
+GAP.gap_to_julia(::Type{QQAbFieldElem}, a::GapInt; recursive::Bool = true) = QQAbFieldElem(a)
 
-(::QQAbField)(a::GapObj) = GAP.gap_to_julia(QQAbFieldElem, a)
+(::QQAbField)(a::GapObj) = QQAbFieldElem(a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)
@@ -240,7 +240,7 @@ end
 ## GAP straight line program
 function straight_line_program(slp::GapObj)
   @req GAP.Globals.IsStraightLineProgram(slp) "slp must be a straight line program in GAP"
-  lines = GAP.gap_to_julia(GAP.Globals.LinesOfStraightLineProgram(slp); recursive = true)
+  lines = Vector{Any}(GAP.Globals.LinesOfStraightLineProgram(slp))
   n = GAP.Globals.NrInputsOfStraightLineProgram(slp)
   return SLP.GAPSLProgram(lines, n)
 end

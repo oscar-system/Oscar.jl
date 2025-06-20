@@ -61,7 +61,11 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
-  
+  @req length(fiber_twist_divisor_classes) <= n_rays(fiber_ambient_space) "Number of fiber twist divisor classes must not exceed number of rays in fiber ambient space"
+  if length(fiber_twist_divisor_classes) < n_rays(fiber_ambient_space)
+    fiber_twist_divisor_classes = vcat(fiber_twist_divisor_classes, [trivial_divisor_class(base) for k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))])
+  end
+
   # Compute an ambient space
   ambient_space = _ambient_space(base, fiber_ambient_space, fiber_twist_divisor_classes)
 
@@ -73,13 +77,21 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
   gens_S = gens(cox_ring(base))
-  for k in 1:length(gens_S)
-    explicit_model_sections[string(gens_S[k])] = gens_S[k]
-  end
+
+  # The below code was removed because it is inconsistent with our standard use of explicit_model_sections. In particular,
+  # explicit_model_sections should not list base coordinates as being named sections whose value is the base coordinate
+  # For now, explicit_model_sections will be empty for hypersurface models. This will not be true ultimately, when we
+  # allow for the definition of model sections for hypersurface models
+  #
+  # for k in 1:length(gens_S)
+  #   explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  # end
+
   model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, base, ambient_space, fiber_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
+
 
 
 
@@ -223,7 +235,9 @@ end
 # 4: Display
 ################################################
 
-function Base.show(io::IO, h::HypersurfaceModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", h::HypersurfaceModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(h)
     push!(properties_string, "Partially resolved hypersurface model over a")
@@ -236,4 +250,9 @@ function Base.show(io::IO, h::HypersurfaceModel)
     push!(properties_string, "not fully specified base")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, h::HypersurfaceModel)
+  print(io, "Hypersurface model")
 end

@@ -26,7 +26,7 @@ julia> @perm (1,2)(4,5)     # cycle notation via macro
 (1,2)(4,5)
 
 julia> K = algebraic_closure(QQ)
-Field of algebraic numbers
+Algebraic closure of rational field
 
 julia> e = one(K)
 Root 1.00000 of x - 1
@@ -40,7 +40,7 @@ julia> mat_sigma1 = matrix(K, [ -1 0 ; 0 1 ]);
 
 julia> G_mat = matrix_group(mat_rot, mat_sigma1)
 Matrix group of degree 2
-  over field of algebraic numbers
+  over algebraic closure of rational field
 
 julia> is_isomorphic(G_mat, G_perm)
 true
@@ -50,7 +50,7 @@ julia> p = K.([0,1]);  # coordinates of vertex 1, expressed over K
 julia> orb = orbit(G_mat, *, p)
 G-set of
   matrix group of degree 2 over QQBar
-  with seeds Vector{QQBarFieldElem}[[Root 0 of x, Root 1.00000 of x - 1]]
+  with seeds [[Root 0 of x, Root 1.00000 of x - 1]]
 
 julia> pts = collect(orb)
 5-element Vector{Vector{QQBarFieldElem}}:
