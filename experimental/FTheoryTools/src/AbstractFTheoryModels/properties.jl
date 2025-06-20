@@ -151,12 +151,12 @@ end
     is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
 
 Verify if the first Chern class of the tangent bundle of the F-theory geometry
-$Y_n$ vanishes. If so, this confirms that this geometry is indeed Calabi-Yau,
+``Y_n`` vanishes. If so, this confirms that this geometry is indeed Calabi-Yau,
 as required by the reasoning of F-theory.
 
 The implemented algorithm works for hypersurface, Weierstrass and global Tate models,
-which are defined in a toric ambient space. It expresses $c_1(Y_n)$ as the restriction
-of a cohomology class $h$ on the toric ambient space. This in turn requires that the
+which are defined in a toric ambient space. It expresses ``c_1(Y_n)`` as the restriction
+of a cohomology class ``h`` on the toric ambient space. This in turn requires that the
 toric ambient space is simplicial and complete. We provide a switch to turn off 
 these computationally very demanding checks. This is demonstrated in the example below.
 

@@ -1253,11 +1253,11 @@ end
 @doc raw"""
     chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
-$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises an error.
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class ``h`` on the
+toric ambient space ``X_\Sigma``, such that its restriction to ``Y_n`` is the k-th Chern class
+``c_k`` of the tangent bundle of ``Y_n``. If those assumptions are satisfied, this method returns
+this very cohomology class ``h``, otherwise it raises an error.
 
 The theory guarantees that the implemented algorithm works for toric ambient spaces which are
 smooth and complete. The check for completeness can be very time consuming. This check can
@@ -1329,12 +1329,12 @@ end
 @doc raw"""
     chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
-$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-a vector with the cohomology classes corresponding to all non-trivial Chern classes $c_k$ of
-$Y_n$. Otherwise, this methods raises an error.
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class ``h`` on the
+toric ambient space ``X_\Sigma``, such that its restriction to ``Y_n`` is the k-th Chern class
+``c_k`` of the tangent bundle of ``Y_n``. If those assumptions are satisfied, this method returns
+a vector with the cohomology classes corresponding to all non-trivial Chern classes ``c_k`` of
+``Y_n``. Otherwise, this methods raises an error.
 
 As of right now, this method is computationally expensive for involved toric ambient spaces,
 such as in the example below.
@@ -1370,7 +1370,7 @@ end
 @doc raw"""
     euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
 as a hypersurface in a toric ambient space, we can compute the Euler characteristic. If this
 assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
 error.

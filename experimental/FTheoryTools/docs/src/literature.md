@@ -56,6 +56,9 @@ as the second argument. Such a setter function exists for all of the above. If a
 we also offer a method that adds a new value. For instance, we have a function
 `add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
 
+!!! warning
+    Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
+
 In addition, the following attributes are available to access advanced model information:
 ```@docs
 resolutions(m::AbstractFTheoryModel)

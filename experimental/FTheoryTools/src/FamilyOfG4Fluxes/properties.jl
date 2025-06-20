@@ -6,8 +6,8 @@
     is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
 Executes elementary tests (they are necessary but not sufficient)
-to tell if Family of $G_4$-fluxes is well-quantized. In case
-any of these tests fails, we know that this family of $G_4$-fluxes
+to tell if Family of ``G_4``-fluxes is well-quantized. In case
+any of these tests fails, we know that this family of ``G_4``-fluxes
 is definitely not well-quantized. This method then returns `false`.
 
 In the opposite case that all elementary tests pass, this method
@@ -91,7 +91,7 @@ end
 @doc raw"""
     passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if the given family of $G_4$-fluxes passes the transversality checks.
+Check if the given family of ``G_4``-fluxes passes the transversality checks.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))

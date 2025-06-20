@@ -5,7 +5,7 @@
 @doc raw"""
     model(gf::FamilyOfG4Fluxes)
 
-Return the F-theory model for which this family of $G_4$-flux candidates is defined.
+Return the F-theory model for which this family of ``G_4``-flux candidates is defined.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -142,16 +142,16 @@ offset(gf::FamilyOfG4Fluxes) = gf.offset
 @doc raw"""
     d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Return the d3-tapdole constraint of Family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
-is $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$.
+Return the d3-tapdole constraint of Family of G4-fluxes. Recall that for a given ``G_4``-flux, this constraint
+is ``- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0``.
 
 Note that the family of fluxes is specified by linear combination of cohomology classes, some with rational
 and some with integral coefficients. In terms of these coefficients the d3-tadpole constraint is the demand
 that a quadratic polynomial in the coefficients evaluates to a non-negative number. This method returns said
-polynomial in the cofficients. In order to evaluate the D3-tadpole for a particular $G_4$-flux, one has to
-evaluate this polynomial for the numeric coefficient values that correspond to the given $G_4$-flux.
+polynomial in the cofficients. In order to evaluate the D3-tadpole for a particular ``G_4``-flux, one has to
+evaluate this polynomial for the numeric coefficient values that correspond to the given ``G_4``-flux.
 
-We use symbols $a_i$ to indicate integral coefficients and $r_i$ to indicate rational coefficients.
+We use symbols ``a_i`` to indicate integral coefficients and ``r_i`` to indicate rational coefficients.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))

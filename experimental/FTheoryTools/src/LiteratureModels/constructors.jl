@@ -191,7 +191,7 @@ Thereby, you can create this F-theory model including a lot of advanced informat
 (e.g. more than 10.000.000 intersection numbers and explicit descriptions for the
 G4-fluxes on this space) within just a couple of minutes. For comparison, one a
 personal computer we expect that the computation of one resolution of this model
-takes about three to four hours. Identifying also all $G_4$-fluxes (vertical,
+takes about three to four hours. Identifying also all ``G_4``-fluxes (vertical,
 well-quantized and modelled by pullbacks from the toric ambient space) will likely
 take a few hours more. So, this infrastructure provides a very stark performence
 improvement.
