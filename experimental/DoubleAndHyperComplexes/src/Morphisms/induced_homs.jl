@@ -31,8 +31,8 @@ struct InducedContravariantMorphismFactory{MorphismType} <: HyperComplexMorphism
 end
 
 function hom(phi::ModuleFPHom, M::ModuleFP; 
-    domain::ModuleFP=hom(codomain(phi), M),
-    codomain::ModuleFP=hom(domain(phi), M)
+    domain::ModuleFP=hom(Oscar.codomain(phi), M),
+    codomain::ModuleFP=hom(Oscar.domain(phi), M)
   )
   return lift_homomorphism_contravariant(domain, codomain, phi)
 end
@@ -89,12 +89,98 @@ end
 
 underlying_morphism(phi::InducedContravariantMorphism) = phi.internal_morphism
   
+# The same for covariant induced maps
 function hom(
     phi::AbsHyperComplexMorphism, 
     D::AbsHyperComplex;
-    domain::HomComplex = hom(Oscar.codomain(phi), D),
-    codomain::HomComplex = hom(Oscar.domain(phi), D)
+    domain::HomComplex = hom(D, Oscar.domain(phi)),
+    codomain::HomComplex = hom(D, Oscar.codomain(phi))
   )
   return InducedContravariantMorphism(phi, D; domain, codomain)
+end
+
+struct InducedCovariantMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  phi::AbsHyperComplexMorphism
+  dom::HomComplex
+  cod::HomComplex
+  common_dom::AbsHyperComplex
+
+  # Fields needed for production
+  function InducedCovariantMorphismFactory(
+      phi::AbsHyperComplexMorphism,
+      D::AbsHyperComplex,
+      dom::HomComplex,
+      cod::HomComplex
+    )
+    return new{ModuleFPHom}(phi, dom, cod, D)
+  end
+end
+
+function hom(M::ModuleFP, phi::ModuleFPHom; 
+    domain::ModuleFP=hom(M, Oscar.domain(phi)),
+    codomain::ModuleFP=hom(M, Oscar.codomain(phi))
+  )
+  return lift_homomorphism_covariant(domain, codomain, phi)
+end
+
+function (fac::InducedCovariantMorphismFactory)(self::AbsHyperComplexMorphism, i::Tuple)
+  dom = fac.dom
+  cod = fac.cod
+  common_dom = fac.common_dom
+  n = dim(common_dom)
+  m = dim(dom) - n
+  a = i[1:n]
+  b = i[n+1:m+n]
+  na = Tuple([-i for i in a])
+  return hom(common_dom[na], fac.phi[b]; domain=dom[i], codomain=cod[i])
+end
+
+function can_compute(fac::InducedCovariantMorphismFactory, self::AbsHyperComplexMorphism, i::Tuple)
+  # Decide whether the outgoing map from index i can be computed
+  dom = fac.dom
+  cod = fac.cod
+  common_dom = fac.common_dom
+  n = dim(common_dom)
+  m = dim(dom) - n
+  a = i[1:n]
+  b = i[n+1:m+n]
+  na = Tuple([-i for i in a])
+  return can_compute_index(fac.phi, b) && can_compute_index(common_dom, na)
+end
+
+
+@attributes mutable struct InducedCovariantMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedCovariantMorphism{DomainType, CodomainType, MorphismType}}
+  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
+  # Further specialized fields
+  # ...
+
+  function InducedCovariantMorphism(
+      D::AbsHyperComplex,
+      phi::AbsHyperComplexMorphism;
+      domain::HomComplex = hom(D, Oscar.codomain(phi)),
+      codomain::HomComplex = hom(D, Oscar.domain(phi))
+  )
+    @assert Oscar.domain(domain) === Oscar.domain(codomain) === D
+    @assert Oscar.codomain(domain) === Oscar.domain(phi)
+    @assert Oscar.codomain(codomain) === Oscar.codomain(phi)
+    map_factory = InducedCovariantMorphismFactory(phi, D, domain, codomain)
+
+    # Assuming that the domain `dom` and the codomain `cod` have 
+    # been extracted from the input
+    internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
+    # Assuming that the types have been extracted from the input
+    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+  end
+end
+
+underlying_morphism(phi::InducedCovariantMorphism) = phi.internal_morphism
+  
+function hom(
+    D::AbsHyperComplex,
+    phi::AbsHyperComplexMorphism;
+    domain::HomComplex = hom(D, Oscar.domain(phi)),
+    codomain::HomComplex = hom(D, Oscar.codomain(phi))
+  )
+  return InducedCovariantMorphism(D, phi; domain, codomain)
 end
 
