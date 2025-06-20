@@ -2069,7 +2069,7 @@ end
 
 function is_virtually_abelian(L::ZZLat, gensAutL)
   length(gensAutL)==0 && return true
-  @assert rank(L)==3
+  rank(L)>= 5 && return has_zero_entropy(L, gensAutL)
   if has_zero_entropy(L, gensAutL)
     return true
   end
@@ -2093,6 +2093,10 @@ function has_zero_entropy(L::ZZLat, gensAutL)
   d = diagonal(rational_span(C))
   return 0<= maximum(push!([sign(i) for i in d],-1))
 end
+  
+function is_elementary_hyperbolic(L::ZZLat, gensAutL)
+  return is_virtually_abelian(L, gensAutL) && !has_zero_entropy(L, gensAutL)
+end 
 
 function is_finite(L::ZZLat, gensAutL)
   length(gensAutL)==0 && return true
