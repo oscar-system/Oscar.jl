@@ -77,5 +77,5 @@ end
 # (3) Auxiliary types
 ###########################################
 
-StdAffineScheme = AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+const StdAffineScheme = AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
 

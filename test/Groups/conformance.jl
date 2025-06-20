@@ -1,16 +1,11 @@
 L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group(1), free_group(2) ]
 
-import Oscar.AbstractAlgebra
-import Oscar.AbstractAlgebra: Group
+@testset "GAPGroups_interface_conformance $G of type $(typeof(G))" for G in L
 
-include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl"))
+   ConformanceTests.test_Group_interface(G)
+   ConformanceTests.test_GroupElem_interface(rand(G, 2)...)
 
-@testset "GAPGroups_interface_conformance for $(G)" for G in L
-
-   test_Group_interface(G)
-   test_GroupElem_interface(rand(G, 2)...)
-
-   # TODO: move most of the following to AbstractAlgebra.jl/test/Groups-conformance-tests.jl
+   # TODO: move most of the following to AbstractAlgebra.jl/ext/TestExt/Groups-conformance-tests.jl
 
    g, h = rand(G,2)
 
@@ -60,6 +55,10 @@ include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conform
       @test g>h || g==h || g<h
       @test isequal(g,h) || isless(g,h) || isless(h,g)
       end
+
+      F = free_group(1)
+      @test_throws ArgumentError F == G
+      @test_throws ArgumentError gen(F, 1) == g
    end
 
    @testset "Group operations" begin
@@ -200,7 +199,7 @@ end
     L = [x for x in G]
     @test L isa Vector{PermGroupElem}
     @test length(L) == factorial(degree(G))
-    @test length(unique(L)) == factorial(degree(G))
+    @test allunique(L)
     @test rand(G) isa PermGroupElem
     @test rand(G) in G
     A = PermGroupElem[]

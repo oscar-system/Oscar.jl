@@ -43,7 +43,7 @@ Return the Katsura ideal in the given polynomial ring `R`.
 
 # Examples
 ```jldoctest
-julia> R, _ = QQ["x", "y", "z"]
+julia> R, _ = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> katsura(R)

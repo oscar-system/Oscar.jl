@@ -1,8 +1,18 @@
 # standard packages
 using Pkg
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, myid, nworkers
+import Distributed: remotecall, workers, remotecall_fetch
+
+if VERSION < v"1.11.0-DEV.1562"
+  using Compat: allequal, allunique
+end
+if VERSION < v"1.8.0-DEV.1494"
+  export allequal
+end
 
 # our packages
 import AbstractAlgebra
@@ -41,6 +51,7 @@ import Base:
   one,
   parent,
   print,
+  put!,
   reduce,
   show,
   sum,
@@ -55,7 +66,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -75,6 +86,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
@@ -82,10 +94,14 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  Group,
+  GroupElem,
   has_gens,
   Ideal,
   Indent,
   is_finite_order,
+  is_equal_as_morphism,
+  is_known,
   is_terse,
   is_trivial,
   is_unicode_allowed,
@@ -137,6 +153,7 @@ import Nemo:
   fqPolyRepFieldElem,
   fraction_field,
   height,
+  IntegerUnionOrPtr,
   is_embedded,
   is_prime,
   is_probable_prime,
@@ -144,6 +161,7 @@ import Nemo:
   is_unit,
   isqrtrem,
   jacobi_symbol,
+  mat_entry_ptr,
   matrix_space,
   moebius_mu,
   numerator,
@@ -152,6 +170,7 @@ import Nemo:
   QQField,
   QQFieldElem,
   QQMatrix,
+  RationalUnionOrPtr,
   rising_factorial,
   root,
   unit,
@@ -163,6 +182,7 @@ import Nemo:
 # By default we import everything exported by Hecke, and then also re-export
 # it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
+    Symbol("@perm_str"), # see https://github.com/oscar-system/Oscar.jl/issues/4963
     :change_uniformizer,
     :coefficients,
     :exponent_vectors,
@@ -196,8 +216,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element,
-  QQBar
+  primitive_element
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)
@@ -206,3 +225,4 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+import lib4ti2_jll

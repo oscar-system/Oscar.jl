@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -243,9 +244,11 @@ julia> divexact(ZZ(6), ZZ(3))
 
 julia> divexact(ZZ(6), ZZ(0))
 ERROR: DivideError: integer division error
+[...]
 
 julia> divexact(ZZ(6), ZZ(5))
 ERROR: ArgumentError: Not an exact division
+[...]
 
 julia> divexact(ZZ(6), 2)
 3
@@ -325,6 +328,7 @@ julia> rem(ZZ(4), ZZ(3))
 
 julia> div(ZZ(2), ZZ(0))
 ERROR: DivideError: integer division error
+[...]
 
 ```
 
@@ -357,6 +361,7 @@ julia> mod(ZZ(4), ZZ(3))
 
 julia> mod(ZZ(2), ZZ(0))
 ERROR: DivideError: integer division error
+[...]
 
 ```
 
@@ -468,6 +473,7 @@ julia> isqrt(ZZ(5))
 julia> isqrt(ZZ(-3))
 ERROR: DomainError with -3:
 Argument must be non-negative
+[...]
 
 ```
 
@@ -501,10 +507,12 @@ julia> root(ZZ(16), 4)
 julia> root(ZZ(-5), 2)
 ERROR: DomainError with (-5, 2):
 Argument `x` must be positive if exponent `n` is even
+[...]
 
 julia> root(ZZ(12), -2)
 ERROR: DomainError with -2:
 Exponent must be positive
+[...]
 ```
 
 ## Conversions
@@ -532,6 +540,7 @@ is raised.
 ```jldoctest
 julia> Int(ZZ(12348732648732648763274868732687324))
 ERROR: InexactError: convert(Int64, 12348732648732648763274868732687324)
+[...]
 
 ```
 
@@ -555,18 +564,19 @@ false
 Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> factor(ZZ(-6000361807272228723606))
 -1 * 2 * 229^3 * 43669^3 * 3
 
 julia> factor(ZZ(0))
 ERROR: ArgumentError: Argument is not non-zero
+[...]
 
 ```
 
 * `unit(F::Fac) -> ZZRingElem`
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-12))
 -1 * 2^2 * 3
 
@@ -579,7 +589,7 @@ julia> unit(F)
 
 Once created, a factorisation is iterable:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
@@ -594,7 +604,7 @@ The pairs `(p, e)` in a factorisation represent the prime power factors
 ``p^e`` of the non-unit part of the factorisation. They can be placed in an
 array using `collect`:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
@@ -615,7 +625,7 @@ is not in a factorisation is requested, an exception is raised.
 For convenience, a `Int` can be used instead of an OSCAR integer for this
 functionality.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
@@ -633,6 +643,7 @@ julia> F[3]
 
 julia> F[ZZ(7)]
 ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
+[...]
 
 ```
 

@@ -7,11 +7,7 @@
   C1 = cube(f, 2, 0, 1)
   Pos = polyhedron(f, [-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0])
   L = polyhedron(f, [-1 0 0; 0 -1 0], [0, 0])
-  point = convex_hull(f, [0 1 0])
-  # this is to make sure the order of some matrices below doesn't change
-  Polymake.prefer("beneath_beyond") do
-    affine_hull(point)
-  end
+  empty = polyhedron(f, [1 0 0; -1 0 0], [0, -1])
   s = simplex(f, 2)
   rsquare = cube(f, 2, QQFieldElem(-3, 2), QQFieldElem(3, 2))
 
@@ -19,19 +15,18 @@
     LP1 = linear_program(square, [1, 3])
     LP2 = linear_program(square, [2, 2]; k=3, convention=:min)
     LP3 = linear_program(Pos, [1, 2, 3])
+    LP4 = linear_program(empty, [1, 2, 3])
     @test LP1 isa LinearProgram{T}
     @test LP2 isa LinearProgram{T}
     @test LP3 isa LinearProgram{T}
+    @test LP4 isa LinearProgram{T}
 
     @test ambient_dim(LP1) == 2
 
     @test solve_lp(LP1) == (4, [1, 1])
     @test solve_lp(LP2) == (-1, [-1, -1])
-    if T == QQFieldElem
-      @test string(solve_lp(LP3)) == string("(inf, nothing)")
-    else
-      @test string(solve_lp(LP3)) == string("((inf), nothing)")
-    end
+    @test solve_lp(LP3) == (PosInf(), nothing)
+    @test solve_lp(LP4) == (nothing, nothing)
   end
 
   if T == QQFieldElem

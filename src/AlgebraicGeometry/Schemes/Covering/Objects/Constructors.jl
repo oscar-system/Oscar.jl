@@ -13,9 +13,9 @@ those gluings along the identity of every affine chart to itself.
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 
@@ -56,9 +56,9 @@ The charts and gluings of the disjoint union are given by the disjoint union of 
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 

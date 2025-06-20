@@ -18,7 +18,7 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
+julia> R,(x,y) = polynomial_ring(QQ, [:x,:y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2-y^2, x+1])
@@ -40,7 +40,7 @@ function real_solutions(
         info_level::Int=0,                    # info level for print outs
         precision::Int=32                     # precision of the solution set
         )
-    AI = AlgebraicSolving.Ideal(I.gens.O)
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
     AlgebraicSolving.real_solutions(AI,
              initial_hts = initial_hts,
@@ -78,8 +78,8 @@ is greater than zero an empty array is returned.
 - `precision::Int=32`: bit precision for the computed solutions.
 
 # Examples
-```jldoctest
-julia> R,(x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"])
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> R,(x1,x2,x3) = polynomial_ring(QQ, [:x1,:x2,:x3])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
@@ -136,8 +136,8 @@ end
 Given a zero-dimensional ideal, return all rational elements of the vanishing
 set.
 
-```jldoctest
-julia> R, (x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"]);
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> R, (x1,x2,x3) = polynomial_ring(QQ, [:x1,:x2,:x3]);
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2]);
 

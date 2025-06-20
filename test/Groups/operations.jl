@@ -50,49 +50,50 @@
    end
 end
 
-@testset "Matrix manipulation" begin
-   F = GF(5, 1)
-   
-   I = identity_matrix(F,6)
-   x = matrix(F,2,2,[2,3,4,0])
-   I1 = deepcopy(I)
-   I1[3:4,3:4] = x
-   @test I==identity_matrix(F,6)
-   I[3:4,3:4] = x
-   @test I==I1
-   @test I[3:4,3:4]==x
+@testset "Matrix manipulation" for F in (GF(5), GF(5,1))
+
    V = vector_space(F,6)
-   @test matrix([V[i] for i in 1:6])==identity_matrix(F,6)
+   I = identity_matrix(F,6)
+
+   # test converting a list of vector space elements into a matrix
+   @test matrix([V[i] for i in 1:6]) == I
+
+   # permutation matrix tests
    L = [1,4,6,2,3,5]
-   P = permutation_matrix(F,L)
-   @testset for i in 1:6
-      @test V[i]*P == V[L[i]]
-   end
    p = symmetric_group(6)(L)
-   @test permutation_matrix(F,p)==permutation_matrix(F,L)
-   @test upper_triangular_matrix(F.([2,3,1,1,0,1]))==matrix(F,3,3,[2,3,1,0,1,0,0,0,1])
-   @test lower_triangular_matrix(F.([2,3,1,1,0,1]))==matrix(F,3,3,[2,0,0,3,1,0,1,0,1])
+   @test permutation_matrix(F,p) == permutation_matrix(F,L)
+
+   # upper + lower triangular matrix constructor
+   @test upper_triangular_matrix(F.([1,2,3,4,5,6])) == matrix(F, [1 2 3; 0 4 5; 0 0 6])
+   @test lower_triangular_matrix(F.([2,3,1,1,0,1])) == matrix(F, [2 0 0; 3 1 0; 1 0 1])
    @test_throws ArgumentError lower_triangular_matrix(F.([2,3,1,1]))
 
-   R,t=polynomial_ring(F,"t")
+   R,t=polynomial_ring(F,:t)
    f = t^4+2*t^3+4*t+1
-   @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
-   @test_throws ArgumentError conjugate_transpose(x)
+   @test f(I)==f(1)*I
+
+   @test_throws ArgumentError conjugate_transpose(I)
+
+   P = permutation_matrix(F,L)
    @test is_symmetric(P+transpose(P))
    @test is_skew_symmetric(P-transpose(P))
    @test is_alternating(P-transpose(P))
 
    F,z = finite_field(2,2)
-   x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
+   x=matrix(F,[1 z 0 0; 0 1 z^2 z; z 0 0 1; 0 0 z+1 0])
    y=x+transpose(x)
    @test is_symmetric(y)
    @test is_hermitian(x+conjugate_transpose(x))
    @test is_skew_symmetric(y)
    @test is_alternating(y)
+   @test conjugate_transpose(conjugate_transpose(x)) == x
+
    y[1,1]=1
+   @test is_symmetric(y)
+   @test is_hermitian(x+conjugate_transpose(x))
    @test is_skew_symmetric(y)
    @test !is_alternating(y)
-   @test conjugate_transpose(x)==transpose(matrix(F,4,4,[1,z+1,0,0,0,1,z,z+1,z+1,0,0,1,0,0,z,0]))
+   @test conjugate_transpose(x)==transpose(matrix(F,[1 z+1 0 0; 0 1 z z+1; z+1 0 0 1; 0 0 z 0]))
 
 end
 
@@ -109,25 +110,16 @@ end
    @test complement(V,W0)[1]==V
    @test complement(V,sub(V,gens(V))[1])[1]==W0
 
-   v1=V([1,2,3,4,5])
-   v2=V([1,6,0,5,2])
    G = GL(5,F)
-   B=matrix(F,5,5,[1,2,3,1,0,4,5,2,0,1,3,2,5,4,0,1,6,4,3,5,2,0,4,1,1])
+   B = rand(G)
+   v1 = rand(V)
    @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
-   @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   B = G(B)
-   @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
-   @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   @test map(x->x+1,v1)==V([2,3,4,5,6])
-
-   # see the discussion of pull/1368 and issues/872
-   @test_throws MethodError v1*v2
 end
 
 # from file matrices/stuff_field_gen.jl
 @testset "Stuff on fields" begin
    F = GF(3)
-   R,t = polynomial_ring(F,"t")
+   R,t = polynomial_ring(F,:t)
    f = t^2+1
    f1 = Oscar._change_type(f)
    @test collect(coefficients(f1))==collect(coefficients(f))

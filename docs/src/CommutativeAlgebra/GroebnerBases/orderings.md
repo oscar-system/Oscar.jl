@@ -1,21 +1,24 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Monomial Orderings](@id monomial_orderings)
 
-Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
-be the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
-in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$,
-set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and
+Monomials in a set $x=\{x_1, \ldots, x_n\}$ of variables are written using
+multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$,
+set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$, and consider the monoid
 
-$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \N^n\}.$
+$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \mathbb{N}^n\}.$
 
 A *monomial ordering* on $\text{Mon}_n(x)$ is a total  ordering $>$ on $\text{Mon}_n(x)$ such that
 
 $x^\alpha > x^\beta \Longrightarrow x^\gamma x^\alpha > x^\gamma  x^\beta,
 \; \text{ for all }\; \alpha, \beta, \gamma \in \mathbb N^n.$
+
+!!! note
+    Monomial orderings are used to sort the terms of multivariate polynomials: Given a multivariate polynomial ring $R = C[x]=C[x_1, \ldots, x_n]$, we refer to each monomial ordering on $\text{Mon}_n(x)$ also as a *monomial ordering* on $R$. Names used to describe properties of monomial orderings carry over from $\text{Mon}_n(x)$ to $R$.
 
 A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 - *global* if $x^\alpha > 1$ for all $\alpha \not = (0, \dots, 0)$,
@@ -24,10 +27,10 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 
 !!! note
     - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
-    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
-       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \mathbb{N}^n$ such that
+       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \mathbb{N}^n.$
        Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
-       (global, local, mixed) monomial ordering on $\N^n$.
+       (global, local, mixed) monomial ordering on $\mathbb{N}^n$.
 
 !!! note
     By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.
@@ -40,15 +43,15 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 In this section, we show how to create monomial orderings in OSCAR. 
 
 !!! note
-    For the convenient construction of block orderings on the set of monomials in the variables of a given multivariate polynomial ring,
-    we allow to construct orderings on the monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
+    For the convenient construction of block orderings on $\text{Mon}_n(x)$, we allow to construct orderings
+    on the monomials in blocks (that is, subsets) of variables, viewing these orderings as partial orderings on $\text{Mon}_n(x)$.
 
 Here are some illustrating examples:
 
 ##### Examples
 
 ```jldoctest
-julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
+julia> S, (w, x) = polynomial_ring(QQ, [:w, :x])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
@@ -58,13 +61,16 @@ julia> canonical_matrix(o)
 [1   0]
 [0   1]
 
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+```
+
+```jldoctest
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
 
-julia> is_global(o1)
+julia> is_global_block(o1)
 true
 
 julia> canonical_matrix(o1)
@@ -74,7 +80,7 @@ julia> canonical_matrix(o1)
 julia> o2 = neglex([y, z])
 neglex([y, z])
 
-julia> is_local(o2)
+julia> is_local_block(o2)
 true
 
 julia> canonical_matrix(o2)
@@ -92,6 +98,7 @@ julia> canonical_matrix(o3)
 
 julia> is_mixed(o3)
 true
+
 ```
 
 ## Monomial Comparisons
@@ -314,7 +321,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
@@ -324,15 +331,19 @@ degrevlex([w, x])*degrevlex([y, z])
 
 ## Elimination Orderings
 
-Let $C[x]=C[x_1, \ldots, x_n]$ be a multivariate polynomial ring with coefficient ring $C$.
 Fix a subset $\sigma\subset \{1,\dots, n\}$ and write $x_\sigma$  for the set of variables $x_i$ with
 $i\in\sigma$. An *elimination ordering for $x\smallsetminus x_\sigma$*  is a monomial ordering
 $>$ on $\text{Mon}_n(x)$ which satisfies the following property: If $a$ is a monomial involving one
 of the variables in $x\smallsetminus x_\sigma$ , and $b$ is a monomial depending only on the variables in 
-$x_\sigma$, then $a > b.$ Computing a Gröbner basis of $I$ with respect to such an ordering provides one way of finding the
-intersection $I\cap C[x_\sigma]$, that is, of  *eliminating the variables in $x\smallsetminus x_\sigma$ from $I$*:
-The Gröbner basis elements which only depend on the variables in $x_\sigma$ form a Gröbner basis for
-$I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomials in $I\cap C[x_\sigma]$.
+$x_\sigma$, then $a > b.$
+
+!!! note
+    The name elimination ordering stems from its application to ideals in multivariate polynomial rings:
+    Given such an ideal $I\subset C[x]=C[x_1, \ldots, x_n]$, computing a Gröbner basis of $I$ with respect
+	to an elimination ordering for $x\smallsetminus x_\sigma$ provides one way of finding the intersection $I\cap C[x_\sigma]$, that is, of
+	*eliminating the variables in $x\smallsetminus x_\sigma$ from $I$*. In fact, the Gröbner basis elements
+	which only depend on the variables in $x_\sigma$ form a Gröbner basis of
+    $I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomials in $I\cap C[x_\sigma]$.
 
 !!! note
     The lexicographical ordering is an elimination ordering for each initial set of variables $x_1, \dots, x_k$.
@@ -350,7 +361,15 @@ is_global(ord::MonomialOrdering)
 ```
 
 ```@docs
+is_global_block(ord::MonomialOrdering)
+```
+
+```@docs
 is_local(ord::MonomialOrdering)
+```
+
+```@docs
+is_local_block(ord::MonomialOrdering)
 ```
 
 ```@docs
@@ -399,13 +418,13 @@ $x^\alpha e_i >  x^\beta e_j \iff i > j \;\text{ or }\; (i = j\;\text{ and } x^\
 Alternatively, we may wish to use $i < j$ instead of $i > j$ in this definition.
 
 In other words, these orderings are obtained by concatenating a monomial ordering on the monomials of $R$
-with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i < j$ ordering on the
-basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the `*` operator for concatenation. 
+with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i > j$ ordering on the
+basis vectors as *lex*, and to the $i < j$ ordering as *invlex*. And, we use the `*` operator for concatenation.
 
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over R

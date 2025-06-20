@@ -1,12 +1,14 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Quadratic spaces with isometry
 
 We call *quadratic space with isometry* any pair $(V, f)$ consisting of a
 non-degenerate quadratic space $V$ together with an isometry $f\in O(V)$.
-We refer to the section about [Spaces](@ref) of the documentation for
+We refer to the section about [Spaces](@ref Spaces2) of the documentation for
 new users.
 
 Note that currently, we support only rational quadratic forms, i.e.
@@ -51,8 +53,8 @@ quadratic_space_with_isometry(::Hecke.QuadSpace)
 
 By default, the first constructor always checks whether the matrix defines
 an isometry of the quadratic space. We recommend not to disable this parameter
-to avoid any complications. Note however that in the rank 0 case, the checks are
-avoided since all isometries are necessarily trivial.
+to avoid any complications. Note however that in the rank 0 case, the checks
+are avoided since all isometries are necessarily trivial.
 
 ## Attributes and first operations
 
@@ -82,24 +84,22 @@ for quadratic spaces with isometry.
 
 ```@docs
 Base.:^(::QuadSpaceWithIsom, ::Int)
-biproduct(::Vector{QuadSpaceWithIsom})
-direct_product(::Vector{QuadSpaceWithIsom})
 direct_sum(::Vector{QuadSpaceWithIsom})
 rescale(::QuadSpaceWithIsom, ::RationalUnion)
 ```
 
 ## Spinor norm
 
-Given a rational quadratic space $(V, \Phi)$, and given an integer $b\in\mathbb{Q}$,
-we define the *rational spinor norm* $\sigma$ on $(V, b\Phi)$ to be the group
-homomorphism
+Given a rational quadratic space $(V, \Phi)$, and given an integer
+$b\in\mathbb{Q}$, we define the *rational spinor norm* $\sigma$ on $(V, b\Phi)$
+to be the group homomorphism
 
 $\sigma\colon O(V, b\Phi) = O(V, \Phi)\to \mathbb{Q}^\ast/(\mathbb{Q}^\ast)^2$
 
 defined as follows. For $f\in O(V, b\Phi)$, there exist elements $v_1,\ldots,
-v_r\in V$ where $1\leq r\leq \text{rank}(V)$ such that $f =
-\tau_{v_1}\circ\cdots\circ \tau_{v_r}$ is equal to the product of the associated
-reflections. We define
+v_r\in V$ where $1\leq r\leq \text{rank}(V)$ such that
+$f = \tau_{v_1}\circ\cdots\circ \tau_{v_r}$ is equal to the product of the
+associated reflections. We define
 
 $\sigma(f) := (-\frac{b\Phi(v_1, v_1)}{2})\cdots(-\frac{b\Phi(v_r,v_r)}{2}) \mod (\mathbb{Q}^{\ast})^2.$
 

@@ -88,35 +88,48 @@
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
-GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
+const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
-  # this has just been more or less copied from the Rings section
-  # and might be removed from this file during a future refactor
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    parent_p = parent(p)
-    if serialize_with_id(parent_p)
-      parent_ref = save_as_ref(s, parent_p)
-      save_object(s, parent_ref, :params)
-    else
-      save_typed_object(s, parent_p, :params)
+type_params(p::T) where T <: GrpElemUnionType = TypeParams(T, parent(p))
+
+#############################################################################
+# attributes handling
+const GAPGroup_attributes = [
+  :order, :is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable
+]
+
+function save_attrs(s::SerializerState, G::T) where T <: GAPGroup
+  save_data_dict(s, :attrs) do 
+    for attr in attrs_list(T)
+      func = Symbol(string("has_", attr))
+      if @eval $func($G)
+        attr_value = @eval $attr($G)
+        save_typed_object(s, attr_value, attr)
+      end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
-  return load_typed_object(s)
+function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
+  !with_attrs(s) && return
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    for attr in attrs_list(T)
+      if haskey(d, attr)
+        func = Symbol(string("set_", attr))
+        attr_value = load_typed_object(s, attr)
+        @eval $func($G, $attr_value)
+      end
+    end
+  end
 end
 
 ##############################################################################
 # PermGroup
 
-@register_serialization_type PermGroup uses_id
+@register_serialization_type PermGroup uses_id [GAPGroup_attributes;]
 
 function save_object(s::SerializerState, G::PermGroup)
   n = degree(G)
-
   save_data_dict(s) do
     save_object(s, n, :degree)
     save_object(s, [Vector{Int}(GAPWrap.ListPerm(GapObj(x))) for x in gens(G)], :gens)
@@ -125,9 +138,9 @@ end
 
 function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
-  generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
-
-  return permutation_group(n, [perm(x) for x in generators])
+  generators = load_object(s, Vector{Vector{Int}}, :gens)
+  G = permutation_group(n, [perm(x) for x in generators])
+  return G
 end
 
 
@@ -137,43 +150,52 @@ end
 # (Or would it be easier for other systems if the length of the array
 # is equal to the degree of the parent group?)
 
-@register_serialization_type PermGroupElem uses_params
+@register_serialization_type PermGroupElem
+
+type_params(x::T) where T <: GroupElem = TypeParams(T, parent(x))
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
 
 function load_object(s::DeserializerState, T::Type{PermGroupElem}, parent_group::PermGroup)
-  imgs = load_object(s, Vector, Int)
+  imgs = load_object(s, Vector{Int})
   return perm(parent_group, imgs)
 end
 
 
 ##############################################################################
 # FPGroup, SubFPGroup
+# PcGroup, SubPcGroup
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
 
 @register_serialization_type FPGroup uses_id
 @register_serialization_type SubFPGroup uses_id
+@register_serialization_type PcGroup uses_id
+@register_serialization_type SubPcGroup uses_id
 
-function save_object(s::SerializerState, G::Union{FPGroup, SubFPGroup})
-  save_data_dict(s) do
-    save_typed_object(s, GapObj(G), :X)
-  end
+function type_params(G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  TypeParams(T, GapObj(G))
 end
 
-function load_object(s::DeserializerState, ::Type{T}) where T <: Union{FPGroup, SubFPGroup}
-  return T(load_typed_object(s, :X))
+function save_object(s::SerializerState,
+                     G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  #needs place holder
+  save_data_array(() -> (),  s)
 end
 
+function load_object(s::DeserializerState, ::Type{T},
+                     G::GapObj) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  return T(G)
+end
 
 ##############################################################################
 # FPGroupElem, SubFPGroupElem
 # We need the parent and a description of the word that defines the element.
 
-@register_serialization_type FPGroupElem uses_params
-@register_serialization_type SubFPGroupElem uses_params
+@register_serialization_type FPGroupElem
+@register_serialization_type SubFPGroupElem
 
 function save_object(s::SerializerState, g::Union{FPGroupElem, SubFPGroupElem})
   save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
@@ -186,7 +208,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     if GAPWrap.IsElementOfFpGroupFamily(fam)
       # go via the underlying free group
@@ -202,31 +224,13 @@ for (eltype, type) in typecombinations
   end
 end
 
-
-##############################################################################
-# PcGroup, SubPcGroup
-
-@register_serialization_type PcGroup uses_id
-@register_serialization_type SubPcGroup uses_id
-
-function save_object(s::SerializerState, G::Union{PcGroup, SubPcGroup})
-  save_data_dict(s) do
-    save_typed_object(s, GapObj(G), :X)
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{T}) where T <: Union{PcGroup, SubPcGroup}
-  return T(load_typed_object(s, :X))
-end
-
-
 ##############################################################################
 # PcGroupElem
 # We need the parent and a description of the exponent vector
 # that defines the element.
 
-@register_serialization_type PcGroupElem uses_params
-@register_serialization_type SubPcGroupElem uses_params
+@register_serialization_type PcGroupElem
+@register_serialization_type SubPcGroupElem
 
 function save_object(s::SerializerState, g::Union{PcGroupElem, SubPcGroupElem})
   elfam = GAPWrap.FamilyObj(GapObj(g))
@@ -241,7 +245,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
     gapelm = GAPWrap.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
@@ -260,16 +264,16 @@ function save_object(s::SerializerState, G::FinGenAbGroup)
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
-  return abelian_group(load_object(s, Matrix, ZZRingElem))
+  return abelian_group(load_object(s, Matrix{ZZRingElem}))
 end
 
 # elems
-@register_serialization_type FinGenAbGroupElem uses_params
+@register_serialization_type FinGenAbGroupElem
 
 function save_object(s::SerializerState, g::FinGenAbGroupElem)
   save_object(s, _coeff(g))
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
-  return G(vec(load_object(s, Matrix, ZZRingElem)))
+  return G(vec(load_object(s, Matrix{ZZRingElem})))
 end

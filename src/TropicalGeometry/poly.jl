@@ -78,8 +78,66 @@ end
 ###
 #  Disabling ideals in tropical polyomial rings
 ###
-function MPolyIdeal(R::Ring, g::Vector{Generic.MPoly{TropicalSemiringElem{minOrMax}}}) where {minOrMax}
+function MPolyIdeal(::Ring, ::Vector{Generic.MPoly{TropicalSemiringElem{minOrMax}}}) where {minOrMax <: Union{typeof(min),typeof(max)}}
     error("Ideals over tropical semirings not supported")
+end
+
+
+###
+#  Roots of univariate tropical polynomials
+###
+"""
+    roots(f::PolyRingElem{<:TropicalSemiringElem})
+
+Return the tropical roots of a univariate tropical polynomial `f`, i.e., the variable values where
+the min or max is attained at least twice.
+
+# Examples
+
+```jldoctest
+julia> R,x = polynomial_ring(tropical_semiring(min),:x)
+(Univariate polynomial ring in x over min tropical semiring, x)
+
+julia> f = 1*x^2+x+0
+(1)*x^2 + x + (0)
+
+julia> roots(f)
+2-element Vector{QQFieldElem}:
+ 0
+ -1
+
+julia> R,x = polynomial_ring(tropical_semiring(max),:x)
+(Univariate polynomial ring in x over max tropical semiring, x)
+
+julia> f = 1*x^2+x+0
+(1)*x^2 + x + (0)
+
+julia> roots(f)
+1-element Vector{QQFieldElem}:
+ -1//2
+
+```
+"""
+function roots(f::PolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax <: Union{typeof(min),typeof(max)}}
+    # Construct either the lower (min) or upper (max) convex hull of degrees and coefficients
+    # Example: for min(1+2x,x,0) it is conv({(2,1), (1,0), (0,0)}) + RR_{>=0}*(0,1)
+    #          for max(1+2x,x,0) it is conv({(2,1), (1,0), (0,0)}) + RR_{>=0}*(0,-1)
+    # Note: univariate polynomials also enumerate over zero coefficients, necessitating !iszero(c) below
+    valsAndExps = [ QQFieldElem[first(d),QQ(c)] for (d,c) in zip(exponents(f),coefficients(f)) if !iszero(c) ]
+
+    if length(valsAndExps)<2
+        return QQFieldElem[] # return empty set if f not at least binomial
+    end
+
+    s = minOrMax==typeof(min) ? 1 : -1 # +1 if min, -1 if max
+    hullDirection = s*[0 1]
+    newtonPolygon = convex_hull(valsAndExps,hullDirection)
+
+    # The negated slopes of the lower (min) or upper (max) edges are when function value is attained at least twice
+    # Example: for min(1+2x,x,0) it is -1 and 0, for max(1+2x,x,0) it is -1/2
+    F = affine_inequality_matrix(facets(newtonPolygon))
+    negatedSlopes = [ F[i,2]/F[i,3] for i in 1:nrows(F) if s*F[i,3]<0 ]
+    return negatedSlopes
 end
 
 
@@ -100,7 +158,7 @@ Translate the expression in the tropical world.
 ```jldoctest
 julia> T = tropical_semiring(min);
 
-julia> Tx, x = polynomial_ring(T, "x" => 1:3);
+julia> Tx, x = polynomial_ring(T, :x => 1:3);
 
 julia> @tropical min(1, x[1], x[2], 2*x[3])
 x[3]^2 + x[1] + x[2] + (1)
@@ -174,7 +232,7 @@ return the tropicalization of `f` as a polynomial over the tropical semiring.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = polynomial_ring(QQ,["x", "y"])
+julia> R, (x,y) = polynomial_ring(QQ,[:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> nu = tropical_semiring_map(QQ,7)
@@ -193,7 +251,7 @@ function tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem}, nu::Union
     isnothing(nu) && (nu = tropical_semiring_map(coefficient_ring(f)))
 
     T = tropical_semiring(nu)
-    Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
+    Tx,x = polynomial_ring(T, [repr(x) for x in gens(parent(f))], cached=false)
     tropf = inf(T)
 
     for (c,alpha) in zip(coefficients(f), exponents(f))
@@ -218,7 +276,7 @@ Return the dual subdivision on `exponents(f)` with weights `coefficients(f)` (mi
 
 # Examples
 ```jldoctest
-julia> _, (x,y) = polynomial_ring(tropical_semiring(),["x", "y"]);
+julia> _, (x,y) = polynomial_ring(tropical_semiring(),[:x, :y]);
 
 julia> f = 1+x+y+x^2;
 
@@ -256,7 +314,7 @@ Return the dual subdivision on `exponents(f)` with weights `nu.(coefficients(f))
 
 # Examples
 ```jldoctest
-julia> _, (x,y) = QQ["x", "y"];
+julia> _, (x,y) = QQ[:x, :y];
 
 julia> nu = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
@@ -306,7 +364,7 @@ end
 # julia> K = PadicField(7, 2)
 # Field of 7-adic numbers
 
-# julia> Kxy, (x,y) = K["x", "y"]
+# julia> Kxy, (x,y) = K[:x, :y]
 # (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{PadicFieldElem}[x, y])
 
 # julia> f = 7*x+y+49
@@ -327,7 +385,7 @@ end
 #     s=-1
 #   end
 
-#   Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
+#   Tx,x = polynomial_ring(T, [repr(x) for x in gens(parent(f))], cached=false)
 #   tropf = inf(T)
 
 #   if base_ring(parent(f)) isa NonArchLocalField

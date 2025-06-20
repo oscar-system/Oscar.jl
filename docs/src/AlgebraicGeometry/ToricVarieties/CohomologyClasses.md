@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -9,6 +11,15 @@ CurrentModule = Oscar
 ## Constructors
 
 ### General constructors
+
+Cohomology classes are elements of the cohomology ring, which is a quotient ring (for normal toric varieties that
+are simplicial and complete). All of the following methods accept an optional argument `quick` (default: `false`).  
+When set to `true`, computations are performed in the base ring of the cohomology ring to improve performance.  
+This is especially useful when constructing cohomology classes on large toric varieties, where operations
+in the quotient ring - such as Gröbner basis computations - can be computationally expensive.
+
+**Caveat:** When `quick = true`, the method will not detect whether the resulting cohomology class is trivial.
+Use this option when faster computations are preferred and triviality checks are not required.
 
 ```@docs
 cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
@@ -54,14 +65,17 @@ polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 ## Methods
 
 ```@docs
-integrate(c::CohomologyClass)
+integrate(c::CohomologyClass; check::Bool = true)
 ```
 
 
 ## Special attributes of toric varieties
 
 ```@docs
-cohomology_ring(v::NormalToricVarietyType)
+cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
+chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+chern_classes(v::NormalToricVariety; check::Bool = true)
+basis_of_h4(v::NormalToricVariety; check::Bool = true)
 ```

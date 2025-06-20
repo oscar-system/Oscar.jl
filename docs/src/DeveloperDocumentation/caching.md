@@ -1,9 +1,10 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Caching parent objects in OSCAR
+# Caching Parent Objects
 
 Many functions in OSCAR that construct parent objects (such as rings, modules,
 groups, etc.) have an optional keyword argument `cached::Bool`. If set to
@@ -44,7 +45,7 @@ we use `map_coefficients` to map polynomials over the integers to polynomials
 over a finite field, and the results can be added -- this is only possible because
 the new polynomials have the same parent, thanks to caching.
 ```jldoctest
-julia> Zx, x = ZZ["x"]
+julia> Zx, x = ZZ[:x]
 (Univariate polynomial ring in x over ZZ, x)
 
 julia> F = GF(2);
@@ -96,9 +97,9 @@ like `cyclotomic_polynomial`
 ```
 module Globals
   using Hecke
-  const Qx, _ = polynomial_ring(FlintQQ, "x", cached = false)
-  const Zx, _ = polynomial_ring(FlintZZ, "x", cached = false)
-  const Zxy, _ = polynomial_ring(FlintZZ, ["x", "y"], cached = false)
+  const Qx, _ = polynomial_ring(QQ, :x, cached = false)
+  const Zx, _ = polynomial_ring(ZZ, :x, cached = false)
+  const Zxy, _ = polynomial_ring(ZZ, [:x, :y], cached = false)
 end
 ```
 You can use these in your own code as well, or imitate this pattern if convenient.

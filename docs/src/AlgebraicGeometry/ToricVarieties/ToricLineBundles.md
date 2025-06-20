@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -31,6 +33,7 @@ the inverse by invoking `inv`.
 anticanonical_bundle(v::NormalToricVarietyType)
 canonical_bundle(v::NormalToricVarietyType)
 structure_sheaf(v::NormalToricVarietyType)
+trivial_line_bundle(v::NormalToricVarietyType)
 ```
 
 

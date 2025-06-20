@@ -50,14 +50,33 @@ with default covering
     6: [(z//y), (x//y), s]
 
 julia> piS = weierstrass_contraction(Y1)
-Composite morphism of[...]
+Composite morphism of
+  Hom: elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5 -> scheme over QQ covered with 44 patches
+  Hom: scheme over QQ covered with 44 patches -> scheme over QQ covered with 40 patches
+  Hom: scheme over QQ covered with 40 patches -> scheme over QQ covered with 38 patches
+  Hom: scheme over QQ covered with 38 patches -> scheme over QQ covered with 36 patches
+  Hom: scheme over QQ covered with 36 patches -> scheme over QQ covered with 32 patches
+  Hom: scheme over QQ covered with 32 patches -> scheme over QQ covered with 30 patches
+  Hom: scheme over QQ covered with 30 patches -> scheme over QQ covered with 28 patches
+  Hom: scheme over QQ covered with 28 patches -> scheme over QQ covered with 26 patches
+  Hom: scheme over QQ covered with 26 patches -> scheme over QQ covered with 24 patches
+  Hom: scheme over QQ covered with 24 patches -> scheme over QQ covered with 22 patches
+  Hom: scheme over QQ covered with 22 patches -> scheme over QQ covered with 20 patches
+  Hom: scheme over QQ covered with 20 patches -> scheme over QQ covered with 18 patches
+  Hom: scheme over QQ covered with 18 patches -> scheme over QQ covered with 16 patches
+  Hom: scheme over QQ covered with 16 patches -> scheme over QQ covered with 14 patches
+  Hom: scheme over QQ covered with 14 patches -> scheme over QQ covered with 12 patches
+  Hom: scheme over QQ covered with 12 patches -> scheme over QQ covered with 10 patches
+  Hom: scheme over QQ covered with 10 patches -> scheme over QQ covered with 6 patches
+
+
 
 julia> basisNSY1, gramTriv = trivial_lattice(Y1);
 
 julia> [(i[1],i[2]) for i in reducible_fibers(Y1)]
 3-element Vector{Tuple{Vector{QQFieldElem}, Tuple{Symbol, Int64}}}:
- ([1, 1], (:A, 2))
  ([0, 1], (:E, 8))
+ ([1, 1], (:A, 2))
  ([1, 0], (:E, 8))
 
 julia> basisNSY1, _, NSY1 = algebraic_lattice(Y1);
@@ -66,8 +85,6 @@ julia> basisNSY1
 20-element Vector{Any}:
  Fiber over (2, 1)
  section: (0 : 1 : 0)
- component A2_1 of fiber over (1, 1)
- component A2_2 of fiber over (1, 1)
  component E8_1 of fiber over (0, 1)
  component E8_2 of fiber over (0, 1)
  component E8_3 of fiber over (0, 1)
@@ -76,6 +93,8 @@ julia> basisNSY1
  component E8_6 of fiber over (0, 1)
  component E8_7 of fiber over (0, 1)
  component E8_8 of fiber over (0, 1)
+ component A2_1 of fiber over (1, 1)
+ component A2_2 of fiber over (1, 1)
  component E8_1 of fiber over (1, 0)
  component E8_2 of fiber over (1, 0)
  component E8_3 of fiber over (1, 0)
@@ -88,31 +107,16 @@ julia> basisNSY1
 julia> basisNSY1[1]
 Effective weil divisor Fiber over (2, 1)
   on elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
-with coefficients in integer Ring
+with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
 
 julia> b, I = Oscar._is_equal_up_to_permutation_with_permutation(gram_matrix(NS), gram_matrix(NSY1))
-(true, [1, 2, 19, 20, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+(true, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 19, 20, 11, 12, 13, 14, 15, 16, 17, 18])
 
 julia> @assert gram_matrix(NSY1) == gram_matrix(NS)[I,I]
 
-julia> Oscar.horizontal_decomposition(Y1, fibers[2][I])[2]
-Effective weil divisor
-  on elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
-with coefficients in integer Ring
-given as the formal sum of
-  2 * component E8_7 of fiber over (0, 1)
-  2 * section: (0 : 1 : 0)
-  1 * component A2_0 of fiber over (1, 1)
-  1 * component E8_0 of fiber over (1, 0)
-  2 * component E8_4 of fiber over (0, 1)
-  2 * component E8_3 of fiber over (0, 1)
-  1 * component E8_2 of fiber over (0, 1)
-  2 * component E8_0 of fiber over (0, 1)
-  2 * component E8_6 of fiber over (0, 1)
-  2 * component E8_5 of fiber over (0, 1)
-  1 * component E8_8 of fiber over (0, 1)
+julia> Oscar.horizontal_decomposition(Y1, fibers[2][I])[2];
 
 julia> representative(elliptic_parameter(Y1, fibers[2][I]))
 (x//z)//(t^3 - t^2)
@@ -122,22 +126,20 @@ julia> g, phi1 = two_neighbor_step(Y1, fibers[2][I]); g
 
 julia> kt2 = base_ring(parent(g)); P = kt2.([0,0]);
 
-julia> Y2, phi2 = elliptic_surface(g, P); Y2
+julia> Y2, phi2 = elliptic_surface(g, P; minimize=false); Y2
 Elliptic surface
   over rational field
 with generic fiber
   -x^3 + t^3*x^2 - t^3*x + y^2
-and relatively minimal model
-  scheme over QQ covered with 47 patches
 
-julia> E2 = generic_fiber(Y2); t2 = gen(kt2);
+julia> E2 = generic_fiber(Y2); tt = gen(kt2);
 
-julia> P2 = E2([t2^3, t2^3]); set_mordell_weil_basis!(Y2, [P2]);
+julia> P2 = E2([tt^3, tt^3]); set_mordell_weil_basis!(Y2, [P2]);
 
 julia> U2 = weierstrass_chart_on_minimal_model(Y2); U1 = weierstrass_chart_on_minimal_model(Y1);
 
 julia> imgs = phi2.(phi1.(ambient_coordinates(U1))) # k(Y1) -> k(Y2)
-3-element Vector{AbstractAlgebra.Generic.Frac{QQMPolyRingElem}}:
+3-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}:
  (-(x//z)*t + t)//(x//z)^3
  ((x//z)*(y//z) - (y//z))//(x//z)^5
  1//(x//z)
@@ -149,27 +151,6 @@ julia> set_attribute!(phi_rat, :is_isomorphism=>true);
 julia> pullbackDivY1 = [pullback(phi_rat, D) for D in basisNSY1];
 
 julia> B = [basis_representation(Y2, D) for D in pullbackDivY1];
-20-element Vector{Vector{QQFieldElem}}:
- [4, 2, 0, 0, 0, 0, 0, 0, 0, -4, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
- [4, 2, -1, -2, -3, -5//2, -2, -3//2, -3//2, -3, -5//2, -5, -9//2, -4, -7//2, -3, -5//2, -2, -3//2, -1]
- [0, 0, 1, 2, 3, 5//2, 2, 3//2, 3//2, -2, -3//2, -3, -5//2, -2, -3//2, -1, -1//2, 0, 1//2, 1]
- [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [1, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
- [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [2, 1, -1, -2, -3, -5//2, -2, -3//2, -3//2, -2, -5//2, -4, -7//2, -3, -5//2, -2, -3//2, -1, -1//2, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 julia> B = matrix(QQ, 20, 20, reduce(vcat, B)); NSY2 = algebraic_lattice(Y2)[3];
 
@@ -177,17 +158,63 @@ julia> NSY1inY2 = lattice(ambient_space(NSY2),B);
 
 julia> @assert NSY1inY2 == NSY2 && gram_matrix(NSY1inY2) == gram_matrix(NSY1)
 
-julia> fibers_in_Y2 = [f[I]*B for f in fibers]
-6-element Vector{Vector{QQFieldElem}}:
- [4, 2, 0, 0, 0, 0, 0, 0, 0, -4, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [5, 2, -2, -3, -4, -3, -2, -1, -2, -5, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [4, 2, -2, -4, -6, -9//2, -3, -3//2, -7//2, -3, -5//2, -5, -9//2, -4, -7//2, -3, -5//2, -2, -3//2, 0]
- [2, 1, -1, -2, -3, -2, -1, 0, -2, -1, -1, -2, -2, -2, -2, -2, -2, -1, 0, 1]
- [2, 1, 0, 0, 0, 0, 0, 0, 0, -2, -2, -4, -4, -4, -4, -3, -2, -1, 0, 1]
+julia> fibers_in_Y2 = [f[I]*B for f in fibers];
 
 julia> f3 = fibers[3][I]; representative(elliptic_parameter(Y1, f3))
 (x//z)//t^2
 
 julia> g3a, phi3a = two_neighbor_step(Y1, f3); g3a
 -x^3 + (-t^3 + 2)*x^2 - x + y^2
+
+julia> @assert all(inner_product(ambient_space(NSY2), i,i) == 0 for i in fibers_in_Y2)
+
+julia> [representative(elliptic_parameter(Y2, f)) for f in fibers_in_Y2[4:6]]
+3-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}:
+ (y//z)//((x//z)*t)
+ ((y//z) + t^3)//((x//z)*t - t^4)
+ ((y//z) + t^3)//((x//z) - t^3)
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[4]);g
+-1//4*x^4 - 1//2*t^2*x^3 - 1//4*t^4*x^2 + x + y^2
+
+julia> R = parent(g); K_t = base_ring(R);
+
+julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E4 = elliptic_curve(g, x, y)
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[5]);g
+t^2*x^3 + (-1//4*t^4 + 2*t)*x^2 + x + y^2
+
+julia> R = parent(g); K_t = base_ring(R);
+
+julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E5 = elliptic_curve(g, x, y)
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[6]);g
+(t^2 + 2*t + 1)*x^3 + y^2 - 1//4*t^4
+
+julia> R = parent(g); K_t = base_ring(R); t = gen(K_t);
+
+julia> (x,y) = gens(R); P = K_t.([0,1//2*t^2]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E6 = elliptic_curve(g, x, y)
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3

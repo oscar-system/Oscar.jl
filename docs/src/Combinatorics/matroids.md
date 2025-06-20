@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Matroids
@@ -31,6 +33,7 @@ bond_matroid(g::Graph)
 cocycle_matroid(g::Graph)
 Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))
 matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
+matroid_from_matroid_hex(str::AbstractString)
 ```
 
 ## Examples
@@ -112,6 +115,7 @@ reduced_characteristic_polynomial(M::Matroid)
 revlex_basis_encoding(M::Matroid)
 is_isomorphic(M1::Matroid, M2::Matroid)
 is_minor(M::Matroid, N::Matroid)
+matroid_hex(M::Matroid)
 automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
 ```
@@ -123,4 +127,8 @@ chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=fal
 augmented_chow_ring(M::Matroid)
 ```
 
-
+### Quantum Automorphisms
+```@docs
+quantum_symmetric_group(n::Int)
+quantum_automorphism_group(M::Matroid, structure::Symbol)
+```

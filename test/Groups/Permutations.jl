@@ -5,15 +5,11 @@
   @test p == cperm([1,2],[3,4,5],[7,8,9])
 
   a=1;b=2;f=x->3*x + 2;
-  p = @perm (a,f(a),b)(a+1,b*2)
-  @test p == cperm([1,5,4,2])
+  p = @perm (a,f(a),b)(a+2,b*2)
+  @test p == cperm([1,5,2],[3,4])
   p = @perm ()
   @test p == cperm()
-  
-  @test_throws ErrorException @perm (-1, 1)
-  @test_throws LoadError @eval @perm "bla"
-  @test_throws LoadError @eval @perm 1 + 1
-  
+    
   gens = @perm 14 [
          (1,10)
         (2,11)
@@ -25,22 +21,261 @@
         (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
         (1,2)(10,11)
        ]
+  G = symmetric_group(14)
   p = Vector{PermGroupElem}(undef,9)
-  p[1] = cperm(symmetric_group(14),[1,10])
-  p[2] = cperm(symmetric_group(14),[2,11])
-  p[3] = cperm(symmetric_group(14),[3,12])
-  p[4] = cperm(symmetric_group(14),[4,13])
-  p[5] = cperm(symmetric_group(14),[5,14])
-  p[6] = cperm(symmetric_group(14),[6,8])
-  p[7] = cperm(symmetric_group(14),[7,9])
-  p[8] = cperm(symmetric_group(14),[1,2,3,4,5,6,7],[8,9,10,11,12,13,14])
-  p[9] = cperm(symmetric_group(14),[1,2],[10,11])
+  p[1] = cperm(G,[1,10])
+  p[2] = cperm(G,[2,11])
+  p[3] = cperm(G,[3,12])
+  p[4] = cperm(G,[4,13])
+  p[5] = cperm(G,[5,14])
+  p[6] = cperm(G,[6,8])
+  p[7] = cperm(G,[7,9])
+  p[8] = cperm(G,[1,2,3,4,5,6,7],[8,9,10,11,12,13,14])
+  p[9] = cperm(G,[1,2],[10,11])
   @test gens == p
-  
-  @test_throws ArgumentError @perm 10 [(1,11)]
-  
-  G = sub(symmetric_group(14),gens)[1]
+    
+  G = sub(G,gens)[1]
   @test order(G) == 645120
+end
+
+@testset "@perm" begin
+  @testset "@perm <...> cycles" begin
+    @testset "@perm cycles" begin
+      p = @perm (1,2,6)(4,5)
+      @test p isa PermGroupElem
+      G = parent(p)
+      @test degree(G) == 6
+      @test is_natural_symmetric_group(G)
+      @test order(p) == 6
+  
+      p = @perm ()
+      @test p isa PermGroupElem
+      G = parent(p)
+      @test degree(G) == 1
+      @test is_natural_symmetric_group(G)
+      @test order(p) == 1
+  
+      @test_throws ArgumentError @perm (-1,1)
+    end
+
+    @testset "@perm n cycles" begin
+      n = 7
+
+      p = @perm n (1,2,6)(4,5)
+      @test p isa PermGroupElem
+      G = parent(p)
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test order(p) == 6
+
+      p = @perm n ()
+      @test p isa PermGroupElem
+      G = parent(p)
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test order(p) == 1
+
+      @test_throws ArgumentError @perm 10 (1,11)
+      @test_throws ArgumentError @perm 5 (-1,1)
+    end
+
+    @testset "@perm G cycles" begin
+      S = symmetric_group(7)
+      p = @perm S (1,2,6)(4,5)
+      @test p isa PermGroupElem
+      @test parent(p) == S
+      @test order(p) == 6
+      p = @perm S ()
+      @test p isa PermGroupElem
+      @test parent(p) == S
+      @test order(p) == 1
+
+      @test_throws ArgumentError @perm S (-1,1)
+      @test_throws ArgumentError @perm S (2,5,8)
+
+      A = alternating_group(7)
+      p = @perm A (1,6)(4,5)
+      @test p isa PermGroupElem
+      @test parent(p) == A
+      @test order(p) == 2
+      p = @perm A ()
+      @test p isa PermGroupElem
+      @test parent(p) == A
+      @test order(p) == 1
+
+      # perms with negative sign
+      @test_throws ArgumentError @perm A (3,5) 
+      @test_throws ArgumentError @perm A (1,2,3,4) 
+      @test_throws ArgumentError @perm A (2,5)(4,1,3) 
+    end
+  end
+
+  @testset "@perm <...> vector" begin
+    let n = 7
+      S = symmetric_group(n)
+      @static if VERSION >= v"1.7"
+        # the following tests need the improved `@macroexpand` from Julia 1.7
+        @test_throws ArgumentError @macroexpand @perm []
+        @test_throws ArgumentError @macroexpand @perm n []
+        @test_throws ArgumentError @macroexpand @perm S []
+      end
+    end
+
+    @testset "@perm vector" begin
+      ps = @perm [(1,4)(2,3)(6,5)]
+      @test ps isa Vector{PermGroupElem}
+      G = parent(ps[1])
+      @test degree(G) == 6
+      @test is_natural_symmetric_group(G)
+      @test ps == [@perm(G, (1,4)(2,3)(6,5))]
+      
+      ps = @perm [(1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4)]
+      @test ps isa Vector{PermGroupElem}
+      @test allequal(parent, ps)
+      G = parent(ps[1])
+      @test degree(G) == 6
+      @test is_natural_symmetric_group(G)
+      @test ps == [@perm(G, (1,2,3)(4,5)), @perm(G, (6,2,3,1)), @perm(G, ()), @perm(G, (2,)(1,4))]
+  
+      @test_throws ArgumentError @perm [(1,-2)]
+    end
+
+    @testset "@perm n vector" begin
+      n = 7
+      ps = @perm n [(1,4)(2,3)(6,5)]
+      @test ps isa Vector{PermGroupElem}
+      G = parent(ps[1])
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test ps == [@perm(n, (1,4)(2,3)(6,5))]
+      
+      ps = @perm n [(1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4)]
+      @test ps isa Vector{PermGroupElem}
+      @test allequal(parent, ps)
+      G = parent(ps[1])
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test ps == [@perm(n, (1,2,3)(4,5)), @perm(n, (6,2,3,1)), @perm(n, ()), @perm(n, (2,)(1,4))]
+
+      @test_throws ArgumentError @perm 10 [(1,11)]
+      @test_throws ArgumentError @perm 5 [(1,-2)]
+    end
+
+    @testset "@perm G vector" begin
+      S = symmetric_group(7)
+      A = alternating_group(7)
+      
+      ps = @perm S [(1,4)(2,3)(6,5)]
+      @test ps isa Vector{PermGroupElem}
+      @test parent(ps[1]) == S
+      @test ps == [@perm(S, (1,4)(2,3)(6,5))]
+      
+      ps = @perm S [(1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4)]
+      @test ps isa Vector{PermGroupElem}
+      @test all(p -> parent(p) == S, ps)
+      @test ps == [@perm(S, (1,2,3)(4,5)), @perm(S, (6,2,3,1)), @perm(S, ()), @perm(S, (2,)(1,4))]
+
+      @test_throws ArgumentError @perm S [(1,11)]
+      @test_throws ArgumentError @perm S [(1,-2)]
+
+      ps = @perm A [(1,4)(6,5)]
+      @test ps isa Vector{PermGroupElem}
+      @test parent(ps[1]) == A
+      @test ps == [@perm(A, (1,4)(6,5))]
+      
+      ps = @perm A [(1,2,3)(4,5,7), (6,2,3,1,5), (), (2,)(1,4,5)]
+      @test ps isa Vector{PermGroupElem}
+      @test all(p -> parent(p) == A, ps)
+      @test ps == [@perm(A, (1,2,3)(4,5,7)), @perm(A, (6,2,3,1,5)), @perm(A, ()), @perm(A, (2,)(1,4,5))]
+
+      @test_throws ArgumentError @perm A [(1,4)(2,3)(6,5)]
+    end
+  end
+
+  @testset "@perm <...> tuple" begin
+    # the empty tuple does not throw an error as it denotes the identity permutation
+    @testset "@perm tuple" begin
+      ps = @perm ((1,4)(2,3)(6,5),)
+      @test ps isa NTuple{1, PermGroupElem}
+      G = parent(ps[1])
+      @test degree(G) == 6
+      @test is_natural_symmetric_group(G)
+      @test ps == (@perm(G, (1,4)(2,3)(6,5)),)
+      
+      ps = @perm ((1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4))
+      @test ps isa NTuple{4, PermGroupElem}
+      @test allequal(parent, ps)
+      G = parent(ps[1])
+      @test degree(G) == 6
+      @test is_natural_symmetric_group(G)
+      @test ps == (@perm(G, (1,2,3)(4,5)), @perm(G, (6,2,3,1)), @perm(G, ()), @perm(G, (2,)(1,4)))
+
+      @test_throws ArgumentError @perm ((1,-2),)
+    end
+
+    @testset "@perm n tuple" begin
+      n = 7
+
+      ps = @perm n ((1,4)(2,3)(6,5),)
+      @test ps isa NTuple{1, PermGroupElem}
+      G = parent(ps[1])
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test ps == (@perm(n, (1,4)(2,3)(6,5)),)
+      
+      ps = @perm n ((1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4))
+      @test ps isa NTuple{4, PermGroupElem}
+      @test allequal(parent, ps)
+      G = parent(ps[1])
+      @test degree(G) == n
+      @test is_natural_symmetric_group(G)
+      @test ps == (@perm(n, (1,2,3)(4,5)), @perm(n, (6,2,3,1)), @perm(n, ()), @perm(n, (2,)(1,4)))
+
+      @test_throws ArgumentError @perm 10 ((1,11),)
+      @test_throws ArgumentError @perm 5 ((1,-2),)
+    end
+
+    @testset "@perm G tuple" begin
+      S = symmetric_group(7)
+      A = alternating_group(7)
+
+      ps = @perm S ((1,4)(2,3)(6,5),)
+      @test ps isa NTuple{1, PermGroupElem}
+      @test parent(ps[1]) == S
+      @test ps == (@perm(S, (1,4)(2,3)(6,5)),)
+      
+      ps = @perm S ((1,2,3)(4,5), (6,2,3,1), (), (2,)(1,4))
+      @test ps isa NTuple{4, PermGroupElem}
+      @test all(p -> parent(p) == S, ps)
+      @test ps == (@perm(S, (1,2,3)(4,5)), @perm(S, (6,2,3,1)), @perm(S, ()), @perm(S, (2,)(1,4)))
+
+      @test_throws ArgumentError @perm S ((1,11),)
+      @test_throws ArgumentError @perm S ((1,-2),)
+
+      ps = @perm A ((1,4)(6,5),)
+      @test ps isa NTuple{1, PermGroupElem}
+      @test parent(ps[1]) == A
+      @test ps == (@perm(A, (1,4)(6,5)),)
+      
+      ps = @perm A ((1,2,3)(4,5,7), (6,2,3,5,1), (), (2,)(1,4,5))
+      @test ps isa NTuple{4, PermGroupElem}
+      @test all(p -> parent(p) == A, ps)
+      @test ps == (@perm(A, (1,2,3)(4,5,7)), @perm(A, (6,2,3,5,1)), @perm(A, ()), @perm(A, (2,)(1,4,5)))
+
+      @test_throws ArgumentError @perm A ((1,4)(2,3)(6,5),)
+    end
+  end
+
+
+  @static if VERSION >= v"1.7"
+    # the following tests need the improved `@macroexpand` from Julia 1.7
+    @test_throws MethodError @macroexpand @perm "bla"
+    @test_throws ErrorException @macroexpand @perm 1 + 1
+    @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
+    @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
+    @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
+    @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
+  end
 end
 
 @testset "permutation_group" begin
@@ -69,7 +304,7 @@ end
   @test order(@permutation_group(5, (1,2,3)(4,5), (1,2,3,4))) == 120
 
   @test_throws ArgumentError @permutation_group(1, (1,2))
-  @test_throws ErrorException @permutation_group(1, (1,0))
+  @test_throws ArgumentError @permutation_group(1, (1,0))
 end
 
 @testset "parent coercion for permutation groups" begin
@@ -189,4 +424,11 @@ end
     end
     @test cc == [[1, 2, 3], [4, 5], [6, 7], [8, 9, 10], [11, 12, 13, 14, 15]]
   end
+end
+
+@testset "smaller_degree_permuation_group" begin
+  c = cperm(1:3,4:6,7:9)
+  G,_ = sub(symmetric_group(9), [c])
+  H,iso = smaller_degree_permutation_representation(G)
+  @test degree(H)<degree(G)
 end

@@ -1,5 +1,5 @@
 @testset "mpoly_affine_homological-algebra.fitting_ideal" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  F = free_module(R, 3)
  I = ideal(R, [zero(R)])
  @test fitting_ideal(F, 2) == I
@@ -7,19 +7,19 @@
 end
 
 @testset "mpoly_affine_homological-algebra.is_flat" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  F = free_module(R, 3)
  @test is_flat(F) == true
 end
 
 @testset "mpoly_affine_homological-algebra.non_flat_locus" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  F = free_module(R, 3)
  @test non_flat_locus(F) == ideal(R, [one(R)])
 end
 
 @testset "mpoly_affine_homological-algebra.is_regular_sequence" begin
- R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+ R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
  F = free_module(R, 1)
  U = matrix([x*y-y])
  M = quo(F, U)[1]
@@ -30,7 +30,7 @@ end
 end
 
 @testset "mpoly_affine_homological-algebra.koszul_matrix" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  V = gens(R)
  KM = koszul_matrix(V, 1)
  KMS = Oscar._koszul_matrix_from_singular(V, 1)
@@ -40,7 +40,7 @@ end
 end
 
 @testset "mpoly_affine_homological-algebra.koszul_complex" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  V = gens(R)
  K = koszul_complex(V)
  KS = Oscar._koszul_complex_from_singular(V)
@@ -52,7 +52,7 @@ end
 end
 
 @testset "mpoly_affine_homological-algebra.koszul_homology" begin
- R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+ R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
  F = free_module(R, 1)
  U = matrix([x*y-y])
  M = quo(F, U)[1]
@@ -64,14 +64,14 @@ end
 end
 
 @testset "mpoly_affine_homological-algebra.depth" begin
- R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+ R, (x, y) = polynomial_ring(QQ, [:x, :y]);
  F = free_module(R, 1)
  U = matrix([x*y])
  M = quo(F, U)[1]
  I = ideal(R, gens(R))
  @test depth(I, M) == Oscar._depth_from_singular(I, M) == 1
 
- R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+ R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
  F = free_module(R, 1);
  I = ideal(R, [x*z-z, x*y-y, x])
  @test depth(I, F) == Oscar._depth_from_singular(I, F) == 3
@@ -79,7 +79,7 @@ end
 
 @testset "singular vs oscar comparison" begin
   n = 3
-  R, _ = polynomial_ring(QQ, "x"=>1:n)
+  R, _ = polynomial_ring(QQ, :x=>1:n)
   FR = FreeMod(R, 1)
   IR = ideal(R, gens(R))
   IR = IR*IR
@@ -94,14 +94,14 @@ end
 
 @testset "generic depth routine" begin
   P, _ = QQ[:u, :v]
-  R, (x, y) = polynomial_ring(P, ["x", "y"]);
+  R, (x, y) = polynomial_ring(P, [:x, :y]);
   F = free_module(R, 1)
   U = matrix([x*y])
   M = quo(F, U)[1]
   I = ideal(R, gens(R))
   @test depth(I, M) == 1
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
   F = free_module(R, 1);
   I = ideal(R, [x*z-z, x*y-y, x])
   @test depth(I, F) == 3

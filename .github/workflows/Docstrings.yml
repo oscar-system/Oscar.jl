@@ -1,0 +1,45 @@
+name: docstring test
+
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+  workflow_dispatch:
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  check-docstrings:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: julia-actions/setup-julia@v2
+    - uses: julia-actions/cache@v2
+      id: julia-cache
+    - name: Build package
+      uses: julia-actions/julia-buildpkg@v1
+    - name: 'Check issues in docstrings'
+      run: |
+        julia --project=. -e 'using Oscar; include("etc/check_docstrings.jl")'
+    - name: 'Check for markdown files with non-standard `@meta` blocks'
+      run: |
+        julia --color=yes -e 'include("etc/check_meta.jl")'
+    - name: Save Julia depot cache on cancel or failure
+      id: julia-cache-save
+      if: cancelled() || failure()
+      uses: actions/cache/save@v4
+      with: 
+        path: |
+          ${{ steps.julia-cache.outputs.cache-paths }}
+        key: ${{ steps.julia-cache.outputs.cache-key }}

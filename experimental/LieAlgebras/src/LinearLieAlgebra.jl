@@ -1,36 +1,3 @@
-@attributes mutable struct LinearLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  n::Int  # the n of the gl_n this embeds into
-  dim::Int
-  basis::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LinearLieAlgebra{C}(
-    R::Field,
-    n::Int,
-    basis::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
-    @req length(s) == length(basis) "Invalid number of basis element names."
-    L = new{C}(R, n, length(basis), basis, s)
-    if check
-      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-      # TODO: make work
-      # for xi in basis(L), xj in basis(L)
-      #   @req (xi * xj) in L
-      # end
-    end
-    return L
-  end
-end
-
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -54,7 +21,7 @@ Return the basis `basis(L)` of the Lie algebra `L` in the underlying matrix
 representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:FieldElem}
-  return Vector{dense_matrix_type(C)}(L.basis)
+  return L.basis::Vector{dense_matrix_type(C)}
 end
 
 @doc raw"""
@@ -64,7 +31,7 @@ Return the `i`-th element of the basis `basis(L)` of the Lie algebra `L` in the
 underlying matrix representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:FieldElem}
-  return (L.basis[i])::dense_matrix_type(C)
+  return matrix_repr_basis(L)[i]
 end
 
 ###############################################################################
@@ -77,26 +44,58 @@ function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
   @show_name(io, L)
   @show_special(io, mime, L)
   io = pretty(io)
-  println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
-  println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  print(io, "over ")
-  print(io, Lowercase(), coefficient_ring(L))
+  type_string = _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n)
+  if !isnothing(type_string)
+    println(io, type_string)
+  else
+    println(io, "Linear Lie algebra with $(L.n)x$(L.n) matrices")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, Indent(), "of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+        println(io, Dedent())
+      end
+    end
+  end
+  println(io, Indent(), "of dimension ", dim(L), Dedent())
+  print(io, "over ", Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
   @show_name(io, L)
   @show_special(io, L)
   if is_terse(io)
-    print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
+    type_string_compact = _lie_algebra_type_to_compact_string(
+      get_attribute(L, :type, :unknown), L.n
+    )
+    if !isnothing(type_string_compact)
+      print(io, type_string_compact)
+    else
+      print(io, "Linear Lie algebra")
+    end
   else
     io = pretty(io)
-    print(
-      io,
-      _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n),
-      " over ",
-      Lowercase(),
-    )
-    print(terse(io), coefficient_ring(L))
+    type_string = _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n)
+    if !isnothing(type_string)
+      print(io, type_string)
+    else
+      print(io, "Linear Lie algebra with $(L.n)x$(L.n) matrices")
+      if has_root_system(L)
+        rs = root_system(L)
+        if has_root_system_type(rs)
+          type, ord = root_system_type_with_ordering(rs)
+          print(io, " of type ", _root_system_type_string(type))
+          if !issorted(ord)
+            print(io, " (non-canonical ordering)")
+          end
+        end
+      end
+    end
+    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
   end
 end
 
@@ -109,9 +108,8 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
     return "Special orthogonal Lie algebra of degree $n"
   elseif type == :symplectic
     return "Symplectic Lie algebra of degree $n"
-  else
-    return "Linear Lie algebra with $(n)x$(n) matrices"
   end
+  return nothing
 end
 
 function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
@@ -121,9 +119,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
-  else
-    return "Linear Lie algebra"
   end
+  return nothing
 end
 
 function symbols(L::LinearLieAlgebra)
@@ -163,10 +160,12 @@ Return the Lie algebra element `x` in the underlying matrix representation.
 """
 function Generic.matrix_repr(x::LinearLieAlgebraElem)
   L = parent(x)
-  return sum(
-    c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(L));
-    init=zero_matrix(coefficient_ring(L), L.n, L.n),
-  )
+  mat = zero_matrix(coefficient_ring(L), L.n, L.n)
+  tmp = zero(mat)
+  for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
+    mat = addmul!(mat, b, c, tmp)
+  end
+  return mat
 end
 
 function bracket(
@@ -177,6 +176,42 @@ function bracket(
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
   return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(L::LinearLieAlgebra) = isdefined(L, :root_system)
+
+function root_system(L::LinearLieAlgebra)
+  assure_root_system(L)
+  return L.root_system
+end
+
+function chevalley_basis(L::LinearLieAlgebra)
+  assure_root_system(L)
+  return L.chevalley_basis::NTuple{3,Vector{elem_type(L)}}
+end
+
+function set_root_system_and_chevalley_basis!(
+  L::LinearLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{LinearLieAlgebraElem{C}}}
+) where {C<:FieldElem}
+  L.root_system = R
+  L.chevalley_basis = chev
+end
+
+###############################################################################
+#
+#   change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::LinearLieAlgebra)
+  basis = map(b -> change_base_ring(R, b), matrix_repr_basis(L))
+  return lie_algebra(R, L.n, basis, symbols(L); check=false)
 end
 
 ###############################################################################
@@ -194,6 +229,40 @@ given by `s`. The basis elements must be square matrices of size `n`.
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
 two basis elements in its span (this is currently not checked).
 Setting `check=false` disables these checks (once they are in place).
+
+# Examples
+```jldoctest
+julia> e = matrix(QQ, [0 0 1; 0 0 0; 0 0 0]);
+
+julia> f = matrix(QQ, [0 0 0; 0 0 0; 1 0 0]);
+
+julia> h = matrix(QQ, [1 0 0; 0 0 0; 0 0 -1]);
+
+julia> L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h])
+Linear Lie algebra with 3x3 matrices
+  of dimension 3
+over rational field
+
+julia> root_system(L);
+
+julia> L
+Linear Lie algebra with 3x3 matrices
+  of type A1
+  of dimension 3
+over rational field
+
+julia> basis(L)
+3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ e
+ f
+ h
+
+julia> matrix_repr_basis(L)
+3-element Vector{QQMatrix}:
+ [0 0 1; 0 0 0; 0 0 0]
+ [0 0 0; 0 0 0; 1 0 0]
+ [1 0 0; 0 0 0; 0 0 -1]
+```
 """
 function lie_algebra(
   R::Field,
@@ -208,26 +277,17 @@ end
 function lie_algebra(
   basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:FieldElem}
-  parent_L = parent(basis[1])
-  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
-  R = coefficient_ring(parent_L)
-  n = parent_L.n
-  s = map(AbstractAlgebra.obj_to_string, basis)
-  return lie_algebra(R, n, matrix_repr.(basis), s; check)
+  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(basis[1]), basis; check)
 end
 
-@doc raw"""
-    abelian_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
-
-Return the abelian Lie algebra of dimension `n` over the field `R`.
-The first argument can be optionally provided to specify the type of the returned
-Lie algebra.
-"""
-function abelian_lie_algebra(R::Field, n::Int)
-  @req n >= 0 "Dimension must be non-negative."
-  return abelian_lie_algebra(LinearLieAlgebra, R, n)
+function lie_algebra(
+  L::LinearLieAlgebra{C}, basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
+) where {C<:FieldElem}
+  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  R = coefficient_ring(L)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
+  return lie_algebra(R, L.n, matrix_repr.(basis), s; check)
 end
 
 function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:LinearLieAlgebra}

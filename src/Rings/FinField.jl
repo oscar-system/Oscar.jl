@@ -3,6 +3,7 @@ module DiscLog  # TODO: move to Hecke
 using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
+import Oscar: disc_log, is_primitive
 
 function __init__()
   Hecke.add_verbosity_scope(:DiscLog)
@@ -24,7 +25,7 @@ end
 
 @attr Fac{ZZRingElem} factored_order(K::FinField) = factor(size(K)-1)
 
-function Oscar.is_primitive(a::FinFieldElem, f::Fac{ZZRingElem} = factored_order(parent(a)))
+function is_primitive(a::FinFieldElem, f::Fac{ZZRingElem} = factored_order(parent(a)))
   iszero(a) && return false
   n = size(parent(a))-1
   for p = keys(f.fac)
@@ -64,8 +65,4 @@ function disc_log(a::T) where {T <: FinFieldElem}
   return crt([x[2] for x = res], [x[1] for x= res])
 end
 
-export disc_log
-
 end # module DiscLog
-
-export disc_log

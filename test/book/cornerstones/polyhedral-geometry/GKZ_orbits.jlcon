@@ -15,8 +15,7 @@ julia> OrbitRepresentatives=
 julia> OrbitSizes = 
         [length(
           filter(x->minimum(gset(G,permuted,[x]))==u,
-          GKZ_Vectors)
-         ) for u in OrbitRepresentatives];
+          GKZ_Vectors)) for u in OrbitRepresentatives];
 
 julia> show(OrbitSizes)
 [12, 24, 24, 8, 2, 4]

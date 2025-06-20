@@ -115,8 +115,8 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   r = relative_ambient_dimension(X)
   s = symbols(S)
   for i in 0:r
-    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
+    R, gens_R = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
+    phi = hom(S, R, vcat(gens_R[1:i], [one(R)], gens_R[i+1:r]); check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     if !isone(I) # return the non-empty charts only
       chart_dict[i+1] = spec(quo(R, I)[1])
@@ -133,7 +133,7 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
   r = relative_ambient_dimension(X)
   s = symbols(S)
   for i in 0:r
-    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R, x = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     chart_dict[i+1] = spec(R)
   end
   return chart_dict
@@ -159,10 +159,10 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyQuoRing}) 
 
   r = relative_ambient_dimension(X)
   for i in 0:r
-    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R_fiber, gens_R_fiber = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     F = spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
-    fiber_vars = pullback(pF).(gens(R_fiber))
+    fiber_vars = pullback(pF).(gens_R_fiber)
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
     patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     chart_dict[i+1] = patch
@@ -184,10 +184,10 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyDecRing}) 
 
   r = relative_ambient_dimension(X)
   for i in 0:r
-    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R_fiber, gens_R_fiber = polynomial_ring(kk, [Symbol("(",s[k+1],"//",s[i+1],")") for k in 0:r if k != i])
     F = spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
-    fiber_vars = pullback(pF).(gens(R_fiber))
+    fiber_vars = pullback(pF).(gens_R_fiber)
     chart_dict[i+1] = ambient_space
     pU[ambient_space] = pY
   end
@@ -239,7 +239,7 @@ end
 end
 
 # coefficient ring an MPolyAnyRing
-@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:Union{<:MPolyDecRing, <:MPolyQuoRing}}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+@attr Any function standard_covering(X::AbsProjectiveScheme{CRT, <:Union{<:MPolyDecRing, <:MPolyQuoRing}}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
@@ -479,231 +479,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  return result
 #end
 
-########################################################################
-# Closed embeddings                                                    #
-########################################################################
 
-### forwarding the essential getters
-underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
-
-### additional functionality
-image_ideal(phi::CoveredClosedEmbedding) = phi.I
-
-### user facing constructors
-function CoveredClosedEmbedding(X::AbsCoveredScheme, I::AbsIdealSheaf;
-        covering::Covering=default_covering(X), check::Bool=true)
-  space(I) === X || error("ideal sheaf is not defined on the correct scheme")
-  mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
-  rev_dict = IdDict{AbsAffineScheme, AbsAffineScheme}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
-  patch_list = Vector{AbsAffineScheme}()
-  for U in patches(covering)
-    inc = ClosedEmbedding(U, I(U))
-    V = domain(inc)
-    if !isempty(V)
-      mor_dict[V] = inc
-      push!(patch_list, V)
-      rev_dict[U] = V
-    end
-  end
-  gluing_dict = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
-  for Unew in keys(mor_dict)
-    U = codomain(mor_dict[Unew])
-    for Vnew in keys(mor_dict)
-      V = codomain(mor_dict[Vnew])
-      gluing_dict[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction,
-                                               RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
-                                              )
-    end
-  end
-
-  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, gluing_dict, check=false))
-  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=false)
-  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
-end
-
-function base_change(phi::Any, f::CoveredClosedEmbedding;
-    domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
-    codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
-  )
-  g = underlying_morphism(f)
-  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
-  II = image_ideal(f)
-  bc_II = pullback(codomain_map, II)
-  return domain_map, CoveredClosedEmbedding(domain(bc_g), codomain(bc_g), covering_morphism(bc_g); check=false, ideal_sheaf=bc_II), codomain_map
-end
-
-########################################################################
-# Composite morphism of covered schemes
-########################################################################
-
-@doc raw"""
-    CompositeCoveredSchemeMorphism{
-        DomainType<:AbsCoveredScheme,
-        CodomainType<:AbsCoveredScheme,
-        BaseMorphismType
-       } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 BaseMorphismType,
-                                 CoveredSchemeMorphism
-                                }
-
-A special concrete type of an `AbsCoveredSchemeMorphism` of the
-form ``f = hᵣ ∘ hᵣ₋₁ ∘ … ∘ h₁: X → Y`` for arbitrary
-`AbsCoveredSchemeMorphism`s ``h₁ : X → Z₁``, ``h₂ : Z₁ → Z₂``, ...,
-``hᵣ : Zᵣ₋₁ → Y``.
-
-Since every such morphism ``hⱼ`` will in general have an underlying
-`CoveringMorphism` with `domain` and `codomain` `covering` actual
-composition of such a sequence of morphisms will lead to an exponential
-increase in complexity of these coverings because of the necessary
-refinements. Nevertheless, the pullback or pushforward of various objects
-on either ``X`` or ``Y`` through such a chain of maps is possible stepwise.
-This type allows one to have one concrete morphism rather than a list
-of morphisms and to reroute such calculations to iteration over the
-various maps.
-
-In addition to the usual functionality of the `AbsCoveredSchemeMorphism`
-interface, this concrete type has the getters
-
-    maps(f::CompositeCoveredSchemeMorphism)
-
-to obtain a list of the ``hⱼ`` and `map(f, j)` to obtain the `j`-th map
-directly.
-"""
-@attributes mutable struct CompositeCoveredSchemeMorphism{
-    DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme,
-    BaseMorphismType
-   } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 BaseMorphismType,
-                                 CoveredSchemeMorphism
-                                }
-  maps::Vector{<:AbsCoveredSchemeMorphism}
-
-  # fields for caching
-  composed_map::AbsCoveredSchemeMorphism
-
-  function CompositeCoveredSchemeMorphism(maps::Vector{<:AbsCoveredSchemeMorphism})
-    n = length(maps)
-    for i in 1:n-1
-      @assert codomain(maps[i]) === domain(maps[i+1]) "maps are not compatible"
-    end
-    # TODO: Take care of non-trivial base changes!
-    return new{typeof(domain(first(maps))), typeof(codomain(maps[end])), Nothing}(maps)
-  end
-end
-
-### Essential getters
-maps(f::CompositeCoveredSchemeMorphism) = f.maps
-map(f::CompositeCoveredSchemeMorphism, i::Int) = f.maps[i]
-domain(f::CompositeCoveredSchemeMorphism) = domain(first(f.maps))
-codomain(f::CompositeCoveredSchemeMorphism) = codomain(f.maps[end])
-
-### Forwarding essential functionality (to be avoided!)
-function underlying_morphism(f::CompositeCoveredSchemeMorphism)
-  if !isdefined(f, :composed_map)
-    result = underlying_morphism(first(maps(f)))::CoveredSchemeMorphism
-    for i in 2:length(maps(f))
-      result = compose(result, underlying_morphism(maps(f)[i]))::CoveredSchemeMorphism
-    end
-    f.composed_map = result
-  end
-  return f.composed_map::CoveredSchemeMorphism
-end
-
-### Specialized functionality
-
-# Casting into the minimal concrete type for AbsCoveredSchemeMorphism
-function CoveredSchemeMorphism(f::CompositeCoveredSchemeMorphism)
-  return underlying_morphism(f)
-end
-
-function CoveredSchemeMorphism(f::CoveredSchemeMorphism)
-  return f
-end
-
-########################################################################
-# The standard constructors
-########################################################################
-@doc raw"""
-    composite_map(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
-
-Realize the composition ``x → g(f(x))`` as a composite map, i.e. an
-instance of `CompositeCoveredSchemeMorphism`.
-
-# Examples
-```jldoctest
-julia> IA2 = affine_space(QQ, [:x, :y])
-Affine space of dimension 2
-  over rational field
-with coordinates [x, y]
-
-julia> (x, y) = gens(OO(IA2));
-
-julia> I = ideal(OO(IA2), [x, y]);
-
-julia> pr = blow_up(IA2, I);
-
-julia> JJ = ideal_sheaf(exceptional_divisor(pr));
-
-julia> inc_E = Oscar.CoveredClosedEmbedding(domain(pr), JJ);
-
-julia> comp = Oscar.composite_map(inc_E, pr)
-Composite morphism of
-  Hom: scheme over QQ covered with 2 patches -> scheme over QQ covered with 2 patches
-  Blow-down: scheme over QQ covered with 2 patches -> scheme over QQ covered with 1 patch
-
-julia> Oscar.maps(comp)[1] === inc_E
-true
-
-julia> Oscar.maps(comp)[2] === pr
-true
-
-```
-"""
-function composite_map(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism([f, g])
-end
-
-function composite_map(f::AbsCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism(pushfirst!(Vector{AbsCoveredSchemeMorphism}(copy(maps(g))), f))
-end
-
-function composite_map(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism(vcat(maps(f), maps(g)))
-end
-
-function composite_map(f::CompositeCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism(push!(Vector{AbsCoveredSchemeMorphism}(copy(maps(f))), g))
-end
-
-########################################################################
-# Printing
-########################################################################
-function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
-  io = pretty(io)
-  if is_terse(io)
-    print(io, "Composite morphism")
-  else
-    print(io, "Composition of ", "$(domain(f)) -> ")
-    for i in 2:length(maps(f))
-      print(io, "$(domain(maps(f)[i])) -> ")
-    end
-    print(io, "$(codomain(maps(f)[end]))")
-  end
-end
-
-function Base.show(io::IO, ::MIME"text/plain", f::CompositeCoveredSchemeMorphism)
-  io = pretty(io)
-  println(io, "Composite morphism of", Indent())
-  for g in maps(f)
-    println(io, g)
-  end
-  println(io, Dedent())
-end
 
 ########################################################################
 # Bound functionality
@@ -724,5 +500,3 @@ function pullback(f::CompositeCoveredSchemeMorphism, a::VarietyFunctionFieldElem
   return result
 end
 
-### Missing compatibility
-underlying_morphism(f::CoveredSchemeMorphism) = f

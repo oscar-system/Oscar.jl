@@ -15,7 +15,7 @@ variables of `R` to be used.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> collect(monomials_of_degree(R, 3))
 10-element Vector{QQMPolyRingElem}:
@@ -53,11 +53,20 @@ function AllMonomials(R::MPolyDecRing, d::Int)
 end
 
 function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
-  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
-  return AllMonomials{typeof(R)}(R, d, vars)
+  @req is_z_graded(R) "Iterator only implemented when the grading group is Z"
+  isempty(vars) && d !== 0 && return AllMonomials{typeof(R)}(R, 1, Int[])
+  isempty(vars) && return AllMonomials{typeof(R)}(R, 0, Int[])
+  deg_ZZ = degree(R[vars[1]])[1]
+  @req all(isequal(deg_ZZ), map(i -> degree(R[i])[1], vars)) "Iterator only implemented when all the given variables have the same nonzero degree"
+  deg = Int(deg_ZZ)
+  d == 0 && return AllMonomials{typeof(R)}(R, 0, Int[])
+  does_divide, quot = divides(d, deg)
+  does_divide || return AllMonomials{typeof(R)}(R, 1, Int[])
+  quot > 0 || return AllMonomials{typeof(R)}(R, 1, Int[])
+  return AllMonomials{typeof(R)}(R, quot, vars)
 end
 
-Base.eltype(AM::AllMonomials) = elem_type(AM.R)
+Base.eltype(::Type{AllMonomials{PolyRingT}}) where {PolyRingT} = elem_type(PolyRingT)
 
 Base.length(AM::AllMonomials) = length(AM.weak_comp_iter)
 
@@ -279,7 +288,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3
@@ -390,7 +399,13 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   )
 end
 
-Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
+Base.eltype(
+  ::Type{
+    <:FinGroupInvarRingBasisIterator{
+      FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT
+    },
+  },
+) where {FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT} = PolyRingElemT
 
 Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
@@ -553,7 +568,7 @@ vector_space_iterator(
 ) where {FieldT,IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
 
 Base.eltype(
-  VSI::VectorSpaceIterator{FieldT,IteratorT,ElemT}
+  ::Type{<:VectorSpaceIterator{FieldT,IteratorT,ElemT}}
 ) where {FieldT,IteratorT,ElemT} = ElemT
 
 Base.length(VSI::VectorSpaceIteratorFiniteField) =
@@ -708,7 +723,7 @@ end
 
 iterate_partitions(M::MSet) = MSetPartitions(M)
 
-Base.eltype(MSP::MSetPartitions{T}) where {T} = Vector{MSet{T}}
+Base.eltype(::Type{MSetPartitions{T}}) where {T} = Vector{MSet{T}}
 
 function Base.iterate(MSP::MSetPartitions)
   if isempty(MSP.M)

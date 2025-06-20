@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -8,11 +9,19 @@ DocTestSetup = Oscar.doctestsetup()
 The polyhedral geometry part of OSCAR provides functionality for handling
 - convex polytopes, unbounded polyhedra and cones
 - polyhedral fans
-- linear programs
+- linear and mixed integer programs
 
 General textbooks offering details on theory and algorithms include:
 - [JT13](@cite)
+- [Sch86](@cite)
 - [Zie95](@cite)
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on polyhedral geometry in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/PolyhedralGeometry/).
+
 
 ## Scalar types
 
@@ -79,6 +88,14 @@ ray_vector
 
 While `RayVector`s can not be used do describe `PointVector`s (and vice versa),
 matrices are generally allowed.
+
+The primitive generator, also called minimal generator, of a ray can be
+accessed as follows:
+
+```@docs
+primitive_generator(r::AbstractVector{T}) where T<:RationalUnion
+primitive_generator_with_scaling_factor(r::AbstractVector{T}) where T<:RationalUnion
+```
 
 `AbstractCollection[PointVector]` can be given as:
 
@@ -159,7 +176,13 @@ Some methods will require input or return output in form of an `IncidenceMatrix`
 IncidenceMatrix
 ```
 
-From the example it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
+The unique nature of the `IncidenceMatrix` allows for different ways of construction:
+
+```@docs
+incidence_matrix
+```
+
+From the examples it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
 
 ```@docs
 row(i::IncidenceMatrix, n::Int)
@@ -175,7 +198,8 @@ fan for its construction, see [`polyhedral_fan`](@ref).
 Lower dimensional polyhedral objects can be visualized through polymake's backend.
 
 ```@docs
-visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, Graph, SimplicialComplex}; kwargs...)
+visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, SimplicialComplex}; kwargs...)
+visualize(::Vector)
 ```
 
 

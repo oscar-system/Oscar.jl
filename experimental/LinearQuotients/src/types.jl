@@ -44,7 +44,7 @@ mutable struct HomBasisBuilder{RingType,RingElemType}
     eigenvalues_to_group::Function,
   ) where {RingType,RingElemType}
     R = base_ring(C)
-    T, _ = polynomial_ring(coefficient_ring(R), "t" => 1:length(power_base(C)))
+    T, _ = polynomial_ring(coefficient_ring(R), :t => 1:length(power_base(C)))
     hom_gens = elem_type(T)[]
     degrees = elem_type(G)[]
     power_base_to_hom_gens = Dict{elem_type(R),elem_type(T)}()

@@ -4,8 +4,7 @@ julia> Qx, x = QQ["x"];
 
 julia> K, a = number_field(x^4 + 4*x^2 + 2, "a");
 
-julia> b = rand(K, -10:10) # random element with coefficients
-                           # between -10 and 10
+julia> b = rand(K, -10:10) # random element with coefficients between -10 and 10
 5*a^3 - 7*a^2 + 8*a - 8
 
 julia> A, mA = automorphism_group(K);
@@ -52,9 +51,9 @@ true
 
 julia> V, f = galois_module(K); OK = ring_of_integers(K); M = f(OK);
 
-julia> fl, c = is_free_with_basis(M); # the elements of c are a basis
+julia> fl, c = is_free_with_basis(M); # the elements of c form a basis
 
-julia> b = preimage(f, c[1]) # the element might different per session
+julia> b = preimage(f, c[1]) # the element may be different per session
 a^3
 
 julia> A, mA = automorphism_group(K);
@@ -88,4 +87,4 @@ julia> fl = is_free(M)
 false
 
 julia> defining_polynomial(K)
-x^8 + 735*x^6 + 11340*x^4 + 33075*x^2 + 11025
+x^8 + 105*x^6 + 3465*x^4 + 44100*x^2 + 176400

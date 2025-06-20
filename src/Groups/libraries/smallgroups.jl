@@ -83,7 +83,7 @@ Pc group of order 60
 ```
 """
 function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T
-  G = _small_group(n, m)
+  G = small_group(n, m)
   return T(G)
 end
 
@@ -111,6 +111,7 @@ julia> small_group_identification(alternating_group(5))
 
 julia> small_group_identification(symmetric_group(20))
 ERROR: ArgumentError: identification is not available for groups of order 2432902008176640000
+[...]
 ```
 """
 function small_group_identification(G::GAPGroup)
@@ -133,6 +134,7 @@ julia> number_of_small_groups(8)
 
 julia> number_of_small_groups(4096)
 ERROR: ArgumentError: the number of groups of order 4096 is not available
+[...]
 
 julia> number_of_small_groups(next_prime(ZZRingElem(2)^64))
 1

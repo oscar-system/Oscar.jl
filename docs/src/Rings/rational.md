@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -66,6 +67,7 @@ julia> QQ(2//3)
 
 julia> ZZ(3)//0
 ERROR: DivideError: integer division error
+[...]
 
 ```
 One can also construct the rational number ``0`` with the empty constructor:
@@ -222,6 +224,7 @@ julia> divexact(QQ(2, 3), QQ(3, 5))
 
 julia> divexact(QQ(1, 3), ZZ(0))
 ERROR: DivideError: integer division error
+[...]
 
 julia> divexact(QQ(3, 4), ZZ(5))
 3//20
@@ -265,15 +268,16 @@ julia> QQ(0)^0
 ```jldoctest
 julia> QQ(0)^-2
 ERROR: DivideError: integer division error
+[...]
 
 ```
 
 * `is_power(a::QQFieldElem, b::Int) -> Bool, QQFieldElem`
 
-Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
-```false``` and any rational otherwise.
+Test if ``a`` is an ``n``-th power. If so, return `true` and the root,
+`false` and any rational otherwise.
 
-* `is_power(a::QQFieldElem) -> Int, QQFieldElem`
+* `is_perfect_power_with_data(a::QQFieldElem) -> Int, QQFieldElem`
 
 Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
@@ -288,7 +292,7 @@ julia> is_power(QQ(8), 3)
 julia> is_power(QQ(8), 2)
 (false, 8)
 
-julia> is_power(QQ(9//16))
+julia> is_perfect_power_with_data(QQ(9//16))
 (2, 3//4)
 
 julia> root(QQ(25//9), 2)

@@ -2,9 +2,9 @@
   
   antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]))
   
-  antv2 = normal_toric_variety(IncidenceMatrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
+  antv2 = normal_toric_variety(incidence_matrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
   
-  v = normal_toric_variety(IncidenceMatrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
+  v = normal_toric_variety(incidence_matrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
     
   dP1 = del_pezzo_surface(NormalToricVariety, 1)
   c0 = cohomology_class(dP1, gens(cohomology_ring(dP1))[1])

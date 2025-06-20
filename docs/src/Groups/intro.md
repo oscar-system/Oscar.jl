@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -16,6 +17,12 @@ The groups part of OSCAR provides functionality for handling
 General textbooks offering details on theory and algorithms include:
 - [Hup67](@cite)
 - [HEO05](@cite)
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on group theory in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/GroupTheory/).
 
 
 ## Contact

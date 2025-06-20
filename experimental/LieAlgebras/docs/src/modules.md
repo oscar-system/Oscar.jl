@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -60,4 +61,24 @@ symmetric_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
 tensor_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
 abstract_module(::LieAlgebra{C}, ::Int, ::Vector{<:MatElem{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
 abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
+```
+
+## Representation theory of semisimple Lie algebras in characteristic 0
+
+### Functions concerning simple modules
+
+```@docs
+simple_module(::LieAlgebra, ::WeightLatticeElem)
+dim_of_simple_module(::LieAlgebra, ::WeightLatticeElem)
+dominant_weights(::LieAlgebra, ::WeightLatticeElem)
+dominant_character(::LieAlgebra, ::WeightLatticeElem)
+character(::LieAlgebra, ::WeightLatticeElem)
+tensor_product_decomposition(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeElem)
+```
+
+### Functions concerning Demazure modules
+
+```@docs
+demazure_operator(::RootSpaceElem, ::Dict{WeightLatticeElem,<:IntegerUnion})
+demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)
 ```

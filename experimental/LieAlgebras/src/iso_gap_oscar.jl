@@ -26,9 +26,7 @@ function _iso_gap_oscar_abstract_lie_algebra(
   LO = _abstract_lie_algebra_from_GAP(LG, coeffs_iso, s)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
-  iso = MapFromFunc(LG, LO, f, finv)
-  set_attribute!(LO, :iso_oscar_gap => inv(iso))
-  return iso
+  return MapFromFunc(LG, LO, f, finv)
 end
 
 function _iso_gap_oscar_linear_lie_algebra(
@@ -39,9 +37,7 @@ function _iso_gap_oscar_linear_lie_algebra(
   LO = _linear_lie_algebra_from_GAP(LG, coeffs_iso, s)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
-  iso = MapFromFunc(LG, LO, f, finv)
-  set_attribute!(LO, :iso_oscar_gap => inv(iso))
-  return iso
+  return MapFromFunc(LG, LO, f, finv)
 end
 
 function _abstract_lie_algebra_from_GAP(
@@ -58,7 +54,7 @@ function _abstract_lie_algebra_from_GAP(
       )
     )
 
-  struct_consts = Matrix{SRow{elem_type(RO)}}(undef, dimL, dimL)
+  struct_consts = Matrix{sparse_row_type(RO)}(undef, dimL, dimL)
   for i in 1:dimL, j in 1:dimL
     struct_consts[i, j] = sparse_row(
       RO, Tuple{Int,elem_type(RO)}[(k, RO(c)) for (k, c) in zip(sc_table_G[i, j]...)]

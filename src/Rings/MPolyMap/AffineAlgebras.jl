@@ -48,11 +48,9 @@ end
 
 Return the kernel of `F`.
 """
-function kernel(f::AffAlgHom)
-  get_attribute!(f, :kernel) do
-    C = codomain(f)
-    return preimage(f, ideal(C, [zero(C)]))
-  end # TODO: need some ideal_type(domain(f)) here :)
+@attr Any function kernel(f::AffAlgHom) # TODO: need some ideal_type(domain(f)) here :)
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
 end
 
 ##############################################################################
@@ -122,7 +120,7 @@ function is_finite(F::AffAlgHom)
   b = falses(n)
   for f in gb
     exp = exponent_vector(leading_monomial(f, ordering = o), 1)
-    inds = findall(x -> x != 0, exp)
+    inds = findall(!is_zero, exp)
     if length(inds) > 1 || inds[1] > n
       continue
     end
@@ -145,11 +143,11 @@ If `F` is bijective, return its inverse.
 
 # Examples
 ```jldoctest
-julia> D1, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> D1, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
-julia> C, (t,) = polynomial_ring(QQ, ["t"]);
+julia> C, (t,) = polynomial_ring(QQ, [:t]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
@@ -224,7 +222,42 @@ function preimage(F::MPolyAnyMap, I::Ideal)
 end
 
 function preimage(
-    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
+  return _preimage_via_singular(f, I)
+end
+
+function preimage(
+    f::MPolyAnyMap{S, S, Nothing}, 
+    I::MPolyIdeal
+  ) where {S <: MPolyRing{<:RingElem}}
+  # If the map is the inclusion of a subring in a subset of 
+  # variables, use the `eliminate` command instead.
+  _assert_has_maps_variables_to_variables!(f)
+  success, ind = _maps_variables_to_variables(f)
+  if success
+    img_gens = elem_type(domain(f))[] # for the projection map
+    elim_ind = Int[]
+    for (i, x) in enumerate(gens(codomain(f)))
+      k = findfirst(==(i), ind)
+      if isnothing(k)
+        push!(img_gens, zero(domain(f)))
+        push!(elim_ind, i)
+      else
+        push!(img_gens, gen(domain(f), k::Int))
+      end
+    end
+    J = eliminate(I, elim_ind)
+    pr = hom(codomain(f), domain(f), img_gens)
+    return pr(J)
+  end
+  return _preimage_via_singular(f, I)
+end
+
+function _preimage_via_singular(
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
   ) where {T <: RingElem,
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
@@ -259,19 +292,19 @@ end
 function _groebner_data(F::AffAlgHom)
   R = domain(F)
   S = codomain(F)
+  K = coefficient_ring(R)
+  @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
   S2 = base_ring(modulus(S))
   m = ngens(R)
   n = ngens(S)
   J = get_attribute!(F, :groebner_data) do
-    K = coefficient_ring(R)
-    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
     T, _ = polynomial_ring(K, m + n; cached = false)
 
     S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
 
     fs = map(lift, _images(F))
     return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
-  end
+  end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
   TtoR = hom(T, R, append!(zeros(R, n), gens(R)))

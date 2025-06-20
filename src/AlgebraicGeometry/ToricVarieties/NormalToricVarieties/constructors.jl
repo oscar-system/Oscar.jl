@@ -66,8 +66,7 @@ end
     normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
-as vector of vectors. By default, this method assumes that the input is not
-non-redundant (e.g. that a ray was entered twice by accident). If the user
+as vector of vectors. By default, this method allows redundancies in the input, e.g. duplicate rays and non-maximal cones. If the user
 is certain that no redundancy exists in the entered information, one can
 pass `non_redundant = true` as third argument. This will bypass these consistency
 checks. In addition, this will ensure that the order of the rays is not
@@ -82,12 +81,12 @@ julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
  [-1, 5]
  [0, -1]
 
-julia> max_cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
+julia> max_cones = incidence_matrix([[1, 2], [2, 3], [3, 4], [4, 1]])
 4×4 IncidenceMatrix
-[1, 2]
-[2, 3]
-[3, 4]
-[1, 4]
+ [1, 2]
+ [2, 3]
+ [3, 4]
+ [1, 4]
 
 julia> normal_toric_variety(max_cones, ray_generators)
 Normal toric variety
@@ -177,6 +176,79 @@ function affine_normal_toric_variety(v::NormalToricVariety)
 end
 
 
+
+######################
+# Equality
+######################
+
+@doc raw"""
+    (==)(X::NormalToricVariety, Y::NormalToricVariety) -> Bool
+
+Check equality of the polyhedral fans as sets of cones.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> H == P1 * P1
+true
+```
+"""
+function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
+  X === Y && return true
+  ambient_dim(X) == ambient_dim(Y) || return false
+  n_rays(X) == n_rays(Y) || return false
+
+  # p is a permutation such that the i-th ray of X is the p(i)-th ray of Y
+  p = inv(perm(sortperm(rays(X)))) * perm(sortperm(rays(Y)))
+
+  for i in 1:n_rays(X)
+    rays(X)[i] == rays(Y)[p(i)] || return false
+  end
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
+  return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
+end
+
+@doc raw"""
+    _id(X::NormalToricVariety)
+    -> Tuple{Vector{Vector{QQFieldElem}}, Vector{Vector{Int64}}}
+
+Given a toric variety `X`, return a pair `Oscar._id(X)` with the
+following property: two toric varieties `X` and `Y` have equal
+polyhedral fans, taken as sets of cones, if and only if
+`Oscar._id(X) == Oscar._id(Y)`.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> Oscar._id(H) == Oscar._id(P1 * P1)
+true
+```
+"""
+function _id(X::NormalToricVariety)
+  p = inv(perm(sortperm(rays(X))))
+  sorted_rays = Vector.(permuted(collect(rays(X)), p))
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
+  sorted_maximal_cones = sort(map(r -> sort(Vector(p.(r))), rows(X)))
+  return (sorted_rays, sorted_maximal_cones)
+end
+
+function Base.hash(X::NormalToricVariety, h::UInt)
+  return hash(_id(X), h)
+end
 
 ######################
 # Display

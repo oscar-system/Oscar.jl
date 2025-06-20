@@ -9,8 +9,8 @@ end
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
 
-Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates
-the numerical type of the edge lengths.
+Construct a rooted phylogenetic tree with Newick representation `newick`.
+`T` indicates the numerical type of the edge lengths.
 
 # Examples
 Make a phylogenetic tree with 4 leaves from its Newick representation and print
@@ -45,7 +45,7 @@ end
 @doc raw"""
     phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
 
-Constructs a phylogenetic tree with cophenetic matrix `M` and taxa `taxa`. The matrix `M` must be
+Construct a phylogenetic tree with cophenetic matrix `M` and taxa `taxa`. The matrix `M` must be
 ultrametric, otherwise an error will be thrown.
 
 # Examples
@@ -91,7 +91,8 @@ end
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
-Returns the underlying graph of the phylogenetic tree `ptree`.
+Return the underlying graph of the phylogenetic tree `ptree`.
+
 # Examples
 Make a phylogenetic tree with given Newick format and print its underlying graph.
 
@@ -131,9 +132,9 @@ function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
 end
 
 @doc raw"""
-    equidistant(ptree::PhylogeneticTree)
+    is_equidistant(ptree::PhylogeneticTree)
 
-Checks if the phylogenetic tree `ptree` is equidistant.
+Check if the phylogenetic tree `ptree` is equidistant.
 
 # Examples
 Make a phylogenetic tree with given Newick format and check if it is equidistant.
@@ -141,11 +142,11 @@ Make a phylogenetic tree with given Newick format and check if it is equidistant
 ```jldoctest
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
-julia> equidistant(ptree)
+julia> is_equidistant(ptree)
 true
 ```
 """
-function equidistant(ptree::PhylogeneticTree)
+function is_equidistant(ptree::PhylogeneticTree)
   return pm_object(ptree).EQUIDISTANT::Bool
 end
 
@@ -153,7 +154,7 @@ end
 @doc raw"""
     cophenetic_matrix(ptree::PhylogeneticTree)
 
-Returns the cophenetic matrix of the phylogenetic tree `ptree`.
+Return the cophenetic matrix of the phylogenetic tree `ptree`.
 
 # Examples
 Make a phylogenetic tree with given Newick format and print its cophenetic matrix.
@@ -180,7 +181,7 @@ end
 @doc raw"""
     taxa(ptree::PhylogeneticTree)
 
-Returns the taxa of the phylogenetic tree `ptree`.
+Return the taxa of the phylogenetic tree `ptree`.
 
 # Examples
 Make a phylogenetic tree with given Newick format and print its taxa.
@@ -203,7 +204,7 @@ end
 @doc raw"""
     newick(ptree::PhylogeneticTree)
 
-Returns a Newick representation of the phylogenetic tree `ptree`.
+Return a Newick representation of the phylogenetic tree `ptree`.
 
 # Examples
 Make a phylogenetic tree from a matrix and print a Newick representation of it.
@@ -237,7 +238,7 @@ end
 @doc raw"""
     tropical_median_consensus(arr::Vector{PhylogeneticTree{T}})
 
-Computes the tropical median consensus tree of the phylogenetic trees from
+Compute the tropical median consensus tree of the phylogenetic trees from
 the vector `arr`.
 
 # Examples
@@ -277,7 +278,7 @@ end
 @doc raw"""
     tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
 
-Computes the tropical median consensus tree of any number of phylogenetic trees
+Compute the tropical median consensus tree of any number of phylogenetic trees
 given as parameters.
 
 # Examples

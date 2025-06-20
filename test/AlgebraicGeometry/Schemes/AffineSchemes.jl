@@ -1,5 +1,5 @@
 @testset "affine schemes" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
@@ -57,7 +57,7 @@
   Z = subscheme(X, y^2)
   @test closure(UZ, X)==Z
 
-  S, (u,v) = QQ["u", "v"]
+  S, (u,v) = QQ[:u, :v]
   A2 = spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
@@ -86,7 +86,7 @@ end
 # Tests for dimension when localizing with respect to either a prime
 # ideal or powers of an element
 @testset "dimensions of affine schemes" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
@@ -112,7 +112,7 @@ end
 end
 
 @testset "dimensions of affine schemes over the integers" begin
-  R, (x,y,z) = ZZ["x", "y", "z"]
+  R, (x,y,z) = ZZ[:x, :y, :z]
   A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
@@ -138,7 +138,7 @@ end
   Z = spec(R, S)
   @test dim(Z) == 4
 
-  S = complement_of_point_ideal(R, [1, 1, 1])
+  S = complement_of_prime_ideal(ideal(R, [x-1, y-1, z-1]))
   I = ideal(R, [x-1, y-1])*ideal(R, z)
   L, _ = localization(R, S)
   W, _ = quo(L, L(I))
@@ -147,7 +147,7 @@ end
 
 @testset "dimensions of affine schemes over quotients of the integers" begin
   kk, _ = quo(ZZ, 4)
-  R, (x,y,z) = kk["x", "y", "z"]
+  R, (x,y,z) = kk[:x, :y, :z]
   A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
@@ -165,7 +165,7 @@ end
 
 
 @testset "smoothness tests" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   M = R[x y+1 z-2 x+y; y z-3 x-y+5 y-z; z x-y z-2 x+y+z]
   I = ideal(R, minors(M, 3))
   Q, _ = quo(R, I)
@@ -174,7 +174,7 @@ end
 end
 
 @testset "AbsAffineScheme interface" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   set_name!(A3, "𝔸³")
   f = x*y-z^2
@@ -200,7 +200,6 @@ end
   @test ambient_coordinate_ring(U) === R
   @test Oscar.ring_type(V) == typeof(OO(V))
   @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
-  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test is_subscheme(V,U)
   @test is_subscheme(U,V)
@@ -221,9 +220,9 @@ end
 end
 
 @testset "fiber product" begin
-  R, _ = QQ["x","t"]
-  S, _ = QQ["y","t"]
-  T, _ = polynomial_ring(QQ,["t"])
+  R, _ = QQ[:x, :t]
+  S, _ = QQ[:y, :t]
+  T, _ = polynomial_ring(QQ,[:t])
   X = Oscar.standard_spec(spec(R))
   Y = Oscar.standard_spec(spec(S))
   B = Oscar.standard_spec(spec(T))
@@ -239,7 +238,7 @@ end
 end
 
 @testset "ClosedEmbedding" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   X = spec(R)
   h = x^2 + y^2 -1
   I = ideal(R, [h])
@@ -253,7 +252,7 @@ end
 end
 
 @testset "fix for is_smooth" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I1 = ideal(R, [x,y]);
   I2 = ideal(R, [z]);
   I3 = ideal(R, [x, z-1])
@@ -267,20 +266,28 @@ end
   P = OO(IA2)
   x, y = gens(P)
 
-  X = subscheme(IA2, x^2 + y^2)
+  X, inc_X = sub(IA2, x^2 + y^2)
 
   U = hypersurface_complement(IA2, x)
+  inc_U = inclusion_morphism(U, IA2)
 
   V = hypersurface_complement(X, x)
+  inc_V = inclusion_morphism(V, X)
 
   kk, pr = quo(ZZ, 5)
   IA2_red, phi1 = base_change(pr, IA2)
-  X_red, phi2 = base_change(pr, X)
-  U_red, phi3 = base_change(pr, U)
-  V_red, phi4 = base_change(pr, V)
+  red_X, phi2, _ = base_change(pr, inc_X; codomain_map=phi1)
+  X_red = domain(red_X)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(X_red)
+  red_U, phi3, _ = base_change(pr, inc_U; codomain_map=phi1)
+  U_red = domain(red_U)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(U_red)
+  red_V, phi4, _ = base_change(pr, inc_V; codomain_map=red_X)
+  V_red = domain(red_V)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(V_red)
 
   m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
-  m2 = compose(phi4, inclusion_morphism(V, IA2));
+  m2 = compose(red_V, inclusion_morphism(V, IA2));
   @test m1 == m2
 
   # Testing morphisms

@@ -41,7 +41,7 @@
         "base_dim": 2,
         "defining_classes": ["b"],
         "model_sections": ["b", "c0", "c1", "c2", "c3"],
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 4, 3, 2, 1],
             [1, -2, -1, 0, 1]
         ],
@@ -57,5 +57,5 @@
         "zero_section": ["0", "1", "0"],
         "generating_sections": [["0", "1", "-b"]]
     },
-    "associated_models": ["model1208_2695-2.json"]
+    "birational_models": ["model1208_2695-2.json"]
 }

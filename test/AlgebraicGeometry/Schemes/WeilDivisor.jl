@@ -2,7 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
+  S, (s, t) = graded_polynomial_ring(kk, [:s, :t])
 
   base_P1 = proj(S)
 
@@ -92,25 +92,25 @@
   K = function_field(adeK3)
   x,y,t= ambient_coordinates(weier_chart)
   phi = K(-8*t^8 + 4*t^7 + 6*t^5 + 4*x*t^3 + 3*t^4 - 13*x*t^2 - 7*y*t^2 - 12*t^3 - 12*x*t + 12*y*t - 14*t^2 - 14*x - y - 10*t + 10)//K(6*t^8 - 5*t^7 + 14*t^6 - 7*x*t^4 - 13*t^5 - 5*x*t^3 - 6*x*t^2 - 5*t^3 - 9*x*t - 10*t^2 + 4*x - 8*t + 4)
-  @test Oscar.order_on_divisor(phi, D, check=false) == -1
+  @test Oscar.order_of_vanishing(phi, D, check=false) == -1
 
   other_chart = first([U for U in affine_charts(adeK3) if codomain(covering_morphism(inc_adeK3)[U]) === X[1][2]]) # Order of charts is random due to use of dictionaries in the constructor
   (x,z,t) = coordinates(other_chart)
   o = weil_divisor(ideal_sheaf(adeK3, other_chart, [z,x]), check=false)
-  @test order_on_divisor(K(z), o, check=false) == 3
-  @test order_on_divisor(K(x), o, check=false) == 1
+  @test order_of_vanishing(K(z), o, check=false) == 3
+  @test order_of_vanishing(K(x), o, check=false) == 1
 end
 
 @testset "orders on divisors" begin
   kk = QQ
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, [:s, :t])
   X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1
   I = IdealSheaf(Xc, X, [f])
   F = KK(f^70)
-  @test order_on_divisor(F, I) == 70
+  @test order_of_vanishing(F, I) == 70
 end
 
 @testset "linear systems" begin
@@ -123,11 +123,10 @@ end
   KK = function_field(X)
   R = ambient_coordinate_ring(representative_patch(KK))
   x = gens(R)
-  @test in_linear_system(KK(x[1]), D)
-  @test !in_linear_system(KK(x[1]^2), D)
-  @test in_linear_system(KK(x[1]^2), 2*D)
-  # Not running at the moment; work in progress
-  #@test !in_linear_system(KK(x[1], x[2]), D)
+  @test is_in_linear_system(KK(x[1]), D)
+  @test !is_in_linear_system(KK(x[1]^2), D)
+  @test is_in_linear_system(KK(x[1]^2), 2*D)
+  @test !is_in_linear_system(KK(x[1], x[2]), D)
 
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
@@ -160,7 +159,7 @@ end
   U = X[1][2]
   u, v = gens(OO(U))
   f = KK(u, v)
-  @test !in_linear_system(f, D)
+  @test !is_in_linear_system(f, D)
 end
 
 @testset "intersections of weil divisors on surfaces" begin

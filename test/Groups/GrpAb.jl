@@ -29,7 +29,7 @@ end
     G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
-    primes = [p for (p, e) in collect(factor(order(G1)))]
+    primes = [p for (p, e) in factor(order(G1))]
 
     # elements
     @test [order(iso(x)) for x in gens(G1)] == [order(x) for x in gens(G1)]
@@ -39,6 +39,7 @@ end
 
     # properties
     @test is_abelian(G1) == is_abelian(G2)
+    @test is_elementary_abelian(G1) == is_elementary_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
     @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)
@@ -146,24 +147,28 @@ end
       @test [images(iso, C)[1] for C in hall_subgroups(G1, collect(P))] ==
             collect(hall_subgroups(G2, collect(P)))
     end
-    @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
-          sort!([order(S) for S in hall_system(G2)])
-    @test [images(iso, S)[1] for S in sylow_system(G1)] == sylow_system(G2)
+    @test issetequal(
+      [order(images(iso, S)[1]) for S in hall_system(G1)],
+      [order(S) for S in hall_system(G2)]
+    )
+    @test issetequal([images(iso, S)[1] for S in sylow_system(G1)], sylow_system(G2))
   end
 end
 
 @testset "conversions between formats of abelian invariants" begin
-  @test Oscar.elementary_divisors_of_vector(Int, []) == []
-  @test Oscar.elementary_divisors_of_vector(Int, [0, 3, 2]) == [6, 0]
-  @test Oscar.abelian_invariants_of_vector(Int, []) == []
-  @test Oscar.abelian_invariants_of_vector(Int, [0, 6]) == [0, 2, 3]
+  @test elementary_divisors(Int, Int[]) == []
+  @test elementary_divisors(Int, [0, 3, 2]) == [6, 0]
+  @test abelian_invariants(Int, Int[]) == []
+  @test abelian_invariants(Int, [0, 6]) == [0, 2, 3]
   for i in 1:100
     v = rand(-5:30, 10)
-    elab = Oscar.elementary_divisors_of_vector(Int, v)
-    abinv = Oscar.abelian_invariants_of_vector(Int, v)
-    @test Oscar.elementary_divisors_of_vector(Int, abinv) == elab
-    @test Oscar.abelian_invariants_of_vector(Int, elab) == abinv
-    @test elementary_divisors(abelian_group([abs(x) for x in v])) == elab
+    elab = elementary_divisors(Int, v)
+    abinv = abelian_invariants(Int, v)
+    @test elementary_divisors(abinv) == elab
+    @test abelian_invariants(elab) == abinv
+    G = abelian_group([abs(x) for x in v])
+    @test elementary_divisors(G) == elab
+    @test abelian_invariants(G) == abinv
   end
 end
 

@@ -19,11 +19,16 @@
   orig_to_flat::MPolyAnyMap{TowerRingType, FlatRingType}
   flat_to_orig::Map{FlatRingType, TowerRingType}
   base_ring_to_flat::Map{CoeffRingType, FlatRingType}
+  cached::Bool # This is an internal variable to turn on/off caching of 
+               # counterparts of ring elements. It is turned off by default, 
+               # because one has to be careful with in-place operations.
+               # Note that parent-like objects are still always cached!
 
   flat_counterparts::AbstractAlgebra.WeakKeyIdDict{Any, Any}
 
   function RingFlattening(
-      S::MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
@@ -33,12 +38,13 @@
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
     return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     R_to_S_flat
+                                                     R_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyDecRing{RingElemType}
+      S::MPolyDecRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
@@ -57,12 +63,13 @@
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
     return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     R_to_S_flat
+                                                     R_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyQuoRingElem}
     A = base_ring(S)::MPolyQuoRing
     R = base_ring(A)::MPolyRing
@@ -84,12 +91,13 @@
 
     return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     A_to_S_flat
+                                                     A_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyDecRing{RingElemType}
+      S::MPolyDecRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyQuoRingElem}
     A = base_ring(S)::MPolyQuoRing
     R = base_ring(A)::MPolyRing
@@ -120,12 +128,13 @@
 
     return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     A_to_S_flat
+                                                     A_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyQuoLocRingElem}
     Q = base_ring(S)::MPolyQuoLocRing
     R = base_ring(Q)::MPolyRing
@@ -153,12 +162,13 @@
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     Q_to_S_flat
+                                                     Q_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyDecRing{RingElemType}
+      S::MPolyDecRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyQuoLocRingElem}
     Q = base_ring(S)::MPolyQuoLocRing
     R = base_ring(Q)::MPolyRing
@@ -169,7 +179,12 @@
     kk = coefficient_ring(R)::Field
 
     G = grading_group(S)
-    w = degree.(gens(S))
+    if !is_trivial(S)
+      w = degree.(gens(S))
+    else
+      # if S is trivial, the weights don't matter
+      w = [zero(G) for i in 1:ngens(S)]
+    end
     new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
 
     # Before building S_flat, we have to create a polynomial 
@@ -196,12 +211,13 @@
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     Q_to_S_flat
+                                                     Q_to_S_flat, cached
                                                     )
   end
 
   function RingFlattening(
-      S::MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyLocRingElem}
     L = base_ring(S)::MPolyLocRing
     R = base_ring(L)::MPolyRing
@@ -223,12 +239,13 @@
 
     return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     L_to_S_flat
+                                                     L_to_S_flat, cached
                                                     )
   end
   
   function RingFlattening(
-      S::MPolyDecRing{RingElemType}
+      S::MPolyDecRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyLocRingElem}
     L = base_ring(S)::MPolyLocRing
     R = base_ring(L)::MPolyRing
@@ -260,14 +277,15 @@
 
     return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     L_to_S_flat
+                                                     L_to_S_flat, cached
                                                     )
   end
 
 
   # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
   function RingFlattening(
-      S::MPolyQuoRing{RingElemType}
+      S::MPolyQuoRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem{<:MPolyRingElem}}
     P = base_ring(S) # the free polynomial ring
     P_flattening = flatten(P)
@@ -282,13 +300,14 @@
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
     return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     R_to_S_flat
+                                                     R_to_S_flat, cached
                                                     )
   end
 
   # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J → 𝕜[x, u]/(I' + J')
   function RingFlattening(
-      S::MPolyQuoRing{RingElemType}
+      S::MPolyQuoRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoRingElem}}
     P = base_ring(S)::MPolyRing # the polynomial ring behind S
     A = base_ring(P)::MPolyQuoRing # the coefficient ring of S
@@ -305,13 +324,14 @@
 
     return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     A_to_S_flat
+                                                     A_to_S_flat, cached
                                                     )
   end
 
   # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J → (𝕜[x, u]/(I' + J'))[U'⁻¹]
   function RingFlattening(
-      S::MPolyQuoRing{RingElemType}
+      S::MPolyQuoRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoLocRingElem}}
     P = base_ring(S)::MPolyRing
     Q = base_ring(P)::MPolyQuoLocRing
@@ -344,13 +364,14 @@
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     Q_to_S_flat
+                                                     Q_to_S_flat, cached
                                                     )
   end
 
   # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J → (𝕜[x, u])[U'⁻¹]/J'
   function RingFlattening(
-      S::MPolyQuoRing{RingElemType}
+      S::MPolyQuoRing{RingElemType};
+      cached::Bool=false
     ) where {RingElemType <: MPolyRingElem{<:MPolyLocRingElem}}
     P = base_ring(S)::MPolyRing
     L = base_ring(P)::MPolyLocRing
@@ -380,19 +401,17 @@
     S_flat_to_S = MapFromFunc(S_flat, S, my_map)
     return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     L_to_S_flat
+                                                     L_to_S_flat, cached
                                                     )
   end
 end
 
 ### Getters 
 function (phi::RingFlattening)(x::RingElem)
-  if !haskey(flat_counterparts(phi), x)
-    result = phi.orig_to_flat(x)
-    flat_counterparts(phi)[x] = result
-    return result
-  end
- return flat_counterparts(phi)[x]::elem_type(codomain(phi))
+  !phi.cached && return phi.orig_to_flat(x)
+  return get!(flat_counterparts(phi), x) do
+    phi.orig_to_flat(x)
+  end::elem_type(codomain(phi))
 end
 
 function inverse(phi::RingFlattening)
@@ -436,21 +455,18 @@ function flat_counterparts(phi::RingFlattening)
 end
 
 ### Some basic functionality
-@attr RingFlattening function flatten(R::MPolyRing)
-  return RingFlattening(R)
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
-@attr RingFlattening function flatten(R::MPolyQuoRing)
-  return RingFlattening(R)
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyQuoRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
-  if haskey(flat_counterparts(phi), I)
-    return flat_counterparts(phi)[I][1]
-  end
-  I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
-  flat_counterparts(phi)[I] = (I_flat, phi)
-  return I_flat
+  return get!(flat_counterparts(phi), I) do
+    return ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
+  end::ideal_type(codomain(phi))
 end
 
 function preimage(phi::RingFlattening, x::RingElem)
@@ -459,7 +475,7 @@ function preimage(phi::RingFlattening, x::RingElem)
 end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType},
                    Nothing
@@ -477,7 +493,7 @@ end
   return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map
@@ -560,7 +576,7 @@ function kernel(
   K_flat = kernel(f_flat)
   phi = flatten(domain(f))
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  flat_counterparts(phi)[K] = (K_flat, phi)
+  flat_counterparts(phi)[K] = K_flat
   return K
 end
 
@@ -576,7 +592,7 @@ function kernel(
   f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))), check=false)
   K_flat = kernel(f_flat)
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  flat_counterparts(phi)[K] = (K_flat, phi)
+  flat_counterparts(phi)[K] = K_flat
   return K
 end
 

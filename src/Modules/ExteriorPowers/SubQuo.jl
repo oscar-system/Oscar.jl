@@ -30,11 +30,10 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
 
   function my_decomp(u::SubquoModuleElem)
     @req parent(u) === result "element does not belong to the correct module"
-    k = findfirst(x -> x == u, gens(result))
+    k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
-    ind = ordered_multi_index(k, p, n)
-    e = gens(M)
-    return Tuple(e[i] for i in indices(ind))
+    ind = combination(n, p, k)
+    return Tuple(gen(M, i) for i in ind)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(M) for f in 1:p])), result, my_mult, my_decomp)
@@ -53,7 +52,7 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   if iszero(p)
     new_symb = [Symbol("1")]
   else
-    for ind in OrderedMultiIndexSet(p, n)
+    for ind in combinations(n, p)
       symb_str = orig_symb[ind[1]]
       for i in 2:p
         symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
@@ -78,4 +77,3 @@ function _exterior_power(phi::FreeModuleHom, p::Int)
   # TODO: the `cokernel` command does not have consistent output over all types of rings.
   return (base_ring(codomain(phi)) isa Union{MPolyLocRing, MPolyQuoLocRing} ? cokernel(psi)[1] : cokernel(psi)), mult_map
 end
-

@@ -1,4 +1,99 @@
-@register_serialization_type GlobalTateModel uses_params
+@register_serialization_type GlobalTateModel uses_id [
+  :Kbar3,
+  :_ambient_space_base_divisor_pairs_to_be_considered,
+  :_ambient_space_divisor_pairs_to_be_considered,
+  :ambient_space_models_of_g4_fluxes,
+  :ambient_space_models_of_g4_fluxes_indices,
+  :associated_literature_models,
+  :basis_of_h22_ambient,
+  :basis_of_h22_ambient_indices,
+  :basis_of_h22_hypersurface,
+  :basis_of_h22_hypersurface_indices,
+  :birational_literature_models,
+  :classes_of_model_sections,
+  :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes,
+  :components_of_dual_graph,
+  :components_of_simplified_dual_graph,
+  :converter_dict_h22_ambient,
+  :converter_dict_h22_hypersurface,
+  :degree_of_Kbar_of_tv_restricted_to_ci,
+  :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
+  :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
+  :dual_graph,
+  :estimated_number_of_triangulations,
+  :euler_characteristic,
+  :exceptional_classes,
+  :exceptional_divisor_indices,
+  :g4_flux_tuple_list,
+  :gauge_algebra,
+  :generating_sections,
+  :genus_ci,
+  :genus_of_components_of_dual_graph,
+  :genus_of_components_of_simplified_dual_graph,
+  :global_gauge_quotients,
+  :h11,
+  :h12,
+  :h13,
+  :h22,
+  :index_facet_interior_divisors,
+  :inter_dict,
+  :intersection_number_among_ci_cj,
+  :intersection_number_among_nontrivial_ci_cj,
+  :is_calabi_yau,
+  :literature_identifier,
+  :matrix_integral_quant_transverse,
+  :matrix_rational_quant_transverse,
+  :matrix_integral_quant_transverse_nobreak,
+  :matrix_rational_quant_transverse_nobreak,
+  :max_lattice_pts_in_facet,
+  :model_parameters,
+  :model_sections,
+  :offset_quant_transverse,
+  :offset_quant_transverse_nobreak,
+  :partially_resolved,
+  :poly_index,
+  :resolutions,
+  :resolution_generating_sections,
+  :resolution_zero_sections,
+  :s_inter_dict,
+  :simplified_dual_graph,
+  :torsion_sections,
+  :triang_quick,
+  :tunable_sections,
+  :vertices,
+  :weierstrass_model,
+  :weighted_resolutions,
+  :weighted_resolution_generating_sections,
+  :weighted_resolution_zero_sections,
+  :zero_section,
+  :zero_section_class,
+  :zero_section_index,
+
+  # these attributes should be moved into some form of meta data
+  :arxiv_doi,
+  :arxiv_id,
+  :arxiv_link,
+  :arxiv_model_equation_number,
+  :arxiv_model_page,
+  :arxiv_model_section,
+  :arxiv_version,
+  :journal_doi,
+  :journal_link,
+  :journal_model_equation_number,
+  :journal_model_page,
+  :journal_model_section,
+  :journal_name,
+  :journal_pages,
+  :journal_report_numbers,
+  :journal_volume,
+  :journal_year,
+  :model_description,
+  :model_index,
+  :paper_authors,
+  :paper_buzzwords,
+  :paper_description,
+  :paper_title,
+]
 
 
 
@@ -6,160 +101,70 @@
 # This function saves the types of the data that define a global Tate model
 ###########################################################################
 
-function save_type_params(s::SerializerState, gtm::GlobalTateModel)
-  save_data_dict(s) do
-    save_object(s, encode_type(GlobalTateModel), :name)
-    base = base_space(gtm)
-    ambient = ambient_space(gtm)
-    tate_polynomial_ring = parent(tate_polynomial(gtm))
-    explicit_model_section_ring = parent(gtm.explicit_model_sections["a1"])
-    parametrizing_sections = collect(keys(gtm.defining_section_parametrization))
-    if length(parametrizing_sections) > 0
-      defining_section_parametrization_ring = parent(gtm.defining_section_parametrization[parametrizing_sections[1]])
-    else
-      defining_section_parametrization_ring = explicit_model_section_ring
-    end
+function type_params(m::GlobalTateModel)
+  extra_params = [data[2] => type_params(data[1]) for data in 
+    [(explicit_model_sections(m), :explicit_model_sections), 
+     (defining_classes(m), :defining_classes), 
+     (model_section_parametrization(m), :model_section_parametrization)] 
+    if !isempty(data[1])]
 
-    save_data_dict(s, :params) do
-      if serialize_with_id(base)
-        parent_ref = save_as_ref(s, base)
-        save_object(s, parent_ref, :base_space)
-      else
-        save_typed_object(s, base, :base_space)
-      end
-
-      if serialize_with_id(ambient)
-        parent_ref = save_as_ref(s, ambient)
-        save_object(s, parent_ref, :ambient_space)
-      else
-        save_typed_object(s, ambient, :ambient_space)
-      end
-
-      if serialize_with_id(tate_polynomial_ring)
-        parent_ref = save_as_ref(s, tate_polynomial_ring)
-        save_object(s, parent_ref, :tate_polynomial_ring)
-      else
-        save_typed_object(s, tate_polynomial_ring, :tate_polynomial_ring)
-      end
-
-      if serialize_with_id(explicit_model_section_ring)
-        parent_ref = save_as_ref(s, explicit_model_section_ring)
-        save_object(s, parent_ref, :explicit_model_section_ring)
-      else
-        save_typed_object(s, explicit_model_section_ring, :explicit_model_section_ring)
-      end
-
-      if serialize_with_id(defining_section_parametrization_ring)
-        parent_ref = save_as_ref(s, defining_section_parametrization_ring)
-        save_object(s, parent_ref, :defining_section_parametrization_ring)
-      else
-        save_typed_object(s, defining_section_parametrization_ring, :defining_section_parametrization_ring)
-      end
-
-    end
-  end
-end
-
-###########################################################################
-# This function loads the types of the data that define a global Tate model
-###########################################################################
-
-function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel})
-  return (
-    load_typed_object(s, :base_space),
-    load_typed_object(s, :ambient_space),
-    load_typed_object(s, :tate_polynomial_ring),
-    load_typed_object(s, :explicit_model_section_ring),
-    load_typed_object(s, :defining_section_parametrization_ring)
+  TypeParams(
+    GlobalTateModel,
+    :base_space => base_space(m),
+    :ambient_space => ambient_space(m),
+    :fiber_ambient_space => fiber_ambient_space(m),
+    :tate_polynomial_ring => parent(tate_polynomial(m)),
+    extra_params...
   )
 end
+
+
 
 #########################################
 # This function saves a global Tate model
 #########################################
 
-function save_object(s::SerializerState, gtm::GlobalTateModel)
-  # Currently, only serialize Tate models with toric defining data
-  @req base_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined over a toric base space"
-  @req ambient_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined within a toric ambient space"
-
-  # Save information
+function save_object(s::SerializerState, m::GlobalTateModel)
+  @req base_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined over a toric base space"
+  @req ambient_space(m) isa NormalToricVariety "Currently, we only serialize global Tate models defined within a toric ambient space"
+  @req m.tate_polynomial !== nothing "Currently, we only serialize global Tate models for which the Tate polynomial (and not only the Tate ideal sheaf) is known"
   save_data_dict(s) do
-
-    # Save keys of explicit_model_sections
-    save_data_array(s, :explicit_model_section_keys) do
-      for (key, value) in explicit_model_sections(gtm)
-        save_object(s, key)
-      end
+    for (data, key) in [
+        (explicit_model_sections(m), :explicit_model_sections),
+        (defining_classes(m), :defining_classes),
+        (model_section_parametrization(m), :model_section_parametrization)
+        ]
+      !isempty(data) && save_object(s, data, key)
     end
-
-    # Save values of explicit_model_sections
-    save_data_array(s, :explicit_model_section_values) do
-      for (key, value) in explicit_model_sections(gtm)
-        save_object(s, value)
-      end
-    end
-
-    # Save keys of defining_section_parametrization
-    save_data_array(s, :defining_section_parametrization_keys) do
-      for (key, value) in defining_section_parametrization(gtm)
-        save_object(s, key)
-      end
-    end
-
-    # Save keys of defining_section_parametrization
-    save_data_array(s, :defining_section_parametrization_values) do
-      for (key, value) in defining_section_parametrization(gtm)
-        save_object(s, value)
-      end
-    end
-
-    # Tate polynomial
-    save_object(s, tate_polynomial(gtm), :tate_polynomial)
-
-    # Boolean values, that are always known for Tate models
-    save_data_array(s, :boolean_data) do
-      save_object(s, is_partially_resolved(gtm))
-    end
+    save_object(s, tate_polynomial(m), :tate_polynomial)
   end
 end
+
+
 
 #########################################
 # This function loads a global Tate model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing, <:MPolyRing})
-
-  # Extract base and ambient space
-  base_space = params[1]
-  ambient_space = params[2]
-
-  # Extract Tate polynomial
-  pt = load_object(s, MPolyDecRingElem, params[3], :tate_polynomial)
-
-  # Extract explicit_model_sections
-  values = load_object(s, Vector, params[4], :explicit_model_section_values)
-  keys = load_object(s, Vector, String, :explicit_model_section_keys)
+function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Dict)
+  base_space = params[:base_space]
+  amb_space = params[:ambient_space]
+  tp_ring = params[:tate_polynomial_ring]
+  pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = Dict{String, MPolyRingElem}()
-  for i in 1:length(keys)
-    explicit_model_sections[keys[i]] = values[i]
+  if haskey(s, :explicit_model_sections)
+    explicit_model_sections = load_object(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, params[:explicit_model_sections], :explicit_model_sections)
   end
-
-  # Extract defining_section_parametrization
-  values = load_object(s, Vector, params[5], :defining_section_parametrization_values)
-  keys = load_object(s, Vector, String, :defining_section_parametrization_keys)
-  defining_section_parametrization = Dict{String, MPolyRingElem}()
-  for i in 1:length(keys)
-    defining_section_parametrization[keys[i]] = values[i]
+  model_section_parametrization = Dict{String, MPolyRingElem}()
+  if haskey(s, :model_section_parametrization)
+    model_section_parametrization = load_object(s, Dict{String, MPolyRingElem}, params[:model_section_parametrization], :model_section_parametrization)
   end
-
-  # Construct the model
-  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base_space, ambient_space)
-
-  # Set boolean attributes
-  bools = load_object(s, Vector, Bool, :boolean_data)
-  set_attribute!(model, :partially_resolved, bools[1])
-
-  # Return the loaded model
+  defining_classes = Dict{String, ToricDivisorClass}()
+  if haskey(s, :defining_classes)
+    defining_classes = load_object(s, Dict{String, ToricDivisorClass}, params[:defining_classes], :defining_classes)
+  end
+  model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
+  model.defining_classes = defining_classes
+  @req cox_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
   return model
 end

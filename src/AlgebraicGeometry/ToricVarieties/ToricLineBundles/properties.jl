@@ -75,4 +75,4 @@ julia> all_cohomologies(l)
  0
 ```
 """
-@attr Bool is_immaculate(l::ToricLineBundle) = all(c -> c == 0, all_cohomologies(l))
+@attr Bool is_immaculate(l::ToricLineBundle) = all(is_zero, all_cohomologies(l))

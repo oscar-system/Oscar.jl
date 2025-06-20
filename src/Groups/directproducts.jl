@@ -33,14 +33,14 @@ julia> elements(G)
  (4,5)
  (2,3)
  (2,3)(4,5)
- (1,2)
- (1,2)(4,5)
- (1,2,3)
- (1,2,3)(4,5)
  (1,3,2)
  (1,3,2)(4,5)
  (1,3)
  (1,3)(4,5)
+ (1,2,3)
+ (1,2,3)(4,5)
+ (1,2)
+ (1,2)(4,5)
 ```
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
@@ -351,6 +351,32 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 
 Return the semidirect product of `N` and `H`, of type `SemidirectProductGroup{S,T}`,
 where `f` is a group homomorphism from `H` to the automorphism group of `N`.
+
+# Examples
+```jldoctest
+julia> Q = quaternion_group(8)
+Pc group of order 8
+
+julia> C = cyclic_group(2)
+Pc group of order 2
+
+julia> A = automorphism_group(Q)
+Aut( <pc group of size 8 with 3 generators> )
+
+julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
+[ x, y ] -> [ x*y2, y*y2 ]
+
+julia> f = hom(C,A,[C[1]],[au])
+Group homomorphism
+  from pc group of order 2
+  to aut( <pc group of size 8 with 3 generators> )
+
+julia> G = semidirect_product(Q,f,C)
+SemidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> )
+
+julia> derived_subgroup(G)
+(Group([ f4 ]), Hom: group([ f4 ]) -> semidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> ))
+```
 """
 function semidirect_product(
   N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T
@@ -578,24 +604,24 @@ Sym(2)
 acting_subgroup(W::WreathProductGroup) = W.H
 
 """
-    homomorphism_of_wreath_product(G::WreathProductGroup)
+    homomorphism_of_wreath_product(W::WreathProductGroup)
 
 If `W` is the wreath product of `G` and `H`, then return the homomorphism `f`
 from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 """
-homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
+homomorphism_of_wreath_product(W::WreathProductGroup) = W.a
 
 """
-    is_full_wreath_product(G::WreathProductGroup)
+    is_full_wreath_product(W::WreathProductGroup)
 
-Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
+Return whether `W` is a wreath product of two groups, instead of a proper subgroup.
 """
-is_full_wreath_product(G::WreathProductGroup) = G.isfull
+is_full_wreath_product(W::WreathProductGroup) = W.isfull
 
 """
-    canonical_projection(G::WreathProductGroup)
+    canonical_projection(W::WreathProductGroup)
 
-Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
+If `W` is the wreath product of `G` and `H`, then return the projection of `W` onto the permutation group `H`.
 """
 function canonical_projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
@@ -605,9 +631,9 @@ function canonical_projection(W::WreathProductGroup)
 end
 
 """
-    canonical_injection(G::WreathProductGroup, n::Int)
+    canonical_injection(W::WreathProductGroup, n::Int)
 
-Return the injection of the `n`-th component of `G` into `G`.
+Return the injection of the `n`-th component of `W` into `W`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injection(W::WreathProductGroup, n::Int)
@@ -623,9 +649,9 @@ function canonical_injection(W::WreathProductGroup, n::Int)
 end
 
 """
-    canonical_injections(G::WreathProductGroup)
+    canonical_injections(W::WreathProductGroup)
 
-Return the injection of the `n`-th component of `G` into `G` for all `n`.
+Return the injection of the `n`-th component of `W` into `W` for all `n`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injections(W::WreathProductGroup)

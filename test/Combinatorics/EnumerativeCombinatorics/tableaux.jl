@@ -6,9 +6,9 @@
   @test reading_word(young_tableau(Array{Int,1}[])) == Int[]
 
   # weight
-  @test weight(young_tableau([[1,2,3],[1,2],[1]])) == [3,2,1]
+  @test weight(young_tableau([[1,2,3],[2,3],[3]])) == [1,2,3]
   @test weight(young_tableau([[1,2,3,4,5]])) == [1,1,1,1,1]
-  @test weight(young_tableau([[1],[1],[1]])) == [3]
+  @test_throws  ArgumentError  weight(young_tableau([[1],[1],[1]]))
   @test weight(young_tableau(Array{Int,1}[])) == Int[]
 
   # is_standard
@@ -38,7 +38,7 @@
       SST = @inferred collect(semistandard_tableaux(s))
       @test SST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
-      @test SST == unique(SST)
+      @test allunique(SST)
 
       #check that all tableaux are semistandard_tableaux
       for tab in SST
@@ -55,7 +55,7 @@
         SST = @inferred collect(semistandard_tableaux(s, w))
         @test SST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test SST == unique(SST)
+        @test allunique(SST)
         #check that all tableaux are semistandard_tableaux
         for tab in SST
           @test is_semistandard(tab)
@@ -71,6 +71,7 @@
       end
     end
     @test collect(semistandard_tableaux(T[], T[])) == [young_tableau(Vector{T}[])]
+    @test length(collect(semistandard_tableaux(partition(T[5, 3, 1, 1]), T[4, 3, 2, 1]))) == 2
 
     #semistandard_tableaux(box_num, max_val)
     BoxNum = T(0):T(5)
@@ -80,7 +81,7 @@
         SST = @inferred collect(semistandard_tableaux(box_num, max_val))
         @test SST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test SST == unique(SST)
+        @test allunique(SST)
         #check that all tableaux are semistandard_tableaux
         for tab in SST
           @test is_semistandard(tab)
@@ -105,7 +106,7 @@
         ST = @inferred collect(standard_tableaux(s))
         @test ST isa Vector{Oscar.YoungTableau{T}}
         #check that all tableaux are distinct
-        @test ST == unique(ST)
+        @test allunique(ST)
         #check that all tableaux are standard_tableaux
         for tab in ST
           @test is_standard(tab)
@@ -122,7 +123,7 @@
       ST = @inferred collect(standard_tableaux(T(n)))
       @test ST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
-      @test ST == unique(ST)
+      @test allunique(ST)
       #check that all tableaux are standard_tableaux
       for tab in ST
         @test is_standard(tab)

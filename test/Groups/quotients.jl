@@ -1,10 +1,11 @@
 @testset "quo for trivial kernel" begin
 #  @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
-   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
+   @testset for G in [free_group(0), symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
       if is_finite(G)
         @test order(F) == order(G)
+        @test epi(one(G)) == one(F)
       else
         @test ! is_finite(F)
       end
@@ -87,6 +88,38 @@ end
    @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
 end
 
+@testset "Relators" begin
+   # free group
+   F = free_group(2)
+   @test relators(F) == []
+
+   # f.p. group
+   x, y = gens(F)
+   rels = [x^3, y^2, comm(x, y)]
+   G, epi = quo(F, rels)
+   @test relators(G) == rels
+
+   # sub-f.p. group
+   G = sylow_subgroup(G, 2)[1]
+   rels = relators(G)
+   @test is_isomorphic(G, quo(parent(rels[1]), rels)[1])
+
+   # pc group
+   G = dihedral_group(12)
+   rels = relators(G)
+   @test is_isomorphic(G, quo(parent(rels[1]), rels)[1])
+
+   # sub-pc group
+   G = sylow_subgroup(G, 2)[1]
+   rels = relators(G)
+   @test is_isomorphic(G, quo(parent(rels[1]), rels)[1])
+
+   # perm. group
+   G = symmetric_group(3)
+   rels = relators(G)
+   @test is_isomorphic(G, quo(parent(rels[1]), rels)[1])
+end
+
 @testset "Finitely presented groups" begin
    F = free_group(2)
    x,y = gens(F)
@@ -96,8 +129,7 @@ end
    @test relators(F) == FPGroupElem[]
    S = sub(F, [gen(F, 1)])[1]
    @test ! Oscar._is_full_fp_group(GapObj(S))
-   @test_throws MethodError relators(S)
-   
+
    n=5
    G,f = quo(F, [x^2,y^n,(x*y)^2] )           # dihedral group D(2n)
    @test is_finite(G)
@@ -125,7 +157,6 @@ end
    @test relators(G)==[x^n,y^n,comm(x,y)]
    S = sub(G, [gen(G, 1)])[1]
    @test ! Oscar._is_full_fp_group(GapObj(S))
-   @test_throws MethodError relators(S)
    @test_throws ArgumentError quo(S, gens(S))
 
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3

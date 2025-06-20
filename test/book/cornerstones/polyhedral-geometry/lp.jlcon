@@ -5,11 +5,11 @@ julia> LP = linear_program(P, [1,1], convention=:max)
 Linear program
    max{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[1 1]
+   c=QQFieldElem[1, 1]
    k=0
 
 julia> optimal_value(LP)
-100/11
+100//11
 
 julia> optimal_vertex(LP)
 2-element PointVector{QQFieldElem}:

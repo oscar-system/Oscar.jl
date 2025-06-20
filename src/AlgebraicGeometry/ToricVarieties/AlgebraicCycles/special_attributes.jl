@@ -27,7 +27,7 @@ true
 julia> ngens(chow_ring(p2))
 3
 
-julia> v = normal_toric_variety(IncidenceMatrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
+julia> v = normal_toric_variety(incidence_matrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
 Normal toric variety
 
 julia> is_complete(v)
@@ -53,7 +53,7 @@ Quotient
 """
 @attr MPolyQuoRing function chow_ring(v::NormalToricVarietyType)
     @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
-    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
+    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
     linear_relations = ideal_of_linear_relations(R, v)
     stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]
@@ -102,7 +102,7 @@ ring to monomials in the Cox ring. This dictionary involves
 a choice, i.e. is not unique.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_gens_of_chow_ring_to_cox_ring(p2)

@@ -3,7 +3,7 @@
 # present with proper julia code inside, the code below is commented out. 
 #
 # If you want to implement your own hyper complex class, you may start with 
-# the template below and replace every occurence of `MyNew` with your favourite 
+# the template below and replace every occurrence of `MyNew` with your favourite
 # name for your new class. Then you have to fill in the gaps according to your 
 # needs. We provide a sample implementation below.
 =#
@@ -162,6 +162,8 @@ end
 
     # directions are inverted by reflection
     dirs = [(direction(original_complex, i) == :chain ? (:cochain) : (:chain)) for i in 1:dim(original_complex)]
+    upper_bounds = Union{Int, Nothing}[has_lower_bound(original_complex, i) ? -lower_bound(original_complex, i) : nothing for i in 1:dim(original_complex)]
+    lower_bounds = Union{Int, Nothing}[has_upper_bound(original_complex, i) ? -upper_bound(original_complex, i) : nothing for i in 1:dim(original_complex)]
 
     # Create an instance of `HyperComplex` using your factories.
     #
@@ -171,7 +173,9 @@ end
     internal_complex = HyperComplex(
                                     dim(original_complex), # the reflected complex has the same dimension
                                     chain_fac, map_fac,    # use your factories
-                                    dirs #, cached=true # an optional argument to switch off caching 
+                                    dirs;
+                                    upper_bounds,
+                                    lower_bounds #, cached=true # an optional argument to switch off caching 
                                                         # and only use the factories.
                                                         # Use only if you know what you're doing!
                                    )

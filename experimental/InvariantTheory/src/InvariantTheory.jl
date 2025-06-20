@@ -112,7 +112,7 @@ Currently, the supported options for `sym` are:
 
 # Examples
 ```jldoctest
-julia> S, z = polynomial_ring(QQ, "c"=> (1:2, 1:2));
+julia> S, z = polynomial_ring(QQ, :c=> (1:2, 1:2));
 
 julia> G = linearly_reductive_group(:SL,2,S)
 Reductive group SL2
@@ -387,7 +387,7 @@ julia> G = linearly_reductive_group(:SL, 3, QQ);
 
 julia> r = representation_on_forms(G, 3);
 
-julia> S, x = graded_polynomial_ring(QQ, "x" => 1:10);
+julia> S, x = graded_polynomial_ring(QQ, :x => 1:10);
 
 julia> RG = invariant_ring(S, r)
 Invariant Ring of
@@ -657,7 +657,7 @@ julia> G = linearly_reductive_group(:SL, 3, QQ);
 
 julia> r = representation_on_forms(G, 3);
 
-julia> S, x = graded_polynomial_ring(QQ, "x" => 1:10);
+julia> S, x = graded_polynomial_ring(QQ, :x => 1:10);
 
 julia> RG = invariant_ring(S, r);
 
@@ -689,7 +689,7 @@ julia> G = linearly_reductive_group(:SL, 2, QQ);
 
 julia> r = representation_on_forms(G, 2);
 
-julia> S, x = graded_polynomial_ring(QQ, "x" => 1:3);
+julia> S, x = graded_polynomial_ring(QQ, :x => 1:3);
 
 julia> RG = invariant_ring(S, r);
 

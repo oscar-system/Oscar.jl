@@ -1,4 +1,3 @@
-# Use attribute :is_weyl_algebra to permit better printing (see expressify, below)
 @attributes mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}
@@ -69,8 +68,6 @@ coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
 
 base_ring(a::PBWAlgRing) = a.poly_ring
 
-base_ring(a::PBWAlgElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
   return PBWAlgElem(parent(a), deepcopy_internal(a.sdata, dict))
 end
@@ -85,28 +82,31 @@ end
 
 @enable_all_show_via_expressify PBWAlgElem
 
-function expressify(a::PBWAlgRing; context = nothing)
+function show(io::IO, a::PBWAlgRing)
+  @show_name(io, a)
+  @show_special(io, a)
   x = symbols(a)
   n = length(x)
-  # Next if stmt handles special printing for Weyl algebras
-  if get_attribute(a, :is_weyl_algebra) === :true
-      return Expr(:sequence, Expr(:text, "Weyl-algebra over "),
-                             expressify(coefficient_ring(a); context=context),
-                             Expr(:text, " in variables ("),
-                             Expr(:series, first(x,div(n,2))...),
-                             Expr(:text, ")"))
-  end
-  rel = [Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j]))
+  io = pretty(io)
+  rel = [AbstractAlgebra.PrettyPrinting.canonicalize(Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j])))
          for i in 1:n-1 for j in i+1:n]
-  return Expr(:sequence, Expr(:text, "PBW-algebra over "),
-                         expressify(coefficient_ring(a); context=context),
-                         Expr(:text, " in "),
-                         Expr(:series, x...),
-                         Expr(:text, " with relations "),
-                         Expr(:series, rel...))
+  print(io, LowercaseOff(), "PBW-algebra over ", Lowercase(), coefficient_ring(a))
+  print(io, " in ")
+  join(io, x, ", ")
+  print(io, " with relations ")
+  AbstractAlgebra.show_obj(io, MIME("text/plain"), Expr(:series, rel...))
 end
 
-@enable_all_show_via_expressify PBWAlgRing
+# handles special printing for Weyl algebras
+function show_weyl_algebra(io::IO, a::PBWAlgRing)
+  x = symbols(a)
+  n = length(x)
+  io = pretty(io)
+  print(io, LowercaseOff(), "Weyl-algebra over ", Lowercase(), coefficient_ring(a))
+  print(io, " in variables (")
+  join(io, first(x, div(n, 2)), ", ")
+  print(io, ")")
+end
 
 #### AA prefix here because these all use the ordering in the parent
 
@@ -118,16 +118,16 @@ function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
   return AbstractAlgebra.leading_exponent_vector(a.sdata)
 end
 
-function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))
+function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))::T
 end
 
-function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))
+function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))::T
 end
 
-function constant_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(constant_coefficient(a.sdata))
+function constant_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(constant_coefficient(a.sdata))::T
 end
 
 function AbstractAlgebra.leading_term(a::PBWAlgElem)
@@ -155,7 +155,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
@@ -179,7 +179,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
@@ -203,7 +203,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyCoeffs})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}}) where {T, S}
    return T
 end
 
@@ -266,14 +266,17 @@ function one(R::PBWAlgRing)
 end
 
 function Base.:(==)(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return a.sdata == b.sdata
 end
 
 function Base.:+(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return PBWAlgElem(parent(a), a.sdata + b.sdata)
 end
 
 function Base.:-(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return PBWAlgElem(parent(a), a.sdata - b.sdata)
 end
 
@@ -282,7 +285,8 @@ function Base.:-(a::PBWAlgElem)
 end
 
 function Base.:*(a::PBWAlgElem, b::PBWAlgElem)
-  return PBWAlgElem(parent(a), a.sdata*b.sdata)
+  check_parent(a, b)
+  return PBWAlgElem(parent(a), a.sdata * b.sdata)
 end
 
 function Base.:^(a::PBWAlgElem, b::Int)
@@ -417,14 +421,14 @@ A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij} \cdot x_ix_j+d_{ij},  \ 1\leq
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
+(PBW-algebra over rational field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 ```
 """
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
@@ -478,7 +482,8 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   r, v = polynomial_ring(K, vcat(xs, dxs); cached = false)
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
   R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
-  set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
+  set_attribute!(R, :is_weyl_algebra, :true)
+  set_attribute!(R, :show, show_weyl_algebra) # to activate special printing for Weyl algebras
   return (R,vars)
 end
 
@@ -499,8 +504,8 @@ The generators of the returned algebra print according to the entries of `xs`. S
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(Weyl-algebra over Rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
+(Weyl-algebra over rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> dx*x
 x*dx + 1
@@ -515,12 +520,10 @@ end
 
 ####
 
-function expressify(a::PBWAlgOppositeMap; context = nothing)
-  return Expr(:sequence, Expr(:text, "Map to opposite of "),
-                         expressify(a.source; context=context))
+function Base.show(io::IO, a::PBWAlgOppositeMap)
+  io = pretty(io)
+  print(io, "Map to opposite of ", Lowercase(), a.source)
 end
-
-@enable_all_show_via_expressify PBWAlgOppositeMap
 
 function _opposite(a::PBWAlgRing{T, S}) where {T, S}
   if !isdefined(a, :opposite)
@@ -548,16 +551,16 @@ Return the opposite algebra of `A`.
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(Weyl-algebra over Rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
+(Weyl-algebra over rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> Dop, opp = opposite_algebra(D);
 
 julia> Dop
-PBW-algebra over Rational field in dy, dx, y, x with relations dx*dy = dy*dx, y*dy = dy*y + 1, x*dy = dy*x, y*dx = dx*y, x*dx = dx*x + 1, x*y = y*x
+PBW-algebra over rational field in dy, dx, y, x with relations dx*dy = dy*dx, y*dy = dy*y + 1, x*dy = dy*x, y*dx = dx*y, x*dx = dx*x + 1, x*y = y*x
 
 julia> opp
-Map to opposite of Weyl-algebra over Rational field in variables (x, y)
+Map to opposite of Weyl-algebra over rational field in variables (x, y)
 
 julia> opp(dx*x)
 dx*x + 1
@@ -633,14 +636,14 @@ Given a vector `g` of elements of `A`, return the left ideal of `A` generated by
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [x*y, x*z, y*z + 1];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
+(PBW-algebra over rational field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 
 julia> I = left_ideal(A, [x^2*y^2, x*z+y*z])
 left_ideal(x^2*y^2, x*z + y*z)
@@ -700,18 +703,18 @@ function right_ideal(R::PBWAlgRing{T, S}, g::AbstractVector) where {T, S}
   return PBWAlgIdeal{1, T, S}(R, i)
 end
 
-# assure a.sopdata is defined
-function _sopdata_assure!(a::PBWAlgIdeal)
-  if !isdefined(a, :sopdata)
-    R = base_ring(a)
-    a.sopdata = _opmap(_opposite(R), a.sdata, R)
-  end
+# sopdata is "singular opposite (algebra) data"
+function get_sopdata(a::PBWAlgIdeal)
+  isdefined(a, :sopdata) && return a.sopdata
+  R = base_ring(a)
+  a.sopdata = _opmap(_opposite(R), a.sdata, R)
+  return a.sopdata
 end
 
 
 # for D < 0, a.gb is a left gb of left_ideal(a.sdata)
 # for D = 0, a.gb is a left gb of two_sided_ideal(a.sdata)
-function groebner_assure!(a::PBWAlgIdeal{D}) where D
+function singular_groebner_basis(a::PBWAlgIdeal{D}) where D
   @assert D <= 0
   if !isdefined(a, :gb)
     a.gb = Singular.std(a.sdata)
@@ -719,21 +722,21 @@ function groebner_assure!(a::PBWAlgIdeal{D}) where D
       a.gb.isTwoSided = false
     end
   end
+  return a.gb
 end
 
 # for D > 0, a.sopdata are gens of the left ideal opposite(right_ideal(a.sdata))
 #            a.opgb is a left gb of left_ideal(a.sopdata)
 # for D = 0, a.sopdata are gens of the two sided ideal opposite(two_sided_ideal(a.sdata))
 #            a.opgb is a left gb of two_sided_ideal(a.sopdata)
-function opgroebner_assure!(a::PBWAlgIdeal{D}) where D
+function singular_opgroebner_basis(a::PBWAlgIdeal{D}) where D
   @assert D >= 0
-  _sopdata_assure!(a)
-  if !isdefined(a, :opgb)
-    a.opgb = Singular.std(a.sopdata)
-    if D == 0
+  isdefined(a, :opgb) && return a.opgb
+  a.opgb = Singular.std(get_sopdata(a))
+  if D == 0
       a.opgb.isTwoSided = false
-    end
   end
+  return a.opgb
 end
 
 @doc raw"""
@@ -743,8 +746,8 @@ Return `true` if `I` is the zero ideal, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(Weyl-algebra over Rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
+(Weyl-algebra over rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
@@ -773,8 +776,8 @@ Return `true` if `I` is generated by `1`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(Weyl-algebra over Rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
+(Weyl-algebra over rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
@@ -796,7 +799,7 @@ true
 ```
 
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), ["x", "y"]);
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), [:x, :y]);
 
 julia> I = two_sided_ideal(D, [x^3])
 two_sided_ideal(x^3)
@@ -813,11 +816,9 @@ function is_one(a::PBWAlgIdeal{D}) where D
     return true
   end
   if D > 0
-    opgroebner_assure!(a)
-    return _one_check(a.opgb)
+    return _one_check(singular_opgroebner_basis(a))
   else
-    groebner_assure!(a)
-    return _one_check(a.gb)
+    return _one_check(singular_groebner_basis(a))
   end
 end
 
@@ -836,8 +837,7 @@ function _as_left_ideal(a::PBWAlgIdeal{D}) where D
   if D < 0
     return a.sdata
   else
-    groebner_assure!(a)
-    return a.gb
+    return singular_groebner_basis(a)
   end
 end
 
@@ -846,9 +846,8 @@ function _as_right_ideal(a::PBWAlgIdeal{D}) where D
   if D > 0
     return a.sdata
   else
-    opgroebner_assure!(a)
     R = base_ring(a)
-    return _opmap(R, a.opgb, _opposite(R))
+    return _opmap(R, singular_opgroebner_basis(a), _opposite(R))
   end
 end
 
@@ -860,7 +859,7 @@ or `I` and `J` are a left and a right ideal, respectively, return the product of
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), ["x", "y"]);
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), [:x, :y]);
 
 julia> I = left_ideal(D, [x^3+y^3, x*y^2])
 left_ideal(x^3 + y^3, x*y^2)
@@ -886,7 +885,7 @@ Given a two_sided ideal `I`, return the `k`-th power of `I`.
 
 # Examples
 ```jldoctest
-julia> D, (x, dx) = weyl_algebra(GF(3), ["x"]);
+julia> D, (x, dx) = weyl_algebra(GF(3), [:x]);
 
 julia> I = two_sided_ideal(D, [x^3])
 two_sided_ideal(x^3)
@@ -925,7 +924,7 @@ Return the intersection of two or more ideals.
 
 # Examples
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"]);
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y]);
 
 julia> I = intersect(left_ideal(D, [x^2, x*dy, dy^2])+left_ideal(D, [dx]), left_ideal(D, [dy^2-x^3+x]))
 left_ideal(-x^3 + dy^2 + x)
@@ -942,16 +941,10 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
     res = Singular.intersection(res, [bi.sdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   elseif D > 0
-    _sopdata_assure!(a)
-    res = a.sopdata
-    for bi in b
-      _sopdata_assure!(bi)
-    end
-    res = Singular.intersection(res, [bi.sopdata for bi in b]...)
+    res = Singular.intersection(get_sopdata(a), [get_sopdata(bi)  for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, _opmap(R, res, _opposite(R)), res)
   else
-    res = _as_left_ideal(a)
-    res = Singular.intersection(res, [_as_left_ideal(bi) for bi in b]...)
+    res = Singular.intersection(_as_left_ideal(a), [_as_left_ideal(bi) for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   end
 end
@@ -972,7 +965,7 @@ Return `true` if `f` is contained in `I`, `false` otherwise. Alternatively, use 
 # Examples
 
 ```jldoctest
-julia> D, (x, dx) = weyl_algebra(QQ, ["x"]);
+julia> D, (x, dx) = weyl_algebra(QQ, [:x]);
 
 julia> I = left_ideal(D, [x*dx^4, x^3*dx^2])
 left_ideal(x*dx^4, x^3*dx^2)
@@ -982,7 +975,7 @@ true
 ```
 
 ```jldoctest
-julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"]);
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y]);
 
 julia> I = two_sided_ideal(D, [x, dx])
 two_sided_ideal(x, dx)
@@ -996,14 +989,12 @@ function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D
   @assert R === parent(f)
   if D <= 0
     # this code works for both D < 0 and D = 0 since:
-    #  - groebner_assure! gives a left gb for D = 0 as well (id_TwoStd)
+    #  - singular_groebner_basis gives a left gb for D = 0 as well (id_TwoStd)
     #  - Singular.reduce is a left normal form
-    groebner_assure!(I)
-    return Singular.is_zero(Singular.reduce(f.sdata, I.gb))
+    return Singular.is_zero(Singular.reduce(f.sdata, singular_groebner_basis(I)))
   else
-    opgroebner_assure!(I)
     opf = _opmap(_opposite(R), f.sdata, R)
-    return Singular.is_zero(Singular.reduce(opf, I.opgb))
+    return Singular.is_zero(Singular.reduce(opf, singular_opgroebner_basis(I)))
   end
 end
 
@@ -1017,7 +1008,7 @@ end
 Return `true` if `I` is contained in `J`, `false` otherwise.
 # Examples
 ```jldoctest
-julia> D, (x, dx) = weyl_algebra(QQ, ["x"]);
+julia> D, (x, dx) = weyl_algebra(QQ, [:x]);
 
 julia> I = left_ideal(D, [dx^2])
 left_ideal(dx^2)
@@ -1034,12 +1025,9 @@ function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T
     @assert base_ring(a) === base_ring(b)
     if D <= 0
         # Ditto comment ideal_membership
-        groebner_assure!(b)
-        return Singular.is_zero(Singular.reduce(a.sdata, b.gb))
+        return Singular.is_zero(Singular.reduce(a.sdata, singular_groebner_basis(b)))
     else
-        _sopdata_assure!(a)
-        opgroebner_assure!(b)
-        return Singular.is_zero(Singular.reduce(a.sopdata, b.opgb))
+        return Singular.is_zero(Singular.reduce(a.sopdata, singular_opgroebner_basis(b)))
     end
 end
 
@@ -1052,7 +1040,7 @@ Return `true` if `I` is equal to `J`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> D, (x, dx) = weyl_algebra(QQ, ["x"]);
+julia> D, (x, dx) = weyl_algebra(QQ, [:x]);
 
 julia> I = left_ideal(D, [dx^2])
 left_ideal(dx^2)
@@ -1225,13 +1213,12 @@ function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = noth
 
   if D > 0
     Rop = _opposite(R)
-    _sopdata_assure!(I)
     n = ngens(R)
     sigmaop = reverse!(n + 1 .- sigma)
     sigmaCop = reverse!(n + 1 .- sigmaC)
     orderingop = isnothing(ordering) ? ordering :
                                      opposite_ordering(Rop.poly_ring, ordering)
-    zop = _left_eliminate(Rop, I.sopdata, sigmaop, sigmaCop, orderingop)
+    zop = _left_eliminate(Rop, get_sopdata(I), sigmaop, sigmaCop, orderingop)
     z = _opmap(R, zop, Rop)
     return PBWAlgIdeal{D, T, S}(R, z, zop)
   else
@@ -1264,14 +1251,14 @@ That is, return the ideal generated by all polynomials in `I` which only involve
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z, a) = QQ["x", "y", "z", "a"];
+julia> R, (x, y, z, a) = QQ[:x, :y, :z, :a];
 
 julia> L = [x*y-z, x*z+2*x, x*a, y*z-2*y, y*a, z*a];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x, y, z, a) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational field in x, y, z, a with relations y*x = x*y - z, z*x = x*z + 2*x, a*x = x*a, z*y = y*z - 2*y, a*y = y*a, a*z = z*a, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z, a])
+(PBW-algebra over rational field in x, y, z, a with relations y*x = x*y - z, z*x = x*z + 2*x, a*x = x*a, z*y = y*z - 2*y, a*y = y*a, a*z = z*a, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z, a])
 
 julia> f = 4*x*y+z^2-2*z-a;
 
@@ -1289,14 +1276,14 @@ ErrorException("no elimination is possible: subalgebra is not admissible")
 ```
 
 ```jldoctest
-julia> R, (p, q) = QQ["p", "q"];
+julia> R, (p, q) = QQ[:p, :q];
 
 julia> L = [p*q+q^2];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (p, q) = pbw_algebra(R, REL, lex(gens(R)))
-(PBW-algebra over Rational field in p, q with relations q*p = p*q + q^2, PBWAlgElem{QQFieldElem, Singular.n_Q}[p, q])
+(PBW-algebra over rational field in p, q with relations q*p = p*q + q^2, PBWAlgElem{QQFieldElem, Singular.n_Q}[p, q])
 
 julia> I = left_ideal(A, [p, q])
 left_ideal(p, q)

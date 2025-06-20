@@ -48,7 +48,7 @@
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
         "model_sections": ["s1", "s2", "s3", "s6", "s9"],
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [ 3,  2,  1, 1, 0],
             [-1,  0,  1, 0, 0],
             [-1, -1, -1, 0, 1]
@@ -63,6 +63,8 @@
             [1,  1, 0, 0, 0, 0, 0, 0]
         ],
         "hypersurface_equation": "s1*e1^2*e2^2*e3*e5^4*u^3 + s2*e1*e2^2*e3^2*e4^2*e5^2*u^2*v + s3*e2^2*e3^3*e4^4*u*v^2 + s6*e1*e2*e3*e4*e5*u*v*w + s9*e1*v*w^2",
+        "zero_section_class": "e4",
+        "exceptional_classes": ["e1", "e2", "e3", "e4", "e5"],
         "zero_section": ["1", "s1", "1", "1", "1", "-s9", "0", "1"],
         "torsion_sections": [
             ["s9", "1", "1", "-s3", "1", "1", "1", "0"]
@@ -85,5 +87,5 @@
         "model1408_4808-15.json",
         "model1408_4808-16.json"
     ],
-    "related_models": ["model1408_4808-13-WSF.json"]
+    "birational_models": ["model1408_4808-13-WSF.json"]
 }

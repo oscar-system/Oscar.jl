@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Design Decisions
 This document covers the ideas and design decisions behind OSCAR, as well as
 some pitfalls to avoid.
@@ -90,7 +96,7 @@ software frameworks on a lower level:
  - Gap
 
 So: Please use it. It is safe to assume all can be improved, however, if we try
-to perfect every single line of code again and again, we we won't get anywhere;
+to perfect every single line of code again and again, we won't get anywhere;
 there is a balance to be found.
 For preference: 
 ```

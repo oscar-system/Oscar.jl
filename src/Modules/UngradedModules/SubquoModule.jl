@@ -38,7 +38,7 @@ The elements of `O` must live in `F`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x,y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,2)
@@ -51,9 +51,9 @@ julia> O = [x*F[1]+F[2],y*F[2]]
 
 julia> M = SubquoModule(F, O)
 Submodule with 2 generators
-1 -> x*e[1] + e[2]
-2 -> y*e[2]
-represented as subquotient with no relations.
+  1: x*e[1] + e[2]
+  2: y*e[2]
+represented as subquotient with no relations
 
 ```
 """
@@ -120,7 +120,7 @@ return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -133,15 +133,15 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+julia> M = subquotient(A, B)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 ```
 """
 function SubquoModule(A::MatElem{R}, B::MatElem{R}) where {R}
@@ -157,7 +157,7 @@ end
 Construct the subquotient with ambient free module `F`, generators `g`
 and relations `q`.
 """
-function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
+function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:AdmissibleModuleFPRingElem} 
   return SubquoModule(SubModuleOfFreeModule(F, g), SubModuleOfFreeModule(F, q))
 end
 
@@ -180,11 +180,16 @@ where `a` and `b` are free module homomorphisms with codomain `F` represented by
 Given matrices `A` and `B` with the same number of columns, create a free module `F` whose rank 
 is that number, and return $(\text{im } a + \text{im } b)/\text{im } b$, where `a` and `b` are 
 free module homomorphisms with codomain `F` represented by `A` and `B`.
+    
+    subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T 
+
+Given vectors `G` and `R` of elements of `F`, return the subquotient whose ambient representatives 
+of the generators are the entries of `G`, and whose relations are the entries of `R`.
 
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> FR = free_module(R, 1)
 Free module of rank 1 over R
@@ -198,14 +203,14 @@ julia> BR = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MR = SubquoModule(FR, AR, BR)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> MR = subquotient(FR, AR, BR)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> P = ideal(R, [x, y, z]);
 
@@ -214,7 +219,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of R at complement of prime ideal (x, y, z)
+Free module of rank 1 over localization of R at complement of prime ideal (x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -225,14 +230,14 @@ julia> BRL = RL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRL = SubquoModule(FRL, ARL, BRL)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> MRL = subquotient(FRL, ARL, BRL)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
@@ -248,19 +253,19 @@ julia> BRQ = RQ[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQ = SubquoModule(FRQ, ARQ, BRQ)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> 2*x^2*e[1]
-3 -> z^4*e[1]
+julia> MRQ = subquotient(FRQ, ARQ, BRQ)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: 2*x^2*e[1]
+  3: z^4*e[1]
 
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL = free_module(RQL, 1)
-Free module of rank 1 over Localization of RQ at complement of prime ideal
+Free module of rank 1 over localization of RQ at complement of prime ideal
 
 julia> ARQL = RQL[x; y]
 [x]
@@ -271,18 +276,18 @@ julia> BRQL = RQL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQL = SubquoModule(FRQL, ARQL, BRQL)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> 0
-2 -> 0
-3 -> z^4*e[1]
+julia> MRQL = subquotient(FRQL, ARQL, BRQL)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: 0
+  2: 0
+  3: z^4*e[1]
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -301,24 +306,28 @@ julia> V2 = [z*G[2]+y*G[1]]
  y*e[1] + z*e[2]
 
 julia> a1 = hom(F1, G, V1)
-F1 -> G
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Homogeneous module homomorphism
+  from F1
+  to G
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> a2 = hom(F2, G, V2)
-F2 -> G
-e[1] -> y*e[1] + z*e[2]
 Homogeneous module homomorphism
+  from F2
+  to G
+defined by
+  e[1] -> y*e[1] + z*e[2]
 
 julia> V = subquotient(a1,a2)
-Graded subquotient of submodule of G generated by
-1 -> y*e[1]
-2 -> (x + y)*e[1] + y*e[2]
-3 -> z*e[2]
-by submodule of G generated by
-1 -> y*e[1] + z*e[2]
+Graded subquotient of graded submodule of G with 3 generators
+  1: y*e[1]
+  2: (x + y)*e[1] + y*e[2]
+  3: z*e[2]
+by graded submodule of G with 1 generator
+  1: y*e[1] + z*e[2]
 
 julia> A1 = Rg[x y; 2*x^2 3*y^2]
 [    x       y]
@@ -334,12 +343,12 @@ julia> B = Rg[4*x*y^3 (2*x+y)^4]
 julia> F2 = graded_free_module(Rg,[0,0])
 Graded free module Rg^2([0]) of rank 2 over Rg
 
-julia> M1 = SubquoModule(F2, A1, B)
-Graded subquotient of submodule of F2 generated by
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
-by submodule of F2 generated by
-1 -> 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]
+julia> M1 = subquotient(F2, A1, B)
+Graded subquotient of graded submodule of F2 with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
+by graded submodule of F2 with 1 generator
+  1: 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]
 ```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
@@ -351,37 +360,40 @@ function subquotient(a::FreeModuleHom, b::FreeModuleHom)
 end
 subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(F, A, B)
 subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(A, B)
+subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T = SubquoModule(F, G, R)
 #######################################################
 
 function show(io::IO, SQ::SubquoModule)
   @show_name(io, SQ)
   @show_special(io, SQ)
-  io_compact = IOContext(io, :compact => true)
+  io = pretty(io)
 
   if is_graded(SQ)
+      io_compact = IOContext(io, :compact => true)
       if isdefined(SQ, :quo) && !iszero(SQ.quo)
           print(io, "Graded subquotient")
-          print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+          println(io_compact, " of ", Lowercase(), SQ.sub)
+          print(io_compact, "by ", Lowercase(), SQ.quo)
       else
-          print(io_compact, "Graded submodule of ", SQ.F)
-          print(io_compact, SQ.sub, "\n")
+          println(io_compact, SQ.sub)
           print(io, "represented as subquotient with no relations")
       end
   else
       # Todo: Use again once the printing of rings is fixed
       # if isdefined(SQ, :quo) && !iszero(SQ.quo)
       #     print(io, "Subquotient")
-      #     print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+      #     print(io_compact, " of submodule of ", SQ.F, " generated by ", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
       # else
       #     print(io_compact, "Submodule of ", SQ.F)
       #     print(io_compact, SQ.sub, "\n")
       #     print(io, "represented as subquotient with no relations")
       # end
       if isdefined(SQ, :quo) && !iszero(SQ.quo)
-        print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
+        println(io, "Subquotient of ", Lowercase(), SQ.sub)
+        print(io, "by ", Lowercase(), SQ.quo)
       else
-        print(io, SQ.sub, "\n")
-        print(io, "represented as subquotient with no relations.")
+        println(io, SQ.sub)
+        print(io, "represented as subquotient with no relations")
       end
   end
 end
@@ -394,7 +406,6 @@ Show `SQ` as a subquotient of *matrices* `A` and `B`.
 function show_subquo(SQ::SubquoModule)
   #@show_name(io, SQ)
   #@show_special(io, SQ)
-  io_compact = IOContext(stdout, :compact => true)
   if isdefined(SQ, :quo)
     if is_generated_by_standard_unit_vectors(SQ.sub)
       if is_graded(SQ)
@@ -421,11 +432,11 @@ function show_subquo(SQ::SubquoModule)
     end
     show(stdout, "text/plain", generator_matrix(SQ.sub))
   end
-  print(io_compact, "\nwith ambient free module ", SQ.F)
+  print(terse(io), "\nwith ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
-  io_compact = IOContext(stdout, :compact => true)
+  io_compact = terse(stdout)
   print(io_compact, domain(f), " -> ", codomain(f))
   print("\n")
   D = domain(f)
@@ -445,7 +456,7 @@ function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
     if degree(f)==A[0] 
       print("Homogeneous homomorphism")
     else
-      print(io_compact,"Graded homomorphism of degree ", degree(f))
+      print(io_compact, "Graded homomorphism of degree ", degree(f))
     end
   else
     print("Homomorphism")
@@ -460,7 +471,7 @@ Return the cokernel of `a` as an object of type `SubquoModule`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 3);
 
@@ -474,17 +485,17 @@ julia> W = R[y 0; x y; 0 z]
 julia> a = hom(F, G, W);
 
 julia> cokernel(a)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 3 generators
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -497,14 +508,14 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> N = M;
 
@@ -516,19 +527,19 @@ julia> V = [y^2*N[1], x*N[2]]
 julia> a = hom(M, N, V);
 
 julia> cokernel(a)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 5 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-4 -> x*y^2*e[1]
-5 -> x*y*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 5 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+  4: x*y^2*e[1]
+  5: x*y*e[1]
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -540,20 +551,22 @@ julia> W = Rg[y 0; x y; 0 z]
 [0   z]
 
 julia> a = hom(F, G, W)
-F -> G
-e[1] -> y*e[1]
-e[2] -> x*e[1] + y*e[2]
-e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
+  from F
+  to G
+defined by
+  e[1] -> y*e[1]
+  e[2] -> x*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> M = cokernel(a)
-Graded subquotient of submodule of G generated by
-1 -> e[1]
-2 -> e[2]
-by submodule of G generated by
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
+Graded subquotient of graded submodule of G with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of G with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
 
 ```
 """
@@ -568,7 +581,7 @@ Return the cokernel of `A` as an object of type `SubquoModule` with ambient free
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -578,12 +591,12 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [2*x^2   3*y^2]
  
 julia> M = cokernel(F, A)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
 
 julia> ambient_free_module(M) === F
 true
@@ -591,7 +604,7 @@ true
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, [8,8])
 Graded free module Rg^2([-8]) of rank 2 over Rg
@@ -601,12 +614,12 @@ julia> A = Rg[x y; 2*x^2 3*y^2]
 [2*x^2   3*y^2]
  
 julia> M = cokernel(F, A)
-Graded subquotient of submodule of F generated by
-1 -> e[1]
-2 -> e[2]
-by submodule of F generated by
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
+Graded subquotient of graded submodule of F with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of F with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
 
 julia> ambient_free_module(M) === F
 true
@@ -628,19 +641,19 @@ Return the cokernel of `A` as an object of type `SubquoModule`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
 julia> M = cokernel(A)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
 
 ```
 """
@@ -655,7 +668,7 @@ Return the image of `A` as an object of type `SubquoModule` with ambient free mo
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -666,16 +679,16 @@ julia> A = R[x y; 2*x^2 3*y^2]
  
 julia> M = image(F, A)
 Submodule with 2 generators
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
-represented as subquotient with no relations.
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations
 
 julia> ambient_free_module(M) === F
 true
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, [8,8])
 Graded free module Rg^2([-8]) of rank 2 over Rg
@@ -685,9 +698,9 @@ julia> A = Rg[x y; 2*x^2 3*y^2]
 [2*x^2   3*y^2]
  
 julia> M = image(F, A)
-Graded submodule of F
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
+Graded submodule of F with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
 represented as subquotient with no relations
 
 julia> ambient_free_module(M) === F
@@ -710,7 +723,7 @@ Return the image of `A` as an object of type `SubquoModule`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
@@ -718,9 +731,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
  
 julia> M = image(A)
 Submodule with 2 generators
-1 -> x*e[1] + y*e[2]
-2 -> 2*x^2*e[1] + 3*y^2*e[2]
-represented as subquotient with no relations.
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations
 ```
 """
 function image(A::MatElem)
@@ -754,19 +767,23 @@ function set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
   set_default_ordering!(M.sum, ord)
 end
 
-function standard_basis(M::SubquoModule; ordering::ModuleOrdering = default_ordering(M))
+function standard_basis(M::SubquoModule; ordering::Union{ModuleOrdering, Nothing} = nothing)
+  error("standard basis computation is not supported for modules over rings of type $(typeof(base_ring(M)))")
+end
+
+function standard_basis(M::SubquoModule{<:MPolyRingElem{T}}; ordering::ModuleOrdering = default_ordering(M)) where {T<:Union{<:FieldElem, ZZRingElem}}
   @req is_exact_type(elem_type(base_ring(M))) "This functionality is only supported over exact fields."
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = compute_standard_basis(sub_union_gb_of_quo, ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -793,14 +810,14 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
       M.groebner_basis[ord] = reduced_groebner_basis(M.sub, ord)
     else
       quo_gb = reduced_groebner_basis(M.quo, ord)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -834,7 +851,7 @@ of the common ambient module.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -848,13 +865,13 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = R[x; y]
 [x]
@@ -865,21 +882,21 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> (x^2 + y^4)*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: (x^2 + y^4)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> is_subset(M, N)
 true
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 2);
 
@@ -889,21 +906,21 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1] + y*e[2]
-2 -> y*e[2]
-by submodule of F generated by
-1 -> x^2*e[1] + y^2*e[2]
-2 -> y^2*e[2]
+julia> M1 = subquotient(F, O1, O2)
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1] + y*e[2]
+  2: y*e[2]
+by graded submodule of F with 2 generators
+  1: x^2*e[1] + y^2*e[2]
+  2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[2]
-by submodule of F generated by
-1 -> x^2*e[1] + y^2*e[2]
-2 -> y^2*e[2]
+julia> M2 = subquotient(F, O1a, O2)
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[2]
+by graded submodule of F with 2 generators
+  1: x^2*e[1] + y^2*e[2]
+  2: y^2*e[2]
 
 julia> is_subset(M1,M2)
 true
@@ -962,7 +979,7 @@ Here, `ambient_module(M) == ambient_module(N)` if
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -976,13 +993,13 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = R[x; y]
 [x]
@@ -993,21 +1010,21 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> (x^2 + y^4)*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: (x^2 + y^4)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> M == N
 false
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 2);
 
@@ -1017,21 +1034,21 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1] + y*e[2]
-2 -> y*e[2]
-by submodule of F generated by
-1 -> x^2*e[1] + y^2*e[2]
-2 -> y^2*e[2]
+julia> M1 = subquotient(F, O1, O2)
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1] + y*e[2]
+  2: y*e[2]
+by graded submodule of F with 2 generators
+  1: x^2*e[1] + y^2*e[2]
+  2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[2]
-by submodule of F generated by
-1 -> x^2*e[1] + y^2*e[2]
-2 -> y^2*e[2]
+julia> M2 = subquotient(F, O1a, O2)
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[2]
+by graded submodule of F with 2 generators
+  1: x^2*e[1] + y^2*e[2]
+  2: y^2*e[2]
 
 julia> M1 == M2
 true
@@ -1049,7 +1066,7 @@ Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 Return `false` if the ambient free modules are not isomorphic.
 
 ```jldoctest
-julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> F1 = graded_free_module(Rg,[2,3, 4])
 Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
@@ -1059,9 +1076,9 @@ julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
 [2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
 
 julia> M1 = image(F1, A1)
-Graded submodule of F1
-1 -> x^3*e[1] + x^2*e[2] + x*e[3]
-2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+Graded submodule of F1 with 2 generators
+  1: x^3*e[1] + x^2*e[2] + x*e[3]
+  2: (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
 represented as subquotient with no relations
 
 julia> F2 = graded_free_module(Rg,[2,4, 3])
@@ -1072,9 +1089,9 @@ julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
 [2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
 
 julia> M2 = image(F2, A2)
-Graded submodule of F2
-1 -> x^3*e[1] + x*e[2] + x^2*e[3]
-2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+Graded submodule of F2 with 2 generators
+  1: x^3*e[1] + x*e[2] + x^2*e[3]
+  2: (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
 represented as subquotient with no relations
 
 julia> is_canonically_isomorphic(M1, M2)
@@ -1100,7 +1117,7 @@ Moreover, if `M` and `N` are canonically isomorphic then return also the isomorp
 otherwise return the zero map.
 
 ```jldoctest
-julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> F1 = graded_free_module(Rg,[2,3, 4])
 Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
@@ -1110,9 +1127,9 @@ julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
 [2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
 
 julia> M1 = image(F1, A1)
-Graded submodule of F1
-1 -> x^3*e[1] + x^2*e[2] + x*e[3]
-2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+Graded submodule of F1 with 2 generators
+  1: x^3*e[1] + x^2*e[2] + x*e[3]
+  2: (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
 represented as subquotient with no relations
 
 julia> F2 = graded_free_module(Rg,[2,4, 3])
@@ -1123,16 +1140,13 @@ julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
 [2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
 
 julia> M2 = image(F2, A2)
-Graded submodule of F2
-1 -> x^3*e[1] + x*e[2] + x^2*e[3]
-2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+Graded submodule of F2 with 2 generators
+  1: x^3*e[1] + x*e[2] + x^2*e[3]
+  2: (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
 represented as subquotient with no relations
 
 julia> is_canonically_isomorphic_with_map(M1, M2)
-(true, M1 -> M2
-x^3*e[1] + x^2*e[2] + x*e[3] -> x^3*e[1] + x*e[2] + x^2*e[3]
-(2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3] -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
-Homogeneous module homomorphism)
+(true, Hom: M1 -> M2)
 
 ```
 """
@@ -1161,7 +1175,7 @@ Additionally, return the inclusion maps `M` $\to$ `M + N` and `N` $\to$ `M + N`.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -1175,13 +1189,13 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = R[y;]
 [y]
@@ -1191,68 +1205,50 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
-Subquotient of Submodule with 1 generator
-1 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 1 generator
+  1: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> O = sum(M, N);
 
 julia> O[1]
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> O[2]
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Module homomorphism
+  from M
+  to subquotient of submodule with 2 generators
+    1: x*e[1]
+    2: y*e[1]
+  by submodule with 3 generators
+    1: x^2*e[1]
+    2: y^3*e[1]
+    3: z^4*e[1]
 
 julia> O[3]
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 1 generator
-1 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Module homomorphism
+  from N
+  to subquotient of submodule with 2 generators
+    1: x*e[1]
+    2: y*e[1]
+  by submodule with 3 generators
+    1: x^2*e[1]
+    2: y^3*e[1]
+    3: z^4*e[1]
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1260,50 +1256,46 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Graded subquotient of graded submodule of F with 1 generator
+  1: x*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
-Graded subquotient of submodule of F generated by
-1 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Graded subquotient of graded submodule of F with 1 generator
+  1: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> sum(M, N)
-(Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1], M -> Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-x*e[1] -> x*e[1]
-Homogeneous module homomorphism, N -> Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-y*e[1] -> y*e[1]
-Homogeneous module homomorphism)
+(Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1], Hom: M -> graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1], Hom: N -> graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1])
 
 ```
 """
@@ -1343,7 +1335,7 @@ return the sum of `M` and `N` regarded as submodules of the common ambient modul
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -1357,13 +1349,13 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = R[y;]
 [y]
@@ -1373,26 +1365,26 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
-Subquotient of Submodule with 1 generator
-1 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 1 generator
+  1: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> O = M + N
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1400,34 +1392,34 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Graded subquotient of graded submodule of F with 1 generator
+  1: x*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
-Graded subquotient of submodule of F generated by
-1 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Graded subquotient of graded submodule of F with 1 generator
+  1: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> M + N
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 ```
 """
@@ -1446,7 +1438,7 @@ Additionally, return the inclusion maps `M` $\cap$ `N` $\to$ `M` and `M` $\cap$ 
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -1460,13 +1452,13 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = R[y;]
 [y]
@@ -1476,60 +1468,38 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
-Subquotient of Submodule with 1 generator
-1 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 1 generator
+  1: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> intersect(M, N)
-(Subquotient of Submodule with 2 generators
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
-Domain:
-=======
-Subquotient of Submodule with 2 generators
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> x*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
-Domain:
-=======
-Subquotient of Submodule with 2 generators
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1])
+(Subquotient of submodule with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1], Hom: subquotient of submodule with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1] -> M, Hom: subquotient of submodule with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1] -> N)
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1537,52 +1507,46 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
-Graded subquotient of submodule of F generated by
-1 -> x*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> M = subquotient(F, AM, BM)
+Graded subquotient of graded submodule of F with 1 generator
+  1: x*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
-Graded subquotient of submodule of F generated by
-1 -> y*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> N = subquotient(F, AN, BN)
+Graded subquotient of graded submodule of F with 1 generator
+  1: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> intersect(M, N)
-(Graded subquotient of submodule of F generated by
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1], Graded subquotient of submodule of F generated by
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> M
--x*y*e[1] -> -x*y*e[1]
-x*z^4*e[1] -> x*z^4*e[1]
-Homogeneous module homomorphism, Graded subquotient of submodule of F generated by
-1 -> -x*y*e[1]
-2 -> x*z^4*e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> N
--x*y*e[1] -> x*y*e[1]
-x*z^4*e[1] -> 0
-Homogeneous module homomorphism)
+(Graded subquotient of graded submodule of F with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1], Hom: graded subquotient of graded submodule of F with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1] -> M, Hom: graded subquotient of graded submodule of F with 2 generators
+  1: -x*y*e[1]
+  2: x*z^4*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1] -> N)
 
 ```
 """
@@ -1618,6 +1582,492 @@ function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
   end
   throw(ArgumentError("Relations of M and N are not equal."))
 end
+
+########################################
+# module quotients
+########################################
+
+@doc raw"""
+     annihilator(N::SubquoModule{T}) where T
+
+Return the annihilator of `N`.
+
+!!! note
+    By definition, the annihilator of $N$ is the ideal $0:N = \{a \in R \mid aN = 0\}$. 
+    Here, `R = base_ring(N)`.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = free_module(R, 1);
+
+julia> AN = R[y;];
+
+julia> BN = R[x^2; y^3; z^4];
+
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 1 generator
+  1: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = annihilator(N)
+Ideal generated by
+  y^2
+  x^2
+  z^4
+
+```
+
+```jldoctest
+julia> S, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal(S, [x*y*z])
+Ideal generated by
+  x*y*z
+
+julia> R, _ = quo(S, I)
+(Quotient of multivariate polynomial ring by ideal (x*y*z), Map: S -> R)
+
+julia> F = free_module(R, 1);
+
+julia> AN = R[y;];
+
+julia> BN = R[x^2; y^3; z^4];
+
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 1 generator
+  1: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = annihilator(N)
+Ideal generated by
+  x*z
+  y^2
+  x^2
+  z^4
+```
+"""
+function annihilator(M::SubquoModule{T}) where T
+  R = base_ring(M)
+  F = FreeMod(R, 1)
+  I = ideal(R, [one(R)])
+  for v in gens(M)
+    h = hom(F, M, [v])
+    K, _ = kernel(h)
+    # this is a hack, because getindex is broken for K
+    g = Oscar.as_matrix(F, ambient_representatives_generators(K))
+    I = intersect(I, ideal(R, minors(g, 1)))
+  end
+  return I
+end
+
+function annihilator(N::SubquoModule{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  R = base_ring(N)
+  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{elem_type(ambient_free_module(N))}())
+  A = N.sub
+  SA = singular_generators(A.gens) 
+  B = N_quo
+  SB = singular_generators(B.gens)
+  return R isa MPolyQuoRing ? MPolyQuoIdeal(R, Singular.quotient(SB, SA)) : MPolyIdeal(R, Singular.quotient(SB, SA))
+end
+
+@doc raw"""
+    quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
+
+Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
+return the module quotient of `M` by `N` regarded as submodules of the common ambient module.
+
+Alternatively, use `M:N`.
+
+!!! note
+    By definition, $M:N = \{a \in R \mid aN \subset M\}$. Here, `R = base_ring(M) = base_ring(N)`.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = graded_free_module(R, 1);
+
+julia> B = R[x^2; y^3; z^4];
+
+julia> AM = R[x;];
+
+julia> M = subquotient(F, AM, B)
+Graded subquotient of graded submodule of F with 1 generator
+  1: x*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> AN = R[y;];
+
+julia> N = subquotient(F, AN, B)
+Graded subquotient of graded submodule of F with 1 generator
+  1: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> L = quotient(M, N)
+Ideal generated by
+  x
+  y^2
+  z^4
+
+```
+"""
+function quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
+  @assert base_ring(M) == base_ring(N)
+  @assert ambient_module(M) == ambient_module(N)
+  MplusN, iM, _ = sum(M, N)
+  Q, _ = quo(MplusN, [iM(x) for x in gens(M)])
+  return annihilator(Q)
+end
+
+(::Colon)(M::SubquoModule{T}, N::SubquoModule{T}) where T = quotient(M, N)
+
+@doc raw"""
+     quotient(M::SubquoModule, J::Ideal)
+
+Return the quotient of `M` by `J`.
+
+Alternatively, use `M:J`.
+
+!!! note
+    By definition, $M:J = \{a \in A \mid Ja \subset M\}$. Here, $A$ is the
+    ambient module of $M$.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = free_module(R, 1);
+
+julia> AM = R[x;];
+
+julia> BM = R[x^2; y^3; z^4];
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = ideal(R, [x, y, z])^2
+Ideal generated by
+  x^2
+  x*y
+  x*z
+  y^2
+  y*z
+  z^2
+
+julia> L = quotient(M, J)
+Subquotient of submodule with 3 generators
+  1: x*e[1]
+  2: y*z^3*e[1]
+  3: y^2*z^2*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> ambient_free_module(L) == ambient_free_module(M)
+true
+
+```
+
+```jldoctest
+julia> S, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> R, _ = quo(S, ideal(S, [x+y+z]));
+
+julia> F = free_module(R, 1);
+
+julia> AM = R[x;];
+
+julia> BM = R[x^2; y^3; z^4];
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: (-y - z)*e[1]
+by submodule with 3 generators
+  1: (y^2 + 2*y*z + z^2)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = ideal(R, [x, y, z])^2
+Ideal generated by
+  x^2
+  x*y
+  x*z
+  y^2
+  y*z
+  z^2
+
+julia> quotient(M, J)
+Subquotient of submodule with 2 generators
+  1: z*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: (y^2 + 2*y*z + z^2)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+```
+"""
+function quotient(M::SubquoModule, J::Ideal)
+  @assert base_ring(M) == base_ring(J)
+  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
+  U = M.sub+M.quo
+  UF = _quotient(U, J)
+  res = SubquoModule(UF)
+  res.quo = M.quo
+  return simplify_light(res)[1]
+end
+
+(::Colon)(M::SubquoModule, J::Ideal) = quotient(M, N)
+
+function _quotient(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by generic method
+  error("not implemented for the given types of modules.")
+end
+
+function _quotient(U::SubModuleOfFreeModule, J::Ideal{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  F = ambient_free_module(U)
+  SgU = singular_generators(U.gens)
+  SgJ = singular_generators(J.gens)
+  SQ = Singular.quotient(SgU, SgJ)
+  MG = ModuleGens(F, SQ)
+  return SubModuleOfFreeModule(F, MG)
+end
+
+########################################
+### saturation for modules
+########################################
+
+@doc raw"""
+     saturation(M::SubquoModule,
+               J::Ideal = ideal(base_ring(M), gens(base_ring(M)));
+               iteration::Bool = false)
+
+Return the saturation $M:J^{\infty}$ of `M` with respect to `J`.
+
+If the ideal `J` is not given, the ideal generated by the generators (variables) of `base_ring(M)` is used.
+
+Setting `iteration` to `true` only has an effect over rings of type `MPolyRing` or `MPolyQuoRing`. Over such rings,
+if `iteration` is set to `true`, the saturation is done by carrying out successive ideal quotient computations as
+suggested by the definition of saturation. Otherwise, a more sophisticated Gröbner basis approach is used which is typically
+faster. Applying the two approaches may lead to different generating sets of the saturation.
+
+!!! note
+    By definition,
+    $M:J^{\infty} = \{ a \in A \mid J^ka \subset M \text{ for some } k\geq 1 \} = \bigcup\limits_{k=1}^{\infty} (M:J^k).$
+    Here, $A$ is the ambient module of $M$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = free_module(R, 1);
+
+julia> AM = R[x;];
+
+julia> BM = R[x^2; y^3; z^4];
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = ideal(R, [x, y, z])^2
+Ideal generated by
+  x^2
+  x*y
+  x*z
+  y^2
+  y*z
+  z^2
+
+julia> saturation(M, J)
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+```
+"""
+function saturation(M::SubquoModule, J::Ideal = ideal(base_ring(M), gens(base_ring(M))); iteration::Bool = false)
+  @assert base_ring(M) == base_ring(J)
+  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
+  U = M.sub+M.quo
+  UF = _saturation(U, J; iteration = iteration)
+  res = SubquoModule(UF)
+  res.quo = M.quo
+  return simplify_light(res)[1]
+end
+
+function _saturation(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by generic method
+  error("not implemented for the given types of modules.")
+end
+
+function _saturation(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  F = ambient_free_module(U)
+  SgU = singular_generators(U.gens)
+  SgJ = singular_generators(J.gens)
+  SQ, _ = Singular.saturation(SgU, SgJ)
+  MG = ModuleGens(F, SQ)
+  return SubModuleOfFreeModule(F, MG)
+end
+
+@doc raw"""
+     saturation_with_index(M::SubquoModule,
+               J::MPolyIdeal = ideal(base_ring(M), gens(base_ring(M)));
+               iteration::Bool = false)
+
+
+Return the saturation $M:J^{\infty}$ of $M$ with respect to $J$ and the smallest integer $k$ such that $I:J^k = I:J^{\infty}$ (saturation index).
+
+If the ideal `J` is not given, the ideal generated by the generators (variables) of `base_ring(M)` is used.
+
+Setting `iteration` to `true` only has an effect over rings of type `MPolyRing` or `MPolyQuoRing`. Over such rings,
+if `iteration` is set to `true`, the saturation is done by carrying out successive module quotient computations as
+suggested by the definition of saturation. Otherwise, a more sophisticated Gröbner basis approach is used which is typically
+faster. Applying the two approaches may lead to different generating sets of the saturation.
+
+!!! note
+    By definition,
+    $M:J^{\infty} = \{ a \in A \mid J^ka \subset M \text{ for some } k\geq 1 \} = \bigcup\limits_{k=1}^{\infty} (M:J^k).$
+    Here, $A$ is the ambient module of $M$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = free_module(R, 1);
+
+julia> AM = R[x;];
+
+julia> BM = R[x^2; y^3; z^4];
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = ideal(R, [x, y, z])^2
+Ideal generated by
+  x^2
+  x*y
+  x*z
+  y^2
+  y*z
+  z^2
+
+julia> L = saturation_with_index(M, J);
+
+julia> L[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> L[2]
+3
+
+```
+
+```jldoctest
+julia> S, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> R, _ = quo(S, ideal(S, [x+y+z]));
+
+julia> F = free_module(R, 1);
+
+julia> AM = R[x;];
+
+julia> BM = R[x^2; y^3; z^4];
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: (-y - z)*e[1]
+by submodule with 3 generators
+  1: (y^2 + 2*y*z + z^2)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> J = ideal(R, [x, y, z])^2
+Ideal generated by
+  x^2
+  x*y
+  x*z
+  y^2
+  y*z
+  z^2
+
+julia> L = saturation_with_index(M, J);
+
+julia> L[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: (y^2 + 2*y*z + z^2)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> L[2]
+2
+
+```
+"""
+function saturation_with_index(M::SubquoModule, J::Ideal = ideal(base_ring(M), gens(base_ring(M))); iteration::Bool = false)
+@assert base_ring(M) == base_ring(J)
+  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
+  U = M.sub+M.quo
+  UF, k = _saturation_with_index(U, J; iteration = iteration)
+  res = SubquoModule(UF)
+  res.quo = M.quo
+  return simplify_light(res)[1], k
+end
+
+function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by generic method
+  error("not implemented for the given types of modules.")
+end
+
+function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  F = ambient_free_module(U)
+  SgU = singular_generators(U.gens)
+  SgJ = singular_generators(J.gens)
+  SQ, k = Singular.saturation(SgU, SgJ)
+  MG = ModuleGens(F, SQ)
+  return SubModuleOfFreeModule(F, MG), k
+end
+
+########################################
+
 
 @doc raw"""
     represents_element(a::FreeModElem, SQ::SubquoModule)
@@ -1665,11 +2115,11 @@ julia> mat = matrix(QQ, [0 -1; 0 0]);
 
 julia> U = image(mat)
 Submodule with 1 generator
-1 -> -e[2]
-represented as subquotient with no relations.
+  1: -e[2]
+represented as subquotient with no relations
 
 julia> ambient_module(U)
-Free module of rank 2 over Rational field
+Free module of rank 2 over rational field
 ```
 """
 function ambient_module(M::SubquoModule, task = :none)
@@ -1726,6 +2176,6 @@ function (==)(F::FreeMod, G::SubquoModule)
   if isdefined(G, :quo) 
     iszero(G.quo) || return false
   end
-  all(e -> e in G, gens(F)) || return false
+  all(in(G), gens(F)) || return false
   return true
 end

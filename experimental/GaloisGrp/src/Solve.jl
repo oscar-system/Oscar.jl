@@ -236,14 +236,14 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   return SS
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool=false, check::Bool=true)
   C = base_ring(f)
   Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool=false, check::Bool=true)
   return number_field(f; cached, check)
 end
 
@@ -288,7 +288,7 @@ one, compute the corresponding subfields as a tower.
 
 # Examples
 ```jldoctest
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-3*x+17)
 (Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
@@ -474,7 +474,7 @@ Supports `set_verbosity_level(:SolveRadical, i)` to obtain information.
 
 # Examples
 ```julia
-julia> Qx,x = QQ["x"];
+julia> Qx,x = QQ[:x];
 
 julia> K, r = solve(x^3+3*x+5)
 (Relative number field over with defining polynomial x^3 + (3*z_3 + 3//2)*a2 + 135//2
@@ -562,7 +562,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   K = number_field(fld_arr[length(pp)+1])[1]
   i = length(pp)+2
   if K == QQ
-    h = MapFromFunc(K, K, x->x, y->y)
+    h = MapFromFunc(K, K, identity, identity)
   else
     h = hom(K, K, gen(K))
   end

@@ -51,16 +51,16 @@
                                   collect(monomials(f; ordering = deglex(R)))
 
    a = lex([x, y])
-   @test is_global(a)
-   @test !is_local(a)
+   @test is_global_block(a)
+   @test !is_local_block(a)
    @test !is_mixed(a)
    @test cmp(a, x, one(R)) > 0
    @test cmp(a, y, one(R)) > 0
    @test_throws ErrorException cmp(a, z, one(R))
 
    a = neglex([y, z])
-   @test !is_global(a)
-   @test is_local(a)
+   @test !is_global_block(a)
+   @test is_local_block(a)
    @test !is_mixed(a)
    @test_throws ErrorException cmp(a, x, one(R))
    @test cmp(a, y, one(R)) < 0
@@ -87,6 +87,10 @@
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)
+
+   # issue 1697
+   @test_throws ErrorException is_global(lex([x,y]))
+   @test_throws ErrorException is_local(neglex([x,y]))
 
    @test_throws ArgumentError monomial_ordering(gens(R), :foo)
    @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
@@ -190,7 +194,7 @@ end
 end
  
 @testset "Polynomial Orderings comparison" begin
-   R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
+   R, (x, y, z) = @inferred polynomial_ring(QQ, [:x, :y, :z])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
    @test lex([z])*lex([y])*lex([x]) == invlex([x, y, z])
@@ -219,7 +223,7 @@ function test_opposite_ordering(a)
 end
 
 @testset "Polynomial Orderings sorting" begin
-   R, (x1, x2, x3, x4) = polynomial_ring(QQ, "x".*string.(1:4))
+   R, (x1, x2, x3, x4) = polynomial_ring(QQ, :x => 1:4)
    
    M = [x2^3, x1*x2^2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1^3,
         x1*x2*x4, x1*x2*x3, x1*x2, x1^2*x4, x1^2*x3, x1^2, x2*x4^2, x2*x3*x4,
@@ -316,14 +320,14 @@ end
 end
 
 @testset "Polynomial Ordering internal conversion to Singular" begin
-   R, (x, y, s, t, u) = polynomial_ring(QQ, ["x", "y", "s", "t", "u"])
+   R, (x, y, s, t, u) = polynomial_ring(QQ, [:x, :y, :s, :t, :u])
 
    for O in (wdegrevlex([x,y,s],[1,2,3])*invlex([t,u]),
              neglex([x,y,s])*neginvlex([t,u]),
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
-      @test O == monomial_ordering(R, singular(O))
-      @test O == monomial_ordering(R, Singular.ordering(singular_poly_ring(R, O)))
+      @test O == monomial_ordering(R, Oscar.singular(O))
+      @test O == monomial_ordering(R, Singular.ordering(Oscar.singular_poly_ring(R, O)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
@@ -333,60 +337,62 @@ end
 
    O1 = degrevlex(gens(R))
    test_opposite_ordering(O1)
-   @test monomial_ordering(R, singular(O1)) == O1
+   @test monomial_ordering(R, Oscar.singular(O1)) == O1
    @test length(string(O1)) > 2
-   @test string(singular(O1)) == "ordering_dp(5)"
+   @test string(Oscar.singular(O1)) == "ordering_dp(5)"
 
    O2 = lex([x, y])*deglex([s, t, u])
    test_opposite_ordering(O2)
-   @test monomial_ordering(R, singular(O2)) == O2
+   @test monomial_ordering(R, Oscar.singular(O2)) == O2
    @test length(string(O2)) > 2
-   @test string(singular(O2)) == "ordering_lp(2) * ordering_Dp(3)"
+   @test string(Oscar.singular(O2)) == "ordering_lp(2) * ordering_Dp(3)"
 
    O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
    test_opposite_ordering(O3)
-   @test monomial_ordering(R, singular(O3)) == O3
+   @test monomial_ordering(R, Oscar.singular(O3)) == O3
    @test length(string(O3)) > 2
-   @test string(singular(O3)) == "ordering_Wp([2, 3, 5, 7, 3])"
+   @test string(Oscar.singular(O3)) == "ordering_Wp([2, 3, 5, 7, 3])"
 
    O4 = deglex([x, y, t]) * deglex([y, s, u])
    test_opposite_ordering(O4)
-   @test monomial_ordering(R, singular(O4)) == O4
+   @test monomial_ordering(R, Oscar.singular(O4)) == O4
    @test length(string(O4)) > 2
-   @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
+   @test string(Oscar.singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
 
    K = free_module(R, 4)
+   @test cmp(lex(K), gen(K,1), gen(K,2)) == -1
+   @test cmp(invlex(K), gen(K,1), gen(K,2)) == 1
 
    O5 = invlex(gens(K))*degrevlex(gens(R))
-   @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
+   @test monomial_ordering(R, Oscar.singular(O5)) == degrevlex(gens(R))
    @test length(string(O5)) > 2
-   @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
+   @test string(Oscar.singular(O5)) == "ordering_c() * ordering_dp(5)"
 
    a = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4]))
    b = wdeglex([s, t, u], [1, 2, 3])
    O6 = a * lex(gens(K)) * b
-   @test monomial_ordering(R, singular(O6)) == a * b
+   @test monomial_ordering(R, Oscar.singular(O6)) == a * b
    @test length(string(O6)) > 2
-   @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
+   @test string(Oscar.singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
 
    O7 = weight_ordering([-1,2,0,2,0], degrevlex(gens(R)))
-   @test monomial_ordering(R, singular(O7)) == O7
+   @test monomial_ordering(R, Oscar.singular(O7)) == O7
    @test length(string(O7)) > 2
-   @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
+   @test string(Oscar.singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
 
    O8 = lex([gen(K,1), gen(K,3), gen(K,4), gen(K,2)]) * degrevlex(gens(R))
-   @test_throws ErrorException singular(O8)
+   @test_throws ErrorException Oscar.singular(O8)
 
    O9 = matrix_ordering([x, y], [1 2; 1 2]; check = false) * lex(gens(R))
-   @test monomial_ordering(R, singular(O9)) == O9
-   @test singular(O9) isa Singular.sordering
+   @test monomial_ordering(R, Oscar.singular(O9)) == O9
+   @test Oscar.singular(O9) isa Singular.sordering
 end
 
 @testset "Polynomial Ordering misc bugs" begin
-   R, (x, y) = QQ["x", "y"]
+   R, (x, y) = QQ[:x, :y]
    @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
-   R, (x, y, z) = QQ["x", "y", "z"]
+   R, (x, y, z) = QQ[:x, :y, :z]
    @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
    a = negwdegrevlex([z, x, y], [4, 5, 6])
@@ -400,8 +406,8 @@ end
    @test simplify(a) isa MonomialOrdering
 
    #issue 3870
-   D, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
-   C, (s,t) = polynomial_ring(QQ, ["s", "t"]);
+   D, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
+   C, (s,t) = polynomial_ring(QQ, [:s, :t]);
    T, _ = tensor_product(C, D, use_product_ordering = true);
    F = free_module(T, 2);
    G = gens(T);
@@ -412,7 +418,7 @@ end
 end
 
 @testset "Polynomial Ordering elimination" begin
-   R, (x, y, z, w) = QQ["x", "y", "z", "w"]
+   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
    @test is_elimination_ordering(lex(R), [x])
    @test is_elimination_ordering(lex(R), [x,y])
    @test is_elimination_ordering(lex(R), [x,y,z])
@@ -435,7 +441,7 @@ end
 end
 
 @testset "Monomial Orderings comparison" begin
-  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), [:x, :y, :z, :w]);
   F = FreeMod(R, 2)
   o = lex(gens(F))*lex(gens(R))
   oo = lex(gens(F))*lex(gens(R))

@@ -34,8 +34,8 @@
     },
     "model_descriptors": {
         "type": "tate",
-        "description": "SO(4*k+2) Tate model",
-        "gauge_algebra": ["so(4*k+2)"]
+        "description": "SO(4*#k+2) Tate model",
+        "gauge_algebra": ["so(4*#k+2)"]
     },
     "model_parameters": ["k"],
     "model_data": {
@@ -47,7 +47,7 @@
         "a3": "b3*ζ0^k",
         "a4": "b4*ζ0^(k + 1)",
         "a6": "b6*ζ0^(2*k + 1)",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 1, 2, 3, 4, 6],
             [1, -1, -1, "-k", "-(k + 1)", "-(2*k + 1)"]
         ],
@@ -98,7 +98,7 @@
             ]
         ]
     },
-    "related_models": [
+    "associated_models": [
         "model1212_2949-1.json",
         "model1212_2949-2.json",
         "model1212_2949-4.json",

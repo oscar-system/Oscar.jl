@@ -143,6 +143,7 @@ end
 Get the default ordering of `M`.
 """
 function default_ordering(M::SubModuleOfFreeModule)
+  return default_ordering(ambient_free_module(M))
   if !isdefined(M, :default_ordering)
     ord = default_ordering(ambient_free_module(M))
     set_default_ordering!(M, ord)
@@ -163,10 +164,17 @@ end
 @doc raw"""
     standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
-Compute a standard basis of `submod` with respect to the given `odering``.
+Compute a standard basis of `submod` with respect to the given `ordering`.
 The return type is `ModuleGens`.
 """
-function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
+function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
+  # This is to circumvent hashing of the ordering in the obviously avoidable cases
+  if ordering===default_ordering(submod)
+    for (ord, gb) in submod.groebner_basis
+      ord === ordering && return gb
+    end
+  end
+    
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, ordering) do
     return compute_standard_basis(submod, ordering)
@@ -220,7 +228,6 @@ function compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
   gb = standard_basis(mg, reduced)
-  oscar_assure(gb)
   gb.isGB = true
   gb.S.isGB = true
   gb.ordering = ordering
@@ -298,27 +305,29 @@ end
 function show(io::IO, M::SubModuleOfFreeModule)
   @show_name(io, M)
   @show_special(io, M)
-  io_compact = IOContext(io, :compact => true)
-  compact = get(io, :compact, false)
-  if !compact
+#  if !is_terse(io)
     if is_graded(M)
-      print(io_compact, "Graded submodule of ", M.F)
+      io_compact = IOContext(io, :compact => true)
+      print(terse(io_compact), "Graded submodule of ", M.F)
     else
       #Todo: Use again once the printing of rings is fixed
       #print(io_compact, "Submodule of ", M.F)
-      print(io_compact, "Submodule")
+      print(io, "Submodule")
     end
     if ngens(M) == 1
       print(io, " with ", ngens(M), " generator")
     else
       print(io, " with ", ngens(M), " generators")
     end
-  end
+#  end
+  io = pretty(io)
+  print(io, Indent())
   for i=1:ngens(M)
     if isassigned(M.gens.O, i)
-        print(io, "\n", i, " -> ", M[i])
+        print(io, "\n", i, ": ", M[i])
     end
   end
+  print(io, Dedent())
 end
 
 function length(M::SubModuleOfFreeModule)
@@ -392,9 +401,15 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
   # If yes, this could also be incorporated in the `in`-function.
-  all(x->(x in N), gens(M)) || return false
-  all(x->(x in M), gens(N)) || return false 
+  all(in(N), gens(M)) || return false
+  all(in(M), gens(N)) || return false 
   return true
+end
+
+function Base.hash(M::SubModuleOfFreeModule, h::UInt)
+  # this hash function is very stupid, but it at least hashes the ambient free module,
+  # that must be equal for equal SubModuleOfFreeModules
+  return hash(M.F, h)
 end
 
 @doc raw"""
@@ -460,9 +475,37 @@ end
 Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
+  iszero(a) && return true
+  a in gens(M) && return true
+  return in_atomic(a, M)
+end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
   F = ambient_free_module(M)
   return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
+
+@attr Any function solve_ctx(M::SubModuleOfFreeModule)
+  F = ambient_free_module(M)
+  d, n = rank(F), ngens(M)
+  R = base_ring(F)
+  mat = zero_matrix(R, n, d)
+  for (j, g) in enumerate(gens(M)), (i, val) in coordinates(g)
+    mat[j, i] = val
+  end
+  return solve_init(mat)
+end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {T<:Union{ZZRingElem, FieldElem}}
+  ctx = solve_ctx(M)
+  vec_a = dense_row(coordinates(a), rank(ambient_free_module(M)))
+  return can_solve(ctx, vec_a; side=:left)
+end
+
+function in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
+  error("Membership test 'in' is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
+end
+
 
 function normal_form(M::SubModuleOfFreeModule{T}, N::SubModuleOfFreeModule{T}) where {T <: MPolyRingElem}
   @assert is_global(default_ordering(N))

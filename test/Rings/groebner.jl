@@ -1,5 +1,5 @@
 @testset "groebner" begin
-    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
     groebner_basis(I, ordering=lex(R), algorithm=:fglm)
     @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^7 - y^5, x*y^2 - x, x^3 - 2*y^5]
@@ -11,6 +11,22 @@
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+
+    # algorithm = :modular option
+    R = @polynomial_ring(QQ, [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    # uses f4 in msolve/AlgebraicSolving
+    groebner_basis(I, ordering=degrevlex(R), algorithm=:modular)
+    @test gens(I.gb[degrevlex(R)]) == QQMPolyRingElem[x + y^2, x*y - 1, x^2 + y]
+    # uses multi-modular implementation in Oscar applying Singular finite field
+    # computations
+    groebner_basis(I, ordering=lex(R), algorithm=:modular)
+    @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3 + 1, x + y^2]
+    T = @polynomial_ring(QQ, :t)
+    R = @polynomial_ring(T, [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:modular)
+
     # issue 3665
     kt,t = polynomial_ring(GF(2),:t)
     Ft = fraction_field(kt)
@@ -18,7 +34,7 @@
     I = ideal(P,[x,y])
     @test normal_form([x], I) == [0]
 
-    R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
+    R, (x, y) = polynomial_ring(GF(5), [:x, :y])
     I = ideal(R, [x])
     gb = groebner_basis(I)
     @test normal_form(y, I) == y
@@ -95,7 +111,7 @@
     @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
     @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_standard_basis(I.gens, ordering=neglex(R)) == false
-    R, (x1, x2, x3, x4) = polynomial_ring(QQ, ["x1", "x2", "x3", "x4"])
+    R, (x1, x2, x3, x4) = polynomial_ring(QQ, [:x1, :x2, :x3, :x4])
     J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
        x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
        2*x1*x2+2*x2*x3+2*x3*x4-x2,
@@ -110,27 +126,32 @@
         1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
         5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
     @test elements(J.gb[lex(R)]) == H
-    R, (x,y) = polynomial_ring(AcbField(64),["x","y"])
+    R, (x,y) = polynomial_ring(AcbField(64),[:x,:y])
     I = ideal([x^2+y^2+1//3,x^2+x*y+1//3*x])
     @test_throws ArgumentError groebner_basis(I)
 
-    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
     I = ideal(R, [x+y^2, x^2+x*y+3*y])
     H = QQMPolyRingElem[x,y]
     standard_basis_highest_corner(I, ordering=negdeglex(R))
     @test elements(I.gb[negdeglex(R)]) == H
     @test_throws ArgumentError standard_basis_highest_corner(I)
+
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    I = ideal(R,[x^2+x*y+y,x+y^2])
+    G = standard_basis(I, ordering=lex(R), complete_reduction=true)
+    @test G.ord == lex(R)
 end
 
 @testset "normal form graded" begin
-    R, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"])
+    R, (a, b, c) = graded_polynomial_ring(QQ, [:a, :b, :c])
     I = ideal([a^2+b^2, c^3])
     # verify normal form of inhomogeneous polynomial work
     @test normal_form(a^2+b, I) == -b^2+b
 end
 
 @testset "groebner leading ideal" begin
-   R, (t, x, y, z) = polynomial_ring(QQ, ["t", "x", "y", "z"])
+   R, (t, x, y, z) = polynomial_ring(QQ, [:t, :x, :y, :z])
 
    I = ideal(R, [x + y + t + z, x^2 + y^2 + t^3])
 
@@ -143,7 +164,7 @@ end
 end
 
 @testset "groebner orderings" begin
-   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+   R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 
    I = ideal(R, [x + y + z, x^2 + y^2 + z^3])
 
@@ -178,7 +199,7 @@ end
 end
 
 @testset "non-global orderings" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
   o = negdegrevlex(gens(R))
   G = standard_basis(I, ordering=o)
@@ -191,7 +212,7 @@ end
 end
 
 @testset "f4" begin
-  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
+  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
           x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
           2*x1*x2+2*x2*x3+2*x3*x4-x2,
@@ -206,22 +227,22 @@ end
                 x4^4 + 35851649*x4^3 + 232885084*x2*x4 + 251179133*x3*x4 + 231479137*x4^2 + 191484965*x2 + 85955250*x3 + 167408122*x4]
   @test elements(H) == G
   @test isdefined(I, :gb)
-  @test I.gb[degrevlex(gens(base_ring(I)))].O == G
+  @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I)))]) == G
   H = groebner_basis_f4(I, eliminate=2);
   G = [x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
   @test elements(H) == G
-  @test I.gb[degrevlex(gens(base_ring(I))[3:end])].O == G
+  @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I))[3:end])]) == G
 end
 
 @testset "fglm" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException Oscar._fglm(A, lex(R))
   I = ideal(R, gens(A))
-  groebner_basis(I)
+  groebner_basis(I, algorithm=:buchberger)
   @test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
   groebner_basis(I, complete_reduction=true)
   G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
@@ -234,14 +255,20 @@ end
   @test I.gb[degrevlex(R)].isReduced
   @test haskey(I.gb, lex(R))
   @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^4 + 1, x + y^3]
-  R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
+  R, (x, y) = polynomial_ring(ZZ, [:x, :y])
   I = ideal(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException groebner_basis(I, algorithm=:fglm)
   @test_throws ErrorException fglm(I, destination_ordering=lex(R))
+
+  # Issue #4026
+  R, (x, y) = QQ[:x, :y]
+  I = ideal([x, y])
+  G = groebner_basis(I, ordering = lex([y, x]), algorithm = :fglm)
+  @test gens(G) == elem_type(R)[x, y]
 end
 
 @testset "groebner hilbert driven" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
@@ -249,7 +276,7 @@ end
   I = ideal([x*(x+y), x^2 - y^2 + (x-2*y) * y])
   gb = standard_basis(I, ordering = deglex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = deglex(R))
-  R, (x, y) = polynomial_ring(GF(65521), ["x", "y"])
+  R, (x, y) = polynomial_ring(GF(65521), [:x, :y])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
@@ -257,7 +284,7 @@ end
 end
 
 @testset "groebner basis modular" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [x^2, x*y + 32771*y^2])
   gb = Oscar.groebner_basis_modular(I, ordering = degrevlex(R))
   @test is_groebner_basis(I.gb[degrevlex(R)], ordering = degrevlex(R))
@@ -269,3 +296,23 @@ end
   groebner_basis_modular(J, ordering=wdegrevlex(R,[2,1]), certify=true)
   @test gens(J.gb[wdegrevlex([x, y], [2, 1])]) == QQMPolyRingElem[x+y^2]
 end
+
+@testset "known groebner bases" begin
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  # A priori we expect nothing to be known
+  @test !Oscar.is_known(is_one, I)
+  @test !Oscar.is_known(dim, I)
+  @test !Oscar.is_known(groebner_basis, I)
+  # ...except things which are really easy to check.
+  @test Oscar.is_known(is_zero, I)
+  # The following triggers a groebner basis computation
+  is_one(I)
+  # and then stuff is known.
+  @test Oscar.is_known(is_one, I)
+  # Is any groebner basis known?
+  @test Oscar.is_known(groebner_basis, I)
+  # Is a groebner basis for lex known?
+  @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
+end
+

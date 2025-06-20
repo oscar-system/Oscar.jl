@@ -19,7 +19,7 @@
       test_save_load_roundtrip(path, V) do loaded
         @test gram_matrix(V) == gram_matrix(loaded)
       end
-      R, x = polynomial_ring(F, "x")
+      R, x = polynomial_ring(F, :x)
       FF, b =extension_field(x^2 - a)
       VFF = quadratic_space(FF,FF[b;])
       test_save_load_roundtrip(path, VFF) do loaded

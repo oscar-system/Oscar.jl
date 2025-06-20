@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -39,6 +40,10 @@ on_tuples
 on_sets
 permuted
 on_indeterminates
+on_lines
+on_echelon_form_mats
+on_subgroups
+induced_action(::Function, ::GAPGroupHomomorphism)
 ```
 
 
@@ -55,20 +60,46 @@ Note that the explicit elements of a G-set `Omega` can be obtained using
 
 ```@docs
 gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
+natural_gset
 permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)
 action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 is_conjugate(Omega::GSet, omega1, omega2)
 is_conjugate_with_data(Omega::GSet, omega1, omega2)
-orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
+orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+is_transitive(Omega::GSet)
+transitivity(Omega::GSet)
+rank_action(Omega::GSet)
+is_primitive(Omega::GSet)
+is_regular(Omega::GSet)
+is_semiregular(Omega::GSet)
+induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+```
+
+## Block systems of a G-set
+
+If we have a G-set $\Omega$, a *block system* of $\Omega$ is a partition that is invariant under the action of the associated group.
+The group action on $\Omega$ induces a natural action on such a partition.
+
+When calling these methods with a `GSet` as the argument, we require that the group action is transitive.
+The blocks are returned as Julia `Set` objects.
+Note that this is in contrast to the return type when calling the methods with a `PermGroup` as the argument, in which case the blocks are sorted vectors of integers.
+
+```@docs
+blocks(Omega::GSet)
+maximal_blocks(Omega::GSet)
+minimal_block_reps(Omega::GSet)
+all_blocks(Omega::GSet)
 ```
 
 
 ## Stabilizers
 
 ```@docs
-stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
+stabilizer(Omega::GSet)
 ```

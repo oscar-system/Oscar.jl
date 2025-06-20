@@ -84,6 +84,7 @@ julia> lower_points(set_partition([2, 4], [4, 99]))
 2-element Vector{Int64}:
  2
  3
+```
 """
 function lower_points(p::SetPartition)
     return p.lower_points
@@ -294,6 +295,7 @@ julia> compose_count_loops(set_partition([1, 1], [2]), set_partition([1], [2, 2]
 
 julia> compose_count_loops(set_partition([1], [1, 2]), set_partition([1], [2, 2]))
 ERROR: ArgumentError: number of points mismatch
+[...]
 ```
 """
 function compose_count_loops(p::SetPartition, q::SetPartition)
@@ -486,7 +488,7 @@ end
 """
     join(p::SetPartition, q::SetPartition)
 
-Return the join of `p` and `q`. This is the unqiue set partition, where two elements are in the same block of the partition
+Return the join of `p` and `q`. This is the unique set partition, where two elements are in the same block of the partition
 iff this is the case in `p` or `q`.
 
 # Examples

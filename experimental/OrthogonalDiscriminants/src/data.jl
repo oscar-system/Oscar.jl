@@ -198,7 +198,7 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
                 res[i] = "-1"
               else
                 # Check whether -1 is a square in the character field.
-                if mod(p-1, 4) == 0 || mod(degree(character_field(chi)[1]), 2) == 0
+                if mod(p-1, 4) == 0 || mod(degree_of_character_field(chi), 2) == 0
                   res[i] = "O+"
                 else
                   res[i] = "O-"
@@ -456,8 +456,7 @@ function all_od_infos(L...)
       names = [ids]
     elseif ids isa Vector{String}
       if names !== nothing
-        names = filter(x -> x in names,
-                       [(OD_simple_names[x], x) for x in ids])
+        names = filter(in(names), [(OD_simple_names[x], x) for x in ids])
       else
         names = [(OD_simple_names[x], x) for x in ids]
       end
@@ -482,7 +481,7 @@ function all_od_infos(L...)
 
   for (simpnam, nam) in names
     D = OD_data[simpnam][nam]
-    for char in sort!([parse(Int, x) for x in collect(keys(D))])
+    for char in sort!([parse(Int, x) for x in keys(D)])
       good_char = true
       if haskey(conditions, AbstractAlgebra.characteristic)
         characteristic = conditions[AbstractAlgebra.characteristic]

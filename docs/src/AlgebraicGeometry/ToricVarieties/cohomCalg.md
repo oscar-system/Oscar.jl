@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -47,4 +49,8 @@ Beyond this, we support the following attributes for vanishing sets:
 toric_variety(tvs::ToricVanishingSet)
 polyhedra(tvs::ToricVanishingSet)
 cohomology_indices(tvs::ToricVanishingSet)
+```
+Certainly, this also allows to compute the immaculate line bundles:
+```@docs
+immaculate_line_bundles(variety::NormalToricVarietyType)
 ```

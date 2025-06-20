@@ -1,14 +1,14 @@
 @testset "Number field" begin
 
-  Qx, x = FlintQQ["x"]
+  Qx, x = QQ[:x]
   k, _ = number_field(x^2 + 1)
-  ku, u = k["u1", "u2"]
+  ku, u = k[:u1, :u2]
   Ik = ideal(ku, [u[1]^3 + u[2]^3 - 3, u[1]^5 + u[2]^5 - 5])
 
-  Qy, y = FlintQQ["y1", "y2"]
+  Qy, y = QQ[:y1, :y2]
   IQ = ideal(Qy, [y[1]^3 + y[2]^3 - 3, y[1]^5 + y[2]^5 - 5])
 
-  for (Bk, Pk, I) in [(k, ku, Ik), (FlintQQ, Qy, IQ)]
+  for (Bk, Pk, I) in [(k, ku, Ik), (QQ, Qy, IQ)]
     gg = gens(Pk)
     @test_throws ErrorException number_field(ideal([gg[1]]))
     K,  = @inferred number_field(I, [:a1, :a2])
@@ -51,7 +51,11 @@
     # string i/o
     s = sprint(show, "text/plain", K)
     @test s isa String
+    s = sprint(show, K)
+    @test s isa String
     s = sprint(show, "text/plain", a[1])
+    @test s isa String
+    s = sprint(show, a[1])
     @test s isa String
 
     @test (@inferred check_parent(a[1], a[1])) === nothing
@@ -145,7 +149,7 @@
       @test e == b + c
 
       e = deepcopy(b)
-      @inferred addeq!(b, c)
+      b = @inferred add!(b, c)
       @test b == e + c
     end
 
@@ -171,7 +175,7 @@
     b = @inferred K(gen(Pk, 1))
     @test parent(b) === K
 
-    PP, _x = Bk["x1", "x2", "x3"]
+    PP, _x = Bk[:x1, :x2, :x3]
     @test_throws ErrorException K(_x[1])
 
     for R in Any[Bk, Int, BigInt, ZZRingElem,
@@ -180,7 +184,7 @@
     end
 
     # denominator
-    if Bk === FlintQQ
+    if Bk === QQ
       b = rand(K, -2:2)
       d = @inferred denominator(b)
       @test d isa ZZRingElem
@@ -203,7 +207,7 @@
     end
 
     # basis matrix
-    if Bk == FlintQQ
+    if Bk == QQ
       for i in 1:10
         BB = [rand(K, -2:2) for j in 1:rand(1:10)]
         M = @inferred basis_matrix(BB, Hecke.FakeFmpqMat)
@@ -226,7 +230,7 @@
         @test b * B[n] == sum(M[n, m] * B[m] for m in 1:length(B))
       end
 
-      if Bk == FlintQQ
+      if Bk == QQ
         M, d = @inferred representation_matrix_q(b)
         @test nrows(M) == degree(K)
         @test ncols(M) == degree(K)
@@ -243,7 +247,7 @@
           c = rand(-10:10)
         end
         b = b//c
-        MM = zero_matrix(FlintZZ, nrows(M), ncols(M))
+        MM = zero_matrix(ZZ, nrows(M), ncols(M))
         dd = ZZRingElem()
         j = rand(1:nrows(MM))
         Oscar.Hecke.elem_to_mat_row!(MM, j, dd, b)
@@ -287,8 +291,9 @@
       @test t == b^degree(K)
     end
 
-    # (Maximal) order needs some adjustments on the Hecke side
-    #@test_broken maximal_order(K)
+    if base_field(K) isa QQField
+      @test is_maximal(maximal_order(K))
+    end
 
     # Random
     b = @inferred rand(K, -1:1)
@@ -318,7 +323,7 @@
     end
 
     # simple extension
-    if Bk == FlintQQ
+    if Bk == QQ
       Ks, KstoK = simple_extension(K, simplify = true)
     else
       Ks, KstoK = simple_extension(K)
@@ -332,7 +337,7 @@
       @test KstoK(b + c) == KstoK(b) + KstoK(c)
       @test KstoK(b * c) == KstoK(b) * KstoK(c)
 
-      if Bk == FlintQQ
+      if Bk == QQ
         @test KstoK\(KstoK(b)) == b
         b = rand(K, -10:10)
         c = rand(K, -10:10)
@@ -376,5 +381,26 @@
 
     f = id_hom(K)
     @test f * f == f
+  end
+
+  let #
+    R, (x1, x2, x3) = polynomial_ring(QQ, 3)
+    I = ideal([3*x3 - 1,
+               x2 + 30*x3^3 - 79//7*x3^2 + 3//7*x3,
+               x1 - 60*x3^3 + 158//7*x3^2 + 8//7*x3 - 1])
+    k, _ = number_field(I)
+    zk = maximal_order(k)
+    @test is_maximal(maximal_order(k))
+    @test is_one(discriminant(zk))
+  end
+
+  let #
+    R, (x1, x2, x3) = polynomial_ring(QQ, 3)
+    I = ideal([28*x3^2 - 4*x3 - 1,
+               4*x2 + 2*x3 - 1,
+               2*x1 + 2*x3 - 1])
+    k, _ = number_field(I)
+    zk = maximal_order(k)
+    @test discriminant(zk) == 8
   end
 end

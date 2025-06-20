@@ -34,9 +34,9 @@
     },
     "model_descriptors": {
         "type": "tate",
-        "description": "SO(4*k+4)xU(1) Tate model",
-        "comment": "The paper only states that this is an SO(4k+4) model, but setting a6 = 0 also introduces an additional generating section, so there is additionally a U(1) factor, which may not have been relevant for the authors' purposes.",
-        "gauge_algebra": ["so(4*k+4)", "u(1)"]
+        "description": "SO(4*#k+4)xU(1) Tate model",
+        "comment": "The paper only states that this is an SO(4*#k+4) model, but setting a6 = 0 also introduces an additional generating section, so there is additionally a U(1) factor, which may not have been relevant for the authors' purposes.",
+        "gauge_algebra": ["so(4*#k+4)", "u(1)"]
     },
     "model_parameters": ["k"],
     "model_data": {
@@ -48,7 +48,7 @@
         "a3": "b3*ζ0^(k + 1)",
         "a4": "b4*ζ0^(k + 1)",
         "a6": "0",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 1, 2, 3, 4],
             [1, -1, -1, "-(k + 1)", "-(k + 1)"]
         ],
@@ -100,7 +100,7 @@
             ]
         ]
     },
-    "related_models": [
+    "associated_models": [
         "model1212_2949-1.json",
         "model1212_2949-2.json",
         "model1212_2949-3.json",

@@ -4,44 +4,57 @@ using JSONSchema, Oscar.JSON
 
 # we only need to define this once
 
-if !isdefined(Main, :test_save_load_roundtrip)
-  mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
+if !isdefined(Main, :mrdi_schema)
+  schemajson = JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json"))
+  # replace remote ref to polymake schema with local copy to avoid network access
+  if schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] == "https://polymake.org/schemas/data.json"
+    # this needs to be an absolute path
+    schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] = "file://$(joinpath(Oscar.oscardir,"data","polymake.json"))"
+  else
+    error("mardi schema: please update json-path for polymake schema reference")
+  end
+  mrdi_schema = Schema(schemajson)
+end
 
-  function test_save_load_roundtrip(func, path, original::T; params=nothing) where {T}
+if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
+  function test_save_load_roundtrip(func, path, original::T;
+                                    params=nothing, check_func=nothing, kw...) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
-    save(filename, original)
-    loaded = load(filename; params=params)
+    save(filename, original; kw...)
+    loaded = load(filename; params=params, kw...)
     
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer
     io = IOBuffer()
-    save(io, original)
+    save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; params=params)
+    loaded = load(io; params=params, kw...)
 
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer, with prescribed type
     io = IOBuffer()
-    save(io, original)
+    save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; type=T, params=params)
+    loaded = load(io; type=T, params=params, kw...)
 
     @test loaded isa T
     func(loaded)
 
     # test loading on a empty state
-    save(filename, original)
+    save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, kw...)
+    @test loaded isa T
 
     # test schema
     jsondict = JSON.parsefile(filename)
     @test validate(mrdi_schema, jsondict) == nothing
-  end
 
+    isnothing(check_func) || @test check_func(loaded)
+  end
 end

@@ -3,8 +3,10 @@
 #############################################################
 
 B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]
 t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+D = classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(t1)
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
@@ -21,6 +23,7 @@ t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
   @test is_base_space_fully_specified(t1) == is_base_space_fully_specified(weierstrass_model(t1))
   @test is_smooth(ambient_space(t1)) == false
   @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
+  @test sum(D["a43"].*[Kbar, toric_divisor_class(w)]) == classes_of_model_sections(t1)["a43"]
 end
 
 @testset "Test meta data for literature Tate model over concrete base" begin
@@ -37,6 +40,7 @@ end
   @test journal_model_equation_number(t1) == "3.1"
   @test journal_model_page(t1) == "9"
   @test journal_model_section(t1) == "3"
+  @test journal_name(t1) == "Nucl. Phys. B"
   @test journal_pages(t1) == "1–47"
   @test journal_volume(t1) == "858"
   @test journal_year(t1) ==  "2012"
@@ -46,10 +50,10 @@ end
   @test paper_buzzwords(t1) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t1) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t1) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t1) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t1) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t1)) == 1
   @test length(resolution_zero_sections(t1)) == 1
-  @test weighted_resolutions(t1) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t1) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t1)) == 1
   @test length(weighted_resolution_zero_sections(t1)) == 1
 end
@@ -58,7 +62,7 @@ end
   @test_throws ArgumentError associated_literature_models(t1)
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
-  @test_throws ArgumentError related_literature_models(t1)
+  @test_throws ArgumentError birational_literature_models(t1)
 end
 
 set_model_description(t1, "Testing...")
@@ -73,6 +77,9 @@ t2 = resolve(t1, 1)
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_classes(t2))
+  @test length(exceptional_divisor_indices(t2)) == length(exceptional_divisor_indices(t1)) + 5
+  @test length(exceptional_classes(t2)) == length(exceptional_classes(t1)) + 5
 end
 
 add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
@@ -112,7 +119,7 @@ end
   @test arxiv_model_page(w1) == "34"
   @test arxiv_model_section(w1) == "B"
   @test arxiv_version(w1) == "2"
-  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test birational_literature_models(w1) == ["1208_2695-1"]
   @test length(generating_sections(w1)) == 1
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -134,7 +141,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError associated_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -189,10 +196,10 @@ end
   @test paper_buzzwords(t3) == ["GUT model", "Tate", "U(1)", "SU(5)"]
   @test paper_description(t3) == "SU(5)xU(1) restricted Tate model"
   @test paper_title(t3) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t3) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolutions(t3) == [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])]
   @test length(resolution_generating_sections(t3)) == 1
   @test length(resolution_zero_sections(t3)) == 1
-  @test weighted_resolutions(t3) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolutions(t3) == [([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])]
   @test length(weighted_resolution_generating_sections(t3)) == 1
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end
@@ -201,7 +208,7 @@ end
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
-  @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError birational_literature_models(t3)
   @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
 end
 
@@ -274,7 +281,7 @@ end
   @test arxiv_model_page(w2) == "34"
   @test arxiv_model_section(w2) == "B"
   @test arxiv_version(w2) == "2"
-  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test birational_literature_models(w2) == ["1208_2695-1"]
   @test length(generating_sections(w2)) == 1
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -296,7 +303,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError associated_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
@@ -358,11 +365,11 @@ end
 
 h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
 
-@testset "Test for literature hypersurface model over arbitary base" begin
+@testset "Test for literature hypersurface model over arbitrary base" begin
   @test parent(hypersurface_equation(h)) == coordinate_ring(ambient_space(h))
   @test dim(base_space(h)) == 2
   @test is_smooth(fiber_ambient_space(h)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["u", "v", "w"]
+  @test symbols(cox_ring(fiber_ambient_space(h))) == [:u, :v, :w]
   @test is_base_space_fully_specified(h) == false
   @test is_partially_resolved(h) == false
   @test string.(zero_section(h)) == ["0", "-b1", "a1"]
@@ -458,23 +465,23 @@ foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hy
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
   @test haskey(explicit_model_sections(foah6), "s9") == false
   @test dim(gauge_algebra(foah6)) == 4
-  @test length(global_gauge_quotients(foah6)) == 2
+  @test length(global_gauge_group_quotient(foah6)) == 2
   @test dim(gauge_algebra(foah8)) == 7
-  @test length(global_gauge_quotients(foah8)) == 3
+  @test length(global_gauge_group_quotient(foah8)) == 3
   @test dim(gauge_algebra(foah9)) == 5
-  @test length(global_gauge_quotients(foah9)) == 3
+  @test length(global_gauge_group_quotient(foah9)) == 3
   @test dim(gauge_algebra(foah11)) == 12
-  @test length(global_gauge_quotients(foah11)) == 3
+  @test length(global_gauge_group_quotient(foah11)) == 3
   @test dim(gauge_algebra(foah12)) == 8
-  @test length(global_gauge_quotients(foah12)) == 4
+  @test length(global_gauge_group_quotient(foah12)) == 4
   @test dim(gauge_algebra(foah13)) == 21
-  @test length(global_gauge_quotients(foah13)) == 3
+  @test length(global_gauge_group_quotient(foah13)) == 3
   @test dim(gauge_algebra(foah14)) == 15
-  @test length(global_gauge_quotients(foah14)) == 4
+  @test length(global_gauge_group_quotient(foah14)) == 4
   @test dim(gauge_algebra(foah15)) == 13
-  @test length(global_gauge_quotients(foah15)) == 5
+  @test length(global_gauge_group_quotient(foah15)) == 5
   @test dim(gauge_algebra(foah16)) == 24
-  @test length(global_gauge_quotients(foah16)) == 3
+  @test length(global_gauge_group_quotient(foah16)) == 3
 end
 
 
@@ -589,7 +596,7 @@ end
 
 
 ##########################################################################################################
-# 10: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
+# 10: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
 ##########################################################################################################
 
 foah1_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass")
@@ -607,9 +614,9 @@ foah12_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type
 foah13_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass")
 foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass")
 foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
-foah16_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass")
+foah16_weier = weierstrass_model(foah16)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
   @test dim(base_space(foah2_weier)) == 3
   @test dim(base_space(foah3_weier)) == 3
@@ -679,12 +686,12 @@ end
 
 
 ########################################################################################################
-# 11: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
+# 11: Test Weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
 ########################################################################################################
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3_weier = weierstrass_model(foah1_B3)
 foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
 foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
@@ -701,7 +708,7 @@ foah14_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", t
 foah15_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
-@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
+@testset "Test Weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
   @test dim(base_space(foah1_B3_weier)) == 3
   @test dim(base_space(foah2_B3_weier)) == 3
   @test dim(base_space(foah3_B3_weier)) == 3
@@ -782,4 +789,20 @@ foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", t
   @test parent(explicit_model_sections(foah14_B3_weier)["s7"]) == cox_ring(base_space(foah14_B3_weier))
   @test parent(explicit_model_sections(foah15_B3_weier)["s7"]) == cox_ring(base_space(foah15_B3_weier))
   @test parent(explicit_model_sections(foah16_B3_weier)["s7"]) == cox_ring(base_space(foah16_B3_weier))
+  @test [k[2:3] for k in singular_loci(foah1_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah2_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah3_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah4_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah5_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah6_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah7_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah8_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah9_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah10_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah11_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah12_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah13_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 4), "Split I_4")]
+  @test [k[2:3] for k in singular_loci(foah14_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah15_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah16_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3")]
 end

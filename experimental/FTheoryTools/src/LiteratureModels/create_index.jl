@@ -23,7 +23,7 @@
 function _create_literature_model_index()
   model_directory = joinpath(@__DIR__, "Models/")
   models = readdir(model_directory)
-  filter!(s -> startswith(s, "model"), models)
+  filter!(startswith("model"), models)
 
   index = Vector{Dict{String,Union{String,Vector{Any}}}}()
   model_indices = JSON.parsefile(joinpath(@__DIR__, "model_indices.json"))
@@ -31,7 +31,7 @@ function _create_literature_model_index()
     model_data = JSON.parsefile(model_directory * model)
     model_index = get(model_indices, model, "")
     if model_index == ""
-      model_index = string.(maximum([parse(Int, x) for x in collect(values(model_indices))]) + 1)
+      model_index = string.(maximum([parse(Int, x) for x in values(model_indices)]) + 1)
       model_indices[model] = model_index
     end
     
@@ -95,6 +95,6 @@ function _create_literature_model_index()
     JSON.print(file, index)
   end
   open(joinpath(@__DIR__,"model_indices.json"), "w") do file
-    JSON.print(file, sort(model_indices), 2)
+    JSON.print(file, model_indices, 2)
   end
 end

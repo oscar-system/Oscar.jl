@@ -34,7 +34,7 @@ reduceCol(a, b, i::Int) = b[i] * a - a[i] * b
 for each pivot of sp.A we make entry of v zero and return the result
 0 => linear dependent
 * => linear independent, new column element of sp.A since it increases basis
-invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
+invariants: the row of a pivot element in any column in A is 0 (except the pivot element)
            elements of A are integers, gcd of each column is 1
 """
 function addAndReduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})
@@ -71,7 +71,7 @@ end
 #### Lie algebras
 
 function lieAlgebra(t::String, n::Int)
-  L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+  L = codomain(Oscar.iso_oscar_gap(Oscar.lie_algebra(QQ, Symbol(t), n)))
   return L, NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(L))
 end
 
@@ -102,24 +102,9 @@ end
 
 #### tensor model
 
-function kron(A, B)
-  res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))
-  for i in 1:nrows(B)
-    for j in 1:nrows(A)
-      new_row_tuples = Vector{Tuple{Int,ZZRingElem}}([(1, ZZ(0))])
-      for (index_A, element_A) in union(getindex(A, j))
-        for (index_B, element_B) in union(getindex(B, i))
-          push!(new_row_tuples, ((index_A - 1) * ncols(B) + index_B, element_A * element_B))
-        end
-      end
-      new_row = sparse_row(ZZ, new_row_tuples)
-      setindex!(res, new_row, (j - 1) * nrows(B) + i)
-    end
-  end
-  return res
-end
+kron(A, B) = kronecker_product(A, B)
 
-# temprary fix sparse in Oscar does not work
+# temporary fix sparse in Oscar does not work
 function tensorProduct(A, B)
   temp_mat = kron(A, spid(nrows(B))) + kron(spid(nrows(A)), B)
   res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))
@@ -214,9 +199,10 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
     newPos = length(monomials)
     deg = deg + 1
     newMons(deg)
-    for i in 1:m, di in deg:-1:1
+    # iteration in degrevlex ordering 
+    for i in m:-1:1, di in deg:-1:1
       for p in startPos:newPos
-        if !all(monomials[p][1:(i - 1)] .== 0)
+        if !all(monomials[p][(i + 1):m] .== 0)
           continue
         end
 

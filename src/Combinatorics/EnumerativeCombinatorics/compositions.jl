@@ -34,13 +34,18 @@ Int8[6, 1, 2, 3]
 """
 function composition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUnion}
   if check
-    @req all(x -> x > 0, parts) "The integers must be positive"
+    @req all(>(0), parts) "The integers must be positive"
   end
   return Composition{T}(parts)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", C::Composition)
-  print(io, data(C))
+  c = data(C)
+  if isempty(c)
+    print(io, "Empty composition")
+    return
+  end
+  print(io, c)
 end
 
 ################################################################################
@@ -149,7 +154,7 @@ end
 base(C::CompositionsFixedNumParts) = C.n
 parts(C::CompositionsFixedNumParts) = C.k
 
-Base.eltype(C::CompositionsFixedNumParts{T}) where T = Composition{T}
+Base.eltype(::Type{CompositionsFixedNumParts{T}}) where T = Composition{T}
 
 function Base.show(io::IO, C::CompositionsFixedNumParts)
   print(pretty(io), "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "part"))
@@ -210,7 +215,7 @@ end
 
 base(C::Compositions) = C.n
 
-Base.eltype(C::Compositions{T}) where T = Composition{T}
+Base.eltype(::Type{Compositions{T}}) where T = Composition{T}
 
 function Base.show(io::IO, C::Compositions)
   print(pretty(io), "Iterator over the compositions of $(base(C))")
@@ -286,7 +291,7 @@ end
 
 base(C::AscendingCompositions) = C.n
 
-Base.eltype(C::AscendingCompositions{T}) where T = Composition{T}
+Base.eltype(::Type{AscendingCompositions{T}}) where T = Composition{T}
 
 function Base.show(io::IO, C::AscendingCompositions)
   print(pretty(io), "Iterator over the ascending compositions of $(base(C))")

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -31,7 +32,7 @@ Given a complex `C`,
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -50,25 +51,15 @@ julia> range(C)
 5:-1:3
 
 julia> C[5]
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: x^4*e[1]
 
 julia> delta = map(C, 5)
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
+Module homomorphism
+  from A
+  to B
 
 julia> matrix(delta)
 [x^2]
@@ -86,7 +77,7 @@ with maps multiplied by $(-1)^d$.
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -150,7 +141,7 @@ is_exact(C::ComplexOfMorphisms{ModuleFP})
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -162,7 +153,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> C = chain_complex([a, b]);
 

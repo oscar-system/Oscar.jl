@@ -408,12 +408,21 @@ end
 """
     invariant_bilinear_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`.
+Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_bilinear_form(Sp(4, 2))
+[0   0   0   1]
+[0   0   1   0]
+[0   1   0   0]
+[1   0   0   0]
+```
 """
 function invariant_bilinear_form(G::MatrixGroup)
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
@@ -424,13 +433,23 @@ end
 """
     invariant_sesquilinear_form(G::MatrixGroup)
 
-Return an invariant sesquilinear (non bilinear) form for the group `G`.
+Return the Gram matrix of an invariant sesquilinear (non bilinear) form for `G`.
+
 An exception is thrown if the module induced by the action of `G`
-is not absolutely irreducible or if the group is defined over a finite field
+is not absolutely irreducible or if `G` is defined over a finite field
 of odd degree over the prime field.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_sesquilinear_form(GU(4, 2))
+[0   0   0   1]
+[0   0   1   0]
+[0   1   0   0]
+[1   0   0   0]
+```
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
@@ -442,12 +461,21 @@ end
 """
     invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant quadratic form for the group `G`.
+Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_quadratic_form(GO(1, 4, 2))
+[0   1   0   0]
+[0   0   0   0]
+[0   0   0   1]
+[0   0   0   0]
+```
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
@@ -523,6 +551,15 @@ is a finite field, return
 - `0` if `n` is odd and `G` preserves a nonzero quadratic form,
 - `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
 - `-1` if `n` is even and `G` preserves a nonzero quadratic form of `-` type.
+
+# Examples
+```jldoctest
+julia> orthogonal_sign(GO(1, 4, 2))
+1
+
+julia> orthogonal_sign(GO(-1, 4, 2))
+-1
+```
 """
 function orthogonal_sign(G::MatrixGroup)
     R = base_ring(G)
@@ -555,13 +592,13 @@ end
 # return the GAP matrix of the form preserved by the GAP standard group
 function _standard_form(descr::Symbol, e::Int, n::Int, q::Int)
    if descr==:quadratic
-      return GAP.Globals.InvariantQuadraticForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantQuadraticForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:symmetric #|| descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:hermitian
-      return GAP.Globals.InvariantSesquilinearForm(GU(n,q).X).matrix
+      return GAP.Globals.InvariantSesquilinearForm(GapObj(GU(n,q))).matrix
    elseif descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(Sp(n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(Sp(n,q))).matrix
    else
       error("unsupported description")
    end      
@@ -679,12 +716,10 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int = 0)
-  get_attribute!(L, :isometry_group) do
-    gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
-    G = matrix_group(gens)
-    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
-  end
+@attr matrix_group_type(S) function isometry_group(L::Hecke.AbstractLat{S}; depth::Int=-1, bacher_depth::Int=0) where S
+  gens = automorphism_group_generators(L; depth, bacher_depth)
+  G = matrix_group(gens)
+  return G
 end
 
 @doc raw"""
@@ -703,30 +738,45 @@ Setting the parameters `depth` and `bacher_depth` to a positive value may improv
 performance. If set to `-1` (default), the used value of `depth` is chosen
 heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0)
-  get_attribute!(L, :isometry_group) do
-
-    # corner case
-    @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
-    if rank(L) == 0
-      G = matrix_group(identity_matrix(QQ,degree(L)))
-    end
-
-    if !is_definite(L) && (rank(L) == 2)
-      gene = automorphism_group_generators(L)
-      G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
-    end
-
-    if algorithm == :direct
-      gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
-      G = matrix_group(gens)
-    elseif algorithm == :decomposition
-      G, _ = _isometry_group_via_decomposition(L, depth = depth, bacher_depth = bacher_depth)
-    else
-      error("Unknown algorithm: for the moment, we support :direct or :decomposition")
-    end
-    return G::MatrixGroup{QQFieldElem, QQMatrix}
+@attr QQMatrixGroup function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
+  # corner case
+  @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
+  if rank(L) == 0
+    G = matrix_group(identity_matrix(QQ, degree(L)))
   end
+
+  if !is_definite(L) && (rank(L) == 2)
+    gene = automorphism_group_generators(L)
+    G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
+  end
+
+  if algorithm == :direct
+    gens = automorphism_group_generators(L; depth=depth, bacher_depth=bacher_depth)
+    G = matrix_group(gens)
+  elseif algorithm == :decomposition
+    G, _ = _isometry_group_via_decomposition(L; depth=depth, bacher_depth=bacher_depth)
+  else
+    error("Unknown algorithm: for the moment, we support :direct or :decomposition")
+  end
+  return G
+end
+
+"""
+    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
+
+Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
+
+The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
+
+First computes the orthogonal group of ``K`` and then its subgroup 
+consisting of isometries extending to ``L``.
+"""
+function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
+  V = lattice(ambient_space(L),v)
+  K = orthogonal_submodule(L, V)
+  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
+  OK = orthogonal_group(K; kwargs...)
+  return stabilizer(OK, L, on_lattices)[1]
 end
 
 """

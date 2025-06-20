@@ -138,7 +138,7 @@ parent(a::NfNSGenElem) = a.parent
 
 Hecke.data(a::NfNSGenElem) = a.f
 
-base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = FlintQQ
+base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = QQ
 
 base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 
@@ -148,20 +148,28 @@ base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 #
 ################################################################################
 
-function show(io::IO, K::NfNSGen)
-  Hecke.@show_name(io, K)
-  Hecke.@show_special(io, K)
-  io = IOContext(io, :compact => true)
-  print(io, "Number field defined by\n")
-  G = gens(defining_ideal(K))
-  print(io, "[")
-  for i in 1:length(G)
-    print(io, G[i])
-    if i < length(G)
-      print(io, ", ")
-    end
+function Base.show(io::IO, ::MIME"text/plain", a::NfNSGen)
+  @show_name(io, a)
+  @show_special(io, a)
+  io = pretty(io)
+  print(io, "Non-simple number field with defining polynomials [")
+  g = gens(defining_ideal(a))
+  join(io, g, ", ")
+  println(io, "]")
+  print(io, Indent(), "over ", Lowercase(), base_field(a))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, a::NfNSGen)
+  @show_name(io, a)
+  @show_special(io, a)
+  if is_terse(io)
+    print(io, "Non-simple number field")
+  else
+    io = pretty(io)
+    print(io, "Non-simple number field of degree ", degree(a))
+    print(terse(io), " over ", Lowercase(), base_field(a))
   end
-  print(io, "]")
 end
 
 function AbstractAlgebra.expressify(a::NfNSGenElem; context = nothing)
@@ -179,27 +187,14 @@ end
 #
 ################################################################################
 
-function assert_has_gb(K::NfNSGen)
-  I = defining_ideal(K)
-  if isdefined(I, :gb) && isdefined(I.gb, :S) && I.gb.S.isGB
-    return nothing
-  end
-  I = defining_ideal(K)
-  groebner_assure(I, degrevlex(gens(base_ring(I))))
-  GI = first(values(I.gb))
-  singular_assure(GI)
-  GI.S.isGB = true
-  return nothing
-end
-
 function reduce!(a::NfNSGenElem)
   K = parent(a)
-  assert_has_gb(K)
   I = defining_ideal(K)
-  GI = collect(values(I.gb))[1]
-  Sx = base_ring(GI.S)
+  GS = singular_groebner_generators(I, false, false)
+  Sx = base_ring(GS)
   f = a.f
-  a.f = I.gens.Ox(reduce(Sx(f), GI.S))
+  R = base_ring(I)
+  a.f = R(reduce(Sx(f), GS))
   return a
 end
 
@@ -445,11 +440,6 @@ function Oscar.add!(a::NfNSGenElem, b::NfNSGenElem, c::NfNSGenElem)
   return a
 end
 
-function Oscar.addeq!(a::NfNSGenElem, b::NfNSGenElem)
-  a.f += b.f
-  return a
-end
-
 ################################################################################
 #
 #  Comparison
@@ -460,6 +450,11 @@ function ==(a::NfNSGenElem{T, S}, b::NfNSGenElem{T, S}) where {T, S}
   reduce!(a)
   reduce!(b)
   return a.f == b.f
+end
+
+function Base.hash(a::NfNSGenElem, h::UInt)
+  reduce!(a)
+  return hash(a.f, h)
 end
 
 ################################################################################
@@ -547,13 +542,12 @@ function basis(K::NfNSGen; copy::Bool = true)
     return copy ? Base.deepcopy(B) : B
   else
     I = defining_ideal(K)
-    assert_has_gb(K)
-    GI = first(values(I.gb))
-    s = Singular.kbase(GI.S)
+    GS = singular_groebner_generators(I, false, false)
+    s = Singular.kbase(GS)
     if iszero(s)
       error("ideal was not zero-dimensional")
     end
-    B = elem_type(K)[K(base_ring(defining_ideal(K))(x)) for x = gens(s)]
+    B = elem_type(K)[K(base_ring(I)(x)) for x = gens(s)]
     if !isone(B[1])
       i = findfirst(isone, B)
       B[1], B[i] = B[i], B[1]
@@ -621,7 +615,7 @@ end
 function basis_matrix(v::Vector{NfNSGenElem{QQFieldElem, QQMPolyRingElem}},
                       ::Type{Hecke.FakeFmpqMat})
   d = degree(parent(v[1]))
-  z = zero_matrix(FlintQQ, length(v), d)
+  z = zero_matrix(QQ, length(v), d)
   for i in 1:length(v)
     elem_to_mat_row!(z, i, v[i])
   end
@@ -675,7 +669,7 @@ function minpoly(a::NfNSGenElem)
   z *= a
   elem_to_mat_row!(M, 2, z)
   i = 2
-  Qt, _ = polynomial_ring(k, "t"; cached = false)
+  Qt, _ = polynomial_ring(k, :t; cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
       N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))
@@ -735,16 +729,21 @@ end
 
 function Hecke.any_order(K::NfNSGen)
   B = basis(K, copy = false)
-  for b in B
-    @assert isone(denominator(b.f))
+  B = copy(B)
+  for i in 1:length(B)
+    z = B[i]
+    d = denominator(minpoly(z))
+    if !(is_unit(d))
+      B[i] = d * z
+    end
   end
 
-  O = Order(K, B)
+  O = order(K, B)
 
   return O
 end
 
-function Hecke.MaximalOrder(K::NfNSGen)
+function Hecke.maximal_order(K::NfNSGen)
   E = any_order(K)
   return Hecke._maximal_order_round_four(E)
 end

@@ -206,7 +206,7 @@ function block_klueners(C::Oscar.GaloisGrp.GaloisCtx{Hecke.qAdicRootCtx},d) # ch
   cyc = gap_perm([findfirst(y -> y == x, Rts) for x = map(frobenius,Rts)])
   n = degree(C.f)
   divexact(n,d) # catch errors fast
-  Cyc = map(collect,orbits(gset(sub(symmetric_group(n),[cyc])[1]))) 
+  Cyc = map(collect,orbits(natural_gset(sub(symmetric_group(n),[cyc])[1]))) 
   l = length(Cyc)
   Z_values = Dict(zip([i for i in 1:l],length.(Cyc)))
   T = Tree(0)
@@ -315,7 +315,7 @@ Also TODO:
 # TEST PART
 function timetest(TESTFIELDS)
   #where Testfields is a List of defining polynomial
-  Zx, x = ZZ["x"];
+  Zx, x = ZZ[:x];
   for polynom in TESTFIELDS
     d = discriminant(polynom[2])
     p = 17 

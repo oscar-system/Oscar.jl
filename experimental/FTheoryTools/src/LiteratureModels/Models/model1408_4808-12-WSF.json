@@ -50,12 +50,12 @@
         "model_sections": ["s1", "s2", "s5", "s6", "s7", "s9"],
         "f": "1//48*(48*s2*s5*s7*s9 - 24*s1*s6*s7*s9 - ( - s6^2 + 4*s2*s9 + 4*s5*s7)^2)",
         "g": "1//864*(216*s1^2*s7^2*s9^2 - ( - s6^2 + 4*s2*s9 + 4*s5*s7)^3 - (s1*s6*s7*s9 - 2*s2*s5*s7*s9)*( - 36*s6^2 + 144*s2*s9 + 144*s5*s7))",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [3,  2,  2, 1, 0, 0],
             [-1,  0, -1, 0, 1, 0],
             [-1, -1,  0, 0, 0, 1]
         ],
-        "zero_section": ["0", "0", "1"],
+        "zero_section": ["1", "1", "0"],
         "generating_sections": [
             [
                 "1//12*(s6^2 - 4*s5*s7 - 4*s2*s9)", 
@@ -86,5 +86,5 @@
         "model1408_4808-15-WSF.json",
         "model1408_4808-16-WSF.json"
     ],
-    "related_models": ["model1408_4808-12.json"]
+    "birational_models": ["model1408_4808-12.json"]
 }

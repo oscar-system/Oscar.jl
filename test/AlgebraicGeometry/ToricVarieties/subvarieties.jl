@@ -1,6 +1,6 @@
 @testset "Closed subvarieties" begin
   
-  antv = normal_toric_variety(IncidenceMatrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
+  antv = normal_toric_variety(incidence_matrix([[1,2,3,4]]), [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]])
   
   ntv = normal_toric_variety(cube(2))
   (x1, x2, y1, y2) = gens(cox_ring(ntv));

@@ -55,6 +55,7 @@
         "fiber_coordinates": [""],
         "fiber_ambient_space": "",
         "hypersurface_equation": "",
+        "zero_section_class": "",
         "zero_section": ["", "", ""],
         "generating_sections": [["", "", ""]],
         "torsion_sections": [["", "", ""]],
@@ -66,5 +67,5 @@
         "weighted_resolution_generating_sections": [[[["", "", ""]]]]
     },
     "associated_models": [""],
-    "related_models": [""]
+    "birational_models": [""]
 }

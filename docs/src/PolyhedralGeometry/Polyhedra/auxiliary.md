@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Auxiliary functions
@@ -7,7 +9,7 @@ CurrentModule = Oscar
 ## Geometric data
 
 ```@docs
-facets(P::Polyhedron)
+facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}}
 vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types
@@ -55,6 +57,7 @@ all_triangulations
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
 Base.in(v::AbstractVector, P::Polyhedron)
 Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 h_star_polynomial(P::Polyhedron{QQFieldElem})

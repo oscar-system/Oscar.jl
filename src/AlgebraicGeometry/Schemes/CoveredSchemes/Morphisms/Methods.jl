@@ -321,4 +321,3 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     return XxY, to_X, to_Y
   end
 end
-

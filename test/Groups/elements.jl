@@ -50,6 +50,13 @@
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
   @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
+
+  G=alternating_group(6)
+  @test_throws ArgumentError cperm(G, [1,2])
+  @test cperm(G, [1,2],[3,4]) == perm(G,[2,1,4,3,5,6])
+  @test cperm(G, [1,2],[2,3]) == cperm(G, [1,3,2])
+  @test cperm(G, [1,2],[2,3]) == perm(G,[3,1,2,4,5,6])
+
 end
 
 @testset "Change of parent" begin
@@ -199,4 +206,12 @@ end
    g1 = codomain(isomorphism(FPGroup, L[1]))
    g2 = codomain(isomorphism(FPGroup, L[2]))
    @test_throws ArgumentError one(g1) * one(g2)
+
+   g = free_group(2)
+   x, y = gens(g)
+   f, epi = quo(g, [x, y^2])
+   @test free_group(g) === g
+   @test free_group(f) == g
+   @test underlying_word(x) === x
+   @test underlying_word(epi(x)) == x
 end

@@ -2,7 +2,8 @@ function map(FR::FreeResolution, i::Int)
   return map(FR.C, i)
 end
 
-function free_show(io::IO, C::ComplexOfMorphisms)
+function Base.show(io::IO, FR::FreeResolution)
+  C = FR.C
   name_mod = String[]
   rank_mod = Int[]
 
@@ -26,6 +27,7 @@ function free_show(io::IO, C::ComplexOfMorphisms)
     push!(rank_mod, rank(M))
   end
 
+  io = terse(io)
   io = IOContext(io, :compact => true)
   N = get_attribute(C, :free_res)
   if N !== nothing
@@ -71,7 +73,7 @@ methods and have no effect on the computation.
 """
 function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
   res = presentation(F)
-  set_attribute!(res, :show => free_show, :free_res => F)
+  set_attribute!(res, :show => Hecke.pres_show, :free_res => F)
   return FreeResolution(res)
 end
 
@@ -82,7 +84,7 @@ Return `true` if the free resolution `fr` is complete, otherwise return `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -96,14 +98,14 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
 Free resolution of M
@@ -224,40 +226,87 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
     cc.complete = true
   end
-  set_attribute!(cc, :show => free_show)
+  set_attribute!(cc, :show => Hecke.pres_show)
   maxidx = min(idx, first(Hecke.map_range(cc)))
   return map(cc, maxidx)
 end
 
 @doc raw"""
-    free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-        ordering::ModuleOrdering = default_ordering(M),
-        length::Int = 0, algorithm::Symbol = :fres
-      )
+    free_resolution(M::SubquoModule{T}; 
+        length::Int = 0,
+        algorithm::Symbol = T <: MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
+Current options for `algorithm` are `:fres`, `:nres`, and `:mres` for modules over
+polynomial rings and `:sres` for modules over quotients of polynomial rings (see below).
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
-    higher syzygy modules.
+    higher syzygy modules. In the first example of the examples section below, the free
+    resolution is initially computed up to length 1:
+    ```julia-repl
+    julia> fr = free_resolution(M, length = 1)
+    Free resolution of M
+    R^2 <---- R^6
+    0         1
+    ```
+    This resolution is not yet complete
+    ```julia-repl
+    julia> is_complete(fr)
+    false
+    ```
+    Continuing the session as follows, the resolution is extended up to length 4,
+    without computing its first part again:
+    ```julia-repl
+    julia> fr[4]
+    Free module of rank 0 over R
+
+    julia> fr
+    Free resolution of M
+    R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+    0         1         2         3         4
+    ``` 
+    As we already see from the output, the extended resolution is complete:
+    ```julia-repl
+    julia> is_complete(fr)
+    true
+    ```
 
 !!! note
-    - If `algorithm == mres`, and `M` is positively graded, a minimal free resolution is returned.
-    - If `algorithm == nres`, and `M` is positively graded, the function proceeds as above except 
-      that it starts by computing a presentation which is not neccessarily minimal.
-    In both cases, if `M` is not (positively) graded, the function still aims at returning an ''improved'' resolution.
+    If `M` is a module over a quotient of a polynomial ring, then the `length` keyword must
+    be set to a nonzero value (recall that free resolutions over quotient rings may be infinite).
 
 !!! note
-    If `algorithm == fres`, the function relies on an enhanced version of Schreyer's algorithm 
-    [EMSS16](@cite). Typically, this is more efficient than the approaches above, but the 
-    resulting resolution is far from being minimal.
+    - If `algorithm == mres`, and `M` is positively graded, then a minimal free resolution is returned.
+    - If `algorithm == nres`, and `M` is positively graded, then the function proceeds as above except
+      that it starts by computing a presentation which is not necessarily minimal.
+    In both cases, if `M` is not (positively) graded, then the function still aims at returning an ''improved'' resolution.
+
+!!! note
+    If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
+    [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
+    may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
+    ```julia-repl
+    julia> FM = free_resolution(M)
+    Free resolution of M
+    Pn^44 <---- Pn^296 <---- Pn^808 <---- Pn^1019 <---- Pn^618 <---- Pn^169 <---- Pn^14 <---- 0
+    0           1            2            3             4            5            6           7
+
+    julia> free_resolution(M, algorithm = :mres)
+    Free resolution of M
+    Pn^6 <---- Pn^10 <---- Pn^4 <---- 0
+    0          1           2          3
+
+    ```
+    If `algorithm == sres` in the case of modules
+    over quotients of polynomial rings (this is currently the only option available for that case),
+    then again a version of Schreyer's approach is used.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -271,16 +320,16 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 
-julia> fr = free_resolution(M, length=1)
+julia> fr = free_resolution(M, length = 1)
 Free resolution of M
 R^2 <---- R^6
 0         1
@@ -300,8 +349,8 @@ julia> is_complete(fr)
 true
 ```
 
-```
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> Z = R(0)
 0
@@ -314,14 +363,14 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 julia> A = transpose(matrix(B));
 
 julia> M = graded_cokernel(A)
-Graded subquotient of submodule of R^2 generated by
-1 -> e[1]
-2 -> e[2]
-by submodule of R^2 generated by
-1 -> w*y*e[2]
-2 -> (w*z - x*y)*e[2]
-3 -> (x*z - y^2)*e[2]
-4 -> e[1]
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
 
 julia> FM1 = free_resolution(M)
 Free resolution of M
@@ -329,15 +378,14 @@ R^2 <---- R^7 <---- R^8 <---- R^3 <---- 0
 0         1         2         3         4
 
 julia> betti_table(FM1)
-       0  1  2  3
------------------
--1   : -  1  -  -
-0    : 2  -  -  -
-1    : -  3  3  1
-2    : -  3  5  2
------------------
-total: 2  7  8  3
-
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  3  1
+     2: -  3  5  2
+------------------
+ total: 2  7  8  3
 
 julia> matrix(map(FM1, 1))
 [1            0]
@@ -354,15 +402,14 @@ R^2 <---- R^4 <---- R^4 <---- R^2 <---- 0
 0         1         2         3         4
 
 julia> betti_table(FM2)
-       0  1  2  3
------------------
--1   : -  1  -  -
-0    : 2  -  -  -
-1    : -  3  -  -
-2    : -  -  4  2
------------------
-total: 2  4  4  2
-
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 2  4  4  2
 
 julia> matrix(map(FM2, 1))
 [1            0]
@@ -376,14 +423,13 @@ R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
 0         1         2         3         4
 
 julia> betti_table(FM3)
-       0  1  2  3
------------------
-0    : 1  -  -  -
-1    : -  3  -  -
-2    : -  -  4  2
------------------
-total: 1  3  4  2
-
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
 
 julia> matrix(map(FM3, 1))
 [-x*z + y^2]
@@ -392,15 +438,19 @@ julia> matrix(map(FM3, 1))
 
 ```
 
-**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+**Note:** Over rings other than polynomial rings or quotients of polynomial rings, the method will default to a lazy, 
 iterative kernel computation.
 """
-function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-                         ordering::ModuleOrdering = default_ordering(M),
-                         length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubquoModule{T}; 
+                         length::Int = 0,
+                         algorithm::Symbol = T <: MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
+
+  if T <: MPolyQuoRingElem
+    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  end
 
   cc_complete = false
 
@@ -435,6 +485,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
     res = Singular.nres(gbpres, length)
+  elseif algorithm == :sres && T <: MPolyQuoRingElem
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.sres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -485,41 +538,43 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
-  set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
   set_attribute!(cc, :algorithm, algorithm)
-
   return FreeResolution(cc)
 end
 
-function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
+function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
   # This generic code computes a free resolution in a lazy way.
-  # We start out with a presentation of M and implement 
-  # an iterative fill function to compute every higher term 
+  # We start out with a presentation of M and implement
+  # an iterative fill function to compute every higher term
   # on request.
   R = base_ring(M)
   p = presentation(M)
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
-    # TODO: Use official getter and setter methods instead 
-    # of messing manually with the internals of the complex.
-    for i in first(chain_range(C)):k-1
-      N = domain(map(C, i))
+    min_index = first(chain_range(C))
+    target_index = length == 0 ? k-1 : max(min_index - (length - 1), k-1)
 
-      if iszero(N) # Fill up with zero maps
+    for i in min_index:target_index
+      N = domain(map(C, i))
+      if iszero(N)
         C.complete = true
         phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
       end
-
       K, inc = kernel(map(C, i))
-      nz = findall(x->!iszero(x), gens(K))
+      nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
+      if length != 0 && abs(i - min_index) + 1 >= length
+        C.complete = false
+        break
+      end
     end
     return first(C.maps)
   end
-  return p
+  return FreeResolution(p)
 end
 
 
@@ -538,7 +593,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
   while true
     k, mk = kernel(mp[1])
-    nz = findall(x->!iszero(x), gens(k))
+    nz = findall(!is_zero, gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
@@ -561,22 +616,44 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   end
   C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
   #set_attribute!(C, :show => free_show, :free_res => M) # doesn't work
+  set_attribute!(C, :show => Hecke.pres_show, :free_res => M)
   return FreeResolution(C)
 end
 
 @doc raw"""
-    free_resolution(I::MPolyIdeal; length::Int=0, algorithm::Symbol=:fres)
+    free_resolution(I::MPolyIdeal; length::Int = 0, algorithm::Symbol = :fres)
 
-Compute a free resolution of `I`.
+Consider `I` as a subquotient module over its base ring, and return a free resolution of that module.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
-minimal free resolutions are returned.
+At the moment, options for `algorithm` are `:fres`, `nres`, and `:mres`. With `:mres`,
+in the positively graded case, a minimal free resolution is returned.
 
 # Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+
+julia> I = ideal(R, [x, y])^2;
+
+julia> fI = free_resolution(I)
+Free resolution of I
+R^3 <---- R^2 <---- 0
+0         1         2
+
+julia> AC = augmented_complex(fI)
+0 <---- I <---- R^3 <---- R^2 <---- 0
+
+julia> AC[-1]
+Submodule with 3 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+represented as subquotient with no relations
+
+```
 """
 function free_resolution(I::MPolyIdeal;
-                         length::Int=0, algorithm::Symbol=:fres)
+                         length::Int = 0, algorithm::Symbol = :fres)
   S = ideal_as_module(I)
   n = AbstractAlgebra.get_name(I)
   if n !== nothing
@@ -586,18 +663,42 @@ function free_resolution(I::MPolyIdeal;
 end
 
 @doc raw"""
-    free_resolution(Q::MPolyQuoRing; length::Int=0, algorithm::Symbol=:fres)
+    free_resolution(Q::MPolyQuoRing; length::Int = 0, algorithm::Symbol = :fres)
 
-Compute a free resolution of `Q`.
+Consider `Q` as a subquotient module over its base ring, and return a free resolution of that module.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
-minimal free resolutions are returned.
+At the moment, options for `algorithm` are `:fres`, `:nres`, and `:mres`. With `:nres` or `:mres`,
+in the positively graded case, a minimal free resolution is returned.
 
 # Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+
+julia> I = ideal(R, [x, y])^2;
+
+julia> Q, _ = quo(R, I);
+
+julia> fQ = free_resolution(Q)
+Free resolution of Q
+R^1 <---- R^3 <---- R^2 <---- 0
+0         1         2         3
+
+julia> AC = augmented_complex(fQ)
+0 <---- Q <---- R^1 <---- R^3 <---- R^2 <---- 0
+
+julia> AC[-1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+
+```
 """
 function free_resolution(Q::MPolyQuoRing;
-                         length::Int=0, algorithm::Symbol=:fres)
+                         length::Int = 0, algorithm::Symbol = :fres)
   q = quotient_ring_as_module(Q)
   n = AbstractAlgebra.get_name(Q)
   if n !== nothing
@@ -605,3 +706,59 @@ function free_resolution(Q::MPolyQuoRing;
   end
   return free_resolution(q, length = length, algorithm = algorithm)
 end
+
+@doc raw"""
+    augmented_complex(F::FreeResolution)
+
+Return the augmented complex of `F`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> A = R[x; y];
+
+julia> B = R[x^2; x*y; y^2; z^4];
+
+julia> M = SubquoModule(A, B);
+
+julia> fr = free_resolution(M)
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> augmented_complex(fr)
+0 <---- M <---- R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+
+```
+"""
+augmented_complex(F::FreeResolution) = F.C
+
+
+@doc raw"""
+    length(F::FreeResolution)
+
+Return the length of `F`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> A = R[x; y];
+
+julia> B = R[x^2; x*y; y^2; z^4];
+
+julia> M = SubquoModule(A, B);
+
+julia> fr = free_resolution(M)
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> length(fr)
+3
+
+```
+"""
+length(F::FreeResolution) = length(F.C.maps)-3
+

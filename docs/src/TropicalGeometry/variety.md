@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Tropical varieties
 
 ## Introduction
@@ -5,7 +11,10 @@ Tropial varieties (in OSCAR) are weighted polyhedral complexes.  They may arise 
 - Chapter 3 in [MS15](@cite)
 - Chapter 2.8 in [Jos21](@cite)
 
-Objects of type `TropicalVariety` need to be embedded, abstract tropical varieties are currently not supported.  The type `TropicalVariety` can be thought of as supertype of `TropicalHypersurface`, `TropicalCurve`, and `TropicalLinearSpace` in the sense that the latter three inherit all properties and features of the former.
+#### Note:
+- Objects of type `TropicalVariety` need to be embedded, abstract tropical varieties are currently not supported.
+- The type `TropicalVariety` can be thought of as supertype of `TropicalHypersurface`, `TropicalCurve`, and `TropicalLinearSpace` in the sense that the latter three should have all properties and features of the former.
+- Embedded tropical varieties are polyhedral complexes with multiplicities and should have all properties of polyhedral complexes
 
 ## Constructor
 Objects of type `TropicalVariety` can be constructed as follows:
@@ -34,6 +43,8 @@ is_pure(TropV::TropicalVariety)
 is_simplicial(TropV::TropicalVariety)
 rays(TropV::TropicalVariety)
 rays_modulo_lineality(TropV::TropicalVariety)
+stable_intersection(::Union{Tuple{minOrMax}, Tuple{Oscar.TropicalVarietySupertype{minOrMax, true}, Oscar.TropicalVarietySupertype{minOrMax, true}}, Tuple{Oscar.TropicalVarietySupertype{minOrMax, true}, Oscar.TropicalVarietySupertype{minOrMax, true}, Union{Nothing, Vector{Int64}}}} where minOrMax)
+tropical_prevariety
 vertices_and_rays(TropV::TropicalVariety)
 vertices(TropV::TropicalVariety)
 visualize(TropV::TropicalVariety)

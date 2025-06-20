@@ -2,7 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, _ = graded_polynomial_ring(kk, ["s", "t"])
+  S, _ = graded_polynomial_ring(kk, [:s, :t])
 
   base_P1 = proj(S)
 

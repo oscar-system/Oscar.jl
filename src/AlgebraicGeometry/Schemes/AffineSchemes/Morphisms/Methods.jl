@@ -18,7 +18,7 @@ function fiber_product(
   )
   Y = domain(f)
   X = codomain(f)
-  X == codomain(g) || error("maps need to have the same codomain")
+  X === codomain(g) || error("maps need to have the same codomain")
   Z = domain(g)
   YxZ, pY, pZ = product(Y, Z)
   RX = ambient_coordinate_ring(X)
@@ -138,7 +138,7 @@ function _induced_map_to_fiber_product(
   W = domain(a)
   @check gens(OO(XxY)) == vcat(pullback(gg).(gens(OO(X))), pullback(ff).(gens(OO(Y)))) "variables must be pullbacks of variables on the factors"
 
-  img_gens = vcat(pullback(a).(gens(OO(X))), pullback(b).(gens(OO(Y))))
+  img_gens = vcat(_images_of_generators(pullback(a)), _images_of_generators(pullback(b)))
   return morphism(W, XxY, img_gens, check=check)
 end
 
@@ -155,8 +155,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   W = domain(a)
   Y = codomain(b)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 function _induced_map_to_fiber_product(
@@ -169,8 +168,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   X = domain(f)
   W = domain(a)
-  img_gens = pullback(a).(gens(OO(X)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(a)), check=check)
 end
 
 # additional method to remove ambiguity
@@ -184,18 +182,23 @@ function _induced_map_to_fiber_product(
   # XxY is a principal open subset of Y.
   XxY = fiber_product[1]
   Y = domain(g)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 ### Some helper functions
+
+_images_of_generators(f::Map) = f.(gens(domain(f)))
+_images_of_generators(f::MPolyAnyMap) = _images(f)
+_images_of_generators(f::MPolyLocalizedRingHom) = _images(restricted_map(f))
+_images_of_generators(f::MPolyQuoLocalizedRingHom) = _images(restricted_map(f))
+
 function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))]; check=check)
 
   @check is_subscheme(D, domain(f)) "domain incompatible"
-  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
-  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
+  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
 end
 
 function _restrict_domain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
@@ -208,12 +211,12 @@ function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f)
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
-    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=false)
+    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
+    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))], check=check)
   end
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
   return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
@@ -235,7 +238,7 @@ end
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check)
   return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
@@ -312,7 +315,7 @@ function product(X::AbsAffineScheme{BRT, RT}, Y::AbsAffineScheme{BRT, RT};
   else
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
   end
-  KL, z = polynomial_ring(k, new_symb)
+  KL, z = polynomial_ring(k, new_symb; cached=false)
   XxY = spec(KL)
   pr1 = morphism(XxY, X, gens(KL)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(KL)[m+1:m+n], check=false)
@@ -368,7 +371,7 @@ function product(X::StdAffineScheme, Y::StdAffineScheme;
   else
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(S)]))
   end
-  RS, z = polynomial_ring(k, new_symb)
+  RS, z = polynomial_ring(k, new_symb; cached=false)
   inc1 = hom(R, RS, gens(RS)[1:m], check=false)
   inc2 = hom(S, RS, gens(RS)[m+1:m+n], check=false)
   IX = ideal(RS, inc1.(gens(modulus(underlying_quotient(OO(X))))))
@@ -393,8 +396,7 @@ function ==(f::AffineSchemeMorType, g::AffineSchemeMorType) where {AffineSchemeM
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(g))))) || return false
-  return true
+  return all(OO(X)(x) == OO(X)(y) for (x, y) in zip(_images_of_generators(pullback(f)), _images_of_generators(pullback(g))))
 end
 
 
@@ -476,9 +478,36 @@ The optional arguments `domain_map` and `codomain_map` can be used
 to specify the morphisms `b₁` and `b₂`, respectively.
 """
 function base_change(phi::Any, f::AbsAffineSchemeMor;
-    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
-    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
+    domain_map::Union{AbsAffineSchemeMor, Nothing} = nothing,
+    codomain_map::Union{AbsAffineSchemeMor, Nothing} = nothing
   )
+  # We need to cater for the case where `phi` is a natural inclusion. 
+  # In that case, we have the same `ambient_coordinate_ring` for domain and codomain
+  # and we need to make sure, its base change is performed only once.
+  if domain_map === nothing 
+    ambient_coordinate_map = nothing # initialize the variable
+    if codomain_map !== nothing && ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f))
+      # The `ambient_coordinate_ring` is already determined by the map on the codomain
+      R = ambient_coordinate_ring(domain(f))
+      R_red = ambient_coordinate_ring(domain(codomain_map))
+      ambient_ring_map_domain = hom(R, R_red, phi, gens(R_red))
+    else
+      _, ambient_ring_map_domain = _change_base_ring(phi, ambient_coordinate_ring(domain(f)))
+    end
+    _, domain_map = base_change(phi, domain(f); ambient_ring_map=ambient_ring_map_domain)
+  end
+  if codomain_map === nothing 
+    ambient_ring_map_codomain = nothing # initialize the variable
+    if ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f))
+      # The `ambient_ring` is already determined by the map on the domain
+      R = ambient_coordinate_ring(domain(f))
+      R_red = ambient_coordinate_ring(domain(domain_map))
+      ambient_ring_map_codomain = hom(R, R_red, phi, gens(R_red))
+    else
+      ambient_ring_map_codomain = _change_base_ring(phi, ambient_coordinate_ring(codomain(f)))
+    end
+    _, codomain_map = base_change(phi, codomain(f); ambient_ring_map=ambient_ring_map_codomain)
+  end
   X = domain(f)
   Y = codomain(f)
   XX = domain(domain_map)
@@ -501,20 +530,20 @@ function base_change(phi::Any, f::AbsAffineSchemeMor;
 end
 
 function base_change(phi::Any, f::ClosedEmbedding;
-    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
-    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
+    domain_map::Union{AbsAffineSchemeMor, Nothing} = nothing,
+    codomain_map::Union{AbsAffineSchemeMor, Nothing} = nothing
   )
-  @assert codomain(codomain_map) === codomain(f)
-  @assert codomain(domain_map) === domain(f)
+  codomain_map !== nothing && @req codomain(codomain_map) === codomain(f) "incompatible map"
+  domain_map !== nothing && @req codomain(domain_map) === domain(f) "incompatible map"
   g = underlying_morphism(f)
-  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
+  domain_map, bc_g, codomain_map = base_change(phi, g; domain_map, codomain_map)
   I = image_ideal(f)
   @assert base_ring(I) === OO(codomain(f))
   @assert base_ring(I) === OO(codomain(f))
   #bc_I = ideal(OO(codomain(bc_g)), pullback(codomain_map).(gens(I)))
   bc_I = pullback(codomain_map)(I)
-  @assert domain(bc_g) === domain(domain_map)
-  @assert codomain(bc_g) === domain(codomain_map)
+  domain_map !== nothing && @req domain(bc_g) === domain(domain_map) "incompatible map"
+  codomain_map !== nothing && @req codomain(bc_g) === domain(codomain_map) "incompatible map"
   return domain_map, ClosedEmbedding(bc_g, bc_I; check=false), codomain_map
 end
 

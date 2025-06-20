@@ -3,7 +3,7 @@ function length(M::ModuleFP{RingElemType}) where {RingElemType<:AbsLocalizedRing
   return length(composition_series(M))
 end
 
-@attr function composition_series(
+@attr Vector{elem_type(M)} function composition_series(
     M::ModuleFP{RingElemType}
   ) where {RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   if iszero(M) 
@@ -20,7 +20,7 @@ end
   comp = Vector{elem_type(M)}()
   while !iszero(NtoM)
     g = gens(NtoM)
-    i = findfirst(x->!(iszero(x)), g)
+    i = findfirst(!is_zero, g)
     Msub, inc = sub(MM, [interp(g[i])(N[1])])
     push!(comp, preimage(p, inc(Msub[1])))
     MM, pp = quo(MM, Msub)

@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Phylogenetic Trees
@@ -19,7 +21,7 @@ phylogenetic_tree
 
 ```@docs
 adjacency_tree
-equidistant
+is_equidistant
 cophenetic_matrix
 taxa
 newick

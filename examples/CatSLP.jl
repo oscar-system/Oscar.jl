@@ -26,7 +26,7 @@ function tolazy(x, dict=IdDict{Any,Lazy}())
                 arguments = GenesisOfCellArguments(x)
                 argumentslazy = (tolazy(arguments[i], dict) for i in 1:length(arguments))
                 call(argumentslazy...) do args...
-                    operation(map(arg -> arg isa Vector ? julia_to_gap(arg) : arg, args)...)
+                    operation(map(arg -> arg isa Vector ? GapObj(arg) : arg, args)...)
                 end
             else
                 Lazy(x)
