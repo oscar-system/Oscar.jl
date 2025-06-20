@@ -25,9 +25,10 @@ While *FTheoryTools* does not (yet) resolve all such foundational issues, its ai
 ### Elliptic Fibration Models
 
 You can construct elliptic fibrations using:
-- Weierstrass models,
-- Global Tate models,
-- Hypersurface models.
+- [Weierstrass models](@ref),
+- [Global Tate models](@ref),
+- [Hypersurface models](@ref).
+Since all of these different models encode singular elliptic fibrations mathematically, certain properties, attributes, and methods apply to all models equally. This shared functionality is summarized on the page [Functionality for all F-theory models](@ref).
 
 The base of the fibration may be:
 - A family of abstract base spaces,
@@ -57,6 +58,8 @@ Current database entries include, but are not limited to, models from:
 - [Taylor, Wang 2015](@cite TW15),
 - [CHLLT 2019](@cite CHLLT19).
 
+More details are available on the page [Literature constructions](@ref).
+
 ### ``G_4``-Flux Enumeration
 
 *FTheoryTools* supports enumeration of ``G_4``-fluxes, essential for determining the chiral spectra of F-theory compactifications. As a demonstration of its capabilities, we did enumerate ``G_4``-fluxes for the notoriously difficult *F-theory geometry with the most flux vacua* [Taylor, Wang 2015](@cite TW15), involving:
@@ -66,6 +69,7 @@ Current database entries include, but are not limited to, models from:
 - A resolution via 206 toric blowups (plus 3 additional ones for ambient smoothness).
 We identified a space of candidate vertical ``G_4`` fluxes parametrized by ``\mathbb{Z}^{224} \times \mathbb{Q}^{127}``. Details on this particular computation are available in the publication [BMT25](@cite BMT25).
 
+More details are available on the page [G4-Fluxes](@ref).
 
 ## Tutorials
 
