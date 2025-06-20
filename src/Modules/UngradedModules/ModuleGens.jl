@@ -362,11 +362,13 @@ Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])
 If no such `r` exists, an exception is thrown.
 """
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
-  A = get_attribute(generators, :transformation_matrix)
-  A === nothing && error("No transformation matrix in the Gröbner basis.")
-  if iszero(a)
-    return sparse_row(base_ring(parent(a)))
+  iszero(a) && return sparse_row(base_ring(parent(a)))
+  SA = get_attribute!(generators, :sparse_transformation_matrix) do
+    A = get_attribute(generators, :transformation_matrix)
+    A === nothing && error("No transformation matrix in the Gröbner basis.")
+    sparse_matrix(A)
   end
+
   @assert generators.isGB
   if base_ring(generators) isa Union{MPolyQuoRing,MPolyRing}
     if !is_global(generators.ordering)
@@ -384,7 +386,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
 
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  return coords_wrt_groebner_basis * SA
 end
 
 @doc raw"""

@@ -1564,15 +1564,15 @@ function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
     phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)); check=false)
     K,i = kernel(phi)
 
-    intersection_gens_array_with_zeros = [sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]; init=zero(ambient_free_module(M))) for k in gens(K)]
+    intersection_gens_array_with_zeros = elem_type(ambient_free_module(M))[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]; init=zero(ambient_free_module(M))) for k in gens(K)]
     iszero_array = map(!iszero, intersection_gens_array_with_zeros)
 
     intersection_gens = SubModuleOfFreeModule(ambient_free_module(M), intersection_gens_array_with_zeros[iszero_array] )
     SQ = SubquoModule(intersection_gens,M_quo)
 
     m = ngens(M)
-    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array]; check=false)
-    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array]; check=false)
+    M_hom = SubQuoHom(SQ,M,elem_type(M)[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array]; check=false)
+    N_hom = SubQuoHom(SQ,N,elem_type(N)[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array]; check=false)
 
     register_morphism!(M_hom)
     register_morphism!(N_hom)
@@ -2179,3 +2179,14 @@ function (==)(F::FreeMod, G::SubquoModule)
   all(in(G), gens(F)) || return false
   return true
 end
+
+is_known(::typeof(is_zero), F::FreeMod) = true
+
+function is_known(::typeof(is_zero), M::SubquoModule)
+  has_attribute(M, :is_zero) && return true
+  is_zero(ambient_free_module(M)) && return true
+  is_zero(ngens(M)) && return true
+  is_zero(M.quo) && return true
+  return false
+end
+
