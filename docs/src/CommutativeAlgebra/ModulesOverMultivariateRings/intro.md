@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id modules_multivariate)
 
 Our focus in this section is on finitely presented modules over rings from the following list:

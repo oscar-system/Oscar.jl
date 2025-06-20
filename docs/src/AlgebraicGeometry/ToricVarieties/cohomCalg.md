@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # Line bundle cohomology with cohomCalg
 
 We employ the cohomCalg algorithm [BJRR10*1](@cite)

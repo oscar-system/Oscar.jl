@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Covered schemes
 
 Oscar supports modeling abstract schemes by means of a covering by affine charts.

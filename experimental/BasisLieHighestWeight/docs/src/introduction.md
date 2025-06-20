@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 This subproject contains the code for the OSCAR book chapter by Ghislain Fourier and Xin Fang on the bases of highest weight modules.

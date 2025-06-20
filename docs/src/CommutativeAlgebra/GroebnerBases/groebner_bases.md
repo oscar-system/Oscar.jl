@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Gröbner/Standard Bases Over Fields](@id gb_fields)
 
 We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.

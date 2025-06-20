@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 This is the documentation of the straight-line programs (SLP) implementation by
@@ -118,7 +112,7 @@ julia> SLP.evaluate(X*Y^2, ['a', 'b'])
 "abb"
 ```
 
-# Returning multiple values
+## Returning multiple values
 
 There is a low-level interface to return multiple values from an `SLProgram`;
 for example, to return the second and last intermediate values from `p`

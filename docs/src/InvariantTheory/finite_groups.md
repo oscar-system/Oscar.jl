@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Invariants of Finite Groups
 
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $G$ will be a *finite* group.

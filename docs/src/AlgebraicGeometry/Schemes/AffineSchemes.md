@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # Affine schemes
 
 Let ``\mathbb k`` be a commutative noetherian base ring

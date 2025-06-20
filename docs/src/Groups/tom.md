@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Tables of Marks
 
 The concept of a *Table of Marks* was introduced by W. Burnside in his book
