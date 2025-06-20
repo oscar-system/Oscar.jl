@@ -2,18 +2,17 @@
 
 struct TransitiveSimplicialComplex
   K::SimplicialComplex
+  dim::Int
+  homology::Vector{FinGenAbGroup}
+  topological_type::String
+  aut_group::PermGroup
 end
 
-function transitive_simplicial_complex()
+function transitive_simplicial_complex(facets::Vector{Vector{Int}}, top_type::String)
+  K = simplicial_complex(facets)
 
+  return TransitiveSimplicialComplex(
+    K, dim(K), [homology(K, i) for i in 1:dim(K)], automorphism_group(K), top_type
+  )
 end
-
-#@doc raw"""
-#    my_access_func(S::ExampleStruct)
-#
-#This is a dummy sample function to teach the use of docstrings.
-#"""
-#function my_access_func(S::ExampleStruct)
-#  return S.i
-#end
 
