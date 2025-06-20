@@ -1131,6 +1131,7 @@ export low_index_subgroups
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
+export map_from_func
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
 export map_from_picard_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_class_group
