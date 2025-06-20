@@ -378,11 +378,11 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   end
 
   @assert generators.isGB
-# if base_ring(generators) isa Union{MPolyQuoRing,MPolyRing}
-#   if !is_global(generators.ordering)
-#     error("Ordering is not global")
-#   end
-# end
+  if base_ring(generators) isa Union{MPolyQuoRing,MPolyRing}
+    if !is_global(generators.ordering)
+      error("Ordering is not global")
+    end
+  end
 
   S = singular_generators(generators)
   S.isGB = generators.isGB
