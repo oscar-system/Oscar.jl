@@ -91,8 +91,6 @@ import ..Oscar:
   ⊕,
   ⊗
 
-Oscar.@import_all_serialization_functions
-
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 include("exports.jl")

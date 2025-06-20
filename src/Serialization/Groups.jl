@@ -1,4 +1,3 @@
-
 ##############################################################################
 #
 # General ideas of the (de)serialization of groups and group elements:
@@ -85,6 +84,7 @@
 #   common `G`, and the object identity of the GAP family object could be
 #   forced via `G`.)
 
+import Oscar: GAPGroup, _coeff
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
