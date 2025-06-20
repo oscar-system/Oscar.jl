@@ -5,25 +5,24 @@
 @doc raw"""
     model(gf::G4Flux)
 
-Return the F-theory model for which this ``G_4``-flux candidate is defined.
+Return the F-theory model used to construct the G_4-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
-
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
-
-julia> g4f = g4_flux(qsm_model, g4_class, check = false)
+julia> g4_candidate = qsm_flux(qsm_model)
 G4-flux candidate
-  - Elementary quantization checks: not executed
-  - Transversality checks: not executed
-  - Non-abelian gauge group: breaking pattern not analyzed  
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: unbroken
   - Tadpole cancellation check: not computed
 
-julia> model(g4f)
+julia> model(g4_candidate)
 Hypersurface model over a concrete base
+
+julia> model(g4_candidate) == qsm_model
+true
 ```
 """
 model(gf::G4Flux) = gf.model
@@ -32,7 +31,7 @@ model(gf::G4Flux) = gf.model
 @doc raw"""
     cohomology_class(gf::G4Flux)
 
-Return the cohomology class which defines the ``G_4``-flux candidate.
+Return the ambient space cohomology class which defines the ``G_4``-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -64,8 +63,8 @@ cohomology_class(gf::G4Flux) = gf.class
 @doc raw"""
     d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
 
-Return the d3-tapdole constraint of a G4-flux, that is compute the quantity
-``- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0``.
+Return the d3-tapdole of a G4-flux, that is compute and return the quantity
+``- \frac{1}{2} \cdot \int_{\widehat{Y_4}}{G_4 \wedge G_4} + \frac{1}{24} \cdot \chi(\widehat{Y}_4)``.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -241,4 +240,36 @@ julia> rational_coefficients(g4);
 function rational_coefficients(gf::G4Flux)
   @req has_attribute(gf, :rat_combination) "Rational coefficients not known for the given G4-flux"
   return get_attribute(gf, :rat_combination)::QQMatrix
+end
+
+
+@doc raw"""
+    offset(gf::G4Flux)
+
+Return the offset of a given ``G_4``-flux.
+If this shift is not known, an error is raised.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> gfs = special_flux_family(qsm_model, check = false)
+Family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+
+julia> g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not computed
+
+julia> offset(g4);
+```
+"""
+function offset(gf::G4Flux)
+  @req has_attribute(gf, :offset) "Offset not known for the given G4-flux"
+  return get_attribute(gf, :offset)::Vector{QQFieldElem}
 end

@@ -95,7 +95,7 @@ FTheoryTools supports the enumeration of vertical ``G_4``-fluxes—important for
 
 The computed flux space: ``\mathbb{Z}^{224} \times \mathbb{Q}^{127}``.
 
-Details are available in [BMT25]\(@cite BMT25). See also: [G4-Fluxes](@ref).
+Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref).
 
 ## Tutorials
 
