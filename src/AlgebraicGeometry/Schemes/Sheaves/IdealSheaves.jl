@@ -728,7 +728,7 @@ Return whether ``I`` is prime.
 We say that a sheaf of ideals is prime if its support is irreducible and
 ``I`` is locally prime. (Note that the empty set is not irreducible.)
 """
-@attr Any function is_prime(I::AbsIdealSheaf)
+@attr Bool function is_prime(I::AbsIdealSheaf)
   is_locally_prime(I) || return false
   # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
