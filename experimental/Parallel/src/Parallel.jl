@@ -16,24 +16,28 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   workers::Set{Int}     # same
   wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
+  init_expr::Expr
 
-  function OscarWorkerPool(n::Int)
+  function OscarWorkerPool(n::Int, init_expr)
     wids = addprocs(n)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     remotecall_eval(Main, wids, :(using Oscar))
+    remotecall_eval(Main, wids, init_expr)
 
-    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}(), init_expr)
   end
 end
 
 @doc raw"""
-     oscar_worker_pool(n::Int)
-     oscar_worker_pool(f::Function, n::Int)
+     oscar_worker_pool(n::Int; init_expr=:())
+     oscar_worker_pool(f::Function, n::Int; init_expr=:())
 
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
+The `init_expr` can be used to pass an initial expression that will be evaluated
+on all workers as well as any new workers being pushed to the pool. 
 
 # Example
 The following code will start up 3 processes with Oscar,
@@ -46,19 +50,20 @@ results = oscar_worker_pool(3) do wp
 end
 ```
 """
-oscar_worker_pool(n::Int) = OscarWorkerPool(n)
+oscar_worker_pool(n::Int; init_expr=:()) = OscarWorkerPool(n, init_expr)
 
-function oscar_worker_pool(f::Function, n::Int)
-  wp = OscarWorkerPool(n)
+function oscar_worker_pool(f::Function, n::Int; init_expr=:())
+  wp = OscarWorkerPool(n, init_expr)
   local results
   try
     results = f(wp)
   catch e
+    close!(wp)
     rethrow(e)
-  finally
-    close!(wp)    
+  else
+    close!(wp)
+    return results
   end
-  return results
 end
 
 ### The following implements the `AbstractWorkerPool` interface
@@ -67,6 +72,7 @@ end
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
+  remotecall_eval(Main, id, wp.init_expr)
   push!(wp.wp, id) # update the list of associated workers
 end
 
@@ -270,7 +276,7 @@ end
 struct TimeoutException <: Exception end
 
 function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
-                                 timeout=1,
+                                 timeout,
                                  args...; kwargs...)
   wid = take!(wp)
   
@@ -295,10 +301,8 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
       # Add replacement worker
       new_wid = first(addprocs(1))
       push!(wp, new_wid)
-      println("pushed worker to pool")
       # Remove the problematic worker
       rmprocs(wid)
-      println("removed worker")
       throw(TimeoutException())
     end
   catch e
@@ -312,4 +316,4 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
   return fetch(fut) 
 end
 
-export oscar_worker_pool, remotecall_with_timeout
+export oscar_worker_pool, remotecall_with_timeout, TimeoutException
