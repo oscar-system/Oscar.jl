@@ -2077,7 +2077,7 @@ function is_virtually_abelian(L::ZZLat, gensAutL)
   f = _get_pos_entropy_element(gensAutL)
   K = kernel(f^12-1)
   k = nrows(K)
-  @assert k==1
+  @assert k==rank(L)-2
   for g in gensAutL
     r = rank(vcat(K,K*g))
     if r > k
