@@ -760,5 +760,13 @@ julia> length(fr)
 
 ```
 """
-length(F::FreeResolution) = length(F.C.maps)-3
+function length(F::FreeResolution)
+  if !is_complete(F.C)
+    idx = findfirst(is_zero(domain(phi)) for phi in F.C.maps)
+    isnothing(idx) && return first(map_range(F.C))
+    return idx::Int
+  end
+  # complex is complete
+  length(F.C.maps)-3
+end
 
