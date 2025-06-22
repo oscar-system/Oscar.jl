@@ -1420,6 +1420,7 @@ export polyhedral_fan_from_rays_action
 export polyhedron
 export polynomial
 export polynomial_ring
+export polytope_covector_decomposition
 export positive_coroot
 export positive_coroots
 export positive_hull
@@ -1472,6 +1473,7 @@ export projective_unitary_group
 export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
+export pseudovertices
 export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
@@ -1738,6 +1740,7 @@ export toric_morphism
 export toric_vanishing_set
 export toric_variety
 export torus # requires a distinction from e.g. an algebraic group
+export torus_covector_decomposition
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
@@ -1760,6 +1763,7 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
+export tropical_convex_hull
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
