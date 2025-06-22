@@ -1,4 +1,3 @@
-
 @testset "TropicalPolyhedron{min}" begin
   TT = tropical_semiring(min)
   pts1_a = TT[0 -4 -1; 0 -1 0]
@@ -13,8 +12,13 @@
   @test dim(P1_b) == 1
 
   cov1 = maximal_covectors(P1_a)
-  @test issetequal(cov1, [IncidenceMatrix([1], [2], [2]), IncidenceMatrix([1], [2], [1])])
+  @test issetequal(cov1, [IncidenceMatrix([[1], [2], [2]]), IncidenceMatrix([[1], [2], [1]])])
 
+  pts2 = TT[0 1 2; inf 0 3; inf inf 0]
+  P2 = tropical_convex_hull(pts2)
+  @test dim(P2) == 2
+  @test maximal_covectors(P2) |> length == 1
+  @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]])
 end
 
 @testset "TropicalPointConfiguration{min}" begin
@@ -63,5 +67,17 @@ end
       [1,1],
       [-1,0],
       [0,-1]
+    ])
+
+  pts2 = TT[0 1 2; inf 0 3; inf inf 0]
+  C2 = tropical_point_configuration(pts2)
+  cov2 = maximal_covectors(C2)
+  @test issetequal(cov2,
+    [
+      IncidenceMatrix([[1],[2],[3]]),
+      IncidenceMatrix([[],[12],[3]]),
+      IncidenceMatrix([[],[2],[13]]),
+      IncidenceMatrix([[1],[],[23]]),
+      IncidenceMatrix([[],[],[123]])
     ])
 end
