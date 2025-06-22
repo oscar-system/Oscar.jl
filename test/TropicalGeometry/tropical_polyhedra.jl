@@ -25,4 +25,43 @@ end
 
   P1_a = tropical_convex_hull(C1_a)
   @test pm_object(C1_a) == pm_object(P1_a)
+
+  cov1 = maximal_covectors(C1_a)
+  @test issetequal(cov1,
+    [
+     IncidenceMatrix([[], [], [1,2]]),
+     IncidenceMatrix([[], [1], [2]]),
+     IncidenceMatrix([[], [1,2], []]),
+     IncidenceMatrix([[2], [1], []]),
+     IncidenceMatrix([[1,2], [], []]),
+     IncidenceMatrix([[2], [], [1]]),
+    ])
+
+  pts1_b = TT[0 -4 -1; 0 -1 0; 0 -3 0]
+  C1_b = tropical_convex_hull(pts1_b)
+  cov1_b = maximal_covectors(C1_b)
+  @test issetequal(cov1_b,
+    [
+     IncidenceMatrix([[], [], [1,2,3]]),
+     IncidenceMatrix([[], [1, 3], [2]]),
+     IncidenceMatrix([[], [1,2,3], []]),
+     IncidenceMatrix([[2], [1,3], []]),
+     IncidenceMatrix([[2,3], [1], []]),
+     IncidenceMatrix([[1,2,3], [], []]),
+     IncidenceMatrix([[2,3], [], [1]])
+    ])
+
+  covdec1_a = covector_decomposition(C1_a)
+  @test issetequal(covdec1_a |> vertices,
+    [
+      [-1, 0],
+      [-4, -1],
+      [-3, 0]
+    ])
+  @test issetequal(covdec1_a |> rays,
+    [
+      [1,1],
+      [-1,0],
+      [0,-1]
+    ])
 end
