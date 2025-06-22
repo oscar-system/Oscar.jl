@@ -77,12 +77,31 @@ function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPolyhedron, i::I
   return P.pm_tpolytope.POLYTOPE_MAXIMAL_COVECTORS[i]
 end
 
+@doc raw"""
+    covector_decomposition(P::TropicalPointConfiguration)
+
+Get the covector decomposition of the tropical projective torus induced by `P` as a `PolyhedralComplex`.
+"""
 function covector_decomposition(P::TropicalPointConfiguration)
   return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope) |> polyhedral_complex
 end
 
+@doc raw"""
+    covector_decomposition(P::TropicalPolyhedon)
+
+Get the covector decomposition of the tropical polytope `P` as a `PolyhedralComplex`.
+"""
 function covector_decomposition(P::TropicalPolyhedron)
   return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope) |> polyhedral_complex
+end
+
+@doc raw"""
+    is_bounded(P::TropicalPolyhedron)
+
+Checks whether `P` is bounded in the tropical projective torus.
+"""
+function is_bounded(P::TropicalPolyhedron)
+  return all(!iszero, pm_object(P).VERTICES)
 end
 
 function Base.show(io::IO, P::TropicalPolyhedron{M}) where {M<:MinOrMax}
