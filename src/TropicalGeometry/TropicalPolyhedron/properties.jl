@@ -52,7 +52,7 @@ end
 
 n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS |> size |> first
 
-dim(P::TropicalPolyhedron) = polytope_covector_decomposition(P) |> dim
+dim(P::TropicalPolyhedron) = covector_decomposition(P) |> dim
 ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PROJECTIVE_AMBIENT_DIM
 
 function maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPointConfiguration)
@@ -69,9 +69,9 @@ end
 function maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPolyhedron)
   n = pm_object(P).POLYTOPE_MAXIMAL_COVECTORS |> length
 
-  return SubObjectIterator{as}(P, _maximal_covectors_of_polytope, n)
+  return SubObjectIterator{as}(P, _maximal_covectors, n)
 end
-maximal_covectors(P::TropicalPolyhedron) = maximal_covectors_of_polytope(IncidenceMatrix, P)
+maximal_covectors(P::TropicalPolyhedron) = maximal_covectors(IncidenceMatrix, P)
 
 function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPolyhedron, i::Int)
   return P.pm_tpolytope.POLYTOPE_MAXIMAL_COVECTORS[i]
