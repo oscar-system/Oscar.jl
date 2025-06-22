@@ -26,5 +26,6 @@ include("variety_zerodimensional.jl")
 include("variety_prime.jl")
 include("intersection.jl")
 include("groebner_fan.jl")
-include("TropicalPolyhedron.jl")
+include("TropicalPolyhedron/constructors.jl")
+include("TropicalPolyhedron/properties.jl")
 
