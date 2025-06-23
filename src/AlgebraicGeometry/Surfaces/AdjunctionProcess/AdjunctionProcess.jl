@@ -149,9 +149,10 @@ julia> I = ideal(R, [x[1]*x[6] - x[2]*x[5] + x[3]*x[4]]);
 julia> GRASSMANNIAN = variety(I);
 
 julia> Omega = canonical_bundle(GRASSMANNIAN)
-Graded submodule of R^1 with 1 generator
+Graded subquotient of graded submodule of R^1 with 1 generator
   1: e[1]
-represented as subquotient with no relations
+by graded submodule of R^1 with 1 generator
+  1: (x[1]*x[6] - x[2]*x[5] + x[3]*x[4])*e[1]
 
 julia> degrees_of_generators(Omega)
 1-element Vector{FinGenAbGroupElem}:
