@@ -2091,7 +2091,7 @@ is_known(::typeof(codim), I::MPolyIdeal) = is_known(dim, I)
 
 
 # Some fixes which were necessary for the above
-dim(R::Union{MPolyRing, ZZRing}) = krull_dim(R)
+dim(R::MPolyRing) = krull_dim(R)
 
 ################################################################################
 #

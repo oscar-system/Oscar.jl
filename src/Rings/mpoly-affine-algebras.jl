@@ -21,11 +21,6 @@ julia> dim(A)
 """
 dim(A::MPolyQuoRing) = krull_dim(A)
 
-function dim(A::Union{zzModRing, ZZModRing})
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
-
 krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
 is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
