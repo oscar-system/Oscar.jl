@@ -2602,6 +2602,13 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
   C = complex(res)
   rng = range(C)
   res_length = length(res)
+  # If the resolution is complete, then we can print the full 
+  # Betti table, including the last inclusion of the zero-module.
+  # If not, then we must stop earlier in order to not trigger 
+  # the computation of another step.
+  if is_complete(res)
+    res_length += 1
+  end
   offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
   for i in 1:res_length
