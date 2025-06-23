@@ -184,14 +184,24 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   SF = singular_module(F)
   SK = singular_generators(algorithm == :fres ? groebner_basis(K) : K.sub.gens) # We need to start with a gb for `fres`.
   
+  if is_one(len_missing)
+    cod = domain(first(cc.maps))
+    phi = is_graded(cod) ? graded_map(cod, ambient_representatives_generators(K); check=false) : hom(free_module(R, ngens(K)), cod, ambient_representatives_generators(K))
+    pushfirst!(cc.maps, phi)
+    if is_zero(K)
+      cc.complete=true
+    end
+    return first(cc.maps)
+  end
+
   if algorithm == :fres
-    res = Singular.fres(SK, len_missing-1, "complete")
+    res = Singular.fres(SK, len_missing, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   elseif algorithm == :mres
-    res = Singular.mres(SK, len_missing-1)
+    res = Singular.mres(SK, len_missing)
   elseif algorithm == :nres
-    res = Singular.nres(SK, len_missing-1)
+    res = Singular.nres(SK, len_missing)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -210,6 +220,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     cod = domain(first(cc.maps))
     pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
     cc.complete = true
+    return cc.maps[2]
   end
   return first(cc.maps)
 
