@@ -24,10 +24,10 @@ end
 pm_object(P::TropicalPolyhedron) = P.pm_tpolytope
 pm_object(P::TropicalPointConfiguration) = P.pm_tpolytope
 
-convention(P::TropicalPolyhedron{typeof(min)}) = min
-convention(P::TropicalPolyhedron{typeof(max)}) = max
-convention(P::TropicalPointConfiguration{typeof(min)}) = min
-convention(P::TropicalPointConfiguration{typeof(max)}) = max
+convention(::TropicalPolyhedron{typeof(min)}) = min
+convention(::TropicalPolyhedron{typeof(max)}) = max
+convention(::TropicalPointConfiguration{typeof(min)}) = min
+convention(::TropicalPointConfiguration{typeof(max)}) = max
 
 tropical_convex_hull(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = TropicalPolyhedron{M}(pm_object(P))
 tropical_point_configuration(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = TropicalPointConfiguration{M}(pm_object(P))
