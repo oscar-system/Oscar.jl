@@ -1190,6 +1190,7 @@ export minimal_primes
 export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_subalgebra_generators
 export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
+export minimize
 export minkowski_sum
 export minor
 export module_syzygies
