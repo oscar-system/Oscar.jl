@@ -604,6 +604,7 @@ export extend!
 export extension_field
 export exterior_derivative
 export exterior_power
+export extraspecial_group
 export f_vector
 export face_fan
 export face_poset
@@ -900,6 +901,7 @@ export is_empty
 export is_equal_with_morphism
 export is_equidimensional
 export is_equidistant
+export is_extraspecial_group
 export is_faithful
 export is_fano
 export is_feasible
@@ -1165,6 +1167,7 @@ export maximal_associated_points
 export maximal_blocks
 export maximal_cells
 export maximal_chains
+export maximal_cliques
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
@@ -1242,6 +1245,7 @@ export n_vertices
 export name
 export names_of_fusion_sources
 export natural_character
+export natural_gset
 export nef_cone
 export negative_coroot
 export negative_coroots
@@ -1613,12 +1617,8 @@ export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
 export simulate_valuation
-export singular
-export singular_assure
-export singular_coeff_ring
 export singular_locus
 export singular_locus_reduced
-export singular_poly_ring
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group

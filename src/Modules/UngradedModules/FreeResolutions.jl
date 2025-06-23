@@ -244,22 +244,22 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
-    higher syzygy modules. In the illustrating example below, the free resolution is
-    first computed up to length 1:
-    ```@julia
+    higher syzygy modules. In the first example of the examples section below, the free
+    resolution is initially computed up to length 1:
+    ```julia-repl
     julia> fr = free_resolution(M, length = 1)
     Free resolution of M
     R^2 <---- R^6
     0         1
     ```
     This resolution is not yet complete
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     false
     ```
     Continuing the session as follows, the resolution is extended up to length 4,
     without computing its first part again:
-    ```@julia
+    ```julia-repl
     julia> fr[4]
     Free module of rank 0 over R
 
@@ -269,7 +269,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     0         1         2         3         4
     ``` 
     As we already see from the output, the extended resolution is complete:
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     true
     ```
@@ -288,7 +288,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
     [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
     may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
-    ```@julia
+    ```julia-repl
     julia> FM = free_resolution(M)
     Free resolution of M
     Pn^44 <---- Pn^296 <---- Pn^808 <---- Pn^1019 <---- Pn^618 <---- Pn^169 <---- Pn^14 <---- 0
@@ -543,35 +543,38 @@ function free_resolution(M::SubquoModule{T};
   return FreeResolution(cc)
 end
 
-function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
+function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
   # This generic code computes a free resolution in a lazy way.
-  # We start out with a presentation of M and implement 
-  # an iterative fill function to compute every higher term 
+  # We start out with a presentation of M and implement
+  # an iterative fill function to compute every higher term
   # on request.
   R = base_ring(M)
   p = presentation(M)
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
-    # TODO: Use official getter and setter methods instead 
-    # of messing manually with the internals of the complex.
-    for i in first(chain_range(C)):k-1
-      N = domain(map(C, i))
+    min_index = first(chain_range(C))
+    target_index = length == 0 ? k-1 : max(min_index - (length - 1), k-1)
 
-      if iszero(N) # Fill up with zero maps
+    for i in min_index:target_index
+      N = domain(map(C, i))
+      if iszero(N)
         C.complete = true
         phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
       end
-
       K, inc = kernel(map(C, i))
       nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
+      if length != 0 && abs(i - min_index) + 1 >= length
+        C.complete = false
+        break
+      end
     end
     return first(C.maps)
   end
-  return p
+  return FreeResolution(p)
 end
 
 

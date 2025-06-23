@@ -257,19 +257,6 @@ function show(io::IO, I::IdealGens)
   end
 end
 
-function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
-  if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
-  end
-  return A.S[i]
-end
-
-function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-    if !isdefined(A, :O)
-      oscar_assure(A)
-  end
-  return A.O[i]
-end
 
 function Base.length(A::BiPolyArray)
   if isdefined(A, :S)
@@ -283,22 +270,13 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return oscar_generators(A)[s], s+1
 end
 
 Base.eltype(::Type{<:BiPolyArray{S}}) where S = S
 
-function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
-  return A.gens[Val(:S), i]
-end
-
-function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
-  return A.gens[Val(:O), i]
-end
-
 function gen(A::IdealGens, i::Int)
-  oscar_assure(A)
-  return A.gens.O[i]
+  return oscar_generators(A)[i]
 end
 
 Base.getindex(A::IdealGens, i::Int) = gen(A, i)
@@ -316,7 +294,7 @@ function Base.iterate(A::IdealGens, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return gen(A, s), s+1
 end
 
 Base.eltype(::Type{IdealGens{S}}) where S = S
@@ -341,7 +319,16 @@ function set_ordering!(G::IdealGens, monord::MonomialOrdering)
 end
 
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
-  singular_assure(B)
+  if !isdefined(B.gens, :S)
+    g = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
+    B.gens.Sx = codomain(g)
+    B.gens.f = g
+    B.gens.S = Singular.Ideal(B.gens.Sx, elem_type(B.gens.Sx)[g(x) for x in oscar_generators(B)])
+  end
+  if B.isGB && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gens.Sx))
+    B.gens.S.isGB = true
+  end
+
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(base_ring(B), MPolyQuoRing) && return B.gens.S
   isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gens.S))) == B.ord && return B.gens.S
@@ -598,10 +585,9 @@ Fields:
 
   function MPolyIdeal(B::IdealGens{T}) where T
     if length(B) >= 1
-      oscar_assure(B)
       R = base_ring(B)
       if is_graded(R)
-        @req all(is_homogeneous, B.gens.O) "The generators of an ideal in a graded ring must be homogeneous"
+        @req all(is_homogeneous, oscar_generators(B)) "The generators of an ideal in a graded ring must be homogeneous"
       end
     end
     r = new{T}()
@@ -623,10 +609,6 @@ function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
 end
 
-function singular_assure(I::MPolyIdeal)
-  singular_assure(I.gens)
-end
-
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
 end
@@ -639,38 +621,20 @@ function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord
   return (singular_generators(G, monorder)).base_ring
 end
 
-function singular_assure(I::IdealGens)
-  if !isdefined(I.gens, :S)
-    g = iso_oscar_singular_poly_ring(base_ring(I); keep_ordering = I.keep_ordering)
-    I.gens.Sx = codomain(g)
-    I.gens.f = g
-    I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x = I.gens.O])
-  end
-  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(base_ring(I), internal_ordering(I.gens.Sx)))
-    I.gens.S.isGB = true
-  end
-end
+oscar_generators(I::MPolyIdeal) = oscar_generators(I.gens)
 
-function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens.gens, :O)
-    R = base_ring(I)
-    I.gens.gens.O = [R(x) for x in gens(I.gens.gens.S)]
-  end
-end
+oscar_generators(IG::IdealGens) = oscar_generators(IG.gens)
 
-function oscar_assure(B::BiPolyArray)
-  if !isdefined(B, :O) || !isassigned(B.O, 1)
+function oscar_generators(B::BiPolyArray)
+  if !isdefined(B, :O)
     if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
       R = B.Ox
     end
-    B.O = [R(x) for x = gens(B.S)]
+    B.O = [R(x) for x in gens(B.S)]
   end
-end
-
-function oscar_assure(B::IdealGens)
-  oscar_assure(B.gens)
+  return B.O
 end
 
 function map_entries(R, M::Singular.smatrix)

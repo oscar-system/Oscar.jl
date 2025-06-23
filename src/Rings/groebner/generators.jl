@@ -7,8 +7,8 @@
 Given an ideal `I` in a multivariate polynomial ring this function assures that a
 Gröbner basis w.r.t. the given monomial ordering is attached to `I` in `I.gb`.
 It *currently* also ensures that the basis is defined on the Singular side in
-`I.gb.S`, but this should not be relied upon: use `singular_assure(I.gb)` before
-accessing `I.gb.S`.
+`I.gb.S`, but this should not be relied upon: use `singular_generators(I.gb)`
+instead of accessing `I.gb.S` directly.
 
 # Examples
 ```jldoctest
@@ -57,8 +57,7 @@ end
 
 function oscar_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   standard_basis(I, ordering=ordering, complete_reduction = complete_reduction)
-  oscar_assure(I.gb[ordering])
-  return I.gb[ordering].gens.O
+  return oscar_generators(I.gb[ordering])
 end
 
 function singular_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)

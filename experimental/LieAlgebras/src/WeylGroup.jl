@@ -597,6 +597,28 @@ end
 ###############################################################################
 # G-set functionality (can get moved to src/ once `isomorphism(PermGroup, ::WeylGroup)` gets moved)
 
+"""
+    natural_gset(W::WeylGroup)
+
+Return the G-set `Omega` that consists of the closure of root space elements
+under the natural action of `W`.
+
+!!! note
+    This function is only implemented for finite Weyl groups, that is root systems of classical type.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> length(natural_gset(W))
+6
+```
+"""
+function natural_gset(W::WeylGroup)
+  @req is_finite(W) "only implemented for finite Weyl groups"
+  return gset(W, roots(root_system(W)); closed=true)
+end
+
 Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
 
 function gset_by_type(W::WeylGroup, Omega, ::Type{RootSpaceElem}; closed::Bool=false)

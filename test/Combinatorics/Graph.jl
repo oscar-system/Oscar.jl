@@ -237,4 +237,9 @@
       G1 = graph_from_edges([[1,2],[2,3],[3,4]])
       @test is_bipartite(G1) == true
     end
+
+    @testset "maximal_cliques" begin
+      G = complete_bipartite_graph(2, 2)
+      @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
+    end
 end

@@ -49,6 +49,8 @@ gap> x = x / 1;
 true
 gap> AbsoluteValue( -r ) = r;
 true
+gap> r = QQBarFieldElement( Sqrt( 2 ) );
+true
 
 #
 gap> Sqrt(-x) = QQBarFieldElement(E(4));
@@ -64,6 +66,14 @@ gap> MinimalPolynomial( M );
 x_1^2+(<Root -2.00000 of x + 2>)
 gap> Eigenvalues( F, M );
 [ <Root 1.41421 of x^2 - 2>, <Root -1.41421 of x^2 - 2> ]
+gap> Display( M );
+2x2 matrix over QQBarField:
+                         . <Root 1.41421 of x^2 - 2>
+ <Root 1.41421 of x^2 - 2>                         .
+gap> Display( M : short );
+2x2 matrix over QQBarField:
+       . 1.41421
+ 1.41421       .
 
 #
 gap> r:= Sqrt( QQBarFieldElement( 2 ) );;
