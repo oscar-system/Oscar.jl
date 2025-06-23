@@ -332,9 +332,68 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
   return can_compute_index(d, I)
 end
 
+#= 
+# `simplify` for `FreeResolution`
+#
+# `FreeResolution` is a wrapper-type for `ComplexOfMorphism` which indicates that 
+# this particular complex comes from a free resolution. For instance, it prints 
+# differently.
+=#
+function simplify(c::FreeResolution{T}) where T
+  cut_off = length(c.C.maps)-2
+  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
+  phi = map_to_original_complex(simp)
+  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
+  # fill the cache from behind (usually faster)
+  for i in cut_off:-1:0
+    simp[i]
+  end
 
-function simplify(c::FreeResolution)
-  return simplify(SimpleComplexWrapper(c.C))
+  # treat the augmentation map
+  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
+
+  # Fill in the remaining maps.
+  # If the resulting resolution is already complete, 
+  # preserve that information. The minimization might 
+  # also become complete, even though the original resolution 
+  # was not. In case we end up with a non-complete minimal 
+  # resolution, avoid storing the last map, as it can not be 
+  # properly minimized, yet. 
+  for j in 1:cut_off-1
+    psi = map(simp, j)
+    pushfirst!(result.maps, psi)
+    if is_zero(domain(psi))
+      result.complete = true
+      break
+    end
+  end
+
+  # the last map needs special treatment
+  psi = map(simp, cut_off)
+  if is_zero(domain(psi))
+    pushfirst!(result.maps, psi)
+    result.complete = true
+  end
+  return FreeResolution(result)
+
+  # The following is left here as a prototype for later recycling.
+  result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
+    cc[i-1] # make sure cache is up to date
+    if is_zero(i)
+      pushfirst!(cc.maps, compose(phi[0], map(c, 0)))
+    else
+      pushfirst!(cc.maps, map(simp, i))
+    end
+    first(cc.maps)
+  end
+  final_res = FreeResolution(result)
+  return final_res
+end
+
+# An alias to cater for the common phrasing of the CA community. 
+function minimize(c::FreeResolution)
+  @assert is_graded(c[-1]) "complex does not consist of graded modules"
+  return simplify(c)
 end
 
 function simplify(c::ComplexOfMorphisms)

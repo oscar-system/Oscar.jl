@@ -1477,8 +1477,7 @@ function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothin
   @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
-  rng = Hecke.map_range(C)
-  n = first(rng)
+  n = first(Hecke.map_range(C))
   for i in 0:n
     module_degrees = F[i].d
     for degree in module_degrees
@@ -2554,12 +2553,15 @@ end
 @doc raw"""
     minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
 
-Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
+Given a (partial) graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
 Betti table of the minimal free resolution arising from `F`.
 
 !!! note
     The algorithm proceeds without actually minimizing the resolution.
+
+!!! note
+    In the case of a non-complete free resolution, the minimal Betti table is computed only up to the second last known non-zero module. To look further, the resolution must first be extended.
 
 # Examples
 ```jldoctest
@@ -2598,13 +2600,18 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
-  @assert is_complete(res) "resolution must be complete"
   rng = range(C)
-  # The following needs the resolution to be complete to be true
-  res_length = first(rng)-1
+  res_length = length(res)
+  # If the resolution is complete, then we can print the full 
+  # Betti table, including the last inclusion of the zero-module.
+  # If not, then we must stop earlier in order to not trigger 
+  # the computation of another step.
+  if is_complete(res)
+    res_length += 1
+  end
   offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
-  for i in 1:res_length+1
+  for i in 1:res_length
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
@@ -2616,11 +2623,15 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
         _, _, sub_mat = _constant_sub_matrix(phi, d; check)
         r = rank(sub_mat)
         c = ncols(sub_mat) - r - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
         offsets[d] = r
       else
         c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
       end
     end
   end
