@@ -344,6 +344,39 @@ function simplify(c::FreeResolution{T}) where T
   simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
   phi = map_to_original_complex(simp)
   result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
+  # fill the cache from behind (usually faster)
+  for i in cut_off:-1:0
+    simp[i]
+  end
+
+  # treat the augmentation map
+  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
+
+  # Fill in the remaining maps.
+  # If the resulting resolution is already complete, 
+  # preserve that information. The minimization might 
+  # also become complete, even though the original resolution 
+  # was not. In case we end up with a non-complete minimal 
+  # resolution, avoid storing the last map, as it can not be 
+  # properly minimized, yet. 
+  for j in 1:cut_off-1
+    psi = map(simp, j)
+    pushfirst!(result.maps, psi)
+    if is_zero(domain(psi))
+      result.complete = true
+      break
+    end
+  end
+
+  # the last map needs special treatment
+  psi = map(simp, cut_off)
+  if is_zero(domain(psi))
+    pushfirst!(result.maps, psi)
+    result.complete = true
+  end
+  return FreeResolution(result)
+
+  # The following is left here as a prototype for later recycling.
   result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
     cc[i-1] # make sure cache is up to date
     if is_zero(i)
