@@ -173,6 +173,47 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     return map(cc, first(r))
   end
 
+  # The code further below is incorrect, see #4998. Until we can provide a 
+  # reasonable fix using a continuation of Schreyer's ordering, we 
+  # provide a patch with new initiation of kernel computations.
+
+  phi = first(cc.maps)
+  K, inc_K = kernel(phi)
+  R = base_ring(K)
+  F = ambient_free_module(K)
+  SF = singular_module(F)
+  SK = singular_generators(algorithm == :fres ? groebner_basis(K) : K.sub.gens) # We need to start with a gb for `fres`.
+  
+  if algorithm == :fres
+    res = Singular.fres(SK, len_missing-1, "complete")
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+  elseif algorithm == :mres
+    res = Singular.mres(SK, len_missing-1)
+  elseif algorithm == :nres
+    res = Singular.nres(SK, len_missing-1)
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  for j in 1:Singular.length(res)
+    cod = domain(first(cc.maps))
+    I = SubModuleOfFreeModule(cod, res[j]) # convert to an Oscar module
+    phi = is_graded(cod) ? graded_map(cod, gens(I); check=false) : hom(free_module(R, ngens(I)), cod, gens(I))
+    pushfirst!(cc.maps, phi)
+    if is_zero(I)
+      cc.complete = true
+      return first(cc.maps)
+    end
+  end
+  if is_zero(res[Singular.length(res)+1])
+    cod = domain(first(cc.maps))
+    pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
+    cc.complete = true
+  end
+  return first(cc.maps)
+
+  #=
   kernel_entry          = image(cc.maps[1])[1]
   br                    = base_ring(kernel_entry)
   singular_free_module  = singular_module(ambient_free_module(kernel_entry))
@@ -229,6 +270,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   set_attribute!(cc, :show => Hecke.pres_show)
   maxidx = min(idx, first(Hecke.map_range(cc)))
   return map(cc, maxidx)
+  =#
 end
 
 @doc raw"""
