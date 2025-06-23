@@ -3,46 +3,17 @@
 ################
 
 @doc raw"""
-    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; convert::Bool = false)
+    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; check::Bool = true, convert::Bool = false)
 
-Construct a G4-flux candidate on an F-theory model. This functionality is
-currently limited to
-- Weierstrass models,
-- global Tate models,
-- hypersurface models.
-Furthermore, our functionality requires a concrete geometry. That is,
-the base space as well as the ambient space must be toric varieties.
-In the toric ambient space $X_\Sigma$, the elliptically fibered space $Y$
-that defines the F-theory model, is given by a hypersurface (cut out by
-the Weierstrass, Tate or hypersurface polynomial, respectively).
+Construct a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class on the toric ambient space.
 
-In this setting, we assume that a $G_4$-flux candidate is represented by a
-cohomology class $h$ in $H^{(2,2)} (X_\Sigma)$. The actual $G_4$-flux candidate
-is then obtained by restricting $h$ to $Y$.
+### Requirements
+- The model must be defined via a Weierstrass, global Tate, or hypersurface construction.
+- The ambient space must a smooth and complete toric variety.
 
-It is worth recalling that the $G_4$-flux candidate is subject to the quantization
-condition $G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})$ (see [Wit97](@cite)).
-This condition is very hard to verify. However, it is relatively easy to gather
-evidence for this condition to be satisfied/show that it is violated. To this end, let
-$D_1$, $D_2$ be two toric divisors in $X_\Sigma$, then the topological intersection number
-$\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]$
-must be an integer. Even this rather elementary check can be computationally expensive.
-Users can therefore decide to skip this check upon construction by setting the parameter
-`check` to the value `false`.
-
-Another bottleneck can be the computation of the cohomology ring, which is necessary to
-work with cohomology classes on the toric ambient space, which in turn define the G4-flux,
-as explained above. The reason for this is, that by employing the theory explained in
-[CLS11](@cite), we can only work out the cohomology ring of simpicial and complete (i.e. compact)
-toric varieties. However, checking if a toric variety is complete (i.e. compact) can take
-a long time. If the geometry in question is involved and you already know that the variety
-is simplicial and complete, then we recommend to trigger the computation of the cohomology
-ring with `check = false`. This will avoid this time consuming test.
-
-Let us mention that you can also supply the option `convert = true`. This will turn the
-provided cohomology class into the basis chosen internally.
-
-An example is in order.
+### Parameters
+- `check` (default: `true`): Perform basic consistency and necessary quantization checks.
+- `convert` (default: `false`): Express the ``G_4``-flux with the generating set used by `FTheoryTools`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -130,10 +101,13 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
 end
 
 
+
 @doc raw"""
     qsm_flux(qsm_model::AbstractFTheoryModel)
 
-For an F-theory QSM [CHLLT19](@cite), this method creates the particularly chosen G4-flux in these models.
+Return the ``G_4``-flux associated with one of the Quadrillion F-theory Standard models, as described in [CHLLT19](@cite CHLLT19).
+
+This flux has been pre-validated to pass essential consistency checks.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
