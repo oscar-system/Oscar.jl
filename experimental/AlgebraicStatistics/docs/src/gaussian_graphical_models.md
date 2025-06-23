@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Gaussian Graphical Models
 
 The OSCAR type for graphical models is of parametrized form `GraphicalModel{G, T}` where `T` represents the type of ring in which the vanishing ideal of the model belongs and `G` represents the associated graph. Gaussian graphical models are those where the `T` is of type `GaussianRing` which is a multivariate polynomial ring equipped with some extra features.

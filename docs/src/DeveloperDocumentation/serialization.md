@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Serialization](@id dev_serialization)
 This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
@@ -363,7 +357,7 @@ The ramifications of making mathematical data FAIR are manifold.
 - Future generations of mathematicians will be able to reuse both data and code
   if we establish a FAIR culture.
 
-# External Implementations
+## External Implementations
 
 Any external body implementing a save/load following the `.mrdi` format specification
 and using the OSCAR namespace should be sure to check validity against our schema defined

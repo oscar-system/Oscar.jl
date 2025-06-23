@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Monomial Orderings](@id monomial_orderings)
 
 Monomials in a set $x=\{x_1, \ldots, x_n\}$ of variables are written using

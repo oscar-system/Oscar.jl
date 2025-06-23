@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Ideals and Quotient Rings as Modules
 
 ## Ideals as Modules
@@ -12,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 ideal_as_module(I::Union{MPolyIdeal, MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
 ```
 
-# Quotient Rings as Modules
+## Quotient Rings as Modules
 
 ```@docs
 quotient_ring_as_module(A::MPolyQuoRing)

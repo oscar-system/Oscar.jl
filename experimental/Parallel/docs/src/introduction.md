@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Parallelization in Oscar
 
 The functionality in the experimental package `Parallel` provides tools to do simple things

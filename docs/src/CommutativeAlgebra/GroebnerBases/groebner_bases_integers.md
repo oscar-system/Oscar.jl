@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Gröbner/Standard Bases Over $\mathbb Z$
 
 In this section, we consider a polynomial ring

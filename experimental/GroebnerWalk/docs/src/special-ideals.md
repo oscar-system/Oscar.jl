@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Special ideals used for benchmarking
 
 We bundle a couple of special ideals useful for benchmarking of the Gröbner walk.

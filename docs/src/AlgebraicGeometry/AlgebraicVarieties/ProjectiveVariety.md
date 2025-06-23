@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Projective Varieties
 A projective variety over an algebraically closed field
 is an irreducible projective algebraic set. See [Projective Algebraic Sets](@ref).

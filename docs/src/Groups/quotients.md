@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Quotients](@id quotient)
 
 Quotient groups in OSCAR can be defined using the instruction `quo` in two ways.

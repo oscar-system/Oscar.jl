@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
-
 # Introduction
 
 Algebraic shifting is a widely applicable method for converting a uniform hypergraph $S$ into another hypergraph, $\Delta(S)$, which is somehow simpler but still retains key properties of $S$.

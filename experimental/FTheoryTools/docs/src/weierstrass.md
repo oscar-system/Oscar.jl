@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Weierstrass models
 
 A Weierstrass model describes a particular form of an elliptic fibration.

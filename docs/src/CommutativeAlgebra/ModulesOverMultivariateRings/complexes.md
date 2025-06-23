@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Chain and Cochain Complexes
 
 The general OSCAR type `ComplexOfMorphisms{T}` allows one to model both chain complexes and cochain complexes

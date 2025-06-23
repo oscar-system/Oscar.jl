@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 A variety in this chapter is a smooth irreducible projective algebraic set over the complex numbers. A subvariety
