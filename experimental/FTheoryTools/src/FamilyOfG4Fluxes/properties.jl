@@ -54,7 +54,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
@@ -131,7 +131,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
@@ -206,7 +206,7 @@ false
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group

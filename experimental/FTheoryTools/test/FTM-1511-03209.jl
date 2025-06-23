@@ -8,7 +8,7 @@
   @test n_rays(ambient_space(t)) == 104
   @test n_rays(ambient_space(fully_resolved_big_model)) == 313
   @test typeof(get_attribute(fully_resolved_big_model, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
-  @test length(chosen_g4_flux_basis(fully_resolved_big_model)) == 629
+  @test length(chosen_g4_flux_gens(fully_resolved_big_model)) == 629
   @test is_well_quantized(g1) == true
   @test breaks_non_abelian_gauge_group(g2) == false
   @test size(matrix_integral(f1)) == (629, 224)

@@ -44,7 +44,7 @@ function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
   @req nrows(mat_int) == length(offset) "Number of rows of integral matrix and length offset must coincide"
-  n_gens = length(chosen_g4_flux_basis(m, check = check))
+  n_gens = length(chosen_g4_flux_gens(m, check = check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
   return FamilyOfG4Fluxes(m, mat_int, mat_rat, offset)
 end

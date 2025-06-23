@@ -607,7 +607,7 @@ end
 
 
 @doc raw"""
-    chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+    chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
 
 Given an F-theory model `m` defined as a hypersurface in a simplicial and
 complete toric base, this method computes a basis of ``H^{2,2}(X, \mathbb{Q})``
@@ -632,7 +632,7 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> g4_basis = chosen_g4_flux_basis(t);
+julia> g4_basis = chosen_g4_flux_gens(t);
 
 julia> length(g4_basis)
 2
@@ -653,7 +653,7 @@ Cohomology class on a normal toric variety given by z^2
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
 Hypersurface model over a concrete base
 
-julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
+julia> g4_basis = chosen_g4_flux_gens(qsm_model, check = false);
 
 julia> cohomology_class(g4_basis[1])
 Cohomology class on a normal toric variety given by x15*e2
@@ -662,7 +662,7 @@ julia> length(g4_basis) == 172
 true
 ```
 """
-chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
+chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
 
 
 
