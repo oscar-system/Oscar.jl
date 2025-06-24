@@ -223,65 +223,6 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     return cc.maps[2]
   end
   return first(cc.maps)
-
-  #=
-  kernel_entry          = image(cc.maps[1])[1]
-  br                    = base_ring(kernel_entry)
-  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
-  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
-                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
-  singular_kernel_entry.isGB = true
-
-  len = len_missing + 1
-  if algorithm == :fres
-    res = Singular.fres(singular_kernel_entry, len, "complete")
-  elseif algorithm == :lres
-    error("LaScala's method is not yet available in Oscar.")
-  elseif algorithm == :mres
-    res = Singular.mres(singular_kernel_entry, len)
-  elseif algorithm == :nres
-    res = Singular.nres(singular_kernel_entry, len)
-  else
-    error("Unsupported algorithm $algorithm")
-  end
-
-  dom = domain(cc.maps[1])
-  j   = 2
-
-  #= get correct length of Singular sresolution =#
-  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
-  #= adjust length for extension length in Oscar =#
-  slen = slen > len ? len : slen
-
-  while j <= slen
-    rk = Singular.ngens(res[j])
-    if is_graded(dom)
-      codom = dom
-      SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
-      #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
-      map = graded_map(codom, gens(SM); check=false)
-      dom = domain(map)
-    else
-      codom = dom
-      dom   = free_module(br, Singular.ngens(res[j]))
-      SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
-      map = hom(dom, codom, gens(SM); check=false)
-    end
-    pushfirst!(cc, map) 
-    j += 1
-  end
-  # Finalize maps.
-  if slen < len
-    Z = FreeMod(br, 0)
-    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
-    cc.complete = true
-  end
-  set_attribute!(cc, :show => Hecke.pres_show)
-  maxidx = min(idx, first(Hecke.map_range(cc)))
-  return map(cc, maxidx)
-  =#
 end
 
 @doc raw"""
