@@ -302,9 +302,9 @@ def main(new_version: str, old_version: str = "") -> None:
             "--json=id,title,number,closedAt",
         ], shell=False, capture_output=True)
         j = list(json.loads(l.stdout.decode()))
-        startdate = [k['closedAt'] for k in j if k['title'] == f"Version 1.{minor}.0-dev"][0][0:10]
+        startdate = [k['closedAt'] for k in j if f"1.{minor}.0-dev" in k['title'].lower()][0][0:10]
     print("Base tag is", basetag)
-    print("Base tag was created ", startdate)
+    print("Base tag was closed at ", startdate)
 
     print("Downloading filtered PR list")
     prs = get_pr_list(startdate, extra)
