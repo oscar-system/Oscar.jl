@@ -48,7 +48,7 @@
       end
     end
 
-    @testset "ToricDivisorClass" begin
+    @testset "ToricCohomologyClass" begin
       pp = projective_space(NormalToricVariety, 2)
       cc = volume_form(pp)
       cc_list = [cc]
@@ -58,5 +58,19 @@
       end
     end
 
+    @testset "ToricChernClasses" begin
+      pp = projective_space(NormalToricVariety, 2)
+      cherns = chern_classes(pp)
+      cc_list = [cherns]
+      test_save_load_roundtrip(path, cc_list) do loaded
+        @test cherns == loaded[1]
+        @test integrate(loaded[1][2]) == 3
+      end
+    end
+
   end
 end
+
+
+
+      
