@@ -40,6 +40,25 @@ tropical_point_configuration(V::AbstractVector{T}) where {T<:AbstractVector{<:Tr
 
 Constructs the tropical convex hull of the vertices `V` in the tropical projective torus
 with `M` as tropical addition.
+
+# Examples
+Defines a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
+```jldoctest
+julia> A = TT.(identity_matrix(QQ, 3));
+
+julia> P = tropical_convex_hull(A)
+Max tropical polyhedron in tropical projective torus of dimension 2
+```
+
+The vertices of a tropical convex hull may also be given by the rows of a tropical matrix:
+```jldoctest
+julia> TT = tropical_semiring();
+
+julia> A = TT[0 -4 -1; 0 -1 0];
+
+julia> P = tropical_convex_hull(A)
+Min tropical polyhedron in tropical projective torus of dimension 2
+```
 """
 tropical_convex_hull(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = _tropical_convex_hull(TropicalPolyhedron, V)
 @doc raw"""
@@ -47,6 +66,24 @@ tropical_convex_hull(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = 
 
 Constructs the tropical point configuration of the vertices `V` in the tropical projective torus
 with `M` as tropical addition.
+
+# Examples
+Defines a point configuration containing a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
+```jldoctest
+julia> A = TT.(identity_matrix(QQ, 3));
+
+julia> P = tropical_convex_hull(A)
+Max tropical point configuration in tropical projective torus of dimension 2
+```
+The tropical point configuration may also be given by the rows of a tropical matrix:
+```jldoctest
+julia> TT = tropical_semiring();
+
+julia> A = TT[0 -4 -1; 0 -1 0];
+
+julia> P = tropical_point_configuration(A)
+Min tropical point configuration in tropical projective torus of dimension 2
+```
 """
 tropical_point_configuration(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = _tropical_convex_hull(TropicalPointConfiguration, V)
 
@@ -55,8 +92,32 @@ tropical_point_configuration(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinO
 
 Constructs the tropical convex hull of the vertices `V` in the tropical projective torus
 with `convention` as tropical addition.
+
+# Examples
+Defines a point configuration containing a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
+```jldoctest
+julia> A = identity_matrix(QQ, 3);
+
+julia> P = tropical_convex_hull(max, A)
+Max tropical polyhedron in tropical projective torus of dimension 2
+```
 """
 tropical_convex_hull(convention::MinOrMax, V::QQMatrix) = _tropical_convex_hull(TropicalPolyhedron, convention, V)
+@doc raw"""
+    tropical_point_configuration(convention::MinOrMax, V::QQMatrix)
+
+Constructs the tropical point configuration of the vertices `V` in the tropical projective torus
+with `convention` as tropical addition.
+
+# Examples
+Defines a point configuration containing a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
+```jldoctest
+julia> A = identity_matrix(QQ, 3);
+
+julia> P = tropical_point_configuration(max, A)
+Max tropical point configuration in tropical projective torus of dimension 2
+```
+"""
 tropical_point_configuration(convention::MinOrMax, V::QQMatrix) = _tropical_convex_hull(TropicalPointConfiguration, convention, V)
 
 function _tropical_convex_hull(as::Union{Type{TropicalPolyhedron},Type{TropicalPointConfiguration}}, V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax}
@@ -86,9 +147,5 @@ function tropical_polyhedron(convention::MinOrMax, A::QQMatrix, B::QQMatrix)
   p = Polymake.tropical.Polytope{convention}(INEQUALITIES=(A,B))
 
   return TropicalPolyhedron{typeof(convention)}(p)
-end
-
-struct ProjectiveTropicalPolyhedron{M<:MinOrMax} <: PolyhedralObject{QQFieldElem}
-  
 end
 
