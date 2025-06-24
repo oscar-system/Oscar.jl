@@ -173,9 +173,17 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     return map(cc, first(r))
   end
 
-  # The code further below is incorrect, see #4998. Until we can provide a 
+  # The current version is a workaround; see #4998. Until we can provide a 
   # reasonable fix using a continuation of Schreyer's ordering, we 
   # provide a patch with new initiation of kernel computations.
+  if algorithm == :fres
+    # In case of `:fres`, we start the computation of the resolution 
+    # from scratch. Continuation is not possible at the moment, because 
+    # the information on the Schreyer orderings is lost in Singular internals. 
+    # Continuation via kernel computations is, in most examples, more expensive 
+    # than starting again from the beginning.
+    return _extend_free_resolution_via_fres(cc, idx)
+  end
 
   phi = first(cc.maps)
   K, inc_K = kernel(phi)
@@ -224,6 +232,23 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   end
   return first(cc.maps)
 end
+
+# For an explanation see the call to this method above.
+function _extend_free_resolution_via_fres(cc::Hecke.ComplexOfMorphisms, idx::Int)
+  M = cc[-1]
+  res = free_resolution(M; algorithm=:fres, length=idx)
+  i0 = first(range(cc))
+  phi = map(res, i0+1)
+  @assert ngens(codomain(phi)) == ngens(cc[i0]) "Schreyer resolutions are not compatible"
+  Fi0 = cc[i0]
+  img_gens = elem_type(cc[i0])[sum(c*Fi0[j] for (j, c) in coordinates(v); init=zero(Fi0)) for v in images_of_generators(phi)]
+  pushfirst!(cc.maps, hom(res[i0+1], Fi0, img_gens))
+  for j in first(range(cc))+1:first(range(res.C))
+    pushfirst!(cc.maps, map(res, j))
+  end
+  return first(cc.maps)
+end
+
 
 @doc raw"""
     free_resolution(M::SubquoModule{T}; 
