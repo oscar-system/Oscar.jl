@@ -1852,3 +1852,4 @@ export young_tableau
 export zero_section
 export zonotope
 export zonotope_vertices_fukuda_matrix
+export n_pseudovertices
