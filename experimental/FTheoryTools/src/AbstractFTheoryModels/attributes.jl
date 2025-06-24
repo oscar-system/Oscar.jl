@@ -1294,12 +1294,9 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
     cs = Dict{Int64, CohomologyClass}()
-    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
+    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)), quick = true)
     diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
-    coeffs_list = coefficients(toric_divisor(toric_divisor_class(ambient_space(m), diff)))
-    indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
-    poly = sum(QQ(coeffs_list[k]) * indets[k] for k in 1:length(indets))
-    cs[1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
+    cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
     set_attribute!(m, :chern_classes, cs)
     if k == 0
       return cs[0]
@@ -1320,17 +1317,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   end
 
   # Chern class is not known, so compute and return it...
-  #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-  #cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
-  d = toric_divisor(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
-  indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
-  coeff_ring = coefficient_ring(ambient_space(m))
-  poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
-  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))), quick = true)
   ck_ambient = chern_class(ambient_space(m), k, check = check)
   ckm1 = chern_class(m, k-1, check = check)
   new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
-  cs[k] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly), true)
+  coho_R = cohomology_ring(ambient_space(m), check = check)
+  cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), quick = true)
   set_attribute!(m, :chern_classes, cs)
   return cs[k]
 end
