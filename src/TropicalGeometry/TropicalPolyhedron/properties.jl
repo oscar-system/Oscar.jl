@@ -278,7 +278,7 @@ function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   cov = pm_object(P).POLYTOPE_MAXIMAL_COVECTOR_CELLS
   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
   ind = findall(1:size(ct, 1)) do i
-    all(!=(0), ct[i,:])
+    all(!iszero, ct[i,:])
   end
 
   if !isnothing(dehomogenize_by)
@@ -298,7 +298,7 @@ function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   # cov = pm_object(P).POLYTOPE_MAXIMAL_COVECTOR_CELLS
   # ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
   # ind = findall(1:size(ct, 1)) do i
-  #   all(!=(0), ct[i,:])
+  #   all(!iszero, ct[i,:])
   # end
   # return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
   #end
