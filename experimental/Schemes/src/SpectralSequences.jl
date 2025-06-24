@@ -20,7 +20,7 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   A::CoeffRingType
   graded_complex::AbsHyperComplex
   pages::Dict{Int, CSSPage}
-  pfctx::PushForwardCtx
+  pfctx::Union{PushForwardCtx, ToricCtx}
 
 @doc raw"""
     CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
@@ -95,6 +95,14 @@ Module homomorphism
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}())
+  end
+  
+  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex)
+    @assert isone(dim(comp)) "complex must be 1-dimensional"
+    S = cox_ring(X)
+    ctx = ToricCtx(X)
+    A = coefficient_ring(S)
+    return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
   end
 end
 
@@ -723,7 +731,7 @@ end
 relations(F::FreeMod) = elem_type(F)[]
 
 function multiplication_map(
-    ctx::PushForwardCtx, 
+    ctx::Union{PushForwardCtx, ToricCtx},
     p::MPolyDecRingElem,
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
