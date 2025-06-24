@@ -191,7 +191,7 @@ function free_resolution(
                                   upper_bounds = [upper_bound], 
                                   lower_bounds = [0]
                                  )
-  result = SimpleFreeResolution(M, internal_complex; length, algorithm)
+  result = SimpleFreeResolution(M, internal_complex)
   FC = ZeroDimensionalComplex(F)[0:0] # Wrap FC as a 1-dimensional complex concentrated in degree 0
   aug_map = hom(result[(0,)], F, gens(F); check=false) # The actual augmentation map
   aug_map.generators_map_to_generators = true

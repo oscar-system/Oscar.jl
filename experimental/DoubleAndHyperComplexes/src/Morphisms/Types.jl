@@ -134,7 +134,6 @@ original_complex(c::SimplifiedComplex) = c.original_complex
   function SimpleFreeResolution(
       M::T,
       complex::AbsHyperComplex{ChainType, MorphismType};
-      initial_length::Union{Nothing, Int}=nothing
     ) where {ChainType, MorphismType, T}
     return new{ChainType, MorphismType, T}(M, complex)
   end
