@@ -220,7 +220,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     cod = domain(first(cc.maps))
     pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
     cc.complete = true
-    return cc.maps[2]
+    return cc.maps[len_missing > Singular.length(res) ? 1 : 2]
   end
   return first(cc.maps)
 end
