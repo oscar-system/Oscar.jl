@@ -374,6 +374,10 @@ function simplify(c::FreeResolution{T}) where T
     pushfirst!(result.maps, psi)
     result.complete = true
   end
+  set_attribute!(result, 
+                 :show=>Hecke.pres_show, 
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
   return FreeResolution(result)
 
   # The following is left here as a prototype for later recycling.
