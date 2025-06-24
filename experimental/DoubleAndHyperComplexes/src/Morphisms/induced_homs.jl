@@ -89,16 +89,16 @@ end
 
 underlying_morphism(phi::InducedContravariantMorphism) = phi.internal_morphism
   
-# The same for covariant induced maps
 function hom(
     phi::AbsHyperComplexMorphism, 
     D::AbsHyperComplex;
-    domain::HomComplex = hom(D, Oscar.domain(phi)),
-    codomain::HomComplex = hom(D, Oscar.codomain(phi))
+    domain::HomComplex = hom(Oscar.codomain(phi), D),
+    codomain::HomComplex = hom(Oscar.domain(phi), D)
   )
   return InducedContravariantMorphism(phi, D; domain, codomain)
 end
 
+# The same for covariant induced maps
 struct InducedCovariantMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
   phi::AbsHyperComplexMorphism
   dom::HomComplex
