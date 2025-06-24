@@ -104,7 +104,14 @@ function pseudovertices(as::Type{PointVector{T}}, P::TropicalPointConfiguration)
   return SubObjectIterator{as}(P, _pseudovertices, n)
 end
 pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) where {M<:MinOrMax} = pseudovertices(PointVector{TropicalSemiringElem{M}}, P)
-n_pseudovertices(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PSEUDOVERTICES |> size |> first
+
+n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> size |> first
+function n_pseudovertices(P::TropicalPolyhedron) 
+  ind = findall(1:size(CT, 1)) do i
+    all(!iszero, CT[i,:])
+  end
+  return length(ind)
+end
 
 function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{TropicalPolyhedron,TropicalPointConfiguration}, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
