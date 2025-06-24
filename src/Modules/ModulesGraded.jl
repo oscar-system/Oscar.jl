@@ -36,10 +36,14 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(
+    R::AdmissibleModuleFPRing, p::Int, 
+    W::Vector{FinGenAbGroupElem}=[zero(grading_group(R)) for i in 1:p], 
+    name::String="e"
+  )
   @assert length(W) == p
   @assert is_graded(R)
-  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  all(parent(x) === grading_group(R) for x in W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
   M.d = W
   return M
@@ -200,8 +204,8 @@ end
 @doc raw"""
     grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 
-Given a free module `F` over a graded ring with grading group $G = \mathbb Z^m$, and given
-a vector `W` of `ngens(F)` integer vectors of the same size `m`, say, define a $G$-grading on `F` 
+Given a free module `F` over a graded ring with a grading group $G = \mathbb Z^m$, and given
+a vector `W` of `ngens(F)` integer vectors of size `m`, define a $G$-grading on `F`
 by converting the vectors in `W` to elements of $G$, and assigning these elements as weights to 
 the variables. Return the new module.
 
@@ -212,7 +216,7 @@ As above, converting the columns of `W`.
     grade(F::FreeMod, W::Vector{<:IntegerUnion})
 
 Given a free module `F` over a graded ring with grading group $G = \mathbb Z$, and given
-a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` converting the entries 
+a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` by converting the entries
 of `W` to elements of `G`, and assigning these elements as weights to the variables. 
 Return the new module.
 
@@ -1259,7 +1263,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -1340,7 +1344,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -1380,7 +1384,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -1473,8 +1477,7 @@ function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothin
   @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
-  rng = Hecke.map_range(C)
-  n = first(rng)
+  n = first(Hecke.map_range(C))
   for i in 0:n
     module_degrees = F[i].d
     for degree in module_degrees
@@ -1524,7 +1527,7 @@ function Base.show(io::IO, b::BettiTable)
   step, min, maxv = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))
   column_widths = Dict()
   for j in min:step:maxv
-    sum_col = sum(getindex(T, x[m]) for m in 1:length(x) if x[m][1] == j)
+    sum_col = sum(T[y] for y in x if y[1] == j)
     col_width_from_sum = ndigits(abs(sum_col))
     col_width_from_header = ndigits(abs(j))# + (j < 0 ? 1 : 0)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
@@ -1535,9 +1538,7 @@ function Base.show(io::IO, b::BettiTable)
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
 
       # figure out width of first column
-      L = sort(unique!(collect(x[k][2][i] for k in 1:length(x))))
-      mi = minimum(L)
-      mx = maximum(L)
+      mi, mx = extrema(y[2][i] for y in x)
       # 6 = length(degree); we take length of mi into account in case it is negative
       first_column_width = max(6, ndigits(mi), ndigits(mx))
 
@@ -1561,7 +1562,7 @@ function Base.show(io::IO, b::BettiTable)
       for j in mi:mx
         print(io, lpad(j, first_column_width), ":")
         for h in min:step:maxv
-          sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
+          sum_current = sum([T[y] for y in x if y[1] == h && y[2][i] == j])
           @assert column_widths[h] - ndigits(sum_current) >= 2
           print(io, " "^(column_widths[h] - ndigits(sum_current) - 2))
           print(io, " ", sum_current == 0 ? "-" : sum_current)
@@ -1576,7 +1577,7 @@ function Base.show(io::IO, b::BettiTable)
       # footer row
       print(io, lpad("total", first_column_width), ":")
       for i_total in min:step:maxv
-        sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
+        sum_row = sum(T[y] for y in x if y[1] == i_total)
         print(io, " ", sum_row)
         if i_total != maxv
           print(io, " "^(column_widths[i_total] - ndigits(sum_row)-1))
@@ -1604,10 +1605,10 @@ function Base.show(io::IO, b::BettiTable)
         print(io, L1[k], " " ^ (s2 - ndigits(L1[k]) + (5 - s2)), ": ")
         for h in min:step:max
             partial_sum = 0
-            for i in 1:length(x)
-              current_sum = (coordinates(b.project) * transpose(coordinates(x[i][2])))[1]
-                if current_sum == L1[k] && x[i][1] == h
-                    partial_sum += getindex(T, x[i])
+            for y in x
+              current_sum = (coordinates(b.project) * transpose(coordinates(y[2])))[1]
+                if current_sum == L1[k] && y[1] == h
+                    partial_sum += T[y]
                 end
             end
             if partial_sum == 0
@@ -1623,9 +1624,9 @@ function Base.show(io::IO, b::BettiTable)
     print(io, "\n", "total: ")
     for i in min:step:max
         total_sum = 0
-        for j in 1:length(x)
-            if x[j][1] == i
-                total_sum += getindex(T, x[j])
+        for y in x
+            if y[1] == i
+                total_sum += T[y]
             end
         end
         print(io, total_sum, " " ^ (spaces - ndigits(total_sum) + 1))
@@ -1641,21 +1642,23 @@ end
 # https://www.singular.uni-kl.de/Manual/4-3-1/sing_1827.htm#SEC1908
 ###############################################################################
 
-mutable struct sheafCohTable
+mutable struct SheafCohTable
   twist_range::UnitRange{Int}
   values::Matrix{Int}
 end
 
-function Base.getindex(st::sheafCohTable, ind...)
+function Base.getindex(st::SheafCohTable, ind...)
   row_ind = size(st.values, 1) - ind[1]
   col_ind = ind[2] - first(st.twist_range) + 1
   return st.values[row_ind, col_ind]
 end
 
-function Base.show(io::IO, table::sheafCohTable)
+function Base.show(io::IO, table::SheafCohTable)
   chi = [any(==(-1), col) ? -1 : sum(col) for col in eachcol(table.values)]
   # pad every value in the table to this length
-  val_space_length = max(maximum(_ndigits, table.values), maximum(_ndigits, chi))
+  val_space_length = max(maximum(_ndigits, table.values), maximum(_ndigits, chi)) + 1
+# consider table.twist_range as well
+# handle sign!
   nrows = size(table.values, 1)
 
   # rows to print
@@ -1664,18 +1667,19 @@ function Base.show(io::IO, table::sheafCohTable)
   chi_print =  [_shcoh_string_rep(v, val_space_length) for v in chi]
 
   # row labels
-  row_label_length = max(_ndigits(nrows - 1), 3) + 3
+  row_label_length = max(ndigits(nrows - 1), 5) + 1
   for i in 1:nrows
-    pushfirst!(print_rows[i], rpad("$(nrows-i): ", row_label_length, " "))
+    pushfirst!(print_rows[i], lpad("$(nrows-i):", row_label_length, " "))
   end
-  pushfirst!(chi_print, rpad("chi: ", row_label_length, " "))  
+  pushfirst!(chi_print, lpad("chi:", row_label_length, " "))  
 
   # header
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, rpad("twist:", row_label_length, " "))
+  pushfirst!(header, lpad("twist:", row_label_length, " "))
+
+  size_row = sum(length, first(print_rows))
 
   println(io, header...)
-  size_row = sum(length, first(print_rows))
   println(io, repeat("-", size_row))
   for rw in print_rows
     println(io, rw...)
@@ -1724,14 +1728,14 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2)
-twist:  -6  -5  -4  -3  -2  -1   0   1   2
-------------------------------------------
-3:      70  36  15   4   -   -   -   -   *
-2:       *   -   -   -   -   -   -   -   -
-1:       *   *   -   -   -   -   1   -   -
-0:       *   *   *   -   -   -   -   -   6
-------------------------------------------
-chi:     *   *   *   4   -   -   1   -   *
+twist: -6 -5 -4 -3 -2 -1  0  1  2
+---------------------------------
+    3: 70 36 15  4  -  -  -  -  *
+    2:  *  -  -  -  -  -  -  -  -
+    1:  *  *  -  -  -  -  1  -  -
+    0:  *  *  *  -  -  -  -  -  6
+---------------------------------
+  chi:  *  *  *  4  -  -  1  -  *
 
 julia> tbl[0, 2]
 6
@@ -1740,17 +1744,15 @@ julia> tbl[1, 0]
 1
 
 julia> sheaf_cohomology(M, -9, 5)
-twist:   -9   -8   -7   -6   -5   -4   -3   -2   -1    0    1    2    3    4    5
----------------------------------------------------------------------------------
-3:      280  189  120   70   36   15    4    -    -    -    -    -    *    *    *
-2:        *    -    -    -    -    -    -    -    -    -    -    -    -    *    *
-1:        *    *    -    -    -    -    -    -    -    1    -    -    -    -    *
-0:        *    *    *    -    -    -    -    -    -    -    -    6   20   45   84
----------------------------------------------------------------------------------
-chi:      *    *    *   70   36   15    4    -    -    1    -    6    *    *    *
-```
+twist:  -9  -8  -7  -6  -5  -4  -3  -2  -1   0   1   2   3   4   5
+------------------------------------------------------------------
+    3: 280 189 120  70  36  15   4   -   -   -   -   -   *   *   *
+    2:   *   -   -   -   -   -   -   -   -   -   -   -   -   *   *
+    1:   *   *   -   -   -   -   -   -   -   1   -   -   -   -   *
+    0:   *   *   *   -   -   -   -   -   -   -   -   6  20  45  84
+------------------------------------------------------------------
+  chi:   *   *   *  70  36  15   4   -   -   1   -   6   *   *   *
 
-```jldoctest
 julia> R, x = polynomial_ring(QQ, :x => 1:5);
 
 julia> S, _  = grade(R);
@@ -1758,15 +1760,15 @@ julia> S, _  = grade(R);
 julia> F = graded_free_module(S, 1);
 
 julia> sheaf_cohomology(F, -8, 3, algorithm = :loccoh)
-twist:  -8  -7  -6  -5  -4  -3  -2  -1   0   1   2   3
-------------------------------------------------------
-4:      35  15   5   1   -   -   -   -   -   -   -   -
-3:       -   -   -   -   -   -   -   -   -   -   -   -
-2:       -   -   -   -   -   -   -   -   -   -   -   -
-1:       -   -   -   -   -   -   -   -   -   -   -   -
-0:       -   -   -   -   -   -   -   -   1   5  15  35
-------------------------------------------------------
-chi:    35  15   5   1   -   -   -   -   1   5  15  35
+twist: -8 -7 -6 -5 -4 -3 -2 -1  0  1  2  3
+------------------------------------------
+    4: 35 15  5  1  -  -  -  -  -  -  -  -
+    3:  -  -  -  -  -  -  -  -  -  -  -  -
+    2:  -  -  -  -  -  -  -  -  -  -  -  -
+    1:  -  -  -  -  -  -  -  -  -  -  -  -
+    0:  -  -  -  -  -  -  -  -  1  5 15 35
+------------------------------------------
+  chi: 35 15  5  1  -  -  -  -  1  5 15 35
 ```
 """
 function sheaf_cohomology(M::ModuleFP{T},
@@ -1802,26 +1804,26 @@ julia> R, x = grade(R);
 julia> F = graded_free_module(R, 1);
 
 julia> Oscar._sheaf_cohomology_bgg(F, -7, 2)
-twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
-----------------------------------------------
-4:      15   5   1   -   -   -   *   *   *   *
-3:       *   -   -   -   -   -   -   *   *   *
-2:       *   *   -   -   -   -   -   -   *   *
-1:       *   *   *   -   -   -   -   -   -   *
-0:       *   *   *   *   -   -   -   1   5  15
-----------------------------------------------
-chi:     *   *   *   *   -   -   *   *   *   *
+twist: -7 -6 -5 -4 -3 -2 -1  0  1  2
+------------------------------------
+    4: 15  5  1  -  -  -  *  *  *  *
+    3:  *  -  -  -  -  -  -  *  *  *
+    2:  *  *  -  -  -  -  -  -  *  *
+    1:  *  *  *  -  -  -  -  -  -  *
+    0:  *  *  *  *  -  -  -  1  5 15
+------------------------------------
+  chi:  *  *  *  *  -  -  *  *  *  *
 
 julia> sheaf_cohomology(F, -11, 6)
-twist:  -11  -10   -9   -8   -7   -6   -5   -4   -3   -2   -1    0    1    2    3    4    5    6
-------------------------------------------------------------------------------------------------
-4:      210  126   70   35   15    5    1    -    -    -    -    -    -    -    *    *    *    *
-3:        *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *    *    *
-2:        *    *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *    *
-1:        *    *    *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *
-0:        *    *    *    *    -    -    -    -    -    -    -    1    5   15   35   70  126  210
-------------------------------------------------------------------------------------------------
-chi:      *    *    *    *   15    5    1    -    -    -    -    1    5   15    *    *    *    *
+twist: -11 -10  -9  -8  -7  -6  -5  -4  -3  -2  -1   0   1   2   3   4   5   6
+------------------------------------------------------------------------------
+    4: 210 126  70  35  15   5   1   -   -   -   -   -   -   -   *   *   *   *
+    3:   *   -   -   -   -   -   -   -   -   -   -   -   -   -   -   *   *   *
+    2:   *   *   -   -   -   -   -   -   -   -   -   -   -   -   -   -   *   *
+    1:   *   *   *   -   -   -   -   -   -   -   -   -   -   -   -   -   -   *
+    0:   *   *   *   *   -   -   -   -   -   -   -   1   5  15  35  70 126 210
+------------------------------------------------------------------------------
+  chi:   *   *   *   *  15   5   1   -   -   -   -   1   5  15   *   *   *   *
 ```
 
 ```jldoctest
@@ -1844,14 +1846,14 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2, algorithm = :loccoh)
-twist:  -6  -5  -4  -3  -2  -1   0   1   2
-------------------------------------------
-3:      70  36  15   4   -   -   -   -   -
-2:       -   -   -   -   -   -   -   -   -
-1:       -   -   -   -   -   -   1   -   -
-0:       -   -   -   -   -   -   -   -   6
-------------------------------------------
-chi:    70  36  15   4   -   -   1   -   6
+twist: -6 -5 -4 -3 -2 -1  0  1  2
+---------------------------------
+    3: 70 36 15  4  -  -  -  -  -
+    2:  -  -  -  -  -  -  -  -  -
+    1:  -  -  -  -  -  -  1  -  -
+    0:  -  -  -  -  -  -  -  -  6
+---------------------------------
+  chi: 70 36 15  4  -  -  1  -  6
 
 julia> tbl[3, -6]
 70
@@ -1870,7 +1872,7 @@ function _sheaf_cohomology_bgg(M::ModuleFP{T},
   values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
                                                    l, h, reg,
                                                    weights)
-  return sheafCohTable(l:h, values)
+  return SheafCohTable(l:h, values)
 end
 
 @doc raw"""
@@ -1905,14 +1907,14 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = Oscar._sheaf_cohomology_loccoh(M, -6, 2)
-twist:  -6  -5  -4  -3  -2  -1   0   1   2
-------------------------------------------
-3:      70  36  15   4   -   -   -   -   -
-2:       -   -   -   -   -   -   -   -   -
-1:       -   -   -   -   -   -   1   -   -
-0:       -   -   -   -   -   -   -   -   6
-------------------------------------------
-chi:    70  36  15   4   -   -   1   -   6
+twist: -6 -5 -4 -3 -2 -1  0  1  2
+---------------------------------
+    3: 70 36 15  4  -  -  -  -  -
+    2:  -  -  -  -  -  -  -  -  -
+    1:  -  -  -  -  -  -  1  -  -
+    0:  -  -  -  -  -  -  -  -  6
+---------------------------------
+  chi: 70 36 15  4  -  -  1  -  6
 
 julia> tbl[3, -6]
 70
@@ -1927,15 +1929,15 @@ julia> R, x = grade(R);
 julia> F = graded_free_module(R, 1);
 
 julia> Oscar._sheaf_cohomology_loccoh(F, -7, 2)
-twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
-----------------------------------------------
-4:      15   5   1   -   -   -   -   -   -   -
-3:       -   -   -   -   -   -   -   -   -   -
-2:       -   -   -   -   -   -   -   -   -   -
-1:       -   -   -   -   -   -   -   -   -   -
-0:       -   -   -   -   -   -   -   1   5  15
-----------------------------------------------
-chi:    15   5   1   -   -   -   -   1   5  15
+twist: -7 -6 -5 -4 -3 -2 -1  0  1  2
+------------------------------------
+    4: 15  5  1  -  -  -  -  -  -  -
+    3:  -  -  -  -  -  -  -  -  -  -
+    2:  -  -  -  -  -  -  -  -  -  -
+    1:  -  -  -  -  -  -  -  -  -  -
+    0:  -  -  -  -  -  -  -  1  5 15
+------------------------------------
+  chi: 15  5  1  -  -  -  -  1  5 15
 ```
 """
 function _sheaf_cohomology_loccoh(M::ModuleFP{T},
@@ -1947,7 +1949,7 @@ function _sheaf_cohomology_loccoh(M::ModuleFP{T},
   values = Singular.LibSheafcoh.sheafCoh_w(sing_mod,
                                            l, h,
                                            weights)
-  return sheafCohTable(l:h, values)
+  return SheafCohTable(l:h, values)
 end
 
 # helper functions
@@ -1958,9 +1960,8 @@ function _shcoh_string_rep(val::Int, padlength::Int)
 end
 
 function _ndigits(val::Int)
-  iszero(val) && return 3
-  val == -1 && return 3
-  return Int(floor(log10(val))) + 3
+  val == -1 && return 1  # is display as '*'
+  return ndigits(val)
 end
 
 function _weights_and_sing_mod(M::ModuleFP{T}) where {T <: MPolyDecRingElem}
@@ -2505,7 +2506,7 @@ end
     minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} 
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
-multivariate polynomial ring with coefficients in a field, return the Betti Table
+multivariate polynomial ring with coefficients in a field, return the Betti table
 of the minimal free resolution of `M`. Similarly for `A` and `I`.
 
 # Examples
@@ -2552,12 +2553,15 @@ end
 @doc raw"""
     minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
 
-Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
+Given a (partial) graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
 Betti table of the minimal free resolution arising from `F`.
 
 !!! note
     The algorithm proceeds without actually minimizing the resolution.
+
+!!! note
+    In the case of a non-complete free resolution, the minimal Betti table is computed only up to the second last known non-zero module. To look further, the resolution must first be extended.
 
 # Examples
 ```jldoctest
@@ -2596,13 +2600,18 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
-  @assert is_complete(res) "resolution must be complete"
   rng = range(C)
-  # The following needs the resolution to be complete to be true
-  res_length = first(rng)-1
+  res_length = length(res)
+  # If the resolution is complete, then we can print the full 
+  # Betti table, including the last inclusion of the zero-module.
+  # If not, then we must stop earlier in order to not trigger 
+  # the computation of another step.
+  if is_complete(res)
+    res_length += 1
+  end
   offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
-  for i in 1:res_length+1
+  for i in 1:res_length
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
@@ -2614,11 +2623,15 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
         _, _, sub_mat = _constant_sub_matrix(phi, d; check)
         r = rank(sub_mat)
         c = ncols(sub_mat) - r - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
         offsets[d] = r
       else
         c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
       end
     end
   end

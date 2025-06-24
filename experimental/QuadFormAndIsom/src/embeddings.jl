@@ -329,20 +329,15 @@ end
 function _possible_glue_orders(
     qM::TorQuadModule,
     qN::TorQuadModule,
-    glue_order::Union{Nothing, IntegerUnion},
   )
-  if !isnothing(glue_order)
-    pos_ord = typeof(glue_order)[glue_order]
-  else
-    _gcd = ZZ(1)
-    snM = reverse!(elementary_divisors(qM))
-    snN = reverse!(elementary_divisors(qN))
-    k = min(length(snM), length(snN))
-    for i in 1:k
-      mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
-    end
-    pos_ord = divisors(_gcd)
+  _gcd = ZZ(1)
+  snM = reverse!(elementary_divisors(qM))
+  snN = reverse!(elementary_divisors(qN))
+  k = min(length(snM), length(snN))
+  for i in 1:k
+    mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
   end
+  pos_ord = divisors(_gcd)
   return pos_ord
 end
 
@@ -570,9 +565,10 @@ end
 #   require to mention both;
 # * `chiM` and `chiN` are polynomial which should be annihilate `fqM` and `fqN`
 #   respectively on the given glue domains;
-# * `glue_order` is the index of the primitive extension (which is also the
-#   size of a glue domain);
-# * `q` is the expected discriminant form of a primitive extension;
+# * `glue_order` is a list of potential indices of the primitive extension
+#   (which are also the potential size of a glue domain);
+# * `form_over` is a list of potential discriminant forms of a primitive
+#   extension;
 # * `compute_bar_Gf`, in the equivariant cases (so ext_type !=
 #   (:plain, :plain)) asks to compute the representation of the centralizer of
 #   the isometries constructed on the discriminant group of the associated
@@ -609,13 +605,13 @@ function _primitive_extensions_generic(
     fN::QQMatrix=identity_matrix(QQ, rank(N)),
     fqN::TorQuadModuleMap=id_hom(domain(GN)),
     chiN::QQPolyRingElem=minimal_polynomial(fN),
-    glue_order::Union{IntegerUnion, Nothing}=nothing,
-    q::Union{TorQuadModule, Nothing}=nothing,
+    glue_order::AbstractVector{T}=Int[],
+    form_over::Vector{TorQuadModule}=TorQuadModule[],
     compute_bar_Gf::Bool=false,
     OqfM::Union{Nothing, AutomorphismGroup{TorQuadModule}}=nothing,
     OqfN::Union{Nothing, AutomorphismGroup{TorQuadModule}}=nothing,
     discrep::Union{GAPGroupHomomorphism, Nothing}=nothing,
-  )
+  ) where T <: Hecke.IntegerUnion
   @assert ext_type[2] == :plain || ext_type[1] == :equivariant
 
   if ext_type[1] == :equivariant
@@ -633,27 +629,49 @@ function _primitive_extensions_generic(
 
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
-  if !isnothing(glue_order)
-    @req glue_order > 0 "Order of glue groups must be a positive integer"
-    !is_divisible_by(numerator(gcd(det(M), det(N))), glue_order) && return false, results
-    if !isnothing(q)
-      @req modulus_bilinear_form(q) == 1 "q does not define the discriminant form of an integral lattice"
-      glue_order^2*order(q) == abs(det(M)*det(N)) || return false, results
+  if !isempty(glue_order)
+    _glue_order = sort!(unique!(deepcopy(glue_order)))
+    @req all(>(0), _glue_order) "Orders of glue groups must be positive integers"
+    filter!(o -> is_divisible_by(numerator(gcd(det(M), det(N))), o), _glue_order)
+    isempty(_glue_order) && return false, results
+    if !isempty(form_over)
+      _form_over = deepcopy(form_over)
+      @req all(q -> modulus_bilinear_form(q) == 1, _form_over) "Elements of form_over do not define the discriminant forms of an integral lattice"
+      filter!(q -> any(o -> o^2*order(q) == abs(det(M)*det(N)), _glue_order), _form_over)
       aM, _, bM = signature_tuple(M)
       aN, _, bN = signature_tuple(N)
-      !is_genus(q, (aM+aN, bM+bN); parity) && return false, results
-      G = genus(q, (aM+aN, bM+bN); parity)
+      filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _form_over)
+      isempty(_form_over) && return false, results
+      Gs = ZZGenus[genus(q, (aM+aN, bM+bN); parity) for q in _form_over]
+      unique!(Gs) # In case someone inputs several times the same form in `form_over`
+      filter!(o -> any(q -> o^2*order(q) == abs(det(M)*det(N)), _form_over), _glue_order)
+      isempty(_glue_order) && return false, results
+    else
+      Gs = ZZGenus[]
     end
-  elseif !isnothing(q)
-    @req modulus_bilinear_form(q) == 1 "q does not define the discriminant form of an integral lattice"
+  elseif !isempty(form_over)
+    _form_over = deepcopy(form_over)
+    @req all(q -> modulus_bilinear_form(q) == 1, _form_over) "q does not define the discriminant form of an integral lattice"
     aM, _, bM = signature_tuple(M)
     aN, _, bN = signature_tuple(N)
-    !is_genus(q, (aM+aN, bM+bN); parity) && return false, results
-    G = genus(q, (aM+aN, bM+bN); parity)
-    ok, x = divides(numerator(det(M)*det(N)), order(q))
-    !ok && return false, results
-    ok, glue_order = is_square_with_sqrt(abs(x))
-    !ok && return false, results
+    filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _form_over)
+    isempty(_form_over) && return false, results
+    _glue_order = ZZRingElem[]
+    Gs = ZZGenus[]
+    for q in _form_over
+      ok, x = divides(numerator(det(M)*det(N)), order(q))
+      !ok && continue
+      ok, o = is_square_with_sqrt(abs(x))
+      !ok && continue
+      push!(_glue_order, o)
+      push!(Gs, genus(q, (aM+aN, bM+bN); parity))
+    end
+    isempty(_glue_order) && return false, results
+    sort!(unique!(_glue_order))
+    unique!(Gs)
+  else
+    _glue_order = ZZRingElem[]
+    Gs = ZZGenus[]
   end
 
   # Methods are simpler if we work in a fixed space
@@ -692,8 +710,9 @@ function _primitive_extensions_generic(
   # #TODO: we could improve more the collection of common anti-isometric
   # subgroups of qM and qN by working with common abelian group substructures
   # for each possible order.
-  pos_ord = _possible_glue_orders(qM, qN, glue_order)
-
+  if isempty(_glue_order)
+    _glue_order = _possible_glue_orders(qM, qN)
+  end
   # In the primary and elementary case, we can make things faster
   prM, pM = is_primary_with_prime(M)
   elM = is_elementary(M, pM)
@@ -707,7 +726,7 @@ function _primitive_extensions_generic(
   # We do everything in the good primary parts
   all_prim = (prM && pM != 1) || (prN && pN != 1)
 
-  for k in pos_ord
+  for k in _glue_order
     ok, ek, pk = is_prime_power_with_data(k)
     # If k is a prime power, then we check whether any of the pk-primary part
     # of qM or qN is elementary (to make things faster)
@@ -809,8 +828,8 @@ function _primitive_extensions_generic(
           for b in reporb
             L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b; same_ambient)
 
-            if !isnothing(q) && genus(L) != G
-              continue
+            if !isempty(Gs)
+              genus(L) in Gs || continue
             elseif is_even(L) != even
               continue
             end
@@ -1173,11 +1192,11 @@ end
     primitive_extensions(
       M::ZZLat,
       N::ZZLat;
-      glue_order::Union{IntegerUnion, Nothing}=nothing,
-      q::Union{TorQuadModule, Nothing}=nothing,
+      glue_order::AbstractVector{T}=Int[],
+      form_over::Vector{TorQuadModule}=TorQuadModule[],
       even::Bool=(is_even(M) && is_even(N)),
       classification::Symbol=:subsub,
-    ) -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
+    ) where T <: IntegerUnion -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
 
 Given two integral integer lattices $M$ and $N$, return a boolean `T` and a
 list $V$ of representatives of isomorphism classes of primitive extensions
@@ -1219,11 +1238,11 @@ even.
 function primitive_extensions(
     M::ZZLat,
     N::ZZLat;
-    glue_order::Union{IntegerUnion, Nothing}=nothing,
-    q::Union{TorQuadModule, Nothing}=nothing,
+    glue_order::AbstractVector{T}=Int[],
+    form_over::Vector{TorQuadModule}=TorQuadModule[],
     even::Bool=(is_even(M) && is_even(N)),
     classification::Symbol=:subsub,
-  )
+  ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
@@ -1245,7 +1264,7 @@ function primitive_extensions(
   exist_only = classification == :none
   first = classification == :first
 
-  bool, res = _primitive_extensions_generic(M, N, GM, GN, (:plain, :plain); even, exist_only, first, glue_order, q)
+  bool, res = _primitive_extensions_generic(M, N, GM, GN, (:plain, :plain); even, exist_only, first, glue_order, form_over)
 
   for t in res
     push!(results, lattice.(t))
@@ -1494,7 +1513,7 @@ function primitive_embeddings(
     # Now for each K in GK, we compute primitive extensions of M and K into a
     # unimodular lattice in G
     for K in orths
-      ok, pe = primitive_extensions(M, K; q, even, classification=cs)
+      ok, pe = primitive_extensions(M, K; form_over=TorQuadModule[q], even, classification=cs)
       !ok && continue
       classification == :none && return true, results
       if !isempty(pe)
@@ -1523,7 +1542,6 @@ function primitive_embeddings(
   # embedding such extensions in a big unimodular lattice (which we take
   # unique in its genus)
   _, Vs = primitive_extensions(M, T; even, classification=cs)
-
   # GL is our big unimodular genus where we embed each of the V in Vs
   # GL is taken odd in the odd case
   if even
@@ -1575,7 +1593,7 @@ function primitive_embeddings(
     orths = reduce(vcat, Vector{ZZLat}[representatives(_GK) for _GK in GKs])
     for K in orths
       GK, _ = image_in_Oq(K)
-      ok, pe = _primitive_extensions_generic(V, K, GV, GK, (:plain, :plain); even, exist_only=(classification == :none), first=(classification == :first), q=discriminant_group(GL))
+      ok, pe = _primitive_extensions_generic(V, K, GV, GK, (:plain, :plain); even, exist_only=(classification == :none), first=(classification == :first), form_over=[discriminant_group(GL)])
       !ok && continue
       classification == :none && return true, results
       !isempty(pe) && append!(resV, Tuple{ZZLat, ZZLat, ZZLat}[lattice.(t) for t in pe])
@@ -1620,13 +1638,13 @@ end
     equivariant_primitive_extensions(
       M::Union{ZZLat, ZZLatWithIsom},
       N::Union{ZZLat, ZZLatWithIsom};
-      glue_order::Union{IntegerUnion, Nothing}=nothing,
-      q::Union{IntegerUnion, Nothing}=nothing,
+      glue_order::AbstractVector{T}=Int[],
+      form_over::Vector{TorQuadModule}=TorQuadModule[],
       even::Bool=(is_even(M) && is_even(N)),
       classification::Symbol=:subsub,
       compute_bar_Gf::Bool=true,
       first_fitting_isometry::Bool=false,
-    ) -> Bool, Vector{Tuple{ZZLatWithIsom, ZZLatWithIsom, ZZLatWithIsom}}
+    ) where T <: IntegerUnion -> Bool, Vector{Tuple{ZZLatWithIsom, ZZLatWithIsom, ZZLatWithIsom}}
 
 Given two integral integer lattices $M$ and $N$, where at least one of them
 is equipped with an isometry, return a boolean `T` and a list $V$ of
@@ -1693,13 +1711,13 @@ equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLat, Z
 function equivariant_primitive_extensions(
     M::ZZLatWithIsom,
     N::ZZLatWithIsom;
-    glue_order::Union{IntegerUnion, Nothing}=nothing,
-    q::Union{TorQuadModule, Nothing}=nothing,
+    glue_order::AbstractVector{T}=Int[],
+    form_over::Vector{TorQuadModule}=TorQuadModule[],
     even::Bool=(is_even(M) && is_even(N)),
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=true,
     first_fitting_isometry::Bool=false,
-  )
+  ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
   qM, fqM = discriminant_group(M)
@@ -1727,19 +1745,38 @@ function equivariant_primitive_extensions(
   exist_only = classification == :none
   first = classification == :first
 
-  return _primitive_extensions_generic(lattice(M), lattice(N), GM, GN, (:equivariant, :equivariant); even, exist_only, first, first_fitting_isometry, fM=isometry(M), fqM=hom(fqM), fN=isometry(N), fqN=hom(fqN), glue_order, q, compute_bar_Gf, OqfM, OqfN)
+  return _primitive_extensions_generic(
+                                       lattice(M),
+                                       lattice(N),
+                                       GM,
+                                       GN,
+                                       (:equivariant, :equivariant);
+                                       even,
+                                       exist_only,
+                                       first,
+                                       first_fitting_isometry,
+                                       fM=isometry(M),
+                                       fqM=hom(fqM),
+                                       fN=isometry(N),
+                                       fqN=hom(fqN),
+                                       glue_order,
+                                       form_over,
+                                       compute_bar_Gf,
+                                       OqfM,
+                                       OqfN,
+                                      )
 end
 
 function equivariant_primitive_extensions(
     M::ZZLatWithIsom,
     N::ZZLat;
-    glue_order::Union{IntegerUnion, Nothing}=nothing,
-    q::Union{TorQuadModule, Nothing}=nothing,
+    glue_order::AbstractVector{T}=Int[],
+    form_over::Vector{TorQuadModule}=TorQuadModule[],
     even::Bool=(is_even(M) && is_even(N)),
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=false,
     first_fitting_isometry::Bool=false,
-  )
+  ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
   @req is_definite(N) "Only available for definite complement"
 
@@ -1772,19 +1809,38 @@ function equivariant_primitive_extensions(
   exist_only = classification == :none
   first = classification == :first
 
-  return _primitive_extensions_generic(lattice(M), N, GM, GN, (:equivariant, :plain); even, exist_only, first, first_fitting_isometry, fM=isometry(M), fqM=hom(fqM), chiN=zero(Hecke.Globals.Qx), glue_order, q, compute_bar_Gf, OqfM, OqfN, discrep=discN)
+  return _primitive_extensions_generic(
+                                       lattice(M),
+                                       N,
+                                       GM,
+                                       GN,
+                                       (:equivariant, :plain);
+                                       even,
+                                       exist_only,
+                                       first,
+                                       first_fitting_isometry,
+                                       fM=isometry(M),
+                                       fqM=hom(fqM),
+                                       chiN=zero(Hecke.Globals.Qx),
+                                       glue_order,
+                                       form_over,
+                                       compute_bar_Gf,
+                                       OqfM,
+                                       OqfN,
+                                       discrep=discN,
+                                      )
 end
 
 function equivariant_primitive_extensions(
     M::ZZLat,
     N::ZZLatWithIsom;
-    glue_order::Union{IntegerUnion, Nothing}=nothing,
-    q::Union{TorQuadModule, Nothing}=nothing,
+    glue_order::AbstractVector{T}=Int[],
+    form_over::Vector{TorQuadModule}=TorQuadModule[],
     even::Bool=(is_even(M) && is_even(N)),
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=false,
     first_fitting_isometry::Bool=false,
-  )
+  ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
   if classification == :subemb
@@ -1793,7 +1849,16 @@ function equivariant_primitive_extensions(
     classification = :subemb
   end
 
-  ok, res = equivariant_primitive_extensions(N, M; glue_order, q, even, classification, compute_bar_Gf, first_fitting_isometry)
+  ok, res = equivariant_primitive_extensions(
+                                             N,
+                                             M;
+                                             glue_order,
+                                             form_over,
+                                             even,
+                                             classification,
+                                             compute_bar_Gf,
+                                             first_fitting_isometry,
+                                            )
 
   for i in 1:length(res)
     res[i] = res[i][[1,3,2]]
@@ -1816,6 +1881,7 @@ end
       p::IntegerUnion,
       q::IntegerUnion = p;
       check::Bool=true,
+      test_type::Bool=true,
     ) -> Vector{ZZLatWithIsom}
 
 Given a triple of lattices with isometry $(A, f_A)$, $(B, f_B)$ and $(C, f_C)$,
@@ -1836,6 +1902,9 @@ are orthogonal if $A$, $B$ and $C$ lie in the same ambient quadratic space.
 Note moreover that the function computes the image of the natural map
 $O(C, f_C) \to O(D_C, D_{f_C})$ along the primitive extension
 $A\oplus B\subseteq C$ (see Algorithm 2, Line 22 of [BH23](@cite)).
+
+If one sets `test_type` to `false`, then the function does not check if the
+outputs satisfy the type condition.
 """
 function admissible_equivariant_primitive_extensions(
     A::ZZLatWithIsom,
@@ -1844,6 +1913,7 @@ function admissible_equivariant_primitive_extensions(
     p::IntegerUnion,
     q::IntegerUnion = p;
     check::Bool=true,
+    test_type::Bool=true,
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
@@ -1899,7 +1969,9 @@ function admissible_equivariant_primitive_extensions(
     C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
     # If not of the good type, we discard it
-    !is_of_type(C2fC2^q, type(C)) && return results
+    if test_type && !is_of_type(C2fC2^q, type(C))
+      return results
+    end
     qC2 = discriminant_group(C2)
     OqC2 = orthogonal_group(qC2)
     phi2 = hom(qC2, D, elem_type(D)[D(lift(x)) for x in gens(qC2)])
@@ -2036,7 +2108,9 @@ function admissible_equivariant_primitive_extensions(
       C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
-      !is_of_type(C2fC2^q, type(C)) && continue
+      if test_type && !is_of_type(C2fC2^q, type(C))
+        continue
+      end
 
       disc, stab = _glue_stabilizers(phig, actA, actB, OqAinOD, OqBinOD, extinD)
 

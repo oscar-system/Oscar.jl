@@ -8,7 +8,7 @@
   @test n_rays(ambient_space(t)) == 104
   @test n_rays(ambient_space(fully_resolved_big_model)) == 313
   @test typeof(get_attribute(fully_resolved_big_model, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
-  @test length(chosen_g4_flux_basis(fully_resolved_big_model)) == 629
+  @test length(chosen_g4_flux_gens(fully_resolved_big_model)) == 629
   @test is_well_quantized(g1) == true
   @test breaks_non_abelian_gauge_group(g2) == false
   @test size(matrix_integral(f1)) == (629, 224)
@@ -79,7 +79,7 @@ end
       sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
     end
     for (k,v) in sampled_dict
-      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly))
+      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly), true)
       @test v == integrate(desired_class, check = false)
     end
   end

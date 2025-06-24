@@ -60,11 +60,11 @@ function groebner_basis_f4(
         info_level::Int=0
         )
 
-    AI = AlgebraicSolving.Ideal(I.gens.O)
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
     vars = gens(base_ring(I))[eliminate+1:end]
     ord = degrevlex(vars)
     if length(AI.gens) == 0
-        I.gb[ord]        = IdealGens(I.gens.Ox, singular_generators(I), complete_reduction)
+        I.gb[ord]        = IdealGens(base_ring(I), singular_generators(I), complete_reduction)
         I.gb[ord].ord    = ord
         I.gb[ord].isGB   = true
         I.gb[ord].S.isGB = true

@@ -7,8 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 # Wreath Macdonald polynomials
 
 The existence, integrality and positivity of wreath Macdonald polynomials
- has been conjectured by Haiman [Hai02](@cite) and proved by Bezrukavnikov
- and Finkelberg [BF14](@cite).
+ has been conjectured by Haiman [Hai02](@cite) and proved by Bezrukavnikov and Finkelberg [BF14](@cite).
 Here we have implemented an algorithm computing the wreath Macdonald
  polynomials as defined in the survey by Orr and Shimozono on this topic [OS23](@cite).
 
@@ -32,9 +31,8 @@ Finally, the wreath Macdonald polynomials can be interpreted as the eigenbasis o
 
 In our implementation, wreath Macdonald polynomials depend on two parameters. The first parameter is
  an ``r``-multipartition of ``n`` (the ``r``-quotient of ``\lambda``). The second parameter is an element of the affine Weyl group
- of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group
- of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}`` (the ``r``-core of ``\lambda``).
- The element of the coroot lattice is given in the canonical basis. It is then the sublattice
+ of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}`` (the ``r``-core of ``\lambda``).
+The element of the coroot lattice is given in the canonical basis. It is then the sublattice
 of ``\mathbb{Z}^r`` of elements summing up to zero.
 
 ```@docs

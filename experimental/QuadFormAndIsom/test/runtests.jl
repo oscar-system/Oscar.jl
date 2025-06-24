@@ -350,7 +350,7 @@ end
   reps = @inferred admissible_equivariant_primitive_extensions(F, C, Lf^0, 5)
   @test length(reps) == 1
   @test is_of_same_type(Lf, reps[1])
-  _, reps = @inferred primitive_extensions(lattice(F), lattice(C); q=discriminant_group(L), classification=:embemb)
+  _, reps = @inferred primitive_extensions(lattice(F), lattice(C); form_over=[discriminant_group(L)], classification=:embemb)
   @test length(reps) == 2
   @test reps[1] == (L, lattice(F), lattice(C))
 
@@ -404,7 +404,7 @@ end
   L = integer_lattice(B, gram = G);
   k = lattice_in_same_ambient_space(L, B[2:2, :])
   N = orthogonal_submodule(L, k)
-  ok, reps = primitive_extensions(k, N; glue_order=3)
+  ok, reps = primitive_extensions(k, N; glue_order=[3])
   @test ok
   @test length(reps) == 2
 
@@ -424,11 +424,11 @@ end
   Fs = integer_lattice_with_isometry(root_lattice(:E, 6); neg=false)
   q = torsion_quadratic_module(QQ[0;])
 
-  ok, reps = equivariant_primitive_extensions(A2, Fs; q, classification=:embemb)
+  ok, reps = equivariant_primitive_extensions(A2, Fs; form_over=[q], classification=:embemb)
   @test ok
   @test length(reps) == 6
 
-  ok, reps = equivariant_primitive_extensions(reps[1][2], reps[1][3]; q, classification=:embemb)
+  ok, reps = equivariant_primitive_extensions(reps[1][2], reps[1][3]; form_over=[q], classification=:embemb)
   @test ok
   @test length(reps) == 2
 
@@ -474,4 +474,37 @@ end
   @testset "< 1.4.0 Upgrade" begin
     test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
   end
+end
+
+@testset "Fix type condition" begin
+  B = matrix(QQ, 6, 6 ,[-1//2, 0, 1//2, 0, 0, 0, 0, 1//2, 0, 0, -1//2, 0, 0, 0, 0, -1//2, 0, 1//2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 1, 0, -1, 0, -1, 0, 0, 0])
+  G = matrix(QQ, 6, 6 ,[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -13, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -91])
+  L = integer_lattice(B, gram = G)
+  r = enumerate_classes_of_lattices_with_isometry(L, 14; char_poly=cyclotomic_polynomial(14), fix_root=14)
+  @test length(r) == 3
+end
+
+@testset "New functionalities" begin
+  r = representatives_of_hermitian_type((2, 4), 3^5, cyclotomic_polynomial(9), 9)
+  @test length(r) == 1
+  Lf = only(r)
+  @test order_of_isometry(Lf) == 9
+  @test is_of_hermitian_type(Lf)
+  G = genus(Lf)
+  @test signature_pair(G) == (2, 4)
+  @test det(G) == 3^5
+
+  r = representatives_of_hermitian_type(Tuple{Int, Int}[(2,2), (2, 10), (2,18)], 1, cyclotomic_polynomial(12), 12)
+  @test length(r) == 3
+  @test all(Lf -> order_of_isometry(Lf) == 12, r)
+  @test all(is_of_hermitian_type, r)
+  @test all(is_unimodular, r)
+  @test all(Lf -> signature_tuple(Lf)[1] == 2, r)
+
+  r = representatives_of_hermitian_type(Tuple{Int, Int}[(2,2), (2,6)], 1:16, cyclotomic_polynomial(4), 4)
+  @test length(r) == 8
+  @test all(Lf -> det(Lf) in 1:16, r)
+  @test all(Lf -> order_of_isometry(Lf) == 4, r)
+  @test all(is_of_hermitian_type, r)
+  @test count(Lf -> is_one(order(discriminant_group(Lf)[2])), r) == 4
 end

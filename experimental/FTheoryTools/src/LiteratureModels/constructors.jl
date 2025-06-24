@@ -155,7 +155,7 @@ julia> length(singular_loci(w))
 1
 ```
 Similarly, also hypersurface models are supported:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -191,7 +191,7 @@ Thereby, you can create this F-theory model including a lot of advanced informat
 (e.g. more than 10.000.000 intersection numbers and explicit descriptions for the
 G4-fluxes on this space) within just a couple of minutes. For comparison, one a
 personal computer we expect that the computation of one resolution of this model
-takes about three to four hours. Identifying also all $G_4$-fluxes (vertical,
+takes about three to four hours. Identifying also all ``G_4``-fluxes (vertical,
 well-quantized and modelled by pullbacks from the toric ambient space) will likely
 take a few hours more. So, this infrastructure provides a very stark performence
 improvement.
@@ -704,7 +704,7 @@ end
 
 Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occurring in index.json.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))
 Model 33:
 Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")

@@ -45,7 +45,7 @@ Element of relative Brauer group of number field of degree 1 over QQ
 
 julia> K = grunwald_wang(b)
 Class field
-  over number field with defining polynomial x - 1
+  over number field with defining polynomial _$ - 1
     over rational field
 with modulus
   finite part <40>

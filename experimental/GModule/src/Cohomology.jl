@@ -85,20 +85,30 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function GModule(M, G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(M, G::T, ac::Vector{<:Map}) where {T}
     r = new{T,typeof(M)}()
     r.G = G
     r.ac = ac
     r.M = M
     @assert all(x -> domain(x) === codomain(x) === r.M, ac)
-    @assert length(ac) == ngens(G)
-    @hassert :GroupCohomology 1 is_consistent(r)
+    if isa(G, Group)
+      @assert length(ac) == ngens(G)
+      @hassert :GroupCohomology 1 is_consistent(r)
+    end
     return r
   end
 
 
-  function GModule(G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(G::T, ac::Vector{<:Map}) where {T}
     return GModule(domain(ac[1]), G, ac)
+  end
+
+  function GModule(ac::Vector{<:Map})
+    T = typeof(domain(ac[1]))
+    M = new{Nothing, T}()
+    M.M = domain(ac[1])
+    M.ac = ac
+    return M
   end
 
   F::Group # G as an Fp-group (if set)
@@ -136,14 +146,14 @@ group `H`, return the `ZZ[H]` module.
 
 Note: we do not check that this defined indeed a `ZZ[H]` module.
 """
-function gmodule(H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(H, ac)
 end
 
 #in case the group is trivial, (ngens == 0), then length(ac)=0
 #and the modules cannot be inferred. Thus a version with the
 #module...
-function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(M, H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(M, H, ac)
 end
 
@@ -198,6 +208,9 @@ action of `g`, ie. an array where each entry is mapped.
 """
 function action(C::GModule, g, v::Array)
   @assert parent(g) == Group(C)
+  if has_attribute(C, :is_trivial)
+    return v
+  end
 
   ac = action(C)
   f = findfirst(isequal(g), gens(Group(C)))
@@ -262,6 +275,9 @@ The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
   @assert parent(g) == Group(C)
+  if has_attribute(C, :is_trivial)
+    return C.ac[1]
+  end
 
   ac = action(C)
   G = Group(C)
@@ -380,7 +396,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   return iC, h
 end
 
-function Oscar.quo(C::GModule{<:Any, <:Generic.FreeModule}, mDC::Generic.ModuleHomomorphism)
+function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.ModuleHomomorphism)
   q, mq = Oscar.quo(C.M, image(mDC)[1])
   S = GModule(C.G, [hom(q, q, [mq(x(preimage(mq, t))) for t = gens(q)]) for x = C.ac])
   return S, mq
@@ -531,6 +547,7 @@ export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
+_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1073,7 +1090,7 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
       if do_f
         C.f(C, w, d1[w[i]], i)
       end
-      w = vcat(w[1:i-1], R[d1[w[i]]][2], w[i+1:end])
+      w = vcat(view(w, 1:i-1), R[d1[w[i]]][2], view(w, i+1:length(w)))
       i = 1
       continue
     end
@@ -1086,11 +1103,11 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
     if haskey(d2, (w[i], w[i+1]))
       for r = d2[(w[i], w[i+1])]
         if length(R[r][1]) + i-1 <= length(w) &&
-           R[r][1] == w[i:i+length(R[r][1])-1]
+           R[r][1] == view(w, i:i+length(R[r][1])-1)
           if do_f
             C.f(C, w, r, i)
           end
-          w = vcat(w[1:i-1], R[r][2], w[i+length(R[r][1]):end])
+          w = vcat(view(w, 1:i-1), R[r][2], view(w, i+length(R[r][1]):length(w)))
           i = 0
           break
         end
@@ -1102,7 +1119,7 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
 end
 
 function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
-  H_two(C; force_rws, redo)
+  H_two(C; force_rws, redo, maps_only = true)
   return get_attribute(C, :H_two_maps)
 end
 
@@ -1112,7 +1129,7 @@ https://arxiv.org/pdf/1910.11453.pdf
 almost the same as Holt
 =#
 #TODO: lazy = true, or even remove it
-function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = !false)
+function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = !false, maps_only::Bool = false)
   z = get_attribute(C, :H_two)
   if !redo && z !== nothing
     return domain(z[1]), z[1], z[2]
@@ -1207,27 +1224,33 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   # if use_rws we investigate all overlaps
   # otherwise, we know it a pc-presentation and thus fewer tests
   # are needed.
+  is_triv = has_attribute(C, :is_trivial)
+
   function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
     # C = c1 c2 ... C(tail):
-    @assert w[p:p+length(R[r][1])-1] == R[r][1]
+#    @assert w[p:p+length(R[r][1])-1] == R[r][1]
 
     if pos[r] == 0
       return
     end
 #    T = pro[pos[r]]
     T = nothing
-    for i=w[p+length(R[r][1]):end]
-      if i < 0
-        T = (T === nothing) ? iac[-i] : T*iac[-i]
-#        T = T*iac[-i]
-      else
-        T = (T === nothing) ? ac[i] : T * ac[i]
-#        T = T*ac[i]
+    if is_triv
+      C.T += pro[pos[r]]
+    else
+      for i=view(w, p+length(R[r][1]):length(w))
+        if i < 0
+          T = (T === nothing) ? iac[-i] : T*iac[-i]
+  #        T = T*iac[-i]
+        else
+          T = (T === nothing) ? ac[i] : T * ac[i]
+  #        T = T*ac[i]
+        end
       end
+      C.T += T === nothing ? pro[pos[r]] : pro[pos[r]] * T
     end
-    C.T += T === nothing ? pro[pos[r]] : pro[pos[r]] * T
   end
   c.f = symbolic_collect
 
@@ -1262,27 +1285,46 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
       end
 
       for l=1:l_max
-        if r[1][end-l+1:end] == s[1][1:l]
+        if view(r[1], length(r[1])-l+1:length(r[1])) == view(s[1], 1:l)
           #TODO  AB    -> Ss  s,t are tails
           #       BC   -> Tt
           #      (AB)C -> SsC -> SC C(s)
           #      A(BC) -> ATt -> AT t
           if pos[i] > 0
-            c.T = pro[pos[i]]
-            for h = s[1][l+1:end]
-              if h < 0
-                c.T = c.T * iac[-h]
+            if is_triv
+              c.T = pro[pos[i]]
+            else
+              first = true
+              for h = view(s[1], l+1:length(s[1]))
+                if h < 0
+                  if first
+                    c.T = iac[-h] 
+                    first = false
+                  else
+                    c.T = c.T * iac[-h]
+                  end
+                else
+                  if first
+                    c.T = ac[h] 
+                    first = false
+                  else
+                    c.T = c.T * ac[h]
+                  end
+                end
+              end
+              if first
+                c.T = pro[pos[i]]
               else
-                c.T = c.T * ac[h]
+                c.T = pro[pos[i]] * c.T
               end
             end
           else
             c.T = Z
           end
-          z1 = collect(vcat(r[2], s[1][l+1:end]), c)
+          z1 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
           T = c.T
           c.T = Z
-          z2 = collect(vcat(r[1][1:end-l], s[2]), c)
+          z2 = collect(vcat(view(r[1], 1:length(r[1])-l), s[2]), c)
           if pos[j] > 0
             c.T += pro[pos[j]]
           end
@@ -1293,7 +1335,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     end
   end
 
-  @vprint :GroupCohomology 2 "found $(length(all_T)) relations\n"
+  @vprint :GroupCohomology 1 "found $(length(all_T)) relations\n"
 
   if length(all_T) == 0
     Q = sub(M, elem_type(M)[])[1]
@@ -1302,13 +1344,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     mm = Oscar.direct_sum(all_T)
     Q = codomain(mm)
   end
-  @vprint :GroupCohomology 2 "computing 2-cycles...\n"
-#  return mm;
-  @vtime :GroupCohomology 2 E, mE = kernel(mm)
-  @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
-  @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
-
-
   if length(ac) == 0
     B = sub(M, elem_type(M)[])[1]
     B_pro = []
@@ -1361,6 +1396,17 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
 
     CC += (T-S)*inj[pos[i]]
   end
+
+  set_attribute!(C, :H_two_maps => (CC, mm))
+  if maps_only
+    return
+  end
+
+  @vprint :GroupCohomology 2 "computing 2-cycles...\n"
+  @vtime :GroupCohomology 2 E, mE = kernel(mm)
+  @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
+  @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
+
   @vprint :GroupCohomology 2 "now the 2-boundaries...\n"
   @vtime :GroupCohomology 2 i, mi = image(CC)
   @vprint :GroupCohomology 2 "and the quotient...\n"
@@ -1542,14 +1588,22 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
-  set_attribute!(C, :H_two_maps => (CC, mm))
 
-  function is_coboundary(cc::CoChain{2})
+  function is_coboundary(cc::CoChain{2}; reduce::Bool = false)
     t = TailFromCoChain(cc)
     fl, b = has_preimage_with_preimage(CC, t)
     if !fl
       return false, nothing
     end
+    if reduce
+      k, mk = kernel(CC)
+      if !is_trivial(k)
+        m = vcat(ZZMatrix[mk(x).coeff for x = gens(k) if !iszero(x)]...)
+        m = lll(m)
+        b = parent(b)(Hecke.MultDep.size_reduce(m, b.coeff))
+      end
+    end
+
     d = Dict{Tuple{elem_type(G), }, elem_type(M)}()
     # t gives, directly, the images of the generators (of FF)
     im_g = [B_pro[i](b) for i=1:ngens(FF)]
@@ -1857,38 +1911,19 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   end
   @assert nrows(h) == ncols(h)
   if refine
-    r = sparse_matrix(ZZ)
-    ng = 1
-    gp = []
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = factor(h[i,i]).fac
+      lf = collect(factor(h[i,i]).fac)
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
-          push!(r, sparse_row(ZZ, [ng, ng+1], [p, ZZRingElem(-1)]))
           push!(hm, v)
           v *= p
-          ng += 1
         end
-        push!(r, sparse_row(ZZ, [ng], [p]))
-        push!(gp, ng)
         push!(hm, v)
-        ng += 1
       end
     end
-    for i=1:nrows(h)
-      for j=i+1:ncols(h)
-        if !iszero(h[i,j])
-          push!(r.rows[gp[i]].pos, gp[j])
-          push!(r.rows[gp[i]].values, h[i,j])
-        end
-      end
-    end
-    MM = abelian_group(matrix(r))
-    h = hom(MM, M, hm)
-    M = MM
-    mM = h
+    M, mM = sub(M, hm) #without simplify is guaranteed to keep the gens!
   else
     mM = hom(M, M, gens(M))
   end
