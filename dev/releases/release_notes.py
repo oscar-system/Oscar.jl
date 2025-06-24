@@ -157,7 +157,8 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    return json.loads(res.stdout.strip())
+    jsonList = json.loads(res.stdout.strip())[::-1] # reverse the list
+    return jsonList
 
 
 def pr_to_md(pr: Dict[str, Any]) -> str:
