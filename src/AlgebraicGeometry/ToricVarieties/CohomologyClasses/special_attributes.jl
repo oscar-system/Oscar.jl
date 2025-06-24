@@ -149,7 +149,7 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
   # Check if the Chern class in question is known
   cs = get_attribute(v, :chern_classes)::Dict{Int64, CohomologyClass}
   if haskey(cs, k)
-    return cs[k]::CohomologyClass
+    return cs[k]
   end
 
   # Check if we can compute the Chern classes for this toric variety

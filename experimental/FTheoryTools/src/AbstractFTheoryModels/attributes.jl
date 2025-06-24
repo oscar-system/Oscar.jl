@@ -1311,7 +1311,7 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   # Check if the Chern class in question is known
   cs = get_attribute(m, :chern_classes)::Dict{Int64, CohomologyClass}
   if haskey(cs, k)
-    return cs[k]::CohomologyClass
+    return cs[k]
   end
 
   # Check if we can compute the Chern classes for the toric ambient space
