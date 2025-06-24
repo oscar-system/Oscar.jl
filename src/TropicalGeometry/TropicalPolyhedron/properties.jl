@@ -1,3 +1,20 @@
+@doc raw"""
+    vertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
+
+Returns an iterator over the vertices of `P`, that is, a minimal generating set `V`
+such that `P` equals `tropical_convex_hull(V)`.
+
+# Examples
+The following computes retrieves the vertices of a tropical polytope with redundant generating set:
+```jldoctest
+julia> P = tropical_convex_hull(min, QQ[0 -1 0; 0 -4 -1; 0 -3 0]);
+
+julia> vertices(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+```
+"""
 function vertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
   n = n_vertices(P)
 
