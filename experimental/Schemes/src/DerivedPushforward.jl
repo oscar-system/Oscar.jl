@@ -452,6 +452,7 @@ mutable struct ToricCtx
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
+  proportionality_factors::Union{Tuple{Int, Int}, Nothing}
   S1::AbsHyperComplex
   cech_gens::Vector{<:MPolyRingElem}
 
@@ -469,7 +470,8 @@ mutable struct ToricCtx
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
-               Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}()
+               Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
+               nothing
               )
   end
 end
@@ -487,6 +489,8 @@ end
 
 function cech_complex_generators(ctx::ToricCtx)
   if !isdefined(ctx, :cech_gens)
+    ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
+    #=
     X = toric_variety(ctx)
     S = graded_ring(ctx)
     mc = ray_indices(maximal_cones(X))
@@ -496,6 +500,7 @@ function cech_complex_generators(ctx::ToricCtx)
       push!(result, onesv - Vector{Int}(mc[i, :]))
     end
     ctx.cech_gens = elem_type(S)[S([1], [result[i]]) for i in 1:n_maximal_cones(X)]
+    =#
   end
   return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
 end
@@ -508,6 +513,10 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int})
     cod = ring_as_hypercomplex(ctx)
     cech_gens = cech_complex_generators(ctx)
     n = length(cech_gens)
+    K = hom(free_resolution(SimpleFreeResolution, 
+                            ideal(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)]))[1],
+            cod)
+    return K
     kosz = hom(shift(HomogKoszulComplex(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)])[1:n], 1), cod)
     return kosz
   end
@@ -551,14 +560,46 @@ end
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
 function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
-  S = graded_ring(ctx)
-  G = grading_group(S)
-  result = [1 for _ in cech_complex_generators(ctx)]
-  return result
+  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+  p, q = _proportionality_factors(ctx)
+  G = grading_group(graded_ring(ctx))
+  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+  if !is_zero(rem)
+    k0 += 1
+  end
+  return [k0 for _ in 1:length(cech_complex_generators(ctx))]
+end
+
+# See [CLS11](@cite), Theorem 9.5.10
+function _proportionality_factors(ctx::ToricCtx)
+  if isnothing(ctx.proportionality_factors)
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    X = toric_variety(ctx)
+    A = vcat([matrix(ZZ, 1, length(r), Vector(r)) for r in rays(X)]...)
+    n = ncols(A)
+    q_n = minimum([abs(a) for a in minors(A, n) if !is_zero(a)])
+    Q_1 = maximum([abs(a) for a in A])
+    Q_n1 = maximum([abs(a) for a in minors(A, n-1)])
+    p = n^2*Q_1*Q_n1
+    q = q_n
+    ctx.proportionality_factors = (Int(p), Int(q))
+  end
+  return ctx.proportionality_factors::Tuple{Int, Int}
 end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
   @assert all(a <= b for (a, b) in zip(alpha, beta))
+  return get!(ctx.inclusions, (alpha, beta)) do
+    S = graded_ring(ctx)
+    c_alpha = ctx[alpha]::HomComplex
+    c_beta = ctx[beta]::HomComplex
+    a_dom = domain(c_alpha)
+    b_dom = domain(c_beta)
+    init_map = hom(b_dom[0], a_dom[0], [x^(beta[k]-alpha[k])*a for (k, x, a) in zip(1:length(alpha), cech_complex_generators(ctx), gens(a_dom[0]))])
+    lift = lift_map(b_dom, a_dom, init_map)
+    return hom(lift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
+  end
   return get!(ctx.inclusions, (alpha, beta)) do
     S = graded_ring(ctx)
     c_alpha = ctx[alpha]::HomComplex
