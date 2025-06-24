@@ -49,7 +49,7 @@ function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::
 end
 
 @doc raw"""
-    vertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
+    pseudovertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
 
 Returns an iterator over the pseudovertices of `P` in the tropical projective torus, 
 that is the zero-dimensional cells in the covector decomposition of `P`.
@@ -225,7 +225,7 @@ function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPolyhedron, i::I
 end
 
 @doc raw"""
-    covector_decomposition(P::TropicalPointConfiguration)
+    covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
 
 Get the covector decomposition of the tropical projective torus induced by `P` as a `PolyhedralComplex`.
 
@@ -248,12 +248,12 @@ julia> CD |> maximal_polyhedra
  Polyhedron in ambient dimension 2
 ```
 """
-function covector_decomposition(P::TropicalPointConfiguration)
-  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope) |> polyhedral_complex
+function covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
+  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
 end
 
 @doc raw"""
-    covector_decomposition(P::TropicalPolyhedon)
+    covector_decomposition(P::TropicalPolyhedon; dehomogenize_by=1)
 
 Get the covector decomposition of the tropical polytope `P` inside the tropical projective torus as a `PolyhedralComplex`.
 
@@ -292,7 +292,7 @@ function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   end
   ## The following is sufficient for Polymake v4.14 and above
   #if !isnothing(dehomogenize_by)
-  #  return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by) |> polyhedral_complex
+  #  return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
   #else
   # pv = pm_object(P).PSEUDOVERTICES
   # cov = pm_object(P).POLYTOPE_MAXIMAL_COVECTOR_CELLS

@@ -262,6 +262,7 @@
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
      "TropicalGeometry/positive_variety.md",
+     "TropicalGeometry/tropical_polyhedra.md",
   ],
 
   "Noncommutative Algebra" => [
