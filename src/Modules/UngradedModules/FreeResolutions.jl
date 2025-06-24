@@ -246,6 +246,9 @@ function _extend_free_resolution_via_fres(cc::Hecke.ComplexOfMorphisms, idx::Int
   for j in first(range(cc))+1:first(range(res.C))
     pushfirst!(cc.maps, map(res, j))
   end
+  if is_zero(domain(first(cc.maps)))
+    cc.complete=true
+  end
   return first(cc.maps)
 end
 
