@@ -19,6 +19,12 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 
+ownpath = os.path.abspath(sys.argv[0])
+dirpath = os.path.dirname(ownpath)
+repopath = os.path.dirname(os.path.dirname(os.path.dirname(ownpath)))
+newfile = f"{dirpath}/new.md"
+finalfile = f"{repopath}/CHANGELOG.md"
+
 def usage(name: str) -> None:
     print(f"Usage: `{name} [NEWVERSION] [OLDVERSION]`")
     sys.exit(1)
@@ -174,8 +180,6 @@ def changes_overview(
     release_url = f"https://github.com/oscar-system/Oscar.jl/releases/tag/v{new_version}"
 
     # Could also introduce some consistency checks here for wrong combinations of labels
-    newfile = './new.md'
-    finalfile = '../../CHANGELOG.md'
     notice("Writing release notes into file " + newfile)
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
@@ -312,7 +316,7 @@ def main(new_version: str, old_version: str = "") -> None:
 
     # reset changelog file to state tracked in git
     
-    subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
+    subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
     changes_overview(prs, startdate, new_version)
 
