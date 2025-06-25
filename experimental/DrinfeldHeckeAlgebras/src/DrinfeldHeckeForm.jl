@@ -166,47 +166,53 @@ end
 ################################################################################
 
 function show(io::IO, κ::DrinfeldHeckeForm)
-  print(io, "Drinfeld-Hecke form given by ")
+  print("Drinfeld-Hecke form given by ")
 
   if (length(κ.forms) == 0)
-    print(io, "0")
+    print("0")
     return
   end
 
   n = degree(group(κ))
-  println(io, "alternating bilinear forms")
+  println("alternating bilinear forms")
   for (_,(g, κ_g)) in enumerate(κ.forms)
     A = matrix(g)
     B = matrix(κ_g)
     
     for i in 1:n
-      print(io, "   [")
+      print("   [")
       
       for j in 1:n
         mcl = max_column_length(A, j)
-        print(io, repeat(" ", mcl - length(string(A[i,j]))))
-        print(io, A[i,j])
-        if j < n print(io, "   ") end
+        print(repeat(" ", mcl - length(string(A[i,j]))))
+        print(A[i,j])
+        if j < n print("   ") end
       end
       
       if i == n/2 || i == (n-1)/2
-        print(io, "] => [")
+        print("] => [")
       else
-        print(io, "]    [")
+        print("]    [")
       end
     
       for j in 1:n
         mcl = max_column_length(B, j)
-        print(io, repeat(" ", mcl - length(string(B[i,j]))))
-        print(io, B[i,j])
-        if j < n print(io, "   ") end
+        print(repeat(" ", mcl - length(string(B[i,j]))))
+        print(B[i,j])
+        if j < n print("   ") end
       end
     
-      print(io, "]")
+      print("]")
       println()
     end
   
     println()
+  end
+
+  println("over base field: " * string(base_field(κ)))
+
+  if length(parameters(κ)) > 0
+    println("with parameters " * join(parameters(κ), ", "))
   end
 end
 
@@ -229,6 +235,7 @@ end
 ################################################################################
 
 is_zero(κ::DrinfeldHeckeForm) = length(κ.forms) == 0
+base_field(κ::DrinfeldHeckeForm) = base_ring(κ.group)
 base_ring(κ::DrinfeldHeckeForm) = κ.base_ring
 symmetric_algebra(κ::DrinfeldHeckeForm) = κ.symmetric_algebra
 group(κ::DrinfeldHeckeForm) = κ.group

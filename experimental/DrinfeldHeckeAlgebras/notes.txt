@@ -1,8 +1,6 @@
-Computing in Drinfeld-Hecke algebras
+using Revise, Oscar
 
-Papers:
-# Shepler, Witherspoon
-# Levandowsky
+Oscar.test_experimental_module("DrinfeldHeckeAlgebras")
 
 ##########################################################
 
@@ -38,6 +36,15 @@ A = generic_drinfeld_hecke_form(G)
 
 using Revise, Oscar
 
+S = symmetric_group(5)
+mat_gens = [permutation_matrix(QQ, g) for g in gens(S)]
+G = matrix_group(mat_gens)
+A = generic_drinfeld_hecke_form(G)
+
+##########################################################
+
+using Revise, Oscar
+
 S = symmetric_group(3)
 R, _ = residue_field(ZZ, 3)
 mat_gens = [permutation_matrix(R, g) for g in gens(S)]
@@ -48,34 +55,10 @@ A = generic_drinfeld_hecke_form(G)
 
 using Revise, Oscar
 
-G = matrix_group(matrix(QQ, [-1 0;0 -1]))
-generic_drinfeld_hecke_form(G)
-generate_forms_for_conjugacy_classes(G)
-
-using Revise, Oscar
-
-S3 = symmetric_group(3)
-mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
-G = matrix_group(mat_gens)
-generic_drinfeld_hecke_form(G)
-generate_forms_for_conjugacy_classes(G)
-
-
-using Revise, Oscar
-
-R, _ = residue_ring(ZZ, 5)
+R, _ = residue_field(ZZ, 5)
 MS = matrix_space(R,2,2)
 G = matrix_group(MS([-1 0;0 -1]))
 A = generic_drinfeld_hecke_form(G)
-
-using Revise, Oscar
-
-R, _ = residue_ring(ZZ, 5)
-S, _ = polynomial_ring(R, ["t"])
-M = matrix(R, [1 2; 3 4])
-
-using Revise, Oscar
-Oscar.test_experimental_module("DrinfeldHeckeAlgebras")
 
 ##########################################################
 
@@ -130,5 +113,3 @@ w2 = matrix(QQ,[1 0; 1 -1])
 W = matrix_group([w1,w2])
 G = symplectic_doubling(W)
 κ = generic_drinfeld_hecke_form(G)
-
-κ = generic_drinfeld_hecke_form(W)
