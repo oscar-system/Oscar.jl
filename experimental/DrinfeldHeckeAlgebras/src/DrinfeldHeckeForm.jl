@@ -1,6 +1,4 @@
-# TODO: Haben diese Elemente einen Namen? 1.9 Ram Shepler
 # TODO: Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
-# TODO: Gibt es Drinfeld-Hecke algebren die keine Rational-Cherednik algebren sind für complexe Spiegelungsgruppe?
 # TODO: DOku schreiben
 # TODO: Mehr Tests, z.b. über quadratic number fields, S5 über C
 # TODO: Validierung ebenfalls über beide Strategien
@@ -169,19 +167,61 @@ end
 
 function show(io::IO, κ::DrinfeldHeckeForm)
   print(io, "Drinfeld-Hecke form given by ")
-  
+
   if (length(κ.forms) == 0)
     print(io, "0")
     return
   end
 
+  n = degree(group(κ))
   println(io, "alternating bilinear forms")
-  for (i,(g, κ_g)) in enumerate(κ.forms)
-    print(io, " ")
-    print(io, g)
-    print(io, " => ")
-    println(io, κ_g.matrix)
+  for (_,(g, κ_g)) in enumerate(κ.forms)
+    A = matrix(g)
+    B = matrix(κ_g)
+    
+    for i in 1:n
+      print(io, "   [")
+      
+      for j in 1:n
+        mcl = max_column_length(A, j)
+        print(io, repeat(" ", mcl - length(string(A[i,j]))))
+        print(io, A[i,j])
+        if j < n print(io, "   ") end
+      end
+      
+      if i == n/2 || i == (n-1)/2
+        print(io, "] => [")
+      else
+        print(io, "]    [")
+      end
+    
+      for j in 1:n
+        mcl = max_column_length(B, j)
+        print(io, repeat(" ", mcl - length(string(B[i,j]))))
+        print(io, B[i,j])
+        if j < n print(io, "   ") end
+      end
+    
+      print(io, "]")
+      println()
+    end
+  
+    println()
   end
+end
+
+function max_column_length(M::MatElem, j::Int)
+  result = 0
+  
+  for i in 1:nrows(M)
+    element_length = length(string(M[i,j]))
+    
+    if element_length > result
+      result = element_length
+    end
+  end
+
+  return result
 end
 
 ################################################################################

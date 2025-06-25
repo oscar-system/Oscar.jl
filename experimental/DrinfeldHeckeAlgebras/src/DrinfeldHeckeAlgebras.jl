@@ -6,6 +6,7 @@ include("GlobalGenericFormGeneration.jl")
 include("LocalGenericFormGeneration.jl")
 include("DrinfeldHeckeForm.jl")
 include("DrinfeldHeckeAlgebra.jl")
+include("SymplecticDoubling.jl")
 
 # Exports
 export BilinearForm
@@ -23,5 +24,7 @@ export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra
 export generic_drinfeld_hecke_algebra
 export symmetric_algebra
+
+export symplectic_doubling
 
 # Aliases
