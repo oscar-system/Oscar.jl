@@ -283,7 +283,7 @@ end
 function Base.show(io::IO, c::SimpleFreeResolution)
   cfac = chain_factory(c)
   print_length = length(cfac.map_cache)
-  i = findfirst(is_zero(domain(phi)) for phi in cfac.map_cache)
+  i = findfirst(phi->is_zero(domain(phi)), cfac.map_cache)
   if !isnothing(i)
     print_length = i
   end
