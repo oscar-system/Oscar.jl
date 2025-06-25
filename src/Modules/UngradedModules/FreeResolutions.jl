@@ -176,13 +176,14 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   # The current version is a workaround; see #4998. Until we can provide a 
   # reasonable fix using a continuation of Schreyer's ordering, we 
   # provide a patch with new initiation of kernel computations.
-  if algorithm == :fres
-    # In case of `:fres`, we start the computation of the resolution 
+  if algorithm == :fres || algorithm == :sres
+    # In case of `:fres` (or `:sres` for quotient rings), 
+    # we start the computation of the resolution 
     # from scratch. Continuation is not possible at the moment, because 
     # the information on the Schreyer orderings is lost in Singular internals. 
     # Continuation via kernel computations is, in most examples, more expensive 
     # than starting again from the beginning.
-    return _extend_free_resolution_via_fres(cc, idx)
+    return _extend_free_resolution_via_fres_or_sres(cc, idx, algorithm)
   end
 
   phi = first(cc.maps)
@@ -190,7 +191,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   R = base_ring(K)
   F = ambient_free_module(K)
   SF = singular_module(F)
-  SK = singular_generators(algorithm == :fres ? groebner_basis(K) : K.sub.gens) # We need to start with a gb for `fres`.
+  SK = singular_generators(algorithm == :fres || algorithm == :sres ? groebner_basis(K) : K.sub.gens) # We need to start with a gb for `fres`.
   
   if is_one(len_missing)
     cod = domain(first(cc.maps))
@@ -203,6 +204,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   end
 
   if algorithm == :fres
+    error("this case should have been caught above")
     res = Singular.fres(SK, len_missing, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
@@ -210,6 +212,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     res = Singular.mres(SK, len_missing)
   elseif algorithm == :nres
     res = Singular.nres(SK, len_missing)
+  elseif algorithm == :sres
+    error("this case should have been caught above")
+    res = Singular.sres(SK, len_missing)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -234,9 +239,14 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 end
 
 # For an explanation see the call to this method above.
-function _extend_free_resolution_via_fres(cc::Hecke.ComplexOfMorphisms, idx::Int)
+# We need this dummy method, because the parent objects and 
+# morphisms present in the partial resolution `cc` might have 
+# been given to the user already. So even though we compute a 
+# new resolution from scratch, it needs to be spliced with the 
+# partial one which was already there. 
+function _extend_free_resolution_via_fres_or_sres(cc::Hecke.ComplexOfMorphisms, idx::Int, algorithm::Symbol)
   M = cc[-1]
-  res = free_resolution(M; algorithm=:fres, length=idx)
+  res = free_resolution(M; algorithm, length=idx)
   i0 = first(range(cc))
   phi = map(res, i0+1)
   @assert ngens(codomain(phi)) == ngens(cc[i0]) "Schreyer resolutions are not compatible"
