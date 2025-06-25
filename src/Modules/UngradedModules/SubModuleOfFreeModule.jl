@@ -162,34 +162,22 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 end
 
 @doc raw"""
-    standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
+    standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a standard basis of `submod` with respect to the given `ordering`.
 The return type is `ModuleGens`.
-
-!!! note
-
-    If the keyword argument `ordering` is set to `nothing`, a standard basis with respect to any monomial ordering will be returned. 
 """
 function standard_basis(
     submod::SubModuleOfFreeModule; 
-    ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod)
+    ordering::ModuleOrdering = default_ordering(submod)
   )
-  if isnothing(ordering)
-    isdefined(submod, :dummy_gb) && return submod.dummy_gb
+  if isdefined(submod, :dummy_gb) 
+    ordering === default_ordering(submod.dummy_gb) && return submod.dummy_gb
   end
-  _ordering = isnothing(ordering) ? default_ordering(submod) : ordering
 
-  # This is to circumvent hashing of the ordering in the obviously avoidable cases
-  if _ordering===default_ordering(submod)
-    for (ord, gb) in submod.groebner_basis
-      ord === default_ordering(submod) && return gb
-    end
-  end
-    
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
-  gb = get!(submod.groebner_basis, _ordering) do
-    compute_standard_basis(submod, _ordering)
+  gb = get!(submod.groebner_basis, ordering) do
+    compute_standard_basis(submod, ordering)
   end::ModuleGens
 
   # Cache a newly computed groebner basis 
@@ -507,7 +495,7 @@ end
 
 function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
   F = ambient_free_module(M)
-  return iszero(reduce(a, standard_basis(M, ordering=nothing)))
+  return iszero(reduce(a, standard_basis(M)))
 end
 
 @attr Any function solve_ctx(M::SubModuleOfFreeModule)
