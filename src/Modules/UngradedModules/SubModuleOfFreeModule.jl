@@ -162,12 +162,22 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 end
 
 @doc raw"""
-    standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
+    standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
 
 Compute a standard basis of `submod` with respect to the given `ordering`.
 The return type is `ModuleGens`.
+
+!!! note
+
+    If the keyword argument `ordering` is set to `nothing`, a standard basis with respect to any monomial ordering will be returned. 
 """
-function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
+function standard_basis(
+    submod::SubModuleOfFreeModule; 
+    ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod)
+  )
+  if isnothing(ordering)
+    isdefined(submod, :dummy_gb) && return submod.dummy_gb
+  end
   _ordering = isnothing(ordering) ? default_ordering(submod) : ordering
 
   # This is to circumvent hashing of the ordering in the obviously avoidable cases
@@ -179,8 +189,16 @@ function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrd
     
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, _ordering) do
-    return compute_standard_basis(submod, _ordering)
+    compute_standard_basis(submod, _ordering)
   end::ModuleGens
+
+  # Cache a newly computed groebner basis 
+  if !isdefined(submod, :dummy_gb)
+    submod.dummy_gb = gb
+  end
+  if !isdefined(submod, :dummy_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.dummy_gb_with_transition = gb
+  end
   return gb
 end
 
@@ -204,12 +222,17 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   @assert is_global(ordering)
 
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering, true)
+    compute_standard_basis(submod, ordering, true)
   end::ModuleGens
-  gb.is_reduced && return gb
-  return get_attribute!(gb, :reduced_groebner_basis) do
-    return compute_standard_basis(submod, ordering, true)
-  end::ModuleGens
+  @assert gb.is_reduced
+  # Cache a newly computed groebner basis 
+  if !isdefined(submod, :dummy_gb)
+    submod.dummy_gb = gb
+  end
+  if !isdefined(submod, :dummy_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.dummy_gb_with_transition = gb
+  end
+  return gb
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
@@ -434,6 +457,10 @@ end
 Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 function lift_std(M::SubModuleOfFreeModule)
+  if isdefined(M, :dummy_gb_with_transition)
+    return M.dummy_gb_with_transition, get_attribute(M.dummy_gb_with_transition, :transformation_matrix)::MatrixElem
+  end
+
   for (ord, gb) in M.groebner_basis
     transform = get_attribute(gb, :transformation_matrix)
     if transform !== nothing
@@ -442,6 +469,9 @@ function lift_std(M::SubModuleOfFreeModule)
   end
   gb, transform = lift_std(M.gens, default_ordering(M))
   M.groebner_basis[default_ordering(M)] = gb
+  if !isdefined(M, :dummy_gb_with_transition)
+    M.dummy_gb_with_transition = gb
+  end
   return gb, transform
 end
 

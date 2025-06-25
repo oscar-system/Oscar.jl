@@ -225,18 +225,20 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 @attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
+  gens::ModuleGens{T}
   default_ordering::ModuleOrdering
+  dummy_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
+                          # Lookups in the above dictionary is tentatively expensive. 
+                          # So this field stores any gb for cases where the actual 
+                          # ordering does not matter. Then this field here can be used. 
+  dummy_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
   is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
-    r = new{R}()
-    r.F = F
-    r.groebner_basis = Dict()
-    return r
+    return new{R}(F, Dict{ModuleOrdering, ModuleGens{R}}())
   end
 end
 
