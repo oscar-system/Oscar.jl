@@ -530,5 +530,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
+
+    return upgraded_dict
   end
 ))
