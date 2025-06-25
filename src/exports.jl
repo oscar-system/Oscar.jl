@@ -118,15 +118,15 @@ export MPolyComplementOfPrimeIdeal
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
-export MPolyLocalizedIdeal
 export MPolyLocRing
 export MPolyLocRingElem
+export MPolyLocalizedIdeal
 export MPolyPowersOfElement
 export MPolyProductOfMultSets
 export MPolyQuoIdeal
-export MPolyQuoLocalizedIdeal
 export MPolyQuoLocRing
 export MPolyQuoLocRingElem
+export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
@@ -205,6 +205,8 @@ export ToricVanishingSet
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
+export TropicalPointConfiguration
+export TropicalPolyhedron
 export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
@@ -229,7 +231,6 @@ export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
-export label!
 export add_vertex!
 export add_vertices!
 export adjacency_matrix
@@ -421,11 +422,11 @@ export coloops
 export column
 export combinations
 export combinatorial_symmetries
-export comparability_graph
 export comm
 export comm!
 export common_components
 export common_refinement
+export comparability_graph
 export complement
 export complement_classes
 export complement_equation
@@ -482,6 +483,7 @@ export coroots
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export cotangent_sheaf
+export covector_decomposition
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -574,10 +576,10 @@ export dwarfed_product_polygons
 export edges
 export effective_cartier_divisor
 export ehrhart_polynomial
+export element
 export element_to_homomorphism
 export elementary_abelian_group
 export elementary_symmetric
-export element
 export elements
 export elements_of_rank
 export eliminate
@@ -674,6 +676,7 @@ export generalized_jordan_block
 export generalized_jordan_form
 export generating_system
 export generator_matrix
+export generic_enriques_surface
 export generic_fiber
 export generic_fraction
 export generic_fractions
@@ -1052,6 +1055,7 @@ export isomorphic_subgroups
 export isomorphism
 export isomorphism_classes_elliptic_fibrations
 export isomorphism_classes_polarizations
+export isomorphism_from_generic_fibers
 export isone
 export isotropic_rays
 export isqrtrem
@@ -1075,6 +1079,7 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
+export label!
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
@@ -1084,7 +1089,6 @@ export lattice_of_flats
 export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
-export least_element
 export leading_coefficient
 export leading_coefficient_and_exponent
 export leading_exponent
@@ -1092,6 +1096,7 @@ export leading_ideal
 export leading_module
 export leading_monomial
 export leading_term
+export least_element
 export lecture_hall_simplex
 export left_acting_group
 export left_coset
@@ -1118,7 +1123,6 @@ export linear_symmetries
 export linear_system
 export link_subcomplex
 export load
-export generic_enriques_surface
 export load_lp
 export load_mps
 export local_schur_indices
@@ -1170,6 +1174,7 @@ export maximal_cells
 export maximal_chains
 export maximal_cliques
 export maximal_cones
+export maximal_covectors
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
@@ -1447,6 +1452,7 @@ export projective_unitary_group
 export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
+export pseudovertices
 export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
@@ -1538,8 +1544,6 @@ export reverse_direction!
 export revlex_basis_encoding
 export reynolds_operator
 export right_acting_group
-export translation_morphism
-export isomorphism_from_generic_fibers
 export right_coset
 export right_coset_action
 export right_cosets
@@ -1567,7 +1571,6 @@ export scalar_product
 export scheme
 export scheme_type
 export schensted
-export show_atlas_info
 export schur_cover
 export schur_index
 export schur_multiplier
@@ -1601,6 +1604,7 @@ export sheaf_cohomology
 export sheaf_of_rings
 export short_right_transversal
 export shortest_path_dijkstra
+export show_atlas_info
 export show_morphism
 export show_morphism_as_map
 export show_subquo
@@ -1714,6 +1718,7 @@ export transform_to_weierstrass
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
 export transitivity
+export translation_morphism
 export transport
 export transportation_polytope
 export triangular_decomposition
@@ -1725,12 +1730,15 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
+export tropical_convex_hull
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
+export tropical_point_configuration
+export tropical_polyhedron
 export tropical_polynomial
-export tropical_variety
 export tropical_prevariety
+export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
@@ -1810,3 +1818,4 @@ export young_tableau
 export zero_section
 export zonotope
 export zonotope_vertices_fukuda_matrix
+export n_pseudovertices
