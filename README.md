@@ -33,11 +33,12 @@ in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ```
 julia> using Oscar
-  ___   ____   ____    _    ____
- / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-| | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-| |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.3.0-DEV
+  ___   ___   ___    _    ____
+ / _ \ / __\ / __\  / \  |  _ \  | Combining and extending ANTIC, GAP,
+| |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
+ \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information
+o--------o-----o-----o--------o  | Documentation: https://docs.oscar-system.org
+  S Y M B O L I C   T O O L S    | Version 1.5.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -114,7 +115,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.3.0-DEV,
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.5.0-DEV,
         The OSCAR Team, 2025. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, eds.
@@ -126,8 +127,8 @@ If you are using BibTeX, you can use the following BibTeX entries:
     @misc{OSCAR,
       key          = {OSCAR},
       organization = {The OSCAR Team},
-      title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.3.0-DEV},
+      title        = {{OSCAR} -- {O}pen {S}ource {C}omputer {A}lgebra {R}esearch system,
+                      {V}ersion 1.5.0-DEV},
       year         = {2025},
       url          = {https://www.oscar-system.org},
       }
@@ -142,12 +143,13 @@ If you are using BibTeX, you can use the following BibTeX entries:
       edition = {1},
       url = {https://link.springer.com/book/9783031621260},
       issn = {1431-1550},
+      doi = {10.1007/978-3-031-62127-7},
     }
 
 ## Funding
 
-The development of this Julia package is supported by the Deutsche
-Forschungsgemeinschaft DFG within the
+The development of this Julia package is supported by the
+German Research Foundation (DFG) within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg

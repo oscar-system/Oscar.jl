@@ -75,7 +75,7 @@ end
 @doc raw"""
     is_finalized(v::NormalToricVarietyType)
 
-Checks if the Cox ring, the coordinate ring of the torus,
+Check if the Cox ring, the coordinate ring of the torus,
 the cohomology_ring, the Chow ring, the Stanley-Reisner ideal,
 the irrelevant ideal, the ideal of linear relations
 or the toric ideal has been cached. If any of these has been
@@ -217,18 +217,16 @@ julia> coordinate_names(antv)
 end
 
 
-function _cox_ring_weights(v::NormalToricVarietyType)
-    return get_attribute!(v, :cox_ring_weights) do
-        f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-        return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
-    end::Vector{FinGenAbGroupElem}
+@attr Vector{FinGenAbGroupElem} function _cox_ring_weights(v::NormalToricVarietyType)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
 end
 
 
 @doc raw"""
     cox_ring(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`, in this case by adding
+Compute the Cox ring of the normal toric variety `v`, in this case by adding
 the Cox grading to the given ring `R`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
@@ -255,7 +253,7 @@ end
 @doc raw"""
     cox_ring(v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`.
+Compute the Cox ring of the normal toric variety `v`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 For uniformity with schemes, we also support the function
 `coordinate_ring` to refer to the Cox ring.
@@ -539,7 +537,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`
+Compute the coordinate ring of the torus of the normal toric variety `v`
 in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
@@ -553,7 +551,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`.
+Compute the coordinate ring of the torus of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -582,7 +580,7 @@ end
 @doc raw"""
     character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -602,7 +600,7 @@ character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}
 @doc raw"""
     character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -651,6 +649,22 @@ Z^2
 ```
 """
 @attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+
+
+@doc raw"""
+    lattice_of_one_parameter_subgroups(v::NormalToricVarietyType)
+
+Return the lattice of one parameter subgroups of a normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> lattice_of_one_parameter_subgroups(p2)
+Z^2
+```
+"""
+@attr FinGenAbGroup lattice_of_one_parameter_subgroups(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
 
 
 @doc raw"""

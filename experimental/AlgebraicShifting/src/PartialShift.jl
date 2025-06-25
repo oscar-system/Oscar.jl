@@ -30,7 +30,7 @@ end
     generic_unipotent_matrix(R::MPolyRing)
     generic_unipotent_matrix(F::Field, n::Int)
 
-Constructs a unipotent matrix with entries in a polynomial ring `R`.
+Construct a unipotent matrix with entries in a polynomial ring `R`.
 One can also provide a field `F` and an integer `n`,
 then the entries of the unipotent matrix will lie in a multivariate
 polynomial ring over `F` with `n^2` variables.
@@ -263,12 +263,12 @@ end
     exterior_shift(K::SimplicialComplex)
     exterior_shift(K::UniformHypergraph)
 
-Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
+Compute the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
 If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = real_projective_plane()
 Abstract simplicial complex of dimension 2 on 6 vertices
 
@@ -346,7 +346,7 @@ exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)
 """
     symmetric_shift(F::Field, K::SimplicialComplex)
 
-Returns the symmetric shift of `K`
+Return the symmetric shift of `K`
 
 TODO: add more docs and and expose for users
 """

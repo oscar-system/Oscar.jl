@@ -68,10 +68,8 @@ represented by
   patch 1: 1
 ```
 """
-function function_field(X::AbsCoveredScheme; check::Bool=true)
-  return get_attribute!(X, :function_field) do
-    VarietyFunctionField(X, check=check)
-  end::VarietyFunctionField  # can't make this more concrete just using the type of X
+@attr VarietyFunctionField function function_field(X::AbsCoveredScheme; check::Bool=true)
+  return VarietyFunctionField(X, check=check)
 end
 
 ########################################################################
@@ -524,3 +522,19 @@ end
 scheme(f::VarietyFunctionFieldElem) = scheme(parent(f))
 variety(f::VarietyFunctionFieldElem) = variety(parent(f))
 
+###############################################################################
+#
+#   Conformance test element generation
+#
+###############################################################################
+
+function ConformanceTests.generate_element(K::VarietyFunctionField)
+  F = representative_field(K)
+  P = base_ring(F)::MPolyRing
+  num = rand(P, 0:5, 0:5, 0:5)
+  den = zero(P)
+  while is_zero(den)
+    den = rand(P, 1:5, 1:5, 1:5)
+  end
+  return K(num, den)
+end

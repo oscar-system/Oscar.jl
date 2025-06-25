@@ -151,6 +151,7 @@ macro _AuxDocTest(data::Expr)
           fix=$(fix),
           testset=$(testset),
           doctestfilters=[
+            Oscar.doctestfilters()...,
             r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
           ],
         )

@@ -44,8 +44,8 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   
   loci_fiber_intersections = Tuple{MPolyIdeal{QQMPolyRingElem}, Vector{Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}}}[]
   for locus in interesting_singular_loci
-    # Currently have to get the ungraded ideal generators by hand using .f
-    ungraded_locus = ideal(map(gen -> base_to_ambient_ring_map(gen).f, gens(locus)))
+    # Currently have to get the ungraded ideal generators by hand using lift
+    ungraded_locus = ideal(map(gen -> lift(base_to_ambient_ring_map(gen)), gens(locus)))
     
     # Potential components of the fiber over this locus
     # For now, we only consider the associated prime ideal,
@@ -87,7 +87,7 @@ trivial sections and do not delete them, say from `explicit_model_sections`
 or `classes_of_model_sections`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
@@ -106,10 +106,9 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
  x3
  x4
 
-julia> my_choice = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice = Dict("a1" => x1^4, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => x1^8
   "a1" => x1^4
 
 julia> tuned_t = tune(t, my_choice)
@@ -125,16 +124,15 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t)))
  x3
  x4
 
-julia> my_choice2 = Dict("a1" => x1^4, "a2" => zero(parent(x1)), "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice2 = Dict("a1" => zero(parent(x1)), "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => 0
-  "a1" => x1^4
+  "a1" => 0
 
 julia> tuned_t2 = tune(tuned_t, my_choice2)
 Global Tate model over a concrete base
 
-julia> is_zero(explicit_model_sections(tuned_t2)["a2"])
+julia> is_zero(explicit_model_sections(tuned_t2)["a1"])
 true
 
 julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
@@ -144,16 +142,15 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
  x3
  x4
 
-julia> my_choice3 = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+julia> my_choice3 = Dict("a1" => x1^4, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   "w"  => x2 - x3
-  "a2" => x1^8
   "a1" => x1^4
 
 julia> tuned_t3 = tune(tuned_t2, my_choice3)
 Global Tate model over a concrete base
 
-julia> is_zero(explicit_model_sections(tuned_t3)["a2"])
+julia> is_zero(explicit_model_sections(tuned_t3)["a1"])
 false
 ```
 """
@@ -161,13 +158,13 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return t
-  secs_names = collect(keys(explicit_model_sections(t)))
+  secs_names = tunable_sections(t)
   tuned_secs_names = collect(keys(input_sections))
-  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(t))
-  def_secs_param = deepcopy(defining_section_parametrization(t))
+  def_secs_param = deepcopy(model_section_parametrization(t))
   tate_sections = ["a1", "a2", "a3", "a4", "a6"]
 
   # 1. Tune model sections different from Tate sections

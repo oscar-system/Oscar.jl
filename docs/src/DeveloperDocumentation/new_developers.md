@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Introduction for new developers
 This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
@@ -24,7 +30,7 @@ on these things online.
    - Feel free to contact us on
      [Slack](https://oscar-system.org/slack).
    - Have a look at [our community page](https://www.oscar-system.org/community/).
-4. Please also read our page on [Documenting OSCAR code](@ref).
+4. Please also read our page on [Documenting Code](@ref).
 5. Look at existing code that does similar things to your project to get an
    idea of what OSCAR code should look like. Try to look at multiple examples.
 6. If you are planning to implement a new feature from scratch, please also read

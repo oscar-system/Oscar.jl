@@ -128,8 +128,7 @@ function simplify(a::PBWAlgQuoElem)
         return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
     end
     I = parent(a).I
-    groebner_assure!(I)
-    a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
+    a.data.sdata = Singular.reduce(a.data.sdata, singular_groebner_basis(I))
     return a
 end
 
@@ -277,6 +276,12 @@ end
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
   @req parent(a) == Q "coercion between different PBWAlg quotients not possible"
   return a
+end
+
+### Conformance test element generation
+function ConformanceTests.generate_element(Q::PBWAlgQuo{QQFieldElem})
+  R = base_ring(Q)
+  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
 end
 
 #############################################

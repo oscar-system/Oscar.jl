@@ -8,12 +8,19 @@
 ###############################################################################
 
 @doc raw"""
-    weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
+    weyl_group(cartan_matrix::ZZMatrix; check::Bool=true) -> WeylGroup
+    weyl_group(cartan_matrix::Matrix{<:IntegerUnion}; check::Bool=true) -> WeylGroup
 
 Construct the Weyl group defined by the given (generalized) Cartan matrix.
+
+If `check=true` the function will verify that `cartan_matrix` is indeed a generalized Cartan matrix.
 """
-function weyl_group(cartan_matrix::ZZMatrix)
-  return weyl_group(root_system(cartan_matrix))
+function weyl_group(cartan_matrix::ZZMatrix; kwargs...)
+  return weyl_group(root_system(cartan_matrix; kwargs...))
+end
+
+function weyl_group(cartan_matrix::Matrix{<:IntegerUnion}; kwargs...)
+  return weyl_group(root_system(cartan_matrix; kwargs...))
 end
 
 @doc raw"""
@@ -68,9 +75,41 @@ Construct a Weyl group element from the given word.
 The word must be a list of integers, where each integer is the index of a simple reflection.
 
 If the word is known to be in short lex normal form, the normalization can be skipped by setting `normalize=false`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> x = W([1, 2, 1])
+s1 * s2 * s1
+```
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
   return WeylGroupElem(W, word; normalize)
+end
+
+@doc raw"""
+    (W::WeylGroup)(sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true) -> WeylGroupElem
+
+Construct a Weyl group element from the given syllables.
+
+The syllables must be a list of pairs, where each entry is the index of a simple reflection and its exponent.
+
+If the syllables describe a word in short lex normal form, the normalization can be skipped by setting `normalize=false`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> x = W([1 => 1, 2 => 1])
+s1 * s2
+```
+"""
+function (W::WeylGroup)(
+  sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}}; normalize::Bool=true
+)
+  res = [pair.first for pair in sylls if isodd(pair.second)]
+  return WeylGroupElem(W, res; normalize)
 end
 
 function Base.IteratorSize(::Type{WeylGroup})
@@ -191,6 +230,7 @@ end
 Return the order of `W`.
 
 If `W` is infinite, an `InfiniteOrderError` exception will be thrown.
+Use [`is_finite(::WeylGroup)`](@ref) to check this prior to calling this function if in doubt.
 """
 function order(::Type{T}, W::WeylGroup) where {T}
   if !is_finite(W)
@@ -221,6 +261,15 @@ function order(::Type{T}, W::WeylGroup) where {T}
   end
 
   return ord
+end
+
+@doc raw"""
+    cartan_matrix(W::WeylGroup) -> RootSystem
+
+Return the Cartan matrix of `W`.
+"""
+function cartan_matrix(W::WeylGroup)
+  return cartan_matrix(root_system(W))
 end
 
 @doc raw"""
@@ -383,16 +432,54 @@ function Base.parent(x::WeylGroupElem)
 end
 
 @doc raw"""
+    is_finite_order(x::WeylGroupElem) -> Bool
+
+Return whether `x` is of finite order, i.e. there is a natural number `n` such that `is_one(x^n)`.
+"""
+function is_finite_order(x::WeylGroupElem)
+  is_finite(parent(x)) && return true
+  length(x) <= 1 && return true
+  _, hom = geometric_representation(parent(x))
+  return is_finite_order(hom(x))
+end
+
+@doc raw"""
+    order(x::WeylGroupElem) -> ZZRingELem
+    order(::Type{T}, x::WeylGroupElem) where {T} -> T
+
+Return the order of `x`, i.e. the smallest natural number `n` such that `is_one(x^n)`.
+
+If `x` is of infinite order, an `InfiniteOrderError` exception will be thrown.
+Use [`is_finite_order(::WeylGroupElem)`](@ref) to check this prior to calling this function if in doubt.
+"""
+function order(::Type{T}, x::WeylGroupElem) where {T}
+  is_one(x) && return T(1)
+  length(x) == 1 && return T(2)
+  _, hom = geometric_representation(parent(x))
+  try
+    return order(T, hom(x))
+  catch e
+    if e isa InfiniteOrderError
+      throw(InfiniteOrderError(x))
+    end
+    rethrow()
+  end
+end
+
+@doc raw"""
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
-Return a random element of the Weyl group. The elements are not uniformly distributed.
-
-!!! warning
-    Currently only finite Weyl groups are supported.
+Return a pseudo-random element of the Weyl group. The elements are not uniformly distributed.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
-  return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+  if is_finite(W)
+    return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+  else
+    m = 2^rand(1:10)
+    n = rand(0:m)
+    return W(rand(1:ngens(W), n))
+  end
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
@@ -507,9 +594,126 @@ end
 Return `x` as a list of indices of simple reflections, in reduced form.
 
 This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> word(x)
+3-element Vector{UInt8}:
+ 0x01
+ 0x02
+ 0x01
+```
 """
 function word(x::WeylGroupElem)
   return x.word
+end
+
+@doc raw"""
+    letters(x::WeylGroupElem) -> Vector{UInt8}
+
+Return `x` as a list of indices of simple reflections, in reduced form.
+
+This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> letters(x)
+3-element Vector{Int64}:
+ 1
+ 2
+ 1
+```
+"""
+function letters(x::WeylGroupElem)
+  return Int.(x.word)
+end
+
+@doc raw"""
+    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:IntegerUnion}}
+
+Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
+
+This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:IntegerUnion}})`.
+
+# Examples
+
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> x = longest_element(W)
+s1 * s2 * s1
+
+julia> syllables(x)
+3-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 1
+ 2 => 1
+ 1 => 1
+```
+"""
+function syllables(x::WeylGroupElem)
+  return Pair{Int,ZZRingElem}[i => 1 for i in x.word]
+end
+
+@doc raw"""
+    map_word(w::WeylGroupElem, genimgs::Vector; genimgs_inv::Vector = genimgs, init = nothing)
+
+If `init` is `nothing` and `word(w) = [`$i_1$`, ..., `$i_n$`]`,
+then return the product $R_1 R_2 \cdots R_n$ with $R_j =$ `genimgs[`$i_j$`]`.
+Otherwise return the product $xR_1 R_2 \cdots R_n$ where $x =$ `init`.
+
+The length of `genimgs` must be equal to the rank of the parent of `w`.
+If `w` is the trivial element, then `init` is returned if it is different
+from `nothing`, and otherwise `one(genimgs[1])` is returned if `genimgs` is non-empty.
+If `w` is trivial, `init` is nothing and `genimgs` is empty, an error occurs.
+
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
+[`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
+Note that `map_word(::WeylGroupElem)` accepts the `genimgs_inv` keyword argument
+for consistency with other `map_word` methods, but ignores it because the
+generators of a Weyl group are always self-inverse.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:B, 3); imgs = [2, 3, 5];
+
+julia> map_word(one(W), imgs)
+1
+
+julia> map_word(W([1]), imgs)
+2
+
+julia> map_word(W([1]), imgs; init=7)
+14
+
+julia> map_word(W([1,2,1]), imgs)
+12
+
+julia> map_word(W([2,1,2]), imgs) # W([2,1,2]) == W([1,2,1])
+12
+
+julia> map_word(W([3, 2, 1, 3, 2, 3]), imgs)
+2250
+```
+"""
+function map_word(
+  w::WeylGroupElem, genimgs::Vector; genimgs_inv::Vector=genimgs, init=nothing
+)
+  @req length(genimgs) == number_of_generators(parent(w)) begin
+    "Length of vector of images does not equal rank of Weyl group"
+  end
+  return map_word(Int.(word(w)), genimgs; init=init)
 end
 
 @doc raw"""
@@ -578,7 +782,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
   s = rk + 1
   while true
     # search for new simple reflection to add to the word
-    while s <= rk && weight.vec[s] > 0
+    while s <= rk && is_positive_entry(weight, s)
       s += 1
     end
 
@@ -598,7 +802,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       if iter.up_to_commutation &&
         i > 1 &&
         s < next[i - 1] &&
-        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i - 1]))
+        is_zero_entry(cartan_matrix(parent(iter.el)), s, Int(next[i - 1]))
         s += 1
         continue
       end
@@ -669,7 +873,7 @@ end
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
     for j in (di + 1):rank(parent(wt))
-      if !iszero(wt[j])
+      if !is_zero_entry(wt, j)
         return j
       end
     end
@@ -677,7 +881,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   end
 
   for j in (di + 1):(ai - 1)
-    if !iszero(wt[j])
+    if !is_zero_entry(wt, j)
       return j
     end
   end
@@ -688,12 +892,14 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
 
     ok = true
+    reflect!(wt, j)
     for k in ai:(j - 1)
-      if reflect(wt, j)[k] < 0
+      if is_negative_entry(wt, k)
         ok = false
         break
       end
     end
+    reflect!(wt, j)
     if ok
       return j
     end
@@ -760,4 +966,122 @@ function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
 
   (wt, _), state = it
   return deepcopy(wt), state
+end
+
+###############################################################################
+# Misc other things
+
+@doc raw"""
+    geometric_representation(W::WeylGroup) -> ZZMatrixGroup, Map{WeylGroup, ZZMatrixGroup}
+
+Return the geometric representation `G` of the Weyl group `W`,
+together with the isomorphism `hom` from `W` to `G`.
+
+This representation is defined by `coefficients(a) * hom(x) == coefficients(a * x)`
+for all `x` in `W` and `a` a simple root of `root_system(W)`. By linear extension,
+this also holds for all elements `a` in the root space of `root_system(W)`.
+
+See [Hum90; Sect. 5.3](@cite) for more details.
+
+# Examples
+```jldoctest
+julia> R = root_system(:B, 3); W = weyl_group(R);
+
+julia> r = positive_root(R, 8)
+a_1 + a_2 + 2*a_3
+
+julia> x = W([1, 2, 1, 3])
+s1 * s2 * s1 * s3
+
+julia> G, hom = geometric_representation(W)
+(Matrix group of degree 3 over ZZ, Map: W -> G)
+
+julia> coefficients(r) * hom(x)
+[1   1   0]
+
+julia> coefficients(r * x)
+[1   1   0]
+```
+"""
+@attr Tuple{ZZMatrixGroup,MapFromFunc{WeylGroup,ZZMatrixGroup}} function geometric_representation(
+  W::WeylGroup
+)
+  gcm = cartan_matrix(W)
+  n = ngens(W)
+  imgs = ZZMatrix[]
+  for j in 1:n
+    g = identity_matrix(ZZ, n)
+    GC.@preserve g gcm begin
+      for i in 1:n
+        # a_i * s_j = a_i - gcm_{j,i} * a_j
+        # efficient version of: g[i, j] -= gcm[j, i]
+        sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
+      end
+    end
+    push!(imgs, g)
+  end
+
+  G = matrix_group(imgs)
+
+  iso = function (w::WeylGroupElem)
+    map_word(w, gens(G); init=one(G))
+  end
+
+  return G, MapFromFunc(W, G, iso)
+end
+
+@doc raw"""
+    dual_geometric_representation(W::WeylGroup) -> ZZMatrixGroup, Map{WeylGroup, ZZMatrixGroup}
+
+Return the dual geometric representation `G` of the Weyl group `W`,
+together with the isomorphism `hom` from `W` to `G`.
+
+This representation is defined by `coefficients(w) * hom(x) == coefficients(w * x)`
+for all `x` in `W` and `w` a fundamental weight of `root_system(W)`. By linear extension,
+this also holds for all elements `w` in `weight_lattice(root_system(W))`.
+
+# Examples
+```jldoctest
+julia> R = root_system(:B, 3); W = weyl_group(R);
+
+julia> w = WeightLatticeElem(R, [1, 4, -3])
+w_1 + 4*w_2 - 3*w_3
+
+julia> x = W([1, 2, 1, 3])
+s1 * s2 * s1 * s3
+
+julia> G, hom = dual_geometric_representation(W)
+(Matrix group of degree 3 over ZZ, Map: W -> G)
+
+julia> coefficients(w) * hom(x)
+[-4   6   -7]
+
+julia> coefficients(w * x)
+[-4   6   -7]
+```
+"""
+@attr Tuple{ZZMatrixGroup,MapFromFunc{WeylGroup,ZZMatrixGroup}} function dual_geometric_representation(
+  W::WeylGroup
+)
+  gcm = cartan_matrix(W)
+  n = ngens(W)
+  imgs = ZZMatrix[]
+  for i in 1:n
+    g = identity_matrix(ZZ, n)
+    GC.@preserve g gcm begin
+      for j in 1:n
+        # efficient version of: g[i, j] -= gcm[j, i]
+        sub!(mat_entry_ptr(g, i, j), mat_entry_ptr(gcm, j, i))
+      end
+    end
+    push!(imgs, g)
+  end
+
+  G = matrix_group(imgs)
+
+  iso = function (w::WeylGroupElem)
+    map_word(w, gens(G); init=one(G))
+  end
+
+  return G, MapFromFunc(W, G, iso)
 end

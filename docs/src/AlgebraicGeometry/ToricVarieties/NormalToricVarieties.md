@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Normal Toric Varieties
@@ -18,31 +20,13 @@ the affine and non-affine case:
 
 ## Equality of Normal Toric Varieties
 
-!!! warning
-    Equality `==` of normal toric varieties currently checks equality of
-    memory locations. We recommend using `===`, which always checks
-    equality of memory locations in OSCAR.
-
-To check that the fans considered as sets of cones are equal, you may use the method below:
-
-```julia
-function slow_equal(tv1::NormalToricVariety, tv2::NormalToricVariety)
-  tv1 === tv2 && return true
-  ambient_dim(tv1) == ambient_dim(tv2) || return false
-  f_vector(tv1) == f_vector(tv2) || return false
-  return Set(maximal_cones(tv1)) == Set(maximal_cones(tv2))
-end
-```
-
-Polyhedral fans can be stored in Polymake using either rays or
-hyperplanes. In the former case, cones are stored as sets of indices of
-rays, corresponding to polyhedral hulls, while in the latter case, cones
-are stored as sets of indices of hyperplanes, corresponding to
-intersections of hyperplanes. Converting between these two formats can
-be expensive. In the case where the polyhedral fans of two normal toric
-varieties are both stored using rays, the above method `slow_equal` has
-computational complexity $O(n \log n)$, where $n$ is the number of
-cones.
+Equality `==` of normal toric varieties checks equality of the
+corresponding polyhedral fans as sets of cones.
+This computes the rays of both of the toric varieties, which can be
+expensive if they are not already computed, meaning if
+`"RAYS" in Polymake.list_properties(Oscar.pm_object(polyhedral_fan(X)))`
+is false for one of the varieties.
+Triple-equality `===` always checks equality of memory locations in OSCAR.
 
 
 ## Constructors

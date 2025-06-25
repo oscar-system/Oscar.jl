@@ -151,11 +151,11 @@ julia> L = monomial_basis(A)
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
-  I = A.I
-  G = standard_basis(I)
-  if dim(I) == -inf # I is the whole ring
+  if is_trivial(A)
     return elem_type(base_ring(A))[]
   end
+  I = A.I
+  G = standard_basis(I)
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
@@ -258,7 +258,7 @@ See also `hilbert_series_reduced`.
     ignored for certain backends.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -290,10 +290,6 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   return numer,denom
 end
 
-# TODO: The method below is missing. It should be made better and put to the correct place (AA).
-number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-
-
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
@@ -306,7 +302,7 @@ $A$ as a rational function written in lowest terms.
 See also `hilbert_series`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -529,7 +525,7 @@ Return the Hilbert series of the graded affine algebra `A`.
     see the code for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
@@ -690,7 +686,7 @@ end
 #   else
 #      VAR = ["t[$i]" for i = 1:m]
 #   end
-#   S, _ = polynomial_ring(ZZ, VAR)
+#   S, _ = polynomial_ring(ZZ, VAR, cached=false)
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -950,17 +946,15 @@ julia> is_normal(A)
 true
 ```
 """
-function is_normal(A::MPolyQuoRing; check::Bool=true)
-  return get_attribute!(A, :is_normal) do
-    @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
-    @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
-    @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
-    !check || is_reduced(A) || return false
+@attr Bool function is_normal(A::MPolyQuoRing; check::Bool=true)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
+  @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+  !check || is_reduced(A) || return false
 
-    I = A.I
-    f = Singular.LibNormal.isNormal(singular_generators(I))::Int
-    return Bool(f)
-  end
+  I = A.I
+  f = Singular.LibNormal.isNormal(singular_generators(I))::Int
+  return Bool(f)
 end
 
 @doc raw"""
@@ -1125,7 +1119,7 @@ function _subalgebra_membership_homogeneous_internal(f::MPolyDecRingElem, RtoT::
   # f is in the subalgebra iff nf does not involve the variables
   # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
   # than gen(T, ngens(R)) w.r.t. the block ordering o.
-  if isone(cmp(o, gen(T, ngens(R)), leading_monomial(nf, ordering = o)))
+  if cmp(o, gen(T, ngens(R)), leading_monomial(nf, ordering = o)) > 0
     return true, TtoS(nf)
   else
     return false, zero(S)
@@ -1389,7 +1383,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = polynomial_ring(br, symbols(newSR))
+      newOR, _ = polynomial_ring(br, symbols(newSR), cached=false)
       newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))

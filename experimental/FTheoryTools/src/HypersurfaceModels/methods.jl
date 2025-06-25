@@ -37,7 +37,7 @@ trivial sections and do not delete them, say from `explicit_model_sections`
 or `classes_of_model_sections`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
@@ -102,9 +102,9 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   # Consistency checks
   @req base_space(h) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return h
-  secs_names = collect(keys(explicit_model_sections(h)))
+  secs_names = tunable_sections(h)
   tuned_secs_names = collect(keys(input_sections))
-  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
   # 1. Tune model sections
   explicit_secs = deepcopy(explicit_model_sections(h))

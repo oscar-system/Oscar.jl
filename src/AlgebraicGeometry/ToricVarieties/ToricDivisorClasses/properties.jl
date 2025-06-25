@@ -4,7 +4,7 @@
 @doc raw"""
     is_effective(tdc::ToricDivisorClass)
 
-Determines whether the toric divisor class `tdc` is effective, that is if a toric divisor
+Determine whether the toric divisor class `tdc` is effective, that is if a toric divisor
 in this divisor class is linearly equivalent to an effective toric divisor.
 
 # Examples

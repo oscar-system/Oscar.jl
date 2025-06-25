@@ -532,13 +532,19 @@ e[2]
 ```
 """
 function prune_with_map(M::ModuleFP)
+  return prune_with_map_atomic(M)
+end
+
+# generic fallback
+function prune_with_map_atomic(M::ModuleFP)
   # TODO: take special care of graded modules 
   # by stripping off the grading and rewrapping it afterwards.
   N, b = simplify(M)
   return N, b
 end
 
-function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
+# MpolyRing and MPolyQuoRing case
+function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
 
   # Singular presentation
   pm = presentation(M)
@@ -580,6 +586,64 @@ function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoR
   phi = compose(phi3, phi2)
   
   return M_new, phi
+end
+
+@attr Any function presentation_ctx(M::SubquoModule{ZZRingElem})
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  rels = relations(M)
+  n = length(rels)
+  A = zero_matrix(R, m, n)
+  for (j, rel) in enumerate(rels)
+    for (i, v) in coordinates(rel)
+      A[i, j] = v
+    end
+  end
+  D, U, V = snf_with_transform(A)
+  return (D=D, U=U, V=V)
+end
+
+@attr Any function presentation_ctx(M::SubquoModule{T}) where {T<:FieldElem}
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  rels = relations(M)
+  n = length(rels)
+
+  A = zero_matrix(R, m, n)
+  for (j, rel) in enumerate(rels)
+    for (i, v) in coordinates(rel)
+      A[i, j] = v
+    end
+  end
+
+  D, U, V = snf_with_transform(A)
+  return (D=D, U=U, V=V)
+end
+
+function prune_with_map_atomic(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+  ctx = presentation_ctx(M)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  m = ngens(F)
+  D = ctx.D
+  U = ctx.U
+  diag_length = min(size(D)...)
+  unit_diag_indices = [i for i in 1:diag_length if is_unit(D[i,i])]
+  row_indices = setdiff(1:size(D, 1), unit_diag_indices)
+  col_indices = setdiff(1:size(D, 2), unit_diag_indices)
+  D_prime_matrix = sub(D, row_indices, col_indices)
+  F_prime = FreeMod(R, length(row_indices))
+  rels_prime = [F_prime(sparse_row(transpose(D_prime_matrix[:, j:j]))) for j in 1:size(D_prime_matrix, 2)]
+  N_prime, _ = sub(F_prime, rels_prime)
+  M_prime, _ = quo(F_prime, N_prime)
+  U_inv = inv(U)
+  iso_basis_ambient = [sum(U_inv[j, row_indices[i]] * gens(F)[j] for j in 1:m) for i in 1:length(row_indices)]
+  proj_to_M = hom(F, M, gens(M))
+  iso_basis = [proj_to_M(b) for b in iso_basis_ambient]
+  iso_map = hom(M_prime, M, iso_basis)
+  return M_prime, iso_map
 end
 
 function _presentation_minimal(SQ::ModuleFP{T};
@@ -637,4 +701,145 @@ end
 
 function prune_with_map(F::FreeMod)
   return F, hom(F, F, gens(F))
+end
+
+@doc raw"""
+    is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+
+Determine whether the finitely presented module `M` over `ZZRing` or a `Field` is finite as a set.
+
+This is done by computing a minimal presentation.
+
+# Examples
+```jldoctest
+julia> R = ZZ;
+
+julia> F = free_module(FreeMod, R, 2);
+
+julia> A = matrix(ZZ, [2 0; 0 3]);
+
+julia> M = cokernel(hom(F, F, A));
+
+julia> is_finite(M)
+true
+
+julia> B = matrix(ZZ, [0 0; 0 0]);
+
+julia> N = cokernel(hom(F, F, B));
+
+julia> is_finite(N)
+false
+
+julia> B = matrix(ZZ, [0 0; 0 0]);
+
+julia> N = cokernel(hom(F, F, B));
+
+julia> is_finite(N)
+false
+
+julia> K, a = finite_field(7, "a");
+
+julia> G = free_module(FreeMod, K, 3);
+
+julia> C = matrix(K, [1 0 0; 0 1 0; 0 0 1]);
+
+julia> L = cokernel(hom(G, G, C));
+
+julia> is_finite(L)
+true
+
+julia> H = free_module(FreeMod, QQ, 1);
+
+julia> P = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
+
+julia> is_finite(P)
+false
+
+julia> Z = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
+
+julia> is_finite(Z)
+true
+```
+"""
+function is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+  M_prime, _ = prune_with_map_atomic(M)
+  R = base_ring(M_prime)
+  pres = presentation(M_prime)
+  rel_map = map(pres, 1)
+  rel_matrix = matrix(rel_map)
+  nc = size(rel_matrix, 2)
+  nr = size(rel_matrix, 1)
+  has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
+  if isa(R, ZZRing)
+    return !has_free_generator && nc > 0
+  elseif isa(R, Field)
+    if is_finite(R)
+      return true
+    else
+      return nc == 0
+    end
+  else
+    error("The base ring $(typeof(R)) is not supported.")
+  end
+end
+
+@doc raw"""
+    size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+
+Compute the cardinality of the finitely presented module `M` over `ZZRing` or a `Field` as a set.
+Returns `PosInf` if the module is infinite.
+
+This is done by computing a minimal presentation.
+
+# Examples
+```jldoctest
+julia> R = ZZ;
+
+julia> F = free_module(FreeMod, R, 2);
+
+julia> M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
+
+julia> size(M)
+6
+
+julia> N = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
+
+julia> size(N)
+infinity
+
+julia> K, a = finite_field(7, "a");
+
+julia> G = free_module(FreeMod, K, 3);
+
+julia> H = free_module(FreeMod, K, 1);
+
+julia> L = cokernel(hom(H, G, matrix(K, [1 0 0])));
+
+julia> size(L)
+49
+```
+"""
+function size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+  M_prime, _ = prune_with_map_atomic(M)
+  R = base_ring(M_prime)
+  pres = presentation(M_prime)
+  rel_matrix = matrix(map(pres, 1))
+  nc, nr = size(rel_matrix, 2), size(rel_matrix, 1)
+  has_free_generator = any(j -> all(i -> iszero(rel_matrix[i, j]), 1:nr), 1:nc)
+  if isa(R, ZZRing)
+    if has_free_generator
+      return PosInf()
+    end
+    return prod(abs(rel_matrix[i,i]) for i in 1:min(nr,nc))
+  elseif isa(R, Field)
+    if is_finite(R)
+      q = order(R)
+      dim = ngens(M_prime)
+      return q^dim
+    else
+      return nc == 0 ? 1 : PosInf()
+    end
+  else
+    error("Unhandled base ring: $(typeof(R))")
+  end
 end

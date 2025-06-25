@@ -373,15 +373,15 @@ julia> w = [0,0];
 
 julia> groebner_basis(I,nu,w)
 2-element Vector{QQMPolyRingElem}:
- x^3 - 5*x^2*y
  -2*x^2*y + 3*y^3
+ 2*x^3 - 2*x^2*y - 12*y^3
 
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
     G = gens(I)
-    # Principal and binomial ideal shortcut, return G
-    if isone(length(G)) || all(isequal(2),length.(G))
+    # Principal ideal shortcut, return G
+    if isone(length(G))
         return G
     end
 

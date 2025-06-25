@@ -1,18 +1,18 @@
 [FTM-1511-03209]
-git-tree-sha1 = "ba4c659df6bba8d746d85628bfedf8b77b77047c"
+git-tree-sha1 = "2f4789fb56911fa34843c1754042837e07c2d376"
 lazy = true
 
     [[FTM-1511-03209.download]]
-    sha256 = "77f85f1e4a2c3b71963bea169b929dd8c1d9b3cf9b28b616f2c91486636acc22"
-    url = "https://zenodo.org/records/14611045/files/1511-03209.tar.gz"
+    sha256 = "9c2f4f6fa9cab3df70cbb2511e1caf4d8d5c8ddb27f8c3b4ddba1f1b84dc8848"
+    url = "https://zenodo.org/records/15548043/files/1511-03209.tar.gz"
 
 [QSMDB]
-git-tree-sha1 = "52686066016440cf2e6e286a923aed887658543c"
+git-tree-sha1 = "793762f4710f87e3e9b42373a45add92189153f3"
 lazy = true
 
      [[QSMDB.download]]
-     sha256 = "2b0a368c07d368f3973352b7f6e856214e25383d2cc3a78c70415afe247a997e"
-     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-2.tar.gz"     
+     sha256 = "fd5a18b58a029d524a30d0084f66d4eacef55c699067c0a9a7909d673627be6d"
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-6.tar.gz"
 
 [gap_extraperfect]
 git-tree-sha1 = "084fa12573e5089ceb3299f9d341f244b415da52"
@@ -30,3 +30,12 @@ lazy = true
     # gzip -9 -n -c perf33.grp > extraperfect/perf33.grp.gz
     # gtar --mtime="$(git log -1 --pretty=%cI)" --owner=0 --group=0 --numeric-owner -cvf extraperfect.tar extraperfect
     # gzip -n -c extraperfect.tar > extraperfect.tar.gz
+
+# to be used in the serialization upgrade tests from version 1.3 to 1.4
+[version-1-3-0-files]
+git-tree-sha1 = "231c660234d515a682a698764042cd9dae90361b"
+lazy = true
+
+     [[version-1-3-0-files.download]]
+     sha256 = "cd475445c983883d84a4ac29910d75f8b681ca1a99eb8f18f8164d2caa8704c3"
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/version_1_3_0_files.tar.gz"

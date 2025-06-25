@@ -4,6 +4,7 @@
   "General" => [
      "General/architecture.md",
      "General/other.md",
+     "General/printing.md",
      "General/faq.md",
      "General/serialization.md",
      "General/complex.md",
@@ -70,9 +71,11 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/manual/misc/sparse.md",
      "AbstractAlgebra/matrix.md",
+     "AbstractAlgebra/matrix_spaces.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
+     "Hecke/manual/misc/sparse.md",
      "Modules" => [
         "AbstractAlgebra/module.md",
         "AbstractAlgebra/free_module.md",
@@ -91,6 +94,7 @@
         "Hecke/manual/quad_forms/discriminant_group.md",
         "NumberTheory/vinberg.md",
      ],
+     "AbstractAlgebra/matrix_implementation.md",
   ],
 
   "Number Theory" => [
@@ -205,6 +209,7 @@
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/EnriquesSurfaces.md",
         "AlgebraicGeometry/Surfaces/EllipticSurface.md",
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
@@ -248,6 +253,7 @@
      "TropicalGeometry/linear_space.md",
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
+     "TropicalGeometry/positive_variety.md",
   ],
 
   "Noncommutative Algebra" => [
@@ -271,11 +277,13 @@
 
   "Combinatorics" => [
     "Combinatorics/graphs.md",
+    "Combinatorics/posets.md",
     "Combinatorics/matroids.md",
     "Combinatorics/simplicialcomplexes.md",
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
@@ -301,6 +309,7 @@
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

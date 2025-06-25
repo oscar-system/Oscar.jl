@@ -1072,6 +1072,10 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(
 Construct the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
 - [PS09](@cite)
 
+For Demazure characters as in [Dem74](@cite),
+i.e. the weights with multiplicities occurring in a Demazure module of a semisimple Lie algebra,
+see [`demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)`](@ref).
+
 # Examples
 ```jldoctest
 julia> lambda = partition([3,1,1])
@@ -2068,7 +2072,7 @@ end
 @doc raw"""
     rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
-Computes the convex hull of `n` points sampled uniformly at random from the integer 
+Compute the convex hull of `n` points sampled uniformly at random from the integer 
 points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 
 # Optional Argument
@@ -2107,7 +2111,7 @@ end
 @doc raw"""
     rand_cyclic_polytope(d::Int, n::Int; seed::Int=nothing)
 
-Computes a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
+Compute a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
 generating a Gale diagram whose cocircuits have alternating signs.
 
 # Optional Argument
@@ -2479,13 +2483,12 @@ julia> vertices(pG)
 
 julia> faces(IncidenceMatrix,pG,1)
 6×4 IncidenceMatrix
-[1, 2]
-[1, 3]
-[1, 4]
-[2, 3]
-[2, 4]
-[3, 4]
-
+ [1, 2]
+ [1, 3]
+ [1, 4]
+ [2, 3]
+ [2, 4]
+ [3, 4]
 ```
 """
 function tutte_lifting(G::Graph{Undirected})

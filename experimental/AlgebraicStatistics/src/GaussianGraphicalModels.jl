@@ -77,7 +77,7 @@ Return the generators of the multivariate polynomial ring inside the GaussianRin
 
 ## Examples
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -165,7 +165,7 @@ end
 @doc raw"""
     directed_edges_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-Creates the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
+Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
 
 ## Examples
 
@@ -189,7 +189,7 @@ end
 @doc raw"""
     error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-Creates the covariance matrix $ \Omega $ of the independent error terms in a directed Gaussian graphical model `M`
+Create the covariance matrix $ \Omega $ of the independent error terms in a directed Gaussian graphical model `M`
 
 ## Examples
 
@@ -213,7 +213,7 @@ end
 @doc raw"""
     parametrization(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-Creates the polynomial map which parametrizes the vanishing ideal of the directed Gaussian graphical model `M`.
+Create the polynomial map which parametrizes the vanishing ideal of the directed Gaussian graphical model `M`.
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
 $(Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{T} \mapsto \Sigma$ where $\Lambda =$ `directed_edges_matrix(M)` and  $ \Omega = $  `error_covariance_matrix(M)`.
 
@@ -295,7 +295,7 @@ end
 @doc raw"""
     concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
-Creates the concentration matrix `K` of an undirected Gaussian graphical model which is a symmetric positive definite matrix
+Create the concentration matrix `K` of an undirected Gaussian graphical model which is a symmetric positive definite matrix
 whose nonzero entries correspond to the edges of the associated graph.
 
 ## Examples
@@ -331,7 +331,7 @@ end
 @doc raw"""
     parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
-Creates the polynomial map which parametrizes the vanishing ideal of the undirected Gaussian graphical model `M`.
+Create the polynomial map which parametrizes the vanishing ideal of the undirected Gaussian graphical model `M`.
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
 $ K \mapsto K^{-1}$ where $ K = $  `concentration_matrix(M)` and the entries of $ K^{-1} $ are given by the standard cofactor formula.
 
@@ -367,7 +367,7 @@ end
 @doc raw"""
     vanishing_ideal(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
-Computes the vanishing ideal of the undirected Gaussian graphical model `M`.
+Compute the vanishing ideal of the undirected Gaussian graphical model `M`.
 This is done by saturating the ideal given by $ \Sigma K - Id $ by the determinant of $ K $
 and then eliminating all variables `k[i,j]` where $ K =$ `concentration_matrix(M)`.
 

@@ -56,11 +56,11 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 end
 
 
-# computes a complement for W in V (i.e. a subspace U of V such that V is direct sum of U and W)
 """
     complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 
-Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is direct sum of `U` and `W`.
+Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is
+the direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
    @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
@@ -115,8 +115,6 @@ function permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
 end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
-
-^(a::MatElem, b::ZZRingElem) = Nemo._generic_power(a, b)
 
 ########################################################################
 #

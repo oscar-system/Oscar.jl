@@ -228,7 +228,6 @@ function compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
   gb = standard_basis(mg, reduced)
-  oscar_assure(gb)
   gb.isGB = true
   gb.S.isGB = true
   gb.ordering = ordering
@@ -476,9 +475,37 @@ end
 Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
+  iszero(a) && return true
+  a in gens(M) && return true
+  return in_atomic(a, M)
+end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
   F = ambient_free_module(M)
   return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
+
+@attr Any function solve_ctx(M::SubModuleOfFreeModule)
+  F = ambient_free_module(M)
+  d, n = rank(F), ngens(M)
+  R = base_ring(F)
+  mat = zero_matrix(R, n, d)
+  for (j, g) in enumerate(gens(M)), (i, val) in coordinates(g)
+    mat[j, i] = val
+  end
+  return solve_init(mat)
+end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {T<:Union{ZZRingElem, FieldElem}}
+  ctx = solve_ctx(M)
+  vec_a = dense_row(coordinates(a), rank(ambient_free_module(M)))
+  return can_solve(ctx, vec_a; side=:left)
+end
+
+function in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
+  error("Membership test 'in' is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
+end
+
 
 function normal_form(M::SubModuleOfFreeModule{T}, N::SubModuleOfFreeModule{T}) where {T <: MPolyRingElem}
   @assert is_global(default_ordering(N))

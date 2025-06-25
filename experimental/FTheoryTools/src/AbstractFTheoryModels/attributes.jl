@@ -14,7 +14,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(m)
-A family of spaces of dimension d = 3
+Family of spaces of dimension d = 3
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -35,7 +35,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(m)
-A family of spaces of dimension d = 5
+Family of spaces of dimension d = 5
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)
@@ -68,10 +68,11 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return the model sections in explicit form, that is as polynomials
+of the base space coordinates. The set of keys of the returned
+dictionary matches the output of `model_sections`. 
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -97,18 +98,19 @@ end
 
 
 @doc raw"""
-    defining_section_parametrization(m::AbstractFTheoryModel)
+    model_section_parametrization(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that
-is as polynomials of the base space coordinates.
+Return a dictionary that defines how the "default" parameters of
+the given model type are defined in terms of the tunable sections
+(those returned by `tunable_sections`).
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> defining_section_parametrization(t)
+julia> model_section_parametrization(t)
 Dict{String, MPolyRingElem} with 4 entries:
   "a6" => 0
   "a3" => w^2*a32
@@ -116,18 +118,20 @@ Dict{String, MPolyRingElem} with 4 entries:
   "a4" => w^3*a43
 ```
 """
-function defining_section_parametrization(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :defining_section_parametrization) "defining_section_parametrization not supported for this F-theory model"
-  return m.defining_section_parametrization
+function model_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :model_section_parametrization) "model_section_parametrization not supported for this F-theory model"
+  return m.model_section_parametrization
 end
 
 
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Return the divisor classes of all model sections.
+Return the divisor classes of all model sections. The set
+of keys of the returned dictionary matches the output
+of `model_sections`.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
@@ -174,6 +178,8 @@ end
     defining_classes(m::AbstractFTheoryModel)
 
 Return the defining divisor classes of the model in question.
+This is the minimum set of information required to specify a
+family of models. 
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -188,9 +194,8 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> defining_classes(t)
-Dict{String, ToricDivisorClass} with 2 entries:
-  "w"    => Divisor class on a normal toric variety
-  "Kbar" => Divisor class on a normal toric variety
+Dict{String, ToricDivisorClass} with 1 entry:
+  "w" => Divisor class on a normal toric variety
 ```
 """
 function defining_classes(m::AbstractFTheoryModel)
@@ -875,8 +880,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolutions(m)
-1-element Vector{Vector{Vector}}:
- [[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]
+1-element Vector{Tuple{Vector{Vector{String}}, Vector{String}}}:
+ ([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
 ```
 """
 function resolutions(m::AbstractFTheoryModel)
@@ -950,8 +955,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolutions(m)
-1-element Vector{Vector{Vector}}:
- [Vector{Vector{Any}}[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]
+1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
+ ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
 ```
 """
 function weighted_resolutions(m::AbstractFTheoryModel)
@@ -1092,6 +1097,72 @@ end
 
 
 @doc raw"""
+    exceptional_classes(m::AbstractFTheoryModel)
+
+Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_classes(foah11_B3)
+4-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by e1
+ Cohomology class on a normal toric variety given by e2
+ Cohomology class on a normal toric variety given by e3
+ Cohomology class on a normal toric variety given by e4
+```
+"""
+function exceptional_classes(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_classes, Vector{CohomologyClass}())
+end
+
+
+@doc raw"""
+    exceptional_divisor_indices(m::AbstractFTheoryModel)
+
+Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
+This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
+After a toric blow up this information is updated.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> exceptional_divisor_indices(foah11_B3)
+4-element Vector{Int64}:
+  8
+  9
+ 10
+ 11
+```
+"""
+@attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
+  return get_attribute(m, :exceptional_divisor_indices, Vector{Int}())
+end
+
+
+@doc raw"""
     torsion_sections(m::AbstractFTheoryModel)
 
 Return the torsion sections of the given model.
@@ -1141,7 +1212,7 @@ with summands
   sl_2
   sl_2
   linear Lie algebra
-over field of algebraic numbers
+over algebraic closure of rational field
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
@@ -1151,7 +1222,7 @@ end
 
 
 @doc raw"""
-    global_gauge_quotients(m::AbstractFTheoryModel)
+    global_gauge_group_quotient(m::AbstractFTheoryModel)
 
 Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
 These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
@@ -1164,7 +1235,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
 
-julia> global_gauge_quotients(t)
+julia> global_gauge_group_quotient(t)
 5-element Vector{Vector{String}}:
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
  ["-identity_matrix(C,2)"]
@@ -1173,8 +1244,8 @@ julia> global_gauge_quotients(t)
  ["-identity_matrix(C,1)"]
 ```
 """
-function global_gauge_quotients(m::AbstractFTheoryModel)
-  @req has_global_gauge_quotients(m) "No gauge quotients stored for this model"
+function global_gauge_group_quotient(m::AbstractFTheoryModel)
+  @req has_global_gauge_group_quotient(m) "No gauge quotients stored for this model"
   return get_attribute(m, :global_gauge_quotients)
 end
 
@@ -1182,15 +1253,24 @@ end
 @doc raw"""
     chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
-$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises an error.
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class ``h`` on the
+toric ambient space ``X_\Sigma``, such that its restriction to ``Y_n`` is the k-th Chern class
+``c_k`` of the tangent bundle of ``Y_n``. If those assumptions are satisfied, this method returns
+this very cohomology class ``h``, otherwise it raises an error.
 
 The theory guarantees that the implemented algorithm works for toric ambient spaces which are
 smooth and complete. The check for completeness can be very time consuming. This check can
 be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
+
+!!!warning
+    This method works ONLY for F-theory models which are hypersurfaces in a toric ambient space.
+  
+!!!warning
+    This method represents the Chern classes of said hypersurface by cohomology classes on the toric ambient space.
+    These classes counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
+    Internally, we integrate those ambient space classes against the class of the hypersurface, which automatically
+    executes the restriction to the hypersurface.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -1211,43 +1291,52 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  if !has_attribute(m, :chern_classes)
+    cs = Dict{Int64, CohomologyClass}()
+    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)), quick = true)
+    diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
+    cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
+    set_attribute!(m, :chern_classes, cs)
+    if k == 0
+      return cs[0]
+    elseif k == 1
+      return cs[1]
+    end
+  end
+
+  # Check if the Chern class in question is known
+  cs = get_attribute(m, :chern_classes)::Dict{Int64, CohomologyClass}
+  if haskey(cs, k)
+    return cs[k]
+  end
+
   # Check if we can compute the Chern classes for the toric ambient space
   if check
     @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
 
-  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
-  if !has_attribute(m, :chern_classes)
-    cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
-    cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
-    set_attribute!(m, :chern_classes, cs)
-  end
-
-  # Check if the Chern class in question is known
-  cs = get_attribute(m, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
-  if cs[k+1] !== nothing
-    return cs[k+1]::CohomologyClass
-  end
-
   # Chern class is not known, so compute and return it...
-  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))), quick = true)
+  ck_ambient = chern_class(ambient_space(m), k, check = check)
+  ckm1 = chern_class(m, k-1, check = check)
+  new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
+  coho_R = cohomology_ring(ambient_space(m), check = check)
+  cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), quick = true)
   set_attribute!(m, :chern_classes, cs)
-  return cs[k+1]
+  return cs[k]
 end
 
 
 @doc raw"""
     chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
-$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-a vector with the cohomology classes corresponding to all non-trivial Chern classes $c_k$ of
-$Y_n$. Otherwise, this methods raises an error.
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class ``h`` on the
+toric ambient space ``X_\Sigma``, such that its restriction to ``Y_n`` is the k-th Chern class
+``c_k`` of the tangent bundle of ``Y_n``. If those assumptions are satisfied, this method returns
+a vector with the cohomology classes corresponding to all non-trivial Chern classes ``c_k`` of
+``Y_n``. Otherwise, this methods raises an error.
 
 As of right now, this method is computationally expensive for involved toric ambient spaces,
 such as in the example below.
@@ -1262,13 +1351,13 @@ Hypersurface model over a concrete base
 
 julia> h = chern_classes(qsm_model; check = false);
 
-julia> is_one(polynomial(h[1]))
+julia> is_one(polynomial(h[0]))
+true
+
+julia> is_trivial(h[1])
 true
 
 julia> is_trivial(h[2])
-true
-
-julia> is_trivial(h[3])
 false
 ```
 """
@@ -1276,14 +1365,17 @@ function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
-  return [chern_class(m, k, check = check) for k in 0:dim(ambient_space(m))-1]
+  for k in 0:dim(ambient_space(m))-1
+    chern_class(m, k; check = check)
+  end
+  return get_attribute(m, :chern_classes)::Dict{Int64, CohomologyClass}
 end
 
 
 @doc raw"""
     euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+If the elliptically fibered n-fold ``Y_n`` underlying the F-theory model in question is given
 as a hypersurface in a toric ambient space, we can compute the Euler characteristic. If this
 assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
 error.
@@ -1299,23 +1391,103 @@ julia> h = euler_characteristic(qsm_model; check = false)
 378
 ```
 """
-function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+@attr Int function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
 
-  return get_attribute!(m, :euler_characteristic) do
-    # Trigger potential short-cut computation of cohomology ring
-    cohomology_ring(ambient_space(m); check)
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
 
-    # Compute the cohomology class corresponding to the hypersurface equation
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  # Compute the cohomology class corresponding to the hypersurface equation
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
-    # Compute the Euler characteristic
-    return Int(integrate(chern_class(m, 4; check) * cy; check))
-  end::Int
+  # Compute the Euler characteristic
+  return Int(integrate(chern_class(m, 4; check) * cy; check))
 end
 
+
+@doc raw"""
+    tunable_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that can be tuned.
+This is a list of the names of all parameters appearing in the model.
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> tunable_sections(m)
+5-element Vector{String}:
+ "a21"
+ "w"
+ "a1"
+ "a43"
+ "a32"
+```
+"""
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
+
+
+@doc raw"""
+    model_sections(m::AbstractFTheoryModel)
+
+Return a vector containing all sections that were used in the definition of the model.
+This includes the sections returned by `tunable_sections` and all sections parametrized by
+them (the keys of the dictionary returned by `model_section_parametrization`). These are
+the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> model_sections(m)
+9-element Vector{String}:
+ "a6"
+ "a21"
+ "a3"
+ "w"
+ "a2"
+ "a1"
+ "a4"
+ "a43"
+ "a32"
+```
+"""
+model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+
+
+@doc raw"""
+    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+
+Returns a dictionary giving the classes of all parameters (tunable sections)
+in terms of Kbar and the defining classes. Each value gives the divisor
+class of the corresponding section/key in this basis. This information is currently only available for literature models.
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+
+julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
+Dict{String, Vector{Int64}} with 6 entries:
+  "b1" => [1, 0]
+  "b3" => [3, -5]
+  "b4" => [4, -6]
+  "b6" => [6, -11]
+  "b2" => [2, -1]
+  "ζ0" => [0, 1]
+```
+"""
+@attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+  @req has_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes) "No detailed information about tunable sections stored for this model"
+  return get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes)
+end
 
 
 ##########################################
@@ -1881,4 +2053,33 @@ julia> genera_of_components_of_simplified_dual_graph(qsm_model)["C2"]
 function genera_of_components_of_simplified_dual_graph(m::AbstractFTheoryModel)
   @req has_attribute(m, :genus_of_components_of_simplified_dual_graph) "Genera of components of simplified dual graph not known for this model"
   return get_attribute(m, :genus_of_components_of_simplified_dual_graph)
+end
+
+
+######################################################################################
+### (5) Attributes for flux families (not exported, rather for serialization overhaul)
+######################################################################################
+
+@attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(special_flux_family(m, check = check))
+end
+
+@attr Vector{QQFieldElem} function offset_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, check = check))
+end
+
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
+  return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
+end
+
+@attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
+  return offset(special_flux_family(m, not_breaking = true; check = check))
 end

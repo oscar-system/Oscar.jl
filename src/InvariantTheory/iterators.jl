@@ -54,8 +54,16 @@ end
 
 function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
   @req is_z_graded(R) "Iterator only implemented when the grading group is Z"
-  @req all(isequal(ZZ(1)), map(i -> degree(R[i])[1], vars)) "Iterator only implemented for variables of degree 1"
-  return AllMonomials{typeof(R)}(R, d, vars)
+  isempty(vars) && d !== 0 && return AllMonomials{typeof(R)}(R, 1, Int[])
+  isempty(vars) && return AllMonomials{typeof(R)}(R, 0, Int[])
+  deg_ZZ = degree(R[vars[1]])[1]
+  @req all(isequal(deg_ZZ), map(i -> degree(R[i])[1], vars)) "Iterator only implemented when all the given variables have the same nonzero degree"
+  deg = Int(deg_ZZ)
+  d == 0 && return AllMonomials{typeof(R)}(R, 0, Int[])
+  does_divide, quot = divides(d, deg)
+  does_divide || return AllMonomials{typeof(R)}(R, 1, Int[])
+  quot > 0 || return AllMonomials{typeof(R)}(R, 1, Int[])
+  return AllMonomials{typeof(R)}(R, quot, vars)
 end
 
 Base.eltype(::Type{AllMonomials{PolyRingT}}) where {PolyRingT} = elem_type(PolyRingT)

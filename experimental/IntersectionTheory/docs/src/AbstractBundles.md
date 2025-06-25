@@ -1,9 +1,14 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Bundles
+
+## Types
+
+The OSCAR type for abstract vector bundles is `AbstractBundle`.
 
 ## Constructors
 

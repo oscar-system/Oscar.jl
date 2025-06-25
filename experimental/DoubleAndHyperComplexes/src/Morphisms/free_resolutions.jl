@@ -1,13 +1,14 @@
 struct ResolutionModuleFactory{ChainType, MapType} <: HyperComplexChainFactory{ChainType}
   orig_mod::SubquoModule
   map_cache::Vector{MapType}
+  initial_length::Union{Nothing, Int}
 
-  function ResolutionModuleFactory(M::SubquoModule)
+  function ResolutionModuleFactory(M::SubquoModule; initial_length::Union{Nothing, Int}=nothing)
     R = base_ring(M)
     ChainType = FreeMod{elem_type(R)}
     MapType = FreeModuleHom{ChainType, ChainType, Nothing}
     map_cache = MapType[]
-    return new{ChainType, MapType}(M, map_cache)
+    return new{ChainType, MapType}(M, map_cache, initial_length)
   end
 end
 
@@ -62,9 +63,7 @@ function (fac::ResolutionModuleFactory{ChainType})(
 
   if is_empty(fac.map_cache)
     # start the resolution from scratch
-    # It turns out to usually be better to compute the full Schreyer resolution at once 
-    # instead of incrementally.
-    res = free_resolution(fac.orig_mod; algorithm=:fres)
+    res = free_resolution(fac.orig_mod; algorithm=:fres, length=isnothing(fac.initial_length) ? 0 : maximum([fac.initial_length::Int, i]))
     phi = map(res, 1)
     F = c[0] # caught above
     id = hom(codomain(phi), F, gens(F))
@@ -73,7 +72,24 @@ function (fac::ResolutionModuleFactory{ChainType})(
     for j in 2:r
       push!(fac.map_cache, map(res, j))
     end
-    @assert is_zero(domain(last(fac.map_cache)))
+    #@assert is_zero(domain(last(fac.map_cache)))
+  end
+
+  m = length(fac.map_cache)
+  i == 0 && return codomain(first(fac.map_cache))
+  i <= m && return domain(fac.map_cache[i])
+
+  last_map = last(fac.map_cache)
+  if !is_zero(domain(last_map))
+    # extend the resolution
+    delta = i - m - 1
+    K, inc_K = kernel(last_map)
+    res_ext = free_resolution(K; algorithm=:fres, length=delta)
+    push!(fac.map_cache, compose(map(res_ext, 0), inc_K))
+    r = first(range(res_ext.C)) # the index of the last module
+    for j in 2:r
+      push!(fac.map_cache, map(res_ext, j))
+    end
   end
 
   m = length(fac.map_cache)
@@ -121,11 +137,14 @@ function (fac::ResolutionMapFactory)(c::AbsHyperComplex, p::Int, I::Tuple)
 end
 
 
-function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeResolution, RET}
+function free_resolution(
+    ::Type{T}, M::SubquoModule{RET};
+    initial_length::Union{Int, Nothing}=nothing
+  ) where {T<:SimpleFreeResolution, RET}
   ChainType = FreeMod{RET}
   MorphismType = FreeModuleHom{ChainType, ChainType, Nothing}
 
-  chain_fac = ResolutionModuleFactory(M)
+  chain_fac = ResolutionModuleFactory(M; initial_length)
   map_fac = ResolutionMapFactory{MorphismType}()
 
   R = base_ring(M)
@@ -143,17 +162,49 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
   return result, aug_map_comp
 end
 
-function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolution, RET}
+function free_resolution(
+    ::Type{T}, F::FreeMod{RET};
+    initial_length::Union{Nothing, Int}=nothing
+  ) where {T<:SimpleFreeResolution, RET}
+  ChainType = FreeMod{RET}
+  MorphismType = FreeModuleHom{ChainType, ChainType, Nothing}
+
+  M = SubquoModule(F, gens(F), elem_type(F)[])
+  chain_fac = ResolutionModuleFactory(M; initial_length)
+  map_fac = ResolutionMapFactory{MorphismType}()
+
+  R = base_ring(M)
+  upper_bound = (R isa MPolyRing ? ngens(R) : nothing)
+  internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
+                                  upper_bounds = [upper_bound], 
+                                  lower_bounds = [0]
+                                 )
+  result = SimpleFreeResolution(M, internal_complex; initial_length)
+  FC = ZeroDimensionalComplex(F)[0:0] # Wrap FC as a 1-dimensional complex concentrated in degree 0
+  aug_map = hom(result[(0,)], F, gens(F); check=false) # The actual augmentation map
+  aug_map.generators_map_to_generators = true
+  aug_map_comp = MorphismFromDict(result, FC, Dict{Tuple, typeof(aug_map)}([(0,)=>aug_map]))
+  result.augmentation_map = aug_map_comp
+  return result, aug_map_comp
+end
+
+function free_resolution(
+    ::Type{T}, I::Ideal{RET};
+    initial_length::Union{Nothing, Int}=nothing
+  ) where {T<:SimpleFreeResolution, RET}
   R = base_ring(I)
   F = (!is_graded(R) ? FreeMod(R, 1) : graded_free_module(R, [zero(grading_group(R))]))
   M, _ = I*F
   if is_graded(R)
     @assert is_graded(M)
   end
-  return free_resolution(T, M)
+  return free_resolution(T, M; initial_length)
 end
 
-function free_resolution(::Type{T}, A::MPolyQuoRing) where {T<:SimpleFreeResolution}
+function free_resolution(
+    ::Type{T}, A::MPolyQuoRing;
+    initial_length::Union{Nothing, Int}=nothing
+  ) where {T<:SimpleFreeResolution}
   R = base_ring(A)
   I = modulus(A)
   F = (!is_graded(R) ? FreeMod(R, 1) : graded_free_module(R, [zero(grading_group(R))]))
@@ -162,7 +213,7 @@ function free_resolution(::Type{T}, A::MPolyQuoRing) where {T<:SimpleFreeResolut
   if is_graded(R)
     @assert is_graded(M)
   end
-  return free_resolution(T, AA)
+  return free_resolution(T, AA; initial_length)
 end
 
 ### Additional getters

@@ -2,9 +2,9 @@
 # Exterior powers of free modules
 #
 # For F = Rⁿ we provide methods to create ⋀ ᵖF for arbitrary 0 ≤ p ≤ n.
-# These modules are cached in F and know that they are an exterior 
-# power of F. This allows us to implement the wedge product of their 
-# elements. 
+# These modules are cached in F and know that they are an exterior
+# power of F. This allows us to implement the wedge product of their
+# elements.
 ########################################################################
 
 # User facing constructor for ⋀ ᵖ F.
@@ -20,12 +20,12 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   n = rank(F)
   result_ = FreeMod(R, binomial(n, p))
 
-  # In case F was graded, we have to take an extra detour. 
+  # In case F was graded, we have to take an extra detour.
   result = if is_graded(F)
     G = grading_group(F)
     weights = elem_type(G)[]
-    for ind in OrderedMultiIndexSet(p, n)
-      push!(weights, sum(_degree_fast(F[i]) for i in indices(ind); init=zero(G)))
+    for fs in combinations(gens(F), p)
+      push!(weights, sum(_degree_fast(f) for f in fs; init=zero(G)))
     end
     grade(result_, weights)
   else
@@ -47,9 +47,8 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     @req parent(u) === result "element does not belong to the correct module"
     k = findfirst(==(u), gens(result))
     @req !isnothing(k) "element must be a generator of the module"
-    ind = ordered_multi_index(k, p, n)
-    e = gens(F)
-    return Tuple(e[i] for i in indices(ind))
+    ind = combination(n, p, k)
+    return Tuple(gen(F, i) for i in ind)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(F) for f in 1:p])), result, my_mult, my_decomp)
@@ -70,7 +69,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   if iszero(p)
     new_symb = [Symbol("1")]
   else
-    for ind in OrderedMultiIndexSet(p, n)
+    for ind in combinations(n, p)
       symb_str = orig_symb[ind[1]]
       for i in 2:p
         symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
@@ -167,7 +166,7 @@ end
 
 function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   isempty(v) && error("list of elements must not be empty")
-  all(u->parent(u) === parent(first(v)), v[2:end]) || error("parent mismatch")
+  allequal(parent, v) || error("parent mismatch")
 
   F = parent(first(v))
   success, M, p = _is_exterior_power(F)
@@ -175,20 +174,18 @@ function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   success || error("element must be an exterior product")
   k = [findfirst(==(u), gens(F)) for u in v]
   any(isnothing, k) && error("elements must be generators of the module")
-  ind = [ordered_multi_index(r, p, n) for r in k]
-  comp = [ordered_multi_index([i for i in 1:n if !(i in indices(I))], n) for I in ind]
-  lin_ind = linear_index.(comp)
+  ind = [combination(n, p, r) for r in k]
+  comp = [Combination([i for i in 1:n if !(i in I)]) for I in ind]
+  lin_ind = Oscar.linear_index.(comp, Ref(n))
   F_dual = koszul_dual(F, cached=cached)
   results = [F_dual[j] for j in lin_ind]
   for r in 1:length(v)
     sign, _ = _wedge(ind[r], comp[r])
     isone(sign) || (results[r] = -results[r])
   end
-  return results 
+  return results
 end
 
 function koszul_dual(v::FreeModElem; cached::Bool=true)
   return first(koszul_duals([v], cached=cached))
 end
-
-

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -55,6 +56,9 @@ as the second argument. Such a setter function exists for all of the above. If a
 we also offer a method that adds a new value. For instance, we have a function
 `add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
 
+!!! warning
+    Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
+
 In addition, the following attributes are available to access advanced model information:
 ```@docs
 resolutions(m::AbstractFTheoryModel)
@@ -66,6 +70,8 @@ weighted_resolution_zero_sections(m::AbstractFTheoryModel)
 zero_section(m::AbstractFTheoryModel)
 zero_section_class(m::AbstractFTheoryModel)
 zero_section_index(m::AbstractFTheoryModel)
+exceptional_classes(m::AbstractFTheoryModel)
+exceptional_divisor_indices(m::AbstractFTheoryModel)
 torsion_sections(m::AbstractFTheoryModel)
 ```
 
@@ -108,7 +114,7 @@ following methods:
 * `has_zero_section_class(m::AbstractFTheoryModel)`,
 * `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
-* `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
+* `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
 
 
 ## Methods

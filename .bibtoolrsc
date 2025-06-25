@@ -38,6 +38,7 @@ preserve.key.case = on
 sort.cased = off
 print.use.tab = off
 
+delete.field = { abstract }
 delete.field = { hal_id }
 delete.field = { hal_version }
 delete.field = { isbn }
@@ -63,14 +64,14 @@ key.format =
 }
 
 # Enforce "{...}" around fields
-rewrite.rule {"^\"\([^#]*\)\"$" "{\1}"}
-rewrite.rule {"^ *\([0-9]*\) *$" "{\1}"}
+rewrite.rule { "^\"\([^#]*\)\"$" "{\1}" }
+rewrite.rule { "^ *\([0-9]*\) *$" "{\1}" }
 
 # Remove empty fields
-rewrite.rule {"^{ *}$"}
+rewrite.rule { "^{ *}$" }
 
 # Unify page range separator
-rewrite.rule {pages "\([0-9]+\) *\(-\|---\|–\) *\([0-9]+\)" "\1--\3"}
+rewrite.rule { pages "\([0-9]+\) *\(-\|---\|–\) *\([0-9]+\)" "\1--\3" }
 
 # Check that 1800<=year<=2029
 check.rule { year "^[\"{]1[89][0-9][0-9][\"}]$" }
@@ -82,3 +83,19 @@ check.error.rule { doi "\://" "\@ \$: doi field should not be a URL" }
 
 # Check that the url field is not a DOI
 check.error.rule { url "doi\.org/" "\@ \$: url field should not contain a doi. Use the doi field instead" }
+
+# Normalize the month field to e.g. `jan` (without braces), see https://github.com/ge-ne/bibtool/issues/66#issuecomment-577283871
+rewrite.case.sensitive = Off
+rewrite.rule { month "{\([^#]*\)}" "\1"}
+rewrite.rule { month "^ *\(1\|Jan.*\|jan.+\) *$" "jan" }
+rewrite.rule { month "^ *\(2\|Feb.*\|feb.+\) *$" "feb" }
+rewrite.rule { month "^ *\(3\|Mar.*\|mar.+\) *$" "mar" }
+rewrite.rule { month "^ *\(4\|Apr.*\|apr.+\) *$" "apr" }
+rewrite.rule { month "^ *\(5\|May.*\|may.+\) *$" "may" }
+rewrite.rule { month "^ *\(6\|Jun.*\|jun.+\) *$" "jun" }
+rewrite.rule { month "^ *\(7\|Jul.*\|jul.+\) *$" "jul" }
+rewrite.rule { month "^ *\(8\|Aug.*\|aug.+\) *$" "aug" }
+rewrite.rule { month "^ *\(9\|Sep.*\|sep.+\) *$" "sep" }
+rewrite.rule { month "^ *\(10\|Oct.*\|oct.+\) *$" "oct" }
+rewrite.rule { month "^ *\(11\|Nov.*\|nov.+\) *$" "nov" }
+rewrite.rule { month "^ *\(12\|Dec.*\|dec.+\) *$" "dec" }

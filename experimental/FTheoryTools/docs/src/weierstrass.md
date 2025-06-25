@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -155,21 +156,24 @@ fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully
 tell if the model has been constructed over a concrete space (in which case the function returns
 `true`) or a family of spaces (returning `false`).
 
+### Advanced Attributes
 
-### Advanced attributes
-
-The following attributes are currently only supported in a toric setting:
+The following functionality is currently only supported for toric ambient spaces:
 ```@docs
 calabi_yau_hypersurface(w::WeierstrassModel)
 ```
-Note that for applications in F-theory, *singular* elliptic fibrations are key
-(cf. [Wei18](@cite) and references therein). Consequently the discriminant
-locus as well as the singular loci of the fibration in question are of ample
-importance:
+In F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein). One crucial quantity is the discriminant locus of the fibration, i.e. the locus of the base over which the fibers become singular:
 ```@docs
 discriminant(w::WeierstrassModel)
+```
+Even more critical than the discriminant itself is its decomposition: the discriminant locus may split into several irreducible components. Over each such component, the type of singularity in the elliptic fiber is determined. The following function singular_loci returns this list of irreducible base loci along with the corresponding singularity types:
+```@docs
 singular_loci(w::WeierstrassModel)
 ```
+!!! warning
+    The classification of singularities is performed using a Monte Carlo algorithm, i.e. it involves random sampling. While the implementation has been extensively tested and meets high standards, its probabilistic nature may occasionally yield non-deterministic results.
+
+
 
 ## Methods
 

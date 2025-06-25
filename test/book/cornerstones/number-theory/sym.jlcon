@@ -8,12 +8,14 @@ Permutation group of degree 4
 julia> describe(G)
 "C2 x C2"
 
-julia> m(G[1])
+julia> phi = m(G(@perm (1, 3)(2, 4)))
 Map
   from number field of degree 4 over QQ
   to number field of degree 4 over QQ
+defined by
+  a -> -1//4*a^3 + 13//4*a
 
-julia> m(G[1])(a)
+julia> phi(a)
 -1//4*a^3 + 13//4*a
 
 julia> preimage(m, hom(K, K, -a))

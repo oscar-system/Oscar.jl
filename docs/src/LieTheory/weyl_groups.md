@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -43,6 +44,8 @@ gen(::WeylGroup, ::Int)
 gens(::WeylGroup)
 number_of_generators(::WeylGroup)
 order(::Type{T}, ::WeylGroup) where {T}
+is_finite_order(::WeylGroupElem)
+order(::Type{T}, ::WeylGroupElem) where {T}
 ```
 
 ```@docs
@@ -86,6 +89,11 @@ reduced_expressions(::WeylGroupElem)
 
 ```@docs
 *(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
+```
+
+```@docs
+geometric_representation(::WeylGroup)
+dual_geometric_representation(::WeylGroup)
 ```
 
 

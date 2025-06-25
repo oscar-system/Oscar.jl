@@ -22,6 +22,8 @@ if numprocs >= 2
   println("Adding worker processes")
   addprocs(numprocs)
 end
+# keep custom worker pool to avoid issues from extra processes in parallel tests
+worker_pool = WorkerPool(workers())
 
 if haskey(ENV, "JULIA_PKGEVAL") ||
   get(ENV, "CI", "") == "true" ||
@@ -78,7 +80,7 @@ testlist = Oscar._gather_tests("test")
 
 for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
-  if isdir(path)
+  if isdir(path) && exp != "Parallel"
     append!(testlist, Oscar._gather_tests(path))
   end
 end
@@ -115,7 +117,7 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
                                "experimental/QuadFormAndIsom/test/runtests.jl",
                                "experimental/GModule/test/runtests.jl",
-                               "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
+                               "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
                                "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
                               ],
@@ -154,14 +156,17 @@ stats = Dict{String,NamedTuple}()
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
 # try running it first for now
-if numprocs == 1 && (test_subset == "long" || test_subset == "")
-  println("Starting tests for Serialization/IPC.jl")
-  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+if test_subset == :long || test_subset == :default
+  if "Parallel" in Oscar.exppkgs
+    path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
+    println("Starting tests for $path")
+    push!(stats, Oscar._timed_include(path, Main))
+  end
 end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-merge!(stats, reduce(merge, pmap(testlist) do x
+merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
                               Oscar.test_module(x; new=false, timed=true, tempproject=false)
                             end))

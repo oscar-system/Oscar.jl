@@ -69,8 +69,7 @@ end
 See Prop. 3.1 in [BKR20](@cite).
 """
 function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
-    Oscar.singular_assure(I)
-    SingI = I.gens.S
+    SingI = Oscar.singular_generators(I)
     R = base_ring(SingI)
     Rgens = gens(R)
     nr_variables = length(Rgens)
@@ -507,7 +506,7 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
                       for cone in result_cones]
 
     # the set of rays
-    allrays = sort!(unique(vcat(rays_maxcones...)))
+    allrays = unique!(sort!(reduce(vcat, rays_maxcones)))
 
     # the indices of rays that belong to each maximal cone (0-based)
     index_maxcones = [sort([findfirst(==(v), allrays)-1
