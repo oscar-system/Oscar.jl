@@ -33,7 +33,7 @@ function build_relation_matrix(G::MatrixGroup)
   # Start to collect equations for relations
   M = zero_matrix(K, 0, m)
   
- for g in G
+  for g in G
     # First we add the relations (I) - (IV) for g != 1, since for g = 1, they are always true
     if !is_one(g)
       A = matrix(g)
@@ -78,36 +78,38 @@ function build_relation_matrix(G::MatrixGroup)
 
       c = inv(h) * g * h
       A = matrix(h)
-      row = zero_matrix(K, 1, m)
       
       # We need
       # sum_{l < k} (a_li a_kj − a_ki a_lj) κ_g(vl,vk) − κ_h−1gh(vi,vj) = 0
       # for each i < j
       for i in 1:n, j in (i+1):n
+        row = zero_matrix(K, 1, m)
+        
         # Build the equation
-        for l in 1:n, k in (l+1):n
-          if g == c
+        if g == c
+          for l in 1:n, k in (l+1):n
             if l == i && k == j 
               row[1,map[(g,i,j)]] = A[i,i] * A[j,j] - A[j,i] * A[i,j] - K(1)
             else 
               row[1,map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
             end
-          else
-            row[1,map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
+          end
+        
+        else
+          row[1,map[(c,i,j)]] = -K(1)
 
-            if l == i && k == j
-              row[1,map[(c,i,j)]] = K(-1)
-            end
+          for l in 1:n, k in (l+1):n
+            row[1,map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
           end
         end
-      end
-
-      if !is_zero(row)
-        M = vcat(M, row)
+      
+        if !is_zero(row)
+          M = vcat(M, row)
+        end
       end
     end
   end
-  
+
   return (M, map)
 end
 

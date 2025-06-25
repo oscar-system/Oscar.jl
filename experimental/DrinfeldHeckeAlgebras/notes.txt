@@ -130,3 +130,5 @@ w2 = matrix(QQ,[1 0; 1 -1])
 W = matrix_group([w1,w2])
 G = symplectic_doubling(W)
 κ = generic_drinfeld_hecke_form(G)
+
+κ = generic_drinfeld_hecke_form(W)

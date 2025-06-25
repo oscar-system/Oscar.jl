@@ -147,7 +147,7 @@ function set_forms(
 ) where {T <: FieldElem, S <: RingElem}
   # Check if forms input defines valid Drinfeld-Hecke form
   if !is_drinfeld_hecke_form(forms)
-    throw(ArgumentError("Forms must define valid Drinfeld-Hecke form"))
+    throw(ArgumentError("The given alternating bilinear forms do not define a valid Drinfeld-Hecke form."))
   end
   
   # Initialize forms of κ
@@ -236,6 +236,7 @@ group_algebra(κ::DrinfeldHeckeForm) = κ.group_algebra
 forms(κ::DrinfeldHeckeForm) = κ.forms
 number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
+parameters(κ::DrinfeldHeckeForm) = gens(base_ring(κ))
 
 function deepcopy_internal(κ::DrinfeldHeckeForm)
   G = group(κ)
