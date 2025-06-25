@@ -374,20 +374,11 @@ function simplify(c::FreeResolution{T}) where T
     pushfirst!(result.maps, psi)
     result.complete = true
   end
+  set_attribute!(result, 
+                 :show=>Hecke.pres_show, 
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
   return FreeResolution(result)
-
-  # The following is left here as a prototype for later recycling.
-  result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
-    cc[i-1] # make sure cache is up to date
-    if is_zero(i)
-      pushfirst!(cc.maps, compose(phi[0], map(c, 0)))
-    else
-      pushfirst!(cc.maps, map(simp, i))
-    end
-    first(cc.maps)
-  end
-  final_res = FreeResolution(result)
-  return final_res
 end
 
 # An alias to cater for the common phrasing of the CA community. 
