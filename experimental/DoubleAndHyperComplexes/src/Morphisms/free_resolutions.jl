@@ -158,7 +158,7 @@ function free_resolution(
   map_fac = ResolutionMapFactory{MorphismType}()
 
   R = base_ring(M)
-  upper_bound = (R isa MPolyRing ? ngens(R) : nothing)
+  upper_bound = nothing 
   internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
                                   upper_bounds = [upper_bound], 
                                   lower_bounds = [0]
@@ -185,7 +185,7 @@ function free_resolution(
   map_fac = ResolutionMapFactory{MorphismType}()
 
   R = base_ring(M)
-  upper_bound = (R isa MPolyRing ? ngens(R) : nothing)
+  upper_bound = nothing 
   internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
                                   upper_bounds = [upper_bound], 
                                   lower_bounds = [0]

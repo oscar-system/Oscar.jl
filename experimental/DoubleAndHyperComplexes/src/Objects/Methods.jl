@@ -281,16 +281,40 @@ function Base.show(io::IO, c::ZeroDimensionalComplex)
 end
 
 function Base.show(io::IO, c::SimpleFreeResolution)
-  has_upper_bound(c) && return _free_show(io, c)
-  return _print_standard_complex(io, c)
+  cfac = chain_factory(c)
+  print_length = length(cfac.map_cache)
+  i = findfirst(is_zero(domain(phi)) for phi in cfac.map_cache)
+  if !isnothing(i)
+    print_length = i
+  end
+  return _free_show(io, c; length=print_length)
 end
 
-function _free_show(io::IO, C::AbsHyperComplex)
+function is_known(::typeof(getindex), c::AbsHyperComplex, i::Tuple)
+  return is_known(getindex, underlying_complex(c), i)
+end
+
+function is_known(::typeof(getindex), c::HyperComplex, i::Tuple)
+  return haskey(c.chains, i)
+end
+
+function _free_show(io::IO, C::AbsHyperComplex; length::Union{Int, Nothing}=nothing)
   # copied and adapted from src/Modules/UngradedModules/FreeResolutions.jl
   name_mod = String[]
   rank_mod = Int[]
 
-  rng = upper_bound(C, 1):-1:lower_bound(C, 1)
+  print_bound = 0
+  if !isnothing(length)
+    print_bound = length
+  elseif has_upper_bound(C, 1)
+    print_bound = upper_bound(C, 1)
+  else
+    while is_known(getindex, C, (print_bound+1,))
+      print_bound += 1
+    end
+  end
+
+  rng = print_bound:-1:lower_bound(C, 1)
   arr = ("<--", "--")
 
   R = Nemo.base_ring(C[first(rng)])
@@ -319,24 +343,24 @@ function _free_show(io::IO, C::AbsHyperComplex)
   pos = 0
   pos_mod = Int[]
 
-  for i=1:length(name_mod)
+  for i=1:Oscar.length(name_mod)
     print(io, name_mod[i])
     push!(pos_mod, pos)
-    pos += length(name_mod[i])
-    if i < length(name_mod)
+    pos += Oscar.length(name_mod[i])
+    if i < Oscar.length(name_mod)
       print(io, " ", arr[1], arr[2], " ")
-      pos += length(arr[1]) + length(arr[2]) + 2
+      pos += Oscar.length(arr[1]) + Oscar.length(arr[2]) + 2
     end
   end
 
   print(io, "\n")
   len = 0
-  for i=1:length(name_mod)
+  for i=1:Oscar.length(name_mod)
     if i>1
       print(io, " "^(pos_mod[i] - pos_mod[i-1]-len))
     end
     print(io, reverse(rng)[i])
-    len = length("$(reverse(rng)[i])")
+    len = Oscar.length("$(reverse(rng)[i])")
   end
 end
 
