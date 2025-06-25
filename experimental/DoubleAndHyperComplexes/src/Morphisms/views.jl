@@ -53,11 +53,10 @@ end
 
 underlying_morphism(phi::ViewMorphism) = phi.internal_morphism
 
-function sub(
+function getindex(
     phi::AbsHyperComplexMorphism, rng::UnitRange{Int};
     domain::HyperComplexView = Oscar.domain(phi)[rng],
     codomain::HyperComplexView = Oscar.codomain(phi)[first(rng)+first(offset(phi)):last(rng)+first(offset(phi))]
   )
   return ViewMorphism(phi, rng; domain, codomain)
 end
-

@@ -411,7 +411,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
       end
       ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
       ind_hom = hom(ind_kosz, codomain(a_fac_untrunc); domain=a_fac_untrunc, codomain=b_fac_untrunc)
-      ind_trunc = sub(ind_hom, -d-1:-1; domain=a_fac_unshift, codomain=b_fac_unshift)
+      ind_trunc = ind_hom[-d-1:-1, domain=a_fac_unshift, codomain=b_fac_unshift]
       ind_shift = shift(ind_trunc, [-1]; domain=a_fac, codomain=b_fac)
       push!(facs, ind_shift)
     end
@@ -618,7 +618,7 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
       push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
     end
     ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
-    ind_kosz_trunc = sub(ind_kosz, 1:n; domain=b_unshift, codomain=a_unshift)
+    ind_kosz_trunc = ind_kosz[1:n, domain=b_unshift, codomain=a_unshift]
     ind_kosz_shift = shift(ind_kosz_trunc, [1]; domain=b_dom, codomain=a_dom)
     hom(ind_kosz_shift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
   end
