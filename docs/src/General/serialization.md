@@ -103,7 +103,9 @@ ERROR: ArgumentError: Not all type parameters of Vector or Matrix entries are th
 ...
 ```
 
-## The TypeParams type
+## Type Parameters
+
+The `TypeParams` type is used internally, and is a container struct for the type and the parameters need to serialize an object. Since it can be useful for users to create them when overriding parmaeters on load we include a small section here.
 
 ```@docs
 type_params

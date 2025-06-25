@@ -147,13 +147,24 @@ params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
 
 @doc """
-     type_params(obj::T) where T
+    type_params(obj::T) where T
 
 Returns the parameters needed for the serialization of `T` as a `TypeParams`,
-this function is mainly used for internal purposes however can be useful to users
-who want to override parameters on load.
 
+# Example
 ```
+julia> R1, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+
+julia> save("/path/to/file.mrdi", [x^2, x - y])
+
+julia> R2, (s, t) = graded_polynomial_ring(QQ, [:s, :t])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[s, t])
+
+julia> load("/path/to/file.mrdi"; params=Oscar.type_params([s, t]))
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ s^2
+ s - t
 
 ```
 """
