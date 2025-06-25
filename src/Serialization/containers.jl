@@ -11,7 +11,7 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all type parameters of Vector or Matrix entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -30,7 +30,7 @@ function type_params(obj::S) where {T <: ContainerTypes, S <:MatVecType{T}}
 
   # empty entries can inherit params from the rest of the collection
   params = type_params.(filter(!has_empty_entries, obj))
-  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all type parameters of Vector or Matrix entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -282,10 +282,10 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
     )
   end
   key_params = Oscar.type_params.(collect(keys(obj)))
-  @req params_all_equal(key_params) "Not all params of keys in $obj are the same"
+  @req params_all_equal(key_params) "Not all type parameters of keys in $obj are the same"
 
   value_params = type_params.(collect(values(obj)))
-  @req params_all_equal(value_params) "Not all params of values in $obj are the same"
+  @req params_all_equal(value_params) "Not all type parameters of values in $obj are the same"
 
   return TypeParams(
     T, 

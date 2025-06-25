@@ -51,6 +51,12 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     loaded = load(filename; params=params, kw...)
     @test loaded isa T
 
+    # test passing TypeParams
+    save(filename, original; kw...)
+    Oscar.reset_global_serializer_state()
+    loaded = load(filename; params=Oscar.type_params(original), kw...)
+    @test loaded isa T
+
     # test schema
     jsondict = JSON.parsefile(filename)
     @test validate(mrdi_schema, jsondict) == nothing
