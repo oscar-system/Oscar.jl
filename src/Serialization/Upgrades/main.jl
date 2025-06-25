@@ -94,8 +94,13 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   return upgraded_dict
 end
 
-# upgrades all types in dict based on renamings
-function upgrade_types(dict::Dict, renamings::Dict{String, String})
+"""
+    rename_types(dict::Dict, renamings::Dict{String, String})
+
+Provides functionality for recursing on the tree structure of `dict`
+and replace all type names that occur as keys in renamings with the values. 
+"""
+function rename_types(dict::Dict, renamings::Dict{String, String})
   function upgrade_type(d::String)
     return get(renamings, d, d)
   end
@@ -172,6 +177,15 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       # upgrading large files needs a work around since the new load
       # uses JSON3 which is read only 
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
+    end
+
+    if format_version > v"0.13.0"
+      if haskey(dict, :_refs)
+      upgraded_refs = Dict()
+      for (k, v) in upgraded_dict[:_refs]
+        upgraded_refs[k] = upgrade_script(s, v)
+      end
+      upgraded_dict[:_refs] = upgraded_refs
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()
