@@ -186,6 +186,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
         upgraded_refs[k] = upgrade_script(s, v)
       end
       upgraded_dict[:_refs] = upgraded_refs
+      end
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

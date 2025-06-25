@@ -111,8 +111,6 @@ The `TypeParams` type is used internally, and is a container struct for the type
 type_params
 ```
 
-
-
 ## Listing all serializable types of the current session
 
 If you are curious about whether your type can already be serialized given your version of Oscar
