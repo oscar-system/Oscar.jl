@@ -269,6 +269,9 @@ function minimal_betti_table(C::SimpleFreeResolution;
     lower_bound::Int=0,
     upper_bound::Int=length(chain_factory(C).map_cache)
   )
+  if !is_zero(C[upper_bound])
+    upper_bound -= 1
+  end
   return minimal_betti_table(underlying_complex(C); lower_bound, upper_bound)
 end
 
