@@ -109,7 +109,6 @@ function (fac::ResolutionModuleFactory{ChainType})(
     next, inc = zero_object(domain(last(fac.map_cache)))
     push!(fac.map_cache, inc)
   end
-  @show "Yes"
   return domain(last(fac.map_cache))
 end
 
