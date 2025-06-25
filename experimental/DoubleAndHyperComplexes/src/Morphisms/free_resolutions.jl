@@ -236,6 +236,15 @@ augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 function betti(b::SimpleFreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool = false)
   return betti_table(b; project, reverse_direction)
 end
+
+function betti_table(C::SimpleFreeResolution; 
+    lower_bound::Int=0,
+    upper_bound::Int=length(chain_factory(C).map_cache),
+    project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false
+  )
+  return betti_table(underlying_complex(C); lower_bound, upper_bound, project, reverse_direction)
+end
+
 function betti_table(C::AbsHyperComplex; 
     lower_bound::Union{Int, Nothing}=(has_lower_bound(C) ? Oscar.lower_bound(C) : nothing),
     upper_bound::Union{Int, Nothing}=(has_upper_bound(C) ? Oscar.upper_bound(C) : nothing),
@@ -254,6 +263,13 @@ function betti_table(C::AbsHyperComplex;
     end
   end
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
+end
+
+function minimal_betti_table(C::SimpleFreeResolution; 
+    lower_bound::Int=0,
+    upper_bound::Int=length(chain_factory(C).map_cache)
+  )
+  return minimal_betti_table(underlying_complex(C); lower_bound, upper_bound)
 end
 
 function minimal_betti_table(C::AbsHyperComplex;
