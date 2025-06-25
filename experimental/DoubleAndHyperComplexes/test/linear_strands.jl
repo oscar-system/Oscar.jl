@@ -109,7 +109,7 @@ end
   res, aug = free_resolution(Oscar.SimpleFreeResolution, A)
 
   minres = simplify(res)
-  bound = findfirst(is_zero(minres[i]) for i in 0:12)
+  bound = findfirst(i -> is_zero(minres[i]), 0:12)
 
   res0, inc0 = Oscar.linear_strand(minres, 0)
   betti_table(res0; upper_bound=bound)
