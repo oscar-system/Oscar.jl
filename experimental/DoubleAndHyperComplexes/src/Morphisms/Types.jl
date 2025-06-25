@@ -57,12 +57,12 @@ domain(phi::HyperComplexMorphism) = phi.domain
 codomain(phi::HyperComplexMorphism) = phi.codomain
 
 function getindex(phi::HyperComplexMorphism{<:Any, <:Any, MorphismType}, i::Tuple) where {MorphismType}
+  can_compute(phi.fac, phi, i) || error("index out of bounds")
   # No caching deflects to production
   !isdefined(phi, :map_cache) && return phi.fac(phi, i)::MorphismType
 
   # The case of cached results
   return get!(phi.map_cache, i) do
-    can_compute(phi.fac, phi, i) || error("index out of bounds")
     phi.fac(phi, i)
   end::MorphismType
 end
