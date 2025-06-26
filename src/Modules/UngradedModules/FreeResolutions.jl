@@ -310,16 +310,16 @@ polynomial rings) and `:sres` (for quotients of multivariate polynomial rings), 
     be set to a nonzero value (recall that free resolutions over quotient rings may be infinite).
 
 !!! note
-    - If `algorithm == mres`, and `M` is positively graded, then a minimal free resolution is returned.
-    - If `algorithm == nres`, and `M` is positively graded, then the function proceeds as above except
+    - If `algorithm` is set to `:mres`, and `M` is positively graded, then a minimal free resolution is returned.
+    - If `algorithm` is set to `:nres`, and `M` is positively graded, then the function proceeds as above except
       that it starts by computing a presentation which is not necessarily minimal.
     In both cases, if `M` is not (positively) graded, then the function still aims at returning an ''improved'' resolution.
 
 !!! note
     If the default options `algorithm = :fres` (for multivariate polynomial rings) or `algorithm = :sres` (for quotients of multivariate polynomial rings) are used, 
     then the function relies on enhanced versions of Schreyer's algorithm [EMSS16](@cite). This is often, but not always, more efficient
-    than the approaches above, but the resulting resolution may be far from being minimal. The extract from an OSCAR session below
-    illustrates the latter statement:
+    than the methods specified by `algorithm = :mres` or `algorithm = :nres`. The resulting Schreyer resolution, however, may be far from minimal.
+    Here is an extract from an OSCAR session illustrating this:
     ```julia-repl
     julia> FM = free_resolution(M)
     Free resolution of M
