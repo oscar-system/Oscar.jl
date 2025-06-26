@@ -177,10 +177,10 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       # upgrading large files needs a work around since the new load
       # uses JSON3 which is read only 
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
-      if format_version > v"0.13.0"
-        if haskey(dict, :_refs)
+      if script_version > v"0.13.0"
+        if haskey(upgraded_dict, :_refs)
           upgraded_refs = Dict()
-          for (k, v) in dict[:_refs]
+          for (k, v) in upgraded_dict[:_refs]
             upgraded_refs[k] = upgrade_script(upgrade_state, v)
           end
           upgraded_dict[:_refs] = upgraded_refs
