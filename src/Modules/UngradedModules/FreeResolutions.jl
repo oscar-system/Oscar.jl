@@ -78,9 +78,9 @@ function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
 end
 
 @doc raw"""
-    is_complete(FR::FreeResolution)
+    is_complete(F::FreeResolution)
 
-Return `true` if the free resolution `fr` is complete, otherwise return `false`.
+Return `true` if `F` is complete, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -271,8 +271,8 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-Current options for `algorithm` are `:fres`, `:nres`, and `:mres` for modules over
-polynomial rings and `:sres` for modules over quotients of polynomial rings (see below).
+Current options for `algorithm` are `:mres` and `:nres`, as well as `:fres` (for multivariate
+polynomial rings) and `:sres` (for quotients of multivariate polynomial rings), see below.
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
@@ -289,8 +289,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     julia> is_complete(fr)
     false
     ```
-    Continuing the session as follows, the resolution is extended up to length 4,
-    without computing its first part again:
+    Continuing the session as follows, the resolution is extended up to length 4:
     ```julia-repl
     julia> fr[4]
     Free module of rank 0 over R
@@ -317,9 +316,10 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     In both cases, if `M` is not (positively) graded, then the function still aims at returning an ''improved'' resolution.
 
 !!! note
-    If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
-    [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
-    may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
+    If the default options `algorithm = :fres` (for multivariate polynomial rings) or `algorithm = :sres` (for quotients of multivariate polynomial rings) are used, 
+    then the function relies on enhanced versions of Schreyer's algorithm [EMSS16](@cite). This is often, but not always, more efficient
+    than the approaches above, but the resulting resolution may be far from being minimal. The extract from an OSCAR session below
+    illustrates the latter statement:
     ```julia-repl
     julia> FM = free_resolution(M)
     Free resolution of M
@@ -332,9 +332,6 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     0          1           2          3
 
     ```
-    If `algorithm == sres` in the case of modules
-    over quotients of polynomial rings (this is currently the only option available for that case),
-    then again a version of Schreyer's approach is used.
 
 # Examples
 ```jldoctest
