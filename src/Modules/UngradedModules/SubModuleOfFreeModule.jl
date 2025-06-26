@@ -167,18 +167,26 @@ end
 Compute a standard basis of `submod` with respect to the given `ordering`.
 The return type is `ModuleGens`.
 """
-function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
-  # This is to circumvent hashing of the ordering in the obviously avoidable cases
-  if ordering===default_ordering(submod)
-    for (ord, gb) in submod.groebner_basis
-      ord === ordering && return gb
-    end
+function standard_basis(
+    submod::SubModuleOfFreeModule; 
+    ordering::ModuleOrdering = default_ordering(submod)
+  )
+  if isdefined(submod, :any_gb) 
+    ordering === submod.any_gb.ordering && return submod.any_gb
   end
-    
+
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering)
+    compute_standard_basis(submod, ordering)
   end::ModuleGens
+
+  # Cache a newly computed groebner basis 
+  if !isdefined(submod, :any_gb)
+    submod.any_gb = gb
+  end
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.any_gb_with_transition = gb
+  end
   return gb
 end
 
@@ -202,12 +210,17 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   @assert is_global(ordering)
 
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering, true)
+    compute_standard_basis(submod, ordering, true)
   end::ModuleGens
-  gb.is_reduced && return gb
-  return get_attribute!(gb, :reduced_groebner_basis) do
-    return compute_standard_basis(submod, ordering, true)
-  end::ModuleGens
+  @assert gb.is_reduced
+  # Cache a newly computed groebner basis 
+  if !isdefined(submod, :any_gb)
+    submod.any_gb = gb
+  end
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.any_gb_with_transition = gb
+  end
+  return gb
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
@@ -432,14 +445,11 @@ end
 Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 function lift_std(M::SubModuleOfFreeModule)
-  if haskey(M.groebner_basis, default_ordering(M))
-    gb = M.groebner_basis[default_ordering(M)]
-    transform = get_attribute(gb, :transformation_matrix)
-    if transform !== nothing
-      return gb, transform
-    end
+  if isdefined(M, :any_gb_with_transition)
+    return M.any_gb_with_transition, get_attribute(M.any_gb_with_transition, :transformation_matrix)::MatrixElem
   end
-  for gb in values(M.groebner_basis)
+
+  for (ord, gb) in M.groebner_basis
     transform = get_attribute(gb, :transformation_matrix)
     if transform !== nothing
       return gb, transform
@@ -447,6 +457,9 @@ function lift_std(M::SubModuleOfFreeModule)
   end
   gb, transform = lift_std(M.gens, default_ordering(M))
   M.groebner_basis[default_ordering(M)] = gb
+  if !isdefined(M, :any_gb_with_transition)
+    M.any_gb_with_transition = gb
+  end
   return gb, transform
 end
 
@@ -482,7 +495,7 @@ end
 
 function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
   F = ambient_free_module(M)
-  return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
+  return iszero(reduce(a, standard_basis(M)))
 end
 
 @attr Any function solve_ctx(M::SubModuleOfFreeModule)
