@@ -41,6 +41,15 @@ mat_gens = [permutation_matrix(QQ, g) for g in gens(S)]
 G = matrix_group(mat_gens)
 A = generic_drinfeld_hecke_form(G)
 
+   [0   0   0   1   0]    [ 0   0   0   -t    t]
+   [0   1   0   0   0] => [ 0   0   0    0    0]
+   [0   0   1   0   0]    [ 0   0   0    0    0]
+   [0   0   0   0   1]    [ t   0   0    0   -t]
+   [1   0   0   0   0]    [-t   0   0    t    0]
+
+
+
+
 ##########################################################
 
 using Revise, Oscar

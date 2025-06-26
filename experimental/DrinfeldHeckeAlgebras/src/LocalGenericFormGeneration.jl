@@ -25,9 +25,9 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
     g = representative(C)
     
     if is_one(g)
-      κ_g = calculate_group_invariant_form(G, R)
+      κ_g = calculate_generic_group_invariant_form(G, R)
     else
-      κ_g = calculate_form_for_non_trivial_element(g, R)
+      κ_g = calculate_generic_form_for_non_trivial_element(g, R)
     end
     
     # if κ_g != 0, we save it and add the number of parameters
@@ -69,11 +69,34 @@ end
 ################################################################################
 # Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
 ################################################################################
-function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field) where {T <: FieldElem}
+function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
+  form = calculate_form_for_non_trivial_element(g, K)
+
+  # We know that κ_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
+  R, _ = polynomial_ring(K, ["t"])
+  
+  # Multiply form with t to parametrize it
+  result = form * R[1]
+  
+  # Normalize for better readability
+  n = degree(parent(g))
+  for j in 1:n, i in 1:n
+    if !is_zero(result[i,j])
+      result = result / leading_coefficient(result[i,j])
+    end
+  end
+  
+  return result
+end
+
+################################################################################
+# Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
+################################################################################
+function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
   G = parent(g)
   n = degree(G)
   
-  I = identity_matrix(R, n)
+  I = identity_matrix(K, n)
   A = I - matrix(g)
   
   # Calculate dim and basis of V^g = ker(id - g)
@@ -81,7 +104,7 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
   
   # Check codim(V^g) = 2
   if n - dim_Vg != 2 
-    return zero_matrix(R, n, n)  
+    return zero_matrix(K, n, n)  
   end
   
   # We know that dim(V^g)⊥ = 2, hence we get a basis of (V^g)⊥ = im(id - g) by picking 2 columns of
@@ -105,30 +128,20 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, R::Field)
     # Restrict h to the space (V^g)⊥
     h⊥ = basis_Vg⊥_pseudoinverse * matrix(h) * basis_Vg⊥
     
-    if det(h⊥) != one(R) 
-      return zero_matrix(R, n, n)  
+    if det(h⊥) != one(K) 
+      return zero_matrix(K, n, n)  
     end
   end
 
-  # We know that κ_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
-  S, _ = polynomial_ring(R, ["t"])
-  
   # Create matrix of κ_g in the basis {v1,v2}
-  result = zero_matrix(S, n, n)
-  result[1,2] = S[1]
-  result[2,1] = -S[1]
+  result = zero_matrix(K, n, n)
+  result[1,2] = 1
+  result[2,1] = -1
   
   # Base change to the standard basis
   B = hcat(basis_Vg⊥, basis_Vg)
   B_inv = inv(B)
   result = transpose(B_inv) * result * B_inv
-  
-  # Normalize for better readability
-  for j in 1:n, i in 1:n
-    if !is_zero(result[i,j])
-      result = result / leading_coefficient(result[i,j])
-    end
-  end
   
   return result
 end
@@ -136,7 +149,7 @@ end
 ################################################################################
 # Returns G-invariant alternating bilinear form represented as a matrix in the standard basis
 ################################################################################
-function calculate_group_invariant_form(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
+function calculate_generic_group_invariant_form(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
   M, map = build_group_invariant_relation_matrix(G)
   sol = solve_and_parametrize(M, R)
   n = degree(G)

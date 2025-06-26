@@ -1,7 +1,6 @@
 # TODO: Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
 # TODO: DOku schreiben
 # TODO: Mehr Tests, z.b. über quadratic number fields, S5 über C
-# TODO: Validierung ebenfalls über beide Strategien
 # TODO: Code umstrukturieren, keine Validierung nach gnerischer Erstellung nötig
 
 ################################################################################
@@ -58,6 +57,12 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
         DrinfeldHeckeForm(G::MatrixGroup{T}) or DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring)"
       ))
     end
+  
+    # Check if forms input defines valid Drinfeld-Hecke form
+    if !is_drinfeld_hecke_form(forms)
+      throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form. 
+      Use 'generic_drinfeld_hecke_form' to compare to input."))
+    end
 
     g, κ_g = first(forms)
     G = g.parent
@@ -87,11 +92,27 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring) where {T <: Fie
     forms = generate_generic_forms_globally(G, R)
   end
 
+  # Filter nonzero forms
+  for (g, κ_g) in forms
+    if is_zero(κ_g)
+      !delete(forms, g)
+    end
+  end
+
+  # If the forms are empty, return zero algebra
   if length(forms) == 0
     return DrinfeldHeckeForm(G, R)
   end
+
+  # Otherwise extract ring data
+  g, κ_g = first(forms)
+  S = base_ring(κ_g)
   
-  return DrinfeldHeckeForm(forms)
+  # Create form and set forms
+  κ = DrinfeldHeckeForm(G, S)
+  set_forms(κ, forms)
+  
+  return κ
 end
 
 ################################################################################
@@ -144,15 +165,7 @@ end
 function set_forms(
   κ::DrinfeldHeckeForm{T, S}, 
   forms::Dict{MatrixGroupElem{T}, MatElem{S}}
-) where {T <: FieldElem, S <: RingElem}
-  # Check if forms input defines valid Drinfeld-Hecke form
-  if !is_drinfeld_hecke_form(forms)
-    throw(ArgumentError("The given alternating bilinear forms do not define a valid Drinfeld-Hecke form."))
-  end
-  
-  # Initialize forms of κ
-  κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{S}}()
-  
+) where {T <: FieldElem, S <: RingElem}  
   # Set nonzero forms to κ
   for (g, m) in forms
     if !is_zero(m)
@@ -166,15 +179,21 @@ end
 ################################################################################
 
 function show(io::IO, κ::DrinfeldHeckeForm)
-  print("Drinfeld-Hecke form given by ")
+  println("Drinfeld-Hecke form over base field")
+  println("   " * string(base_field(κ)))
+
+  if length(parameters(κ)) > 0
+    println("with parameters ")
+    println("   " * join(parameters(κ), ", "))
+  end
 
   if (length(κ.forms) == 0)
-    print("0")
+    print("given by 0")
     return
   end
 
+  println("given by alternating bilinear forms")
   n = degree(group(κ))
-  println("alternating bilinear forms")
   for (_,(g, κ_g)) in enumerate(κ.forms)
     A = matrix(g)
     B = matrix(κ_g)
@@ -208,12 +227,6 @@ function show(io::IO, κ::DrinfeldHeckeForm)
   
     println()
   end
-
-  println("over base field: " * string(base_field(κ)))
-
-  if length(parameters(κ)) > 0
-    println("with parameters " * join(parameters(κ), ", "))
-  end
 end
 
 function max_column_length(M::MatElem, j::Int)
@@ -243,7 +256,7 @@ group_algebra(κ::DrinfeldHeckeForm) = κ.group_algebra
 forms(κ::DrinfeldHeckeForm) = κ.forms
 number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
-parameters(κ::DrinfeldHeckeForm) = gens(base_ring(κ))
+parameters(κ::DrinfeldHeckeForm) = if base_ring(κ) isa MPolyRing return gens(base_ring(κ)) else return [] end
 
 function deepcopy_internal(κ::DrinfeldHeckeForm)
   G = group(κ)
