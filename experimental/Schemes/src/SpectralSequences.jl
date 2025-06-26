@@ -364,8 +364,15 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
       e, g = v[l]
       # bring everything to the same denominators
       for (j, v) in (e != sup_exp ? Tuple{Int, <:FreeModElem}[(j, ctx[e, sup_exp, -inter_degs[j]][jj](v)) for (j, v) in g] : g)
-        @assert !any(k==j for (k, _) in buckets)
-        push!(buckets, (j, c*v))
+        ind = findfirst(k==j for (k, _) in buckets)
+        if isnothing(ind)
+          push!(buckets, (j, c*v))
+        else
+          _, w = buckets[ind]
+          buckets[ind] = (j, w + c*v)
+        end
+        #@assert !any(k==j for (k, _) in buckets)
+        #push!(buckets, (j, c*v))
       end
     end
       
