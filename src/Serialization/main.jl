@@ -909,6 +909,9 @@ end
 
 _convert_override_params(obj::Any) = obj
 
+#handles empty tuple ambiguity
+_convert_override_params(obj::Tuple{}) = ()
+
 _convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
 
 function _convert_override_params(t::Tuple{Vararg{Pair}})
