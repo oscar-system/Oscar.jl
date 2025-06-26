@@ -180,7 +180,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       if format_version > v"0.13.0"
         if haskey(dict, :_refs)
           upgraded_refs = Dict()
-          for (k, v) in upgraded_dict[:_refs]
+          for (k, v) in dict[:_refs]
             upgraded_refs[k] = upgrade_script(upgrade_state, v)
           end
           upgraded_dict[:_refs] = upgraded_refs
