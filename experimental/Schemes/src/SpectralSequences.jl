@@ -59,14 +59,11 @@ julia> res, _ = free_resolution(Oscar.SimpleFreeResolution, M);
 
 julia> css = Oscar.CohomologySpectralSequence(S, res) # the spectral sequence
 spectral sequence for the cohomology of graded complex with Betti table
-degree: 0  1
-------------
-     0: 1  -
-     1: -  -
-     2: -  -
-     3: -  1
-------------
- total: 1  1
+degree: 0
+---------
+     0: 1
+---------
+ total: 1
 
 julia> p1 = css[1]; # the first page
 
