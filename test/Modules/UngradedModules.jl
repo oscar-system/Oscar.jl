@@ -241,22 +241,6 @@ end
     end
   end
 
-  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
-  Z = R(0)
-  O = R(1)
-  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
-  A = transpose(matrix(B));
-  M = graded_cokernel(A)
-  FM1 = free_resolution(M, length = 2)
-  FM1[4]
-  @test all(iszero, homology(FM1))
-  FM2 = free_resolution(M, length = 2, algorithm = :mres)
-  FM2[4]
-  @test all(iszero, homology(FM2)[1:4]) # TODO: to be changed
-  FM3 = free_resolution(M, length = 2, algorithm = :nres)
-  FM3[4]
-  @test all(iszero, homology(FM3))
-
   N = SubquoModule(R[x+2*x^2*z; x+y-z], R[z^4;])
   tensor_resolution = tensor_product(free_res,N)
   @test chain_range(tensor_resolution) == chain_range(free_res)
@@ -328,6 +312,22 @@ end
   M = SubquoModule(M1, M2)
   fr = free_resolution(M, length = 9)
   @test all(iszero, homology(fr)[2:end])
+
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM1 = free_resolution(M, length = 2)
+  FM1[4]
+  @test all(iszero, homology(FM1))
+  FM2 = free_resolution(M, length = 2, algorithm = :mres)
+  FM2[4]
+  @test all(iszero, homology(FM2)[1:4]) # TODO: to be changed
+  FM3 = free_resolution(M, length = 2, algorithm = :nres)
+  FM3[4]
+  @test all(iszero, homology(FM3))
 end
 
 @testset "Prune With Map" begin
