@@ -473,6 +473,211 @@ function pc_group(c::GAP_Collector)
 end
 
 """
+    exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the exponent vector of `g` as a list of integers, each entry corresponding to
+a group generator.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> exponent_vector(x)
+2-element Vector{Int64}:
+ -3
+  2
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> exponent_vector(x)
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
+function exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  exp = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.Exponents(gObj)
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    GAPWrap.ExponentsOfPcElement(pcgs, gObj)
+  end
+
+  return Vector{Int}(exp)
+end
+
+"""
+    relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the relative order of `g` as an integer, with respect to the defining generators.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> relative_order(x)
+0
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> relative_order(x)
+2
+```
+"""
+function relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  rel = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.RelativeOrder(gObj)
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    GAPWrap.RelativeOrderOfPcElement(pcgs, gObj)
+  end
+
+  return rel
+end
+
+"""
+    depth(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the depth of `g` as integer, relative to the defining generators.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> depth(x)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> depth(x)
+1
+```
+"""
+function depth(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  dep = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.Depth(gObj)
+  else # finite PcGroup
+    GAPWrap.DepthOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+
+  return dep
+end
+
+"""
+    leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the leading exponent of `g` as an integer, relative to the defining generators.
+If `g` is the identity, we return `nothing`.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> leading_exponent(x)
+-3
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> leading_exponent(x)
+1
+```
+"""
+function leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  exp = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.LeadingExponent(gObj)
+  else # finite PcGroup
+    GAPWrap.LeadingExponentOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+
+  # if GAP returns fail, return nothing otherwise exp
+  return exp == GAP.Globals.fail ? nothing : exp
+end
+
+"""
+    hirsch_length(G::PcGroup)
+
+Return the Hirsch length of `G`. If `G` is a finite PcGroup, we return 0.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> hirsch_length(g)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> hirsch_length(gg)
+0
+```
+"""
+function hirsch_length(G::PcGroup)
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    return GAPWrap.HirschLength(GG)
+  else # finite PcGroup
+    return 0
+  end
+end
+
+"""
     letters(g::Union{PcGroupElem, SubPcGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
