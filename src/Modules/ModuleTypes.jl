@@ -228,11 +228,11 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   gens::ModuleGens{T}
   default_ordering::ModuleOrdering
-  dummy_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
-                          # Lookups in the above dictionary is tentatively expensive. 
-                          # So this field stores any gb for cases where the actual 
-                          # ordering does not matter. Then this field here can be used. 
-  dummy_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
+  any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
+                        # Lookups in the above dictionary is tentatively expensive. 
+                        # So this field stores any gb for cases where the actual 
+                        # ordering does not matter. Then this field here can be used. 
+  any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
   is_graded::Bool
 

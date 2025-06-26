@@ -171,8 +171,8 @@ function standard_basis(
     submod::SubModuleOfFreeModule; 
     ordering::ModuleOrdering = default_ordering(submod)
   )
-  if isdefined(submod, :dummy_gb) 
-    ordering === default_ordering(submod.dummy_gb) && return submod.dummy_gb
+  if isdefined(submod, :any_gb) 
+    ordering === submod.any_gb.ordering && return submod.any_gb
   end
 
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
@@ -181,11 +181,11 @@ function standard_basis(
   end::ModuleGens
 
   # Cache a newly computed groebner basis 
-  if !isdefined(submod, :dummy_gb)
-    submod.dummy_gb = gb
+  if !isdefined(submod, :any_gb)
+    submod.any_gb = gb
   end
-  if !isdefined(submod, :dummy_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
-    submod.dummy_gb_with_transition = gb
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.any_gb_with_transition = gb
   end
   return gb
 end
@@ -214,11 +214,11 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   end::ModuleGens
   @assert gb.is_reduced
   # Cache a newly computed groebner basis 
-  if !isdefined(submod, :dummy_gb)
-    submod.dummy_gb = gb
+  if !isdefined(submod, :any_gb)
+    submod.any_gb = gb
   end
-  if !isdefined(submod, :dummy_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
-    submod.dummy_gb_with_transition = gb
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+    submod.any_gb_with_transition = gb
   end
   return gb
 end
@@ -445,8 +445,8 @@ end
 Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 function lift_std(M::SubModuleOfFreeModule)
-  if isdefined(M, :dummy_gb_with_transition)
-    return M.dummy_gb_with_transition, get_attribute(M.dummy_gb_with_transition, :transformation_matrix)::MatrixElem
+  if isdefined(M, :any_gb_with_transition)
+    return M.any_gb_with_transition, get_attribute(M.any_gb_with_transition, :transformation_matrix)::MatrixElem
   end
 
   for (ord, gb) in M.groebner_basis
@@ -457,8 +457,8 @@ function lift_std(M::SubModuleOfFreeModule)
   end
   gb, transform = lift_std(M.gens, default_ordering(M))
   M.groebner_basis[default_ordering(M)] = gb
-  if !isdefined(M, :dummy_gb_with_transition)
-    M.dummy_gb_with_transition = gb
+  if !isdefined(M, :any_gb_with_transition)
+    M.any_gb_with_transition = gb
   end
   return gb, transform
 end
