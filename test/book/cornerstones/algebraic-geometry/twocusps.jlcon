@@ -12,7 +12,7 @@ julia> I = ideal(Rloc, [f, g]);
 
 julia> A, _ = quo(Rloc, I);
 
-julia> vector_space_dimension(A)
+julia> vector_space_dim(A)
 6
 
 julia> C = plane_curve(f)
