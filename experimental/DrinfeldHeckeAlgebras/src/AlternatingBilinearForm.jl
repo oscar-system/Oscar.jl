@@ -1,55 +1,72 @@
 ################################################################################
-# Alternating bilinear form
+# Methods for creating and applying alternating bilinear forms
+#
+# Cassandra Koenen, 2025
 ################################################################################
 
-function alternating_bilinear_form(m::MatElem)
-  if transpose(m) != -m
-    throw(ArgumentError("input matrix must be skew symmetric")) 
-  end
-
-  return BilinearForm(m)
-end
-
 ################################################################################
-# Bilinear form
+# Struct and constructors
 ################################################################################
 
-struct BilinearForm{T <: RingElem}
+struct AlternatingBilinearForm{T <: RingElem}
   matrix::MatElem{T}
 
-  function BilinearForm(m::MatElem{T}) where T <: RingElem
+  function AlternatingBilinearForm(m::MatElem{T}) where T <: RingElem
     if ncols(m) != nrows(m)
-      throw(ArgumentError("matrix defining image of bilinear form must be quadratic")) 
+      throw(ArgumentError("Matrix representing an alternating bilinear form must be quadratic")) 
+    end
+  
+    if transpose(m) != -m || !is_zero(diagonal(m))
+      throw(ArgumentError("Input matrix must be skew symmetric with zero diagonal")) 
     end
   
     return new{T}(m)
   end
 end
 
-function show(io::IO, b::BilinearForm)
-  print(io, "Bilinear form defined by image matrix ")
-  show(io, b.matrix)
+const alternating_bilinear_form = AlternatingBilinearForm
+
+################################################################################
+# Show IO
+################################################################################
+
+function show(io::IO, b::AlternatingBilinearForm)
+  println("Alternating bilinear form, in the standard basis represented by the Gram matrix")
+  display(matrix(b))
 end
 
 ################################################################################
 # Generic functions
 ################################################################################
 
-matrix(b::BilinearForm) = b.matrix
-is_zero(b::BilinearForm) = is_zero(b.matrix)
-==(a::BilinearForm, b::BilinearForm) = a.matrix == b.matrix
-isequal(a::BilinearForm, b::BilinearForm) = a == b
+matrix(b::AlternatingBilinearForm) = b.matrix
+is_zero(b::AlternatingBilinearForm) = is_zero(b.matrix)
+==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a.matrix == b.matrix
+isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
 ################################################################################
 # Application
 ################################################################################
 
-function (b::BilinearForm{T})(v::Vector{T}, w::Vector{T}) where T <: RingElem
-  B = b.matrix
-  n = ncols(B)
+function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector)::T where T <: RingElem
+  B = matrix(b)
   
+  # Check if dimensions match
+  n = ncols(B)
   if length(v) != n || length(w) != n
     throw(ArgumentError("arguments must be of dimension " * string(n))) 
+  end
+  
+  # Check if values are in base ring
+  R = base_ring(B)
+
+  v_safe = nothing
+  w_safe = nothing
+  try
+    v_safe = map(x -> R(x), v)
+    w_safe = map(x -> R(x), w)
+  catch e
+    throw(ArgumentError("The given vectors can not be cast into vectors over the base ring."))
   end
 
   return dot(v, B*w)

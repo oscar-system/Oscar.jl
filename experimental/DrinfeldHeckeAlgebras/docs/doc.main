@@ -1,5 +1,6 @@
 [
-   "Rational Cherednik Algebras" => [
+   "Drinfeld--Hecke Algebras" => [
       "introduction.md",
+      "user_functions.md"
    ],
 ]

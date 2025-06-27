@@ -1,7 +1,15 @@
-# TODO: Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
-# TODO: DOku schreiben
-# TODO: Mehr Tests, z.b. über quadratic number fields, S5 über C
-# TODO: Code umstrukturieren, keine Validierung nach gnerischer Erstellung nötig
+# TODO: 
+# Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
+# DOku schreiben
+# Mehr Tests, z.b. über quadratic number fields, S5 über C
+# Ringe an den Anfang eg polynomial_ring(QQ, :x)
+# Check direct access to object properties
+# Check method names like point_from_matrix
+# Check no spaces around : eg for i = 1 : 3
+# See if short-circuiting can be used eg true && something but only for control flow
+# Check loop nesting
+# Check for snake_case in variables and names
+# Check where parent should be added as an optional argument
 
 ################################################################################
 # Drinfeld-Hecke form
@@ -17,7 +25,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   base_ring::Ring # Underlying K-algebra R with element type S of Drinfeld-Hecke form
   symmetric_algebra::MPolyRing{S} # Symmetric algebra R[V]
   group_algebra::GroupAlgebra # Group algebra R[V]G, used as base for R[V]#G
-  forms::Dict{MatrixGroupElem{T}, BilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
+  forms::Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
   
   # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group
   function DrinfeldHeckeForm(G::MatrixGroup{T}) where {T <: FieldElem}
@@ -39,7 +47,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
         
     κ.group = G
     κ.base_ring = R
-    κ.forms = Dict{MatrixGroupElem{T}, BilinearForm{S}}()
+    κ.forms = Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}}()
   
     RV, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)])
     
@@ -122,7 +130,7 @@ end
 # Substitute parameters by values in any subring
 function evaluate_parameters(κ::DrinfeldHeckeForm{T, S}, values::Vector) where {T <: FieldElem, S <: RingElem}
   if !(base_ring(κ) isa MPolyRing)
-    throw(ArgumentError("Given form does not have any parameters."))
+    throw(ArgumentError("The given form does not have any parameters."))
   end
 
   κ_evaluated = deepcopy_internal(κ)
@@ -182,7 +190,7 @@ function show(io::IO, κ::DrinfeldHeckeForm)
   println("Drinfeld-Hecke form over base field")
   println("   " * string(base_field(κ)))
 
-  if length(parameters(κ)) > 0
+  if number_of_parameters(κ) > 0
     println("with parameters ")
     println("   " * join(parameters(κ), ", "))
   end
@@ -257,6 +265,8 @@ forms(κ::DrinfeldHeckeForm) = κ.forms
 number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
 nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
 parameters(κ::DrinfeldHeckeForm) = if base_ring(κ) isa MPolyRing return gens(base_ring(κ)) else return [] end
+number_of_parameters(κ::DrinfeldHeckeForm) = length(parameters(κ))
+nparams(κ::DrinfeldHeckeForm) = number_of_parameters(κ)
 
 function deepcopy_internal(κ::DrinfeldHeckeForm)
   G = group(κ)
