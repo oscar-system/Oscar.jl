@@ -122,6 +122,10 @@ Pc group of order 24
 ```@docs
 letters(g::Union{PcGroupElem, SubPcGroupElem})
 syllables(g::Union{PcGroupElem, SubPcGroupElem})
+depth(g::Union{PcGroupElem,SubPcGroupElem})
+relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
 map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 ```
 
@@ -129,6 +133,7 @@ map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Ve
 
 ```@docs
 relators(G::PcGroup)
+hirsch_length(G::PcGroup)
 ```
 
 The function
