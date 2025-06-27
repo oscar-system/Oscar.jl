@@ -60,7 +60,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
     ## find minors of jacobian matrix involved in expressing 1
     RU = base_ring(OO(U))
     IUgens = lifted_numerator.(gens(IU))
-    JM = jacobi_matrix(IUgens)
+    JM = jacobian_matrix(IUgens)
     min_list = [a for a in minors_with_position(JM, nvars(RU) - dim(OO(U))) if !is_zero(a[1])]
     min_id = ideal(RU,[a[1] for a in min_list])
     min_id_full = min_id+ideal(RU,IUgens)+modulus(OO(U))
@@ -202,7 +202,7 @@ _agnostic_complement_equation(X::AbsAffineScheme) =  one(base_ring(OO(X)))
 ########################################################
 function jacobian_matrix(MCU::Oscar.MaxContactChart, I::Ideal)
 
-  JI = jacobi_matrix(lifted_numerator.(gens(I)))
+  JI = jacobian_matrix(lifted_numerator.(gens(I)))
   var_indices = dependent_variables(MCU)
   minors_and_blocks = max_contact_minor_data(MCU)
   reduction_matrices = prepared_jacobi_matrices(MCU)
