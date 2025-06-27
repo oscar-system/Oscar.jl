@@ -37,6 +37,12 @@ julia> matelms = map(m -> matrix(ZZ, m), mats)
 julia> g = matrix_group(matelms)
 Matrix group of degree 2
   over integer ring
+with 2 generators
+  [0   -1]
+  [1   -1]
+
+  [0   1]
+  [1   0]
 
 julia> describe(g)
 "S3"
@@ -44,6 +50,7 @@ julia> describe(g)
 julia> t = matrix_group(ZZ, 2, typeof(matelms[1])[])
 Matrix group of degree 2
   over integer ring
+with 0 generators
 
 julia> t == trivial_subgroup(g)[1]
 true
@@ -56,6 +63,12 @@ julia> F = GF(3); matelms = map(m -> matrix(F, m), mats)
 julia> g = matrix_group(matelms)
 Matrix group of degree 2
   over prime field of characteristic 3
+with 2 generators
+  [0   2]
+  [1   2]
+
+  [0   1]
+  [1   0]
 
 julia> describe(g)
 "S3"
@@ -80,6 +93,14 @@ false
 julia> h = change_base_ring(F, g)
 Matrix group of degree 3
   over finite field of degree 2 and characteristic 2
+with 2 generators
+  [1   1   0]
+  [0   1   0]
+  [0   0   1]
+
+  [0   0   1]
+  [1   0   0]
+  [0   1   0]
 
 julia> flag, mp = is_subgroup(h, G)
 (true, Hom: h -> G)

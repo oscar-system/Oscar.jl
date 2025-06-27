@@ -142,7 +142,9 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6 with 2 generators
+  (1,2,3,4,5,6)
+  (1,2)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -277,7 +279,9 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Sym(3)
+Symmetric group of degree 3 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> x == y
 true
@@ -817,7 +821,9 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym(8)
+Symmetric group of degree 8 with 2 generators
+  (1,2,3,4,5,6,7,8)
+  (1,2)
 
 julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
@@ -853,7 +859,9 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym(14)
+Symmetric group of degree 14 with 2 generators
+  (1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+  (1,2)
 ```
 """
 macro perm(expr)
@@ -940,7 +948,9 @@ elements in `perms`.
 julia> x = cperm([1,2,3], [4,5]);  y = cperm([1,4]);
 
 julia> permutation_group(5, [x, y])
-Permutation group of degree 5
+Permutation group of degree 5 with 2 generators
+  (1,2,3)(4,5)
+  (1,4)
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
@@ -956,7 +966,9 @@ given by permutations in cycle notation.
 # Examples
 ```jldoctest
 julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
-Permutation group of degree 7
+Permutation group of degree 7 with 2 generators
+  (1,2)
+  (1,2,3)(4,5)
 
 julia> degree(g)
 7
@@ -974,4 +986,95 @@ macro permutation_group(n, gens...)
            sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end
+end
+
+function print_perm(io::IO, perm::PermGroupElem, cycle_limit::Int = 100)
+  dom = BitSet()
+  l = GAPWrap.LargestMovedPoint(GapObj(perm))
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = GAP.Globals.SmallestMovedPoint(GapObj(perm))
+  while length(dom) < cycle_limit && i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(io, ")")
+    end
+    i = i + 1
+  end
+  if i < l && any(j -> j^perm != j && !(j in dom), i:l)
+    # if there are any cycles left, indicate that
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
+  dom = BitSet()
+  l = GAPWrap.LargestMovedPoint(GapObj(perm))
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = GAP.Globals.SmallestMovedPoint(GapObj(perm))
+
+  str_io = IOBuffer()
+  str = nothing
+  while i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(str_io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(str_io, ")")
+      str = String(take!(str_io))
+      if length(str) <= width - 5
+        # TODO: handle the case where width-5 < length(str) <= width and this
+        # is the last cycle, so we don't need to abbreviate it
+        print(io, str)
+        width -= length(str)
+        str = nothing
+      else
+        break
+      end
+    end
+    i = i + 1
+  end
+  
+  any_cycles_left = i < l && any(j -> j^perm != j && !(j in dom), i:l)
+  if str !== nothing
+    @assert length(str) >= width - 5
+    if any_cycles_left
+      width -= 5
+    end
+    # We would like to abbreviate the cycle printed in str by ending it with
+    # ",...)" so a comma followed by 5 characters. We thus only keep width-4
+    # characters, and then search for a comma.
+    pos = findprev(',', str, width - 4)
+    
+    # If there is no comma within the first width character, e.g. if the
+    # cycle has large entries such as "(12345,12346,..." and we cut off before
+    # first comma, then don't print this cycle
+    if pos == nothing
+      any_cycles_left = true
+    else
+      print(io, str[1:pos], "...)")
+    end
+  end
+  if any_cycles_left
+    print(io, "(...)")
+  end
+  return nothing
 end

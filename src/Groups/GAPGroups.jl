@@ -412,7 +412,30 @@ Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::GAPGroupElem)
+  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+end
+
+#function Base.show(io::IO, ::MIME"text/plain", x::FPGroupElem)
+#  println(io, "limit = ", get(io, :limit, false))
+#  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+#end
+
+function Base.show(io::IO, x::FPGroupElem)
+#  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+#  println(io, "compact = ", get(io, :compact, false))
+#  println(io, "limit = ", get(io, :limit, false))
+#  println(io, "is_terse = ", is_terse(io))
+  s = String(GAPWrap.StringViewObj(GapObj(x)))
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    #println(length(s), " vs ", screenwidth)
+    if length(s) > screenwidth - 3
+      s = s[1:screenwidth-6] * "..."
+    end
+  end
+  print(io, s)
+end
 
 # Printing GAP groups
 function Base.show(io::IO, G::GAPGroup)
@@ -435,8 +458,12 @@ function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_special(io, G)
   if GAPWrap.IsFreeGroup(GapObj(G))
     print(io, "Free group")
-    if !is_terse(io) && GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
-      print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+    if !is_terse(io)
+      if GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
+        print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+      else
+        print(io, " of unknown rank")
+      end
     end
   else
     T = typeof(G) == FPGroup ? "Finitely presented group" : "Sub-finitely presented group"
@@ -461,26 +488,31 @@ function Base.show(io::IO, G::PermGroup)
   io = pretty(io)
   if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    if !is_terse(io)
+      print(io, "Symmetric group of degree ", degree(G))
+    else
+      print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    end
+    return
   elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Alt(", degree(G), ")")
-  else
-    print(io, "Permutation group")
     if !is_terse(io)
-      print(io, " of degree ", degree(G))
-      if has_order(G)
-        if is_finite(G)
-          print(io, " and order ", order(G))
-        else
-          print(io, " and infinite order")
-        end
-      elseif GAP.Globals.HasStabChainMutable(GapObj(G))
-        # HACK: to show order in a few more cases where it is trivial to get
-        # but really, GAP should be using this anyway?
-        s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
-        print(io, " and order ", ZZRingElem(s))
-      end
+      print(io, "Alternating group of degree ", degree(G))
+    else
+      print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    end
+    return
+  end
+  print(io, "Permutation group")
+  if !is_terse(io)
+    print(io, " of degree ", degree(G))
+    if has_order(G)
+      print(io, " and order ", order(G))
+    elseif GAP.Globals.HasStabChainMutable(GapObj(G))
+      # HACK: to show order in a few more cases where it is trivial to get
+      # but really, GAP should be using this anyway?
+      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( GapObj(G) ) )
+      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -496,6 +528,78 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
     else
       print(io, " of infinite order")
     end
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+end
+
+#function Base.show(io::IO, ::MIME"text/plain", G::Union{FPGroup, SubFPGroup})
+function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+  rels = relators(G)
+  if !isempty(rels)
+    print(io, " and ")
+    # TODO: relators can be pretty long; it would be good to abbreviate them
+    # if they don't fit in a single line...
+   _print_stuff_with_limit(terse(io), rels, "relator")
+  end
+end
+
+function _print_generators(io::IO, G::AbstractAlgebra.Group)
+  if G isa PermGroup
+    print(io, " ")
+  else
+    println(io)
+  end
+  _print_stuff_with_limit(io, gens(G), "generator")
+end
+
+function _print_stuff_with_limit(io::IO, v, what::String)
+  io = pretty(io)
+  n = length(v)
+  print(io, "with ", ItemQuantity(n, what))
+
+  # compute maximum number of generators that can fit on the screen
+  # assuming each of those requires just one line
+  screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+  limit = screenheight - 6
+  limit > 0 || return
+
+  println(io, Indent())
+  for (i, g) in enumerate(v)
+    if i > limit
+      print(io, "⋮")
+      break
+    end
+    print(io, g)  # should be using one-line printing
+    if i < n
+      println(io)
+    end
+  end
+  print(io, Dedent())
+end
+
+function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup})
+  io = pretty(io)
+  n = ngens(G)
+  print(io, " with ", ItemQuantity(n, "generator"))
+  if n > 0
+    print(io, " ")
+    join(io, gens(G), ", ")
   end
 end
 
@@ -588,13 +692,13 @@ Return whether generators for the group `G` are known.
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> has_gens(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Free group
+Free group of unknown rank
 
 julia> has_gens(H)
 false
@@ -794,7 +898,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> representative(C)
 (1,2)
@@ -814,7 +918,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> acting_group(C) === G
 true
@@ -836,7 +940,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 ```
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
@@ -954,7 +1058,9 @@ if `order` is positive, the classes of subgroups of this order.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3 with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1082,10 +1188,12 @@ Return the group `G^x` that consists of the elements `g^x`, for `g` in `G`.
 julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
-Permutation group of degree 4 and order 3
+Permutation group of degree 4 and order 3 with 1 generator
+  (1,2,3)
 
 julia> conjugate_group(H, gen(G, 1))
-Permutation group of degree 4 and order 3
+Permutation group of degree 4 and order 3 with 1 generator
+  (2,3,4)
 
 ```
 """
@@ -1115,16 +1223,19 @@ To also return the element `z`, use
 julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (3,4)
 
 julia> is_conjugate(G, H, K)
 true
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate(G, H, K)
 false
@@ -1147,16 +1258,19 @@ If the conjugating element `z` is not needed, use
 julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (3,4)
 
 julia> is_conjugate_with_data(G, H, K)
 (true, (1,3)(2,4))
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_with_data(G, H, K)
 (false, nothing)
@@ -1189,16 +1303,20 @@ use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4 with 2 generators
+  (1,2,3)
+  (2,3,4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)
 
 julia> is_conjugate_subgroup(G, U, V)
 false
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_subgroup(G, U, V)
 true
@@ -1219,16 +1337,20 @@ otherwise, return `false, one(G)`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4 with 2 generators
+  (1,2,3)
+  (2,3,4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)
 
 julia> is_conjugate_subgroup_with_data(G, U, V)
 (false, ())
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
-Permutation group of degree 4
+Permutation group of degree 4 with 1 generator
+  (1,2)(3,4)
 
 julia> is_conjugate_subgroup_with_data(G, U, V)
 (true, ())
@@ -1265,7 +1387,8 @@ such that `H^g` contains the element `s`.
 julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
-Permutation group of degree 4 and order 3
+Permutation group of degree 4 and order 3 with 1 generator
+  (1,2,3)
 
 julia> short_right_transversal(G, H, G([2, 1, 3, 4]))
 PermGroupElem[]
@@ -1553,7 +1676,7 @@ julia> complement_classes(G, derived_subgroup(G)[1])
  Conjugacy class of permutation group in G
 
 julia> G = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> complement_classes(G, center(G)[1])
 GAPGroupConjClass{PcGroup, SubPcGroup}[]
@@ -1846,7 +1969,7 @@ julia> rank(free_group(5))
 5
 
 julia> G = pc_group(abelian_group(5,0))
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> rank(G)
 2
@@ -1885,13 +2008,13 @@ Return whether `G` is a finitely generated group.
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> is_finitely_generated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Free group
+Free group of unknown rank
 
 julia> is_finitely_generated(H)
 false
@@ -1992,7 +2115,7 @@ of `G`.
 # Examples
 ```jldoctest
 julia> g = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> relators(g)
 6-element Vector{FPGroupElem}:
@@ -2156,7 +2279,7 @@ See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
 # Examples
 ```jldoctest
 julia> G = dihedral_group(10)
-Pc group of order 10
+Pc group of order 10 with 2 generators f1, f2
 
 julia> x, y = gens(G);  g = x * y^4
 f1*f2^4

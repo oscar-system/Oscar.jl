@@ -1,5 +1,7 @@
 julia> G_perm = @permutation_group(5, (2,5)(3,4), (1,3)(4,5))
-Permutation group of degree 5
+Permutation group of degree 5 with 2 generators
+  (2,5)(3,4)
+  (1,3)(4,5)
 
 julia> order(G_perm)
 10
@@ -41,6 +43,12 @@ julia> mat_sigma1 = matrix(K, [ -1 0 ; 0 1 ]);
 julia> G_mat = matrix_group(mat_rot, mat_sigma1)
 Matrix group of degree 2
   over algebraic closure of rational field
+with 2 generators
+  [    Root 0.309017 of 4x^2 + 2x - 1   Root -0.951057 of 16x^4 - 20x^2 + 5]
+  [Root 0.951057 of 16x^4 - 20x^2 + 5        Root 0.309017 of 4x^2 + 2x - 1]
+
+  [Root -1.00000 of x + 1             Root 0 of x]
+  [           Root 0 of x   Root 1.00000 of x - 1]
 
 julia> is_isomorphic(G_mat, G_perm)
 true
@@ -75,13 +83,18 @@ julia> G_generic = generic_group(closure([rot, sigma_1], *), *)[1]
 Generic group of order 10 with multiplication table
 
 julia> permutation_group(G_generic)
-Permutation group of degree 10
+Permutation group of degree 10 with 2 generators
+  (1,2,3,4,5)(6,10,9,8,7)
+  (1,8)(2,9)(3,10)(4,6)(5,7)
 
 julia> is_isomorphic(ans, G_perm)
 true
 
 julia> G_fp = fp_group(G_perm)
-Finitely presented group of order 10
+Finitely presented group of order 10 with 2 generators F1, F2 and with 3 relators
+  F1^2
+  F1^-1*F2*F1*F2^-4
+  F2^5
 
 julia> gens(G_fp)
 2-element Vector{FPGroupElem}:
@@ -95,7 +108,7 @@ julia> relators(G_fp)
  F2^5
 
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> G_cox, _ = quo(F, [F[1]^2, F[2]^2, (F[1]*F[2])^5])
 (Finitely presented group, Hom: F -> G_cox)
@@ -133,7 +146,9 @@ julia> describe(quo(H, H2)[1])
 "(C3 x C3) : C2"
 
 julia> dihedral_group(10)
-Pc group of order 10
+Pc group of order 10 with 2 generators f1, f2
 
 julia> dihedral_group(PermGroup, 10)
-Permutation group of degree 5
+Permutation group of degree 5 with 2 generators
+  (1,2,3,4,5)
+  (2,5)(3,4)

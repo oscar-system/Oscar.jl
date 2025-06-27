@@ -89,7 +89,9 @@ The output is a group of type `PermGroup`.
 # Examples
 ```jldoctest
 julia> primitive_group(10,1)
-Permutation group of degree 10 and order 60
+Permutation group of degree 10 and order 60 with 2 generators
+  (1,5,7)(2,9,4)(3,8,10)
+  (2,6)(3,5)(4,7)(9,10)
 
 julia> primitive_group(10,10)
 ERROR: ArgumentError: there are only 9 primitive permutation groups of degree 10, not 10
@@ -121,7 +123,9 @@ julia> order(primitive_group(m...)) == order(G)
 true
 
 julia> S = stabilizer(G, 1)[1]
-Permutation group of degree 7 and order 720
+Permutation group of degree 7 and order 720 with 2 generators
+  (2,3,4,5,6,7)
+  (2,3)
 
 julia> is_primitive(S)
 false
@@ -196,12 +200,12 @@ The type of the returned groups is `PermGroup`.
 ```jldoctest
 julia> all_primitive_groups(4)
 2-element Vector{PermGroup}:
- Alt(4)
- Sym(4)
+ Alternating group of degree 4
+ Symmetric group of degree 4
 
 julia> all_primitive_groups(degree => 3:5, is_abelian)
 2-element Vector{PermGroup}:
- Alt(3)
+ Alternating group of degree 3
  Permutation group of degree 5 and order 5
 ```
 """
