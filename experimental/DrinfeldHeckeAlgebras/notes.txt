@@ -127,7 +127,7 @@ R, (x,y) = polynomial_ring(QQ, ["x","y"])
 κ_1 = matrix(R, [0 x; -x 0])
 κ_g = matrix(R, [0 y; -y 0])
 forms = Dict(one(G) => κ_1, G[1] => κ_g)
-κ = drinfeld_hecke_form(forms)
+B = drinfeld_hecke_algebra(forms)
 
 ##########################################################
 

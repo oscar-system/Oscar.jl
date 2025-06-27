@@ -31,7 +31,7 @@ const alternating_bilinear_form = AlternatingBilinearForm
 ################################################################################
 
 function show(io::IO, b::AlternatingBilinearForm)
-  println("Alternating bilinear form, in the standard basis represented by the Gram matrix")
+  println(io, "Alternating bilinear form, in the standard basis represented by the Gram matrix")
   display(matrix(b))
 end
 

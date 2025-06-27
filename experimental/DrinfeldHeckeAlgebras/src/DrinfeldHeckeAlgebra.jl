@@ -188,7 +188,7 @@ given by alternating bilinear forms
 function generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
   κ = generic_drinfeld_hecke_form(G,R)
 
-  return drinfeld_hecke_algebra(κ)
+  return DrinfeldHeckeAlgebra(κ)
 end
 
 ################################################################################
@@ -250,7 +250,7 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   end
 
   # If A is zero, there is nothing to do
-  if is_zero(A) return drinfeld_hecke_algebra(G,R) end
+  if is_zero(form(A)) return drinfeld_hecke_algebra(G,R) end
   
   n = ngens(R)
   
@@ -285,22 +285,66 @@ end
 ################################################################################
 
 function Base.show(io::IO, A::DrinfeldHeckeAlgebra)
-  println("Drinfeld-Hecke algebra")
-  print("   for ")
+  println(io, "Drinfeld-Hecke algebra")
+  print(io, "   for ")
   show(io, group(A))
-  println()
-  println("with generators")
-  print("   " * join(gens(base_algebra(A)), ", "))
-  println(", " * join(["g" * string(i) for i in 1:ngens(group(A))], ", "))
-  println()
-  print("defined by ")
+  println(io)
+  println(io, "with generators")
+  print(io, "   " * join(gens(base_algebra(A)), ", "))
+  println(io, ", " * join(["g" * string(i) for i in 1:ngens(group(A))], ", "))
+  println(io)
+  print(io, "defined by ")
   show(io, form(A))
 end
 
 function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
-  print("Drinfeld-Hecke algebra element with coefficients ")
-  show(io, a.element)
-  # TODO nice repr. of element
+  if is_zero(a)
+    print(io, "0")
+    return
+  end
+
+  if is_one(a)
+    print(io, "1")
+    return
+  end
+
+  group_elements = parent(a.element).base_to_group
+  non_zero_coefficients = Dict()
+  
+  for i in 1:length(coefficients(a.element))
+    c = coefficients(a.element)[i]
+    
+    if !is_zero(c)
+      g = group_elements[i]
+      non_zero_coefficients[g] = c
+    end
+  end
+
+  for (i,(g,c)) in enumerate(non_zero_coefficients)
+    if !is_one(c)
+      if length(terms(c)) > 1
+        print(io, "(")
+      end
+    
+      print(io, c)
+      
+      if length(terms(c)) > 1
+        print(io, ")")
+      end
+    end
+  
+    if !is_one(c) && !is_one(g)
+      print(io, " * ")
+    end
+  
+    if !is_one(g)
+      print(io, g)
+    end
+    
+    if i < length(non_zero_coefficients)
+      print(io, " + ")
+    end
+  end
 end
 
 ################################################################################
@@ -399,6 +443,88 @@ group(A::DrinfeldHeckeAlgebra) = group(form(A))
 
 group_algebra(A::DrinfeldHeckeAlgebra) = group_algebra(form(A))
 form(A::DrinfeldHeckeAlgebra) = A.form
+
+@doc raw"""
+    generators(A::DrinfeldHeckeAlgebra)
+
+Return the generators of ```A```.
+
+Alias: ```gens```
+
+# Examples
+```jldoctest
+julia> G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+Matrix group of degree 2
+  over rational field
+
+julia> A = drinfeld_hecke_algebra(G)
+Drinfeld-Hecke algebra
+   for Matrix group of degree 2 over QQ
+with generators
+   x1, x2, g1
+
+defined by Drinfeld-Hecke form over base ring
+   Rational field
+given by 0
+
+julia> generators(A)
+3-element Vector{Oscar.DrinfeldHeckeAlgebraElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ [-1 0; 0 -1]
+```
+"""
+function generators(A::DrinfeldHeckeAlgebra)
+  indeterminants = map(x -> A(x), gens(base_algebra(A)))
+  group_generators = map(x -> A(x), gens(group(A)))
+  
+  return vcat(indeterminants, group_generators)
+end
+
+gens(A::DrinfeldHeckeAlgebra) = generators(A)
+
+function getindex(A::DrinfeldHeckeAlgebra, i::Int)
+  return gens(A)[i]
+end
+
+@doc raw"""
+    parameters(A::DrinfeldHeckeAlgebra)
+
+Return the parameters of ```A```.
+
+Alias: ```params```
+
+# Examples
+```jldoctest
+julia> G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+Matrix group of degree 2
+  over rational field
+
+julia> A = generic_drinfeld_hecke_algebra(G)
+Drinfeld-Hecke algebra
+   for Matrix group of degree 2 over QQ
+with generators
+   x1, x2, g1
+
+defined by Drinfeld-Hecke form over base ring
+   Multivariate polynomial ring in 2 variables over QQ
+with parameters 
+   t1, t2
+given by alternating bilinear forms
+   [1   0] => [  0   t1]
+   [0   1]    [-t1    0]
+
+   [-1    0] => [  0   t2]
+   [ 0   -1]    [-t2    0]
+
+julia> parameters(A)
+2-element Vector{QQMPolyRingElem}:
+ t1
+ t2
+```
+"""
+parameters(A::DrinfeldHeckeAlgebra) = parameters(form(A))
+params(A::DrinfeldHeckeAlgebra) = parameters(A)
 
 ################################################################################
 # Data type and parent object methods

@@ -16,3 +16,7 @@ export evaluate_parameters
 export base_ring
 export base_algebra
 export group
+export generators
+export gens
+export parameters
+export params

@@ -138,52 +138,52 @@ end
 ################################################################################
 
 function show(io::IO, κ::DrinfeldHeckeForm)
-  println("Drinfeld-Hecke form over base ring")
-  println("   " * string(base_ring(κ)))
+  println(io, "Drinfeld-Hecke form over base ring")
+  println(io, "   " * string(base_ring(κ)))
 
   if number_of_parameters(κ) > 0
-    println("with parameters ")
-    println("   " * join(parameters(κ), ", "))
+    println(io, "with parameters ")
+    println(io, "   " * join(parameters(κ), ", "))
   end
 
   if (length(κ.forms) == 0)
-    print("given by 0")
+    print(io, "given by 0")
     return
   end
 
-  println("given by alternating bilinear forms")
+  println(io, "given by alternating bilinear forms")
   n = degree(group(κ))
   for (_,(g, κ_g)) in enumerate(κ.forms)
     A = matrix(g)
     B = matrix(κ_g)
     
     for i in 1:n
-      print("   [")
+      print(io, "   [")
       
       for j in 1:n
         mcl = max_column_length(A, j)
-        print(repeat(" ", mcl - length(string(A[i,j]))))
-        print(A[i,j])
-        if j < n print("   ") end
+        print(io, repeat(" ", mcl - length(string(A[i,j]))))
+        print(io, A[i,j])
+        if j < n print(io, "   ") end
       end
       
       if i == n/2 || i == (n-1)/2
-        print("] => [")
+        print(io, "] => [")
       else
-        print("]    [")
+        print(io, "]    [")
       end
     
       for j in 1:n
         mcl = max_column_length(B, j)
-        print(repeat(" ", mcl - length(string(B[i,j]))))
-        print(B[i,j])
-        if j < n print("   ") end
+        print(io, repeat(" ", mcl - length(string(B[i,j]))))
+        print(io, B[i,j])
+        if j < n print(io, "   ") end
       end
     
-      println("]")
+      println(io, "]")
     end
   
-    println()
+    println(io)
   end
 end
 
