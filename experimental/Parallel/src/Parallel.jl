@@ -306,7 +306,7 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
       throw(TimeoutException())
     end
   catch e
-    if !(e isa TimeoutException)
+    if !(e isa TimeoutException) && !(e isa OutOfMemoryError)
       put!(wp, wid)  # Return worker if it's not a timeout error
     end
     rethrow(e)
