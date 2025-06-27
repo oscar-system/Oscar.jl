@@ -6,6 +6,12 @@ Oscar.test_experimental_module("DrinfeldHeckeAlgebras")
 
 using Revise, Oscar
 
+build_doc()
+
+##########################################################
+
+using Revise, Oscar
+
 n = 3
 S3 = symmetric_group(n)
 mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
@@ -41,15 +47,6 @@ mat_gens = [permutation_matrix(QQ, g) for g in gens(S)]
 G = matrix_group(mat_gens)
 A = generic_drinfeld_hecke_form(G)
 
-   [0   0   0   1   0]    [ 0   0   0   -t    t]
-   [0   1   0   0   0] => [ 0   0   0    0    0]
-   [0   0   1   0   0]    [ 0   0   0    0    0]
-   [0   0   0   0   1]    [ t   0   0    0   -t]
-   [1   0   0   0   0]    [-t   0   0    t    0]
-
-
-
-
 ##########################################################
 
 using Revise, Oscar
@@ -82,7 +79,7 @@ g = gen(G,1)
 κ = evaluate_parameters(κ, [-8//7, 4])
 A = drinfeld_hecke_algebra(κ)
 RG = group_algebra(A)
-R = symmetric_algebra(A)
+R = base_algebra(A)
 
 x = R[1]
 y = R[2]
@@ -109,9 +106,28 @@ G = matrix_group(generators)
 
 using Revise, Oscar
 
-MS = matrix_space(QQ,2,2)
-G = matrix_group(matrix(MS([-1 0;0 -1])))
-κ = generic_drinfeld_hecke_form(G)
+G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+A = generic_drinfeld_hecke_algebra(G)
+evaluate_parameters(A, [1,2])
+
+##########################################################
+
+using Revise, Oscar
+
+G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+A = drinfeld_hecke_algebra(G)
+group(A)
+
+##########################################################
+
+using Revise, Oscar
+
+G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+R, (x,y) = polynomial_ring(QQ, ["x","y"])
+κ_1 = matrix(R, [0 x; -x 0])
+κ_g = matrix(R, [0 y; -y 0])
+forms = Dict(one(G) => κ_1, G[1] => κ_g)
+κ = drinfeld_hecke_form(forms)
 
 ##########################################################
 

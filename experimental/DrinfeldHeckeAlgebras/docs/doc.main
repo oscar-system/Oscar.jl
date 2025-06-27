@@ -1,6 +1,8 @@
 [
    "Drinfeld--Hecke Algebras" => [
       "introduction.md",
-      "user_functions.md"
+      "construction.md",
+      "generic_algebras.md",
+      "useful_functions.md"
    ],
 ]

@@ -11,6 +11,8 @@
 # For 1 ∈ G, the Drinfeld-Hecke forms are just the G-invariant bilinear alternating forms, i.e κ_1 with
 #   (d) κ_1(v,w) = κ_1(gv,gw) for all g ∈ G and v,w ∈ V
 # (Theorem 1.9 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
+#
+# Cassandra Koenen, 2025
 ################################################################################
 
 ################################################################################

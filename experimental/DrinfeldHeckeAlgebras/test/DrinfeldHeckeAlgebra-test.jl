@@ -27,7 +27,7 @@
     κ = evaluate_parameters(κ, [-8//7, 4])
     A = drinfeld_hecke_algebra(κ)
     RG = group_algebra(A)
-    R = symmetric_algebra(A)
+    R = base_algebra(A)
     
     x = R[1]
     y = R[2]

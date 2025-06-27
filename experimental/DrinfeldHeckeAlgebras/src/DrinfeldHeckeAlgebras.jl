@@ -10,18 +10,9 @@ include("DrinfeldHeckeAlgebra.jl")
 
 # Exports
 export symplectic_doubling
-
-export DrinfeldHeckeForm
-export drinfeld_hecke_form
-export generic_drinfeld_hecke_form
-export evaluate_parameters
-export set_forms
-export nforms
-export is_generic
-
-export DrinfeldHeckeAlgebra
 export drinfeld_hecke_algebra
 export generic_drinfeld_hecke_algebra
-export symmetric_algebra
-
-# Aliases
+export evaluate_parameters
+export base_ring
+export base_algebra
+export group
