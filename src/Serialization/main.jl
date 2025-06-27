@@ -874,7 +874,6 @@ end # module Serialization
 
 using Oscar.Serialization
 import Oscar.Serialization: load_object, save_object, type_params
-import Oscar.Serialization: load, save
 import Oscar.Serialization: reset_global_serializer_state
 
 # FIXME: the following functions are exported by us but undocumented
