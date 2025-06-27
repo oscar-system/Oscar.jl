@@ -315,6 +315,7 @@ to be loaded is older than the current Oscar version.
 ```@docs
 Oscar.upgrade
 Oscar.upgrade_data
+Oscar.rename_types
 ```
 
 #### Upgrade Scripts

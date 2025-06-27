@@ -1,6 +1,7 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
+    upgraded_dict = dict
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -15,7 +16,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       else
         type_name = dict[:_type]
       end
-      upgraded_dict = dict
       if type_name in [
         "PolyRing", "FreeAssociativeAlgebra", "MPolyRing", "RationalFunctionField",
         "AbstractAlgebra.Generic.LaurentMPolyWrapRing", "UniversalPolyRing",
@@ -532,12 +532,9 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     if haskey(dict, :_refs)
-      upgraded_refs = Dict()
-      for (k, v) in dict[:_refs]
-        upgraded_refs[k] = upgrade_1_4_0(s, v)
-      end
-      upgraded_dict[:_refs] = upgraded_refs
+      upgraded_dict[:_refs] = dict[:_refs]
     end
+
     return upgraded_dict
   end
 ))
