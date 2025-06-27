@@ -1,5 +1,4 @@
 using JSON3
-import Base.haskey
 
 ################################################################################
 # Type Serializers (converting types to strings)
@@ -213,7 +212,7 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function haskey(s::DeserializerState, key::Symbol)
+function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
   load_node(s) do obj
     key in keys(obj)

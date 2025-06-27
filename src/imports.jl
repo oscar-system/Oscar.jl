@@ -4,8 +4,6 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, myid, nworkers
-import Distributed: remotecall, workers, remotecall_fetch
 
 if VERSION < v"1.11.0-DEV.1562"
   using Compat: allequal, allunique

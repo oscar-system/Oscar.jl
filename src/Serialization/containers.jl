@@ -257,7 +257,7 @@ function save_object(s::SerializerState, obj::NamedTuple)
 end
 
 function load_object(s::DeserializerState, T::Type{<: NamedTuple}, params::Tuple)
-  return T(load_object(s, Tuple{fieldtypes(T)...}, params))
+  return T(load_object(s, Tuple{Base.fieldtypes(T)...}, params))
 end
 
 ################################################################################

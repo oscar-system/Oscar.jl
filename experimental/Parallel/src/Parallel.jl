@@ -1,3 +1,8 @@
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
+import Distributed: remotecall, workers, remotecall_fetch
+
+import .Serialization: put_type_params
+
 @doc raw"""
      OscarWorkerPool
 

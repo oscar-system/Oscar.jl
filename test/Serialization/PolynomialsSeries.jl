@@ -112,8 +112,8 @@ cases = [
             end
 
             # need a cleaner way to setup type params in general
-            params = Dict(Oscar.params(Oscar.type_params(gb))...)
-            params[:ordering_type] = Oscar.type(params[:ordering_type])
+            params = Dict(Oscar.Serialization.params(Oscar.type_params(gb))...)
+            params[:ordering_type] = Oscar.Serialization.type(params[:ordering_type])
             test_save_load_roundtrip(path, gb; params=params) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
               @test ordering(gb) == ordering(loaded_gb)
