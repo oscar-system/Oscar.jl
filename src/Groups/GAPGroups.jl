@@ -489,28 +489,25 @@ function Base.show(io::IO, G::PermGroup)
   if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
      number_of_moved_points(G) == degree(G)
     if !is_terse(io)
-      print(io, "Symmetric group")
+      print(io, "Symmetric group of degree ", degree(G))
     else
       print(io, LowercaseOff(), "Sym(", degree(G), ")")
     end
+    return
   elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
      number_of_moved_points(G) == degree(G)
     if !is_terse(io)
-      print(io, "Alternating group")
+      print(io, "Alternating group of degree ", degree(G))
     else
       print(io, LowercaseOff(), "Alt(", degree(G), ")")
     end
-  else
-    print(io, "Permutation group")
+    return
   end
+  print(io, "Permutation group")
   if !is_terse(io)
     print(io, " of degree ", degree(G))
     if has_order(G)
-      if is_finite(G)
-        print(io, " and order ", order(G))
-      else
-        print(io, " and infinite order")
-      end
+      print(io, " and order ", order(G))
     elseif GAP.Globals.HasStabChainMutable(GapObj(G))
       # HACK: to show order in a few more cases where it is trivial to get
       # but really, GAP should be using this anyway?
