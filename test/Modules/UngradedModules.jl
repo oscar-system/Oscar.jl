@@ -1419,6 +1419,17 @@ end
   @test conj_S1 == compose(id_S1, conj_S1)
 end
 
+@testset "check exactness for mres" begin
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM2 = free_resolution(M, algorithm = :mres)
+  @test all(iszero, homology(FM2))
+end
+
 @testset "Modules over ZZ and QQ" begin
 
   @testset "Module Constructors over ZZ" begin
