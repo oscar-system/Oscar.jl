@@ -1761,7 +1761,7 @@ export vanishing_sets
 export variety
 export vector_matrix
 export vector_space_basis
-export vector_space_dimension
+export vector_space_dim
 export vertex_and_ray_indices
 export vertex_edge_graph
 export vertex_figure

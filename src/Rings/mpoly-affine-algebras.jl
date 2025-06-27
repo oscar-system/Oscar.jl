@@ -73,7 +73,7 @@ function Base.showerror(io::IO, err::InfiniteDimensionError)
 end
 
 @doc raw"""
-    vector_space_dimension(A::MPolyQuoRing)
+    vector_space_dim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
@@ -87,7 +87,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
-julia> vector_space_dimension(A)
+julia> vector_space_dim(A)
 6
 
 julia> I = modulus(A)
@@ -105,9 +105,9 @@ with respect to the ordering
   lex([x, y, z])
 ```
 """
-function vector_space_dimension(A::MPolyQuoRing)
+function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
-    error("vector_space_dimension requires a coefficient ring that is a field")
+    error("vector_space_dim requires a coefficient ring that is a field")
   end
   is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = modulus(A)

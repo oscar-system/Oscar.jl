@@ -264,7 +264,7 @@ function intersection_multiplicity(C::AffinePlaneCurve, D::AffinePlaneCurve, P::
   P in ambient_space(C) || error("The point needs to be in the same affine plane as C")
   P in C && P in D || return 0
   S,_ = stalk(intersect(C,D), P)
-  return vector_space_dimension(S)
+  return vector_space_dim(S)
 end
 
 ################################################################################

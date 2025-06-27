@@ -120,7 +120,7 @@ dim(A::MPolyQuoRing)
 
 ```@docs
 is_finite_dimensional_vector_space(A::MPolyQuoRing)
-vector_space_dimension(A::MPolyQuoRing)
+vector_space_dim(A::MPolyQuoRing)
 ```
 
 ```@docs
