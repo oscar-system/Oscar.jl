@@ -37,10 +37,12 @@ const refs_key = :_refs
   description::Union{String, Nothing} = nothing
 end
 
+# FIXME: this function is exported but undocumented
 function metadata(;args...)
   return MetaData(;args...)
 end
 
+# FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
@@ -874,3 +876,6 @@ using Oscar.Serialization
 import Oscar.Serialization: load_object, save_object, type_params
 import Oscar.Serialization: load, save
 import Oscar.Serialization: reset_global_serializer_state
+
+# FIXME: the following functions are exported by us but undocumented
+import Oscar.Serialization: metadata, read_metadata
