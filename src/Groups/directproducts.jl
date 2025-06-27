@@ -17,18 +17,18 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Symmetric group of degree 3 and order 6 with 2 generators
+Symmetric group of degree 3 with 2 generators
   (1,2,3)
   (1,2)
 
 julia> K = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> G = direct_product(H,K)
 Direct product of
-  Symmetric group of degree 3 and order 6
-  Symmetric group of degree 2 and order 2
+  Symmetric group of degree 3
+  Symmetric group of degree 2
 
 julia> collect(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -165,22 +165,22 @@ It is not defined for proper subgroups of direct products.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Symmetric group of degree 3 and order 6 with 2 generators
+Symmetric group of degree 3 with 2 generators
   (1,2,3)
   (1,2)
 
 julia> K = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> G = direct_product(H, K)
 Direct product of
-  Symmetric group of degree 3 and order 6
-  Symmetric group of degree 2 and order 2
+  Symmetric group of degree 3
+  Symmetric group of degree 2
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
-  from symmetric group of degree 3 and order 6
+  from symmetric group of degree 3
   to H x K
 
 julia> h = perm(H, [2,3,1])
@@ -191,7 +191,7 @@ julia> inj1(h)
 
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
-  from symmetric group of degree 2 and order 2
+  from symmetric group of degree 2
   to H x K
 
 julia> k = perm(K, [2,1])
@@ -230,28 +230,28 @@ Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Symmetric group of degree 3 and order 6 with 2 generators
+Symmetric group of degree 3 with 2 generators
   (1,2,3)
   (1,2)
 
 julia> K = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> G = direct_product(H, K)
 Direct product of
-  Symmetric group of degree 3 and order 6
-  Symmetric group of degree 2 and order 2
+  Symmetric group of degree 3
+  Symmetric group of degree 2
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
   from H x K
-  to symmetric group of degree 3 and order 6
+  to symmetric group of degree 3
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
   from H x K
-  to symmetric group of degree 2 and order 2
+  to symmetric group of degree 2
 
 julia> g = perm([2,3,1,5,4])
 (1,2,3)(4,5)
@@ -557,13 +557,13 @@ julia> G = cyclic_group(3)
 Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
   pc group of order 3
-  symmetric group of degree 2 and order 2
+  symmetric group of degree 2
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -623,13 +623,13 @@ julia> G = cyclic_group(3)
 Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
   pc group of order 3
-  symmetric group of degree 2 and order 2
+  symmetric group of degree 2
 
 julia> normal_subgroup(W)
 Pc group of order 3 with 1 generator f1
@@ -648,16 +648,16 @@ julia> G = cyclic_group(3)
 Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 
 julia> W = wreath_product(G,H)
 Wreath product of
   pc group of order 3
-  symmetric group of degree 2 and order 2
+  symmetric group of degree 2
 
 julia> acting_subgroup(W)
-Symmetric group of degree 2 and order 2 with 1 generator
+Symmetric group of degree 2 with 1 generator
   (1,2)
 ```
 """

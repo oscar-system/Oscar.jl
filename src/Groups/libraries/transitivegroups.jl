@@ -85,7 +85,7 @@ The output is a group of type `PermGroup`.
 # Examples
 ```jldoctest
 julia> transitive_group(5,4)
-Alternating group of degree 5 and order 60 with 2 generators
+Alternating group of degree 5 with 2 generators
   (1,2,3,4,5)
   (3,4,5)
 
@@ -198,12 +198,12 @@ julia> all_transitive_groups(4)
  Permutation group of degree 4
  Permutation group of degree 4
  Permutation group of degree 4
- Alternating group of degree 4 and order 12
- Symmetric group of degree 4 and order 24
+ Alternating group of degree 4
+ Symmetric group of degree 4
 
 julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
- Alternating group of degree 3 and order 3
+ Alternating group of degree 3
  Permutation group of degree 4
  Permutation group of degree 4
  Permutation group of degree 5

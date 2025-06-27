@@ -142,7 +142,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Symmetric group of degree 6 and order 720 with 2 generators
+Symmetric group of degree 6 with 2 generators
   (1,2,3,4,5,6)
   (1,2)
 ```
@@ -279,7 +279,7 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Symmetric group of degree 3 and order 6 with 2 generators
+Symmetric group of degree 3 with 2 generators
   (1,2,3)
   (1,2)
 
@@ -821,7 +821,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Symmetric group of degree 8 and order 40320 with 2 generators
+Symmetric group of degree 8 with 2 generators
   (1,2,3,4,5,6,7,8)
   (1,2)
 
@@ -859,7 +859,7 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Symmetric group of degree 14 and order 87178291200 with 2 generators
+Symmetric group of degree 14 with 2 generators
   (1,2,3,4,5,6,7,8,9,10,11,12,13,14)
   (1,2)
 ```

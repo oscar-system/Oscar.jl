@@ -92,7 +92,7 @@ Return the table of marks of the finite group `G`.
 # Examples
 ```jldoctest
 julia> show(stdout, MIME("text/plain"), table_of_marks(symmetric_group(3)))
-Table of marks of symmetric group of degree 3 and order 6
+Table of marks of symmetric group of degree 3
 
 1: 6
 2: 3 1

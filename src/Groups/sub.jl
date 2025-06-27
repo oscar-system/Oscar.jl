@@ -174,8 +174,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Symmetric group of degree 5 and order 120
- Alternating group of degree 5 and order 60
+ Symmetric group of degree 5
+ Alternating group of degree 5
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -202,7 +202,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Alternating group of degree 4 and order 12
+ Alternating group of degree 4
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
@@ -245,7 +245,7 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 ```jldoctest
 julia> characteristic_subgroups(symmetric_group(3))
 3-element Vector{PermGroup}:
- Symmetric group of degree 3 and order 6
+ Symmetric group of degree 3
  Permutation group of degree 3 and order 3
  Permutation group of degree 3 and order 1
 
@@ -339,7 +339,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Alternating group of degree 4 and order 12
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -423,11 +423,11 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Alternating group of degree 4 and order 12
+ Alternating group of degree 4
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Alternating group of degree 4 and order 12
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
@@ -469,8 +469,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Symmetric group of degree 4 and order 24
- Alternating group of degree 4 and order 12
+ Symmetric group of degree 4
+ Alternating group of degree 4
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(GapObj(G)))
@@ -823,7 +823,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Symmetric group of degree 4 and order 24 with 2 generators
+Symmetric group of degree 4 with 2 generators
   (1,2,3,4)
   (1,2)
 
@@ -1091,7 +1091,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group of rank 2
-  to symmetric group of degree 4 and order 24
+  to symmetric group of degree 4
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
@@ -1125,7 +1125,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Alternating group of degree 5 and order 60, Hom: Alt(5) -> Sym(5))
+(Alternating group of degree 5, Hom: Alt(5) -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1142,15 +1142,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Symmetric group of degree 4 and order 24
- Alternating group of degree 4 and order 12
+ Symmetric group of degree 4
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Symmetric group of degree 5 and order 120
- Alternating group of degree 5 and order 60
+ Symmetric group of degree 5
+ Alternating group of degree 5
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
