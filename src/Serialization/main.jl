@@ -844,28 +844,28 @@ function load(filename::String; params::Any = nothing,
   end
 end
 
-export load_attrs
-export load_object
-export save_attrs
-export save_object
-export type_params
-export load
-export save
 export @register_serialization_type
 export DeserializerState
-export SerializerState
-export TypeParams
 export encode_type
+export load
 export load_array_node
+export load_attrs
 export load_node
+export load_object
 export load_ref
+export save
 export save_as_ref
+export save_attrs
 export save_data_array
 export save_data_basic
 export save_data_dict
 export save_data_json
+export save_object
+export SerializerState
 export serialize_with_id
 export set_key
+export TypeParams
+export type_params
 export with_attrs
 
 end # module Serialization
