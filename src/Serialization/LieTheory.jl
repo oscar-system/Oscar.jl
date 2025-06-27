@@ -1,4 +1,4 @@
-import Oscar: _vec, set_root_system_type!
+using Oscar: _vec, set_root_system_type!
 
 ###############################################################################
 #
