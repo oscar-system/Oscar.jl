@@ -324,7 +324,7 @@ end
   @test all(iszero, homology(FM1))
   FM2 = free_resolution(M, length = 2, algorithm = :mres)
   FM2[4]
-  @test all(iszero, homology(FM2)[1:4]) # TODO: to be changed
+  @test all(iszero, homology(FM2))
   FM3 = free_resolution(M, length = 2, algorithm = :nres)
   FM3[4]
   @test all(iszero, homology(FM3))
