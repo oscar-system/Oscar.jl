@@ -425,7 +425,7 @@ end
 ###########################################################################################################################
 
 @doc raw"""
-    basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
+    gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
 basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
@@ -456,11 +456,11 @@ to `false` to skip these tests.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
 
-julia> length(basis_of_h22_hypersurface_indices(qsm_model, check = false))
+julia> length(gens_of_h22_hypersurface_indices(qsm_model, check = false))
 25
 ```
 """
-@attr Vector{Tuple{Int64, Int64}} function basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
+@attr Vector{Tuple{Int64, Int64}} function gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
   filtered_h22_basis_indices = deepcopy(basis_of_h22_ambient_indices(m, check = check))
   gS = gens(cox_ring(ambient_space(m)))
@@ -509,7 +509,7 @@ julia> length(basis_of_h22_hypersurface_indices(qsm_model, check = false))
 end
 
 @doc raw"""
-    basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
+    gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
 basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
@@ -537,12 +537,12 @@ to `false` to skip these tests.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
 
-julia> length(basis_of_h22_hypersurface(qsm_model, check = false))
+julia> length(gens_of_h22_hypersurface(qsm_model, check = false))
 25
 ```
 """
-@attr Vector{CohomologyClass} function basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
-  basis_indices = basis_of_h22_hypersurface_indices(m, check = false)
+@attr Vector{CohomologyClass} function gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = false)
   v = ambient_space(m)
   S = cohomology_ring(v, check = check)
   c_ds = [lift(k) for k in gens(S)]
@@ -586,7 +586,7 @@ julia> length(collect(keys(cdh22)))
 ```
 """
 @attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
-  non_trivial_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  non_trivial_indices = gens_of_h22_hypersurface_indices(m, check = check)
   old_indices = basis_of_h22_ambient_indices(m, check = check)
   to_be_deleted = setdiff(old_indices, non_trivial_indices)
   new_converter = deepcopy(converter_dict_h22_ambient(m, check = check))
@@ -663,7 +663,7 @@ true
 ```
 """
 @attr Vector{G4Flux} function chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true)
-  gens = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
+  gens = [G4Flux(m, c) for c in gens_of_h22_hypersurface(m, check = check)]
   for k in 1:length(gens)
     set_attribute!(gens[k], :offset, zeros(Int, length(gens)))
     flux_coords = zeros(Int, length(gens))
