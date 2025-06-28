@@ -3,7 +3,7 @@ CurrentModule = Oscar
 ```
 
 # Introduction
-Drinfeld--Hecke algebras provides functionality for
+This project provides functionality for
 constructing and calculating in Drinfeld--Hecke algebras
 as introduced by Ram and Shepler \cite{RS03}, but for matrix 
 groups over general fields.
@@ -14,30 +14,32 @@ Let $K$ be a field, $R$ a $K$-algebra and $G$ a finite matrix group over $K$
 acting on a $K$-vector space $V$ in the natural way.
 
 A Drinfeld--Hecke form is a sum
-$$
-\kappa := \sum_{g\in G} \kappa_g \cdot g
-$$
+$\kappa := \sum_{g\in G} \kappa_g \cdot g$
 of alternating bilinear forms $\kappa_g\colon V\times V \rightarrow R$
-such that the relations posed in \cite[Lemma 1.5]{RS03} are satisfied:
+such that the relations posed in [RS03](@cite)[Lemma 1.5] are satisfied:
 
-- $\kappa_g(u,v)(^gw-w)+\kappa_g(v,w)(^gu-u)+\kappa_g(w,u)(^gv-v) = 0$ 
-for all $u,v,w\in V$ and $g\in G$
+- $\kappa_g(u,v)(^gw-w)+\kappa_g(v,w)(^gu-u)+\kappa_g(w,u)(^gv-v) = 0$ for all $u,v,w\in V$ and $g\in G$
 - $\kappa_g(^hv,^hw)=\kappa_{h^{-1}gh}(v,w)$ for all $v,w\in V$ and $g, h\in G$
 
+Recall that for an $R$-algebra $A$ acting on a group $G$ via $R$-automorphisms,
+the skew group algebra $A\#G$ is defined as the left $A$-module generated
+by the elements of $G$ with multiplication $(ag)(bh) = (a ^gb)(gh)$ for $a,b\in A$, 
+$g,h\in G$ and $^gb$ denoting the action of $g$ on $b$.
+
 A Drinfeld--Hecke algebra is the algebra
-$$
-H_{\kappa}(G) := R\langle V \rangle \# G / I_{\kappa}
-$$
-where $R\langle V \rangle$ is the tensor algebra over $V$,
-$$
-I_{\kappa} := \langle vw-wv-\kappa(v,w) \;|\; v,w\in V\rangle
-$$
+$H_{\kappa}(G) := R\langle V \rangle \# G / I_{\kappa}$
+where $R\langle V \rangle$ is the ring on noncommutative $R$-polynomial functions over $V$ and
+$I_{\kappa} := \langle vw-wv-\kappa(v,w) \;|\; v,w\in V\rangle$
 with $\kappa$ a Drinfeld--Hecke form.
 
 This project further provides methods for generating (parametrized) generic 
 Drinfeld--Hecke algebras using two strategies depending on the setup:
 - If $\text{char}(K) \neq 0$, the generic algebra is constructed directly from the relations above
-- If $\text{char}(K) = 0$, \cite[Theorem 1.9]{RS03} is used to find generic algebras in a more efficient way
+- If $\text{char}(K) = 0$, [RS03](@cite)[Theorem 1.9] is used to find generic algebras in a more efficient way
+
+A basis $(v_1,\dots,v_n)$ defines an order for the indeterminants of $R\langle V\rangle$
+by which we can uniquely represent any element in the Drinfeld--Hecke algebra as a sum $\sum_{g\in G}f_g g$ where 
+$f_g \in R\langle V\rangle$ with all indeterminants in correct order.
 
 ## Example
 
@@ -85,8 +87,7 @@ julia> gens(A)
  [-1 0; 0 -1]
 
 julia> A[3]
-[-1    0]
-[ 0   -1]
+[-1 0; 0 -1]
 
 julia> A[1]
 x1
@@ -186,14 +187,9 @@ given by alternating bilinear forms
    [ 0   -1]    [-y   0]
 ```
 
-Any element in the Drinfeld--Hecke algebra is represented
-as a sum of polynomials multiplied with a group element.
-It is important to note here that the indeterminants are
-in the defined order within the polynomial factors and
-that this representation is unique. Since multiplication
-is not commutative in the tensor algebra $R\langle V\rangle$,
+Let us play around with elements a bit. Since multiplication
+is not commutative in $H_\kappa$,
 one must pay attention to this when defining elements.
-Let us play around with elements a bit:
 
 ```jldoctest
 julia> (x,y,g) = gens(A)

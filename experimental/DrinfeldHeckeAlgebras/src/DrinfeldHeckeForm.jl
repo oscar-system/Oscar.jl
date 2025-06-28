@@ -187,20 +187,6 @@ function show(io::IO, κ::DrinfeldHeckeForm)
   end
 end
 
-function max_column_length(M::MatElem, j::Int)
-  result = 0
-  
-  for i in 1:nrows(M)
-    element_length = length(string(M[i,j]))
-    
-    if element_length > result
-      result = element_length
-    end
-  end
-
-  return result
-end
-
 ################################################################################
 # Generic functions
 ################################################################################

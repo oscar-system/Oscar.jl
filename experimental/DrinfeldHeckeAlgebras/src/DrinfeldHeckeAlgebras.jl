@@ -7,6 +7,7 @@ include("LocalGenericFormGeneration.jl")
 include("DrinfeldHeckeFormValidation.jl")
 include("DrinfeldHeckeForm.jl")
 include("DrinfeldHeckeAlgebra.jl")
+include("DrinfeldHeckeAlgebraMultiplication.jl")
 
 # Exports
 export symplectic_doubling

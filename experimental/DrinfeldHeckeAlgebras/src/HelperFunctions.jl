@@ -29,3 +29,20 @@ function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
 
   return sol
 end
+
+################################################################################
+# Helper function for show methods
+################################################################################
+function max_column_length(M::MatElem, j::Int)
+  result = 0
+  
+  for i in 1:nrows(M)
+    element_length = length(string(M[i,j]))
+    
+    if element_length > result
+      result = element_length
+    end
+  end
+
+  return result
+end
