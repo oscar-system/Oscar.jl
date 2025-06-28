@@ -62,7 +62,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   new_dict = Dict(zip(new_exps, new_coeffs))
 
   # Step 4: Read off flux coordinates from basis indices
-  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   flux_coords = [get(new_dict, b, 0) for b in basis_indices]
 
   # Step 5: Build cohomology class
