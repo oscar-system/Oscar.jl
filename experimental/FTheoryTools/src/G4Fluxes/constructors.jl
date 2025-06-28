@@ -57,49 +57,66 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
 
-  # If conversion to internally chosen basis desired, then modify the cohomology class
-  converted_class = g4_class
-  if convert == true
-    to_be_transformed_poly = lift(polynomial(g4_class))
-    M = collect(exponents(to_be_transformed_poly))
-    non_zero_exponents = Vector{Tuple{Int64, Int64}}()
-    for my_row in M
-      i1 = findfirst(x -> x != 0, my_row)
-      my_row[i1] -= 1
-      i2 = findfirst(x -> x != 0, my_row)
-      push!(non_zero_exponents, (i1, i2))
-    end
-    coeffs = collect(coefficients(to_be_transformed_poly))
-    @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
+  # Step 1: Extract exponent pairs from input class
+  poly = lift(polynomial(g4_class))
+  coeffs = collect(coefficients(poly))
+  exps = extract_exponent_pairs(collect(exponents(poly)))
+  @req length(coeffs) == length(exps) "Mismatch between coefficients and exponent pairs"
+  original_dict = Dict(zip(exps, coeffs))
 
-    converter_dict = converter_dict_h22_hypersurface(m, check = check)
-    b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
-    b_ring_gens = gens(b_ring)
-    new_converter_dict = Dict{Tuple{Int64, Int64}, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-    for (key, value) in converter_dict
-      new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+  # Step 2: Transform using converter dictionary
+  converter_dict = converter_dict_h22_hypersurface(m, check = check)
+  b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+  b_ring_gens = gens(b_ring)
+  converted_poly = zero(b_ring)
+  for (exp_pair, coeff) in original_dict
+    if haskey(converter_dict, exp_pair)
+      terms = converter_dict[exp_pair]
+      sum_term = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in terms)
+      converted_poly += coeff * sum_term
     end
-    converted_poly = zero(b_ring)
-    for l in 1:length(coeffs)
-      if haskey(new_converter_dict, non_zero_exponents[l])
-        converted_poly += coeffs[l] * new_converter_dict[non_zero_exponents[l]]
-      end
-    end
-    converted_poly = cohomology_ring(ambient_space(m), check = check)(converted_poly)
-    converted_class = CohomologyClass(ambient_space(m), converted_poly, true)
-    
   end
 
-  # Build the G4-flux candidate
-  g4_candidate = G4Flux(m, converted_class)
+  # Step 3: Extract exponent pairs again from converted poly
+  new_coeffs = collect(coefficients(converted_poly))
+  new_exps = extract_exponent_pairs(collect(exponents(converted_poly)))
+  new_dict = Dict(zip(new_exps, new_coeffs))
 
-  # Execute quantization checks if desired and return the created object
-  if check && !is_well_quantized(g4_candidate) && !passes_transversality_checks(g4_candidate)
-    error("Given G4-flux candidate found to violate quantization and/or transversality condition")
+  # Step 4: Read off flux coordinates from basis indices
+  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  flux_coords = [get(new_dict, b, 0) for b in basis_indices]
+
+  # Step 5: Build cohomology class
+  coh_ring = cohomology_ring(ambient_space(m), check = check)
+  converted_poly = coh_ring(converted_poly)
+  converted_class = cohomology_class(ambient_space(m), converted_poly, quick = true)
+
+  # Step 6: Build G4Flux and assign attributes
+  g4 = G4Flux(m, converted_class)
+  set_attribute!(g4, :offset, zeros(Int, length(chosen_g4_flux_gens(m))))
+  set_attribute!(g4, :flux_coordinates, flux_coords)
+
+  # Step 7: Final checks
+  if check
+    @req (is_well_quantized(g4) && passes_transversality_checks(g4)) "G4-flux candidate violates quantization and/or transversality condition"
   end
-  return g4_candidate
+
+  return g4
 end
 
+
+# One helper function to avoid repeating exponent extraction logic
+function extract_exponent_pairs(M::Vector{Vector{Int64}})
+  pairs = Tuple{Int, Int}[]
+  for k in 1:length(M)
+    row = copy(M[k])
+    i1 = findfirst(!=(0), row)
+    row[i1] -= 1
+    i2 = findfirst(!=(0), row)
+    push!(pairs, (i1, i2))
+  end
+  return pairs
+end
 
 
 @doc raw"""
@@ -182,7 +199,7 @@ function Base.:+(g1::G4Flux, g2::G4Flux)
   R = parent(polynomial(cohomology_class(g1)))
   new_poly = R(lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly, true)
-  return G4Flux(model(g1), new_cohomology_class)
+  return g4_flux(model(g1), new_cohomology_class, check = false)
 end
 
 Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
@@ -193,7 +210,7 @@ function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, R
   R = parent(polynomial(cohomology_class(g)))
   new_poly = R(c * lift(polynomial(cohomology_class(g))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly, true)
-  return G4Flux(model(g), new_cohomology_class)
+  return g4_flux(model(g), new_cohomology_class, check = false)
 end
 
 
