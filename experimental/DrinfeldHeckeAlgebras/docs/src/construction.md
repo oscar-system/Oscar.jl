@@ -13,6 +13,5 @@ evaluate_parameters
 group(A::DrinfeldHeckeAlgebra)
 base_ring(A::DrinfeldHeckeAlgebra)
 base_algebra(A::DrinfeldHeckeAlgebra)
-generators(A::DrinfeldHeckeAlgebra)
 parameters(A::DrinfeldHeckeAlgebra)
 ```

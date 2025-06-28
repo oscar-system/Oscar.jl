@@ -322,50 +322,58 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
 
   n = degree(group(parent(a)))
   for (i,(g,c)) in enumerate(non_zero_coefficients)
-    # Print row by row
-    for i in 1:n
-      # Print c only if c is not one
-      if !is_one(c)
-        # Calculate how much space it takes up to print "c * "
-        needed_space_to_print_c = 3 + length(string(c))
-        if length(terms(c)) > 1
-          needed_space_to_print_c += 2
-        end
-        
-        if (i == n/2 || i == (n-1)/2)
-          # Print c
+    if is_one(g)
+      println(io, c)
+    else
+      # Print row by row
+      for i in 1:n
+        # Print c only if c is not one
+        if !is_one(c)
+          # Calculate how much space it takes up to print "c * "
+          needed_space_to_print_c = 3 + length(string(c))
           if length(terms(c)) > 1
-            print(io, "(")
+            needed_space_to_print_c += 2
           end
-        
-          print(io, c)
           
-          if length(terms(c)) > 1
-            print(io, ") * ")
+          if (i == n/2 || i == (n-1)/2)
+            # Print c
+            if length(terms(c)) > 1
+              print(io, "(")
+            end
+          
+            print(io, c)
+            
+            if length(terms(c)) > 1
+              print(io, ") * ")
+            else
+              print(io, " * ")
+            end
           else
-            print(io, " * ")
+            # Otherwise put whitespace
+            print(io, repeat(" ", needed_space_to_print_c))
           end
+        end
+        
+        if !is_one(g)
+          # Start printing current row of g
+          print(io, "[")
+          A = matrix(g)
+        
+          for j in 1:n
+            mcl = max_column_length(A, j)
+            print(io, repeat(" ", mcl - length(string(A[i,j]))))
+            print(io, A[i,j])
+            if j < n print(io, "   ") end
+          end
+        
+          println(io, "]")
         else
-          # Therwise put whitespace
-          print(io, repeat(" ", needed_space_to_print_c))
+          println(io)
         end
       end
-      
-      # Start printing current row of g
-      print(io, "[")
-      A = matrix(g)
-    
-      for j in 1:n
-        mcl = max_column_length(A, j)
-        print(io, repeat(" ", mcl - length(string(A[i,j]))))
-        print(io, A[i,j])
-        if j < n print(io, "   ") end
-      end
-    
-      println(io, "]")
     end
-    
-    # print + sign
+
+    # print "+"
     if i < length(non_zero_coefficients)
       println(io, " + ")
     end
@@ -469,47 +477,10 @@ group(A::DrinfeldHeckeAlgebra) = group(form(A))
 group_algebra(A::DrinfeldHeckeAlgebra) = group_algebra(form(A))
 form(A::DrinfeldHeckeAlgebra) = A.form
 
-@doc raw"""
-    generators(A::DrinfeldHeckeAlgebra)
-
-Return the generators of ```A```.
-
-Alias: ```gens```
-
-# Examples
-```jldoctest
-julia> G = matrix_group(matrix(QQ, [-1 0;0 -1]))
-Matrix group of degree 2
-  over rational field
-
-julia> A = drinfeld_hecke_algebra(G)
-Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
-with generators
-   x1, x2, g1
-
-defined by Drinfeld-Hecke form over base ring
-   Rational field
-given by 0
-
-julia> generators(A)
-3-element Vector{Oscar.DrinfeldHeckeAlgebraElem{QQFieldElem, QQMPolyRingElem}}:
- x1
- x2
- [-1 0; 0 -1]
-```
-"""
-function generators(A::DrinfeldHeckeAlgebra)
-  indeterminants = map(x -> A(x), gens(base_algebra(A)))
-  group_generators = map(x -> A(x), gens(group(A)))
-  
-  return vcat(indeterminants, group_generators)
-end
-
-gens(A::DrinfeldHeckeAlgebra) = generators(A)
-
 function getindex(A::DrinfeldHeckeAlgebra, i::Int)
-  return gens(A)[i]
+  generators = vcat(gens(base_algebra(A)), gens(group(A)))
+  
+  return A(generators[i])
 end
 
 @doc raw"""
