@@ -1,8 +1,8 @@
-################################################################################
+#######################################
 # Method for symplectic doubling of a matrix group over a field
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
 @doc raw"""
     symplectic_doubling(G::MatrixGroup{T}) -> MatrixGroup{T} where {T <: FieldElem}

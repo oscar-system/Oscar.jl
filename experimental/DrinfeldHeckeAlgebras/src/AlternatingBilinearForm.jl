@@ -1,12 +1,12 @@
-################################################################################
+#######################################
 # Methods for creating and applying alternating bilinear forms
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Struct and constructors
-################################################################################
+#######################################
 
 struct AlternatingBilinearForm{T <: RingElem}
   matrix::MatElem{T}
@@ -26,27 +26,27 @@ end
 
 const alternating_bilinear_form = AlternatingBilinearForm
 
-################################################################################
+#######################################
 # Show IO
-################################################################################
+#######################################
 
 function show(io::IO, b::AlternatingBilinearForm)
   println(io, "Alternating bilinear form, in the standard basis represented by the Gram matrix")
   display(matrix(b))
 end
 
-################################################################################
+#######################################
 # Generic functions
-################################################################################
+#######################################
 
 matrix(b::AlternatingBilinearForm) = b.matrix
 is_zero(b::AlternatingBilinearForm) = is_zero(b.matrix)
 ==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a.matrix == b.matrix
 isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
-################################################################################
+#######################################
 # Application
-################################################################################
+#######################################
 
 function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector)::T where T <: RingElem
   B = matrix(b)

@@ -1,4 +1,4 @@
-################################################################################
+#######################################
 # Methods for generating Drinfeld-Hecke forms with a local strategy over a field of characteristic 0
 #
 # Over a field of characteristic 0, we have:
@@ -13,11 +13,11 @@
 # (Theorem 1.9 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Returns a dictionary mapping elements of G to matrices representing alternating bilinear forms
-################################################################################
+#######################################
 function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
   nonzero_forms = Dict{Tuple{MatrixGroupElem{T}, GroupConjClass}, MatElem}()
   number_of_parameters = 0
@@ -68,9 +68,9 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
   return forms
 end
 
-################################################################################
+#######################################
 # Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
-################################################################################
+#######################################
 function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
   form = calculate_form_for_non_trivial_element(g, K)
 
@@ -91,9 +91,9 @@ function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K
   return result
 end
 
-################################################################################
+#######################################
 # Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
-################################################################################
+#######################################
 function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
   G = parent(g)
   n = degree(G)
@@ -148,9 +148,9 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field)
   return result
 end
 
-################################################################################
+#######################################
 # Returns G-invariant alternating bilinear form represented as a matrix in the standard basis
-################################################################################
+#######################################
 function calculate_generic_group_invariant_form(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
   M, map = build_group_invariant_relation_matrix(G)
   sol = solve_and_parametrize(M, R)
@@ -167,7 +167,7 @@ function calculate_generic_group_invariant_form(G::MatrixGroup{T}, R::Field) whe
   return result
 end
 
-################################################################################
+#######################################
 # Translates the relations
 #   κ(gu, gv) = κ(u, v) for all g ∈ G and u, v ∈ V
 # into a matrix M representing the LES Mx = 0 such that x represents an alternating bilinear form
@@ -180,7 +180,7 @@ end
 # With this the relations translate to
 #   sum_{l < k} (a_li a_kj − a_ki a_lj) κ(vl,vk) − κ(vi,vj) = 0
 # for all i < j
-################################################################################
+#######################################
 function build_group_invariant_relation_matrix(G::MatrixGroup)
   K = base_ring(G)
   n = degree(G)
@@ -220,10 +220,10 @@ function build_group_invariant_relation_matrix(G::MatrixGroup)
   return (M, map)
 end
 
-################################################################################
+#######################################
 # Calculate form for conjugate c = h−1gh of g by formula 
 #   κ_h−1gh(v, w) = κ_g(hv, hw)
-################################################################################
+#######################################
 function calculate_form_for_conjugate(
   g::MatrixGroupElem{T},
   c::MatrixGroupElem{T},
@@ -253,10 +253,10 @@ function calculate_form_for_conjugate(
   return κ_c
 end
 
-################################################################################
+#######################################
 # Generate index map that maps a pair (i,j) with i < j and 0 < i, j <= n to a fixed index
 # Can be used for single group element to map solution vector to matrix and vice versa
-################################################################################
+#######################################
 function build_local_map(n::Int)
   map = Dict{Tuple{Int, Int}, Int}()
   

@@ -1,4 +1,4 @@
-################################################################################
+#######################################
 # Methods for generating Drinfeld-Hecke forms globally (all at once) 
 #
 # Let (κ_g)_g∈G be a family of alternating bilinear forms. Then
@@ -11,11 +11,11 @@
 # These relations can be translated into a matrix M defining an LES of the form Mx = 0.
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Returns a parametrized family (κ_g)_g∈G of alternating bilinear forms defining a Drinfeld-Hecke form
-################################################################################
+#######################################
 function generate_generic_forms_globally(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
   M, map = build_relation_matrix(G)
   
@@ -42,7 +42,7 @@ function generate_generic_forms_globally(G::MatrixGroup{T}, R::Ring) where {T <:
   return forms
 end
 
-################################################################################
+#######################################
 # Translates the relations
 #   (a) κ_g(u, v)(gw − w) + κ_g(v, w)(gu − u) + κ_g(w, u)(gv − v) = 0 for all g ∈ G and u, v, w ∈ V
 #   (b) κ_g(hu, hv) = κ_h^-1gh(u, v) for all g, h ∈ G and u, v ∈ V
@@ -63,7 +63,7 @@ end
 # The relations in (b) on the other hand translate to
 #   (V) sum_{l < k} (a_li a_kj − a_ki a_lj) κ_g(vl,vk) − κ_h−1gh(vi,vj) = 0
 # for all i < j and where A = (a_ij) is the matrix corresponding to h
-################################################################################
+#######################################
 function build_relation_matrix(G::MatrixGroup)
   K = base_ring(G)
   n = degree(G)
@@ -153,9 +153,9 @@ function build_relation_matrix(G::MatrixGroup)
   return (M, map)
 end
 
-################################################################################
+#######################################
 # Map elements g ∈ G and matrix indices i < j to global solution column index k
-################################################################################
+#######################################
 function build_global_map(G::MatrixGroup)
   map = Dict{Tuple{MatrixGroupElem, Int, Int}, Int}()
   n = degree(G)

@@ -1,12 +1,12 @@
-################################################################################
+#######################################
 # Struct and methods to generate and handle concrete or generic Drinfeld-Hecke forms
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Struct and different constructors for Drinfeld-Hecke forms
-################################################################################
+#######################################
 
 mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   group::MatrixGroup{T} # Matrix group G over a field K
@@ -87,9 +87,9 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   end
 end
 
-################################################################################
+#######################################
 # Generic Drinfeld-Hecke form creation
-################################################################################
+#######################################
 
 function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
   if R isa Field && characteristic(R) == 0
@@ -101,7 +101,7 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) wh
   # Filter nonzero forms
   for (g, κ_g) in forms
     if is_zero(κ_g)
-      !delete(forms, g)
+      delete!(forms, g)
     end
   end
 
@@ -120,9 +120,9 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) wh
   return κ
 end
 
-################################################################################
+#######################################
 # String I/O
-################################################################################
+#######################################
 
 function show(io::IO, κ::DrinfeldHeckeForm)
   println(io, "Drinfeld-Hecke form over base ring")
@@ -180,9 +180,9 @@ function show(io::IO, κ::DrinfeldHeckeForm)
   end
 end
 
-################################################################################
+#######################################
 # Generic functions
-################################################################################
+#######################################
 
 is_zero(κ::DrinfeldHeckeForm) = length(κ.forms) == 0
 base_field(κ::DrinfeldHeckeForm) = base_ring(κ.group)
@@ -197,9 +197,9 @@ parameters(κ::DrinfeldHeckeForm) = if base_ring(κ) isa MPolyRing return gens(b
 number_of_parameters(κ::DrinfeldHeckeForm) = length(parameters(κ))
 nparams(κ::DrinfeldHeckeForm) = number_of_parameters(κ)
 
-################################################################################
+#######################################
 # Application of Drinfeld-Hecke form
-################################################################################
+#######################################
 
 function (κ::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <: FieldElem, S <: RingElem}
   RG = group_algebra(κ)

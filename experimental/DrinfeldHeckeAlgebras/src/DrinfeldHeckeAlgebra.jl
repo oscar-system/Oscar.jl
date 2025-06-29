@@ -1,12 +1,12 @@
-################################################################################
+#######################################
 # Struct and methods to generate and handle concrete or generic Drinfeld-Hecke algebras
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Struct and different constructors for Drinfeld-Hecke algebras
-################################################################################
+#######################################
 
 @doc raw"""
     DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
@@ -116,9 +116,9 @@ given by alternating bilinear forms
 """
 drinfeld_hecke_algebra(forms::Dict) = DrinfeldHeckeAlgebra(forms)
 
-################################################################################
+#######################################
 # Drinfeld Hecke Algebra Element
-################################################################################
+#######################################
 
 @doc raw"""
     DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRingElem
@@ -163,9 +163,9 @@ function (A::DrinfeldHeckeAlgebra)(a)
   end
 end
 
-################################################################################
+#######################################
 # Generic Drinfeld-Hecke algebra generation
-################################################################################
+#######################################
 
 @doc raw"""
     generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
@@ -202,9 +202,9 @@ function generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G))
   return DrinfeldHeckeAlgebra(κ)
 end
 
-################################################################################
+#######################################
 # Evaluate parameters of generic Drinfeld-Hecke algebra
-################################################################################
+#######################################
 
 @doc raw"""
     evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
@@ -291,9 +291,9 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   return DrinfeldHeckeAlgebra(forms)
 end
 
-################################################################################
+#######################################
 # String I/O
-################################################################################
+#######################################
 
 function Base.show(io::IO, A::DrinfeldHeckeAlgebra)
   println(io, "Drinfeld-Hecke algebra")
@@ -391,9 +391,9 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
   end
 end
 
-################################################################################
+#######################################
 # Basic functionality
-################################################################################
+#######################################
 
 @doc raw"""
     base_ring(A::DrinfeldHeckeAlgebra)
@@ -566,9 +566,9 @@ false
 """
 is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(form(A))
 
-################################################################################
+#######################################
 # Data type and parent object methods
-################################################################################
+#######################################
 
 parent_type(::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebra{T, S}
 elem_type(::Type{DrinfeldHeckeAlgebra{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
@@ -579,24 +579,24 @@ is_exact_type(::Type{DrinfeldHeckeAlgebraElem}) = true
 Base.hash(a::DrinfeldHeckeAlgebraElem, h::UInt) = Base.hash(a.element, h)
 deepcopy_internal(a::DrinfeldHeckeAlgebraElem, dict::IdDict) = DrinfeldHeckeAlgebraElem(a.parent, a.element)
 
-################################################################################
+#######################################
 # Basic manipulation of rings and elements
-################################################################################
+#######################################
 
 zero(A::DrinfeldHeckeAlgebra) = A()
 one(A::DrinfeldHeckeAlgebra) = A(1)
 iszero(a::DrinfeldHeckeAlgebraElem) = iszero(a.element)
 isone(a::DrinfeldHeckeAlgebraElem) = isone(a.element)
 
-################################################################################
+#######################################
 # Canonicalisation
-################################################################################
+#######################################
 
 canonical_unit(a::DrinfeldHeckeAlgebraElem) = one(a.parent)
 
-################################################################################
+#######################################
 # Arithmetic Operations
-################################################################################
+#######################################
 
 -(a::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(a.parent, -a.element)
 
@@ -614,9 +614,9 @@ function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
   return multiply(a,a^(e - 1))
 end
 
-################################################################################
+#######################################
 # Type coercion
-################################################################################
+#######################################
 
 *(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) * b.parent(b)
 *(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) * a.parent(b)
@@ -625,9 +625,9 @@ end
 -(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) - b.parent(b)
 -(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) - a.parent(b)
 
-################################################################################
+#######################################
 # Unsafe operators
-################################################################################
+#######################################
 
 function zero!(a::DrinfeldHeckeAlgebraElem)
   a = zero(a.parent)
@@ -649,15 +649,15 @@ function addeq!(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
   return a
 end
 
-################################################################################
+#######################################
 # Random generation
-################################################################################
+#######################################
 
 rand(A::DrinfeldHeckeAlgebra) = DrinfeldHeckeAlgebraElem(A, rand(group_algebra(A)))
 
-################################################################################
+#######################################
 # Promotion rules
-################################################################################
+#######################################
 
 AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
 function AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{U}) where {T <: FieldElem, S <: RingElem, U <: RingElement}

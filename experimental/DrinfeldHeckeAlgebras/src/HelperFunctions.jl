@@ -1,12 +1,12 @@
-################################################################################
+#######################################
 # Helper functions for generic Drinfeld-Hecke form generation and validation
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Solves the LES Mx = 0 and returns a parametrized solution over the given ring
-################################################################################
+#######################################
 function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
   nullity, kernel_basis = nullspace(M)
   m = nrows(kernel_basis)
@@ -30,9 +30,9 @@ function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
   return sol
 end
 
-################################################################################
+#######################################
 # Helper function for show methods
-################################################################################
+#######################################
 function max_column_length(M::MatElem, j::Int)
   result = 0
   

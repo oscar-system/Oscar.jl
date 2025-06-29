@@ -1,12 +1,12 @@
-################################################################################
+#######################################
 # Methods to multiply elements in Drinfeld-Hecke algebra
 #
 # Cassandra Koenen, 2025
-################################################################################
+#######################################
 
-################################################################################
+#######################################
 # Multiplication methods to break recursion
-################################################################################
+#######################################
 
 # Multiply with scalar from left and right
 function *(c::S, a::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
@@ -24,9 +24,9 @@ function *(a::DrinfeldHeckeAlgebraElem, g::MatrixGroupElem)
   return A(a.element * group_algebra(A)(g))
 end
 
-################################################################################
+#######################################
 # Multiplication methods to implement Drinfeld-Hecke algebra multiplication
-################################################################################
+#######################################
 
 # Multiply general elements a and b
 function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
@@ -108,9 +108,9 @@ function multiply_m1_with_m2(m1::DrinfeldHeckeAlgebraElem, m2::DrinfeldHeckeAlge
   return c * multiply(multiply_m1_with_m2(mm1, m) * g, mm2) + multiply(mm1, multiply_a_with_m(tail, mm2))
 end
 
-################################################################################
+#######################################
 # Helper functions for recursion
-################################################################################
+#######################################
 
 # Returns 4-tuple (c, m, g, tail) where
 # - c is a scalar
@@ -202,9 +202,9 @@ function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
   throw(ArgumentError("Error: Can not split empty monomial"))
 end
 
-################################################################################
+#######################################
 # Helper functions for multiplication
-################################################################################
+#######################################
 
 (κ::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(κ(generator_to_vector(x), generator_to_vector(y)))
 
