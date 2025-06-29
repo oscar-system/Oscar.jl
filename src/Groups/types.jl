@@ -110,7 +110,7 @@ Symmetric group of degree 6
    
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
-     n = GAPWrap.LargestMovedPoint(G)::Int
+     n = GAPWrap.LargestMovedPoint(G)
      if n == 0
        # We support only positive degrees.
        # (`symmetric_group(0)` yields an error,
@@ -122,7 +122,7 @@ Symmetric group of degree 6
    end
    
    function PermGroup(G::GapObj, deg::Int)
-     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
+     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)
      z = new(G, deg)
      return z
    end
