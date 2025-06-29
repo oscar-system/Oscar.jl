@@ -27,7 +27,7 @@ Direct product of
  Sym(3)
  Sym(2)
 
-julia> elements(G)
+julia> collect(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
  ()
  (4,5)

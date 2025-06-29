@@ -158,7 +158,7 @@ function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
   T = domain(aut)
   io = pretty(io)
   n = ngens(aut)
-  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T, " with ", ItemQuantity(n, "generator"))
+  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T)
 end
 
 

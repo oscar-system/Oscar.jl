@@ -172,7 +172,38 @@ function Base.show(io::IO, ::MIME"text/plain", G::MatrixGroup)
   println(io, "Matrix group of degree ", degree(G))
   io = pretty(io)
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(G))
+  println(io, "over ", Lowercase(), base_ring(G))
+  print(io, Dedent())
+  has_gens(G) || return
+
+  _print_generators(io, G)
+end
+
+
+function _print_generators(io::IO, G::MatrixGroup)
+  io = pretty(io)
+  n = ngens(G)
+  print(io, "with ", ItemQuantity(n, "generator"))
+
+  # compute maximum number of generators that can fit on the screen
+  rows,cols = displaysize(io)
+  maxgens = div(rows-4, degree(G)+1)  # with separator we have deg+1 rows per generator
+  maxgens > 0 || return
+  if maxgens > ngens(G)
+    maxgens = ngens(G)
+  end
+
+  println(io, Indent())
+  for i in 1:maxgens
+    show(io, MIME"text/plain"(), G[i])
+    if i < n
+      # one extra newline between matrices
+      println(io)
+      println(io)
+    end
+  end
+  # if necessary, indicate that we had to leave out some generators
+  ngens(G) > maxgens && print(io, "⋮")
   print(io, Dedent())
 end
 

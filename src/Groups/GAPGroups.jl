@@ -521,6 +521,78 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+end
+
+#function Base.show(io::IO, ::MIME"text/plain", G::Union{FPGroup, SubFPGroup})
+function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  _print_generators(io, G)
+  rels = relators(G)
+  if !isempty(rels)
+    print(io, " and ")
+    # TODO: relators can be pretty long; it would be good to abbreviate them
+    # if they don't fit in a single line...
+   _print_stuff_with_limit(terse(io), rels, "relator")
+  end
+end
+
+function _print_generators(io::IO, G::AbstractAlgebra.Group)
+  if G isa PermGroup
+    print(io, " ")
+  else
+    println(io)
+  end
+  _print_stuff_with_limit(io, gens(G), "generator")
+end
+
+function _print_stuff_with_limit(io::IO, v, what::String)
+  io = pretty(io)
+  n = length(v)
+  print(io, "with ", ItemQuantity(n, what))
+
+  # compute maximum number of generators that can fit on the screen
+  # assuming each of those requires just one line
+  screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+  limit = screenheight - 6
+  limit > 0 || return
+
+  println(io, Indent())
+  for (i, g) in enumerate(v)
+    if i > limit
+      print(io, "⋮")
+      break
+    end
+    print(io, g)  # should be using one-line printing
+    if i < n
+      println(io)
+    end
+  end
+  print(io, Dedent())
+end
+
+function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup})
+  io = pretty(io)
+  n = ngens(G)
+  print(io, " with ", ItemQuantity(n, "generator"))
+  if n > 0
+    print(io, " ")
+    join(io, gens(G), ", ")
+  end
+end
+
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(GapObj(x))
 
