@@ -140,7 +140,7 @@ function show(io::IO, κ::DrinfeldHeckeForm)
 
   println(io, "given by alternating bilinear forms")
   n = degree(group(κ))
-  for (_,(g, κ_g)) in enumerate(κ.forms)
+  for (k,(g, κ_g)) in enumerate(κ.forms)
     A = matrix(g)
     B = matrix(κ_g)
     
@@ -167,10 +167,16 @@ function show(io::IO, κ::DrinfeldHeckeForm)
         if j < n print(io, "   ") end
       end
     
-      println(io, "]")
+      if i == n && k == length(κ.forms)
+        print(io, "]")
+      else
+        println(io, "]")
+      end
     end
   
-    println(io)
+    if k < length(κ.forms)
+      println(io)
+    end
   end
 end
 
