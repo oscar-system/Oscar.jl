@@ -1,16 +1,3 @@
-# TODO: 
-# Gibt es in Characteristic 0 ein Beispiel bei dem es nur die 0-DH form gibt?
-# DOku schreiben
-# Mehr Tests, z.b. über quadratic number fields, S5 über C
-# Ringe an den Anfang eg polynomial_ring(QQ, :x)
-# Check direct access to object properties
-# Check method names like point_from_matrix
-# Check no spaces around : eg for i = 1 : 3
-# See if short-circuiting can be used eg true && something but only for control flow
-# Check loop nesting
-# Check for snake_case in variables and names
-# Check where parent should be added as an optional argument
-
 ################################################################################
 # Struct and methods to generate and handle concrete or generic Drinfeld-Hecke forms
 #

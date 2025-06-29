@@ -19,3 +19,4 @@ export base_algebra
 export group
 export parameters
 export params
+export is_trivial

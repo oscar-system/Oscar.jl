@@ -14,4 +14,5 @@ group(A::DrinfeldHeckeAlgebra)
 base_ring(A::DrinfeldHeckeAlgebra)
 base_algebra(A::DrinfeldHeckeAlgebra)
 parameters(A::DrinfeldHeckeAlgebra)
+is_trivial(A::DrinfeldHeckeAlgebra)
 ```

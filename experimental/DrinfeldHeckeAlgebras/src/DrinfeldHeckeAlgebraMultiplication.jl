@@ -4,12 +4,9 @@
 # Cassandra Koenen, 2025
 ################################################################################
 
-# Multiply group element g from the right
-function *(a::DrinfeldHeckeAlgebraElem, g::MatrixGroupElem)
-  A = a.parent
-  
-  return A(a.element * group_algebra(A)(g))
-end
+################################################################################
+# Multiplication methods to break recursion
+################################################################################
 
 # Multiply with scalar from left and right
 function *(c::S, a::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
@@ -19,6 +16,17 @@ function *(c::S, a::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: 
 end
 
 *(a::DrinfeldHeckeAlgebraElem{T, S}, c::S) where {T <: FieldElem, S <: RingElem} = c * a
+
+# Multiply group element g from the right
+function *(a::DrinfeldHeckeAlgebraElem, g::MatrixGroupElem)
+  A = a.parent
+
+  return A(a.element * group_algebra(A)(g))
+end
+
+################################################################################
+# Multiplication methods to implement Drinfeld-Hecke algebra multiplication
+################################################################################
 
 # Multiply general elements a and b
 function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
@@ -55,7 +63,7 @@ function multiply_a_with_x(a::DrinfeldHeckeAlgebraElem, x::DrinfeldHeckeAlgebraE
   (c, m, g, tail) = split_element(a)
  
   # Let g act on x
-  gx = x^g
+  gx = left_action_on_generator(g,x)
   
   # a * x 
   # = (c * m * g + tail) * x 
@@ -104,7 +112,7 @@ end
 # Helper functions for recursion
 ################################################################################
 
-# Returns quadruple (c, m, g, tail) where
+# Returns 4-tuple (c, m, g, tail) where
 # - c is a scalar
 # - m is a monomial
 # - g a group element
@@ -240,7 +248,7 @@ function generator_to_polynomial(x::DrinfeldHeckeAlgebraElem)
   return gen(base_algebra(x.parent), i)
 end
 
-function ^(x::DrinfeldHeckeAlgebraElem{T, S}, g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem}
+function left_action_on_generator(g::MatrixGroupElem{T}, x::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
   v = generator_to_vector(x)
   gv = matrix(g) * v
   

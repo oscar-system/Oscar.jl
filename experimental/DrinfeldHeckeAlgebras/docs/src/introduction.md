@@ -3,15 +3,25 @@ CurrentModule = Oscar
 ```
 
 # Introduction
-This project provides functionality for
+This project was developed as part of [Koe25](@cite) and provides functionality for
 constructing and calculating in Drinfeld--Hecke algebras
-as introduced by Ram and Shepler \cite{RS03}, but for matrix 
+as introduced by Ram and Shepler [RS03](@cite), but for matrix 
 groups over general fields.
 
 ## Mathematical background
 
 Let $K$ be a field, $R$ a $K$-algebra and $G$ a finite matrix group over $K$
-acting on a $K$-vector space $V$ in the natural way.
+acting on a $K$-vector space $V$ in the natural way. This setting is slightly
+more general than the one by Ram and Shepler [RS03](@cite), but
+
+
+Recall that for an $R$-algebra $A$ acting on a group $G$ via $R$-automorphisms,
+the skew group algebra $A\#G$ is defined as the left $A$-module generated
+by the elements of $G$ with multiplication $(ag)(bh) = (a ^gb)(gh)$ for $a,b\in A$,
+$g,h\in G$ and $^gb$ denoting the action of $g$ on $b$.
+
+To avoid confusion with the multiplication of the skew group algebra,
+we will write the group action of an element $g\in G$ on $v\in V$ as $^gv$.
 
 A Drinfeld--Hecke form is a sum
 $\kappa := \sum_{g\in G} \kappa_g \cdot g$
@@ -21,24 +31,21 @@ such that the relations posed in [RS03](@cite)[Lemma 1.5] are satisfied:
 - $\kappa_g(u,v)(^gw-w)+\kappa_g(v,w)(^gu-u)+\kappa_g(w,u)(^gv-v) = 0$ for all $u,v,w\in V$ and $g\in G$
 - $\kappa_g(^hv,^hw)=\kappa_{h^{-1}gh}(v,w)$ for all $v,w\in V$ and $g, h\in G$
 
-Recall that for an $R$-algebra $A$ acting on a group $G$ via $R$-automorphisms,
-the skew group algebra $A\#G$ is defined as the left $A$-module generated
-by the elements of $G$ with multiplication $(ag)(bh) = (a ^gb)(gh)$ for $a,b\in A$, 
-$g,h\in G$ and $^gb$ denoting the action of $g$ on $b$.
-
 A Drinfeld--Hecke algebra is the algebra
 $H_{\kappa}(G) := R\langle V \rangle \# G / I_{\kappa}$
-where $R\langle V \rangle$ is the ring on noncommutative $R$-polynomial functions over $V$ and
+where $R\langle V \rangle$ is the ring of noncommutative $R$-polynomial functions on $V$ and
 $I_{\kappa} := \langle vw-wv-\kappa(v,w) \;|\; v,w\in V\rangle$
 with $\kappa$ a Drinfeld--Hecke form.
 
-This project further provides methods for generating (parametrized) generic 
+This project further provides methods for generating generic (i.e. parametrized) 
 Drinfeld--Hecke algebras using two strategies depending on the setup:
 - If $\text{char}(K) \neq 0$, the generic algebra is constructed directly from the relations above
-- If $\text{char}(K) = 0$, [RS03](@cite)[Theorem 1.9] is used to find generic algebras in a more efficient way
+- If $\text{char}(K) = 0$, a generalized version of [RS03](@cite)[Theorem 1.9] is used to find generic algebras in a more efficient way.
+A proof for the generalized version is found in [Koe25](@cite).
 
-A basis $(v_1,\dots,v_n)$ defines an order for the indeterminants of $R\langle V\rangle$
-by which we can uniquely represent any element in the Drinfeld--Hecke algebra as a sum $\sum_{g\in G}f_g g$ where 
+Fixing a basis $(v_1,\dots,v_n)$ for $V$ allows us to think of $R\langle V\rangle$ as the non-commutative polynomial
+ring over this basis. Using the numbering $1,\dots,n$ as an order,
+ we can uniquely represent any element in the Drinfeld--Hecke algebra as a sum $\sum_{g\in G}f_g g$ where 
 $f_g \in R\langle V\rangle$ with all indeterminants in correct order.
 
 ## Example
@@ -199,6 +206,31 @@ x1*x2 - t1
 julia> A[3]*A[1]
 -x1 * [-1    0]
       [ 0   -1]
+
+julia> R = base_algebra(A)
+Multivariate polynomial ring in 2 variables x1, x2
+  over multivariate polynomial ring in 2 variables over QQ
+
+julia> (x,y) = gens(R)
+2-element Vector{AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}}:
+ x1
+ x2
+
+julia> A(x*y)
+x1*x2
+
+
+julia> A(y*x)
+x1*x2
+
+
+julia> A(y)*A(x)
+x1*x2 - t1
+ + 
+-t2 * [-1    0]
+      [ 0   -1]
+
+
 ```
 
 Here we see how the Drinfeld--Hecke form has been applied to

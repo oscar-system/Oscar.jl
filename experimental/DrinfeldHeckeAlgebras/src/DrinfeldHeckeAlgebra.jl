@@ -138,17 +138,28 @@ mutable struct DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRing
   end
 end
 
-(A::DrinfeldHeckeAlgebra)() = DrinfeldHeckeAlgebraElem(A, group_algebra(A)())
-(A::DrinfeldHeckeAlgebra)(a::Integer) = DrinfeldHeckeAlgebraElem(A, group_algebra(A)(a))
-(A::DrinfeldHeckeAlgebra)(a::RingElem) = DrinfeldHeckeAlgebraElem(A, group_algebra(A)(a))
-(A::DrinfeldHeckeAlgebra)(a::MPolyRingElem) = DrinfeldHeckeAlgebraElem(A, group_algebra(A)(a))
-(A::DrinfeldHeckeAlgebra)(g::MatrixGroupElem) = DrinfeldHeckeAlgebraElem(A, group_algebra(A)(g))
+(A::DrinfeldHeckeAlgebra)() = A(group_algebra(A)())
+(A::DrinfeldHeckeAlgebra)(a::Integer) = A(group_algebra(A)(base_algebra(A)(a)))
+(A::DrinfeldHeckeAlgebra{T, S})(a::T) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(base_algebra(A)(a)))
+(A::DrinfeldHeckeAlgebra{T, S})(a::S) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(base_algebra(A)(a)))
+(A::DrinfeldHeckeAlgebra{T, S})(a::MPolyRingElem{S}) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(a))
+(A::DrinfeldHeckeAlgebra{T, S})(g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(g))
 (A::DrinfeldHeckeAlgebra)(a::GroupAlgebraElem) = DrinfeldHeckeAlgebraElem(A, a)
+
 function (A::DrinfeldHeckeAlgebra)(a::DrinfeldHeckeAlgebraElem)
   if a.parent == A 
     return a 
   else 
     throw(ArgumentError("Element does not belong to the given Drinfeld-Hecke algebra")) 
+  end
+end
+
+function (A::DrinfeldHeckeAlgebra)(a)
+  A(group_algebra(A)(a))
+  try
+    return A(group_algebra(A)(a))
+  catch 
+    throw(ArgumentError("Element cannot be cast into the given Drinfeld-Hecke algebra")) 
   end
 end
 
@@ -522,6 +533,42 @@ julia> parameters(A)
 parameters(A::DrinfeldHeckeAlgebra) = parameters(form(A))
 params(A::DrinfeldHeckeAlgebra) = parameters(A)
 
+@doc raw"""
+    is_trivial(A::DrinfeldHeckeAlgebra)
+
+Return ```true``` if ```A``` is the trivial Drinfeld-Hecke algebra, ```false``` otherwise.
+
+# Examples
+```jldoctest
+julia> G = matrix_group(matrix(QQ, [-1 0;0 -1]))
+Matrix group of degree 2
+  over rational field
+
+julia> A = generic_drinfeld_hecke_algebra(G)
+Drinfeld-Hecke algebra
+   for Matrix group of degree 2 over QQ
+with generators
+   x1, x2, g1
+
+defined by Drinfeld-Hecke form over base ring
+   Multivariate polynomial ring in 2 variables over QQ
+with parameters 
+   t1, t2
+given by alternating bilinear forms
+   [1   0] => [  0   t1]
+   [0   1]    [-t1    0]
+
+   [-1    0] => [  0   t2]
+   [ 0   -1]    [-t2    0]
+
+julia> parameters(A)
+2-element Vector{QQMPolyRingElem}:
+ t1
+ t2
+```
+"""
+is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(form(A))
+
 ################################################################################
 # Data type and parent object methods
 ################################################################################
@@ -571,6 +618,17 @@ function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
 end
 
 ################################################################################
+# Type coercion
+################################################################################
+
+*(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) * b.parent(b)
+*(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) * a.parent(b)
++(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) + b.parent(b)
++(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) + a.parent(b)
+-(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) - b.parent(b)
+-(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) - a.parent(b)
+
+################################################################################
 # Unsafe operators
 ################################################################################
 
@@ -608,7 +666,7 @@ AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{Drin
 function AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{U}) where {T <: FieldElem, S <: RingElem, U <: RingElement}
  promote_rule(T, U) == T ? DrinfeldHeckeAlgebraElem{T, S} : Union{}
 end
-# TODO
+
 
 
 
