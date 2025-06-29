@@ -297,14 +297,34 @@ function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
   return DirectProductGroup(H, G.L, GapObj(G), false)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", G::DirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  print(io, "Direct product of", Indent())
+  for x in G.L
+    print(io, "\n", Lowercase(), x)
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, G::DirectProductGroup)
-  if G.isfull
-    print(io, "Direct product of")
-    for x in G.L
-      print(io, "\n ", x)
-    end
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Direct product of groups")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(G))))
+    io = terse(io)
+    for (i,x) in enumerate(G.L)
+      i > 1 && print(io, is_unicode_allowed() ? " × " : " x ", Lowercase())
+      print(io, x)
+    end
   end
 end
 
@@ -463,18 +483,32 @@ function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T
   return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, GapObj(G), false)
 end
 
-function Base.show(io::IO, x::SemidirectProductGroup)
-  if x.isfull
-    print(
-      io,
-      "SemidirectProduct( ",
-      String(GAPWrap.StringViewObj(GapObj(x.N))),
-      " , ",
-      String(GAPWrap.StringViewObj(GapObj(x.H))),
-      " )",
-    )
+function Base.show(io::IO, ::MIME"text/plain", G::SemidirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Semidirect product of", Indent())
+  println(io, Lowercase(), G.N)
+  print(io, Lowercase(), G.H)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, G::SemidirectProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Semidirect product of groups")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+    io = terse(io)
+    print(io, G.N)
+    print(io, is_unicode_allowed() ? " ⋊ " : " : ")
+    print(io, Lowercase(), G.H)
   end
 end
 
@@ -659,7 +693,34 @@ function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, ::MIME"text/plain", G::WreathProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Wreath product of", Indent())
+  println(io, Lowercase(), G.G)
+  print(io, Lowercase(), G.H)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, G::WreathProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Wreath product of groups")
+  else
+    io = terse(io)
+    print(io, G.G)
+    print(io, is_unicode_allowed() ? " ≀ " : " wr ")
+    print(io, Lowercase(), G.H)
+  end
+end
 
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
