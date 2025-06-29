@@ -40,7 +40,7 @@ end
 @doc raw"""
     drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
-Create the trivial Drinfeld-Hecke form for the matrix group ```G``` over the ring ```R```, i.e. the skew group ring $R[V]\#G$ 
+Create the trivial Drinfeld-Hecke algebra over the ring ```R``` for the matrix group ```G```, i.e. the skew group ring $R[V]\#G$ 
 where $V$ is the vector space on which ```G``` acts
 
 # Examples
@@ -168,9 +168,9 @@ end
 ################################################################################
 
 @doc raw"""
-    generic_drinfeld_hecke_algebra(G::MatrixGroup{T}) where {T <: FieldElem}
+    generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
-Create a generic (parametrized) Drinfeld-Hecke algebra for the group ```G```.
+Create a generic (parametrized) Drinfeld-Hecke algebra over the ring ```R``` for the group ```G```.
 
 # Examples
 ```jldoctest
@@ -431,8 +431,7 @@ base_ring(A::DrinfeldHeckeAlgebra) = base_ring(form(A))
 @doc raw"""
     base_algebra(A::DrinfeldHeckeAlgebra)
 
-Return the polynomial ring over the base ring of ```A``` with indeterminants a standard 
-basis of $V$, the vector space on which the group of ```A``` acts on.
+Return the polynomial ring over $V$ which serves in the implementation as a base for ```A```.
 
 # Examples
 ```jldoctest
@@ -561,10 +560,8 @@ given by alternating bilinear forms
    [-1    0] => [  0   t2]
    [ 0   -1]    [-t2    0]
 
-julia> parameters(A)
-2-element Vector{QQMPolyRingElem}:
- t1
- t2
+julia> is_trivial(A)
+false
 ```
 """
 is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(form(A))
