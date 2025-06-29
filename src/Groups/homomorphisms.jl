@@ -1437,7 +1437,13 @@ function automorphism_group(G::GAPGroup)
 end
 
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  print(io, "Aut( "* String(GAP.Globals.StringView(GapObj(A.G))) * " )")
+  if is_terse(io)
+    print(io, "Automorphism group")
+  else
+    io = pretty(io)
+    println(io, "Automorphism group of", Indent())
+    print(io, Lowercase(), A.G)
+  end
 end
 
 """
