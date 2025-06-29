@@ -361,7 +361,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
       e, g = v[l]
       # bring everything to the same denominators
       for (j, v) in (e != sup_exp ? Tuple{Int, <:FreeModElem}[(j, ctx[e, sup_exp, -inter_degs[j]][jj](v)) for (j, v) in g] : g)
-        ind = findfirst(k==j for (k, _) in buckets)
+        ind = findfirst(a -> a[1]==j, buckets)
         if isnothing(ind)
           push!(buckets, (j, c*v))
         else
@@ -430,7 +430,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
         for (i, c) in c_sub
           (e, prev_buckets) = kernel_lifts[i]
           for (l, v) in prev_buckets
-            ind = findfirst(k==l for (k, _) in buckets)
+            ind = findfirst(a->a[1]==l, buckets)
             vv = -c*(e == next_sup_exp ? v : ctx[e, next_sup_exp, -inter_degs[l]][jj](v))
             if isnothing(ind)
               push!(buckets, (l, vv))
@@ -465,7 +465,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
         phi = multiplication_map(ctx, p, sup_exp, -inter_degs[k], jj+1)
         vv = phi(v)
         is_zero(vv) && continue
-        ind = findfirst(ll == l for (ll, _) in mapped_buckets)
+        ind = findfirst(a->a[1] == l, mapped_buckets)
         if isnothing(ind)
           push!(mapped_buckets, (l, vv))
         else
