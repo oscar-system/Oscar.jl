@@ -2084,8 +2084,8 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
-codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal) = krull_dim(base_ring(I)) - krull_dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I)) - krull_dim(I)
 
 is_known(::typeof(codim), I::MPolyIdeal) = is_known(dim, I)
 
