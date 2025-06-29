@@ -24,8 +24,8 @@ Sym(2)
 
 julia> G = direct_product(H,K)
 Direct product of
- Sym(3)
- Sym(2)
+  Sym(3)
+  Sym(2)
 
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -169,15 +169,13 @@ Sym(2)
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+  Sym(3)
+  Sym(2)
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
   from Sym(3)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  to H x K
 
 julia> h = perm(H, [2,3,1])
 (1,2,3)
@@ -188,9 +186,7 @@ julia> inj1(h)
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
   from Sym(2)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  to H x K
 
 julia> k = perm(K, [2,1])
 (1,2)
@@ -235,21 +231,17 @@ Sym(2)
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+  Sym(3)
+  Sym(2)
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
+  from H x K
   to Sym(3)
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
+  from H x K
   to Sym(2)
 
 julia> g = perm([2,3,1,5,4])
@@ -390,10 +382,12 @@ Group homomorphism
   to aut( <pc group of size 8 with 3 generators> )
 
 julia> G = semidirect_product(Q,f,C)
-SemidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> )
+Semidirect product of
+  pc group of order 8
+  pc group of order 2
 
 julia> derived_subgroup(G)
-(Group([ f4 ]), Hom: group([ f4 ]) -> semidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> ))
+(Subgroup of Q : C, Hom: subgroup of semidirect product of groups -> semidirect product of groups)
 ```
 """
 function semidirect_product(
@@ -542,7 +536,9 @@ julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3
+  Sym(2)
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -605,7 +601,9 @@ julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3
+  Sym(2)
 
 julia> normal_subgroup(W)
 Pc group of order 3
@@ -627,7 +625,9 @@ julia> H = symmetric_group(2)
 Sym(2)
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product of
+  pc group of order 3
+  Sym(2)
 
 julia> acting_subgroup(W)
 Sym(2)
