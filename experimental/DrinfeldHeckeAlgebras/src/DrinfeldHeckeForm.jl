@@ -71,8 +71,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
   
     # Check if forms input defines valid Drinfeld-Hecke form
     if !is_drinfeld_hecke_form(forms_safe)
-      throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form. 
-      Use 'generic_drinfeld_hecke_form' to compare to input."))
+      throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form."))
     end
   
     κ = DrinfeldHeckeForm(G, R)
