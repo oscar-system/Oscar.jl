@@ -23,19 +23,21 @@ end
 
 function _derived_pushforward(M::FreeMod)
   S = base_ring(M)
-  n = ngens(S)-1
+  G = grading_group(M)
+  r = rank(G)
+  variables = [[x for x in gens(S) if degree(x) == G[i]] for i in 1:r]
+  dims = [length(x)-1 for x in variables]
 
-  d = Int(_regularity_bound(M)[1]) - n
-  d = (d < 0 ? 0 : d)
+  d = _regularity_bound(M) # the degrees of the generators
+  d = d - sum(n*G[i] for (i, n) in enumerate(dims); init=zero(G))
+  d = sum((d[i] < 0 ? 0 : d[i])*G[i] for i in 1:r; init=zero(G))
 
-  Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
-  v = sum(x^d*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  g = vcat([[x^(Int(d[i])) for x in v] for (i, v) in enumerate(variables)]...)
+  kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[1:length(v)], 1) for (i, v) in enumerate(variables)]
+  K = simplify(total_complex(tensor_product(kosz)))
 
   KoM = hom(K, M)
-  #KoM_simp, _, _ = simplify(KoM)
-  st = strand(KoM, 0)[1]
+  st = strand(KoM, zero(G))[1]
   return st
 end
 
@@ -253,5 +255,480 @@ function _vdim(M::SubquoModule)
   all(repres(x) in gens(F) for x in gens(M)) || return _vdim(presentation(M)[-1])
 
   return Singular.vdim(Singular.std(singular_generators(M.quo.gens)))
+end
+
+########################################################################
+# A context object for computing the spectral sequence associated 
+# to a the ̌Cech double complex for a complex of coherent sheaves. 
+########################################################################
+mutable struct PushForwardCtx
+  S::MPolyRing
+  variable_groups::Vector{Vector{<:MPolyRingElem}}
+  var_group_indices::Vector{Vector{Int}}
+  dims::Vector{Int}
+  truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
+  inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  strands::Dict{Vector{Int}, Dict}
+  strand_inclusions::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  strand_projections::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
+  cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
+  mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
+  S1::AbsHyperComplex
+
+  function PushForwardCtx(S::MPolyRing)
+    G = grading_group(S)
+    var_grp_ind = Vector{Vector{Int}}()
+    for i in 1:rank(G)
+      push!(var_grp_ind, [j for j in 1:ngens(S) if degree(S[j]) == G[i]])
+    end
+    variable_groups = [gens(S)[ind] for ind in var_grp_ind]
+    return new(S, 
+               variable_groups,
+               var_grp_ind,
+               [length(v)-1 for v in variable_groups],
+               Dict{Vector{Int}, AbsHyperComplex}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Vector{Int}, Dict}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(), 
+               Dict{FinGenAbGroupElem, AbsHyperComplex}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
+               Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}()
+              )
+  end
+end
+
+graded_ring(ctx::PushForwardCtx) = ctx.S
+variable_groups(ctx::PushForwardCtx) = ctx.variable_groups
+variable_group_indices(ctx::PushForwardCtx, i::Int) = ctx.var_group_indices[i]
+variable_group(ctx::PushForwardCtx, i::Int) = ctx.variable_groups[i]
+number_of_factors(ctx::PushForwardCtx) = length(ctx.variable_groups)
+dimensions(ctx::PushForwardCtx) = ctx.dims
+dimension(ctx::PushForwardCtx, i::Int) = ctx.dims[i]
+
+function ring_as_hypercomplex(ctx::PushForwardCtx)
+  if !isdefined(ctx, :S1)
+    S = graded_ring(ctx)
+    ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
+  end
+  return ctx.S1
+end
+
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
+  @assert all(>=(0), alpha)
+  return get!(ctx.truncated_cech_complexes, alpha) do
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    cod = ring_as_hypercomplex(ctx)
+    kosz = [shift(hom(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)]), cod)[-dimension(ctx, j)-1:-1], -1) for j in 1:number_of_factors(ctx)]
+    K = total_complex(tensor_product(kosz))
+    return K
+  end
+end
+
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
+  G = parent(d)
+  S = graded_ring(ctx)
+  @assert G === grading_group(S)
+  strands = get!(ctx.strands, alpha) do 
+    Dict{typeof(d), AbsHyperComplex}()
+  end
+  return get!(strands, d) do
+    #offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
+    strand(ctx[alpha], d)[1]
+  end
+end
+
+function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
+  get!(ctx.cohomology_models, d) do
+    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
+  end
+end
+
+function cohomology_model_inclusion(ctx::PushForwardCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  to_orig = map_to_original_complex(h)[i]
+  @assert domain(to_orig) === h[i]
+  return to_orig
+end
+
+function cohomology_model_projection(ctx::PushForwardCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  from_orig = map_from_original_complex(h)
+  @assert codomain(from_orig) === h
+  return from_orig[i]
+end
+
+# return the minimal exponent vector `alpha` such that the whole 
+# cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
+function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
+  S = graded_ring(ctx)
+  G = grading_group(S)
+  @assert parent(d) === G
+  result = [0 for _ in 1:ngens(S)]
+  for i in 1:number_of_factors(ctx)
+    inds = variable_group_indices(ctx, i)
+    di = Int(d[i])
+    di >= 0 && continue # Nothing to do in this case
+    for j in inds
+      result[j] = -di < dimension(ctx, i) ? 0 : -di - dimension(ctx, i)
+    end
+  end
+  result
+end
+
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
+  @assert all(a <= b for (a, b) in zip(alpha, beta))
+  return get!(ctx.inclusions, (alpha, beta)) do
+    S = graded_ring(ctx)
+    c_alpha = ctx[alpha]::TotalComplex
+    c_beta = ctx[beta]::TotalComplex
+    c_alpha_orig = original_complex(c_alpha)::HCTensorProductComplex
+    c_beta_orig = original_complex(c_beta)::HCTensorProductComplex
+    facs = AbsHyperComplexMorphism[]
+    for (a_fac, b_fac, d) in zip(factors(c_alpha_orig), factors(c_beta_orig), dimensions(ctx))
+      # both a_fac and b_fac are shifted, truncated hom-complexes of Koszul complexes
+      a_fac_unshift = original_complex(a_fac::ShiftedHyperComplex)
+      b_fac_unshift = original_complex(b_fac::ShiftedHyperComplex)
+      a_fac_untrunc = original_complex(a_fac_unshift::HyperComplexView)
+      b_fac_untrunc = original_complex(b_fac_unshift::HyperComplexView)
+      a_kosz = domain(a_fac_untrunc::HomComplex)
+      b_kosz = domain(b_fac_untrunc::HomComplex)
+      a_seq = sequence(a_kosz)
+      b_seq = sequence(b_kosz)
+      trans_mat = sparse_matrix(S, 0, d+1)
+      for (i, p, q) in zip(1:d+1, a_seq, b_seq)
+        push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
+      end
+      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+      ind_hom = hom(ind_kosz, codomain(a_fac_untrunc); domain=a_fac_untrunc, codomain=b_fac_untrunc)
+      ind_trunc = ind_hom[-d-1:-1, domain=a_fac_unshift, codomain=b_fac_unshift]
+      ind_shift = shift(ind_trunc, [-1]; domain=a_fac, codomain=b_fac)
+      push!(facs, ind_shift)
+    end
+    tensor_map = tensor_product(facs; domain=c_alpha_orig, codomain=c_beta_orig)
+    tot_map = total_complex(tensor_map; domain=c_alpha, codomain=c_beta)
+    tot_map
+  end
+end
+
+function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
+  if all(a <= b for (a, b) in zip(alpha, beta))
+    return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
+      strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
+    end
+  elseif all(a >= b for (a, b) in zip(alpha, beta))
+    return get!(ctx.strand_projections, (alpha, beta, d)) do
+      SummandProjection(ctx[beta, alpha, d])
+    end
+  end
+  error("neither sector is fully contained in the other")
+end
+
+########################################################################
+# A context object for computing the spectral sequence associated 
+# to a the ̌Cech double complex on a toric variety
+########################################################################
+mutable struct ToricCtx
+  X::NormalToricVariety
+  S::MPolyRing
+  truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
+  inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
+  strands::Dict{Vector{Int}, Dict}
+  strand_inclusions::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  strand_projections::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
+  cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
+  # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
+  mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
+  proportionality_factors::Union{Tuple{Int, Int}, Nothing}
+  S1::AbsHyperComplex
+  cech_gens::Vector{<:MPolyRingElem}
+
+  function ToricCtx(X::NormalToricVariety)
+    S = cox_ring(X)
+    G = grading_group(S)
+    return new(X, S, 
+               Dict{Vector{Int}, AbsHyperComplex}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Vector{Int}, Dict}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(), 
+               Dict{FinGenAbGroupElem, AbsHyperComplex}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
+               # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
+               Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
+               nothing
+              )
+  end
+end
+
+toric_variety(ctx::ToricCtx) = ctx.X
+graded_ring(ctx::ToricCtx) = ctx.S
+
+function ring_as_hypercomplex(ctx::ToricCtx)
+  if !isdefined(ctx, :S1)
+    S = graded_ring(ctx)
+    ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
+  end
+  return ctx.S1
+end
+
+function cech_complex_generators(ctx::ToricCtx)
+  if !isdefined(ctx, :cech_gens)
+    ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
+    #=
+    X = toric_variety(ctx)
+    S = graded_ring(ctx)
+    mc = ray_indices(maximal_cones(X))
+    result = Vector{Vector{Int}}()
+    onesv = ones(Int, Polymake.ncols(mc))
+    for i in 1:Polymake.nrows(mc)
+      push!(result, onesv - Vector{Int}(mc[i, :]))
+    end
+    ctx.cech_gens = elem_type(S)[S([1], [result[i]]) for i in 1:n_maximal_cones(X)]
+    =#
+  end
+  return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
+end
+
+function getindex(ctx::ToricCtx, alpha::Vector{Int})
+  @assert all(>=(0), alpha)
+  return get!(ctx.truncated_cech_complexes, alpha) do
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    cod = ring_as_hypercomplex(ctx)
+    cech_gens = cech_complex_generators(ctx)
+    n = length(cech_gens)
+    K = hom(free_resolution(SimpleFreeResolution, 
+                            ideal(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)]))[1],
+            cod)
+    return K
+    kosz = hom(shift(HomogKoszulComplex(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)])[1:n], 1), cod)
+    return kosz
+  end
+end
+
+function getindex(ctx::ToricCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
+  G = parent(d)
+  S = graded_ring(ctx)
+  @assert G === grading_group(S)
+  strands = get!(ctx.strands, alpha) do 
+    Dict{typeof(d), AbsHyperComplex}()
+  end
+  return get!(strands, d) do
+    #offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
+    strand(ctx[alpha], d)[1]
+  end
+end
+
+function cohomology_model(ctx::ToricCtx, d::FinGenAbGroupElem)
+  get!(ctx.cohomology_models, d) do
+    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
+  end
+end
+
+function cohomology_model_inclusion(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  to_orig = map_to_original_complex(h)[i]
+  @assert domain(to_orig) === h[i]
+  return to_orig
+end
+
+function cohomology_model_projection(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int)
+  h = cohomology_model(ctx, d)
+  c = ctx[_minimal_exponent_vector(ctx, d), d]
+  from_orig = map_from_original_complex(h)
+  @assert codomain(from_orig) === h
+  return from_orig[i]
+end
+
+function get_lattice_points(A::Any, Q::BitVector, m::Vector{Int}, n::Int)
+  minus_indices = findall(x -> x != 0, Q)
+  W = copy(A); W[:, minus_indices] = -W[:,minus_indices]
+  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,m + A*Q))#First tuples is an affine halfspace that specifies that all exponents are non-negative
+  #Second tuple is a hyperplane that specifies that the degree of the corresponding rationome is m
+  points = Vector{Vector{Int}}()
+  list = try 
+    collect(lattice_points(P))#It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
+  catch
+    Vector{Vector{Int}}()
+  end
+  for point in list
+    point = Vector{Int}(point)
+    point[minus_indices] = -(point[minus_indices] .+ 1)
+    push!(points, point)
+  end
+  return points
+end
+
+function traverse_SR_ideal(v::NormalToricVariety)
+#This traverses the whole powerset of the Stanley-Reisner ideal
+  D=Dict{BitVector, Vector{Int}}()
+  SR = [BitVector(collect(exponents(p))[1]) for p in gens(stanley_reisner_ideal(v))]
+  n_coords = length(SR[1])
+  n_sr = length(SR)
+  for k in 0:length(SR)
+    P_k = subsets(SR,k)#Subsets of size k
+    for S in P_k
+      !is_empty(S) ? Q = reduce(.|, S) : Q = falses(n_rays(v))
+      if !haskey(D,Q)
+        D[Q] = zeros(Int, n_sr + n_coords)
+      end
+      N = sum(Q) - k #This element will contribute to the N-th cohomology group
+       
+      D[Q][N+1+n_sr] += 1
+    end
+  end
+  return D
+end
+
+function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#returns vectors of exponents of rationoms that generate the cohomologies of the line bundle O(m) of v
+  #m should be in the class group of v
+
+  Classes=[divisor_class(toric_divisor_class(x)) for x in torusinvariant_prime_divisors(v)]
+  Classes=[Int.(getindex(x,collect(1:length(m)))) for x in Classes]#Using this one needs to be sure that m is valid
+
+  A = hcat(Classes...)
+  m_lift = solve(matrix(ZZ,A), ZZ.(m), side=:right)
+  m_dual = Vector{Int}(matrix(ZZ,A)*(-m_lift .- 1))
+
+  if isempty(D)
+    D = traverse_SR_ideal(v)
+  end
+  list = Dict{BitVector, Vector{Vector{Int}}}()
+
+  for (Q,c_degrees) in D
+    list[Q] = get_lattice_points(A, Q, m, n_rays(v))
+  end
+
+  for (Q,c_degrees) in D
+    if !isempty(list[Q])
+
+      Q_rest = .~Q
+      if length(findall(x -> x!=0,c_degrees)) > 1
+        if !haskey(D, Q_rest)
+          list[Q] = []#The dual subset wasn't in the list so we omit any lattice points
+          continue
+        end
+
+        #This could omit a small amount of lattice points, which could improve the optimal_k bound very slightly, but could be outcommented for some performance
+        ########
+        list_rest = get_lattice_points(A, Q_rest, m_dual, n_rays(v))
+        if length(list_rest)==0
+          list[Q] = []#The dual subset was in the list, but had 0 or inf dual lattice points, so for Serre duality to make sense, this subset of SR cannot contribute
+          continue
+        end
+        ########
+      end
+    end
+  end
+
+  filter!(x -> !isempty(x[2]), list)
+  return collect(Iterators.flatten(values(list))), D
+end
+
+#This based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), but only part of the algorithm is executed and explicit lattice points are calculated for each polyhedron.
+function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem; D = Dict())#Returns optimal k as a vector of bounds for denominator and dictionary D, which can speed up future computations for v
+  v = toric_variety(ctx)
+  rationoms, = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
+  # rationoms, D = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
+  k = max(-min(minimum(hcat(rationoms...)), 0), 1)
+  n = ngens(irrelevant_ideal(v))
+  return [k for i in 1:n]
+end
+
+# return the minimal exponent vector `alpha` such that the whole 
+# cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
+# function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
+#   # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+#   p, q = _proportionality_factors(ctx)
+#   G = grading_group(graded_ring(ctx))
+#   k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+#   if !is_zero(rem)
+#     k0 += 1
+#   end
+#   return [k0 for _ in 1:length(cech_complex_generators(ctx))]
+# end
+
+# See [CLS11](@cite), Theorem 9.5.10
+function _proportionality_factors(ctx::ToricCtx)
+  if isnothing(ctx.proportionality_factors)
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    X = toric_variety(ctx)
+    A = matrix(ZZ, rays(X))
+    n = ncols(A)
+    q_n = minimum([abs(a) for a in minors(A, n) if !is_zero(a)])
+    Q_1 = maximum([abs(a) for a in A])
+    Q_n1 = maximum([abs(a) for a in minors(A, n-1)])
+    p = n^2*Q_1*Q_n1
+    q = q_n
+    ctx.proportionality_factors = (Int(p), Int(q))
+  end
+  return ctx.proportionality_factors::Tuple{Int, Int}
+end
+
+function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
+  @assert all(a <= b for (a, b) in zip(alpha, beta))
+  return get!(ctx.inclusions, (alpha, beta)) do
+    S = graded_ring(ctx)
+    c_alpha = ctx[alpha]::HomComplex
+    c_beta = ctx[beta]::HomComplex
+    a_dom = domain(c_alpha)
+    b_dom = domain(c_beta)
+    init_map = hom(b_dom[0], a_dom[0], [x^(beta[k]-alpha[k])*a for (k, x, a) in zip(1:length(alpha), cech_complex_generators(ctx), gens(a_dom[0]))])
+    lift = lift_map(b_dom, a_dom, init_map)
+    return hom(lift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
+  end
+  return get!(ctx.inclusions, (alpha, beta)) do
+    S = graded_ring(ctx)
+    c_alpha = ctx[alpha]::HomComplex
+    c_beta = ctx[beta]::HomComplex
+    a_dom = domain(c_alpha)
+    b_dom = domain(c_beta)
+    a_unshift = original_complex(a_dom::ShiftedHyperComplex)
+    b_unshift = original_complex(b_dom::ShiftedHyperComplex)
+    a_kosz = original_complex(a_unshift::HyperComplexView)
+    b_kosz = original_complex(b_unshift::HyperComplexView)
+    a_seq = sequence(a_kosz)
+    b_seq = sequence(b_kosz)
+    n = length(cech_complex_generators(ctx))
+    trans_mat = sparse_matrix(S, 0, n)
+    for (i, (p, q)) in enumerate(zip(a_seq, b_seq))
+      push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
+    end
+    ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+    ind_kosz_trunc = ind_kosz[1:n, domain=b_unshift, codomain=a_unshift]
+    ind_kosz_shift = shift(ind_kosz_trunc, [1]; domain=b_dom, codomain=a_dom)
+    hom(ind_kosz_shift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
+  end
+end
+
+function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
+  if all(a <= b for (a, b) in zip(alpha, beta))
+    return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
+      strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
+    end
+  elseif all(a >= b for (a, b) in zip(alpha, beta))
+    return get!(ctx.strand_projections, (alpha, beta, d)) do
+      SummandProjection(ctx[beta, alpha, d])
+    end
+  end
+  error("neither sector is fully contained in the other")
 end
 

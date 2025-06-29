@@ -55,6 +55,8 @@ function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {
   result = StrandComplex(c, d)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc
+  pr = StrandProjectionMorphism(result)
+  result.projection_map = pr
   return result, inc
 end
 
