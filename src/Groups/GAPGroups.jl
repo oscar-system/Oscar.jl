@@ -435,8 +435,12 @@ function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_special(io, G)
   if GAPWrap.IsFreeGroup(GapObj(G))
     print(io, "Free group")
-    if !is_terse(io) && GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
-      print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+    if !is_terse(io)
+      if GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
+        print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
+      else
+        print(io, " of unknown rank")
+      end
     end
   else
     T = typeof(G) == FPGroup ? "Finitely presented group" : "Sub-finitely presented group"
@@ -594,7 +598,7 @@ julia> has_gens(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Free group
+Free group of unknown rank
 
 julia> has_gens(H)
 false
@@ -1891,7 +1895,7 @@ julia> is_finitely_generated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Free group
+Free group of unknown rank
 
 julia> is_finitely_generated(H)
 false
