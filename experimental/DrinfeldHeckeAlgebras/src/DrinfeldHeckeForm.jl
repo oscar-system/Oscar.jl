@@ -17,10 +17,10 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
 
   # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group and K-algebra
   function DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
-    # Check if R is a K-algebra where K is the field over which G is defined
+    # Check if R contains K where K is the field over which G is defined
     K = base_ring(G)
     try
-      # TODO
+      R(one(K))
     catch
       throw(ArgumentError("The given ring must be an algebra over the base ring of the given group."))
     end

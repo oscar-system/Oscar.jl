@@ -71,4 +71,15 @@
     @test !is_trivial(A)
     @test length(parameters(A)) == 2
   end
+
+  @testset "create generic drinfeld-hecke algebra for symplectic doubling of Weyl group B2 over QQ" begin
+    w1 = matrix(QQ,[-1 2; 0 1])
+    w2 = matrix(QQ,[1 0; 1 -1])
+    W = matrix_group([w1,w2])
+    G = symplectic_doubling(W)
+    A = generic_drinfeld_hecke_algebra(G)
+    
+    @test !is_trivial(A)
+    @test length(parameters(A)) == 3
+  end
 end
