@@ -412,7 +412,25 @@ Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::GAPGroupElem)
+  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+end
+
+function Base.show(io::IO, x::FPGroupElem)
+  s = String(GAPWrap.StringViewObj(GapObj(x)))
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    screenwidth -= 3 # leave some space for indentation
+    if length(s) > screenwidth
+      if is_unicode_allowed()
+        s = s[1:screenwidth-1] * "…"
+      else
+        s = s[1:screenwidth-3] * "..."
+      end
+    end
+  end
+  print(io, s)
+end
 
 # Printing GAP groups
 function Base.show(io::IO, G::GAPGroup)

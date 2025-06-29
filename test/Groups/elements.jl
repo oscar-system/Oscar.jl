@@ -1,3 +1,72 @@
+Oscar.@_AuxDocTest "show and print fp group elements", (fix = false),
+raw"""
+common setup
+
+```jldoctest FPGroupElem.show
+julia> using Oscar
+
+julia> F = free_group('a':'z');
+
+julia> long_word = prod(gens(F))*prod(inv.(gens(F)));
+```
+
+default `show` without unicode
+
+```jldoctest FPGroupElem.show
+julia> old = allow_unicode(false; temporary=true);
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^...
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^...
+
+julia> allow_unicode(old; temporary=true);
+```
+
+default `show` with unicode
+
+```jldoctest FPGroupElem.show
+julia> old = allow_unicode(true; temporary=true);
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1…
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1…
+
+julia> allow_unicode(old; temporary=true);
+```
+"""
+
 @testset "Permutations" begin
   for n = 10:13
     G=symmetric_group(n)
