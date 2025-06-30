@@ -493,17 +493,6 @@ end
 function cech_complex_generators(ctx::ToricCtx)
   if !isdefined(ctx, :cech_gens)
     ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
-    #=
-    X = toric_variety(ctx)
-    S = graded_ring(ctx)
-    mc = ray_indices(maximal_cones(X))
-    result = Vector{Vector{Int}}()
-    onesv = ones(Int, Polymake.ncols(mc))
-    for i in 1:Polymake.nrows(mc)
-      push!(result, onesv - Vector{Int}(mc[i, :]))
-    end
-    ctx.cech_gens = elem_type(S)[S([1], [result[i]]) for i in 1:n_maximal_cones(X)]
-    =#
   end
   return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
 end
@@ -533,7 +522,6 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
     Dict{typeof(d), AbsHyperComplex}()
   end
   return get!(strands, d) do
-    #offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
     strand(ctx[alpha], d)[1]
   end
 end
@@ -642,6 +630,8 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGe
       SummandProjection(ctx[beta, alpha, d])
     end
   end
+  c = Int[max(a, b) for (a, b) in zip(alpha, beta)]
+  return compose(ctx[alpha, c, d], ctx[c, beta, d])
   error("neither sector is fully contained in the other")
 end
 

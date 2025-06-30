@@ -20,6 +20,24 @@ struct SummandProjectionFactory{MorphismType} <: HyperComplexMorphismFactory{Mor
   end
 end
 
+@attributes mutable struct SummandProjection{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, SummandProjection{DomainType, CodomainType, MorphismType}}
+  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
+
+  function SummandProjection(
+      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType};
+      check::Bool=true
+    ) where {DomainType, CodomainType, MorphismType}
+    map_factory = SummandProjectionFactory(inc; check)
+    
+    internal_morphism = HyperComplexMorphism(
+                                             codomain(inc), domain(inc), 
+                                             map_factory, cached=true, 
+                                             offset=-offset(inc)
+                                            )
+    return new{CodomainType, DomainType, MorphismType}(internal_morphism)
+  end
+end
+
 function (fac::SummandProjectionFactory)(self::AbsHyperComplexMorphism, i::Tuple)
   inc = fac.inc[i]
   dom = domain(inc)::FreeMod
@@ -29,13 +47,12 @@ function (fac::SummandProjectionFactory)(self::AbsHyperComplexMorphism, i::Tuple
   if fac.check
     is_injective(inc) || error("given map is not injective")
     A = sparse_matrix(inc)
-    all(is_one(c) || is_one(-c) for (_, c) in only(v) for v in A) || error("given map is not of the required form")
+    all(is_one(only(v)[2]) || is_one(-only(v)[2]) for v in A) || error("given map is not of the required form")
   end
   for g in gens(cod)
     j = findfirst(==(g), img_gens_inc)
     if isnothing(j)
       k = findfirst(==(-g), img_gens_inc)
-      @show k
       if isnothing(k)
         push!(img_gens, zero(dom))
       else
@@ -56,23 +73,5 @@ function can_compute(fac::SummandProjectionFactory, self::AbsHyperComplexMorphis
   return can_compute_index(fac.inc, i)
 end
 
-
-@attributes mutable struct SummandProjection{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, SummandProjection{DomainType, CodomainType, MorphismType}}
-  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-
-  function SummandProjection(
-      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType};
-      check::Bool=true
-    ) where {DomainType, CodomainType, MorphismType}
-    map_factory = SummandProjectionFactory(inc; check)
-    
-    internal_morphism = HyperComplexMorphism(
-                                             codomain(inc), domain(inc), 
-                                             map_factory, cached=true, 
-                                             offset=-offset(inc)
-                                            )
-    return new{CodomainType, DomainType, MorphismType}(internal_morphism)
-  end
-end
 
 underlying_morphism(phi::SummandProjection) = phi.internal_morphism
