@@ -2667,8 +2667,7 @@ end
   return dim(leading_ideal(J, ordering=oo))
 end
 
-dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem,
-   <:MPolyPowersOfElement, <:MPolyComplementOfPrimeIdeal, <:MPolyComplementOfKPointIdeal}} = krull_dim(I)
+dim(I::MPolyLocalizedIdeal) = krull_dim(I)
 
 ################################################################################
 #
