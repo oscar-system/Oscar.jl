@@ -303,8 +303,8 @@ is triggered during [`load`](@ref) when the version of the file format
 to be loaded is older than the current Oscar version.
 
 ```@docs
-Oscar.upgrade
-Oscar.upgrade_data
+Oscar.Serialization.upgrade
+Oscar.Serialization.upgrade_data
 ```
 
 #### Upgrade Scripts
@@ -314,7 +314,7 @@ they upgrade to. For example a script that upgrades to Oscar version 0.13.0
 should be named `0.13.0.jl`.
 
 ```@docs
-Oscar.UpgradeScript
+Oscar.Serialization.UpgradeScript
 ```
 
 ## Challenges
