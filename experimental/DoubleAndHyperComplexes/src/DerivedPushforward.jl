@@ -458,6 +458,7 @@ mutable struct ToricCtx
   S1::AbsHyperComplex
   cech_gens::Vector{<:MPolyRingElem}
   fixed_exponent_vector::Vector{Int}
+  D::Dict # An auxiliary cache; see `_minimal_exponent_vector` for more info.
 
   function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext)
     S = cox_ring(X)
