@@ -24,7 +24,7 @@ and discoverable from elements in `W`.
 Return a `Vector{SimplicialCompplex}` ordered lexicographically.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
 Abstract simplicial complex of dimension 1 on 4 vertices
 
@@ -131,7 +131,7 @@ See [D-VJL24](@cite) for background.
 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
 
@@ -266,7 +266,7 @@ There is an edge from `s` to `t`  in `CG` whenever there is an edge from `i` to 
 See [D-VJL24](@cite) for background.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
 

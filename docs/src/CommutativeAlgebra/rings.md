@@ -580,7 +580,8 @@ Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomai
 refer to `R` and `S`, respectively.
 
 !!! note
-    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
-
+    Homomorphisms from quotients of multivariate rings are discussed in the section on [affine algebras](@ref affine_algebras).
+    In particular, in the same section, we introduce the OSCAR homomorphism type `AffAlgHom` which addresses ring homomorphisms
+    `R` $\to$ `S` such that the types of `R` and `S`  are subtypes of `Union{MPolyRing{T}, MPolyQuoRing{U1}}` and
+    `Union{MPolyRing{T}, MPolyQuoRing{U2}}`, respectively. Here, `T <: FieldElem` and
+    `U1 <: MPolyRingElem{T}`, `U2 <: MPolyRingElem{T}`.

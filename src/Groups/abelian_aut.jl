@@ -10,7 +10,7 @@ function _isomorphic_gap_group(A::FinGenAbGroup; T=SubPcGroup)
 end
 
 @doc raw"""
-    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup} 
+    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup}
 
 Return the automorphism group of `G`.
 """
@@ -36,7 +36,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
   return to_oscar(imgap)::typeof(x)
 end
- 
+
 (f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
@@ -54,7 +54,7 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
 end
 
 @doc raw"""
-    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom 
+    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom
 
 Return the element `f` of type `FinGenAbGroupHom`.
 """
@@ -74,7 +74,7 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::B
   function img_gap(x)
     a = to_oscar(group_element(Agap,x))
     b = to_gap(f(a))
-    return b.X 
+    return b.X
   end
   gene = GAPWrap.GeneratorsOfGroup(AA)
   img = GAP.Obj([img_gap(a) for a in gene])
@@ -112,7 +112,7 @@ matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
     defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
-""" 
+"""
 defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
 
 ################################################################################
@@ -136,9 +136,8 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   function toT(x)
     return T(AstoA(x))
   end
-  T_to_As = Hecke.map_from_func(toAs, T, As)
-  As_to_T = Hecke.map_from_func(toT, As, T)
-  to_oscar = compose(to_oscar, As_to_T)
+  T_to_As = MapFromFunc(T, As, toAs, toT)
+  to_oscar = compose(to_oscar, inv(T_to_As))
   to_gap = compose(T_to_As, to_gap)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   ambient = AutomorphismGroup(AutGAP, T)

@@ -1,0 +1,19 @@
+name: Enforce PR labels
+
+permissions:
+  contents: read
+on:
+  pull_request:
+    types: [labeled, unlabeled, opened, reopened, edited, synchronize]
+jobs:
+  enforce-labels:
+    name: Check for blocking labels
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+    - uses: yogevbd/enforce-label-action@2.2.2
+      with:
+        REQUIRED_LABELS_ANY: "release notes: added,release notes: highlight,release notes: not needed,release notes: to be added,release notes: use title"
+        REQUIRED_LABELS_ANY_DESCRIPTION: "Select at least one label concerning release notes"
+        BANNED_LABELS: "breaking,DO NOT MERGE,needs tests,WIP"
+        BANNED_LABELS_DESCRIPTION: "A PR should not be merged with `DO NOT MERGE`, `breaking`, `needs tests`, or `WIP` labels"
