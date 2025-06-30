@@ -43,6 +43,7 @@ on_indeterminates
 on_lines
 on_echelon_form_mats
 on_subgroups
+induced_action(::Function, ::GAPGroupHomomorphism)
 ```
 
 
@@ -59,6 +60,7 @@ Note that the explicit elements of a G-set `Omega` can be obtained using
 
 ```@docs
 gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
+natural_gset
 permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)
@@ -74,6 +76,8 @@ rank_action(Omega::GSet)
 is_primitive(Omega::GSet)
 is_regular(Omega::GSet)
 is_semiregular(Omega::GSet)
+induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
 ```
 
 ## Block systems of a G-set

@@ -1181,7 +1181,7 @@ function standardize_fiber(X::EllipticSurface, f::Vector{<:AbsWeilDivisor})
   b, I = _is_equal_up_to_permutation_with_permutation(G, -gram_matrix(R))
   @assert b
   gensF = vcat([f0], f[I])
-  Gext, v = extended_ade(rt[1],rt[2])
+  Gext, v = Hecke.extended_ade(rt[1],rt[2])
   Fdiv = sum(v[i]*gensF[i] for i in 1:length(gensF))
   return rt, Fdiv, gensF, Gext
 end

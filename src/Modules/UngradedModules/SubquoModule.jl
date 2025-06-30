@@ -133,7 +133,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B)
+julia> M = subquotient(A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -180,6 +180,11 @@ where `a` and `b` are free module homomorphisms with codomain `F` represented by
 Given matrices `A` and `B` with the same number of columns, create a free module `F` whose rank 
 is that number, and return $(\text{im } a + \text{im } b)/\text{im } b$, where `a` and `b` are 
 free module homomorphisms with codomain `F` represented by `A` and `B`.
+    
+    subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T 
+
+Given vectors `G` and `R` of elements of `F`, return the subquotient whose ambient representatives 
+of the generators are the entries of `G`, and whose relations are the entries of `R`.
 
 # Examples
 
@@ -198,7 +203,7 @@ julia> BR = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MR = SubquoModule(FR, AR, BR)
+julia> MR = subquotient(FR, AR, BR)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -225,7 +230,7 @@ julia> BRL = RL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRL = SubquoModule(FRL, ARL, BRL)
+julia> MRL = subquotient(FRL, ARL, BRL)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -248,7 +253,7 @@ julia> BRQ = RQ[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQ = SubquoModule(FRQ, ARQ, BRQ)
+julia> MRQ = subquotient(FRQ, ARQ, BRQ)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -271,7 +276,7 @@ julia> BRQL = RQL[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> MRQL = SubquoModule(FRQL, ARQL, BRQL)
+julia> MRQL = subquotient(FRQL, ARQL, BRQL)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -338,7 +343,7 @@ julia> B = Rg[4*x*y^3 (2*x+y)^4]
 julia> F2 = graded_free_module(Rg,[0,0])
 Graded free module Rg^2([0]) of rank 2 over Rg
 
-julia> M1 = SubquoModule(F2, A1, B)
+julia> M1 = subquotient(F2, A1, B)
 Graded subquotient of graded submodule of F2 with 2 generators
   1: x*e[1] + y*e[2]
   2: 2*x^2*e[1] + 3*y^2*e[2]
@@ -355,6 +360,7 @@ function subquotient(a::FreeModuleHom, b::FreeModuleHom)
 end
 subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(F, A, B)
 subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(A, B)
+subquotient(F::FreeMod{T}, G::Vector{FreeModElem{T}}, R::Vector{FreeModElem{T}}) where T = SubquoModule(F, G, R)
 #######################################################
 
 function show(io::IO, SQ::SubquoModule)
@@ -502,7 +508,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -770,14 +776,14 @@ function standard_basis(M::SubquoModule{<:MPolyRingElem{T}}; ordering::ModuleOrd
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = compute_standard_basis(sub_union_gb_of_quo, ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -804,14 +810,14 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
       M.groebner_basis[ord] = reduced_groebner_basis(M.sub, ord)
     else
       quo_gb = reduced_groebner_basis(M.quo, ord)
-      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(oscar_generators(M.sub.gens), oscar_generators(quo_gb)), M.F))
       gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
-      for i in 1:length(gb.O)
-        v = gb.S[i]
-        if !iszero(_reduce(v, quo_gb.S))
-          push!(rel_gb_list, gb.O[i])
+      SG = singular_generators(gb)
+      for (i, vo) in enumerate(oscar_generators(gb))
+        if !iszero(_reduce(SG[i], singular_generators(quo_gb)))
+          push!(rel_gb_list, vo)
         end
       end
 
@@ -859,7 +865,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -876,7 +882,7 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -900,7 +906,7 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
+julia> M1 = subquotient(F, O1, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1] + y*e[2]
   2: y*e[2]
@@ -908,7 +914,7 @@ by graded submodule of F with 2 generators
   1: x^2*e[1] + y^2*e[2]
   2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
+julia> M2 = subquotient(F, O1a, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[2]
@@ -987,7 +993,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1004,7 +1010,7 @@ julia> BN = R[x^2+y^4; y^3; z^4]
 [      y^3]
 [      z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -1028,7 +1034,7 @@ julia> O1a = [x*F[1],y*F[2]];
 
 julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
 
-julia> M1 = SubquoModule(F, O1, O2)
+julia> M1 = subquotient(F, O1, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1] + y*e[2]
   2: y*e[2]
@@ -1036,7 +1042,7 @@ by graded submodule of F with 2 generators
   1: x^2*e[1] + y^2*e[2]
   2: y^2*e[2]
 
-julia> M2 = SubquoModule(F, O1a, O2)
+julia> M2 = subquotient(F, O1a, O2)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[2]
@@ -1183,7 +1189,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1199,7 +1205,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1250,7 +1256,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1262,7 +1268,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1343,7 +1349,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1359,7 +1365,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1386,7 +1392,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1398,7 +1404,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1446,7 +1452,7 @@ julia> BM = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1462,7 +1468,7 @@ julia> BN = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1501,7 +1507,7 @@ julia> AM = Rg[x;];
 
 julia> BM = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1513,7 +1519,7 @@ julia> AN = Rg[y;];
 
 julia> BN = Rg[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1558,15 +1564,15 @@ function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
     phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)); check=false)
     K,i = kernel(phi)
 
-    intersection_gens_array_with_zeros = [sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]; init=zero(ambient_free_module(M))) for k in gens(K)]
+    intersection_gens_array_with_zeros = elem_type(ambient_free_module(M))[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]; init=zero(ambient_free_module(M))) for k in gens(K)]
     iszero_array = map(!iszero, intersection_gens_array_with_zeros)
 
     intersection_gens = SubModuleOfFreeModule(ambient_free_module(M), intersection_gens_array_with_zeros[iszero_array] )
     SQ = SubquoModule(intersection_gens,M_quo)
 
     m = ngens(M)
-    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array]; check=false)
-    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array]; check=false)
+    M_hom = SubQuoHom(SQ,M,elem_type(M)[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array]; check=false)
+    N_hom = SubQuoHom(SQ,N,elem_type(N)[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array]; check=false)
 
     register_morphism!(M_hom)
     register_morphism!(N_hom)
@@ -1601,7 +1607,7 @@ julia> AN = R[y;];
 
 julia> BN = R[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1633,7 +1639,7 @@ julia> AN = R[y;];
 
 julia> BN = R[x^2; y^3; z^4];
 
-julia> N = SubquoModule(F, AN, BN)
+julia> N = subquotient(F, AN, BN)
 Subquotient of submodule with 1 generator
   1: y*e[1]
 by submodule with 3 generators
@@ -1695,7 +1701,7 @@ julia> B = R[x^2; y^3; z^4];
 
 julia> AM = R[x;];
 
-julia> M = SubquoModule(F, AM, B)
+julia> M = subquotient(F, AM, B)
 Graded subquotient of graded submodule of F with 1 generator
   1: x*e[1]
 by graded submodule of F with 3 generators
@@ -1705,7 +1711,7 @@ by graded submodule of F with 3 generators
 
 julia> AN = R[y;];
 
-julia> N = SubquoModule(F, AN, B)
+julia> N = subquotient(F, AN, B)
 Graded subquotient of graded submodule of F with 1 generator
   1: y*e[1]
 by graded submodule of F with 3 generators
@@ -1753,7 +1759,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1796,7 +1802,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: (-y - z)*e[1]
 by submodule with 3 generators
@@ -1882,7 +1888,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -1962,7 +1968,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: x*e[1]
 by submodule with 3 generators
@@ -2005,7 +2011,7 @@ julia> AM = R[x;];
 
 julia> BM = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, AM, BM)
+julia> M = subquotient(F, AM, BM)
 Subquotient of submodule with 1 generator
   1: (-y - z)*e[1]
 by submodule with 3 generators
@@ -2173,3 +2179,14 @@ function (==)(F::FreeMod, G::SubquoModule)
   all(in(G), gens(F)) || return false
   return true
 end
+
+is_known(::typeof(is_zero), F::FreeMod) = true
+
+function is_known(::typeof(is_zero), M::SubquoModule)
+  has_attribute(M, :is_zero) && return true
+  is_zero(ambient_free_module(M)) && return true
+  is_zero(ngens(M)) && return true
+  is_zero(M.quo) && return true
+  return false
+end
+

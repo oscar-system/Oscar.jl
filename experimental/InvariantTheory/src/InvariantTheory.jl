@@ -178,7 +178,7 @@ end
 representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) = RepresentationLinearlyReductiveGroup(G,M)
 group(R::RepresentationLinearlyReductiveGroup) = R.group
 representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
-vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
+vector_space_dim(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
 
 @doc raw"""
     representation_on_forms(G::LinearlyReductiveGroup, d::Int)

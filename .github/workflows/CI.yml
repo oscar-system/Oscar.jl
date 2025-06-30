@@ -14,6 +14,11 @@ on:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
   workflow_dispatch:
+    inputs:
+      extralong:
+        type: boolean
+        default: false
+        description: Run extra long test set
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -187,7 +192,7 @@ jobs:
   extra-long-test:
     # Extra long tests
     # Only happens during the daily run, triggered by schedule
-    if: github.event_name == 'schedule'
+    if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
       - uses: actions/checkout@v4
@@ -298,13 +303,13 @@ jobs:
         id: get-branch
         run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: Determine whether CI status changed
-        uses: gap-actions/should-i-notify-action@v1
+        uses: oscar-system/should-i-notify-action@v1
         id: should_notify
         with:
           branch: ${{ steps.get-branch.outputs.branch }}
           needs_context: ${{ toJson(needs) }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          notify_on_changed_status: true
+          notify_on_changed_status: '' # notify each time on failure, and also once when the status changes to success
           event: ${{ github.event_name }}
       - name: Send slack notification
         uses: act10ns/slack@v2

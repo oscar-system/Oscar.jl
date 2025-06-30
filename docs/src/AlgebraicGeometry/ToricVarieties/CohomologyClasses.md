@@ -12,6 +12,15 @@ DocTestSetup = Oscar.doctestsetup()
 
 ### General constructors
 
+Cohomology classes are elements of the cohomology ring, which is a quotient ring (for normal toric varieties that
+are simplicial and complete). All of the following methods accept an optional argument `quick` (default: `false`).  
+When set to `true`, computations are performed in the base ring of the cohomology ring to improve performance.  
+This is especially useful when constructing cohomology classes on large toric varieties, where operations
+in the quotient ring - such as Gröbner basis computations - can be computationally expensive.
+
+**Caveat:** When `quick = true`, the method will not detect whether the resulting cohomology class is trivial.
+Use this option when faster computations are preferred and triviality checks are not required.
+
 ```@docs
 cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 cohomology_class(d::ToricDivisor)

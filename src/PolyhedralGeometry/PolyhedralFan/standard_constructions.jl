@@ -87,12 +87,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(
@@ -241,12 +241,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType, n::Int)
@@ -334,7 +334,7 @@ arrangement_polynomial(...  ; hyperplanes=:in_cols)
 ```
 
 # Example using standard ring and then custom ring.
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 [   1   2   5//2]
 [   0   0      1]
@@ -354,7 +354,7 @@ julia> factor(arrangement_polynomial(R, A))
 ```
 
 To use the columns instead, proceed in the following way:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1]);
 
 julia> factor(arrangement_polynomial(A; hyperplanes=:in_cols))

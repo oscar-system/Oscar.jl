@@ -132,7 +132,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where S
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::Ring) where S
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::NCRing) where S
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -542,7 +542,7 @@ function save_object(s::SerializerState, obj::SRow)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:SRow}, params::Ring)
+function load_object(s::DeserializerState, ::Type{<:SRow}, params::NCRing)
   pos = Int[]
   entry_type = elem_type(params)
   values = entry_type[]

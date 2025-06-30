@@ -170,7 +170,7 @@ end
 Return the tensor product of `p` and `q`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> S, d = polynomial_ring(QQ, :d)
 (Univariate polynomial ring in d over QQ, d)
 
