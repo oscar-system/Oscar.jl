@@ -798,7 +798,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> representative(C)
 (1,2)
@@ -818,7 +818,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> acting_group(C) === G
 true
@@ -840,7 +840,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 ```
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
@@ -958,7 +958,7 @@ if `order` is positive, the classes of subgroups of this order.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1193,7 +1193,7 @@ use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
@@ -1223,7 +1223,7 @@ otherwise, return `false, one(G)`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4

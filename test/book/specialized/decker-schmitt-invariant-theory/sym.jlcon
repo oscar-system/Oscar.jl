@@ -1,6 +1,6 @@
 julia> RS4 = invariant_ring(GF(2), symmetric_group(4))
 Invariant ring
-  of Sym(4)
+  of symmetric group of degree 4
 
 julia> L = fundamental_invariants(RS4)
 4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
