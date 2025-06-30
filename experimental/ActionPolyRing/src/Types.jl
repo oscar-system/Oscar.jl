@@ -176,6 +176,16 @@ parent(dpre::DifferencePolyRingElem) = dpre.parent
 
 #######################################
 #
+#  Basic ring functionality 
+#
+#######################################
+
+zero(dpr::DifferencePolyRing) = dpr(0)
+
+one(dpr::DifferencePolyRing) = dpr(1)
+
+#######################################
+#
 #  Aux 
 #
 #######################################
