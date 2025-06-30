@@ -10,11 +10,13 @@
 
 struct SummandProjectionFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
   inc::AbsHyperComplexMorphism
+  check::Bool
 
   function SummandProjectionFactory(
-      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType}
+      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType};
+      check::Bool=true
     ) where {DomainType, CodomainType, MorphismType}
-    return new{MorphismType}(inc)
+    return new{MorphismType}(inc, check)
   end
 end
 
@@ -24,15 +26,30 @@ function (fac::SummandProjectionFactory)(self::AbsHyperComplexMorphism, i::Tuple
   cod = codomain(inc)::FreeMod
   img_gens = elem_type(dom)[]
   img_gens_inc = images_of_generators(inc)
-  for (i, g) in enumerate(gens(cod))
+  if fac.check
+    is_injective(inc) || error("given map is not injective")
+    A = sparse_matrix(inc)
+    all(is_one(c) || is_one(-c) for (_, c) in only(v) for v in A) || error("given map is not of the required form")
+  end
+  for g in gens(cod)
     j = findfirst(==(g), img_gens_inc)
     if isnothing(j)
-      push!(img_gens, zero(dom))
+      k = findfirst(==(-g), img_gens_inc)
+      @show k
+      if isnothing(k)
+        push!(img_gens, zero(dom))
+      else
+        push!(img_gens, -dom[k::Int])
+      end
     else
       push!(img_gens, dom[j::Int])
     end
   end
-  return hom(cod, dom, img_gens)
+  res = hom(cod, dom, img_gens)
+  if fac.check && compose(inc, res) != identity_map(dom)
+    error("given map failed to be of the required format.")
+  end
+  return res
 end
 
 function can_compute(fac::SummandProjectionFactory, self::AbsHyperComplexMorphism, i::Tuple)
@@ -44,9 +61,10 @@ end
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
 
   function SummandProjection(
-      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType}
+      inc::AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType};
+      check::Bool=true
     ) where {DomainType, CodomainType, MorphismType}
-    map_factory = SummandProjectionFactory(inc)
+    map_factory = SummandProjectionFactory(inc; check)
     
     internal_morphism = HyperComplexMorphism(
                                              codomain(inc), domain(inc), 
