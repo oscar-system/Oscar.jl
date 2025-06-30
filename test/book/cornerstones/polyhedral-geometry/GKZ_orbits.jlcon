@@ -1,5 +1,8 @@
 julia> G = automorphism_group(C)[:on_vertices]
-Permutation group of degree 8
+Permutation group of degree 8 with 3 generators
+  (3,5)(4,6)
+  (2,3)(6,7)
+  (1,2)(3,4)(5,6)(7,8)
 
 julia> OrbitRepresentatives=
         unique([minimum(gset(G,permuted,[v])) 

@@ -6,7 +6,7 @@ G-set of
 julia> G = dihedral_group(6);
 
 julia> U = sub(G, [g for g in gens(G) if order(g) == 2])[1]
-Sub-pc group of order 2
+Sub-pc group of order 2 with 1 generator f1
 
 julia> r = right_cosets(G, U)
 Right cosets of
@@ -14,7 +14,7 @@ Right cosets of
   pc group of order 6
 
 julia> acting_group(r)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> collect(r)
 3-element Vector{GroupCoset{PcGroup, SubPcGroup, PcGroupElem}}:
@@ -23,7 +23,7 @@ julia> collect(r)
  Right coset of U with representative f2^2
 
 julia> action_function(r)
-* (generic function with 1736 methods)
+* (generic function with 1719 methods)
 
 julia> permutation(r, G[1])
 (2,3)
@@ -49,7 +49,7 @@ julia> function optimal_transitive_perm_rep(G)
        end;
 
 julia> U = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> optimal_transitive_perm_rep(U)
 Group homomorphism
@@ -62,7 +62,10 @@ Group homomorphism
   to permutation group of degree 4 and order 8
 
 julia> permutation_group(U)
-Permutation group of degree 4 and order 8
+Permutation group of degree 4 and order 8 with 3 generators
+  (2,4)
+  (1,2,3,4)
+  (1,3)(2,4)
 
 julia> for g in all_transitive_groups(degree => 3:8, !is_primitive)
          h = image(optimal_transitive_perm_rep(g))[1]

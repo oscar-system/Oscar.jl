@@ -13,6 +13,16 @@ julia> B = matrix(QQ, [0 0 1 0; 0 0 0 1; 1 0 0 0; 0 1 0 0])
 julia> K4 = matrix_group(A, B)
 Matrix group of degree 4
   over rational field
+with 2 generators
+  [0   1   0   0]
+  [1   0   0   0]
+  [0   0   0   1]
+  [0   0   1   0]
+
+  [0   0   1   0]
+  [0   0   0   1]
+  [1   0   0   0]
+  [0   1   0   0]
 
 julia> small_group_identification(K4)
 (4, 2)
