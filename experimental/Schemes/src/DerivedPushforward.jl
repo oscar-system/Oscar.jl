@@ -453,8 +453,10 @@ mutable struct ToricCtx
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   proportionality_factors::Union{Tuple{Int, Int}, Nothing}
+  exp_vec_cache::Dict{FinGenAbGroupElem, Vector{Int}}
   S1::AbsHyperComplex
   cech_gens::Vector{<:MPolyRingElem}
+  fixed_exponent_vector::Vector{Int}
 
   function ToricCtx(X::NormalToricVariety)
     S = cox_ring(X)
@@ -471,7 +473,8 @@ mutable struct ToricCtx
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
                Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
-               nothing
+               nothing,
+               Dict{FinGenAbGroupElem, Vector{Int}}()
               )
   end
 end
@@ -560,14 +563,19 @@ end
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
 function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
-  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
-  p, q = _proportionality_factors(ctx)
-  G = grading_group(graded_ring(ctx))
-  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
-  if !is_zero(rem)
-    k0 += 1
+  if isdefined(ctx, :fixed_exponent_vector)
+    return ctx.fixed_exponent_vector
   end
-  return [k0 for _ in 1:length(cech_complex_generators(ctx))]
+  return get!(ctx.exp_vec_cache, d) do
+    # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+    p, q = _proportionality_factors(ctx)
+    G = grading_group(graded_ring(ctx))
+    k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+    if !is_zero(rem)
+      k0 += 1
+    end
+    Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
+  end
 end
 
 # See [CLS11](@cite), Theorem 9.5.10
