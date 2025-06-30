@@ -276,7 +276,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               full_file_path_versioned = join(splitext(full_file_path), "-v$(VERSION.major).$(VERSION.minor)")
               has_versioned_file = isfile(joinpath(Oscar.oscardir, "test", "book", full_file_path_versioned))
               println("    $example$(full_file_path in skipped ? ": skip" :
-                                     full_file_path in broken ? ": broken" : "")$(has_versioned_file ? "version-specific" : "")")
+                                     full_file_path in broken ? ": broken" : "")$(has_versioned_file ? " version-specific" : "")")
               filetype = endswith(example, "jlcon") ? :jlcon :
                          endswith(example, "jl") ? :jl : :unknown
               content = read(joinpath(Oscar.oscardir, "test", "book", has_versioned_file ? full_file_path_versioned : full_file_path), String)
