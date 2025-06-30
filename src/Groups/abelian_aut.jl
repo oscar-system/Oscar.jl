@@ -158,7 +158,7 @@ function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
   T = domain(aut)
   io = pretty(io)
   n = ngens(aut)
-  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T, " with ", ItemQuantity(n, "generator"))
+  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T)
 end
 
 
@@ -434,7 +434,10 @@ Gram matrix quadratic form:
 [4//15]
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
+  [4]
+  [11]
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -476,7 +479,10 @@ of the codomain of `i`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
+  [4]
+  [11]
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -484,7 +490,7 @@ Map
   to finite quadratic module: Z/15 -> Q/2Z
 
 julia> S, _ = stabilizer(OT, T3inT)
-(Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators, Hom: group of isometries of finite quadratic module with 2 generators -> group of isometries of finite quadratic module with 2 generators)
+(Group of isometries of finite quadratic module: Z/15 -> Q/2Z, Hom: group of isometries of finite quadratic module -> group of isometries of finite quadratic module)
 
 julia> order(S)
 4

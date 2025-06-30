@@ -82,7 +82,7 @@ julia> set_relative_orders!(c, [2, 3])
 julia> set_conjugate!(c, 2, 1, [2 => 2])
 
 julia> gg = pc_group(c)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> describe(gg)
 "S3"
@@ -93,12 +93,14 @@ and let Oscar compute a pc presentation for it.
 
 ```jldoctest
 julia> g = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4 and order 24 with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> iso = isomorphism(PcGroup, g);
 
 julia> h = codomain(iso)
-Pc group of order 24
+Pc group of order 24 with 4 generators f1, f2, f3, f4
 ```
 
 For certain series of groups, one can
@@ -106,7 +108,7 @@ For certain series of groups, one can
 
 ```jldoctest
 julia> dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 ```
 
 And the groups from [the small groups library](@ref "Groups of small order")
@@ -114,7 +116,7 @@ are represented by pc groups whenever they are solvable.
 
 ```jldoctest
 julia> small_group(24, 12)
-Pc group of order 24
+Pc group of order 24 with 4 generators f1, f2, f3, f4
 ```
 
 ## Functions for elements of (subgroups of) pc groups

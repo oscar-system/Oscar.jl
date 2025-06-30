@@ -92,11 +92,11 @@ Return the table of marks of the finite group `G`.
 # Examples
 ```jldoctest
 julia> show(stdout, MIME("text/plain"), table_of_marks(symmetric_group(3)))
-Table of marks of Sym(3)
+Table of marks of symmetric group of degree 3
 
-1: 6      
-2: 3 1    
-3: 2 . 2  
+1: 6
+2: 3 1
+3: 2 . 2
 4: 1 1 1 1
 ```
 """
@@ -446,7 +446,8 @@ or if `i` is larger than `length(tom)`.
 # Examples
 ```jldoctest
 julia> representative(table_of_marks("A5"), 2)
-Permutation group of degree 5 and order 2
+Permutation group of degree 5 and order 2 with 1 generator
+  (2,3)(4,5)
 ```
 """
 function representative(tom::GAPGroupTableOfMarks, i::Int)

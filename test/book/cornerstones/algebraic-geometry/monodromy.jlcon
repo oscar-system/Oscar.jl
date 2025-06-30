@@ -21,7 +21,9 @@ julia> g1t = phi(g1yz[1]);
 julia> G1,_ = galois_group(g1t);
 
 julia> G1
-Sym(24)
+Symmetric group of degree 24 and order 620448401733239439360000 with 2 generators
+  (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)
+  (1,2)
 
 julia> g2 = 7713*f1 - 1313*f2;
 
