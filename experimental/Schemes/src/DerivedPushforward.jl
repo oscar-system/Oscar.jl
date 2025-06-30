@@ -453,8 +453,11 @@ mutable struct ToricCtx
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   proportionality_factors::Union{Tuple{Int, Int}, Nothing}
+  exp_vec_cache::Dict{FinGenAbGroupElem, Vector{Int}} # Caching the _minimal_exponent_vector s
   S1::AbsHyperComplex
-  cech_gens::Vector{<:MPolyRingElem}
+  cech_gens::Vector{<:MPolyRingElem} # the generators of the `irrelevant_ideal`
+  fixed_exponent_vector::Vector{Int} # If this field is set, then it is used for all computations
+  D::Dict # An auxiliary cache; see `_minimal_exponent_vector` for more info.
 
   function ToricCtx(X::NormalToricVariety)
     S = cox_ring(X)
@@ -471,7 +474,8 @@ mutable struct ToricCtx
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
                Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
-               nothing
+               nothing,
+               Dict{FinGenAbGroupElem, Vector{Int}}()
               )
   end
 end
@@ -642,30 +646,41 @@ function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#r
   return collect(Iterators.flatten(values(list))), D
 end
 
-#This based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), but only part of the algorithm is executed and explicit lattice points are calculated for each polyhedron.
-function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem; D = Dict())#Returns optimal k as a vector of bounds for denominator and dictionary D, which can speed up future computations for v
-  v = toric_variety(ctx)
-  rationoms, = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
-  # rationoms, D = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
-  k = max(-min(minimum(hcat(rationoms...)), 0), 1)
-  n = ngens(irrelevant_ideal(v))
-  return [k for i in 1:n]
-end
-
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
-# function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
-#   # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
-#   p, q = _proportionality_factors(ctx)
-#   G = grading_group(graded_ring(ctx))
-#   k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
-#   if !is_zero(rem)
-#     k0 += 1
-#   end
-#   return [k0 for _ in 1:length(cech_complex_generators(ctx))]
-# end
+function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
+  if isdefined(ctx, :fixed_exponent_vector)
+    return ctx.fixed_exponent_vector
+  end
+  # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
+  # but only part of the algorithm is executed and explicit lattice points are 
+  # calculated for each polyhedron.
+  return get!(ctx.exp_vec_cache, d) do
+    rationoms, ctx.D = cohomology_support(toric_variety(ctx), Int[d[i] for i in 1:rank(parent(d))]; D=get_chamber_dict(ctx))
+    k = -minimum(hcat(rationoms...); init=-1)
+    n = ngens(irrelevant_ideal(toric_variety(ctx)))
+    return Int[k for i in 1:n]
+  end
+  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+  # TODO: Remove this?
+  p, q = _proportionality_factors(ctx)
+  G = grading_group(graded_ring(ctx))
+  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+  if !is_zero(rem)
+    k0 += 1
+  end
+  return [k0 for _ in 1:length(cech_complex_generators(ctx))]
+end
+
+function get_chamber_dict(ctx::ToricCtx)
+  if !isdefined(ctx, :D)
+    ctx.D = Dict()
+  end
+  return ctx.D
+end
 
 # See [CLS11](@cite), Theorem 9.5.10
+# TODO: Remove this?
 function _proportionality_factors(ctx::ToricCtx)
   if isnothing(ctx.proportionality_factors)
     S = graded_ring(ctx)
