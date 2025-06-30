@@ -298,7 +298,7 @@ prior.
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
 The mechanics of upgrading are found in the `main.jl` file where the
-[`Oscar.upgrade`](@ref) function provides the core functionality. Upgrading
+[`Oscar.Serialization.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
 to be loaded is older than the current Oscar version.
 
