@@ -272,22 +272,24 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
             run_repl_string(mockrepl, """Oscar.randseed!(42);""")
             for example in example_list
-              full_file = joinpath(chapter, example)
-              println("    $example$(full_file in skipped ? ": skip" :
-                                     full_file in broken ? ": broken" : "")")
+              full_file_path = joinpath(chapter, example)
+              full_file_path_versioned = join(splitext(full_file_path), "-v$(VERSION.major).$(VERSION.minor)")
+              has_versioned_file = isfile(joinpath(Oscar.oscardir, "test", "book", full_file_path_versioned))
+              println("    $example$(full_file_path in skipped ? ": skip" :
+                                     full_file_path in broken ? ": broken" : "")$(has_versioned_file ? "version-specific" : "")")
               filetype = endswith(example, "jlcon") ? :jlcon :
                          endswith(example, "jl") ? :jl : :unknown
-              content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+              content = read(joinpath(Oscar.oscardir, "test", "book", has_versioned_file ? full_file_path_versioned : full_file_path), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @debug "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file_path"
               end
-              if full_file in skipped
+              if full_file_path in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true
               elseif filetype == :jlcon
                 content = sanitize_input(content)
                 computed = run_repl_string(mockrepl, content)
-                res = @test normalize_repl_output(content) == computed broken=(full_file in broken)
+                res = @test normalize_repl_output(content) == computed broken=(full_file_path in broken)
                 if res isa Test.Fail
                   println(deepdiff(normalize_repl_output(content),computed))
                 end
@@ -295,12 +297,12 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
                 if occursin("# output\n", content)
                   (code, res) = split(content, "# output\n"; limit=2)
                   # TODO do we want to compare with `res` ?
-                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 else
-                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 end
               else
-                @warn "unknown file type: $full_file"
+                @warn "unknown file type: $full_file_path"
               end
             end
             println("  closing mockrepl: $(mockrepl.mockdule)")
