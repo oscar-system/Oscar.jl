@@ -1732,7 +1732,9 @@ we may use the coordinates xi as labels for the curves Ci.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(genera_of_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(genera_of_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> genera_of_ci_curves(qsm_model)[my_key]
@@ -1757,7 +1759,9 @@ this line bundle for every Ci curve.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> degrees_of_kbar_restrictions_to_ci_curves(qsm_model)[my_key]
