@@ -799,9 +799,9 @@ julia> length(fr)
 """
 function length(F::FreeResolution)
   if !is_complete(F.C)
-    idx = findfirst(is_zero(F.C[i]) for i = 0:first(map_range(F.C)))-2
+    idx = findfirst(is_zero(F.C[i]) for i = 0:first(map_range(F.C)))
     isnothing(idx) && return first(map_range(F.C))
-    return idx::Int
+    return idx-2::Int
   end
   # complex is complete
   length(F.C.maps)-3
