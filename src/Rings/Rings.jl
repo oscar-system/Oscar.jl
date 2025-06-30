@@ -41,3 +41,5 @@ include("FreeAssociativeAlgebraIdeal.jl")
 include("hilbert.jl")
 include("primary_decomposition_helpers.jl")
 include("resultant.jl")
+
+include("CSAs.jl")
