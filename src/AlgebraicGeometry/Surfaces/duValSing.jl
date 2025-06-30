@@ -262,18 +262,18 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   F1 = leading_module(Jm_shifted,o)
   F1quo = quo(F_shifted, F1)[1]
 
-  constant_mons = vector_space_dimension(F1quo,0)
+  constant_mons = vector_space_dim(F1quo,0)
   constant_mons < 2 || return (false, typeof(smooth))                   ## not a hypersurface
   constant_mons > 0 || return (true, smooth)                            ## no singularity
 
-  tau = vector_space_dimension(F1quo)
+  tau = vector_space_dim(F1quo)
 
-  corank = vector_space_dimension(F1quo,1)
+  corank = vector_space_dim(F1quo,1)
   corank < 3 || return (false,typeof(smooth))                           ## at least T_3,3,3 not duVal
   corank > 1 || return (true,(:A,tau))                                  ## A_series
 
   # we now already know essentially a hypersurface of corank 2, count degrees of freedom cubicpart
-  cubiccount = vector_space_dimension(F1quo,2)
+  cubiccount = vector_space_dim(F1quo,2)
   cubiccount < 3 || return  (false, typof(smooth))                      ## at least X_9
   cubiccount > 1 || return  (true, (:D,tau))                            ## D_series
 

@@ -82,7 +82,7 @@
   tot_0_subs, _ = change_base_ring(subs, tot_0);
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 4
+  @test vector_space_dim(H0) == 4
 
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
@@ -163,7 +163,7 @@ end
   subs = hom(P, R, vcat(R.(a), R.(b), R.(c), gens(R)))
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 6
+  @test vector_space_dim(H0) == 6
 
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
@@ -173,7 +173,7 @@ end
   subs = hom(P, R, vcat(R.(a), R.(b), R.(c), gens(R)))
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 2
+  @test vector_space_dim(H0) == 2
 end
 =#
 
