@@ -799,7 +799,7 @@ julia> length(fr)
 """
 function length(F::FreeResolution)
   if !is_complete(F.C)
-    idx = findfirst(is_zero(F.C[i]) for i = 0:first(map_range(F.C)))
+    idx = findfirst(i -> is_zero(F.C[i]), 0:first(map_range(F.C)))
     isnothing(idx) && return first(map_range(F.C))
     return idx-2::Int
   end
