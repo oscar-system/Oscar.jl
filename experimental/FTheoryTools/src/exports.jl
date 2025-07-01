@@ -224,7 +224,6 @@ export set_zero_section_class
 export simplified_dual_graph
 export singular_loci
 export special_flux_family
-export su5_tate_model_over_arbitrary_3d_base
 export tate_ideal_sheaf
 export tate_polynomial
 export tate_section_a1
