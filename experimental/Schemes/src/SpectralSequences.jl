@@ -781,3 +781,13 @@ function Base.show(io::IO, cssp::CSSPage)
   print(io, "page $(page_number(cssp)) of $(spectral_sequence(cssp))")
 end
 
+function set_global_exponent_vector!(css::CohomologySpectralSequence, e::Vector{Int})
+  @assert css.pfctx isa ToricCtx "manual setting of exponent vectors is only supported in the toric setup"
+  return set_global_exponent_vector!(css.pfctx, e)
+end
+
+function set_global_exponent_vector!(css::CohomologySpectralSequence, k::Int)
+  @assert css.pfctx isa ToricCtx "manual setting of exponent vectors is only supported in the toric setup"
+  return set_global_exponent_vector!(css.pfctx, k)
+end
+
