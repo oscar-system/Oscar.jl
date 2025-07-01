@@ -69,18 +69,6 @@ No examples available at the moment.
 
 ## Notice to the user
 
-### Disclaimer
-
-Since this project is still under development, feel free to try any feature and
-report all the bugs you may have found. Any suggestions for improvements or
-extensions are more than welcome. Refer to the next section to know who you
-should contact and how. Do not hesitate either to ask for new features --- we
-will be glad to add anything you may need for your research.
-
-One may expect many things to vary within the next months: name of the
-functions, available features, performance. This is due to the fact that the
-current version of the code is still at an experimental stage.
-
 ### Report an issue
 
 If you are working with some objects of type `QuadSpaceWithIsom` or

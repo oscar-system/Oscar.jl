@@ -118,11 +118,11 @@
         "NumberTheory/vinberg.md",
      ],
      "Quadratic forms and isometries" => [
-      "introduction.md",
-      "spacewithisom.md",
-      "latwithisom.md",
-      "enumeration.md",
-      "primembed.md"
+      "NumberTheory/QuadFormAndIsom/introduction.md",
+      "NumberTheory/QuadFormAndIsom/spacewithisom.md",
+      "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/enumeration.md",
+      "NumberTheory/QuadFormAndIsom/primembed.md"
     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
