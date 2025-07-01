@@ -441,6 +441,7 @@ end
 mutable struct ToricCtx
   X::NormalToricVariety
   S::MPolyRing
+  algorithm::Symbol
   truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
   inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
   projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
@@ -458,10 +459,10 @@ mutable struct ToricCtx
   cech_gens::Vector{<:MPolyRingElem}
   fixed_exponent_vector::Vector{Int}
 
-  function ToricCtx(X::NormalToricVariety)
+  function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext)
     S = cox_ring(X)
     G = grading_group(S)
-    return new(X, S, 
+    return new(X, S, algorithm,
                Dict{Vector{Int}, AbsHyperComplex}(),
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
@@ -548,12 +549,22 @@ function cohomology_model_projection(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int
   return from_orig[i]
 end
 
+function set_global_exponent_vector!(ctx::ToricCtx, v::Vector{Int})
+  @assert length(v) == length(cech_complex_generators(ctx)) "exponent vector needs to have the same length as the generators for the `irrelevant_ideal`"
+  ctx.fixed_exponent_vector = v
+end
+
+function set_global_exponent_vector!(ctx::ToricCtx, k::Int)
+  return set_global_exponent_vector!(ctx, Int[k for _ in 1:length(cech_complex_generators(ctx))])
+end
+
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
 function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
   if isdefined(ctx, :fixed_exponent_vector)
     return ctx.fixed_exponent_vector
   end
+  error("dynamic exponent vectors are currently not supported in the toric context; consider manually setting one via `set_global_exponent_vector!`")
   return get!(ctx.exp_vec_cache, d) do
     # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
     p, q = _proportionality_factors(ctx)
@@ -586,38 +597,42 @@ end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
   @assert all(a <= b for (a, b) in zip(alpha, beta))
-  return get!(ctx.inclusions, (alpha, beta)) do
-    S = graded_ring(ctx)
-    c_alpha = ctx[alpha]::HomComplex
-    c_beta = ctx[beta]::HomComplex
-    a_dom = domain(c_alpha)
-    b_dom = domain(c_beta)
-    init_map = hom(b_dom[0], a_dom[0], [x^(beta[k]-alpha[k])*a for (k, x, a) in zip(1:length(alpha), cech_complex_generators(ctx), gens(a_dom[0]))])
-    lift = lift_map(b_dom, a_dom, init_map)
-    return hom(lift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
-  end
-  return get!(ctx.inclusions, (alpha, beta)) do
-    S = graded_ring(ctx)
-    c_alpha = ctx[alpha]::HomComplex
-    c_beta = ctx[beta]::HomComplex
-    a_dom = domain(c_alpha)
-    b_dom = domain(c_beta)
-    a_unshift = original_complex(a_dom::ShiftedHyperComplex)
-    b_unshift = original_complex(b_dom::ShiftedHyperComplex)
-    a_kosz = original_complex(a_unshift::HyperComplexView)
-    b_kosz = original_complex(b_unshift::HyperComplexView)
-    a_seq = sequence(a_kosz)
-    b_seq = sequence(b_kosz)
-    n = length(cech_complex_generators(ctx))
-    trans_mat = sparse_matrix(S, 0, n)
-    for (i, (p, q)) in enumerate(zip(a_seq, b_seq))
-      push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
+  if ctx.algorithm == :ext
+    return get!(ctx.inclusions, (alpha, beta)) do
+      S = graded_ring(ctx)
+      c_alpha = ctx[alpha]::HomComplex
+      c_beta = ctx[beta]::HomComplex
+      a_dom = domain(c_alpha)
+      b_dom = domain(c_beta)
+      init_map = hom(b_dom[0], a_dom[0], [x^(beta[k]-alpha[k])*a for (k, x, a) in zip(1:length(alpha), cech_complex_generators(ctx), gens(a_dom[0]))])
+      lift = lift_map(b_dom, a_dom, init_map)
+      return hom(lift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
     end
-    ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
-    ind_kosz_trunc = ind_kosz[1:n, domain=b_unshift, codomain=a_unshift]
-    ind_kosz_shift = shift(ind_kosz_trunc, [1]; domain=b_dom, codomain=a_dom)
-    hom(ind_kosz_shift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
+  elseif ctx.algorithm == :cech
+    return get!(ctx.inclusions, (alpha, beta)) do
+      S = graded_ring(ctx)
+      c_alpha = ctx[alpha]::HomComplex
+      c_beta = ctx[beta]::HomComplex
+      a_dom = domain(c_alpha)
+      b_dom = domain(c_beta)
+      a_unshift = original_complex(a_dom::ShiftedHyperComplex)
+      b_unshift = original_complex(b_dom::ShiftedHyperComplex)
+      a_kosz = original_complex(a_unshift::HyperComplexView)
+      b_kosz = original_complex(b_unshift::HyperComplexView)
+      a_seq = sequence(a_kosz)
+      b_seq = sequence(b_kosz)
+      n = length(cech_complex_generators(ctx))
+      trans_mat = sparse_matrix(S, 0, n)
+      for (i, (p, q)) in enumerate(zip(a_seq, b_seq))
+        push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
+      end
+      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+      ind_kosz_trunc = ind_kosz[1:n, domain=b_unshift, codomain=a_unshift]
+      ind_kosz_shift = shift(ind_kosz_trunc, [1]; domain=b_dom, codomain=a_dom)
+      hom(ind_kosz_shift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
+    end
   end
+  error("algorithm not recognized")
 end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
@@ -625,13 +640,14 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGe
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
       strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
     end
-  elseif all(a >= b for (a, b) in zip(alpha, beta))
+  elseif all(a >= b for (a, b) in zip(alpha, beta)) && ctx.algorithm == :cech
     return get!(ctx.strand_projections, (alpha, beta, d)) do
       SummandProjection(ctx[beta, alpha, d])
     end
+  elseif ctx.algorithm == :cech
+    c = Int[max(a, b) for (a, b) in zip(alpha, beta)]
+    return compose(ctx[alpha, c, d], ctx[c, beta, d])
   end
-  c = Int[max(a, b) for (a, b) in zip(alpha, beta)]
-  return compose(ctx[alpha, c, d], ctx[c, beta, d])
-  error("neither sector is fully contained in the other")
+  error("the given constellation of exponent vectors can not be handled with the chosen algorithm")
 end
 
