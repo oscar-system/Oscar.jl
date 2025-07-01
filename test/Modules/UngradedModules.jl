@@ -328,6 +328,15 @@ end
   FM3 = free_resolution(M, length = 2, algorithm = :nres)
   FM3[4]
   @test all(iszero, homology(FM3))
+
+  R, (v, w, x, y, z) = polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  U = complement_of_point_ideal(R, [0, 0, 0, 0, 0]);
+  RL, _ = localization(R, U);
+  I = ideal(RL, [v, w,x, y, z])
+  MI = ideal_as_module(I)
+  FMI = free_resolution_via_kernels(MI)
+  @test !is_complete(FMI) # Caveat: If this will change, add another test for length using a free resolution function not setting the complete key.
+  @test length(FMI) == 4
 end
 
 @testset "Prune With Map" begin

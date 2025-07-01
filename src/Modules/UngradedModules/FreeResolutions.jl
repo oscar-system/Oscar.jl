@@ -779,6 +779,14 @@ julia> B = R[x^2; x*y; y^2; z^4];
 
 julia> M = SubquoModule(A, B);
 
+julia> fr = free_resolution(M, length = 2)
+Free resolution of M
+R^2 <---- R^6 <---- R^6
+0         1         2
+
+julia> length(fr)
+2
+
 julia> fr = free_resolution(M)
 Free resolution of M
 R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
@@ -791,9 +799,9 @@ julia> length(fr)
 """
 function length(F::FreeResolution)
   if !is_complete(F.C)
-    idx = findfirst(is_zero(domain(phi)) for phi in F.C.maps)
+    idx = findfirst(i -> is_zero(F.C[i]), 0:first(map_range(F.C)))
     isnothing(idx) && return first(map_range(F.C))
-    return idx::Int
+    return idx-2::Int
   end
   # complex is complete
   length(F.C.maps)-3
