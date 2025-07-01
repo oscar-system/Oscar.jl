@@ -15,6 +15,11 @@
 
   # And compute its spectral sequence.
   css = Oscar.CohomologySpectralSequence(X, res);
+  # At the moment the code for spectral sequences can not handle 
+  # dynamic exponent vectors in the toric context. We are working on 
+  # fixing this. In the meantime, the user can set the exponent 
+  # vector manually to a global default using the following method.
+  Oscar.set_global_exponent_vector!(css, 10)
   p1 = css[1]; # The first page. Printing this still throws an error! sorry...
 
   # The indexation is a bit awkward (due to internal reasons). 
