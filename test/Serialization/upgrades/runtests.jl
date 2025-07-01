@@ -43,7 +43,7 @@
       "LieAlgebraModule", "LieAlgebraModuleElem",
       "LinearLieAlgebra", "LinearLieAlgebraElem",
       "Vector" => 49:97,
-      # upgrading the following is tested in experimental/QuadFormAndIsom/test/runtests.jl
+      # upgrading the following is tested in NumberTheory/QuadFormAndIsom.jl
       "ZZLatWithIsom",
     ])
   end
