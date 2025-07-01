@@ -37,6 +37,8 @@ export basis_of_h22_ambient
 export basis_of_h22_ambient_indices
 export basis_of_h22_hypersurface
 export basis_of_h22_hypersurface_indices
+export gens_of_h22_hypersurface
+export gens_of_h22_hypersurface_indices
 export birational_literature_models
 export blow_up
 export breaks_non_abelian_gauge_group
@@ -254,3 +256,5 @@ export zero_section_class
 export zero_section_index
 
 @deprecate chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) chosen_g4_flux_gens(m, check = check)
+@deprecate basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface(m, check = check)
+@deprecate basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface_indices(m, check = check)
