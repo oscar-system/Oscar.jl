@@ -56,7 +56,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       # remove timings
       result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
       # this removes the package version slug, filename and linenumber
-      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\1 \2")
+      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\2")
       lafter = length(result)
     end
 
