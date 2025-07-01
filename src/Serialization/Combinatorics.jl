@@ -1,4 +1,4 @@
-import Oscar: create_gs2num
+using Oscar: create_gs2num
 
 ###############################################################################
 ## Graphs

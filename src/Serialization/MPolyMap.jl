@@ -1,4 +1,4 @@
-import Oscar: _images, coefficient_map
+using Oscar: _images, coefficient_map
 
 @register_serialization_type MPolyAnyMap
 

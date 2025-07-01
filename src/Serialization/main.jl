@@ -1,9 +1,9 @@
 module Serialization
 
-using Oscar
+using ..Oscar
 using UUIDs
 
-import Oscar: _grading,
+using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
   IdealGens,
   LaurentMPolyIdeal,

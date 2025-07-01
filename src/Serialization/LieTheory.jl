@@ -42,7 +42,7 @@ end
 type_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = TypeParams(T, root_system(e))
 
 function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
-  save_object(s, Oscar._vec(coefficients(r)))
+  save_object(s, _vec(coefficients(r)))
 end
 
 function load_object(
@@ -77,7 +77,7 @@ end
 type_params(w::WeightLatticeElem) = TypeParams(WeightLatticeElem, parent(w))
 
 function save_object(s::SerializerState, w::WeightLatticeElem)
-  save_object(s, Oscar._vec(coefficients(w)))
+  save_object(s, _vec(coefficients(w)))
 end
 
 function load_object(s::DeserializerState, ::Type{WeightLatticeElem}, P::WeightLattice)

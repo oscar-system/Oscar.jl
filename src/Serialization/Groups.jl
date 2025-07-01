@@ -84,7 +84,7 @@
 #   common `G`, and the object identity of the GAP family object could be
 #   forced via `G`.)
 
-import Oscar: GAPGroup, _coeff
+using Oscar: GAPGroup, _coeff
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
