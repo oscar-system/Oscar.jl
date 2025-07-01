@@ -662,7 +662,16 @@ julia> length(g4_basis) == 172
 true
 ```
 """
-chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
+@attr Vector{G4Flux} function chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true)
+  gens = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
+  for k in 1:length(gens)
+    set_attribute!(gens[k], :offset, zeros(Int, length(gens)))
+    flux_coords = zeros(Int, length(gens))
+    flux_coords[k] = 1
+    set_attribute!(gens[k], :flux_coordinates, flux_coords)
+  end
+  return gens
+end
 
 
 

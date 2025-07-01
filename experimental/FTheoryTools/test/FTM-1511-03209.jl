@@ -20,7 +20,7 @@
   @test (104 in exceptional_divisor_indices(fully_resolved_big_model)) == false
   @test 105 in exceptional_divisor_indices(fully_resolved_big_model)
   @test length(exceptional_divisor_indices(fully_resolved_big_model)) == 206
-  @test length(fully_resolved_big_model.__attrs) == 47
+  @test length(fully_resolved_big_model.__attrs) == 48
   @test length(fully_resolved_big_model.__attrs[:inter_dict]) == 14154797
   @test maximum(values(fully_resolved_big_model.__attrs[:inter_dict])) == 407568
   @test fully_resolved_big_model.__attrs[:inter_dict][(103,103,103,103)] == 407568
