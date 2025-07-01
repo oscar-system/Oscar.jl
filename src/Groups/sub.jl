@@ -180,12 +180,12 @@ julia> normal_subgroups(symmetric_group(5))
 
 julia> normal_subgroups(quaternion_group(8))
 6-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 4
- Sub-pc group of order 4
- Sub-pc group of order 4
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators x, y, y2
+ Sub-pc group of order 4 with 2 generators y, y2
+ Sub-pc group of order 4 with 2 generators x*y*y2, y2
+ Sub-pc group of order 4 with 2 generators x, y2
+ Sub-pc group of order 2 with 1 generator y2
+ Sub-pc group of order 1 with 0 generators
 ```
 """
 @gapattribute normal_subgroups(G::GAPGroup) =
@@ -206,9 +206,9 @@ julia> maximal_normal_subgroups(symmetric_group(4))
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
- Sub-pc group of order 4
- Sub-pc group of order 4
- Sub-pc group of order 4
+ Sub-pc group of order 4 with 2 generators y2, x
+ Sub-pc group of order 4 with 2 generators y2, y
+ Sub-pc group of order 4 with 2 generators y2, x*y
 ```
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
@@ -229,7 +229,7 @@ julia> minimal_normal_subgroups(symmetric_group(4))
 
 julia> minimal_normal_subgroups(quaternion_group(8))
 1-element Vector{SubPcGroup}:
- Sub-pc group of order 2
+ Sub-pc group of order 2 with 1 generator y2
 ```
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
@@ -251,9 +251,9 @@ julia> characteristic_subgroups(symmetric_group(3))
 
 julia> characteristic_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators x, y, y2
+ Sub-pc group of order 2 with 1 generator y2
+ Sub-pc group of order 1 with 0 generators
 ```
 """
 @gapattribute characteristic_subgroups(G::GAPGroup) =
@@ -344,10 +344,10 @@ julia> chief_series(alternating_group(4))
 
 julia> chief_series(quaternion_group(8))
 4-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 4
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators x, y, y2
+ Sub-pc group of order 4 with 2 generators y, y2
+ Sub-pc group of order 2 with 1 generator y2
+ Sub-pc group of order 1 with 0 generators
 ```
 """
 @gapattribute chief_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.ChiefSeries(GapObj(G)))
@@ -373,10 +373,10 @@ julia> composition_series(alternating_group(4))
 
 julia> composition_series(quaternion_group(8))
 4-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 4
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators x, y, y2
+ Sub-pc group of order 4 with 2 generators y, y2
+ Sub-pc group of order 2 with 1 generator y2
+ Sub-pc group of order 1 with 0 generators
 ```
 """
 @gapattribute composition_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.CompositionSeries(GapObj(G)))
@@ -394,11 +394,11 @@ An exception is thrown if $G$ is not a $p$-group.
 ```jldoctest
 julia> jennings_series(dihedral_group(16))
 5-element Vector{SubPcGroup}:
- Sub-pc group of order 16
- Sub-pc group of order 4
- Sub-pc group of order 2
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 16 with 4 generators f1, f2, f3, f4
+ Sub-pc group of order 4 with 2 generators f3, f4
+ Sub-pc group of order 2 with 1 generator f4
+ Sub-pc group of order 2 with 1 generator f4
+ Sub-pc group of order 1 with 1 generator <identity> of ...
 
 julia> jennings_series(dihedral_group(10))
 ERROR: ArgumentError: group must be a p-group
@@ -457,14 +457,14 @@ See also [`upper_central_series`](@ref) and [`nilpotency_class`](@ref).
 ```jldoctest
 julia> lower_central_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators f1, f2, f3
+ Sub-pc group of order 2 with 1 generator f3
+ Sub-pc group of order 1 with 1 generator <identity> of ...
 
 julia> lower_central_series(dihedral_group(12))
 2-element Vector{SubPcGroup}:
- Sub-pc group of order 12
- Sub-pc group of order 3
+ Sub-pc group of order 12 with 3 generators f1, f2, f3
+ Sub-pc group of order 3 with 1 generator f3
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
@@ -493,14 +493,14 @@ See also [`lower_central_series`](@ref) and [`nilpotency_class`](@ref).
 ```jldoctest
 julia> upper_central_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators f3, f1, f2
+ Sub-pc group of order 2 with 1 generator f3
+ Sub-pc group of order 1 with 0 generators
 
 julia> upper_central_series(dihedral_group(12))
 2-element Vector{SubPcGroup}:
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 2 with 1 generator f2*f3
+ Sub-pc group of order 1 with 0 generators
 
 julia> upper_central_series(symmetric_group(4))
 1-element Vector{PermGroup}:
@@ -1012,7 +1012,7 @@ julia> schur_multiplier(symmetric_group(4))
 Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> schur_multiplier(abelian_group([2, 12]))
 Z/2
@@ -1151,9 +1151,9 @@ julia> derived_series(symmetric_group(5))
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
- Sub-pc group of order 8
- Sub-pc group of order 2
- Sub-pc group of order 1
+ Sub-pc group of order 8 with 3 generators f1, f2, f3
+ Sub-pc group of order 2 with 1 generator f3
+ Sub-pc group of order 1 with 0 generators
 ```
 """
 @gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeriesOfGroup(GapObj(G)))

@@ -414,7 +414,18 @@ Base.one(x::GAPGroupElem) = one(parent(x))
 
 Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
 
-# Printing GAP groups
+# default detailed printing for all GAP groups
+function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Delegate to regular printing...
+  show(io, G)
+  # ... the show generators, if available
+  has_gens(G) && _print_generators(io, G)
+end
+
+# default one-line and terse printing for all GAP groups
 function Base.show(io::IO, G::GAPGroup)
   @show_name(io, G)
   @show_special(io, G)
@@ -430,6 +441,23 @@ function Base.show(io::IO, G::GAPGroup)
   end
 end
 
+# detailed printing for FPGroup
+function Base.show(io::IO, ::MIME"text/plain", G::FPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Delegate to regular printing...
+  show(io, G)
+  # ... then show generators and relators if available
+  has_gens(G) || return
+  _print_generators(io, G)
+  rels = relators(G)
+  if !isempty(rels)
+    print(io, " and ", ItemQuantity(length(rels), "relator"))
+  end
+end
+
+# one-line and terse printing for FPGroup and SubFPGroup
 function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_name(io, G)
   @show_special(io, G)
@@ -453,6 +481,7 @@ function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   end
 end
 
+# one-line and terse printing for PermGroup
 function Base.show(io::IO, G::PermGroup)
   @show_name(io, G)
   @show_special(io, G)
@@ -485,6 +514,7 @@ function Base.show(io::IO, G::PermGroup)
   end
 end
 
+# one-line and terse printing for PcGroup and SubPcGroup
 function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
@@ -499,6 +529,18 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   end
 end
 
+function _print_generators(io::IO, G::GAPGroup)
+  # default generator printing for now: do nothing
+end
+
+function _print_generators(io::IO, G::Union{FPGroup, PcGroup, SubFPGroup, SubPcGroup})
+  n = ngens(G)
+  print(io, " with ", ItemQuantity(n, "generator"))
+  if n > 0
+    print(io, " ")
+    join(io, gens(G), ", ")
+  end
+end
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(GapObj(x))
 
@@ -588,7 +630,7 @@ Return whether generators for the group `G` are known.
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> has_gens(F)
 true
@@ -1553,7 +1595,7 @@ julia> complement_classes(G, derived_subgroup(G)[1])
  Conjugacy class of permutation group in G
 
 julia> G = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> complement_classes(G, center(G)[1])
 GAPGroupConjClass{PcGroup, SubPcGroup}[]
@@ -1846,7 +1888,7 @@ julia> rank(free_group(5))
 5
 
 julia> G = pc_group(abelian_group(5,0))
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> rank(G)
 2
@@ -1885,7 +1927,7 @@ Return whether `G` is a finitely generated group.
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> is_finitely_generated(F)
 true
@@ -1992,7 +2034,7 @@ of `G`.
 # Examples
 ```jldoctest
 julia> g = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> relators(g)
 6-element Vector{FPGroupElem}:
@@ -2156,7 +2198,7 @@ See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
 # Examples
 ```jldoctest
 julia> G = dihedral_group(10)
-Pc group of order 10
+Pc group of order 10 with 2 generators f1, f2
 
 julia> x, y = gens(G);  g = x * y^4
 f1*f2^4

@@ -106,7 +106,7 @@ julia> gens(ans)
  (2,3,4)
 
 julia> perfect_group(FPGroup, 60, 1)
-Finitely presented group of order 60
+Finitely presented group of order 60 with 2 generators a, b and 3 relators
 
 julia> gens(ans)
 2-element Vector{FPGroupElem}:

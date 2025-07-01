@@ -6,7 +6,7 @@ G-set of
 julia> G = dihedral_group(6);
 
 julia> U = sub(G, [g for g in gens(G) if order(g) == 2])[1]
-Sub-pc group of order 2
+Sub-pc group of order 2 with 1 generator f1
 
 julia> r = right_cosets(G, U)
 Right cosets of
@@ -14,7 +14,7 @@ Right cosets of
   pc group of order 6
 
 julia> acting_group(r)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> collect(r)
 3-element Vector{GroupCoset{PcGroup, SubPcGroup, PcGroupElem}}:
@@ -49,7 +49,7 @@ julia> function optimal_transitive_perm_rep(G)
        end;
 
 julia> U = dihedral_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators f1, f2, f3
 
 julia> optimal_transitive_perm_rep(U)
 Group homomorphism
