@@ -126,19 +126,3 @@ function su5_tate_model_over_arbitrary_3d_base()
     ais = [a1, a2, a3, a4, a6]
     return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
 end
-
-@doc raw"""
-    su5_weierstrass_model_over_arbitrary_3d_base()
-
-Return the SU(5) Weierstrass model over an arbitrary
-3-dimensional base space. For more details see
-e.g. [Wei18](@cite) and references therein.
-
-```jldoctest
-julia> tm = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
-```
-"""
-su5_weierstrass_model_over_arbitrary_3d_base() = weierstrass_model(su5_tate_model_over_arbitrary_3d_base())

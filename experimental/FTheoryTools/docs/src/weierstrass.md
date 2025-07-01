@@ -6,6 +6,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Weierstrass models
 
+A Weierstrass model describes a particularly prominent form of an elliptic fibration.
+
+---
+
+## Background: What Is a Weierstrass Model?
+
 A Weierstrass model describes a particular form of an elliptic fibration.
 We focus on an elliptic fibration over a complete base ``B``. Consider
 the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
@@ -47,8 +53,9 @@ This can be read-off from the Weierstrass table, which we have reproduced from
 | ``II^*`` | ``\geq 4`` | ``5`` | ``10`` | ``E_8`` | | ``\mathfrak{e}_8`` | |
 | non-min. | ``\geq 4`` | ``\geq 6`` | ``\geq 12`` | non-can. | | | |
 
+---
 
-## Constructors
+## Constructing Weierstrass Models
 
 We aim to provide support for Weierstrass models over the following bases:
 * a toric variety,
@@ -133,10 +140,8 @@ weierstrass_model_over_del_pezzo_surface(b::Int)
 
 Certain Weierstrass models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We aim
-to provide support for such standard constructions. Currently, we provide support for the following:
-```@docs
-su5_weierstrass_model_over_arbitrary_3d_base()
-```
+to provide support for such standard constructions.
+
 
 
 ## Attributes
