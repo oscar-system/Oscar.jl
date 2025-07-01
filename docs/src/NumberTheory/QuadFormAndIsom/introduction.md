@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Quadratic forms and isometries
+# Introduction
 
 This project is a complement to the code about *hermitian lattices* available
 in Hecke. We aim here to connect Hecke and GAP to handle some algorithmic

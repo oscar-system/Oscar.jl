@@ -1,5 +1,5 @@
-using Test
-using Oscar
+include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
+include(joinpath(Oscar.oscardir, "test", "Serialization", "upgrades", "setup_tests.jl"))
 
 Oscar.set_lwi_level(2)
 set_verbosity_level(:ZZLatWithIsom, -1)
