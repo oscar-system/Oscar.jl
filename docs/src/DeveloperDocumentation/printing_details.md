@@ -16,12 +16,12 @@ e.g. to print the `base_ring(X)` when in `one line` mode.
 It exists to make sure that `one line` stays compact and human readable.
 
 Top-level REPL printing of an object will use `detailed` mode by default
-```julia
+```julia-repl
 julia> X
 detailed
 ```
 Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
-```julia
+```julia-repl
 julia> [X,X]
 3-element Vector{TypeofX{T}}
 one line
@@ -130,7 +130,7 @@ function Base.show(io::IO, R::NewRing)
 end
 ```
 And this is how it looks like:
-```julia
+```julia-repl
 julia> R = NewRing(QQ)
 I am a new ring
 I print with newlines
@@ -169,7 +169,7 @@ function Base.show(io::IO, R::NewRing2)
 end
 ```
 And this is how it looks like:
-```julia
+```julia-repl
 julia> R = NewRing2(QQ)
 I am a new ring and always print in one line QQ
 
@@ -216,7 +216,7 @@ function Base.show(io::IO, R::NewRing)
 end
 ```
 This example illustrates the unexpected behavior.
-```julia
+```julia-repl
 julia> R = NewRing(1)
 
 julia> R
@@ -248,7 +248,7 @@ The `IOCustom` object allows one to locally control:
 
 We illustrate this with an example
 
-```
+```julia
 struct A{T}
   x::T
 end
@@ -270,7 +270,7 @@ end
 ```
 
 At the REPL, this will then be printed as follows:
-```
+```julia-repl
 julia> A(2)
 Something of type A
   over 2
@@ -292,7 +292,7 @@ elements with a variable number of objects. For this, one can use `ItemQuantity`
 
 We illustrate this with an example
 
-```
+```julia-repl
 julia> struct C{T}
        x::Vector{T}
        end
@@ -305,7 +305,7 @@ julia> function Base.show(io::IO, c::C{T}) where T
 ```
 
 At the REPL, this will then be printed as follows:
-```
+```julia-repl
 julia> C(Int[2,3,4])
 Something with 3 elements of type Int64
 
@@ -320,7 +320,7 @@ Something with 1 element of type Int64
 
 ### LaTeX output
 Some types support LaTeX output.
-```
+```julia-repl
 julia> Qx, x = QQ[:x];
 
 julia> show(stdout, "text/latex", x^2 + 2x + x^10)
@@ -375,7 +375,7 @@ Here is an example with and without output using Unicode:
   the name of a Julia REPL variable to which the object is currently assigned) then in
   a `compact` or `terse` io context it is printed using that name.
   Here is an example illustrating this:
-  ```
+  ```julia-repl
   julia> vector_space(GF(2), 2)
   Vector space of dimension 2 over prime field of characteristic 2
 
