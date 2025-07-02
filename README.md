@@ -11,7 +11,7 @@ Polymake, Antic and Singular.
 
 ## Installation
 
-OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
+OSCAR requires Julia 1.10 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
 ```
