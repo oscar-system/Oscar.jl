@@ -50,6 +50,7 @@ end
   @test compose(f[2], map(KG, 1)) == compose(map(KF, 2), f[1])
 end
 
+
 @testset "homogeneous Koszul complexes" begin
   R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
   kosz = Oscar.HomogKoszulComplex(R, [x, y])
@@ -59,5 +60,31 @@ end
   @test !is_zero(map(kosz, 2))
   @test !is_zero(map(kosz, 1))
   @test is_zero(compose(map(kosz, 2), map(kosz, 1)))
+end
+
+@testset "homogeneous Koszul complexes and their induced maps" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+
+  a = [x, y, z]
+  b = [x^2, y^3, y^5+z^5, x+y]
+
+  KA = Oscar.HomogKoszulComplex(S, a)
+  KB = Oscar.HomogKoszulComplex(S, b)
+
+  phi = Oscar.InducedKoszulMorphism(KB, KA)
+
+  G = grading_group(S)
+  S1 = graded_free_module(S, [zero(G)])
+  KAD = hom(KA, S1)
+  KBD = hom(KB, S1)
+
+  phi_star = hom(phi, Oscar.ZeroDimensionalComplex(S1))
+  phi_star[0]
+  @test_throws ErrorException phi_star[1]
+  phi_star[-1]
+  phi_star[-2]
+  phi_star[-3]
+
+  @test compose(phi_star[-1], map(codomain(phi_star), -1)) == compose(map(domain(phi_star), -1), phi_star[-2])
 end
 
