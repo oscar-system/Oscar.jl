@@ -335,7 +335,7 @@ end
   I = ideal(RL, [v, w,x, y, z])
   MI = ideal_as_module(I)
   FMI = free_resolution_via_kernels(MI)
-  @test !is_complete(FMI) # Caveat: If this will change, add another test for length using a free resolution function not setting the complete key.
+  @test is_complete(FMI)
   @test length(FMI) == 4
 end
 
