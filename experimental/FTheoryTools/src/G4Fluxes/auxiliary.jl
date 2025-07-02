@@ -14,8 +14,7 @@ This is useful for rewriting cohomology classes in a fixed basis of the toric va
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -340,8 +339,7 @@ Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -369,8 +367,7 @@ associated with the rays of ``X_\Sigma``.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -410,8 +407,7 @@ via Cox ring monomials. For the actual cohomology class generators, see ``gens_o
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -483,8 +479,7 @@ basis (constructed from toric coordinate products) to the hypersurface ``\wideha
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
     
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -519,8 +514,7 @@ For the analogous map in the ambient toric variety, see ``converter_dict_h22_amb
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see 
-[here](https://docs.oscar-system.org/dev/Experimental/FTheoryTools/g4/#Advanced-Methods-(typically-run-in-the-background)).
+For mathematical background shared across related methods see [Advanced Methods](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
