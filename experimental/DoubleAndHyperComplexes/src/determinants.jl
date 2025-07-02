@@ -61,7 +61,7 @@ function det(
       is_zero(p) && continue
       J0 = J
     end
-    result = is_even(ind) ? result*p : result//p
+    result = (is_even(ind) && direction == :from_left_to_right) || (is_odd(ind) && direction == :from_right_to_left) ? result*p : result//p
     I = Int[i for i in 1:n if !(i in data(J0))]
     r = n - r
     ind += inc
