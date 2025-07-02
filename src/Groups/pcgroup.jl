@@ -609,7 +609,7 @@ end
     leading_exponent(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
 
 Return the leading exponent of `g` as an instance of the type `T`,
-relative to the defining generators.
+relative to the defining generators. Throws an error if `g` is the neutral element.
 
 # Examples
 
