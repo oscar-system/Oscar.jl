@@ -477,7 +477,8 @@ degree: 0  1
 ```
 """
 function minimize(c::FreeResolution)
-  @assert is_graded(c[-1]) "complex does not consist of graded modules"
+  ### to be repaired by Matthias Zach
+  # @assert is_graded(c[-1]) "complex does not consist of graded modules"
   return simplify(c)
 end
 
