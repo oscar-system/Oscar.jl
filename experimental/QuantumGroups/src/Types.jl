@@ -71,13 +71,13 @@ struct PBWAlgebraHom{T,S,H<:Map} <:
 end
 
 struct QuantumField <: Field
-  d::AbstractAlgebra.Generic.RationalFunctionField{QQFieldElem,QQPolyRingElem}
+  d::Generic.FracField{ZZPolyRingElem}
   q_factorial::Dict
 end
 
 mutable struct QuantumFieldElem <: FieldElem
   parent::QuantumField
-  d::AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem,QQPolyRingElem}
+  d::Generic.FracFieldElem{ZZPolyRingElem}
 end
 
 struct _BarAutomorphism <: Map{QuantumField,QuantumField,Hecke.HeckeMap,_BarAutomorphism} end
