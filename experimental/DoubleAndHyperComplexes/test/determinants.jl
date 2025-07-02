@@ -10,5 +10,21 @@
   c = hom(res, free_module(R, 1))
   @test p == det(c; lower_bound=-5);
   @test p == det(c; direction=:from_right_to_left)
+  
+  I = ideal(R, x)
+  k, _ = quo(R, I)
+  M = quotient_ring_as_module(k)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  p = det(res)
+  @test p == det(res; direction=:from_right_to_left, upper_bound=5)
+  c = hom(res, free_module(R, 1))
+  @test p == 1//det(c; lower_bound=-5);
+  @test p == 1//det(c; direction=:from_right_to_left)
+  cc = Oscar.ReflectedComplex(c)
+  @test p == det(cc; direction=:from_right_to_left, upper_bound=5)
+  @test p == det(cc; direction=:from_left_to_right, lower_bound=-5)
+  ccc = hom(cc, free_module(R, 1))
+  @test p == 1//det(ccc; lower_bound=-5);
+  @test p == 1//det(ccc; direction=:from_right_to_left)
 end
 
