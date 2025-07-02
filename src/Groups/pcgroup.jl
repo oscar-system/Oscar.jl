@@ -473,10 +473,10 @@ function pc_group(c::GAP_Collector)
 end
 
 """
-    exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+    exponent_vector(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
 
-Return the exponent vector of `g` as a list of integers, each entry corresponding to
-a group generator.
+Return the exponent vector of `g` as an instance of the type `Vector{T}`,
+each entry corresponding to a group generator.
 
 # Examples
 
@@ -488,9 +488,9 @@ julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
 
 julia> exponent_vector(x)
-2-element Vector{Int64}:
+2-element Vector{ZZRingElem}:
  -3
-  2
+ 2
 ```
 
 ```jldoctest
@@ -501,28 +501,31 @@ julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
 
 julia> exponent_vector(x)
-2-element Vector{Int64}:
+2-element Vector{ZZRingElem}:
  1
  2
 ```
 """
-function exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem}) = exponent_vector(ZZRingElem, g)
+
+function exponent_vector(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
   # check if we have a PcpGroup element
   gObj = GapObj(g)
-  exp = if GAPWrap.IsPcpElement(gObj)
-    GAPWrap.Exponents(gObj)
+  if GAPWrap.IsPcpElement(gObj)
+    return Vector{T}(GAPWrap.Exponents(gObj))
   else # finite PcGroup
     pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
-    GAPWrap.ExponentsOfPcElement(pcgs, gObj)
+    return Vector{T}(GAPWrap.ExponentsOfPcElement(pcgs, gObj))
   end
-
-  return Vector{Int}(exp)
 end
 
 """
-    relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+    relative_order(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
 
-Return the relative order of `g` as an integer, with respect to the defining generators.
+Return the relative order of `g` as an instance of the type `T`,
+with respect to the defining generators. For generators with infinite order, we return 0.
 
 # Examples
 
@@ -548,17 +551,19 @@ julia> relative_order(x)
 2
 ```
 """
-function relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+relative_order(g::Union{PcGroupElem,SubPcGroupElem}) = relative_order(ZZRingElem, g)
+
+function relative_order(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
   # check if we have a PcpGroup element
   gObj = GapObj(g)
-  rel = if GAPWrap.IsPcpElement(gObj)
-    GAPWrap.RelativeOrder(gObj)
+  if GAPWrap.IsPcpElement(gObj)
+    return T(GAPWrap.RelativeOrder(gObj))
   else # finite PcGroup
     pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
-    GAPWrap.RelativeOrderOfPcElement(pcgs, gObj)
+    return T(GAPWrap.RelativeOrderOfPcElement(pcgs, gObj))
   end
-
-  return rel
 end
 
 """
@@ -593,20 +598,18 @@ julia> depth(x)
 function depth(g::Union{PcGroupElem,SubPcGroupElem})
   # check if we have a PcpGroup element
   gObj = GapObj(g)
-  dep = if GAPWrap.IsPcpElement(gObj)
-    GAPWrap.Depth(gObj)
+  if GAPWrap.IsPcpElement(gObj)
+    return GAPWrap.Depth(gObj)
   else # finite PcGroup
-    GAPWrap.DepthOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+    return GAPWrap.DepthOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
   end
-
-  return dep
 end
 
 """
-    leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
+    leading_exponent(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
 
-Return the leading exponent of `g` as an integer, relative to the defining generators.
-If `g` is the identity, we return `nothing`.
+Return the leading exponent of `g` as an instance of the type `T`,
+relative to the defining generators.
 
 # Examples
 
@@ -632,7 +635,11 @@ julia> leading_exponent(x)
 1
 ```
 """
-function leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem}) = leading_exponent(ZZRingElem, g)
+
+function leading_exponent(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
   # check if we have a PcpGroup element
   gObj = GapObj(g)
   exp = if GAPWrap.IsPcpElement(gObj)
@@ -641,14 +648,14 @@ function leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
     GAPWrap.LeadingExponentOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
   end
 
-  # if GAP returns fail, return nothing otherwise exp
-  return exp == GAP.Globals.fail ? nothing : exp
+  # if GAP returns fail, error otherwise exp
+  return exp == GAP.Globals.fail ? error("element has no leading exponent") : T(exp)
 end
 
 """
     hirsch_length(G::PcGroup)
 
-Return the Hirsch length of `G`. If `G` is a finite PcGroup, we return 0.
+Return the Hirsch length of `G`.
 
 # Examples
 
