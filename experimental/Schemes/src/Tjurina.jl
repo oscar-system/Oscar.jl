@@ -501,7 +501,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
     I = m*a + m^2*jacobian_ideal(a)
   end
   G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gens.S)
+  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
   l = total_degree(R(h))  
   ## m^(l+1) \subseteq I  
   ## char. 0: l
@@ -703,7 +703,7 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   a = numerator(f_poly)
   I = m*a + m^2*jacobian_ideal(a)
   G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gens.S)
+  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
   k = 2*(total_degree(R(h)) + 1 - ord_f)
   ## check k-th tjurina number
   tjurina_number(f_poly, k) == tjurina_number(g_poly, k) || return false
