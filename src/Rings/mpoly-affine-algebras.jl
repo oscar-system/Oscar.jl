@@ -107,8 +107,6 @@ function vector_space_dim(A::MPolyQuoRing)
   return Singular.vdim(singular_generators(G, G.ord))
 end
 
-vector_space_dim(A::MPolyQuoRing) = vector_space_dimension(A)
-
 @doc raw"""
     monomial_basis(A::MPolyQuoRing)
 
