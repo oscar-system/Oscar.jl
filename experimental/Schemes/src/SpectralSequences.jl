@@ -242,7 +242,7 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
     vv2 = cohomology_model_inclusion(ctx, d, j)(vv)
     @assert !is_zero(vv2)
     e = _minimal_exponent_vector(ctx, d)
-    for (l, p) in coordinates(images_of_generators(orig_map)[k])
+    for (l, p) in coordinates(images_of_generators(orig_map)[cur_rng_ind])
       phi = multiplication_map(ctx, p, e, d, j)
       vvv = phi(vv2)
       @assert !is_zero(vvv)
