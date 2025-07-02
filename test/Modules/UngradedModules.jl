@@ -1801,7 +1801,7 @@ end
   Q, _ = quo(R, I)
   M = quotient_ring_as_module(Q)
   res = free_resolution(M)
-  @test_throws ErrorException minimize(res)
+  @test_throws AssertionError minimize(res)
 
   U1 = complement_of_point_ideal(R, [0, 0, 0])
   L1, _ = localization(R, U1)
@@ -1824,7 +1824,7 @@ end
   M0, _ = change_base_ring(Q, M)
 
   res = free_resolution(M0; length=5)
-  @test_throws ErrorException minimize(res)
+  @test_throws AssertionError minimize(res)
 
   L1, _ = localization(Q, U1)
   M1, _ = change_base_ring(L1, M)
