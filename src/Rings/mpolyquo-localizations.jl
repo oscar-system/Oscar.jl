@@ -2952,3 +2952,15 @@ _cmp_reps(a::MPolyLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoRingElem) = y->(y.f == a.f)
 
+function is_local(
+    R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
+
+function is_known(::typeof(is_local), 
+    ::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
+
