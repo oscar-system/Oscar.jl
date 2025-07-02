@@ -32,3 +32,5 @@ include("Exports.jl")
 include("base_change_types.jl")
 include("base_change.jl")
 
+include("determinants.jl")
+
