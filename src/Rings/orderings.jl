@@ -2,7 +2,7 @@ module Orderings
 
 using Oscar
 import Oscar: Ring, MPolyRing, MPolyRingElem, weights, IntegerUnion, base_ring,
-       support, matrix
+       support, matrix, is_local
 
 export ModuleOrdering
 export MonomialOrdering
