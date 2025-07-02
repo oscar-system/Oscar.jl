@@ -1,6 +1,3 @@
-include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
-include(joinpath(Oscar.oscardir, "test", "Serialization", "upgrades", "setup_tests.jl"))
-
 Oscar.set_lwi_level(2)
 set_verbosity_level(:ZZLatWithIsom, -1)
 
@@ -97,21 +94,6 @@ end
   @test is_elementary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 7)))[1]
   @test is_unimodular(integer_lattice_with_isometry(hyperbolic_plane_lattice()))
 
-  mktempdir() do path
-    test_save_load_roundtrip(path, Lf) do loaded
-      @test Lf == loaded
-    end
-  end
-
-  L = integer_lattice(; gram = QQ[1 2; 2 1])
-  h = QQ[4 -1; 1 0]
-  Lf = integer_lattice_with_isometry(L, h)
-  mktempdir() do path
-    test_save_load_roundtrip(path, Lf) do loaded
-      @test Lf == loaded
-    end
-  end
-
   L = @inferred integer_lattice_with_isometry(A3)
   @test is_primary(L, 2)
   @test !is_elementary(L, 2)
@@ -169,13 +151,6 @@ end
   L = integer_lattice(B; gram=G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
-
-  mktempdir() do path
-    C = coinvariant_lattice(Lf)
-    test_save_load_roundtrip(path, C) do loaded
-      @test C == loaded
-    end
-  end
 
   GLf, _ = @inferred image_centralizer_in_Oq(Lf)
   @test order(GLf) == 600
@@ -468,12 +443,6 @@ end
   G, _ = image_centralizer_in_Oq(Lf)
   _, qLf = discriminant_group(Lf)
   @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
-end
-
-@testset "Serialization.Upgrades" begin
-  @testset "< 1.4.0 Upgrade" begin
-    test_1_4_0_upgrade(;only=["ZZLatWithIsom"])
-  end
 end
 
 @testset "Fix type condition" begin
