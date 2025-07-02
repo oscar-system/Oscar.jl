@@ -159,8 +159,9 @@ end
 Return the rank of `F`.
 """
 rank(F::FreeMod) = F.n
-dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
+# dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
 dim(F::AbstractFreeMod) = rank(F)  # FIXME: remove this again
+dim(kk::Field) = 0                 # FIXME: remove this again
 number_of_generators(F::AbstractFreeMod) = rank(F)
 vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
 

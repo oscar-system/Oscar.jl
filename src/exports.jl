@@ -1762,7 +1762,6 @@ export variety
 export vector_matrix
 export vector_space_basis
 export vector_space_dim
-export vector_space_dimension
 export vertex_and_ray_indices
 export vertex_edge_graph
 export vertex_figure
