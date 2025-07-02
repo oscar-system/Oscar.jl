@@ -54,6 +54,10 @@ function parent_type(::Type{MPolyRingElem{T}}) where {T}
   return MPolyRing{T}
 end
 
+function base_ring(R::MPolyRing{T}) where {T}
+  return R.coefficient_ring
+end
+
 ###############################################################################
 #
 #   
@@ -382,115 +386,136 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
   return z
 end
 
-function _merge(op, x::MPolyRingElem{T}, y::MPolyRingElem{T}, shift::Bool) where {T}
-  R = parent(x)
+function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  R = parent(z)
+  fit!(z, length(x) + length(y))
 
-  i, len = 1, length(x)
-  if shift
-    for n in length(x):-1:1
-      x.coeffs[length(y) + n] = x.coeffs[n]
-      monomial_set!(x, length(y) + n, x, n)
-    end
-
-    i = length(y) + 1
-    len = length(x) + length(y)
-  end
-
-  j = k = 1
-  while i <= len && j <= length(y)
+  i = j = k = 1
+  while i <= length(x) && j <= length(y)
     cmp = monomial_cmp(R, x.exps, i, y.exps, j)
     if cmp > 0
-      op(k, i, -1)
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = deepcopy(x.coeffs[i])
+      else
+        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
+      end
+      monomial_set!(z, k, x, i)
       i += 1
     elseif cmp == 0
-      k -= op(k, i, j)
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = x.coeffs[i] - y.coeffs[j]
+      else
+        z.coeffs[k] = sub!(z.coeffs[k], x.coeffs[i], y.coeffs[j])
+      end
+      if !iszero(z.coeffs[k])
+        monomial_set!(z, k, x, i)
+      else
+        k -= 1
+      end
+
       i += 1
       j += 1
     else
-      op(k, -1, j)
+      if isnothing(z.coeffs[k])
+        z.coeffs[k] = -y.coeffs[j]
+      else
+        z.coeffs[k] = neg!(z.coeffs[k], y.coeffs[j])
+      end
+      monomial_set!(z, k, y, j)
       j += 1
     end
     k += 1
   end
 
-  while i <= len
-    op(k, i, -1)
+  while i <= length(x)
+    if isnothing(z.coeffs[k])
+      z.coeffs[k] = deepcopy(x.coeffs[i])
+    else
+      z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
+    end
+    monomial_set!(z, k, x, i)
     i += 1
     k += 1
   end
 
   while j <= length(y)
-    op(k, -1, j)
+    if isnothing(z.coeffs[k])
+      z.coeffs[k] = -y.coeffs[j]
+    else
+      z.coeffs[k] = neg!(z.coeffs[k], y.coeffs[j])
+    end
+    monomial_set!(z, k, y, j)
     j += 1
     k += 1
   end
 
-  return k - 1
-end
-
-function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
-  fit!(z, length(x) + length(y))
-  z.len = _merge(x, y, false) do k, i, j
-    if i == -1
-      if isnothing(z.coeffs[k])
-        z.coeffs[k] = -y.coeffs[j]::T
-      else
-        z.coeffs[k] = neg!(z.coeffs[k], y.coeffs[j]::T)
-      end
-      monomial_set!(z, k, y, j)
-    elseif j == -1
-      if isnothing(z.coeffs[k])
-        z.coeffs[k] = x.coeffs[i]::T
-      else
-        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i]::T)
-      end
-      monomial_set!(z, k, x, i)
-    else
-      if isnothing(z.coeffs[k])
-        z.coeffs[k] = x.coeffs[i]::T - y.coeffs[j]::T
-      else
-        z.coeffs[k] = sub!(z.coeffs[k], x.coeffs[i]::T, y.coeffs[j]::T)
-      end
-      if iszero(z.coeffs[k]::T)
-        return 1
-      end
-
-      monomial_set!(x, k, x, i)
-    end
-
-    return 0
-  end
-
-  return x
+  z.len = k - 1
+  return z
 end
 
 function sub!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
-  if iszero(y)
+  R = parent(x)
+  len = length(x) + length(y)
+  fit!(x, len)
+
+  for i in length(x):-1:1
+    x.coeffs[length(y) + i] = x.coeffs[i]
+    monomial_set!(x, length(y) + i, x, i)
+  end
+
+  i = length(y) + 1
+  j = k = 1
+
+  while i <= len && j <= length(y)
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
+    if cmp > 0
+      x.coeffs[k] = x.coeffs[i]
+      x.coeffs[i] = nothing
+      monomial_set!(x, k, x, i)
+      i += 1
+    elseif cmp == 0
+      x.coeffs[k] = sub!(x.coeffs[i]::T, y.coeffs[j]::T)
+      if !iszero(x.coeffs[k]::T)
+        x.coeffs[i] = nothing
+        monomial_set!(x, k, x, i)
+      else
+        k -= 1
+      end
+
+      i += 1
+      j += 1
+    else
+      x.coeffs[k] = -y.coeffs[j]
+      monomial_set!(x, k, y, j)
+      j += 1
+    end
+    k += 1
+  end
+
+  # if k == i all monomials of y were smaller than those of x
+  # since a monomials of x were pushed to the end
+  # we are done
+  if k == i
+    x.len = len
     return x
   end
 
-  fit!(x, length(x) + length(y))
-  x.len = _merge(x, y, true) do k, i, j
-    if i == -1
-      x.coeffs[k] = -y.coeffs[j]::T
-      monomial_set!(x, k, y, j)
-    elseif j == -1
-      x.coeffs[k] = x.coeffs[i]
-      monomial_set!(x, k, x, i)
-      x.coeffs[i] = nothing
-    else
-      x.coeffs[k] = sub!(x.coeffs[i]::T, y.coeffs[j]::T)
-      if iszero(x.coeffs[k]::T)
-        return 1
-      end
-
-      monomial_set!(x, k, x, i)
-      x.coeffs[i] = nothing
-    end
-
-    return 0
+  while i <= len
+    x.coeffs[k] = x.coeffs[i]
+    x.coeffs[i] = nothing
+    monomial_set!(x, k, x, i)
+    i += 1
+    k += 1
   end
 
+  while j <= length(y)
+    x.coeffs[k] = -y.coeffs[j]
+    monomial_set!(x, k, y, j)
+    j += 1
+    k += 1
+  end
+
+  x.len = k - 1
   return x
 end
 

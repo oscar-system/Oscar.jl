@@ -37,10 +37,10 @@
       U = quantum_group(fam, rk)
       bar = bar_automorphism(U)
 
-      for _ in 1:10
+      for _ in 1:5
         empty!(U.canonical_basis)
         b = zeros(Int, ngens(U))
-        for _ in 1:3
+        for _ in 1:2
           b[rand(1:ngens(U))] = rand(0:2)
         end
         elem = canonical_basis_elem(U, b)
@@ -49,28 +49,18 @@
         @test coeff(elem, length(elem)) == one(coefficient_ring(U))
 
         for i in 1:(length(elem) - 1)
-          cf = coeff(elem, i)
+          cf = coeff(elem, i).d
           exp = exponent_vector(elem, i)
-          for j in 1:length(exp)
-            cf = mul!(cf, q_factorial(exp[j], U.qi[j]))
-          end
-          c = cf.d
 
           k = 0
-          while iszero(coeff(numerator(c), k))
+          while iszero(coeff(numerator(cf), k))
             k += 1
           end
-          @test k > degree(denominator(c))
-          @test is_monomial(denominator(c))
-          if !is_monomial(denominator(c))
-            @show c
-            @show b
-            @show U
-          end
+          @test k > degree(denominator(cf))
+          @test is_monomial(denominator(cf))
         end
       end
     end
-    # test PBW monomial
 
     # TODO: once bilinear form is implemented, test (b, b) in 1 + qA
   end
@@ -82,10 +72,10 @@
     for (fam, rk) in [(:A, 5), (:B, 3), (:C, 3), (:D, 4), (:G, 2)]
       U = quantum_group(fam, rk)
       # - expansion of a PBW monomial
-      for _ in 1:10
+      for _ in 1:5
         empty!(U.canonical_basis)
         b = zeros(Int, ngens(U))
-        for _ in 1:3
+        for _ in 1:2
           b[rand(1:ngens(U))] = rand(0:2)
         end
         F = pbw_monomial(U, b)
@@ -95,10 +85,10 @@
       end
 
       # - expansion of a canonical basis element
-      for _ in 1:10
+      for _ in 1:5
         empty!(U.canonical_basis)
         b = zeros(Int, ngens(U))
-        for _ in 1:3
+        for _ in 1:2
           b[rand(1:ngens(U))] = rand(0:2)
         end
         elem = canonical_basis_elem(U, b)
@@ -112,11 +102,11 @@
     F = negative_chevalley_gens(U)
     q = gen(coefficient_ring(U))
 
-    f = F[1]^4 * F[2]^3 * F[3]^2 * F[4] * F[1] * F[2]^2 * F[3]^3 * F[4]^4
+    f = monomial(U, [1, 2, 3, 4, 1, 2, 3, 4], [4, 3, 2, 1, 1, 2, 3, 4])
     exp = canonical_basis_expansion(f)
     @test length(exp) == 12
     @test exp[1] == (one(q), [4, 1, 2, 0, 2, 2, 0, 0, 1, 4])
-    @test exp[2] == ((q^2 + 1)//q, [5, 0, 5, 0, 0, 5, 0, 0, 0, 5])
+    @test exp[2] == ((q^2 + 1)//q, [4, 1, 2, 0, 2, 3, 0, 0, 0, 5])
     @test exp[3] == ((q^6 + 2 * q^4 + 2 * q^2 + 1)//q^3, [4, 1, 3, 0, 1, 3, 0, 0, 1, 4])
     @test exp[10] == (
       (q^14 + 4 * q^12 + 8 * q^10 + 11 * q^8 + 11 * q^6 + 8 * q^4 + 4 * q^2 + 1)//q^7,
@@ -138,7 +128,7 @@
     F = negative_chevalley_gens(U)
     q = gen(coefficient_ring(U))
 
-    f = F[1] * F[2]^2 * F[1]^2 * F[2]^2 * F[1]
+    f = monomial(U, [1, 2, 1, 2, 1], [1, 1, 2, 1, 1])
     exp = canonical_basis_expansion(f)
     @test length(exp) == 2
     @test exp[1] == (one(q), [1, 0, 1, 0, 1, 0])

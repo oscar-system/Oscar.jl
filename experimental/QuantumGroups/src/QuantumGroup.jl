@@ -29,7 +29,21 @@ function _quantum_group(
   w0::Vector{<:Integer}=word(longest_element(weyl_group(R))),
 )
   q = gen(QF)
-  P, theta = polynomial_ring(QF, :F => 1:length(w0))
+  vars = Symbol[]
+  for i in 1:length(w0)
+    push!(vars, Symbol("F$i"))
+  end
+  #=
+  for i in 1:rank(R)
+    push!(vars, Symbol("[K$i; 1]"))
+    push!(vars, Symbol("K$i"))
+  end
+  for i in 1:length(w0)
+    push!(vars, Symbol("E$i"))
+  end
+  =#
+
+  P, theta = polynomial_ring(QF, vars)
 
   # for now we rely on the QuaGroup package to compute the PBW relations
   GAP.Packages.load("QuaGroup")
@@ -63,16 +77,32 @@ function _quantum_group(
 
   # set rels
   npos = number_of_positive_roots(R)
-  rels = Matrix{elem_type(P)}(undef, npos, npos) # zero_matrix(P, npos, npos)
+  rels = Matrix{elem_type(P)}(undef, length(vars), length(vars))
 
   term = one(P)
-  for i in 1:npos, j in (i + 1):npos
+  for i in 1:length(vars), j in (i + 1):length(vars)
     rep = Oscar.GAPWrap.ExtRepOfObj(gapF[j] * gapF[i])
     rels[i, j] = zero(P)
     for n in 1:2:length(rep)
       for m in 1:2:length(rep[n])
-        for _ in 1:rep[n][m + 1]
-          term = mul!(term, theta[rep[n][m]])
+        if !GAP.Globals.IsList(rep[n][m])
+          if rep[n][m] <= npos
+            for _ in 1:rep[n][m + 1]
+              term = mul!(term, theta[rep[n][m]])
+            end
+          else
+            for _ in 1:rep[n][m + 1]
+              term = mul!(term, theta[rank(R) + rep[n][m]])
+            end
+          end
+        else
+          nk = 2 * (rep[n][m][1] - npos - 1) + npos + 1
+          for _ in 1:rep[n][m][2]
+            term = mul!(term, theta[nk + 1])
+          end
+          for _ in 1:rep[n][m + 1]
+            term = mul!(term, theta[nk])
+          end
         end
         term = mul!(term, inv(q_factorial(rep[n][m + 1], q)))
       end
@@ -95,7 +125,7 @@ function _quantum_group(
     cvx[beta] = i
   end
 
-  alg = pbw_algebra(P, rels) # lex(theta)
+  alg = pbw_algebra(P, rels)
   return QuantumGroup(
     alg,
     R,
@@ -220,7 +250,12 @@ function zero(U::QuantumGroup)
 end
 
 function coeff(x::QuantumGroupElem, i::Int)
-  return coeff(x.elem, i)
+  exp = exponent_vector(x.elem, i)
+  cf = deepcopy(coeff(x.elem, i))
+  for j in 1:length(exp)
+    cf = mul!(cf, q_factorial(exp[j], parent(x).qi[j]))
+  end
+  return cf
 end
 
 function length(x::QuantumGroupElem)
@@ -279,13 +314,8 @@ function expressify(x::QuantumGroupElem; context=nothing)
   U = parent(x)
   exp = Vector{Int}(undef, ngens(U))
   for i in 1:length(x)
-    cf = deepcopy(coeff(x, i))
     exponent_vector!(exp, x.elem, i)
-    for i in 1:length(exp)
-      cf = mul!(cf, q_factorial(exp[i], U.qi[i]))
-    end
-
-    expr2 = Expr(:call, :*, expressify(cf; context=context))
+    expr2 = Expr(:call, :*, expressify(coeff(x, i); context=context))
     for j in 1:length(exp)
       if exp[j] != 0
         push!(expr2.args, string("F[$j]", exp[j] > 1 ? "^($(exp[j]))" : ""))

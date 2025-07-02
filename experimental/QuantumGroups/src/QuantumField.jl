@@ -61,13 +61,13 @@ function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
 end
 
 function image!(z::QuantumFieldElem, ::Type{_BarAutomorphism}, x::QuantumFieldElem)
-  s = degree(x.d.d.num) - degree(x.d.d.den)
+  s = degree(x.d.num) - degree(x.d.den)
   if s < 0
-    z.d.d.num = reverse!(z.d.d.num, x.d.d.num, length(x.d.d.num) - s)
-    z.d.d.den = reverse!(z.d.d.den, x.d.d.den, length(x.d.d.den))
+    z.d.num = reverse!(z.d.num, x.d.num, length(x.d.num) - s)
+    z.d.den = reverse!(z.d.den, x.d.den, length(x.d.den))
   else
-    z.d.d.num = reverse!(z.d.d.num, x.d.d.num, length(x.d.d.num))
-    z.d.d.den = reverse!(z.d.d.den, x.d.d.den, length(x.d.d.den) + s)
+    z.d.num = reverse!(z.d.num, x.d.num, length(x.d.num))
+    z.d.den = reverse!(z.d.den, x.d.den, length(x.d.den) + s)
   end
   return z
 end
@@ -96,7 +96,8 @@ julia> QF, v = quantum_field(:v)
 ```
 """
 function quantum_field(s::Symbol)
-  QQq, _ = rational_function_field(QQ, s; cached=false)
+  A, _ = polynomial_ring(ZZ, s; cached=false)
+  QQq = fraction_field(A; cached=false)
   QF = QuantumField(QQq, Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}())
   return QF, gen(QF)
 end
@@ -185,8 +186,8 @@ function neg!(z::QuantumFieldElem, x::QuantumFieldElem)
 end
 
 function set!(x::QuantumFieldElem, y::QuantumFieldElem)
-  x.d.d.num = set!(x.d.d.num, y.d.d.num)
-  x.d.d.den = set!(x.d.d.den, y.d.d.den)
+  x.d.num = set!(x.d.num, y.d.num)
+  x.d.den = set!(x.d.den, y.d.den)
   return x
 end
 
@@ -340,5 +341,5 @@ end
 ###############################################################################
 
 function ConformanceTests.generate_element(QF::QuantumField)
-  return QuantumFieldElem(ConformanceTests.generate_element(QF.d))
+  return QuantumFieldElem(QF, ConformanceTests.generate_element(QF.d))
 end

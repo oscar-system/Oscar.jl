@@ -16,6 +16,7 @@ import Nemo:
 import ..Oscar:
   add!,
   addmul!,
+  base_ring,
   coeff,
   coefficient_ring,
   characteristic,
