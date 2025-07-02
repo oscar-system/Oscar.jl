@@ -1371,6 +1371,7 @@ export perles_nonrational_8_polytope
 export perm
 export permutahedron
 export permutation
+export permutation_character
 export permutation_group
 export permutation_matrix
 export permutation_of_terms

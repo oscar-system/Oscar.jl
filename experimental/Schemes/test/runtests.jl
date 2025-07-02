@@ -128,4 +128,3 @@ end
   @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
 end
 
-include("spectral_sequences.jl")

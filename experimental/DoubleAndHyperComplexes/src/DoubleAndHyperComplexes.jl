@@ -42,3 +42,6 @@ include("base_change.jl")
 
 include("determinants.jl")
 
+# Geometric functionality building on the homological algebra in this package.
+include("DerivedPushforward.jl")
+include("SpectralSequences.jl")
