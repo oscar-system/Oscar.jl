@@ -12,7 +12,11 @@ function is_local(R::Ring)
   error("check whether $R is local is not implemented")
 end
 
+# In general we can not assume it to be known whether a given ring is local
+is_known(::typeof(is_local), R::Ring) = false
+
 is_local(::Field) = true
 
-is_known(::typeof(is_local), R::Ring) = false
+is_local(R::MPolyRing{<:FieldElem}) = is_zero(ngens(R))
+is_known(::typeof(is_local), R::MPolyRing{<:FieldElem}) = true
 

@@ -387,3 +387,28 @@ end
   @test J2.dim !== nothing
 end
 
+@testset "local rings" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
+  I1 = ideal(R, [x^2*(x-1), y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+end
+
