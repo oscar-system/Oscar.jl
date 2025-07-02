@@ -40,8 +40,8 @@ function _canonical_basis_elem(U::QuantumGroup, b::Vector{Int})
     # cf is a bar-invariant Laurent polynomial, i.e. cf = p(q) / q^k
     # split the coefficient into positive and negative powers of q
     # use postive powers for the canoncial basis element and discard the negative powers
-    cf.d.d.num = shift_right!(cf.d.d.num, degree(cf.d.d.den))
-    cf.d.d.den = one!(cf.d.d.den)
+    cf.d.num = shift_right!(cf.d.num, degree(cf.d.den))
+    cf.d.den = one!(cf.d.den)
     G = addmul!(G, elem, cf)
   end
 
@@ -65,7 +65,7 @@ function canonical_basis_expansion(x::QuantumGroupElem)
     b = exponent_vector(y, length(y))
     elem = _canonical_basis_elem(U, b)
 
-    cf = coeff(y, length(y)) // coeff(elem, length(elem))
+    cf = coeff(y, length(y))//coeff(elem, length(elem))
     push!(rep, (cf, b))
     y = submul!(y, elem, cf)
   end
