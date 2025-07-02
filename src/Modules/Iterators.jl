@@ -155,7 +155,6 @@ function Base.iterate(
     end
     return nothing
   end
-  
   e, s = res
   poly_ctx = MPolyBuildCtx(R)
   push_term!(poly_ctx, one(coefficient_ring(R)), e)
@@ -312,7 +311,6 @@ function Base.iterate(
     end
     return nothing
   end
-  
   e, s = res
   return (e, i), (i, exps, s)
 end

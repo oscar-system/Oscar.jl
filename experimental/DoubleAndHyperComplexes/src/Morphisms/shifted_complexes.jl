@@ -34,8 +34,6 @@ end
 
 @attributes mutable struct ShiftedComplexMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, ShiftedComplexMorphism{DomainType, CodomainType, MorphismType}}
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-  # Further specialized fields
-  # ...
 
   function ShiftedComplexMorphism(
       phi::AbsHyperComplexMorphism, d::Vector{Int};
@@ -48,10 +46,7 @@ end
 
     map_factory = ShiftedComplexMorphismFactory(phi, domain, codomain)
 
-    # Assuming that the domain `dom` and the codomain `cod` have 
-    # been extracted from the input
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=false, offset=offset(phi))
-    # Assuming that the types have been extracted from the input
     return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
   end
 end

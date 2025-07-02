@@ -42,8 +42,6 @@ end
 
 @attributes mutable struct InducedTensorProductMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedTensorProductMorphism{DomainType, CodomainType, MorphismType}}
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-  # Further specialized fields
-  # ...
 
   function InducedTensorProductMorphism(
       factors::Vector{<:AbsHyperComplexMorphism};

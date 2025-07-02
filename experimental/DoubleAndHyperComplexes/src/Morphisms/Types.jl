@@ -195,11 +195,7 @@ end
       end
     )
     map_factory = InducedKoszulMorFactory(dom, cod, transition_matrix)
-
-    # Assuming that the domain `dom` and the codomain `cod` have 
-    # been extracted from the input
     internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
-    # Assuming that the types have been extracted from the input
     return new{typeof(dom), typeof(cod), ModuleFPHom}(internal_morphism)
   end
 end

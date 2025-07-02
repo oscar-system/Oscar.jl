@@ -169,7 +169,6 @@ function produce_entry(cssp::CSSPage, i::Int, j::Int)
   p = page_number(cssp)
   previous_page = css[p-1]
   H = previous_page[i, j]
-  #is_zero(H) && return H
   B, inc_B = can_compute_map(previous_page, i+p-1, j-p+2) ? image(map(previous_page, i+p-1, j-p+2)) : sub(H, elem_type(H)[])
   Z, inc_Z = can_compute_map(previous_page, i, j) ? kernel(map(previous_page, i, j)) : sub(H, gens(H))
   # The code below relies on a particular generating set for the modulus
@@ -236,11 +235,10 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
     while !(ind in rngs[cur_rng_ind])
       cur_rng_ind+=1
     end
-    k = cur_rng_ind # findfirst(ind in r for r in rngs)
     # manual way to project (saves allocations)
     vv = FreeModElem(coordinates(v)[rngs[cur_rng_ind]], summands[cur_rng_ind]) #canonical_projection(dom, k)(v)
     @assert !is_zero(vv)
-    d = -dom_degs[k]
+    d = -dom_degs[cur_rng_ind]
     vv2 = cohomology_model_inclusion(ctx, d, j)(vv)
     @assert !is_zero(vv2)
     e = _minimal_exponent_vector(ctx, d)
@@ -368,8 +366,6 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
           _, w = buckets[ind]
           buckets[ind] = (j, w + c*v)
         end
-        #@assert !any(k==j for (k, _) in buckets)
-        #push!(buckets, (j, c*v))
       end
     end
       

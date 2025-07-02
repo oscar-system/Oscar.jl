@@ -65,8 +65,6 @@ end
 
 @attributes mutable struct InducedContravariantMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedContravariantMorphism{DomainType, CodomainType, MorphismType}}
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-  # Further specialized fields
-  # ...
 
   function InducedContravariantMorphism(
       phi::AbsHyperComplexMorphism,
@@ -78,11 +76,7 @@ end
     @assert Oscar.domain(domain) === Oscar.codomain(phi)
     @assert Oscar.domain(codomain) === Oscar.domain(phi)
     map_factory = InducedContravariantMorphismFactory(phi, D, domain, codomain)
-
-    # Assuming that the domain `dom` and the codomain `cod` have 
-    # been extracted from the input
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
-    # Assuming that the types have been extracted from the input
     return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
   end
 end
@@ -151,8 +145,6 @@ end
 
 @attributes mutable struct InducedCovariantMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedCovariantMorphism{DomainType, CodomainType, MorphismType}}
   internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
-  # Further specialized fields
-  # ...
 
   function InducedCovariantMorphism(
       D::AbsHyperComplex,
@@ -165,10 +157,7 @@ end
     @assert Oscar.codomain(codomain) === Oscar.codomain(phi)
     map_factory = InducedCovariantMorphismFactory(phi, D, domain, codomain)
 
-    # Assuming that the domain `dom` and the codomain `cod` have 
-    # been extracted from the input
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
-    # Assuming that the types have been extracted from the input
     return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
   end
 end
