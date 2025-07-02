@@ -49,6 +49,7 @@ function Base.length(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem})
   r = rank(F)
   R = base_ring(F)
   d = degree(amm)::FinGenAbGroupElem
+  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g)))) for g in gens(F); init=0)
   result = 0
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
@@ -107,26 +108,26 @@ function Base.iterate(
 end
 
 function Base.iterate(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem}, state::Nothing = nothing)
-  i = 1
   F = underlying_module(amm)
   d = degree(amm)::FinGenAbGroupElem
   R = base_ring(F)
 
-  i = findfirst(i -> all(d[k] >= degree(F[i]; check=false)[k] for k in 1:ngens(parent(d))), 1:ngens(F))
-  i === nothing && return nothing
-  d_loc = d - degree(F[i]; check=false)
+  for (i, g) in enumerate(gens(F))
+    d_loc = d - degree(g; check=false)
 
-  exps = get!(amm.exp_cache, d_loc) do
-    return all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      all_exponents(R, d_loc)
+    end
+
+    res = iterate(exps)
+    res === nothing && continue
+
+    e, s = res
+    poly_ctx = MPolyBuildCtx(R)
+    push_term!(poly_ctx, one(coefficient_ring(R)), e)
+    return (finish(poly_ctx)*g)::elem_type(F), (i, exps, s)
   end
-
-  res = iterate(exps)
-  res === nothing && i == ngens(F) && return nothing
-
-  e, s = res
-  poly_ctx = MPolyBuildCtx(R)
-  push_term!(poly_ctx, one(coefficient_ring(R)), e)
-  return (finish(poly_ctx)*F[i])::elem_type(F), (i, exps, s)
+  return nothing
 end
 
 function Base.iterate(
@@ -139,27 +140,21 @@ function Base.iterate(
 
   i, exps, s = state
   res = iterate(exps, s)
-
   if res === nothing
-    # Monomials have been exhausted for this component of the module;
-    # move on to the next one if any
-    i = findnext(i -> all(d[k] >= degree(F[i]; check=false)[k] for k in 1:ngens(parent(d))), 1:ngens(F), i+1)
-    i === nothing && return nothing
-    d_loc = d - degree(F[i]; check=false)
-
-    exps = get!(amm.exp_cache, d_loc) do
-      return all_exponents(R, d_loc)
+    for j in i+1:ngens(F)
+      d_loc = d - degree(F[j]; check=false)
+      exps = get!(amm.exp_cache, d_loc) do
+        all_exponents(R, d_loc)
+      end
+      res_loc = iterate(exps)
+      res_loc === nothing && continue
+      e, s = res_loc
+      poly_ctx = MPolyBuildCtx(R)
+      push_term!(poly_ctx, one(coefficient_ring(R)), e)
+      return finish(poly_ctx)*F[j], (j, exps, s)
     end
-
-    res_loc = iterate(exps)
-    res_loc === nothing && i == ngens(F) && return nothing
-    
-    e, s = res_loc
-    poly_ctx = MPolyBuildCtx(R)
-    push_term!(poly_ctx, one(coefficient_ring(R)), e)
-    return finish(poly_ctx)*F[i], (i, exps, s)
+    return nothing
   end
-
   e, s = res
   poly_ctx = MPolyBuildCtx(R)
   push_term!(poly_ctx, one(coefficient_ring(R)), e)
@@ -259,6 +254,7 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
   r = rank(F)
   R = base_ring(F)
   d = degree(amm)::FinGenAbGroupElem
+  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g)))) for g in gens(F); init=0)
   result = 0
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
@@ -272,24 +268,24 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
 end
   
 function Base.iterate(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, state::Nothing = nothing)
-  i = 1
   F = underlying_module(amm)
   d = degree(amm)::FinGenAbGroupElem
   R = base_ring(F)
 
-  i = findfirst(i -> all(d[k] >= degree(F[i]; check=false)[k] for k in 1:ngens(parent(d))), 1:ngens(F))
-  i === nothing && return nothing
-  d_loc = d - degree(F[i]; check=false)
+  for (i, g) in enumerate(gens(F))
+    d_loc = d - degree(g; check=false)
 
-  exps = get!(amm.exp_cache, d_loc) do
-    return all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      all_exponents(R, d_loc)
+    end
+
+    res = iterate(exps)
+    res === nothing && continue
+
+    e, s = res
+    return (e, i), (i, exps, s)
   end
-
-  res = iterate(exps)
-  res === nothing && i == ngens(F) && return nothing
-
-  e, s = res
-  return (e, i), (i, exps, s)
+  return nothing
 end
 
 function Base.iterate(
@@ -302,25 +298,19 @@ function Base.iterate(
 
   i, exps, s = state
   res = iterate(exps, s)
-
   if res === nothing
-    # Monomials have been exhausted for this component of the module;
-    # move on to the next one if any
-    i = findnext(i -> all(d[k] >= degree(F[i]; check=false)[k] for k in 1:ngens(parent(d))), 1:ngens(F), i+1)
-    i === nothing && return nothing
-    d_loc = d - degree(F[i]; check=false)
-
-    exps = get!(amm.exp_cache, d_loc) do
-      return all_exponents(R, d_loc)
+    for j in i+1:ngens(F)
+      d_loc = d - degree(F[j]; check=false)
+      exps = get!(amm.exp_cache, d_loc) do
+        all_exponents(R, d_loc)
+      end
+      res_loc = iterate(exps)
+      res_loc === nothing && continue
+      e, s = res_loc
+      return (e, j), (j, exps, s)
     end
-
-    res_loc = iterate(exps)
-    res_loc === nothing && i == ngens(F) && return nothing
-    
-    e, s = res_loc
-    return (e, i), (i, exps, s)
+    return nothing
   end
-
   e, s = res
   return (e, i), (i, exps, s)
 end
