@@ -477,7 +477,7 @@ degree: 0  1
 ```
 """
 function minimize(c::FreeResolution)
-  @assert is_graded(c[-1]) || is_local(base_ring(c[-1])) "complex does not consist of graded modules"
+  @assert is_graded(c[-1]) || (is_known(is_local, base_ring(c[-1])) && is_local(base_ring(c[-1]))) "complex does not consist of graded modules or modules over a local ring"
   return simplify(c)
 end
 
