@@ -24,8 +24,8 @@ object in the system.
 The simplest example is the creation of a polynomial ring. If we mutate the
 array of symbols used for printing, we have effectively changed the ring.
 
-```julia-repl
-julia> v = [:x, :y, :z]; R = polynomial_ring(QQ, v)[1]
+```jldoctest
+julia> v = [:x, :y, :z]; R = polynomial_ring(QQ, v; cached=false)[1]
 Multivariate polynomial ring in 3 variables x, y, z
   over rational field
 
