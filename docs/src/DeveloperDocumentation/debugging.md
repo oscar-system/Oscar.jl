@@ -140,8 +140,7 @@ First, we create the Gaussian rationals and the two primes above `5`.
 julia> K, i = quadratic_field(-1)
 (Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
 
-julia> m = Hecke.modular_init(K, 5)
-modular environment for p=5, using 2 ideals
+julia> m = Hecke.modular_init(K, 5);
 ```
 
 The function `modular_project` returns the projection of an element of `K` into
