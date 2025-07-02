@@ -302,8 +302,13 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
 end
 
 function addmul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
-  R = parent(x)
+  if iszero(y) || iszero(a)
+    return x
+  elseif isone(a)
+    return add!(x, y)
+  end
 
+  R = parent(x)
   len = length(x) + length(y)
   fit!(x, len)
 
@@ -526,28 +531,65 @@ function submul!(x::MPolyRingElem{T}, y::MPolyRingElem{T}, a::T) where {T}
     return sub!(x, y)
   end
 
-  fit!(x, length(x) + length(y))
-  x.len = _merge(x, y, true) do k, i, j
-    if i == -1
-      x.coeffs[k] = neg!(y.coeffs[j]::T * a)
-      monomial_set!(x, k, y, j)
-    elseif j == -1
-      x.coeffs[k] = x.coeffs[i]
-      monomial_set!(x, k, x, i)
-      x.coeffs[i] = nothing
-    else
-      x.coeffs[k] = submul!(x.coeffs[i]::T, y.coeffs[j]::T, a)
-      if iszero(x.coeffs[k]::T)
-        return 1
-      end
+  R = parent(x)
+  len = length(x) + length(y)
+  fit!(x, len)
 
-      monomial_set!(x, k, x, i)
-      x.coeffs[i] = nothing
-    end
-
-    return 0
+  for i in length(x):-1:1
+    x.coeffs[length(y) + i] = x.coeffs[i]
+    monomial_set!(x, length(y) + i, x, i)
   end
 
+  i = length(y) + 1
+  j = k = 1
+
+  while i <= len && j <= length(y)
+    cmp = monomial_cmp(R, x.exps, i, y.exps, j)
+    if cmp > 0
+      x.coeffs[k] = x.coeffs[i]
+      x.coeffs[i] = nothing
+      monomial_set!(x, k, x, i)
+      i += 1
+    elseif cmp == 0
+      x.coeffs[k] = submul!(x.coeffs[i]::T, y.coeffs[j]::T, a)
+      if !iszero(x.coeffs[k]::T)
+        x.coeffs[i] = nothing
+        monomial_set!(x, k, x, i)
+      else
+        k -= 1
+      end
+
+      i += 1
+      j += 1
+    else
+      x.coeffs[k] = submul!(zero(a), y.coeffs[j]::T, a)
+      monomial_set!(x, k, y, j)
+      j += 1
+    end
+    k += 1
+  end
+
+  if k == i
+    x.len = len
+    return x
+  end
+
+  while i <= len
+    x.coeffs[k] = x.coeffs[i]
+    x.coeffs[i] = nothing
+    monomial_set!(x, k, x, i)
+    i += 1
+    k += 1
+  end
+
+  while j <= length(y)
+    x.coeffs[k] = submul!(zero(a), y.coeffs[j]::T, a)
+    monomial_set!(x, k, y, j)
+    j += 1
+    k += 1
+  end
+
+  x.len = k - 1
   return x
 end
 
