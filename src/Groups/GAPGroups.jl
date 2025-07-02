@@ -2173,7 +2173,7 @@ function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimg
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  l = _exponent_vector(g)
+  l = exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2291,17 +2291,6 @@ julia> syllables(epi(F1^5*F2^-3))
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
-end
-
-function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
-  gX = GapObj(g)
-  G = parent(g)
-  GX = GapObj(G)
-  if GAPWrap.IsPcGroup(GX)
-    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
-  end
 end
 
 function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
