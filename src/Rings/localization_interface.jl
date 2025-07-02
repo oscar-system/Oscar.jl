@@ -663,17 +663,3 @@ function preimage(f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuoRing}, <:AbsLoca
   return result
 end
 
-@doc raw"""
-    is_local(R::Ring)
-
-Return whether a given ring `R` is a local ring.
-"""
-function is_local(R::Ring)
-  error("check whether $R is local is not implemented")
-end
-
-is_local(::Field) = true
-
-is_known(::typeof(is_local), R::Ring) = false
-
-

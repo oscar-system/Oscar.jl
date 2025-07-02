@@ -1,8 +1,9 @@
+
 module Orderings
 
 using Oscar
 import Oscar: Ring, MPolyRing, MPolyRingElem, weights, IntegerUnion, base_ring,
-       support, matrix, is_local
+       support, matrix
 
 export ModuleOrdering
 export MonomialOrdering
@@ -18,7 +19,6 @@ export invlex
 export is_elimination_ordering
 export is_global
 export is_global_block
-export is_local
 export is_local_block
 export is_mixed
 export is_total
@@ -1558,7 +1558,7 @@ true
 
 ```
 """
-function is_local(ord::MonomialOrdering)
+function Oscar.is_local(ord::MonomialOrdering)
   !is_total(ord) && error("The monomial ordering must be defined on all variables.")
   return is_local_block(ord)
 end
