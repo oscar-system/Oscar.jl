@@ -907,7 +907,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.PcpElementByExponentsNC(C, exps))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g)))
+       finv = g -> A2_to_A(A2(exponent_vector(g)))
      else
 #TODO: As soon as https://github.com/gap-packages/polycyclic/issues/88 is fixed,
 #      we can change the code to create a `PcpGroup` in GAP also if the group
@@ -946,7 +946,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g) * M))
+       finv = g -> A2_to_A(A2(exponent_vector(g) * M))
      end
 
      return GroupIsomorphismFromFunc(A, G, f, finv)
