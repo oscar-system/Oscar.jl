@@ -54,8 +54,15 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res
+end
+
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task=:auto) where {T <: MonoidAlgebraElem}
+  if task != :auto && task != :via_transform
+    error("Only task=:via_transform is supported for MonoidAlgebra.")
+  end
+  std, _ = lift_std(M)
+  return coordinates_via_transform(a, std)
 end
 
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
@@ -71,10 +78,32 @@ function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
-  M = ModuleGens(M.O, oscar_free_module(M), ordering)
+  M = ModuleGens(oscar_generators(M), oscar_free_module(M), ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
+end
+
+function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MonoidAlgebraElem}
+  A = get_attribute(generators, :transformation_matrix)
+  A === nothing && error("No transformation matrix in the Gröbner basis.")
+  if iszero(a)
+    return sparse_row(base_ring(parent(a)))
+  end
+  if !is_global(generators.ordering)
+    error("Ordering is not global")
+  end
+  @assert generators.isGB
+  S = singular_generators(generators)
+  S.isGB = generators.isGB
+  b = ModuleGens([a], singular_freemodule(generators))
+  s, _ = Singular.lift(S, singular_generators(b))
+  if Singular.ngens(s) == 0 || iszero(s[1])
+    error("The free module element is not liftable to the given generating system.")
+  end
+  Rx = base_ring(generators)
+  coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
+  return coords_wrt_groebner_basis * sparse_matrix(A)
 end
 
 function sparse_row(
@@ -99,13 +128,23 @@ function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F), length(osca
   return SubquoModule(sub, s)
 end
 
-function kernel(
+function kernel_atomic(
     h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}
   ) where {S<:FieldElem, T <: MonoidAlgebraElem{S}}
-  is_zero(h) && return sub(domain(h), gens(domain(h)))
-  is_graded(h) && return _graded_kernel(h)
-  return _simple_kernel(h)
+  F = domain(h)
+  G = codomain(h)
+  gens_h = images_of_generators(h)
+  mod_gens = ModuleGens(gens_h, G, default_ordering(G))
+  M = syzygy_module(mod_gens)
+  v = [F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
+  return sub(F, v)
 end
+
+function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:FieldElem, T<:MonoidAlgebraElem{S}}
+  F = ambient_free_module(M)
+  return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
+end
+
 
 ### Additional adjustments to get the graded aspects to run
 function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem

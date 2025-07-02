@@ -25,6 +25,7 @@ include("ToricBlowups/methods.jl")
 include("DerivedPushforward.jl")
 include("Resolution_structure.jl")
 include("Resolution_tools.jl")
+include("SpectralSequences.jl")
 
 
 # Exports

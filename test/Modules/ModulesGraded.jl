@@ -754,7 +754,7 @@ end
     F = graded_free_module(Rg, 1)
     lp = lex(gens(base_ring(F)))*lex(gens(F))
     J = SubquoModule(F, [(x[1]+x[2])*F[1], (x[1]+x[2]+2*x[3]+2*x[4])*F[1],(x[1]+x[2]+x[3]+x[4])*F[1]])
-    @test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2])*F[1]], F).O
+    @test Oscar.oscar_generators(reduced_groebner_basis(J, lp)) == Oscar.oscar_generators(Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2])*F[1]], F))
     @test haskey(J.groebner_basis, lp)
     Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
     F = graded_free_module(Rg, 1)

@@ -79,7 +79,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
   shift = offset(fgs)
-  gens = chosen_g4_flux_basis(model(fgs), check = check)
+  gens = chosen_g4_flux_gens(model(fgs), check = check)
   c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
   c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
   c3 = sum(shift[k] * gens[k] for k in 1:length(gens))
@@ -111,7 +111,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m), check = check)
-    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r), true))
+    return g4_flux(m, cohomology_class(ambient_space(m), zero(r), quick = true), check = check)
   end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
@@ -203,7 +203,7 @@ end
 @doc raw"""
     random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
-Create a random $G_4$-flux on a given F-theory model.
+Create a random ``G_4``-flux on a given F-theory model.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))

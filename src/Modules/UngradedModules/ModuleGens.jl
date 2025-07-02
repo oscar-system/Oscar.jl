@@ -92,10 +92,19 @@ base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
 @doc raw"""
     singular_generators(M::ModuleGens)
 
-Return the generators of `M` from the Singular side.
+Return the generators of `M` from the Singular side. If they are
+not yet stored, they are computed from the Oscar side.
 """
 function singular_generators(M::ModuleGens)
-  singular_assure(M)
+  if !isdefined(M, :S)
+    SF = singular_freemodule(M)
+    sr = base_ring(SF)
+    if length(M) == 0
+      M.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
+    else
+      M.S = Singular.Module(sr, [SF(x) for x in oscar_generators(M)]...)
+    end
+  end
   return M.S
 end
 
@@ -111,11 +120,18 @@ end
 @doc raw"""
     singular_freemodule(M::ModuleGens)
 
-Return the ambient free module of `M` from the Singular side.
+Return the ambient free module of `M` from the Singular side. If
+it is not not yet stored, it is computed from the Oscar side.
 """
 function singular_freemodule(M::ModuleGens)
-    singular_assure(M)
-    return M.SF
+  if !isdefined(M, :SF)
+    if isdefined(M, :ordering)
+      M.SF = singular_module(M.F, M.ordering)
+    else
+      M.SF = singular_module(M.F)
+    end
+  end
+  return M.SF
 end
 
 
@@ -132,9 +148,19 @@ end
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the Oscar side.
+
+If fields of `M` from the Oscar side are not defined, they
+are computed, given the Singular side.
 """
 function oscar_generators(M::ModuleGens)
-  oscar_assure(M)
+  if !isdefined(M, :O)
+    SI = singular_generators(M)
+    if iszero(SI)
+      M.O = elem_type(M.F)[zero(M.F) for _ in 1:ngens(SI)]
+    else
+      M.O = [M.F(SI[i]) for i=1:Singular.ngens(SI)]
+    end
+  end
   return M.O
 end
 
@@ -153,8 +179,7 @@ end
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  oscar_assure(M)
-  return all(iszero, M.O)
+  return all(iszero, oscar_generators(M))
 end
 
 function show(io::IO, F::ModuleGens)
@@ -188,59 +213,8 @@ Return the number of elements of the module generating set.
 """
 number_of_generators(F::ModuleGens) = length(oscar_generators(F))
 
-function getindex(F::ModuleGens, ::Val{:O}, i::Int)
-  return oscar_generators(F)[i]
-end
-
-function getindex(F::ModuleGens, ::Val{:S}, i::Int)
-    return singular_generators(F)[i]
-end
-
-
-@doc raw"""
-    oscar_assure(F::ModuleGens)
-
-If fields of `F` from the Oscar side are not defined, they
-are computed, given the Singular side.
-"""
-function oscar_assure(F::ModuleGens)
-  if !isdefined(F, :O)
-    if iszero(singular_generators(F))
-      F.O = elem_type(F.F)[zero(F.F) for _ in 1:number_of_generators(singular_generators(F))]
-    else
-      F.O = [F.F(singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
-    end
-  end
-  F.O
-end
-
-@doc raw"""
-    singular_assure(F::ModuleGens)
-
-If fields of `F` from the Singular side are not defined, they
-are computed, given the Oscar side.
-"""
-function singular_assure(F::ModuleGens)
-  if !isdefined(F, :S) || !isdefined(F, :SF)
-    if isdefined(F, :ordering)
-      SF = singular_module(F.F, F.ordering)
-    else
-      SF = singular_module(F.F)
-    end
-    sr = base_ring(SF)
-    F.SF = SF
-    if length(F) == 0
-      F.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
-      return 
-    end
-    F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
-    return
-  end
-  #F[Val(:S), 1]
-end
-
 # i-th entry of module generating set (taken from Oscar side)
-getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
+getindex(F::ModuleGens, i::Int) = oscar_generators(F)[i]
 
 @doc raw"""
     union(M::ModuleGens, N::ModuleGens)
@@ -249,7 +223,7 @@ Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
   @assert oscar_free_module(M) === oscar_free_module(M)
-  O = vcat(M.O, N.O)
+  O = vcat(oscar_generators(M), oscar_generators(N))
   return ModuleGens(oscar_free_module(M), O)
 end
 
@@ -374,10 +348,10 @@ Compute a sparse row `r` such that `a = sum([r[i]*gen(generators,i) for i in 1:n
 If no such `r` exists, an exception is thrown.
 """
 function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T<:MPolyRingElem}
-    if !has_global_singular_ordering(generators)
-        error("Ordering must be global")
-    end
-    return lift(a, generators)
+  if !has_global_singular_ordering(generators)
+    error("Ordering must be global")
+  end
+  return lift(a, generators)
 end
 
 @doc raw"""
@@ -388,11 +362,13 @@ Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])
 If no such `r` exists, an exception is thrown.
 """
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
-  A = get_attribute(generators, :transformation_matrix)
-  A === nothing && error("No transformation matrix in the Gröbner basis.")
-  if iszero(a)
-    return sparse_row(base_ring(parent(a)))
+  iszero(a) && return sparse_row(base_ring(parent(a)))
+  SA = get_attribute!(generators, :sparse_transformation_matrix) do
+    A = get_attribute(generators, :transformation_matrix)
+    A === nothing && error("No transformation matrix in the Gröbner basis.")
+    sparse_matrix(A)
   end
+
   @assert generators.isGB
   if base_ring(generators) isa Union{MPolyQuoRing,MPolyRing}
     if !is_global(generators.ordering)
@@ -410,7 +386,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
 
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  return coords_wrt_groebner_basis * SA
 end
 
 @doc raw"""
@@ -428,22 +404,22 @@ Note: `:via_lift` is typically faster than `:via_transform` for a single vector 
 is faster if many vectors are lifted
 """
 function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
+  R = base_ring(parent(a))
   if iszero(a)
-    return sparse_row(base_ring(parent(a)))
+    return sparse_row(R)
   end
-  if task == :auto
-    if coefficient_ring(base_ring(parent(a))) isa Field #base_ring(base_ring(...)) does not work for MPolyQuos
-      task = :via_transform
-    else
-      task = :via_lift
-    end
-  end
-  for i in 1:ngens(M)
-    g = gen(M,i)
+  for (i, g) in enumerate(gens(M))
     if a == g
-      R = base_ring(M)
-      return sparse_row(R, [(i,R(1))])
+      return sparse_row(R, [i], [one(R)])
     end
+  end
+  return coordinates_atomic(a, M; task=task)
+end
+
+
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol = :auto) where {S<:Union{ZZRingElem,FieldElem}, T<:MPolyRingElem{S}}
+  if task == :auto
+    task = coefficient_ring(base_ring(parent(a))) isa Field ? :via_transform : :via_lift
   end
   if task == :via_transform
     std, _ = lift_std(M)
@@ -453,6 +429,22 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
   else
     error("Invalid task given.")
   end
+end
+
+function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::Symbol=:auto) where {T<:Union{ZZRingElem, FieldElem}}
+  ctx = solve_ctx(M)
+  R = base_ring(ambient_free_module(M))
+  d = rank(ambient_free_module(M))
+  vec_a = matrix(dense_row(coordinates(a), d))
+  is_solvable, sol = can_solve_with_solution(ctx, vec_a; side=:left)
+  if !is_solvable
+    error("Element is not contained in the module.")
+  end
+  return sparse_row(sol)
+end
+
+function coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symbol = :auto)
+  error("The function coordinates_atomic is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
 end
 
 @doc raw"""
@@ -468,7 +460,6 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res
 end
 
@@ -491,7 +482,6 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   red = _reduce(singular_generators(M), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
-  oscar_assure(res)
   return res, [R(1) for _ in 1:ngens(M)]
 end
 
@@ -507,7 +497,8 @@ Compute a normal_form of `v` with respect to the Gröbner basis `GB`.
 """
 function normal_form(v::AbstractFreeModElem, GB::ModuleGens)
   @assert GB.isGB
-  return normal_form(ModuleGens([v], parent(v)), GB).O[1]
+  nf = normal_form(ModuleGens([v], parent(v)), GB)
+  return oscar_generators(nf)[1]
 end
 
 @doc raw"""

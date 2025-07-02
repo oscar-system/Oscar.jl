@@ -127,8 +127,8 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = singular_poly_ring(Q)
-  SI = I.gens.gens.S
+  SQ = Oscar.singular_poly_ring(Q)
+  SI = Oscar.singular_generators(I.gens)
   @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
@@ -226,7 +226,7 @@ end
   a = ideal(A, V)
   dim(a) # cashes a.gb
   gens(a.gb)
-  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+  @test Oscar.oscar_generators(a.gb) == MPolyDecRingElem[y, z^2]
 end
 
 @testset "quotients as vector spaces" begin

@@ -26,7 +26,7 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
 end
 
 function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
-  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), " generator"))
+  print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
 end
 
 function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
@@ -71,7 +71,7 @@ function number_of_generators(a::FreeAssociativeAlgebraIdeal)
 end
 
 function gen(a::FreeAssociativeAlgebraIdeal{T}, i::Int) where T
-  return a.gens[Val(:O), i]
+  return oscar_generators(a.gens)[i]
 end
 
 function gens(a::FreeAssociativeAlgebraIdeal{T}) where T

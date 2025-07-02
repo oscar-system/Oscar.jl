@@ -86,7 +86,7 @@ end
 
 ### To a free module over R = P/I, return the free module over R 
 # in the same number of generators
-@attr Any function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr FreeMod{T} function _poly_module(F::FreeMod{MPolyQuoRingElem{T}}) where {T}
   R = base_ring(F)
   P = base_ring(R) # the polynomial ring
   r = rank(F)
@@ -96,7 +96,7 @@ end
 
 ### Return the canonical projection FP -> F from the P-module FP to the 
 # R-module F.
-@attr Any function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr FreeModuleHom{FreeMod{T}, FreeMod{MPolyQuoRingElem{T}}, MPolyQuoRing{T}} function _poly_module_restriction(F::FreeMod{MPolyQuoRingElem{T}}) where {T}
   R = base_ring(F)
   P = base_ring(R)
   FP = _poly_module(F)
@@ -104,7 +104,7 @@ end
 end
 
 ### Return the same module, but as a SubquoModule over the polynomial ring
-@attr Any function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr SubquoModule{T} function _as_poly_module(F::FreeMod{MPolyQuoRingElem{T}}) where {T}
   R = base_ring(F)
   P = base_ring(R)
   I = modulus(R)
@@ -119,9 +119,8 @@ end
   gb = G.quo.gens
   ord = default_ordering(M.quo)
   gb.ordering = ord
-  singular_assure(gb)
   gb.isGB = true
-  gb.S.isGB = true
+  singular_generators(gb).isGB = true
   M.quo.groebner_basis[ord] = gb
   return M
 end
@@ -143,7 +142,7 @@ end
   return MP
 end
 
-@attr Any function _as_poly_module(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
+@attr SubquoModule{T} function _as_poly_module(M::SubquoModule{MPolyQuoRingElem{T}}) where {T}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
   v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
@@ -153,7 +152,7 @@ end
   return MP
 end
 
-@attr Any function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
+@attr SubQuoHom{SubquoModule{T}, SubquoModule{MPolyQuoRingElem{T}}, MPolyQuoRing{T}} function _iso_with_poly_module(F::SubquoModule{MPolyQuoRingElem{T}}) where {T}
   M = _as_poly_module(F)
   return hom(M, F, gens(F), base_ring(F))
 end

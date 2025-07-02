@@ -604,6 +604,7 @@ export extend!
 export extension_field
 export exterior_derivative
 export exterior_power
+export extraspecial_group
 export f_vector
 export face_fan
 export face_poset
@@ -900,6 +901,7 @@ export is_empty
 export is_equal_with_morphism
 export is_equidimensional
 export is_equidistant
+export is_extraspecial_group
 export is_faithful
 export is_fano
 export is_feasible
@@ -1131,6 +1133,7 @@ export low_index_subgroups
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
+export map_from_func
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
 export map_from_picard_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_class_group
@@ -1167,6 +1170,7 @@ export maximal_associated_points
 export maximal_blocks
 export maximal_cells
 export maximal_chains
+export maximal_cliques
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
@@ -1189,6 +1193,7 @@ export minimal_primes
 export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_subalgebra_generators
 export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
+export minimize
 export minkowski_sum
 export minor
 export module_syzygies
@@ -1244,6 +1249,7 @@ export n_vertices
 export name
 export names_of_fusion_sources
 export natural_character
+export natural_gset
 export nef_cone
 export negative_coroot
 export negative_coroots
@@ -1615,12 +1621,8 @@ export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
 export simulate_valuation
-export singular
-export singular_assure
-export singular_coeff_ring
 export singular_locus
 export singular_locus_reduced
-export singular_poly_ring
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group

@@ -208,7 +208,7 @@ function isomorphism(T::Type{FPGroup}, W::WeylGroup; on_gens::Bool=false)
     is_finite(W) && set_order(G, order(W))
 
     iso = function (w::WeylGroupElem)
-      return G(syllables(w)) # TODO: change to letters once G supports that input
+      return G(letters(w))
     end
 
     isoinv = function (g::FPGroupElem)
@@ -596,6 +596,28 @@ end
 
 ###############################################################################
 # G-set functionality (can get moved to src/ once `isomorphism(PermGroup, ::WeylGroup)` gets moved)
+
+"""
+    natural_gset(W::WeylGroup)
+
+Return the G-set `Omega` that consists of the closure of root space elements
+under the natural action of `W`.
+
+!!! note
+    This function is only implemented for finite Weyl groups, that is root systems of classical type.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> length(natural_gset(W))
+6
+```
+"""
+function natural_gset(W::WeylGroup)
+  @req is_finite(W) "only implemented for finite Weyl groups"
+  return gset(W, roots(root_system(W)); closed=true)
+end
 
 Base.:^(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem) = rw * x
 

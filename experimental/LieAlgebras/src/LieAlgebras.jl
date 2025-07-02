@@ -75,6 +75,7 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  natural_gset,
   normalizer,
   number_of_generators,
   ngens,
@@ -89,8 +90,6 @@ import ..Oscar:
   zero_map,
   ⊕,
   ⊗
-
-Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 

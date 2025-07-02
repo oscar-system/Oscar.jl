@@ -1,5 +1,5 @@
 @doc raw"""
-    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
 Compute a family of G4-fluxes with specified properties for a given F-theory model `m`,
 defined as a hypersurface in a simplicial and complete toric ambient space.
@@ -7,7 +7,7 @@ defined as a hypersurface in a simplicial and complete toric ambient space.
 ### Description
 This method models the G4-flux family using the restriction of cohomology classes on the
 toric ambient space to the hypersurface. In the toric ambient space, these classes are vertical,
-meaning they are of the form $a \wedge b$, where $a, b \in H^(1,1)(X_\Sigma)$, with $X_\Sigma$
+meaning they are of the form ``a \wedge b``, where ``a, b \in H^(1,1)(X_\Sigma)``, with ``X_\Sigma``
 denoting the toric ambient space.
 
 The resulting family is subjected to consistency conditions to ensure it satisfies elementary
@@ -16,20 +16,20 @@ space G4-flux candidates that meet these conditions.
 
 ### Optional Arguments
 - `not_breaking = true`: Ensures the flux family preserves the non-abelian gauge group.
-- `check = false`: Skips computational checks for whether the toric ambient space $X_\Sigma$ is complete and simplicial, which can be resource-intensive.
+- `check = false`: Skips computational checks for whether the toric ambient space ``X_\Sigma`` is complete and simplicial, which can be resource-intensive.
 
 ### Notes
 !!! warning
-    This method assumes that $c_2( \widehat{Y}_4)$ is even. No checks or errors are implemented for this condition, so use cautiously.
+    This method assumes that ``c_2( \widehat{Y}_4)`` is even. No checks or errors are implemented for this condition, so use cautiously.
 
 This assumption relates to the quantization condition, which requires verifying if the twist of a
-given $G_4$-flux by $1/2 \cdot c_2( \widehat{Y}_4)$ is even. For many F-theory models, such as
+given ``G_4``-flux by ``1/2 \cdot c_2( \widehat{Y}_4)`` is even. For many F-theory models, such as
 compactifications on smooth Calabi-Yau 4-folds with globally defined Weierstrass models ([CS12](@cite)),
-$c_2( \widehat{Y}_4)$ is known to be even. This also applies to all F-theory QSMs ([CHLLT19](@cite)).
+``c_2( \widehat{Y}_4)`` is known to be even. This also applies to all F-theory QSMs ([CHLLT19](@cite)).
 
 ### Computational Details
 The method internally identifies two matrices related to the family of fluxes:
-1. `matrix_integral`: Specifies rational combinations of ambient space G4-flux candidates that can only form $\mathbb{Z}$-linear combinations without violating elementary flux quantization conditions.
+1. `matrix_integral`: Specifies rational combinations of ambient space G4-flux candidates that can only form ``\mathbb{Z}``-linear combinations without violating elementary flux quantization conditions.
 2. `matrix_rational`: Specifies rational combinations of flux candidates for which any rational linear combination satisfies the elementary flux quantization conditions.
 
 These matrices are accessible for further analysis.
@@ -77,7 +77,7 @@ julia> is_well_quantized(qsm_g4_flux)
 true
 ```
 
-Finally, we demonstrate the computation of the well-quantized $G_4$-fluxes which pass the transversality checks,
+Finally, we demonstrate the computation of the well-quantized ``G_4``-fluxes which pass the transversality checks,
 and which in addition do not break the non-abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -208,9 +208,9 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
 
 
   # (2) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   S = cox_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
@@ -348,9 +348,9 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
    # TODO: This line is a bit fragile. Fix it!
   exceptional_divisor_positions = exceptional_divisor_indices(m)

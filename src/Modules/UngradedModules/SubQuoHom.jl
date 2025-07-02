@@ -133,7 +133,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -178,7 +178,7 @@ julia> A = R[x; y];
 
 julia> B = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -202,7 +202,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -437,7 +437,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -469,7 +469,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -656,7 +656,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -700,7 +700,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -757,7 +757,7 @@ function kernel(h::SubQuoHom)
   @assert domain(inc_K) === K
   @assert codomain(inc_K) === F
   v = gens(D)
-  imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
+  imgs = filter!(!iszero, elem_type(D)[sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)])
   k = sub_object(D, imgs)
   return k, hom(k, D, imgs, check=false)
 end
@@ -811,7 +811,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -856,7 +856,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]

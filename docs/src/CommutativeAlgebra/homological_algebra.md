@@ -17,6 +17,15 @@ supporting computations in homological algebra.
 ```@docs
 prune_with_map(M::ModuleFP)
 ```
+## Finiteness and cardinality as a set
+
+```@docs
+is_finite(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+```
+
+```@docs
+size(M::SubquoModule{T}) where {T<:Union{ZZRingElem, FieldElem}}
+```
 
 ## Presentations
 
@@ -51,6 +60,13 @@ free_resolution(I::MPolyIdeal; length::Int = 0, algorithm::Symbol = :fres)
 ```@docs
 free_resolution(Q::MPolyQuoRing; length::Int = 0, algorithm::Symbol = :fres)
 ```
+
+### Tests on Free Resolutions
+
+```@docs
+is_complete(F::FreeResolution)
+```
+
 ### Data Associated to Free Resolutions
 
 ```@docs
@@ -61,6 +77,11 @@ augmented_complex(F::FreeResolution)
 length(F::FreeResolution)
 ```
 
+### Operations on Free Resolutions
+
+```@docs
+minimize(F::FreeResolution)
+```
 
 ## Betti Tables
 

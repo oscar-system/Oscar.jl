@@ -20,6 +20,8 @@ GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap AntiSymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap AsList(x::GapObj)::GapObj
 GAP.@wrap AsSet(x::GapObj)::GapObj
+GAP.@wrap AssocWordByLetterRep(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap AssocWordByLetterRep(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap AtlasIrrationality(x::GapObj)::GAP.Obj
 GAP.@wrap AutomorphismGroup(x::GapObj)::GapObj
 GAP.@wrap Basis(x::GapObj)::GapObj
@@ -95,6 +97,7 @@ GAP.@wrap Embedding(x::GapObj, y::Int)::GapObj
 GAP.@wrap EpimorphismSchurCover(x::GapObj)::GapObj
 GAP.@wrap Exponents(x::GapObj)::GapObj
 GAP.@wrap ExponentsOfPcElement(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap ExtraspecialGroup(x::GapObj, y::GAP.Obj, z::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
 GAP.@wrap FactorCosetAction(x::GapObj, y::GapObj)::GapObj
@@ -330,6 +333,7 @@ GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap POW(x::GAP.Obj, y::GAP.Obj)::GAP.Obj
 GAP.@wrap PowerMap(x::GapObj, y::Int)::GapObj
 GAP.@wrap PowerMap(x::GapObj, y::Int, z::Int)::Int
 GAP.@wrap PrimeBlocks(x::GapObj, y::Int)::GapObj

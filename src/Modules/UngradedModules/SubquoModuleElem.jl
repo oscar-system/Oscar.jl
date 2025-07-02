@@ -62,7 +62,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -182,7 +182,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -260,7 +260,7 @@ as an object of type `ModuleGens` along with a transformation
 matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
-  M = ModuleGens(M.O, M.F, ordering)
+  M = ModuleGens(oscar_generators(M), M.F, ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
@@ -277,7 +277,7 @@ function leading_monomials(F::ModuleGens)
   # The following doesn't work yet. When comparison / lead for module elements
   # is implemented this should be uncommented.
   #if !isdefined(F, :S)
-    #return ModuleGens(F.F, [lead(g) for g in F.O])
+    #return ModuleGens(F.F, [lead(g) for g in oscar_generators(F)])
   #end
   singular_gens = singular_generators(F)
   return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
@@ -970,7 +970,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 1 generator
   1: (x^2 + y^2)*e[1]
 by submodule with 3 generators
@@ -982,7 +982,7 @@ julia> is_zero(M)
 false
 ```
 """
-function is_zero(M::SubquoModule)
+@attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
@@ -1027,7 +1027,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -1058,7 +1058,7 @@ julia> B = Rg[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]

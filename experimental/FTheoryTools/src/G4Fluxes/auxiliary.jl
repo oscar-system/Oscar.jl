@@ -8,22 +8,22 @@
     converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``.
 
 This method computes a dictionary which allows to map any element of
-$H^(2,2)(X, \mathbb{Q})$ into the basis found/chosen for $H^(2,2)(X, \mathbb{Q})$.
+``H^(2,2)(X, \mathbb{Q})`` into the basis found/chosen for ``H^(2,2)(X, \mathbb{Q})``.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -342,23 +342,23 @@ end
     basis_of_h22_ambient_indices(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``.
 
-This method computes a vector of tuples of two integers. The tuple $(a,b)$ states
+This method computes a vector of tuples of two integers. The tuple ``(a,b)`` states
 that the product of the a-th and b-th variables in the Cox ring is an element of
-the basis of $H^(2,2)(X, \mathbb{Q})$, that we have chosen.
+the basis of ``H^(2,2)(X, \mathbb{Q})``, that we have chosen.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -382,22 +382,22 @@ end
     basis_of_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``.
 
-This method computes a basis of $H^{(2,2)}(X, \mathbb{Q})$ as vector of cohomology
+This method computes a basis of ``H^{(2,2)}(X, \mathbb{Q})`` as vector of cohomology
 classes.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -425,30 +425,30 @@ end
 ###########################################################################################################################
 
 @doc raw"""
-    basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
+    gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``.
 
 Once restricted to the hypersurface of the model, these elements are generators of
-a subset $S \subseteq H^(2,2)(Y, \mathbb{Q})$, where $Y$ is the hypersurface of
-interest in $X$. This method computes a vector of tuples, each tuple encodes on
-generator of $S \subseteq H^(2,2)(Y, \mathbb{Q})$. Specifically, the tuple $(a,b)$
-indicates that the product of the $a$-th and the $b$-th variable in the Cox ring
-encodes an element of the cohomology ring of $X$, whose restriction to $Y$ is one
+a subset ``S \subseteq H^(2,2)(Y, \mathbb{Q})``, where ``Y`` is the hypersurface of
+interest in ``X``. This method computes a vector of tuples, each tuple encodes on
+generator of ``S \subseteq H^(2,2)(Y, \mathbb{Q})``. Specifically, the tuple ``(a,b)``
+indicates that the product of the ``a``-th and the ``b``-th variable in the Cox ring
+encodes an element of the cohomology ring of ``X``, whose restriction to ``Y`` is one
 of our generators.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -456,11 +456,11 @@ to `false` to skip these tests.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
 
-julia> length(basis_of_h22_hypersurface_indices(qsm_model, check = false))
+julia> length(gens_of_h22_hypersurface_indices(qsm_model, check = false))
 25
 ```
 """
-@attr Vector{Tuple{Int64, Int64}} function basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
+@attr Vector{Tuple{Int64, Int64}} function gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
   filtered_h22_basis_indices = deepcopy(basis_of_h22_ambient_indices(m, check = check))
   gS = gens(cox_ring(ambient_space(m)))
@@ -509,27 +509,27 @@ julia> length(basis_of_h22_hypersurface_indices(qsm_model, check = false))
 end
 
 @doc raw"""
-    basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
+    gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``.
 
 Once restricted to the hypersurface of the model, these elements are generators of
-a subset $S \subseteq H^(2,2)(Y, \mathbb{Q})$, where $Y$ is the hypersurface of
-interest in $X$. This method computes this generating set in terms of ambient
+a subset ``S \subseteq H^(2,2)(Y, \mathbb{Q})``, where ``Y`` is the hypersurface of
+interest in ``X``. This method computes this generating set in terms of ambient
 space cohomology classes.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -537,12 +537,12 @@ to `false` to skip these tests.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
 
-julia> length(basis_of_h22_hypersurface(qsm_model, check = false))
+julia> length(gens_of_h22_hypersurface(qsm_model, check = false))
 25
 ```
 """
-@attr Vector{CohomologyClass} function basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
-  basis_indices = basis_of_h22_hypersurface_indices(m, check = false)
+@attr Vector{CohomologyClass} function gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = false)
   v = ambient_space(m)
   S = cohomology_ring(v, check = check)
   c_ds = [lift(k) for k in gens(S)]
@@ -554,24 +554,24 @@ end
     converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
+basis of ``H^4(X, \mathbb{Q})`` for a simplicial, complete toric variety ``X``
+by truncating its cohomology ring to degree ``2``. Inspired by this, this
+method identifies a basis of ``H^{(2,2)}(X, \mathbb{Q})`` by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
+By definition, ``H^{(2,2)}(X, \mathbb{Q})`` is a subset of ``H^{4}(X, \mathbb{Q})``.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$. Once
-restricted to the hypersurface $Y$ in question, we obtain a generating set of a subset
-$S \subseteq H^{(2,2)}(Y, \mathbb{Q})$.
+toric varieties and ``p \neq q`` it holds ``H^{(p,q)}(X, \mathbb{Q}) = 0``. It follows
+that for such varieties ``H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})`` and the
+vector space dimension of those spaces agrees with the Betti number ``b_4(X)``. Once
+restricted to the hypersurface ``Y`` in question, we obtain a generating set of a subset
+``S \subseteq H^{(2,2)}(Y, \mathbb{Q})``.
 
-This method computes a dictionary which allows to map any element of $H^(2,2)(X, \mathbb{Q})$
-into our chosen generating set of $S \subseteq H^{(2,2)}(Y, \mathbb{Q})$.
+This method computes a dictionary which allows to map any element of ``H^(2,2)(X, \mathbb{Q})``
+into our chosen generating set of ``S \subseteq H^{(2,2)}(Y, \mathbb{Q})``.
 
 Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
+``X`` is complete (and simplicial). The optional argument `check` can be set
 to `false` to skip these tests.
 
 # Examples
@@ -586,7 +586,7 @@ julia> length(collect(keys(cdh22)))
 ```
 """
 @attr Dict{Tuple{Int64, Int64}, Vector{Tuple{QQFieldElem, Tuple{Int64, Int64}}}} function converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
-  non_trivial_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  non_trivial_indices = gens_of_h22_hypersurface_indices(m, check = check)
   old_indices = basis_of_h22_ambient_indices(m, check = check)
   to_be_deleted = setdiff(old_indices, non_trivial_indices)
   new_converter = deepcopy(converter_dict_h22_ambient(m, check = check))
@@ -607,15 +607,15 @@ end
 
 
 @doc raw"""
-    chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+    chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
 
 Given an F-theory model `m` defined as a hypersurface in a simplicial and
-complete toric base, this method computes a basis of $H^{2,2}(X, \mathbb{Q})$
+complete toric base, this method computes a basis of ``H^{2,2}(X, \mathbb{Q})``
 (using the method `basis_of_h22`) and then filters out certain basis elements 
 whose restriction to the hypersurface in question is trivial. The criteria for 
 "certain" elements are explained in the documentation above this method.
 
-Note: Checking whether a toric variety $X$ is complete and simplicial can be
+Note: Checking whether a toric variety ``X`` is complete and simplicial can be
 computationally expensive. The optional argument `check` can be set to `false`
 to skip these tests.
 
@@ -632,7 +632,7 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> g4_basis = chosen_g4_flux_basis(t);
+julia> g4_basis = chosen_g4_flux_gens(t);
 
 julia> length(g4_basis)
 2
@@ -653,7 +653,7 @@ Cohomology class on a normal toric variety given by z^2
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
 Hypersurface model over a concrete base
 
-julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
+julia> g4_basis = chosen_g4_flux_gens(qsm_model, check = false);
 
 julia> cohomology_class(g4_basis[1])
 Cohomology class on a normal toric variety given by x15*e2
@@ -662,7 +662,16 @@ julia> length(g4_basis) == 172
 true
 ```
 """
-chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in basis_of_h22_hypersurface(m, check = check)]
+@attr Vector{G4Flux} function chosen_g4_flux_gens(m::AbstractFTheoryModel; check::Bool = true)
+  gens = [G4Flux(m, c) for c in gens_of_h22_hypersurface(m, check = check)]
+  for k in 1:length(gens)
+    set_attribute!(gens[k], :offset, zeros(Int, length(gens)))
+    flux_coords = zeros(Int, length(gens))
+    flux_coords[k] = 1
+    set_attribute!(gens[k], :flux_coordinates, flux_coords)
+  end
+  return gens
+end
 
 
 

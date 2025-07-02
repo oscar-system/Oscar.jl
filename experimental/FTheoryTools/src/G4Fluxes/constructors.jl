@@ -3,46 +3,16 @@
 ################
 
 @doc raw"""
-    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; convert::Bool = false)
+    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; check::Bool = true)
 
-Construct a G4-flux candidate on an F-theory model. This functionality is
-currently limited to
-- Weierstrass models,
-- global Tate models,
-- hypersurface models.
-Furthermore, our functionality requires a concrete geometry. That is,
-the base space as well as the ambient space must be toric varieties.
-In the toric ambient space $X_\Sigma$, the elliptically fibered space $Y$
-that defines the F-theory model, is given by a hypersurface (cut out by
-the Weierstrass, Tate or hypersurface polynomial, respectively).
+Construct a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class on the toric ambient space.
 
-In this setting, we assume that a $G_4$-flux candidate is represented by a
-cohomology class $h$ in $H^{(2,2)} (X_\Sigma)$. The actual $G_4$-flux candidate
-is then obtained by restricting $h$ to $Y$.
+### Requirements
+- The model must be defined via a Weierstrass, global Tate, or hypersurface construction.
+- The ambient space must a smooth and complete toric variety.
 
-It is worth recalling that the $G_4$-flux candidate is subject to the quantization
-condition $G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})$ (see [Wit97](@cite)).
-This condition is very hard to verify. However, it is relatively easy to gather
-evidence for this condition to be satisfied/show that it is violated. To this end, let
-$D_1$, $D_2$ be two toric divisors in $X_\Sigma$, then the topological intersection number
-$\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]$
-must be an integer. Even this rather elementary check can be computationally expensive.
-Users can therefore decide to skip this check upon construction by setting the parameter
-`check` to the value `false`.
-
-Another bottleneck can be the computation of the cohomology ring, which is necessary to
-work with cohomology classes on the toric ambient space, which in turn define the G4-flux,
-as explained above. The reason for this is, that by employing the theory explained in
-[CLS11](@cite), we can only work out the cohomology ring of simpicial and complete (i.e. compact)
-toric varieties. However, checking if a toric variety is complete (i.e. compact) can take
-a long time. If the geometry in question is involved and you already know that the variety
-is simplicial and complete, then we recommend to trigger the computation of the cohomology
-ring with `check = false`. This will avoid this time consuming test.
-
-Let us mention that you can also supply the option `convert = true`. This will turn the
-provided cohomology class into the basis chosen internally.
-
-An example is in order.
+### Parameters
+- `check` (default: `true`): Perform basic consistency and necessary quantization checks.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -51,89 +21,89 @@ Hypersurface model over a concrete base
 
 julia> cohomology_ring(ambient_space(qsm_model), check = false);
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
-julia> g4f = g4_flux(qsm_model, g4_class)
-G4-flux candidate
-  - Elementary quantization checks: satisfied
-  - Transversality checks: not executed
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not computed
-
-julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not computed
-
-julia> cohomology_class(g4f2)
-Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 2*x6*e2 + 4*x6*u + 6*x6*e4 + 4*x6*e1 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w + 8*x8*x23 + 4*x10*x23 - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 2*x16*e2 + 4*x16*u + 6*x16*e4 + 4*x16*e1 + 2*x16*w - 22*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 + 7//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 88//3*x20*x21 - 7*x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 11//3*x21^2 - 77//3*x21*x24 + 4*x21*e2 + 8*x21*u + 12*x21*e4 + 8*x21*e1 + 4*x21*w + 31//3*x22^2 + 5//3*x22*x23 + 97//6*x22*x25 + 4*x23^2 - 8*x24^2 - 17//3*x24*x27 + 2*x24*e2 + 4*x24*u + 6*x24*e4 + 4*x24*e1 + 2*x24*w + 7//2*x25^2 + 2*x25*e2 + 4*x25*u + 6*x25*e4 + 4*x25*e1 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 2*x27*e2 + 4*x27*u + 6*x27*e4 + 4*x27*e1 + 2*x27*w + x28^2 - 7//3*x29^2 + 5*e1*w
-
-julia> g4f3 = g4_flux(qsm_model, g4_class, check = false, convert = true)
-G4-flux candidate
-  - Elementary quantization checks: not executed
-  - Transversality checks: not executed
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not computed
-
-julia> cohomology_class(g4f3)
-Cohomology class on a normal toric variety given by 2*x5*e2 + 4*x5*u + 6*x5*e4 + 4*x5*e1 + 2*x5*w + 6*x6*e4 + 2*x6*w + 2*x7*x12 + 2*x7*e2 + 4*x7*u + 6*x7*e4 + 4*x7*e1 + 2*x7*w - 4*x15*x26 + 2*x15*e2 + 4*x15*u + 6*x15*e4 + 4*x15*e1 + 2*x15*w - 2*x16^2 + 6*x16*e4 + 2*x16*w - 6*x17*x24 + 4*x17*e2 + 8*x17*u + 12*x17*e4 + 8*x17*e1 + 4*x17*w - 10*x18^2 - 1//2*x18*x25 + 4*x18*e2 + 8*x18*u + 12*x18*e4 + 8*x18*e1 + 4*x18*w - 16*x19*x20 + 6*x19*e2 + 12*x19*u + 18*x19*e4 + 12*x19*e1 + 6*x19*w + 8*x20^2 + 56//3*x20*x21 + x20*x25 + 4*x20*e2 + 8*x20*u + 12*x20*e4 + 8*x20*e1 + 4*x20*w + 19//3*x21^2 - 13//3*x21*x24 + 12*x21*e4 + 4*x21*w - 1//3*x22^2 + 1//3*x22*x23 - 7//6*x22*x25 + 7//3*x24*x27 + 6*x24*e4 + 2*x24*w - 1//2*x25^2 + 6*x25*e4 + 2*x25*w - 2//3*x26*x27 + 5//3*x27^2 + 6*x27*e4 + 2*x27*w + x28^2 + 1//3*x29^2 + 5*e1*w
 ```
 """
-function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true, convert::Bool = false)
+function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
 
-  # If conversion to internally chosen basis desired, then modify the cohomology class
-  converted_class = g4_class
-  if convert == true
-    to_be_transformed_poly = lift(polynomial(g4_class))
-    M = collect(exponents(to_be_transformed_poly))
-    non_zero_exponents = Vector{Tuple{Int64, Int64}}()
-    for my_row in M
-      i1 = findfirst(x -> x != 0, my_row)
-      my_row[i1] -= 1
-      i2 = findfirst(x -> x != 0, my_row)
-      push!(non_zero_exponents, (i1, i2))
-    end
-    coeffs = collect(coefficients(to_be_transformed_poly))
-    @req length(coeffs) == length(non_zero_exponents) "Inconsistency encountered"
+  # Step 1: Extract exponent pairs from input class
+  poly = lift(polynomial(g4_class))
+  coeffs = collect(coefficients(poly))
+  exps = extract_exponent_pairs(collect(exponents(poly)))
+  @req length(coeffs) == length(exps) "Mismatch between coefficients and exponent pairs"
+  original_dict = Dict(zip(exps, coeffs))
 
-    converter_dict = converter_dict_h22_hypersurface(m, check = check)
-    b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
-    b_ring_gens = gens(b_ring)
-    new_converter_dict = Dict{Tuple{Int64, Int64}, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-    for (key, value) in converter_dict
-      new_converter_dict[key] = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in value)
+  # Step 2: Transform using converter dictionary
+  converter_dict = converter_dict_h22_hypersurface(m, check = check)
+  b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+  b_ring_gens = gens(b_ring)
+  converted_poly = zero(b_ring)
+  for (exp_pair, coeff) in original_dict
+    if haskey(converter_dict, exp_pair)
+      terms = converter_dict[exp_pair]
+      sum_term = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in terms)
+      converted_poly += coeff * sum_term
     end
-    converted_poly = zero(b_ring)
-    for l in 1:length(coeffs)
-      if haskey(new_converter_dict, non_zero_exponents[l])
-        converted_poly += coeffs[l] * new_converter_dict[non_zero_exponents[l]]
-      end
-    end
-    converted_poly = cohomology_ring(ambient_space(m), check = check)(converted_poly)
-    converted_class = CohomologyClass(ambient_space(m), converted_poly, true)
-    
   end
 
-  # Build the G4-flux candidate
-  g4_candidate = G4Flux(m, converted_class)
+  # Step 3: Extract exponent pairs again from converted poly
+  new_coeffs = collect(coefficients(converted_poly))
+  new_exps = extract_exponent_pairs(collect(exponents(converted_poly)))
+  new_dict = Dict(zip(new_exps, new_coeffs))
 
-  # Execute quantization checks if desired and return the created object
-  if check && !is_well_quantized(g4_candidate) && !passes_transversality_checks(g4_candidate)
-    error("Given G4-flux candidate found to violate quantization and/or transversality condition")
+  # Step 4: Read off flux coordinates from basis indices
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
+  flux_coords = [get(new_dict, b, 0) for b in basis_indices]
+
+  # Step 5: Build cohomology class
+  coh_ring = cohomology_ring(ambient_space(m), check = check)
+  converted_poly = coh_ring(converted_poly)
+  converted_class = cohomology_class(ambient_space(m), converted_poly, quick = true)
+
+  # Step 6: Build G4Flux and assign attributes
+  g4 = G4Flux(m, converted_class)
+  set_attribute!(g4, :offset, zeros(Int, length(chosen_g4_flux_gens(m))))
+  set_attribute!(g4, :flux_coordinates, flux_coords)
+
+  # Step 7: Final checks
+  if check
+    @req (is_well_quantized(g4) && passes_transversality_checks(g4)) "G4-flux candidate violates quantization and/or transversality condition"
   end
-  return g4_candidate
+
+  return g4
+end
+
+
+# One helper function to avoid repeating exponent extraction logic
+function extract_exponent_pairs(M::Vector{Vector{Int64}})
+  pairs = Tuple{Int, Int}[]
+  for k in 1:length(M)
+    row = copy(M[k])
+    i1 = findfirst(!=(0), row)
+    row[i1] -= 1
+    i2 = findfirst(!=(0), row)
+    push!(pairs, (i1, i2))
+  end
+  return pairs
 end
 
 
 @doc raw"""
     qsm_flux(qsm_model::AbstractFTheoryModel)
 
-For an F-theory QSM [CHLLT19](@cite), this method creates the particularly chosen G4-flux in these models.
+Return the ``G_4``-flux associated with one of the Quadrillion F-theory Standard models, as described in [CHLLT19](@cite CHLLT19).
+
+This flux has been pre-validated to pass essential consistency checks.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -159,7 +129,7 @@ function qsm_flux(qsm_model::AbstractFTheoryModel)
   v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
   pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
   g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
-  my_flux = g4_flux(qsm_model, g4_class, convert = true, check = false)
+  my_flux = g4_flux(qsm_model, g4_class, check = false)
   set_attribute!(my_flux, :is_well_quantized, true)
   set_attribute!(my_flux, :passes_transversality_checks, true)
   set_attribute!(my_flux, :breaks_non_abelian_gauge_group, false)
@@ -206,9 +176,9 @@ end
 function Base.:+(g1::G4Flux, g2::G4Flux)
   @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
   R = parent(polynomial(cohomology_class(g1)))
-  new_poly = R(polynomial(cohomology_class(g1)).f + polynomial(cohomology_class(g2)).f)
+  new_poly = R(lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly, true)
-  return G4Flux(model(g1), new_cohomology_class)
+  return g4_flux(model(g1), new_cohomology_class, check = false)
 end
 
 Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
@@ -217,9 +187,9 @@ Base.:-(g::G4Flux) = (-1) * g
 
 function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
   R = parent(polynomial(cohomology_class(g)))
-  new_poly = R(c * polynomial(cohomology_class(g)).f)
+  new_poly = R(c * lift(polynomial(cohomology_class(g))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly, true)
-  return G4Flux(model(g), new_cohomology_class)
+  return g4_flux(model(g), new_cohomology_class, check = false)
 end
 
 
