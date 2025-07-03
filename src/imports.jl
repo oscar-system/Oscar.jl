@@ -100,9 +100,11 @@ import AbstractAlgebra:
   is_finite_order,
   is_equal_as_morphism,
   is_known,
+  is_noetherian,
   is_terse,
   is_trivial,
   is_unicode_allowed,
+  krull_dim,
   Lowercase,
   LowercaseOff,
   map,
@@ -130,6 +132,7 @@ import AbstractAlgebra:
   symbols,
   terse,
   total_degree,
+  vector_space_dim,
   with_unicode
 
 import GAP:

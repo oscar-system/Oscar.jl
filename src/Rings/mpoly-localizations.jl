@@ -255,8 +255,6 @@ function prime_ideal(S::MPolyComplementOfKPointIdeal)
   return S.m
 end
 
-dim(kk::Field) = 0
-
 maximal_ideal(S::MPolyComplementOfKPointIdeal{<:Field}) = prime_ideal(S)
 
 @doc raw"""  
@@ -1281,6 +1279,8 @@ is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BR
   back_shift = hom(R, R, gens(R)-R.(a), check=false)
   return shift, back_shift
 end
+
+is_noetherian(W::MPolyLocRing) = is_noetherian(base_ring(W)) || throw(NotImplementedError(:is_noetherian, W))
 
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
@@ -2652,21 +2652,22 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
-  return dim(saturated_ideal(I))
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
+  return krull_dim(saturated_ideal(I))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
-  return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+  return krull_dim(saturated_ideal(I)) - krull_dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
-  return dim(leading_ideal(J, ordering=oo))
+  return krull_dim(leading_ideal(J, ordering=oo))
 end
 
+dim(I::MPolyLocalizedIdeal) = krull_dim(I)
 
 ################################################################################
 #
@@ -2797,7 +2798,8 @@ small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
   filter(!iszero, I_min)
 end
 
-dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = krull_dim(R)
+krull_dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - krull_dim(prime_ideal(inverted_set(R)))
 
 ########################################################################
 # Localizations of graded rings                                        #
