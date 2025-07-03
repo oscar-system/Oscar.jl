@@ -15,7 +15,7 @@ relevant situations.
 One such case is the action of `GAPGroupElem` objects on `GapObj`
 objects, for example wrapped GAP matrices on GAP vectors:
 
-```
+```jldoctest
 julia> g = GL(2,3);
 
 julia> m = g[1]
