@@ -1,6 +1,7 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
+    dict = dict
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -241,10 +242,8 @@ push!(upgrade_scripts_set, UpgradeScript(
             end
           end
           
-          dict = Dict(
-            :_type => Dict(:name => "Dict", :params=>Dict()),
-            :data => Dict()
-          )
+          dict[:_type] =  Dict(:name => "Dict", :params=>Dict()),
+          dict[:data] => Dict()
           for (k, v) in d
             if k == :key_type || k == :key_params
               dict[:_type][:params][:key_params] = v
@@ -295,18 +294,18 @@ push!(upgrade_scripts_set, UpgradeScript(
           )))
         end
         dict[:_type][:params] = [subdict[:_type] for subdict in upgraded_subtypes]
-        upgraded_dict[:data] = [subdict[:data] for subdict in upgraded_subtypes]
+        dict[:data] = [subdict[:data] for subdict in upgraded_subtypes]
       elseif type_name == "ZZLat"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
             :basis => dict[:data][:basis][:_type],
             :ambient_space => dict[:data][:ambient_space]
           )
         )
-        upgraded_dict[:data] = dict[:data][:basis][:data]
+        dict[:data] = dict[:data][:basis][:data]
       elseif type_name == "QuadSpaceWithIsom"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
             :order => dict[:data][:order][:_type],
@@ -315,20 +314,20 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
         )
         if dict[:data][:order][:_type] == "Base.Int"
-          upgraded_dict[:data][:order] = dict[:data][:order][:data]
+          dict[:data][:order] = dict[:data][:order][:data]
         end
-        upgraded_dict[:data][:isom] = dict[:data][:isom][:data]
+        dict[:data][:isom] = dict[:data][:isom][:data]
         
       elseif type_name == "ZZLatWithIsom"
         quad_space = upgrade_1_4_0(s, dict[:data][:ambient_space])
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
             :ambient_space => quad_space,
             :basis => dict[:data][:basis][:_type],
           )
         )
-        upgraded_dict[:data] = dict[:data][:basis][:data]
+        dict[:data] = dict[:data][:basis][:data]
       elseif type_name == "LinearProgram"
         if !(dict[:_type][:params] == "QQField")
           
@@ -359,159 +358,159 @@ push!(upgrade_scripts_set, UpgradeScript(
 
           pm_dict = upgrade_1_4_0(s, pm_dict)
 
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => Dict(
               :field => field,
               :pm_params => pm_dict[:_type]
             )
           )
-          upgraded_dict[:data] = pm_dict[:data]
+          dict[:data] = pm_dict[:data]
         end
       elseif type_name in [
         "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
         ]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
             :num_field => dict[:data][:num_field],
             :base_field_emb => dict[:data][:base_field_emb]
           )
         )
-        upgraded_dict[:data] = dict[:data][:data][:data]
+        dict[:data] = dict[:data][:data][:data]
       elseif type_name in  [
         "Hecke.AbsSimpleNumFieldEmbedding", "Hecke.AbsNonSimpleNumFieldEmbedding"
         ]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => dict[:data][:num_field]
         )
-        upgraded_dict[:data] = dict[:data][:data][:data]
+        dict[:data] = dict[:data][:data][:data]
                 
       elseif type_name in ["FPGroup", "SubFPGroup"]
         if dict[:data][:X] isa String
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X]
           )
         elseif haskey(dict[:data][:X], :freeGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X][:freeGroup]
           )
         elseif haskey(dict[:data][:X], :wholeGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X][:wholeGroup]
           )
 
         else
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => Dict(
               :_type => "GapObj",
               :data => dict[:data][:X]
             )
           )
-          upgraded_dict[:data] = dict[:data][:X]
+          dict[:data] = dict[:data][:X]
         end
       elseif type_name in ["PcGroup", "SubPcGroup"]
         if dict[:data][:X] isa String
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X]
           )
         elseif haskey(dict[:data][:X], :fullGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:X][:fullGroup]
           )
         else
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => Dict(
               :_type => "GapObj",
               :data => dict[:data][:X]
             )
           )
-          upgraded_dict[:data] = dict[:data][:X]
+          dict[:data] = dict[:data][:X]
         end
         
       elseif type_name == "GAP.GapObj" || type_name == "GapObj"
-        upgraded_dict[:_type] = "GapObj"
+        dict[:_type] = "GapObj"
         if dict[:data] isa String
           #do nothing
         elseif haskey(dict[:data], :freeGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => "GapObj",
             :params => dict[:data][:freeGroup]
           )
         elseif haskey(dict[:data], :fullGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => "GapObj",
             :params => dict[:data][:fullGroup]
           )
 
         elseif haskey(dict[:data], :wholeGroup)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => "GapObj",
             :params => dict[:data][:wholeGroup]
           )
         end
       elseif type_name == "TropicalCurve"
         if haskey(dict[:data], :graph)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => Dict(:_type => String, :data => "graph")
           )
-          upgraded_dict[:data][:graph] = dict[:data][:graph][:data]
+          dict[:data][:graph] = dict[:data][:graph][:data]
         else
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => type_name,
             :params => dict[:data][:polyhedral_complex][:_type]
           )
-          upgraded_dict[:data][:polyhedral_complex] = dict[:data][:polyhedral_complex][:data]
+          dict[:data][:polyhedral_complex] = dict[:data][:polyhedral_complex][:data]
         end
       elseif type_name == "TropicalHypersurface"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => dict[:data][:tropical_polynomial][:_type][:params]
         )
-        upgraded_dict[:data] = dict[:data][:tropical_polynomial][:data]
+        dict[:data] = dict[:data][:tropical_polynomial][:data]
       elseif type_name == "IdealGens"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => "IdealGens",
           :params => Dict(
             :base_ring => dict[:_type][:params],
             :ordering_type => dict[:data][:ordering][:internal_ordering][:_type]
           )
         )
-        upgraded_dict[:data][:ordering][:internal_ordering] = dict[:data][:ordering][:internal_ordering][:data]
+        dict[:data][:ordering][:internal_ordering] = dict[:data][:ordering][:internal_ordering][:data]
 
-        if haskey(upgraded_dict[:data][:ordering][:internal_ordering], :ordering_symbol_as_type)
-          upgraded_dict[:data][:ordering][:internal_ordering][:vars] = upgraded_dict[:data][:ordering][:internal_ordering][:vars][:data]
-          upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = upgraded_dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
+        if haskey(dict[:data][:ordering][:internal_ordering], :ordering_symbol_as_type)
+          dict[:data][:ordering][:internal_ordering][:vars] = dict[:data][:ordering][:internal_ordering][:vars][:data]
+          dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
         end
       elseif type_name == "NormalToricVariety"
         if dict[:data] isa Dict
           if haskey(dict[:data], :attrs)
-            upgraded_dict[:attrs] = dict[:data][:attrs]
-            upgraded_dict[:data] = dict[:data][:pm_data]
+            dict[:attrs] = dict[:data][:attrs]
+            dict[:data] = dict[:data][:pm_data]
           end
         end
       elseif type_name == "CohomologyClass"
-        upgraded_dict = Dict(
+        dict = Dict(
           :_type => dict[:_type],
           :data => dict[:data][:polynomial]
         )
       elseif type_name in ["WeightLattice", "WeylGroup"]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => dict[:data][:root_system]
         )
       elseif type_name == "MPolyQuoRing"
         ord_data = dict[:data][:ordering]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
           :params => Dict(
             :base_ring => ord_data[:_type][:params],
@@ -521,15 +520,15 @@ push!(upgrade_scripts_set, UpgradeScript(
         ord_data[:data][:internal_ordering] = ord_data[:data][:internal_ordering][:data]
         ord_data[:data][:internal_ordering][:vars] = ord_data[:data][:internal_ordering][:vars][:data]
         ord_data[:data][:internal_ordering][:ordering_symbol_as_type] = ord_data[:data][:internal_ordering][:ordering_symbol_as_type][:data]
-        upgraded_dict[:data] = Dict(
+        dict[:data] = Dict(
           :ordering => ord_data[:data],
           :modulus => dict[:data][:modulus][:data]
         )
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
-      upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
+      dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
 
-    return upgraded_dict
+    return dict
   end
 ))
