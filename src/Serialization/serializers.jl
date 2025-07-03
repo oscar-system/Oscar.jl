@@ -165,7 +165,7 @@ end
 
 function handle_refs(s::SerializerState)
   if !isempty(s.refs) 
-    save_data_dict(s, refs_key) do
+    save_data_dict(s, :_refs) do
       for id in s.refs
         ref_obj = global_serializer_state.id_to_obj[id]
         s.key = Symbol(id)
@@ -257,10 +257,7 @@ end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
-  refs = nothing
-  if haskey(obj, refs_key)
-    refs = obj[refs_key]
-  end
+  refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
