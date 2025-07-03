@@ -79,11 +79,39 @@ TropicalCurve
 TropicalHypersurface
 ```
 
+
+## Listing all serializable types of the current session
+
+If you are curious about whether your type can already be serialized given your version of Oscar
+you can run the following command in your active session.
+
+```@setup oscar
+using Oscar
+```
+
+```@repl oscar
+Oscar.reverse_type_map
+```
+
+
+## Type Parameters
+
+The `TypeParams` type is used internally, and is a struct for the type and the parameters needed to serialize an object. 
+The parameters needed to serialize OSCAR types are not necessarily the same as the parameters of the type itself.
+For example, an `MPolyRingElem{QQField}` is a type that is parametrized by the type of it's coefficients, however
+the parameter needed for serializing is it's parent.
+Since it can be useful for users to create them when overriding parameters on load we include a small section here.
+
+```@docs
+type_params
+```
+
 ## Container Types
-The container types used for storing and organizing data of the types listed above can also be serialized. 
-There are some caveats, for example when constructing a `Vector` with entries of different types, julia will use `typejoin` to find the closest common ancestor among the types.
+We use the name container types to refer to the types `Vector`, `Tuple`, `NamedTuple`, `Set`, `Dict` and `Matrix`. 
+Serializing container types that contain serializable OSCAR types is also possible.
+However, there are some caveats. The main issue Constructing a `Vector` with entries of different types, julia will use `typejoin` to find the closest common ancestor among the types.
 This may result in a type that can no longer be serialized as a `Vector`, this is due to the fact that the type parameters for serialization are not necessarily the type parameters for the data. 
-To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry. 
+To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry separately. 
 Storing `Dict` types depends on the key and value types, for example if the keys are either `String`, `Symbol` or `Int` then the type parameters for the value may vary by key. 
 In the other cases the type parameters for the keys and the values must be the same for all keys and values.
 
@@ -99,28 +127,7 @@ Vector{RingElem} (alias for Array{RingElem, 1})
 
 julia> save("/path/to/file.mrdi", [t, x, y])
 ERROR: ArgumentError: Not all type parameters of Vector or Matrix entries are the same, consider using a Tuple for serialization
-
 ...
 ```
 
-## Type Parameters
-
-The `TypeParams` type is used internally, and is a container struct for the type and the parameters need to serialize an object. Since it can be useful for users to create them when overriding parmaeters on load we include a small section here.
-
-```@docs
-type_params
-```
-
-## Listing all serializable types of the current session
-
-If you are curious about whether your type can already be serialized given your version of Oscar
-you can run the following command in your active session.
-
-```@setup oscar
-using Oscar
-```
-
-```@repl oscar
-Oscar.reverse_type_map
-```
 

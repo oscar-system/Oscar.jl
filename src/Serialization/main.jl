@@ -174,20 +174,19 @@ type(tp::TypeParams) = tp.type
 Returns the parameters needed for the serialization of `T` as a `TypeParams`,
 
 # Example
-```
+```jldoctest
 julia> R1, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
-julia> save("/path/to/file.mrdi", [x^2, x - y])
+julia> save("/tmp/example.mrdi", [x^2, x - y])
 
 julia> R2, (s, t) = graded_polynomial_ring(QQ, [:s, :t])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[s, t])
 
-julia> load("/path/to/file.mrdi"; params=Oscar.type_params([s, t]))
+julia> load("/tmp/example.mrdi"; params=Oscar.type_params([s, t]))
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  s^2
  s - t
-
 ```
 """
 type_params(obj::T) where T = TypeParams(T, nothing)
