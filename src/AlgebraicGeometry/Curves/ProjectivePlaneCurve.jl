@@ -22,6 +22,7 @@ Projective plane curve
   function ProjectivePlaneCurve(X::ProjectiveAlgebraicSet{S,T}, check::Bool=true) where {S,T}
     @check begin
       dim(X) == 1 || error("not of dimension one")
+      is_equidimensional(X) || error("not equidimensional")
       dim(ambient_space(X)) == 2 || error("not a plane curve")
     end
     new{S,T}(X)
@@ -40,7 +41,7 @@ end
 
 
 
-ProjectivePlaneCurve(I::MPolyIdeal{<:MPolyDecRingElem}; kwargs...) = ProjectivePlaneCurve(algebraic_set(eq; kwargs...))
+ProjectivePlaneCurve(I::MPolyIdeal{<:MPolyDecRingElem}; kwargs...) = ProjectivePlaneCurve(algebraic_set(I; kwargs...))
 
 plane_curve(I::MPolyIdeal{<:MPolyDecRingElem};kwargs...) = ProjectivePlaneCurve(I; kwargs...)
 plane_curve(eq::MPolyDecRingElem{<:FieldElem}; kwargs...) = ProjectivePlaneCurve(eq; kwargs...)
