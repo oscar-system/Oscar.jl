@@ -476,8 +476,15 @@ degree: 0  1
 
 ```
 """
-function minimize(c::FreeResolution)
-  @assert is_graded(c[-1]) || (is_known(is_local, base_ring(c[-1])) && is_local(base_ring(c[-1]))) "complex does not consist of graded modules or modules over a local ring"
+function minimize(c::FreeResolution; check::Bool=true)
+  # The following assertion is a bit complicated. 
+  # This method is allowed for graded modules and modules over 
+  # local rings. Checking for being graded is cheap, but checking 
+  # for being a local ring is not. Hence the latter checks must be 
+  # behind an @check, but the gradedness check not. 
+  if !is_graded(c[-1]) 
+    @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
+  end
   return simplify(c)
 end
 
