@@ -388,6 +388,7 @@ export chief_series, has_chief_series, set_chief_series
 export chow_ring
 export circuits
 export class_group
+export class_group_with_map
 export class_lengths
 export class_multiplication_coefficient
 export class_names

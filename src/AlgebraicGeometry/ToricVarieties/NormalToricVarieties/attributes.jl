@@ -745,8 +745,35 @@ julia> class_group(p2)
 Z
 ```
 """
-@attr FinGenAbGroup class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
+class_group(v::NormalToricVarietyType) = class_group_with_map(v)[1]
 
+
+@doc raw"""
+    class_group_with_map(v::NormalToricVarietyType)
+
+Return the class group of the normal toric variety `v` together with the map from the torus
+invariant Weil Divisor group into the class group.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> class_group_with_map(p2)
+(Z, Map: Z^3 -> Z)
+```
+"""
+@attr Tuple{FinGenAbGroup, FinGenAbGroupHom} function class_group_with_map(v::NormalToricVarietyType)
+  map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
+  map2 = inv(snf(codomain(map1))[2])
+  map_into_cl = map1*map2  
+  # Until August 2025, class_group was an attributed and has been serialized. The following tries to ensure consistency in this case.
+  # If there were no .mrdi files with :class_group serialized, then it should be possible to remove the following if block without causing any errors.
+  if has_attribute(v, :class_group)
+    cg = get_attribute(v, :class_group)
+    map_into_cl = map_into_cl * hom(codomain(map2), cg, gens(cg))
+  end
+  return codomain(map_into_cl), map_into_cl
+end
 
 @doc raw"""
     map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -763,18 +790,7 @@ Map
   to Z
 ```
 """
-@attr FinGenAbGroupHom function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
-    map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
-    map2 = inv(snf(codomain(map1))[2])
-    # we cannot call class_group unless the attribute exists
-    # but we need to make sure to have the correct codomain if it does exist
-    if has_attribute(v, :class_group)
-      cg = class_group(v)
-      return map1*map2*hom(codomain(map2), cg, gens(cg))
-    else
-      return map1*map2
-    end
-end
+map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType) = class_group_with_map(v)[2]
 
 
 @doc raw"""
@@ -965,7 +981,8 @@ Map
 @attr FinGenAbGroupHom function map_from_picard_group_to_class_group(v::NormalToricVarietyType)
     f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
     g = snf(domain(f))[2] * f
-    return hom(picard_group(v), class_group(v), matrix(g))
+    cl = class_group_with_map(v)[1]
+    return hom(picard_group(v), cl, matrix(g))
 end
 
 

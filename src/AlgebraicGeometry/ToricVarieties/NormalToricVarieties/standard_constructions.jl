@@ -59,8 +59,9 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
   variety = NormalToricVariety(pm_object)
   weights = matrix(ZZ,ones(Int,d+1,1))
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
-  set_attribute!(variety, :class_group, free_abelian_group(1))
-  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  my_g = free_abelian_group(1)
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+  set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   return variety
 end
 
@@ -85,8 +86,9 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) whe
   variety = NormalToricVariety(pmntv)
   weights = matrix(ZZ,hcat(w))
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
-  set_attribute!(variety, :class_group, free_abelian_group(1))
-  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  my_g = free_abelian_group(1)
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+  set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   return variety
 end
 
@@ -107,9 +109,10 @@ function hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
   cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
   variety = normal_toric_variety(cones, fan_rays; non_redundant = true)
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
-  set_attribute!(variety, :class_group, free_abelian_group(2))
+  my_g = free_abelian_group(2)
   weights = matrix(ZZ, [1 0; 0 1; 1 0; r 1])
-  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+  set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   vars = ["t1", "x1", "t2", "x2"]
   set_coordinate_names(variety, vars)
   return variety
@@ -152,18 +155,21 @@ function del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
   end
   variety = normal_toric_variety(cones, fan_rays; non_redundant = true)
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(b+3))
-  set_attribute!(variety, :class_group, free_abelian_group(b+1))
+  my_g = free_abelian_group(b+1)
   if b == 1
     weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+    set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   end
   if b == 2
     weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+    set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   end
   if b == 3
     weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), my_g, weights))
+    set_attribute!(variety, :class_group_with_map, (my_g, hom(torusinvariant_weil_divisor_group(variety), my_g, weights)))
   end
   vars = ["x1", "x2", "x3", "e1", "e2", "e3"]
   set_coordinate_names(variety, vars[1:(3 + b)])
@@ -369,8 +375,8 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix)
 
   # set the attributes and return the variety
   set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
-  set_attribute!(variety, :class_group, G2)
   set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
+  set_attribute!(variety, :class_group_with_map, (G2, map))
   return variety
 end
 normal_toric_variety_from_glsm(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = normal_toric_variety_from_glsm(matrix(ZZ, charges))
@@ -437,8 +443,8 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix)
   # set the map from Div_T -> Cl to the desired matrix
   for v in varieties
     set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
-    set_attribute!(v, :class_group, G2)
     set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
+    set_attribute!(variety, :class_group_with_map, (G2, map))
   end
 
   # return the varieties
