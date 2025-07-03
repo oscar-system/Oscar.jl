@@ -2051,7 +2051,7 @@ function _get_pos_entropy_element(gensAutL)
   f = first(gensAutL)^0
   n = nrows(f)
   n<= 4 || error("not implemented")
-  for i in 1:20
+  while true
     Gnew = []
     for g in G
       for h in gensAutL
@@ -2064,7 +2064,6 @@ function _get_pos_entropy_element(gensAutL)
     end
     G = Gnew
   end
-  @assert false
 end
 
 function is_virtually_abelian(L::ZZLat, gensAutL)
