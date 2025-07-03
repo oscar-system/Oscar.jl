@@ -85,7 +85,7 @@ There are some caveats, for example when constructing a `Vector` with entries of
 This may result in a type that can no longer be serialized as a `Vector`, this is due to the fact that the type parameters for serialization are not necessarily the type parameters for the data. 
 To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry. 
 Storing `Dict` types depends on the key and value types, for example if the keys are either `String`, `Symbol` or `Int` then the type parameters for the value may vary by key. 
-In the other cases the type parameters for the keys and the values must be the same for all keys and values.
+In the other cases the type parameters for all keys must be equal, and likewise all values must have equal type parameters."
 
 ```
 julia> Qxy, (x, y) = QQ[:x, :y]
@@ -105,7 +105,10 @@ ERROR: ArgumentError: Not all type parameters of Vector or Matrix entries are th
 
 ## Type Parameters
 
-The `TypeParams` type is used internally, and is a container struct for the type and the parameters need to serialize an object. Since it can be useful for users to create them when overriding parmaeters on load we include a small section here.
+The `TypeParams` type is used internally, and is a container struct for the
+type and the parameters needed to serialize an object. Since it can be useful
+for users to create them when overriding parameters on load we include a small
+section here.
 
 ```@docs
 type_params
