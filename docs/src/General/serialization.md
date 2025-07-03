@@ -90,7 +90,7 @@ using Oscar
 ```
 
 ```@repl oscar
-Oscar.reverse_type_map
+Oscar.Serialization.reverse_type_map
 ```
 
 
