@@ -191,6 +191,7 @@ Projective rational point
 with coordinates (0 : 0 : 1)
 
 julia> tangent_lines(C, P);
+```
 """
 function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || error("The point is not on the curve.")
