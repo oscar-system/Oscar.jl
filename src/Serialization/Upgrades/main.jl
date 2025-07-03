@@ -60,8 +60,7 @@ const upgrade_scripts_set = Set{UpgradeScript}()
     upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
 
 `upgrade_data` is a helper function that provides functionality for
-recursing on the tree structure. It is independent of any particular
-file format version and can be used in any upgrade script.
+recursing on the tree structure. Used for upgrades up to 0.12.2
 """
 function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   s.nested_level += 1
