@@ -81,7 +81,7 @@ end
 function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, Vector{Tuple{Int, Int}}}; context = nothing)
   f = a.first
   x = symbols(base_ring(parent(f)))
-  e = generator_symbols(parent(f))
+  e = symbols(parent(f))
   s = Expr(:call, :+)
   for (i, j) in a.second
     prod = Expr(:call, :*)

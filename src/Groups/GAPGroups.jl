@@ -412,7 +412,25 @@ Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::GAPGroupElem)
+  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+end
+
+function Base.show(io::IO, x::FPGroupElem)
+  s = String(GAPWrap.StringViewObj(GapObj(x)))
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    screenwidth -= 3 # leave some space for indentation
+    if length(s) > screenwidth
+      if is_unicode_allowed()
+        s = s[1:screenwidth-1] * "…"
+      else
+        s = s[1:screenwidth-3] * "..."
+      end
+    end
+  end
+  print(io, s)
+end
 
 # Printing GAP groups
 function Base.show(io::IO, G::GAPGroup)
@@ -2173,7 +2191,7 @@ function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimg
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  l = _exponent_vector(g)
+  l = exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2291,17 +2309,6 @@ julia> syllables(epi(F1^5*F2^-3))
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
-end
-
-function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
-  gX = GapObj(g)
-  G = parent(g)
-  GX = GapObj(G)
-  if GAPWrap.IsPcGroup(GX)
-    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
-  end
 end
 
 function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})

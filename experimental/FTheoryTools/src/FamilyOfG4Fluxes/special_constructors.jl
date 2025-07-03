@@ -1,5 +1,5 @@
 @doc raw"""
-    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
 Compute a family of G4-fluxes with specified properties for a given F-theory model `m`,
 defined as a hypersurface in a simplicial and complete toric ambient space.
@@ -208,9 +208,9 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
 
 
   # (2) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   S = cox_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
@@ -348,9 +348,9 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = basis_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
    # TODO: This line is a bit fragile. Fix it!
   exceptional_divisor_positions = exceptional_divisor_indices(m)

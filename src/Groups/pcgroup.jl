@@ -473,6 +473,218 @@ function pc_group(c::GAP_Collector)
 end
 
 """
+    exponent_vector(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the exponent vector of `g` as an instance of the type `Vector{T}`,
+each entry corresponding to a group generator.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> exponent_vector(x)
+2-element Vector{ZZRingElem}:
+ -3
+ 2
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> exponent_vector(x)
+2-element Vector{ZZRingElem}:
+ 1
+ 2
+```
+"""
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem}) = exponent_vector(ZZRingElem, g)
+
+function exponent_vector(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return Vector{T}(GAPWrap.Exponents(gObj))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    return Vector{T}(GAPWrap.ExponentsOfPcElement(pcgs, gObj))
+  end
+end
+
+"""
+    relative_order(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the relative order of `g` as an instance of the type `T`,
+with respect to the defining generators. For generators with infinite order, we return 0.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> relative_order(x)
+0
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> relative_order(x)
+2
+```
+"""
+relative_order(g::Union{PcGroupElem,SubPcGroupElem}) = relative_order(ZZRingElem, g)
+
+function relative_order(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return T(GAPWrap.RelativeOrder(gObj))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    return T(GAPWrap.RelativeOrderOfPcElement(pcgs, gObj))
+  end
+end
+
+"""
+    depth(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the depth of `g` as integer, relative to the defining generators.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> depth(x)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> depth(x)
+1
+```
+"""
+function depth(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return GAPWrap.Depth(gObj)
+  else # finite PcGroup
+    return GAPWrap.DepthOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+end
+
+"""
+    leading_exponent(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the leading exponent of `g` as an instance of the type `T`,
+relative to the defining generators. Throws an error if `g` is the neutral element.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> leading_exponent(x)
+-3
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> leading_exponent(x)
+1
+```
+"""
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem}) = leading_exponent(ZZRingElem, g)
+
+function leading_exponent(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  exp = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.LeadingExponent(gObj)
+  else # finite PcGroup
+    GAPWrap.LeadingExponentOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+
+  # if GAP returns fail, error otherwise exp
+  return exp == GAP.Globals.fail ? error("element has no leading exponent") : T(exp)
+end
+
+"""
+    hirsch_length(G::PcGroup)
+
+Return the Hirsch length of `G`.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> hirsch_length(g)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> hirsch_length(gg)
+0
+```
+"""
+function hirsch_length(G::PcGroup)
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    return GAPWrap.HirschLength(GG)
+  else # finite PcGroup
+    return 0
+  end
+end
+
+"""
     letters(g::Union{PcGroupElem, SubPcGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to

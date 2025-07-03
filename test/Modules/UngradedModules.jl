@@ -312,6 +312,31 @@ end
   M = SubquoModule(M1, M2)
   fr = free_resolution(M, length = 9)
   @test all(iszero, homology(fr)[2:end])
+
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM1 = free_resolution(M, length = 2)
+  FM1[4]
+  @test all(iszero, homology(FM1))
+  FM2 = free_resolution(M, length = 2, algorithm = :mres)
+  FM2[4]
+  @test all(iszero, homology(FM2))
+  FM3 = free_resolution(M, length = 2, algorithm = :nres)
+  FM3[4]
+  @test all(iszero, homology(FM3))
+
+  R, (v, w, x, y, z) = polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  U = complement_of_point_ideal(R, [0, 0, 0, 0, 0]);
+  RL, _ = localization(R, U);
+  I = ideal(RL, [v, w,x, y, z])
+  MI = ideal_as_module(I)
+  FMI = free_resolution_via_kernels(MI)
+  @test !is_complete(FMI) # Caveat: If this will change, add another test for length using a free resolution function not setting the complete key.
+  @test length(FMI) == 4
 end
 
 @testset "Prune With Map" begin
@@ -1242,7 +1267,7 @@ end
   @test length(FA.C.maps) == 9
 end
 
-@testset "vector_space_dimension and vector_space_basis" begin
+@testset "vector_space_dim and vector_space_basis" begin
   Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
   U=complement_of_point_ideal(R,[0,0,0,0])
@@ -1250,8 +1275,8 @@ end
   Floc = free_module(RL,2)
   v = gens(Floc)
   Mloc, _=quo(Floc,[x*v[1],y*v[1],z*v[1],w^2*(w+1)^3*v[1],v[2]])
-  @test vector_space_dimension(Mloc) == 2
-  @test vector_space_dimension(Mloc,1) == 1
+  @test vector_space_dim(Mloc) == 2
+  @test vector_space_dim(Mloc,1) == 1
   @test length(vector_space_basis(Mloc)) == 2
   @test length(vector_space_basis(Mloc,0)) == 1
 end
@@ -1401,6 +1426,17 @@ end
   @test all(i*conj_S1(x) == conj_S1(-i*x) for x in gens(S1))
   @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
   @test conj_S1 == compose(id_S1, conj_S1)
+end
+
+@testset "check exactness for mres" begin
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM2 = free_resolution(M, algorithm = :mres)
+  @test all(iszero, homology(FM2))
 end
 
 @testset "Modules over ZZ and QQ" begin

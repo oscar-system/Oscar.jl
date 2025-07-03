@@ -873,7 +873,13 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   if has_attribute(m, :arxiv_id)
     if resolution_index == 1 && arxiv_id(m) == "1511.03209"
       model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      return load(model_data_path)
+      model = load(model_data_path)
+      # Modify attributes, see PR #5031 for details
+      set_attribute!(model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface))
+      set_attribute!(model, :gens_of_h22_hypersurface_indices, get_attribute(model, :basis_of_h22_hypersurface_indices))
+      delete!(model.__attrs, :basis_of_h22_hypersurface)
+      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
+      return model
     end
   end
 

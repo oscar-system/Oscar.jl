@@ -163,7 +163,7 @@ julia> tjurina_number(f)
 function tjurina_number(f::MPolyRingElem)
   isa(coefficient_ring(f), AbstractAlgebra.Field) || error("The polynomial requires a coefficient ring that is a field.")
   R = tjurina_algebra(f)
-  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
+  return dim(modulus(R)) <= 0 ? vector_space_dim(R) : PosInf()
 end
 
 @doc raw"""
@@ -189,7 +189,7 @@ julia> tjurina_number(X)
 """
 function tjurina_number(X::AffineScheme{<:Field,<:MPolyQuoRing}) 
   R = tjurina_algebra(X)
-  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
+  return dim(modulus(R)) <= 0 ? vector_space_dim(R) : PosInf()
 end
 
 
@@ -215,7 +215,7 @@ julia> tjurina_number(X)
 function tjurina_number(X::HypersurfaceGerm, k::Integer = 0)                                    
   # Fix for infinite dimensional vector space
   R = tjurina_algebra(X, k)
-  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
+  return dim(modulus(R)) <= 0 ? vector_space_dim(R) : PosInf()
 end
 
 
@@ -501,7 +501,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
     I = m*a + m^2*jacobian_ideal(a)
   end
   G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gens.S)
+  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
   l = total_degree(R(h))  
   ## m^(l+1) \subseteq I  
   ## char. 0: l
@@ -562,14 +562,14 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   d = dim(modulus(A))
   d == dim(modulus(B)) || return false
   if d <= 0
-    n = vector_space_dimension(A)
-    n == vector_space_dimension(B) || return false
+    n = vector_space_dim(A)
+    n == vector_space_dim(B) || return false
     n != 0 || return true
     n != 1 || return true
   else
     n = PosInf()
   end     
-  ## calculate bases and check if A and B have the same vector_space_dimension modulo m^k
+  ## calculate bases and check if A and B have the same vector_space_dim modulo m^k
   k = 1
   mA = ideal(A, gens(A))
   mB = ideal(B, gens(B))
@@ -703,7 +703,7 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   a = numerator(f_poly)
   I = m*a + m^2*jacobian_ideal(a)
   G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gens.S)
+  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
   k = 2*(total_degree(R(h)) + 1 - ord_f)
   ## check k-th tjurina number
   tjurina_number(f_poly, k) == tjurina_number(g_poly, k) || return false
@@ -826,7 +826,7 @@ julia> tjurina_number(X)
 ```
 """
 function tjurina_number(X::CompleteIntersectionGerm)
-  d = vector_space_dimension(tjurina_module(X))
+  d = vector_space_dim(tjurina_module(X))
   return d == -1 ? PosInf() : d
 end
 

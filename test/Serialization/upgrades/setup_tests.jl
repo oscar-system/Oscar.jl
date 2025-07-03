@@ -25,7 +25,7 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
       type_str = split(dir_name, "-")[1]
       type_str in exclude_types && continue
       !isnothing(only) && !(type_str in only_types) && !(haskey(only_type_ids, type_str)) && continue
-      T = Oscar.reverse_type_map[type_str]
+      T = Oscar.Serialization.reverse_type_map[type_str]
       @testset "$T" begin
         for filename in readdir(joinpath(type_folders, dir_name))
           if haskey(exclude_type_ids, type_str)

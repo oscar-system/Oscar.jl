@@ -1263,6 +1263,15 @@ The theory guarantees that the implemented algorithm works for toric ambient spa
 smooth and complete. The check for completeness can be very time consuming. This check can
 be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
 
+!!!warning
+    This method works ONLY for F-theory models which are hypersurfaces in a toric ambient space.
+  
+!!!warning
+    This method represents the Chern classes of said hypersurface by cohomology classes on the toric ambient space.
+    These classes counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
+    Internally, we integrate those ambient space classes against the class of the hypersurface, which automatically
+    executes the restriction to the hypersurface.
+
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -1282,21 +1291,24 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
-  # CAREFUL: The code below works ONLY for hypersurfaces in toric spaces.
-  # CAREFUL: It represents the Chern classes of the hypersurface by - so I believe canonical - counterparts in the toric ambient space.
-  # CAREFUL: Those counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
-  # CAREFUL: Currently, we only integrate those Chern classes against the hypersurface, which automatically executes the restriction in question.
-
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
-    cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
-    cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
+    cs = Dict{Int64, CohomologyClass}()
+    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)), quick = true)
     diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
-    coeffs_list = coefficients(toric_divisor(toric_divisor_class(ambient_space(m), diff)))
-    indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
-    poly = sum(QQ(coeffs_list[k]) * indets[k] for k in 1:length(indets))
-    cs[2] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
+    cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
     set_attribute!(m, :chern_classes, cs)
+    if k == 0
+      return cs[0]
+    elseif k == 1
+      return cs[1]
+    end
+  end
+
+  # Check if the Chern class in question is known
+  cs = get_attribute(m, :chern_classes)::Dict{Int64, CohomologyClass}
+  if haskey(cs, k)
+    return cs[k]
   end
 
   # Check if we can compute the Chern classes for the toric ambient space
@@ -1304,25 +1316,15 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
     @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
 
-  # Check if the Chern class in question is known
-  cs = get_attribute(m, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
-  if cs[k+1] !== nothing
-    return cs[k+1]::CohomologyClass
-  end
   # Chern class is not known, so compute and return it...
-  #cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-  #cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
-  d = toric_divisor(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))))
-  indets = [lift(g) for g in gens(cohomology_ring(ambient_space(m), check = check))]
-  coeff_ring = coefficient_ring(ambient_space(m))
-  poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
-  cy = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(poly), true)
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))), quick = true)
   ck_ambient = chern_class(ambient_space(m), k, check = check)
   ckm1 = chern_class(m, k-1, check = check)
   new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
-  cs[k+1] = CohomologyClass(ambient_space(m), cohomology_ring(ambient_space(m), check = check)(new_poly), true)
+  coho_R = cohomology_ring(ambient_space(m), check = check)
+  cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), quick = true)
   set_attribute!(m, :chern_classes, cs)
-  return cs[k+1]
+  return cs[k]
 end
 
 
@@ -1349,13 +1351,13 @@ Hypersurface model over a concrete base
 
 julia> h = chern_classes(qsm_model; check = false);
 
-julia> is_one(polynomial(h[1]))
+julia> is_one(polynomial(h[0]))
+true
+
+julia> is_trivial(h[1])
 true
 
 julia> is_trivial(h[2])
-true
-
-julia> is_trivial(h[3])
 false
 ```
 """
@@ -1363,7 +1365,10 @@ function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
-  return [chern_class(m, k, check = check) for k in 0:dim(ambient_space(m))-1]
+  for k in 0:dim(ambient_space(m))-1
+    chern_class(m, k; check = check)
+  end
+  return get_attribute(m, :chern_classes)::Dict{Int64, CohomologyClass}
 end
 
 
@@ -1727,7 +1732,9 @@ we may use the coordinates xi as labels for the curves Ci.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(genera_of_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(genera_of_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> genera_of_ci_curves(qsm_model)[my_key]
@@ -1752,7 +1759,9 @@ this line bundle for every Ci curve.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> degrees_of_kbar_restrictions_to_ci_curves(qsm_model)[my_key]
