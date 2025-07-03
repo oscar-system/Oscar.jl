@@ -361,7 +361,8 @@ julia> C = cyclic_group(2)
 Pc group of order 2
 
 julia> A = automorphism_group(Q)
-Aut( <pc group of size 8 with 3 generators> )
+Automorphism group of
+  pc group of order 8
 
 julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
 [ x, y ] -> [ x*y2, y*y2 ]
@@ -369,7 +370,7 @@ julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
 julia> f = hom(C,A,[C[1]],[au])
 Group homomorphism
   from pc group of order 2
-  to aut( <pc group of size 8 with 3 generators> )
+  to automorphism group of pc group of order 8
 
 julia> G = semidirect_product(Q,f,C)
 SemidirectProduct( <pc group of size 8 with 3 generators> , <pc group of size 2 with 1 generator> )

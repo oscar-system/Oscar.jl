@@ -440,7 +440,8 @@ julia> C = cyclic_group(20)
 Pc group of order 20
 
 julia> S = automorphism_group(C)
-Aut( <pc group of size 20 with 3 generators> )
+Automorphism group of
+  pc group of order 20
 
 julia> H, _ = sub(C, [gens(C)[1]^4])
 (Sub-pc group of order 5, Hom: H -> C)
