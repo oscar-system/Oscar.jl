@@ -139,12 +139,10 @@ function _projective_jacobian_criterion(P::AbsProjectiveScheme{<:Ring, <:MPolyQu
 end
 
 @doc raw"""
-    singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}) -> MPolyIdeal
+    singular_locus(P::AbsProjectiveScheme) -> AbsProjectiveScheme
 
 Given an equidimensional projective scheme, returns the possibly
-nonreduced subscheme of projective space corresponding to the ideal
-describing the singular locus, saturated with respect to the irrelevant
-ideal.
+nonreduced subscheme of projective space describing the singular locus.
 
 The algorithm first checks for equidimensionality, which can be expensive.
 If you already know that the scheme is equidimensional, then you can
