@@ -1982,6 +1982,11 @@ end
 end
 
 function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
-  return has_attribute(Q, :is_local)
+  has_attribute(Q, :is_local) && return true
+  return false
+end
+
+function is_known(::typeof(dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(dim, modulus(Q))
 end
 
