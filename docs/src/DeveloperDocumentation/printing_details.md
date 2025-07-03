@@ -24,22 +24,32 @@ Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
 ```julia-repl
 julia> [X,X]
 3-element Vector{TypeofX{T}}
-one line
-one line
-one line
+ one line
+ one line
+ one line
 ```
 
 #### An Example for the 2 + 1 print modes
+
+detailed mode:
+```jldoctest
+julia> E = elliptic_curve(QQ, [-82, 0])
+Elliptic curve
+  over rational field
+with equation
+  y^2 = x^3 - 82*x
 ```
-# detailed
-General linear group of degree 24
-  over Finite field of degree 7 over GF(29)
 
-# one line
-General linear group of degree 24 over GF(29^7)
+one line mode:
+```jldoctest
+julia> println(E)
+Elliptic curve over QQ with equation y^2 = x^3 - 82*x
+```
 
-# terse
-General linear group
+terse mode:
+```jldoctest
+julia> println(Oscar.terse(stdout),E)
+Elliptic curve
 ```
 
 The print modes are specified as follows
@@ -72,7 +82,7 @@ The print modes are specified as follows
 Here is the translation between `:detail`, `one line` and `terse`,
 where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
 
-```
+```julia
 show(io, MIME"text/plain"(), x)                # detailed printing
 print(io, x)                                   # one line printing
 print(terse(io), x)                            # terse printing
