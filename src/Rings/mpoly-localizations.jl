@@ -2653,18 +2653,18 @@ true
 end
 
 @attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
-  return dim(saturated_ideal(I))
+  return krull_dim(saturated_ideal(I))
 end
 
 @attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
-  return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
+  return krull_dim(saturated_ideal(I)) - krull_dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
 @attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
-  return dim(leading_ideal(J, ordering=oo))
+  return krull_dim(leading_ideal(J, ordering=oo))
 end
 
 dim(I::MPolyLocalizedIdeal) = krull_dim(I)
