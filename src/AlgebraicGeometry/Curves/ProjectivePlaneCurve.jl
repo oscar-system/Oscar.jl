@@ -124,6 +124,24 @@ end
     multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
 
 Return the multiplicity of `C` at `P`.
+
+# Examples
+```jldoctest 
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
+Projective plane curve
+  defined by 0 = x^5*y - x*y^4*z
+
+julia> P = C([0,0,1])
+Projective rational point
+  of V(x^5*y - x*y^4*z)
+with coordinates (0 : 0 : 1)
+
+julia> multiplicity(C, P)
+5
+
+```
 """
 function multiplicity(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || return 0
@@ -158,6 +176,21 @@ end
     tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
+Projective plane curve
+  defined by 0 = x^5*y - x*y^4*z
+
+julia> P = C([0,0,1])
+Projective rational point
+  of V(x^5*y - x*y^4*z)
+with coordinates (0 : 0 : 1)
+
+julia> tangent_lines(C, P);
 """
 function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || error("The point is not on the curve.")
