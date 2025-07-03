@@ -171,7 +171,7 @@ type(tp::TypeParams) = tp.type
 @doc """
     type_params(obj::T) where T
 
-Returns the parameters needed for the serialization of `T` as a `TypeParams`,
+Return the parameters needed for the serialization of `T` as a `TypeParams`.
 
 # Example
 ```jldoctest

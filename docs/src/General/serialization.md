@@ -109,11 +109,11 @@ type_params
 ## Container Types
 We use the name container types to refer to the types `Vector`, `Tuple`, `NamedTuple`, `Set`, `Dict` and `Matrix`. 
 Serializing container types that contain serializable OSCAR types is also possible.
-However, there are some caveats. The main issue Constructing a `Vector` with entries of different types, julia will use `typejoin` to find the closest common ancestor among the types.
-This may result in a type that can no longer be serialized as a `Vector`, this is due to the fact that the type parameters for serialization are not necessarily the type parameters for the data. 
-To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry separately. 
+However, there are some caveats. Although your data type might be a `Vector` of an OSCAR type say `Vector{MPolyRingElem}`, this type might not be serializable.
+To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry separately, this is the recommended way of serializing collections of types
+with different `TypeParams`. 
 Storing `Dict` types depends on the key and value types, for example if the keys are either `String`, `Symbol` or `Int` then the type parameters for the value may vary by key. 
-In the other cases the type parameters for the keys and the values must be the same for all keys and values.
+In the other cases the type parameters for all keys must be equal, and likewise all values must have equal type parameters."
 
 ```
 julia> Qxy, (x, y) = QQ[:x, :y]
@@ -129,5 +129,3 @@ julia> save("/path/to/file.mrdi", [t, x, y])
 ERROR: ArgumentError: Not all type parameters of Vector or Matrix entries are the same, consider using a Tuple for serialization
 ...
 ```
-
-
