@@ -35,7 +35,7 @@ This section describes differences between GAP and Oscar.
     is used in Julia.
 
   - In GAP, `if` statements have the form
-    ```
+    ```gap
     if condition1 then
       statements1
     elif condition2 then
@@ -45,7 +45,7 @@ This section describes differences between GAP and Oscar.
     fi;
     ```
     whereas the Julia syntax is
-    ```
+    ```julia
     if condition1
       statements1
     elseif condition2
@@ -55,13 +55,13 @@ This section describes differences between GAP and Oscar.
     end
     ```
     Similarly, GAP's `for` loops have the form
-    ```
+    ```gap
     for var in list do
       statements
     od;
     ```
     whereas the Julia syntax is
-    ```
+    ```julia
     for var in list
       statements
     end
@@ -72,14 +72,14 @@ This section describes differences between GAP and Oscar.
 
   In GAP, the sum of a matrix (a list of lists) and a scalar is defined
   recursively as the pointwise sum.
-  ```
+  ```gap-repl
   gap> [ [ 1, 2 ], [ 3, 4 ] ] + 2;
   [ [ 3, 4 ], [ 5, 6 ] ]
   ```
   In Oscar, the sum of a matrix and a scalar is defined as the sum of
   the given matrix and the multiple of the identity matrix that is given
   by the scalar.
-  ```
+  ```julia-repl
   julia> matrix(ZZ, [1 2; 3 4]) + 2
   [3   2]
   [3   6]

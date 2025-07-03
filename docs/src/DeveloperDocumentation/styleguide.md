@@ -118,7 +118,7 @@ file, see <https://editorconfig.org> for more information about this.
 
 There is a `.JuliaFormatter.toml` in our git repository. To format your files,
 first add `JuliaFormatter.jl` in Julia and then use
-```
+```julia
 using JuliaFormatter
 format_file("path/to/file/file.jl")
 ```
@@ -332,14 +332,14 @@ matrix `A`, write `Oscar.parent(A)`.
 Sometimes it is necessary to rename a function or otherwise change it. To allow
 for backwards compatibility, please then introduce a new line in the file
 `src/deprecations.jl`. If the interface did not change, it is enough to write:
-```
+```julia
 # Deprecated after CURRENT_RELEASE_VERSION
 @deprecate old_function new_function
 ```
 It is possible to transform the arguments too, if the syntax has changed. If this
 process needs an auxiliary function, which otherwise is unnecessary, please add
 it above:
-```
+```julia
 # Deprecated after CURRENT_RELEASE_VERSION
 function transform_args_for_new_function(args)
     # Do something
@@ -349,7 +349,7 @@ end
 ```
 In simple cases (like changing the order of arguments), you don't need an
 auxiliary function:
-```
+```julia
 @deprecate old_function(arg1::Type1, arg2::Type2) new_function(arg2, arg1)
 ```
 
@@ -358,7 +358,7 @@ adding to `deprecations.jl` after a release, otherwise please add to the
 existing block.
 
 If you renamed a type and want to deprecate the old one, please add a line like
-```
+```julia
 Base.@deprecate_type OldType NewType
 ```
 This makes it still possible to use OldType in signatures and type annotations,

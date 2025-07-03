@@ -2056,7 +2056,8 @@ julia> degree(C)
 3
 
 ```
-```
+
+```jldoctest
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
@@ -2071,7 +2072,7 @@ julia> degree(C)
 
 ```
 
-```
+```jldoctest
 julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
