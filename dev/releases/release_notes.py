@@ -281,7 +281,7 @@ def main(new_version: str) -> None:
         # "major" OSCAR release which changes just the minor version
         release_type = 1
         previous_minor = minor - 1
-        basetag = f"v{major}.{minor}-dev"
+        basetag = f"{major}.{minor}dev"
         # *exclude* PRs backported to previous stable-1.X branch
         extra = f'-label:"backport {major}.{previous_minor}.x"'
     else:
@@ -292,25 +292,27 @@ def main(new_version: str) -> None:
         # *include* PRs backported to current stable-4.X branch
         extra = f'label:"backport {major}.{minor}.x"'
 
-    if old_version != "":
-        basetag = f"v{old_version}"
     if release_type == 2:
         startdate = get_tag_date(basetag)
     else:
-        # Find the date when the last version bump happened
-        # step 1 : find the PR number of the version bump
-        l = subprocess.run([
-            "gh",
-            "pr",
-            "list",
-            f'--search="Version 1.{minor}.0-dev"',
-            "--state=merged",
-            "--json=id,title,number,closedAt",
-        ], shell=False, capture_output=True)
-        j = list(json.loads(l.stdout.decode()))
-        startdate = [k['closedAt'] for k in j if f"1.{minor}.0-dev" in k['title'].lower()][0][0:10]
+        # Find the timestamp of the last shared commit
+        shared_commit = subprocess.run([
+            "git",
+            "merge-base",
+            basetag,
+            "master"
+        ], shell=False, capture_output=True).stdout.decode().strip()
+        timestamp = subprocess.run([
+            "git",
+            "show",
+            "-s",
+            "--format=\"%cI\"",
+            shared_commit
+        ], shell=False, capture_output=True).stdout.decode().strip().replace('"', '')
+        # date is first 10 characters of timestamp
+        startdate = timestamp[0:10]
     print("Base tag is", basetag)
-    print("Base tag was closed at ", startdate)
+    print("Last common commit at ", startdate)
 
     print("Downloading filtered PR list")
     prs = get_pr_list(startdate, extra)
