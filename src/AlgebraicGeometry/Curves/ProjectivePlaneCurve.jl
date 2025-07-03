@@ -132,8 +132,6 @@ Projective plane curve
   defined by 0 = x^3*z + x*y^3 + y*z^3
 
 julia> dual(C)
-I = Ideal with 4 generators
-J = Ideal with 1 generator
 Projective plane curve
   defined by 0 = 27*u0^10*u1^2 - 4*u0^9*u2^3 - 282*u0^7*u1^3*u2^2 + 42*u0^6*u1*u2^5 + 42*u0^5*u1^6*u2 + 651*u0^4*u1^4*u2^4 - 4*u0^3*u1^9 - 282*u0^3*u1^2*u2^7 
   - 282*u0^2*u1^7*u2^3 + 27*u0^2*u2^10 + 42*u0*u1^5*u2^6 + 27*u1^10*u2^2 - 4*u1^3*u2^9
