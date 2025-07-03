@@ -93,6 +93,43 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   return upgraded_dict
 end
 
+function recursive_upgrade(upgrade::Function, s::UpgradeState, dict::Dict)
+  # empty container types will need to be handled separately
+  isempty(dict[:data]) && return dict
+  
+  current_level_type = dict[:_type]
+  # we only recurse on container types and hence all their types
+  # will have a type that is a dict with keys :name, :params
+  if !isa(current_level_type, Dict)
+    return upgrade(s, dict)
+  elseif current_level_type[:name] == "Vector"
+    upgraded_vector = Dict{Symbol, Union{Vector, Dict, String}}[]
+    for entry in dict[:data]
+      push!(upgraded_vector,
+            upgrade(s, Dict(:_type => current_level_type[:params],
+                            :data => entry))
+            )
+    end
+    return Dict(:_type => Dict(:name => "Vector",
+                               :params => upgraded_vector[1][:_type]),
+                :data => upgraded_vector[1][:data])
+  elseif current_level_type[:name] == "Matrix"
+    upgraded_vector = Dict{Symbol, Union{Vector, Dict, String}}[]
+    for entry in dict[:data]
+      push!(upgraded_vector,
+            recursive_upgrade(upgrade, s,
+                              Dict(:_type => Dict(:name => "Vector",
+                                                  :params => current_level_type[:params]),
+                                   :data => entry))
+            )
+    end
+    return Dict(:_type => Dict(:name => "Matrix",
+                               :params => upgraded_vector[1][:_type][:params]),
+                :data => upgraded_vector[1][:data])
+
+  end
+end
+
 """
     rename_types(dict::Dict, renamings::Dict{String, String})
 
@@ -178,7 +215,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)
-          upgraded_refs = Dict()
+          upgraded_refs = Dict{Symbol, Dict{Dict{Symbol, Union{String, Dict, Vector}}}}()
           for (k, v) in upgraded_dict[:_refs]
             upgraded_refs[k] = upgrade_script(upgrade_state, v)
           end
