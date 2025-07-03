@@ -157,7 +157,8 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    jsonList = json.loads(res.stdout.strip())[::-1] # reverse the list
+    jsonList = json.loads(res.stdout.strip())
+    jsonList = sorted(jsonList, key=lambda d: d['number']) # sort by ascending PR number
     return jsonList
 
 
