@@ -26,7 +26,7 @@ newfile = f"{dirpath}/new.md"
 finalfile = f"{repopath}/CHANGELOG.md"
 
 def usage(name: str) -> None:
-    print(f"Usage: `{name} [NEWVERSION] [OLDVERSION]`")
+    print(f"Usage: `{name} [NEWVERSION]`")
     sys.exit(1)
 
 
@@ -271,7 +271,7 @@ which we think might affect some users directly.
         os.rename(newfile, finalfile)
 
 
-def main(new_version: str, old_version: str = "") -> None:
+def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
     extra = ""
     release_type = 0 # 0 by default, 1 for point release, 2 for patch release
@@ -343,9 +343,7 @@ if __name__ == "__main__":
         itag[-1] = str(int(itag[-1])+1)
         itag = ".".join(itag)
         main(itag)
-    elif len(sys.argv) == 3:
-        main(sys.argv[1], sys.argv[2])
-    elif len(sys.argv) >3:
+    elif len(sys.argv) != 2:
         usage(sys.argv[0])
     else:
         main(sys.argv[1])
