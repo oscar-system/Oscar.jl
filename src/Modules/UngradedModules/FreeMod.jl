@@ -197,6 +197,11 @@ dim(R::ZZRing) = 1                 # FIXME: remove this again
 number_of_generators(F::AbstractFreeMod) = rank(F)
 vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
 
+function dim(R::Union{zzModRing, ZZModRing}) # FIXME: remove this again
+  is_trivial(R) && return -inf
+  return 0
+end
+
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)
 
