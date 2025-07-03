@@ -515,7 +515,7 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from Sym(3)
+  from symmetric group of degree 3
   to pc group of order 6
 ```
 """
@@ -1301,7 +1301,7 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> typeof(S)
 PermGroup
@@ -1318,7 +1318,7 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -1340,7 +1340,7 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -1362,15 +1362,15 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -1414,15 +1414,15 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )

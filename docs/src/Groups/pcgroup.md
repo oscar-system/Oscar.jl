@@ -93,7 +93,7 @@ and let Oscar compute a pc presentation for it.
 
 ```jldoctest
 julia> g = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> iso = isomorphism(PcGroup, g);
 

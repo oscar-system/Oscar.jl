@@ -27,7 +27,7 @@ const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
 include("serializers.jl")
 
 const type_key = :_type
-const refs_key = :_refs
+
 ################################################################################
 # Meta Data
 
