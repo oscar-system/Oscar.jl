@@ -1794,17 +1794,22 @@ end
 end
 
 @testset "minimization of resolutions" begin
-
   R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
   A = R[x y z; y-1 z-1 x]
   I = ideal(R, minors(A, 2))
   Q, _ = quo(R, I)
+  @test !AbstractAlgebra.is_known(is_local, Q)
   M = quotient_ring_as_module(Q)
   res = free_resolution(M)
-  @test_throws AssertionError minimize(res)
+  @test_throws ErrorException minimize(res)
 
   U1 = complement_of_point_ideal(R, [0, 0, 0])
   L1, _ = localization(R, U1)
+  @test AbstractAlgebra.is_known(is_local, L1)
   M1, _ = change_base_ring(L1, M)
   res1 = free_resolution(M1)
   res1[3]
@@ -1813,6 +1818,7 @@ end
 
   U2 = complement_of_prime_ideal(ideal(R, gens(R)))
   L2, _ = localization(R, U2)
+  @test AbstractAlgebra.is_known(is_local, L2)
   M2, _ = change_base_ring(L2, M)
   res2 = free_resolution(M2)
   res2min = minimize(res2)
@@ -1824,9 +1830,10 @@ end
   M0, _ = change_base_ring(Q, M)
 
   res = free_resolution(M0; length=5)
-  @test_throws AssertionError minimize(res)
+  @test_throws ErrorException minimize(res)
 
   L1, _ = localization(Q, U1)
+  @test !AbstractAlgebra.is_known(is_local, L1)
   M1, _ = change_base_ring(L1, M)
   res1 = free_resolution(M1; length=5)
   res1[3]
@@ -1835,6 +1842,7 @@ end
 
   U2 = complement_of_prime_ideal(ideal(R, gens(R)))
   L2, _ = localization(Q, U2)
+  @test !AbstractAlgebra.is_known(is_local, L2)
   M2, _ = change_base_ring(L2, M)
   res2 = free_resolution(M2; length=5)
   res2min = minimize(res2)
