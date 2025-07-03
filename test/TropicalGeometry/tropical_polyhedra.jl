@@ -1,4 +1,6 @@
 @testset "TropicalPolyhedron{min}" begin
+  polymake_version = pkgversion(Polymake.polymake_jll)
+
   TT = tropical_semiring(min)
   pts1_a = TT[0 -1 0; 0 -4 -1]
   pts1_b = [
@@ -48,11 +50,11 @@
   @test ambient_dim(P2) == 2
   @test dim(P2) == 2
   # the following are unbroken with polymake v4.o4
-  @test_broken issetequal(vertices(P2), eachrow(pts2)) 
-  @test_broken n_vertices(P2) == 3
-  @test_broken is_bounded(P2) == false
-  @test_broken issetequal(pseudovertices(P2), [eachrow(pts2)...,TT.([0,-1,2])])
-  @test_broken n_pseudovertices(P2) == 4
+  @test issetequal(vertices(P2), eachrow(pts2)) broken=polymake_version < v"400.1400"
+  @test n_vertices(P2) == 3 broken=polymake_version < v"400.1400"
+  @test is_bounded(P2) == false broken=polymake_version < v"400.1400"
+  @test issetequal(pseudovertices(P2), [eachrow(pts2)...,TT.([0,-1,2])]) broken=polymake_version < v"400.1400"
+  @test n_pseudovertices(P2) == 4 broken=polymake_version < v"400.1400"
   @test maximal_covectors(P2) |> length == 1
   @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]])
 
@@ -74,10 +76,10 @@
   @test ambient_dim(P3) == 2
   @test dim(P3) == 2
   # the following are unbroken with polymake v4.14
-  @test_broken issetequal(vertices(P3), eachrow(pts3))
-  @test_broken n_vertices(P3) == 3
-  @test_broken issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.([0,1,3])])
-  @test_broken n_pseudovertices(P3) == 4 
+  @test issetequal(vertices(P3), eachrow(pts3)) broken=polymake_version < v"400.1400"
+  @test n_vertices(P3) == 3 broken=polymake_version < v"400.1400"
+  @test issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.([0,1,3])]) broken=polymake_version < v"400.1400"
+  @test n_pseudovertices(P3) == 4 broken=polymake_version < v"400.1400"
   @test issetequal(maximal_covectors(P3),
     [
       IncidenceMatrix([[1],[1],[2,3]]),
@@ -103,8 +105,8 @@
   @test dim(P3) == 2
   @test issetequal(vertices(P4), eachrow(TT.(pts4)))
   @test n_vertices(P4) == 4
-  @test_broken issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.([0,1,3])])
-  @test_broken n_pseudovertices(P3) == 4
+  @test_broken issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.([0,1,3])]) broken=polymake_version < v"400.1400"
+  @test_broken n_pseudovertices(P3) == 4 broken=polymake_version < v"400.1400"
 
   @test issetequal(maximal_covectors(P4),
     [
