@@ -2282,6 +2282,31 @@ function regular_character(tbl::GAPGroupCharacterTable)
 end
 
 @doc raw"""
+    permutation_character(G::GAPGroup, H::GAPGroup)
+
+Return the character of the permutation action of `G` on the right cosets
+of its subgroup `H`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  h = sylow_subgroup(g, 3)[1];
+
+julia> chi = permutation_character(g, h);
+
+julia> degree(ZZRingElem, chi)
+8
+
+julia> println(coordinates(ZZRingElem, chi))
+ZZRingElem[1, 1, 0, 1, 1]
+```
+"""
+function permutation_character(G::GAPGroup, H::GAPGroup)
+  @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+  pi = GAPWrap.PermutationCharacter(GapObj(G), GapObj(H))
+  return class_function(character_table(G), pi)
+end
+
+@doc raw"""
     natural_character(G::PermGroup)
 
 Return the permutation character of degree `degree(G)`

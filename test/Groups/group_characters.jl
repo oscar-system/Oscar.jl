@@ -849,6 +849,7 @@ end
   re = regular_character(g)
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
+  @test re == permutation_character(g, trivial_subgroup(g)[1])
   @test coordinates(re) == degree.(t)
   lin = @inferred linear_characters(g)
   @test length(lin) == 2

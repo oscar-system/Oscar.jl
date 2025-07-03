@@ -40,3 +40,6 @@ include("Morphisms/SummandProjection.jl")
 include("base_change_types.jl")
 include("base_change.jl")
 
+# Geometric functionality building on the homological algebra in this package.
+include("DerivedPushforward.jl")
+include("SpectralSequences.jl")
