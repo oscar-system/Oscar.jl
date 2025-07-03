@@ -17,15 +17,15 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H,K)
 Direct product of
- Sym(3)
- Sym(2)
+ Symmetric group of degree 3
+ Symmetric group of degree 2
 
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -162,22 +162,22 @@ It is not defined for proper subgroups of direct products.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+ Symmetric group of degree 3
+ Symmetric group of degree 2
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
-  from Sym(3)
+  from symmetric group of degree 3
   to direct product of
-   Sym(3)
-   Sym(2)
+   Symmetric group of degree 3
+   Symmetric group of degree 2
 
 julia> h = perm(H, [2,3,1])
 (1,2,3)
@@ -187,10 +187,10 @@ julia> inj1(h)
 
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
-  from Sym(2)
+  from symmetric group of degree 2
   to direct product of
-   Sym(3)
-   Sym(2)
+   Symmetric group of degree 3
+   Symmetric group of degree 2
 
 julia> k = perm(K, [2,1])
 (1,2)
@@ -228,29 +228,29 @@ Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+ Symmetric group of degree 3
+ Symmetric group of degree 2
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
   from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(3)
+   Symmetric group of degree 3
+   Symmetric group of degree 2
+  to symmetric group of degree 3
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
   from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(2)
+   Symmetric group of degree 3
+   Symmetric group of degree 2
+  to symmetric group of degree 2
 
 julia> g = perm([2,3,1,5,4])
 (1,2,3)(4,5)
@@ -507,7 +507,7 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
@@ -570,7 +570,7 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
@@ -592,13 +592,13 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
 
 julia> acting_subgroup(W)
-Sym(2)
+Symmetric group of degree 2
 ```
 """
 acting_subgroup(W::WreathProductGroup) = W.H
