@@ -115,7 +115,52 @@ function irreducible_components(C::ProjectivePlaneCurve)
 end
 
 
+@doc raw"""
+    dual(C::ProjectivePlaneCurve; dual_projective_space=projective_space(base_ring(C),[:u0, :u1, :u2]))
+    
+Return the dual curve to ``C``. 
 
+The points of the dual curve are the tangent lines to ``C`` in the dual projective space. 
+We require that ``C`` does not contain a line. 
+
+# Examples 
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(x*y^3+y*z^3+z*x^3)
+Projective plane curve
+  defined by 0 = x^3*z + x*y^3 + y*z^3
+
+julia> dual(C)
+I = Ideal with 4 generators
+J = Ideal with 1 generator
+Projective plane curve
+  defined by 0 = 27*u0^10*u1^2 - 4*u0^9*u2^3 - 282*u0^7*u1^3*u2^2 + 42*u0^6*u1*u2^5 + 42*u0^5*u1^6*u2 + 651*u0^4*u1^4*u2^4 - 4*u0^3*u1^9 - 282*u0^3*u1^2*u2^7 
+  - 282*u0^2*u1^7*u2^3 + 27*u0^2*u2^10 + 42*u0*u1^5*u2^6 + 27*u1^10*u2^2 - 4*u1^3*u2^9
+
+julia> dual(dual(C);dual_projective_space=ambient_space(C))
+Projective plane curve
+  defined by 0 = x^3*z + x*y^3 + y*z^3
+
+``` 
+"""
+function dual(C::ProjectivePlaneCurve; dual_projective_space=projective_space(base_ring(C),[:u0, :u1, :u2]))
+  F = defining_equation(C)
+  R = parent(F)
+  k = base_ring(R)
+  P, x = polynomial_ring(k, 7; cached=false)
+  Fp = F(x[4],x[5],x[6])
+  I = ideal(P, [x[i]-x[7]*derivative(Fp,i+3) for i in 1:3]) + ideal(P, [Fp])
+  J = eliminate(I,x[4:7])
+  S = homogeneous_coordinate_ring(dual_projective_space)
+  y = gens(S)
+  yy = vcat([i for i in y],[zero(S) for i in 1:4])
+  phi = hom(P, S, yy)
+  PP = dual_projective_space
+  Cdual = plane_curve(phi(J))
+  set_attribute!(Cdual,:ambient_space=>PP)
+  return Cdual
+end 
 
 
 ################################################################################
