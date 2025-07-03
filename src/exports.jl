@@ -1190,6 +1190,7 @@ export maximal_cliques
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
+export maximal_irreducible_components
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_ranked_poset

@@ -1819,6 +1819,7 @@ function produce_object(
         I2 = F(codomain(g))
         I = pullback(g)(I2)
         I = ideal(OO(V2), lifted_numerator.(gens(I)))
+        @show lifted_numerator(complement_equation(domain(g)))
         I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
         result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
         @hassert :IdealSheaves 1 is_one(result) || is_prime(result)

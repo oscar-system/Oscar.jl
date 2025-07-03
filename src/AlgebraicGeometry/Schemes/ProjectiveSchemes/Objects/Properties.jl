@@ -144,6 +144,20 @@ end
   return is_prime(radical(I)) # topological property
 end
 
+@doc raw"""
+    irreducible_components(X::AbsProjectiveScheme) -> Vector{ProjectiveVariety}
+
+Return the irreducible components of ``X`` defined over the base field of ``X`` with their reduced structure. 
+
+See [`minimal_primes`](@ref) for algorithms and keyword arguments. 
+```
+"""
+function irreducible_components(X::AbsProjectiveScheme{S,T};kwargs...) where {S,T}
+  I = defining_ideal(X)
+  J = minimal_primes(I; kwargs...)
+  return ProjectiveAlgebraicSet{S,T}[algebraic_set(j, is_radical=true, check=false) for j in J]
+end
+
 @attr Bool function is_reduced(P::AbsProjectiveScheme)
   I = defining_ideal(P)
   return is_radical(I)
