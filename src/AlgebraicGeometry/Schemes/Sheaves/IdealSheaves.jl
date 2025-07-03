@@ -562,6 +562,7 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
+  iszero(f) && return ideal(base_ring(I),[base_ring(I)(1)]) 
   return _iterative_saturation(I, typeof(f)[u for (u, _) in factor(f)])
 end
 
