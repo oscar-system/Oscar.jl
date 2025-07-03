@@ -1,7 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
-    upgraded_dict = dict
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -23,11 +22,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         if dict[:data] isa String
           # do nothing
         else
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => dict[:_type],
             :params => dict[:data][:base_ring] isa String ? dict[:data][:base_ring] : upgrade_1_4_0(s, dict[:data][:base_ring])
           )
-          upgraded_dict[:data] = Dict(
+          dict[:data] = Dict(
             :symbols => dict[:data][:symbols],
           )
         end
@@ -35,44 +34,44 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_hs = upgrade_1_4_0(s, dict[:data][:hs_model])
         upgraded_genus_ci = upgrade_1_4_0(s, dict[:data][:genus_ci])
         upgraded_degree_of_Kbar_of_tv_restricted_to_ci = upgrade_1_4_0(s, dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci])
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :hs_model => upgraded_hs,
             :genus_ci => upgraded_genus_ci[:_type],
             :degree_of_Kbar_of_tv_restricted_to_ci => upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:_type]
           ))
-        upgraded_dict[:data][:genus_ci] = upgraded_genus_ci[:data]
-        upgraded_dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:data]
+        dict[:data][:genus_ci] = upgraded_genus_ci[:data]
+        dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci] = upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:data]
       elseif type_name in ["GlobalTateModel", "HypersurfaceModel", "WeierstrassModel"]
 
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
-        upgraded_dict[:attrs] = Dict()
+        dict[:attrs] = Dict()
         for k in keys(upgraded_attr_dict[:_type][:params])
           k == :key_params && continue
-          upgraded_dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
+          dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
 
         if haskey(dict[:data], :explicit_model_sections)
           upgraded_explicit_model_sections = upgrade_1_4_0(s, dict[:data][:explicit_model_sections])
-          upgraded_dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
-          upgraded_dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
+          dict[:_type][:params][:explicit_model_sections] = upgraded_explicit_model_sections[:_type]
+          dict[:data][:explicit_model_sections] = upgraded_explicit_model_sections[:data]
         end
 
         if haskey(dict[:data], :model_section_parametrization)
           upgraded_model_section_parametrization = upgrade_1_4_0(s, dict[:data][:model_section_parametrization])
-          upgraded_dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
-          upgraded_dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
+          dict[:_type][:params][:model_section_parametrization] = upgraded_model_section_parametrization[:_type]
+          dict[:data][:model_section_parametrization] = upgraded_model_section_parametrization[:data]
         end
 
         if haskey(dict[:data], :defining_classes)
           upgraded_defining_classes = upgrade_1_4_0(s, dict[:data][:defining_classes])
-          upgraded_dict[:_type][:params][:defining_classes] = upgraded_defining_classes[:_type]
-          upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
+          dict[:_type][:params][:defining_classes] = upgraded_defining_classes[:_type]
+          dict[:data][:defining_classes] = upgraded_defining_classes[:data]
         end
 
       elseif type_name == "LieAlgebraModule"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :lie_algebra => dict[:data][:lie_algebra]
@@ -80,30 +79,30 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         const_data = dict[:data][:construction_data]
         if haskey(const_data, :is_standard_module)
-          upgraded_dict[:_type][:params][:_is_standard_module] = Dict(:_type=>"Bool", :data => "true")
+          dict[:_type][:params][:_is_standard_module] = Dict(:_type=>"Bool", :data => "true")
         elseif haskey(const_data, :is_dual)
-          upgraded_dict[:_type][:params][:_is_dual] = const_data[:is_dual]
+          dict[:_type][:params][:_is_dual] = const_data[:is_dual]
         elseif haskey(const_data, :is_tensor_power)
-          upgraded_dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
+          dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
         elseif haskey(const_data, :is_direct_sum)
-          upgraded_dict[:_type][:params][:_is_direct_sum] = const_data[:is_direct_sum]
+          dict[:_type][:params][:_is_direct_sum] = const_data[:is_direct_sum]
         elseif haskey(const_data, :is_symmetric_power)
-          upgraded_dict[:_type][:params][:_is_symmetric_power] = [const_data[:is_symmetric_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_symmetric_power][2])]
+          dict[:_type][:params][:_is_symmetric_power] = [const_data[:is_symmetric_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_symmetric_power][2])]
         elseif haskey(const_data, :is_tensor_product)
-          upgraded_dict[:_type][:params][:_is_tensor_product] = const_data[:is_tensor_product]
+          dict[:_type][:params][:_is_tensor_product] = const_data[:is_tensor_product]
         elseif haskey(const_data, :is_exterior_power)
-          upgraded_dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
+          dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
         elseif !isempty(const_data)
           error("missed construction data")
         end
       elseif type_name == "LinearLieAlgebra"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :base_ring => dict[:data][:base_ring]
           ))
       elseif type_name == "DirectSumLieAlgebra"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :base_ring => dict[:data][:base_ring],
@@ -111,7 +110,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           ))
       elseif type_name == "AbstractLieAlgebra"
         if haskey(dict[:data], :root_system)
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :base_ring => dict[:data][:base_ring],
@@ -119,96 +118,96 @@ push!(upgrade_scripts_set, UpgradeScript(
 
           ))
         else
-          upgraded_dict[:_type] = Dict(
+          dict[:_type] = Dict(
             :name => dict[:_type],
             :params => Dict(
               :base_ring => dict[:data][:base_ring]
             ))
         end
-        upgraded_dict[:attrs] = dict[:data][:attrs]
+        dict[:attrs] = dict[:data][:attrs]
       elseif type_name in [
         "FracField", "LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"
         ]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:base_ring]
         )
         delete!(dict, :base_ring)
-        upgraded_dict[:data] = dict[:data]
+        dict[:data] = dict[:data]
       elseif type_name in ["MatSpace", "SMatSpace"]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => type_name,
-          :params => upgraded_dict[:data][:base_ring]
+          :params => dict[:data][:base_ring]
         )
-        upgraded_dict[:data] = Dict(
-          :ncols => upgraded_dict[:data][:ncols],
-          :nrows => upgraded_dict[:data][:nrows]
+        dict[:data] = Dict(
+          :ncols => dict[:data][:ncols],
+          :nrows => dict[:data][:nrows]
         )
       elseif type_name == "fqPolyRepField"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
         )
-        upgraded_dict[:data] = dict[:data][:def_pol][:data]
+        dict[:data] = dict[:data][:def_pol][:data]
       elseif type_name == "MPolyDecRing"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => Dict(
             :ring => dict[:data][:ring],
             :grading_group => dict[:data][:grading][:_type][:params]
           )
         )
-        upgraded_dict[:data] = dict[:data][:grading][:data]
+        dict[:data] = dict[:data][:grading][:data]
       elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
         dict[:_type] isa Dict && haskey(dict[:_type], :params) && return dict
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
         )
-        upgraded_dict[:data] = Dict(
+        dict[:data] = Dict(
           :var => dict[:data][:var],
           :def_pol => dict[:data][:def_pol][:data]
         )
       elseif type_name in ["AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField"]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pols][:_type][:params]
         )
-        upgraded_dict[:data] = Dict(
+        dict[:data] = Dict(
           :vars => dict[:data][:vars],
           :def_pols => dict[:data][:def_pols][:data]
         )
 
       elseif type_name == "EmbeddedNumField"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:embedding]
         )
-        upgraded_dict[:data] = []
+        dict[:data] = []
       elseif type_name == "FqField"
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => "FiniteField",
           :_instance => dict[:_type]
         )
 
         if dict[:data] isa Dict
-          upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
-          upgraded_dict[:data] = dict[:data][:def_pol][:data]
+          dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
+          dict[:data] = dict[:data][:def_pol][:data]
         end
       elseif type_name in ["fpField", "Nemo.fpField"]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => "FiniteField",
           :_instance => "fpField"
             )
-        upgraded_dict[:data] = dict[:data]
+        dict[:data] = dict[:data]
       elseif type_name in ["FpField", "Nemo.FpField"]
-        upgraded_dict[:_type] = Dict(
+        dict[:_type] = Dict(
           :name => "FiniteField",
           :_instance => "FpField"
             )
-        upgraded_dict[:data] = dict[:data]
+        dict[:data] = dict[:data]
       elseif type_name in ["FpFieldElem", "fpFieldElem"]
-        upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:_type][:params])
+        dict[:_type][:params] = upgrade_1_4_0(s, dict[:_type][:params])
       elseif type_name == "Dict"
         if haskey(dict[:_type][:params], :value_type)
           if haskey(dict[:_type][:params], :value_params)
@@ -223,7 +222,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             key_params = dict[:_type][:params][:key_type]
           end
 
-          upgraded_dict[:_type][:params] = Dict(
+          dict[:_type][:params] = Dict(
             :value_params => value_params,
             :key_params => key_params
           )
@@ -242,28 +241,28 @@ push!(upgrade_scripts_set, UpgradeScript(
             end
           end
           
-          upgraded_dict = Dict(
+          dict = Dict(
             :_type => Dict(:name => "Dict", :params=>Dict()),
             :data => Dict()
           )
           for (k, v) in d
             if k == :key_type || k == :key_params
-              upgraded_dict[:_type][:params][:key_params] = v
+              dict[:_type][:params][:key_params] = v
             else
-              upgraded_dict[:_type][:params][k] = v[:_type]
-              upgraded_dict[:data][k] = v[:data]
+              dict[:_type][:params][k] = v[:_type]
+              dict[:data][k] = v[:data]
             end
           end
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
         subtype = dict[:_type][:params]
         if dict[:data] isa Vector{String}
-          upgraded_dict[:data] = dict[:data]
+          dict[:data] = dict[:data]
 
           ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
           if !isnothing(ref_entry)
             ref_entry = upgrade_1_4_0(s, ref_entry)
-            upgraded_dict[:_type][:params] = ref_entry[:_type]
+            dict[:_type][:params] = ref_entry[:_type]
           end
         else
           upgraded_entries = []
@@ -275,15 +274,15 @@ push!(upgrade_scripts_set, UpgradeScript(
           end
           if allequal(x -> x[:_type], upgraded_entries)
             if !isempty(upgraded_entries)
-              upgraded_dict[:_type][:params] = upgraded_entries[1][:_type]
+              dict[:_type][:params] = upgraded_entries[1][:_type]
             end
           else
-            upgraded_dict[:_type][:name] = "Tuple"
-            upgraded_dict[:_type][:params] = [
+            dict[:_type][:name] = "Tuple"
+            dict[:_type][:params] = [
               x[:_type] for x in upgraded_entries
             ]
           end
-          upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
+          dict[:data] = [e[:data] for e in upgraded_entries]
         end
       elseif type_name == "NamedTuple"
         #println(json(dict, 2))
@@ -295,7 +294,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             :data => dict[:data][i]
           )))
         end
-        upgraded_dict[:_type][:params] = [subdict[:_type] for subdict in upgraded_subtypes]
+        dict[:_type][:params] = [subdict[:_type] for subdict in upgraded_subtypes]
         upgraded_dict[:data] = [subdict[:data] for subdict in upgraded_subtypes]
       elseif type_name == "ZZLat"
         upgraded_dict[:_type] = Dict(
@@ -529,10 +528,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
-    end
-
-    if haskey(dict, :_refs)
-      upgraded_dict[:_refs] = dict[:_refs]
     end
 
     return upgraded_dict
