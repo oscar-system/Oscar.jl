@@ -5,7 +5,7 @@
 @doc raw"""
     model(gf::G4Flux)
 
-Return the F-theory model used to construct the G_4-flux candidate.
+Return the F-theory model used to construct the ``G_4``-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -148,10 +148,9 @@ end
 @doc raw"""
     g4_flux_family(gf::G4Flux; check::Bool = true)
 
-Return the family of ``G_4``-fluxes that possesses, such
-that all fluxes in this family share the following properties
-with the given ``G_4``-flux: Transversality and breaking of the
-non-Abelian gauge group.
+Returns the family of ``G_4``-fluxes sharing the following properties
+with the given ``G_4``-flux: transversality and breaking of the
+non-abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -274,8 +273,7 @@ end
 @doc raw"""
     integral_coefficients(gf::G4Flux)
 
-Return the integral coefficients of a given ``G_4``-flux.
-If these coefficients are not known, an error is raised.
+Returns the integral coefficients of a ``G_4``-flux.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -307,8 +305,7 @@ end
 @doc raw"""
     rational_coefficients(gf::G4Flux)
 
-Return the integral coefficients of a given ``G_4``-flux.
-If these coefficients are not known, an error is raised.
+Returns the rational coefficients of a ``G_4``-flux.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -340,8 +337,7 @@ end
 @doc raw"""
     offset(gf::G4Flux)
 
-Return the offset of a given ``G_4``-flux.
-If this shift is not known, an error is raised.
+Returns the offset of a ``G_4``-flux.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
