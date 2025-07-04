@@ -43,11 +43,11 @@ defined by ideal(y, x)
     A = new{typeof(base_ring(X)), typeof(OO(X))}()
     A.X = X
     if is_reduced
-      @check is_geometrically_reduced(X) "Algebraic sets must be geometrically reduced"
       A.Xred = X
       set_attribute!(A.Xred, :is_geometrically_reduced, true)
       set_attribute!(A.Xred, :is_reduced, true)
     end
+    @check is_geometrically_reduced(X) "Algebraic sets must be geometrically reduced"
     return A
   end
 end

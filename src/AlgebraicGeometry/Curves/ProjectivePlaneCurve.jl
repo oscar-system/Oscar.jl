@@ -19,7 +19,7 @@ Projective plane curve
   X::ProjectiveAlgebraicSet{BaseRingType, RingType}
   defining_equation::MPolyDecRingElem
 
-  function ProjectivePlaneCurve(X::ProjectiveAlgebraicSet{S,T}, check::Bool=true) where {S,T}
+  function ProjectivePlaneCurve(X::ProjectiveAlgebraicSet{S,T}; check::Bool=true) where {S,T}
     @check begin
       dim(X) == 1 || error("not of dimension one")
       is_equidimensional(X) || error("not equidimensional")
@@ -28,12 +28,13 @@ Projective plane curve
     new{S,T}(X)
   end
 
-  function ProjectivePlaneCurve(eqn::MPolyDecRingElem; is_radical::Bool=false)
+  function ProjectivePlaneCurve(eqn::MPolyDecRingElem; is_radical::Bool=false, check::Bool=true)
     ngens(parent(eqn)) == 3 || error("not a plane curve")
+    iszero(eqn) && error("the given equation must be non-zero")
     if !is_radical
-      eqn = prod([i[1] for i in factor(eqn)], init=one(parent(eqn)))
+      eqn = prod([i[1] for i in factor_squarefree(eqn)], init=one(parent(eqn)))
     end
-    X = ProjectivePlaneCurve(algebraic_set(eqn; is_radical=true))
+    X = ProjectivePlaneCurve(algebraic_set(eqn; is_radical=true, check=check); check=false)
     X.defining_equation = eqn
     return X
   end
