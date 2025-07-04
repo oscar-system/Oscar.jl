@@ -9,6 +9,8 @@ Construct a hypersurface model, for which the user can specify a fiber ambient s
 as well as divisor classes of the toric base space, in which the first two homogeneous
 coordinates of the fiber ambient space transform.
 
+For convenience, it also possible to provide the hypersurface polynomial `p` as a string.
+
 # Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
@@ -127,6 +129,8 @@ coordinate ring of the generic member of the family of base space, unless the us
 already provides this grading. Our convention is that the first row of the grading
 matrix refers to Kbar and that the homogeneous variable corresponding to this class
 carries the name "Kbar".
+
+For convenience, the `fiber_twist_divisor_classes` can also be provided as `ZZMatrix`.
 
 The following example exemplifies this constructor.
 

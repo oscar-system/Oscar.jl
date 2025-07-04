@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Weierstrass models
+# Weierstrass Models
 
 Weierstrass models are central to many constructions in F-theory. Such a model describes a particular form of an elliptic fibration. Our primary focus is on Weierstrass models built over **toric base spaces**. These models receive the most comprehensive support. Weierstrass models over more general bases, such as arbitrary schemes or unspecified base spaces, are under development.
 

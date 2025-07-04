@@ -4,97 +4,61 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Hypersurface models
+# Hypersurface Models
 
-## Introduction
+A **hypersurface model** is a description of an elliptic fibration whose total space is defined as the vanishing locus of a single polynomial in a suitable ambient space. Prominent examples include [Weierstrass Models](@ref) and [Global Tate Models](@ref). Our algorithmic framework is rooted in the constructions presented in [KM-POPR15](@cite).
 
-A hypersurface model describes a particular form of an elliptic fibration.
-We make the following assumptions:
-* The generic fiber is a hypersurface in a 2-dimensional toric fiber ambient space ``F``.
-* The first two (homogeneous) coordinates in the coordinate ring of ``F`` transform in the
-divisor classes ``D_1`` and ``D_2`` over the base ``B`` of the elliptic fibration. The
-remaining coordinates of ``F`` are assumed to transform in the trivial bundle over ``B``.
-See [KM-POPR15](@cite) for more details.
+---
 
-Our tools are most powerful if the base space ``B`` is a toric variety. Then, based on the
-above information, it is possible to compute a toric ambient space ``A`` for the elliptic
-fibration. The elliptic fibration is then a hypersurface in this toric space ``A``. Furthermore,
-since we assume that this fibration is Calabi-Yau, it is clear that the hypersurface equation is
-a (potentially very special) section of the ``\overline{K}_A``. This hypersurface equation
-completes the information required about a hypersurface model.
+## What is a Hypersurface Model?
 
-Certainly, one often wishes to extend beyond this setting:
-* Oftentimes, a special hypersurface equation is chosen. In the toric setting above, this will
-be a polynomial in the Cox ring of the toric ambient space. Since said ambient space, and therefore
-also its Cox ring, are computed in the cause of the above construction, we do not support one
-constructor, which immediately accepts a special hypersurface equation. Rather, in this case,
-the user must first use one of the general constructors described in the next section. Subsequently,
-the `tune` function, described in the methods section below, can be employed.
-* Bases other than toric spaces matter. Often, the F-theory literature will not even assume
-one particular base space but rather an entire family of base spaces. We extend our machinery to
-these cases, but such more general settings are typically significantly more limited than the
-toric setting. This limitation originates from the nature of the matter -- the more general the geometry,
-the less is known.
+Every elliptic fibration is birationally equivalent to an elliptic fibration represented as [Weierstrass model](@ref) (in characteristics other than 2 or 3). However, for practical purposes it is often more convenient to work with alternative descriptions. This is the main reason for working with [Global Tate Models](@ref), and extends more generally to the constructions presented in [KM-POPR15](@cite). Our implementation is focused on exactly these constructions.
 
+The setup of a hypersurface model following [KM-POPR15](@cite) consists of the following ingredients:
 
+- A **base space** ``B``, over which the elliptic fibration is defined.
+- A **fiber ambient space** ``F``, in which the elliptic fiber appears as a hypersurface.
+- Two divisor classes ``D_1`` and ``D_2`` in ``\text{Cl}(B)``, such that the first two homogeneous coordinates of ``F`` transform over ``B`` as sections of the line bundles associated to ``D_1`` and ``D_2``, respectively.
+- A hypersurface equation defining the total space of the elliptic fibration as a section of the anti-canonical bundle ``\overline{K}_A`` of the full ambient space ``A``, which combines both the fiber ambient space ``F`` and the base space ``B``.
 
-## Constructors
+It is worth noting that any elliptic fibration, for which the fiber ambient space is toric, can be cast into this form [KM-POPR15](@cite). Consequently, this approach allows for a uniform interface for constructing and manipulating hypersurface models in a way that generalizes [Global Tate Models](@ref) and [Weierstrass Models](@ref) naturally. Our standing assumption is therefore that the fiber ambient space ``F`` is toric.
 
-We aim to provide support for hypersurface models over the following bases:
-* a toric variety,
-* a toric scheme,
-* a (covered) scheme.
+---
 
-[Often, one also wishes to obtain information about a hypersurface model without
-explicitly specifying the base space. For this, please use our `tune` function,
-described in the methods section below.]
+## Constructing Hypersurface Models
 
-Finally, we provide support for some standard constructions.
+Recall that the hypersurface equation must be a section of the anti-canonical bundle ``\overline{K}_A``, so that the total space of the elliptic fibration is **Calabi--Yau**. This is a key requirement for F-theory compactifications. However, clearly we must first create the ambient space ``A`` in order to specify the hypersurface equation or to verify that it is indeed a section of 
+``\overline{K}_A``. This means that typically, the hypersurface model workflow operates in two-stage. First, based on ``B``, ``F``, ``D_1`` and ``D_2``, we compute a hypersurface model in which the hypersurface equation is generic. Second, the user may apply tuning procedures to change this generic section to the desired hypersurface equation.
 
-Before we detail these constructors, we must comment on the constructors over toric base
-spaces. Namely, in order to construct a hypersurface model, we first have to construct
-the ambient space in question. For a toric base, one way to achieve this is by means of
-triangulations. However, this is a rather time consuming and computationally challenging
-task, which leads to a huge number of ambient spaces. Even more, typically one wishes to
-only pick one of thees many ambient spaces. For instance, a common and often appropriate
-choice is a toric ambient space which contains the toric base space in a manifest way.
+Our implementation in `FTheoryTools` is most effective when the base ``B`` is toric. However, we also provide elementary support for unspecified base spaces. Crucially, the computational tools become much more limited in this setup.
 
-To circumvent this very demanding computation, our constructors operate in the opposite direction.
-That is, they begin by extracting the rays and maximal cones of the chosen toric base space.
-Subsequently, those rays and cones are extended to form one of the many toric ambient spaces.
-This proves hugely superior in performance than going through the triangulation task of enumerating
-all possible toric ambient spaces. One downside of this strategy is that the so-constructed ambient
-space need not be smooth.
+### Unspecified Base Spaces
 
-### A toric variety as base space
+To construct a hypersurface model over an unspecified base space, we provide the following constructor:
 
-We require that the provided toric base space is complete. This is a technical limitation as of now.
-The functionality of OSCAR only allows us to compute a section basis (or a finite subset thereof)
-for complete toric varieties. In the future, this could be extended.
-
-Completeness is an expensive check. Therefore, we provide an optional argument which
-one can use to disable this check if desired. To this end, one passes the optional argument
-`completeness_check = false` as last argument to the constructor. Here is how we can construct
-a hypersurface model in OSCAR:
-```@docs
-hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
-```
-For convenience, it also possible to provide the hypersurface polynomial `p` as a string.
-
-
-### A (covered) scheme as base space
-
-This functionality does not yet exist.
-
-### Base space not specified
-
-This method constructs a hypersurface model over a base space, where
-this base space is not (fully) specified. We currently provide the following constructors:
 ```@docs
 hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
 ```
-For convenience, the fiber_twist_divisor_classes can also be provided as `ZZMatrix`.
 
+### Concrete Toric Base Spaces
+
+Full support exists for constructing hypersurface models over **concrete, complete toric base spaces**. Completeness is a technical assumption: it ensures that the set of global sections of a line bundle forms a finite-dimensional vector space, enabling OSCAR to handle these sets efficiently. In the future, this restriction may be relaxed. For now, completeness checks—though sometimes slow—are performed in many methods involving hypersurface models. To skip them and improve performance, use the optional keyword:
+
+```julia
+completeness_check = false
+```
+
+We proceed under the assumption that the base space is a fixed, complete toric variety.
+
+Under this assumption, a toric ambient space ``A`` can be constructed algorithmically. Similar to our approach for [Weierstrass Models](@ref) and [Global Tate Models](@ref), our approach is optimized for performance. In general, several such ambient spaces ``A`` may exist. Instead of enumerating a large number of such ambient spaces, we merely compute a single one. As such, the ambient space ``A`` computed by our methods may differ from explicit choices in the literature. However, the obtained space ``A`` is guaranteed to be consistent with the fibration structure.
+
+Users can construct hypersurface models over such concrete toric bases with the following constructor:
+
+```@docs
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
+```
+
+---
 
 ## Attributes
 
