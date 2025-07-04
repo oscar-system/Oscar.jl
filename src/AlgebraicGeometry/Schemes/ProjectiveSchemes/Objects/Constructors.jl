@@ -147,9 +147,9 @@ function irreducible_components(X::AbsProjectiveScheme; kwargs...)
   PP = minimal_primes(I; kwargs...)
   C = AbsProjectiveScheme[] 
   for p in PP
-    Y = subscheme(X, p)
-    set_attribute!(Y, is_reduced=>true)
-    set_attribute!(Y, is_integral=>true)
+    Y = subscheme(ambient_space(X), p)
+    set_attribute!(Y, :is_reduced=>true)
+    set_attribute!(Y, :is_integral=>true)
     push!(C, Y)
   end
   return C
