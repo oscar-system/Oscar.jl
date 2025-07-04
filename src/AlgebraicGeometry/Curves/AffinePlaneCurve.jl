@@ -34,8 +34,8 @@ Affine plane curve
       (isone(eqn) || iszero(eqn)) && error("the equation must not be trivial")
       true
     end
-    eqn = prod([i[1] for i in factor(eqn)], init=one(parent(eqn)))
-    X = algebraic_set(eqn, is_radical=true)
+    eqn = prod([i[1] for i in factor_squarefree(eqn)], init=one(parent(eqn)))
+    X = algebraic_set(eqn; is_radical=true, check=check)
     C = new{base_ring_type(X),ring_type(X)}(X)
     C.defining_equation = eqn
     return C
