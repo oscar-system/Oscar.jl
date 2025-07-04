@@ -1978,3 +1978,18 @@ function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Boo
   end
   return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(B))); check = false)
 end
+
+@attr Bool function is_local(Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  is_zero(dim(Q)) || return false
+  return is_one(length(minimal_primes(modulus(Q)))) 
+end
+
+function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  has_attribute(Q, :is_local) && return true
+  return false
+end
+
+function is_known(::typeof(dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(dim, modulus(Q))
+end
+

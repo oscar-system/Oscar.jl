@@ -2843,3 +2843,15 @@ end
 
 complement_of_point_ideal(m::MPolyIdeal) = complement_of_point_ideal(base_ring(m), rational_point_coordinates(m))
 
+function is_local(
+    R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
+
+function is_known(::typeof(is_local), 
+    ::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
+

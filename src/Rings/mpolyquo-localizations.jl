@@ -2952,3 +2952,34 @@ _cmp_reps(a::MPolyLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoRingElem) = y->(y.f == a.f)
 
+@attr Bool function is_local(
+    R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return !is_trivial(R)
+end
+
+function is_known(::typeof(is_local), 
+    Q::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  has_attribute(Q, :is_local) && return true
+  is_known(is_trivial, Q) && return true
+  return false
+end
+
+function is_known(::typeof(is_trivial), 
+    Q::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return is_known(is_one, modulus(Q))
+end
+
+function is_known(::typeof(is_one), 
+    I::MPolyLocalizedIdeal{T}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}, 
+           T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+          }
+  is_known(is_one, I.pre_saturated_ideal) && is_one(I.pre_saturated_ideal) && return true
+  isdefined(I, :saturated_ideal) && is_known(is_one, I.saturated_ideal) && return true
+  return false
+end
+
+

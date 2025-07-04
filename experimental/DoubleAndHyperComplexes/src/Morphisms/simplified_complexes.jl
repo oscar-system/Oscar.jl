@@ -386,9 +386,9 @@ end
 @doc raw"""
     minimize(F::FreeResolution)
 
-If `F` is a free resolution of a positively graded module `M`, say, then return a minimal free resolution of `M` computed from `F`.
+If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
 
-If `M` is not (positively) graded, then the function still aims at returning an ''improved'' resolution.
+If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
 
 !!! note
     If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
@@ -476,8 +476,15 @@ degree: 0  1
 
 ```
 """
-function minimize(c::FreeResolution)
-  @assert is_graded(c[-1]) "complex does not consist of graded modules"
+function minimize(c::FreeResolution; check::Bool=true)
+  # The following assertion is a bit complicated. 
+  # This method is allowed for graded modules and modules over 
+  # local rings. Checking for being graded is cheap, but checking 
+  # for being a local ring is not. Hence the latter checks must be 
+  # behind an @check, but the gradedness check not. 
+  if !is_graded(c[-1]) 
+    @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
+  end
   return simplify(c)
 end
 
