@@ -924,6 +924,9 @@ end
 # Components
 ######################################################################
 
+"""
+See [`minimal_primes`](@ref) for algorithms and keyword arguments.
+"""
 function irreducible_components(X::AffineScheme; kwargs...)
   I = defining_ideal(X)
   PP = minimal_primes(I; kwargs...)
