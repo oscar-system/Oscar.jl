@@ -516,7 +516,7 @@ by submodule with 2 generators
 ```
 """
 function homology(C::Hecke.ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
-  return [homology(C,i) for i in Oscar.Hecke.range(C)]
+  return [homology(C,i) for i in Hecke.range(C)]
 end
 
 function homology(C::FreeResolution)
