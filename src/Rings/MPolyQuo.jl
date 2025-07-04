@@ -1777,7 +1777,10 @@ julia> dim(a)
 0
 ```
 """
-function dim(a::MPolyQuoIdeal)
+dim(a::MPolyQuoIdeal) = krull_dim(a)
+
+function krull_dim(a::MPolyQuoIdeal)
+  @req is_noetherian(base_ring(a)) "Krull dimension is only supported for Noetherian rings."
   if a.dim === nothing 
     a.dim = Singular.dimension(singular_groebner_generators(a))
     a.dim == -1 && (a.dim = -inf)

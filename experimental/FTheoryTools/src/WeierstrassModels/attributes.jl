@@ -16,10 +16,8 @@ Return the polynomial ``f`` used for the
 construction of the Weierstrass model.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
 ```
@@ -34,10 +32,8 @@ Return the polynomial ``g`` used for the
 construction of the Weierstrass model.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
 ```
@@ -60,10 +56,8 @@ models, we also support the method `hypersurface_equation`
 to access the Weierstrass polynomial.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w);
 
@@ -159,7 +153,7 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the Weierstrass model.
 
 ```jldoctest
-julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
 Weierstrass model over a concrete base
 
 julia> calabi_yau_hypersurface(w)
@@ -197,10 +191,8 @@ end
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> discriminant(w);
 ```
@@ -233,13 +225,11 @@ result straightforwardly to this situation also. This is the reason for construc
 auxiliary base space.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> length(singular_loci(w))
-2
+1
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)

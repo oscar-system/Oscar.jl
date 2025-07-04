@@ -870,8 +870,8 @@ julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
 
 julia> acthom = action_homomorphism(Omega)
 Group homomorphism
-  from Sym(6)
-  to Sym(15)
+  from symmetric group of degree 6
+  to symmetric group of degree 15
 
 julia> g = gen(G, 1)
 (1,2,3,4,5,6)

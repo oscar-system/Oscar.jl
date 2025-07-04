@@ -50,10 +50,16 @@ end
 Return the fiber ambient space of an F-theory model.
 
 ```jldoctest
-julia> t = su5_tate_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
 
-Global Tate model over a not fully specified base
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> fiber_ambient_space(t)
 Normal toric variety

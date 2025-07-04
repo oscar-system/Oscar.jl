@@ -479,20 +479,24 @@ function Base.show(io::IO, G::PermGroup)
   io = pretty(io)
   if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    if is_terse(io)
+      print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    else
+      print(io, "Symmetric group of degree ", degree(G))
+    end
   elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    if is_terse(io)
+      print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    else
+      print(io, "Alternating group of degree ", degree(G))
+    end
   else
     print(io, "Permutation group")
     if !is_terse(io)
       print(io, " of degree ", degree(G))
       if has_order(G)
-        if is_finite(G)
-          print(io, " and order ", order(G))
-        else
-          print(io, " and infinite order")
-        end
+        print(io, " and order ", order(G))
       elseif GAP.Globals.HasStabChainMutable(GapObj(G))
         # HACK: to show order in a few more cases where it is trivial to get
         # but really, GAP should be using this anyway?
@@ -812,7 +816,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> representative(C)
 (1,2)
@@ -832,7 +836,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> acting_group(C) === G
 true
@@ -854,7 +858,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 ```
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
@@ -972,7 +976,7 @@ if `order` is positive, the classes of subgroups of this order.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1207,7 +1211,7 @@ use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
@@ -1237,7 +1241,7 @@ otherwise, return `false, one(G)`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
@@ -2191,7 +2195,7 @@ function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimg
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  l = _exponent_vector(g)
+  l = exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2309,17 +2313,6 @@ julia> syllables(epi(F1^5*F2^-3))
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
-end
-
-function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
-  gX = GapObj(g)
-  G = parent(g)
-  GX = GapObj(G)
-  if GAPWrap.IsPcGroup(GX)
-    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
-  end
 end
 
 function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})

@@ -1,11 +1,11 @@
 [
    "F-Theory Tools" => [
       "introduction.md",
-      "generalities.md",
       "weierstrass.md",
       "tate.md",
       "hypersurface.md",
       "literature.md",
+      "generalities.md",      
       "g4.md"
    ],
 ]

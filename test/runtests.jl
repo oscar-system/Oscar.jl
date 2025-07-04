@@ -115,7 +115,7 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
                                "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
-                               "experimental/QuadFormAndIsom/test/runtests.jl",
+                               "test/NumberTheory/QuadFormAndIsom.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",

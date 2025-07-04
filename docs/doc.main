@@ -84,16 +84,6 @@
         "AbstractAlgebra/direct_sum.md",
         "AbstractAlgebra/module_homomorphism.md",
      ],
-     "Quadratic and Hermitian forms" => [
-        "Hecke/manual/quad_forms/introduction.md",
-        "Hecke/manual/quad_forms/basics.md",
-        "Hecke/manual/quad_forms/lattices.md",
-        "Hecke/manual/quad_forms/genusherm.md",
-        "Hecke/manual/quad_forms/integer_lattices.md",
-        "Hecke/manual/quad_forms/Zgenera.md",
-        "Hecke/manual/quad_forms/discriminant_group.md",
-        "NumberTheory/vinberg.md",
-     ],
      "AbstractAlgebra/matrix_implementation.md",
   ],
 
@@ -117,6 +107,23 @@
         "Hecke/manual/elliptic_curves/basics.md",
         "Hecke/manual/elliptic_curves/finite_fields.md"
      ],
+     "Quadratic and Hermitian forms" => [
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md",
+        "NumberTheory/vinberg.md",
+     ],
+     "Quadratic forms and isometries" => [
+      "NumberTheory/QuadFormAndIsom/introduction.md",
+      "NumberTheory/QuadFormAndIsom/spacewithisom.md",
+      "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/enumeration.md",
+      "NumberTheory/QuadFormAndIsom/primembed.md"
+    ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],

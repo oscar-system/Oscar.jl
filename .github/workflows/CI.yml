@@ -40,7 +40,6 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.6'
           - '1.10'
           - '1.11'
           - '1.12-nightly'
@@ -104,9 +103,6 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
-      - name: "workaround libstdc++ issue for julia 1.6"
-        if: matrix.julia-version == '1.6' && runner.os == 'Linux'
-        run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
