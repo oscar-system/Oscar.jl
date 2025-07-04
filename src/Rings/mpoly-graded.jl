@@ -1,4 +1,3 @@
-
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::FinGenAbGroup
@@ -994,6 +993,8 @@ function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   f = combine_like_terms!(M.poly.f)
   return parent(M.poly)(f)
 end
+
+derivative(f::MPolyDecRingElem, n::Int) = parent(f)(derivative(forget_grading(f),n))
 
 function jacobian_matrix(f::MPolyDecRingElem)
   R = parent(f)
