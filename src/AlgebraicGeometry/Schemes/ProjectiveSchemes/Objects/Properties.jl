@@ -145,15 +145,32 @@ function _projective_jacobian_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring
 end
 
 @doc raw"""
-    singular_locus(P::AbsProjectiveScheme) -> AbsProjectiveScheme
+    singular_locus(P::AbsProjectiveScheme; algorithm::Symbol=:default, saturate::Bool=true) -> AbsProjectiveScheme
 
 Given an equidimensional projective scheme, returns the possibly
 nonreduced subscheme of projective space describing the singular locus.
 
+If the boolean keyword argument `saturate` is true (which is the default
+value), then we saturate the ideal with respect to the irrelevant ideal.
+
+# Algorithms
+
+There are two possible algorithms for computing the singular locus, determined
+by the value of the keyword argument `algorithm`:
+  * `:projective_jacobian` - uses the Jacobian criterion for projective
+    schemes, see Exercise 4.2.10 of [Liu06](@cite),
+  * `:affine_cone` - uses the singular locus of the affine cone.
+
+The `:projective_jacobian` algorithm only works for equidimensional schemes.
 The algorithm first checks for equidimensionality, which can be expensive.
 If you already know that the scheme is equidimensional, then you can
 avoid recomputing that by writing
   `set_attribute!(P, :is_equidimensional, true)`
+
+The algorithm `:affine_cone` only works when the base ring is a field.
+
+The default algorithm is `:projective_jacobian` if the scheme is
+equidimensional, otherwise it is `:affine_cone`.
 
 # Examples
 ```jldoctest
@@ -175,6 +192,8 @@ Projective scheme
 defined by ideal (y, x)
 ```
 """
+singular_locus(P::AbsProjectiveScheme; algorithm::Symbol=:default, saturate::Bool=true)
+
 function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorithm::Symbol=:default, saturate::Bool=true)
   if is_empty(P)
     return P
@@ -215,6 +234,9 @@ function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorith
     return subscheme(ambient_space(P), _projective_jacobian_singular_locus_ideal(P; saturate))
   end
 end
+
+singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default, saturate::Bool=true) = subscheme(P, ideal(ambient_coordinate_ring(P), [1]))
+singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm::Symbol=:default, saturate::Bool=true) = subscheme(P, ideal(ambient_coordinate_ring(P), [1]))
 
 @attr Bool function is_irreducible(P::AbsProjectiveScheme)
   is_empty(P) && return false  # the empty set is not irreducible
