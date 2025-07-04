@@ -174,16 +174,10 @@ end
 
 
 ########################################################
-# 2.2 Turn Weierstrass model into Weierstrass/Tate model
+# 2.2 Turn Weierstrass model into Tate model
 ########################################################
 
-# For convenience, allow to turn Weierstrass model into itself
-function weierstrass_model(w::WeierstrassModel)
-  @vprint :FTheoryModelPrinter 0 "Weierstrass model provided, returning this very model.\n"
-  return w
-end
-
-# Currently no plan to include conversion of Weierstrass model into Tate model.
+# Not yet implemented.
 
 
 
