@@ -102,6 +102,7 @@ fat_ideal(X::AbsAffineAlgebraicSet) = saturated_ideal(defining_ideal(fat_scheme(
 # avoid computing the underlying scheme
 ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(fat_scheme(X))
 base_ring(X::AbsAffineAlgebraicSet) = base_ring(fat_scheme(X))
+ambient_coordinate_ring(X::AbsAffineAlgebraicSet) = ambient_coordinate_ring(fat_scheme(X))
 
 ambient_space(X::AbsAffineAlgebraicSet{S,T}) where {S<:Field, T<:MPolyRing} = X
 

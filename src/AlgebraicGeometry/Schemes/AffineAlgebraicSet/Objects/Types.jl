@@ -39,8 +39,8 @@ defined by ideal(y, x)
 @attributes mutable struct AffineAlgebraicSet{BaseRing<:Field, RingType<:MPolyAnyRing} <: AbsAffineAlgebraicSet{BaseRing, RingType}
   X::AffineScheme
   Xred::AffineScheme
-  function AffineAlgebraicSet(X::AffineScheme; is_reduced::Bool=false, check::Bool=true)
-    A = new{typeof(base_ring(X)), typeof(OO(X))}()
+  function AffineAlgebraicSet(X::AffineScheme{S,T}; is_reduced::Bool=false, check::Bool=true) where {S<:Ring,T<:Ring}
+    A = new{S, T}()
     A.X = X
     if is_reduced
       A.Xred = X
