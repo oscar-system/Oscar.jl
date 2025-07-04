@@ -1500,6 +1500,7 @@ export rank
 export rank_action
 export rational_equivalence_class
 export rational_map
+export rational_point
 export rational_point_conic
 export rational_solutions
 export rational_spinor_norm
