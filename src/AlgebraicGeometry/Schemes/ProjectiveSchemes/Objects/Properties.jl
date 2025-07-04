@@ -111,7 +111,7 @@ end
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm::Symbol=:default) = true
 
-function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; is_saturate::Bool=true)
+function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; is_saturate::Bool=true, compute_radical::Bool=false)
   if !(base_ring(P) isa Field)
     throw(NotImplementedError(
       :is_smooth,
@@ -122,7 +122,7 @@ function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPol
   # TODO: Implement `is_smooth` for affine schemes. Then, this algorithm would work for arbitrary schemes. A similar algorithm can be used for quasismoothness of subschemes of toric varieties.
   # We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
   aff, _ = affine_cone(P)
-  sing, _ = singular_locus(aff)
+  sing, _ = singular_locus(aff; compute_radical)
   !is_saturate && return saturated_ideal(defining_ideal(sing))
   origin = ideal(gens(ambient_coordinate_ring(sing)))
   return saturation(saturated_ideal(defining_ideal(sing)), origin)

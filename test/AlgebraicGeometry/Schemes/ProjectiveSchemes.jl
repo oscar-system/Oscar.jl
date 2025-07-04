@@ -306,7 +306,7 @@ end
   @test defining_ideal(singular_locus(Y; algorithm=:projective_jacobian, is_saturate=true)) == ideal(ambient_coordinate_ring(Y), [1])
   @test defining_ideal(singular_locus(Y; algorithm=:projective_jacobian, is_saturate=false)) == ideal(ambient_coordinate_ring(Y), [4*x^3, 4*y^3, 4*z^3, 4*w^3, x^4 + y^4 + z^4 + w^4])
   @test defining_ideal(singular_locus(Y; algorithm=:affine_cone, is_saturate=true)) == ideal(ambient_coordinate_ring(Y), [1])
-  @test defining_ideal(singular_locus(Y; algorithm=:affine_cone, is_saturate=false)) == ideal(ambient_coordinate_ring(Y), [x, y, z, w, x^4 + y^4 + z^4 + w^4])
+  @test defining_ideal(singular_locus(Y; algorithm=:affine_cone, is_saturate=false)) == ideal(ambient_coordinate_ring(Y), [4*x^3, 4*y^3, 4*z^3, 4*w^3, x^4 + y^4 + z^4 + w^4])
   @test is_smooth(Y; algorithm=:projective_jacobian)
   Y = proj(Q)
   @test is_smooth(Y; algorithm=:covered_jacobian)
