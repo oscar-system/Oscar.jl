@@ -26,10 +26,19 @@
 # (2) Extreme execution efficiency is NOT A CONCERN
 
 
+# Need to "use" Random to have type Random.AbstractRNG available
+using Random;
+
+# ------------------------------------------------------------------
+# We define several concrete subtypes of RandomParams each of which contains
+# the information about the distribution of the random values to generate, and
+# the structure to which those values will belong (e.g. ring, matrix, etc)
 abstract type RandomParams end;
 
 
-
+# We estimate how many distinct values each random generator
+# could generate.  We convert the answer to Int64 (which is
+# large enough to indicate "very many").
 function cap_to_Int64(n::T)  where {T <: Nemo.IntegerUnion}
   @req (n >= 0)  "Must be non-negative"
   max = typemax(Int64)
@@ -37,44 +46,55 @@ function cap_to_Int64(n::T)  where {T <: Nemo.IntegerUnion}
   return Int64(n)
 end
 
-# used in RAND(::RandomParams_Poly)
-function rand_perm(v::Vector{Int})
-  n = length(v)
-  (n < 2) && return v
-  for j in n:-1:2
-    k = rand(1:j-1)
-    v[j],v[k] = v[k],v[j]  # poor man's swap(v[j],v[k])
-  end
-  return v
+
+# ------------------------------------------------------------------
+# Iterator interface  (preliminary)
+# Uncertain what the second return value should be in this case
+
+function Base.iterate(iter::RandomParams)
+  sample = RAND(iter) # updates the random source which iter uses
+  return (sample, nothing)  # RandomParams already contains all info
 end
 
-
-# range conversion -- make every range a StepRange{ZZRingElem,ZZRingElem} with positive step
-# Julia's UnitRange is too limiting: does not work with ZZRingElem
-
-function range_ZZ(R::ZZRingElemUnitRange)
-  return (R.start):ZZ(1):(R.stop)
+function Base.iterate(iter::RandomParams, ::Nothing)
+  sample = RAND(iter) # updates the random source which iter uses
+  return (sample, nothing)  # RandomParams already contains all info
 end
 
-function range_ZZ(R::StepRange{ZZRingElem,ZZRingElem})
-  if is_negative(R.step)
-    return reverse(R)
-  end
-  return R;
+# ------------------------------------------------------------------
+# Range conversion for uniformity:
+#  make every range a StepRange{ZZRingElem,ZZRingElem} with positive step.
+# Functions accept any sort of range, but internally we use only StepRange{,}
+
+function StepRange_ZZ(R::AbstractRange)
+  S = StepRange{ZZRingElem,ZZRingElem}(R)
+  return is_negative(step(S)) ? reverse(S) : S
 end
 
-function range_ZZ(R::UnitRange{T})  where {T <: Integer}
-  return ZZ(R.start):ZZ(1):ZZ(R.stop)
-end
+# function StepRange_ZZ(R::ZZRingElemUnitRange)
+#   return (R.start):ZZ(1):(R.stop)
+# end
 
-function range_ZZ(R::StepRange{T})  where {T <: Integer}
-  if is_negative(R.step)
-    return ZZ(R.stop):ZZ(-R.step):ZZ(R.start)
-  end
-  return ZZ(R.start):ZZ(R.step):ZZ(R.stop)
-end
+# function StepRange_ZZ(R::StepRange{ZZRingElem,ZZRingElem})
+#   if is_negative(R.step)
+#     return reverse(R)
+#   end
+#   return R;
+# end
+
+# function StepRange_ZZ(R::UnitRange{T})  where {T <: Integer}
+#   return ZZ(R.start):ZZ(1):ZZ(R.stop)
+# end
+
+# function StepRange_ZZ(R::StepRange{T})  where {T <: Integer}
+#   if is_negative(R.step)
+#     return ZZ(R.stop):ZZ(-R.step):ZZ(R.start)
+#   end
+#   return ZZ(R.start):ZZ(R.step):ZZ(R.stop)
+# end
 
 
+# ------------------------------------------------------------------
 # range doubling -- !!does not double the step size!!
 
 # "semi-smart" doubling of a StepRange
@@ -84,34 +104,37 @@ end
 # O/w straddles zero, so extend both start & stop
 # If step is not 1, we keep the residue class fixed (I hope)
 function double_range(range::StepRange{ZZRingElem,ZZRingElem})
-  # do nothing if range is a singleton
-  if range.start == range.stop
+  # do nothing if range is a singleton -- should be error?
+  if length(range) == 1
     return range
   end
-  if range.start == 0
-    return (range.start):(range.step):(2*range.stop)
+  if first(range) == 0
+    return first(range) : step(range) : (2*last(range))
   end
   if range.stop == 0
-    return (2*range.start):(range.step):(range.stop)
+    return (2*first(range)) : step(range) : last(range)
   end
-  width = div(range.stop-range.start, range.step)  # should be exact division
-  if range.start > 0
-    return (range.start):(range.step):(range.stop + range.step*width)
+  width = divexact(last(range)-first(range), step(range))
+  if first(range) > 0
+    return first(range) : step(range) : (last(range) + step(range)*width)
   end
-  if range.stop < 0
-    return (range.start - range.step*width):(range.step):(range.stop)
+  if last(range) < 0
+    return (first(range) - step(range)*width) : step(range) : last(range)
   end
+  # Range contains both positive and negative values, so extend both extrema
   half_width = div(1+width,2)
-  delta = range.step*half_width
-  return (range.start-delta):(range.step):(range.stop+delta)
+  delta = step(range)*half_width
+  return (first(range)-delta) : step(range) : (last(range)+delta)
 end
 
 function increase_deg_range(range::StepRange{Int,Int})
-  return (range.start):(range.step):(range.stop+range.step)  # !! should check for overflow !!
+  return first(range) : step(range) : (last(range)+step(range))
 end
 
 
-# Default: always gives false
+# Default: always gives false; there are specializations of this function for
+#          the cases where there is compatibility
+#          (e.g. is_compatible(::RandomParams_ZZ,::ZZRing) about 40 lines below)
 function is_compatible(::RandomParams, ::Ring)
   return false
 end
@@ -139,8 +162,8 @@ mutable struct RandomParams_ZZ  <: RandomParams
   num_different_values::Int64  #
 
   function RandomParams_ZZ(lwb_upb::StepRange{ZZRingElem,ZZRingElem}, non_zero::Bool)
-    @req (lwb_upb.start <= lwb_upb.stop)   "Empty range"
-    @req !(non_zero && lwb_upb == 0:0)  "Cannot request non-zero elements from zero range"
+    @req  !isempty(lwb_upb)   "Empty range"
+    @req  !(non_zero && lwb_upb == 0:0)  "Cannot request non-zero elements from zero range"
     result = new()
     result.range = lwb_upb
     result.nz = non_zero
@@ -155,7 +178,7 @@ function is_compatible(::RandomParams_ZZ, ::ZZRing)
 end
 
 function rand_range(::ZZRing; ZZ_range::AbstractRange{T}=-99:99, non_zero::Bool=false)  where {T <: Nemo.IntegerUnion}
-  return RandomParams_ZZ(range_ZZ(ZZ_range), non_zero)
+  return RandomParams_ZZ(StepRange_ZZ(ZZ_range), non_zero)
 end
 
 # function symmetric_range(::ZZRing, B::ZZRingElem)  # allow more integer types?
@@ -181,16 +204,26 @@ end
 
 
 function RAND(params::RandomParams_ZZ)
+  return RAND(Random.default_rng(), params);
+  # params.counter += 1
+  # # The constructor has checked that this loop cannot be infinite
+  # while true
+  #   val = ZZ(rand(params.range))
+  #   if (!params.nz || !is_zero(val))
+  #     return val
+  #   end
+  # end
+end
+
+function RAND(rng::Random.AbstractRNG, params::RandomParams_ZZ)
   params.counter += 1
-  val = ZZ(0)  # just for scoping
   # The constructor has checked that this loop cannot be infinite
   while true
-    val = ZZ(rand(params.range))
+    val = ZZ(rand(rng, params.range))
     if (!params.nz || !is_zero(val))
-      break;
+      return val
     end
   end
-  return val
 end
 
 
@@ -199,15 +232,15 @@ end
 # Rationals
 
 mutable struct RandomParams_QQ  <: RandomParams
-  numer_range::StepRange{ZZRingElem,ZZRingElem} # guaranteed non-empty
+  numer_range::StepRange{ZZRingElem,ZZRingElem}  # guaranteed non-empty
   denom_range::StepRange{ZZRingElem,ZZRingElem}  # contains at least 1 non-zero value
   nz::Bool
   counter::Int64  # incremented each time a new random value is generated
   num_different_values::Int64  #
 
   function RandomParams_QQ(numer::StepRange{ZZRingElem,ZZRingElem}, denom::StepRange{ZZRingElem,ZZRingElem}, non_zero::Bool)
-    @req (numer.start <= numer.stop)   "Empty numer range"
-    @req (!(denom.start == 0 && denom.stop == 0) && (denom.start <= denom.stop))   "Empty denom range"
+    @req !isempty(numer)   "Empty numer range"
+    @req (!isempty(denom) && denom != 0:0)   "Empty denom range"
     @req !(non_zero && numer == 0:0)  "Cannot request non-zero elements from zero range"
     result = new()
     result.numer_range = numer
@@ -226,16 +259,16 @@ end
 
 function rand_range(::QQField;
                     numer_range::AbstractRange{T1}=-99:99,
-                    denom_range::AbstractRange{T2}=1:max(1,-numer_range.start,numer_range.stop),
+                    denom_range::AbstractRange{T2}=1:max(1,-first(numer_range),last(numer_range)),
                     non_zero::Bool=false)  where {T1 <: Nemo.IntegerUnion, T2 <: Nemo.IntegerUnion}
-  @req (numer_range.start <= numer_range.stop)  "Empty numer range"
-  @req !(denom_range.start == 0 && denom_range.stop == 0)  "Empty denom range"
-  return RandomParams_QQ(range_ZZ(numer_range), range_ZZ(denom_range), non_zero)
+  @req !isempty(numer_range)  "Empty numer range"
+  @req (!isempty(denom_range) && denom_range != 0:0)  "Denom range must contain a non-zero value"
+  return RandomParams_QQ(StepRange_ZZ(numer_range), StepRange_ZZ(denom_range), non_zero)
 end
 
 # function symmetric_range(::QQField, B::ZZRingElem; non_zero::Bool=false)  # allow more integer types?
 #   @req (B >= 0)  "Empty symmetric numer range"
-#   return RandomParams_QQ(range_ZZ(-B:B), range_ZZ(1:max(1,B)), non_zero)
+#   return RandomParams_QQ(StepRange_ZZ(-B:B), StepRange_ZZ(1:max(1,B)), non_zero)
 # end
 
 # function nonneg_range(::QQField, B::ZZRingElem; non_zero::Bool=false)  # allow more integer types?
@@ -289,7 +322,7 @@ end
 # Univariate polynomials
 
 # QUESTION: what does the deg_range parameter mean?
-#    ?ANS?: pick a target deg unif rnd from range, then gen poly of this degree (unless top coeff happens to be 0)
+#    ?ANS?: pick a target deg unif rnd from range, then gen "dense" poly of this degree (unless top coeff happens to be 0)
 
 # ??? Allow caller to specify density, num_of_terms (need RandomSubset of 1:n)
 
@@ -304,9 +337,9 @@ mutable struct RandomParams_Poly  <: RandomParams
 
 
   function RandomParams_Poly(P::PolyRing, d::StepRange{Int,Int}, nterms::StepRange{Int,Int}, coeff_range::RandomParams, non_zero::Bool)
-    @req (d.start >= 0 && d.stop >= d.start)   "Deg range must be non-negative & non-empty"
-    @req ((nterms.start == 0 && nterms.stop == 0) || (nterms.start > 0 && nterms.stop >= nterms.start))  "Number of terms must be positive"
-    @req (1+d.start >= nterms.start)  "Impossible combination of deg range and num terms"
+    @req (!isempty(d) && first(d) >= 0)   "Deg range must be non-negative & non-empty"
+    @req (nterms == 0:0 || (first(nterms) >= 0 && last(nterms) > 0))  "Number of terms must be positive"
+    @req (1+first(d) >= first(nterms))  "Impossible combination of deg range and num terms"
     @req is_compatible(coeff_range, coefficient_ring(P))  "Params for coeff ring are not compatible"
     result = new()
     result.poly_ring = P
@@ -328,19 +361,19 @@ function is_compatible(P::RandomParams_Poly, R::PolyRing)
 end
 
 function StepRange_Int(r::StepRange{T1,T2})  where {T1 <: Nemo.IntegerUnion, T2 <: Nemo.IntegerUnion}
-  if r.step < 0
-    return Int(r.stop):Int(r.step):Int(r.start)
+  if step(r) < 0
+    return Int(last(r)) : Int(step(r)) : Int(first(r))
   end
-  return Int(r.start):Int(r.step):Int(r.stop)
+  return Int(first(r)) : Int(step(r)) : Int(last(r))
 end
 
 function StepRange_Int(r::UnitRange{T})  where {T <: Nemo.IntegerUnion}
-  return Int(r.start):Int(1):Int(r.stop)
+  return Int(first(r)) : Int(1) : Int(last(r))
 end
 
   
 
-# Way to express prefernce for "extend policy"?
+# Way to express preference for "extend policy"?
 function rand_range(P::PolyRing{T};
                     num_terms::AbstractRange{ZZ1}=0:0 #=0:0 means "all" terms=#,
                     coeff_range::RandomParams=rand_range(coefficient_ring(P)),
@@ -372,7 +405,7 @@ function RAND(params::RandomParams_Poly)
     exps = collect(0:target_deg)
     t = rand(params.num_terms)
     if params.num_terms != 0:0 && t < 1+target_deg
-      exps = sort(first(rand_perm(exps),t))  # ?sort useful?
+      exps = sort(first(Random.randperm(exps),t))  # ?sort useful?
     end
     # f is always zero here
     for j in exps
@@ -411,9 +444,9 @@ mutable struct RandomParams_MPoly  <: RandomParams
 
   function RandomParams_MPoly(Rxyz::MPolyRing, degs::Vector{StepRange{Int,Int}}, nterms::StepRange{Int,Int}, coeff_range::RandomParams, non_zero::Bool)
     @req (length(degs) == ngens(Rxyz))  "Incompatible length of vector of degree ranges"
-    @req all(d -> (d.start >= 0 && d.stop >= d.start), degs)   "Deg ranges must be non-negative & non-empty"
-    @req ((nterms.start == 0 && nterms.stop == 0) || (nterms.start > 0 && nterms.stop >= nterms.start))  "Number of terms must be positive"
-#???    @req (1+d.start >= nterms.start)  "Impossible combination of deg range and num terms"
+    @req all(d -> (first(d) >= 0 && last(d) >= first(d)), degs)   "Deg ranges must be non-negative & non-empty"
+    @req (nterms == 0:0 || (first(nterms) > 0 && last(nterms) >= first(nterms)))  "Number of terms must be positive"
+#???    @req (1+first(d) >= first(nterms))  "Impossible combination of deg range and num terms"
     @req is_compatible(coeff_range, coefficient_ring(Rxyz))  "Params for coeff ring are not compatible"
     result = new()
     result.mpoly_ring = Rxyz
