@@ -140,18 +140,6 @@ function weierstrass_ideal_sheaf(w::WeierstrassModel)
 end
 
 
-
-###################################################################
-###################################################################
-# 2: Attributes that currently only works in toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 2.1 Calabi-Yau hypersurface
-#####################################################
-
 @doc raw"""
     calabi_yau_hypersurface(w::WeierstrassModel)
 
@@ -172,18 +160,6 @@ Closed subvariety of a normal toric variety
   return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
 end
 
-
-########################################################
-# 2.2 Turn Weierstrass model into Tate model
-########################################################
-
-# Not yet implemented.
-
-
-
-#####################################################
-# 2.3 Discriminant and singular loci
-#####################################################
 
 @doc raw"""
     discriminant(w::WeierstrassModel)
@@ -253,40 +229,3 @@ julia> length(singular_loci(w))
   sort!(kodaira_types, by = x -> (x[2][2], x[2][3]))
   return kodaira_types
 end
-
-# Below is the original version of the above function singular_loci.
-# The above method only applies to models defined by a single equation, i.e. hypersurface models.
-# In contrast, the method below works more generally, but consumes more resources.
-# In an attempt to reduce the resource consumption of F-theory tools, I have thus specialized into the above method.
-# However, we keep the original code below in case we want to generalize at some point in the future.
-#=
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
-  @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
-  
-  B = irrelevant_ideal(base_space(w))
-  
-  d_primes = primary_decomposition(ideal([discriminant(w)]))
-  nontrivial_d_primes = Tuple{<:MPolyIdeal{<:MPolyRingElem}, <:MPolyIdeal{<:MPolyRingElem}}[]
-  for k in 1:length(d_primes)
-    if _is_nontrivial(d_primes[k][2], B)
-      push!(nontrivial_d_primes, d_primes[k])
-    end
-  end
-  
-  f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
-  g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
-  
-  kodaira_types = Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}[]
-  for d_prime in nontrivial_d_primes
-    f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
-    g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
-    f_order = !isnothing(f_index) ? saturation_with_index(f_primes[f_index][1], d_prime[2])[2] : 0
-    g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
-    d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
-    ords = (f_order, g_order, d_order)
-    push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], ords, w)))
-  end
-  
-  return kodaira_types
-end
-=#
