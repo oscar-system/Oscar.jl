@@ -42,7 +42,5 @@ dim(X::AbsProjectiveAlgebraicSet) = dim(fat_scheme(X))
 
 codim(X::AbsProjectiveAlgebraicSet) = codim(fat_scheme(X))
 
-homogeneous_coordinate_ring(X::AbsProjectiveAlgebraicSet) = homogeneous_coordinate_ring(fat_scheme(X))
-
 relative_ambient_dimension(X::AbsProjectiveAlgebraicSet) = relative_ambient_dimension(fat_scheme(X))
 
