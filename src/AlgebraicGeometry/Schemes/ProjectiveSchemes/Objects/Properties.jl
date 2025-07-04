@@ -111,7 +111,7 @@ end
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm::Symbol=:default) = true
 
-function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; is_saturate::Bool=true, compute_radical::Bool=false)
+function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; saturate::Bool=true, compute_radical::Bool=false)
   if !(base_ring(P) isa Field)
     throw(NotImplementedError(
       :is_smooth,
@@ -123,12 +123,12 @@ function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPol
   # We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
   aff, _ = affine_cone(P)
   sing, _ = singular_locus(aff; compute_radical)
-  !is_saturate && return saturated_ideal(defining_ideal(sing))
+  !saturate && return saturated_ideal(defining_ideal(sing))
   origin = ideal(gens(ambient_coordinate_ring(sing)))
   return saturation(saturated_ideal(defining_ideal(sing)), origin)
 end
 
-function _projective_jacobian_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; is_saturate::Bool=true)
+function _projective_jacobian_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; saturate::Bool=true)
   if !(is_equidimensional(P))
     throw(NotImplementedError(
       :is_smooth,
@@ -139,7 +139,7 @@ function _projective_jacobian_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring
   I = defining_ideal(P)
   mat = jacobian_matrix(R, gens(I))
   sing_locus = ideal(R, minors(mat, codim(P))) + I
-  !is_saturate && return sing_locus
+  !saturate && return sing_locus
   irrelevant_ideal = ideal(R, gens(R))
   return saturation(sing_locus, irrelevant_ideal)
 end
@@ -175,7 +175,7 @@ Projective scheme
 defined by ideal (y, x)
 ```
 """
-function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorithm::Symbol=:default, is_saturate::Bool=true)
+function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorithm::Symbol=:default, saturate::Bool=true)
   if is_empty(P)
     return P
   end
@@ -207,12 +207,12 @@ function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorith
   end
 
   if algorithm == :affine_cone
-    I_aff = _affine_cone_singular_locus_ideal(P; is_saturate)
+    I_aff = _affine_cone_singular_locus_ideal(P; saturate)
     R = ambient_coordinate_ring(P)
     I = ideal(R, map(R, gens(I_aff)))
     return subscheme(ambient_space(P), I)
   elseif algorithm == :projective_jacobian
-    return subscheme(ambient_space(P), _projective_jacobian_singular_locus_ideal(P; is_saturate))
+    return subscheme(ambient_space(P), _projective_jacobian_singular_locus_ideal(P; saturate))
   end
 end
 
