@@ -2,7 +2,12 @@ name: Update Changelog
 
 on:
   workflow_dispatch:
-
+    inputs:
+      version:
+        description: 'Optional version string'
+        required: false
+        type: string
+        default: ''
 # only run at most one instances of this workflow at a time for each branch
 # resp. tag. Starting a new one cancels previously running ones.
 concurrency:
@@ -28,7 +33,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         cd dev/releases
-        python3 release_notes.py
+        python3 release_notes.py ${{ github.event.inputs.version }}
 
     # Configure git for the PR
     - name: Set up git
