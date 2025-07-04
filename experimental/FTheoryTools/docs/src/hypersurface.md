@@ -56,6 +56,7 @@ Users can construct hypersurface models over such concrete toric bases with the 
 
 ```@docs
 hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
 ```
 
 ---
