@@ -918,3 +918,27 @@ end
 function union(X::AbsAffineScheme{BRT,<:MPolyRing}, Y::AbsAffineScheme{BRT,<:MPolyQuoRing}) where {BRT}
   return union(Y,X)
 end
+
+
+######################################################################
+# Components
+######################################################################
+
+"""
+See [`minimal_primes`](@ref) for algorithms and keyword arguments.
+"""
+function irreducible_components(X::AffineScheme; kwargs...)
+  I = defining_ideal(X)
+  PP = minimal_primes(I; kwargs...)
+  C = AffineScheme[] 
+  for p in PP
+    Y = subscheme(X, p)
+    set_attribute!(Y, :is_reduced=>true)
+    set_attribute!(Y, :is_integral=>true)
+    push!(C, Y)
+  end
+  return C
+end
+
+
+
