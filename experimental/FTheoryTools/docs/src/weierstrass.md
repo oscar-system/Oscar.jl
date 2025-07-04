@@ -10,7 +10,7 @@ Weierstrass models are central to many constructions in F-theory. Such a model d
 
 ---
 
-## Background: What Is a Weierstrass Model?
+## What Is a Weierstrass Model?
 
 A Weierstrass model describes a particular form of an elliptic fibration.
 We focus on an elliptic fibration over a complete base ``B``. Consider
@@ -60,6 +60,8 @@ This can be read-off from the Weierstrass table, which we have reproduced from
 
 Weierstrass models are most robustly supported over **toric base spaces**. While there are plans to extend support to toric schemes, covered schemes, and unspecified base families, these directions remain experimental and are reserved for future development. This section briefly discusses constructing Weierstrass models over arbitrary bases, but primarily focuses on working with a **concrete toric base**.
 
+### Unspecified Base Spaces
+
 As mentioned, a Weierstrass model is defined as a hypersurface within an ambient space. Thus, constructing the ambient space is the first step. When working with a family of base spaces, this ambient space can be treated symbolically—flexible enough to represent an entire family while still allowing algebraic manipulations. In particular, it is often useful to construct a Weierstrass model **without explicitly specifying the base space**. This is especially common when engineering singularities through specific factorizations of the Weierstrass sections `f` and `g`, as seen in the Weierstrass table. This method is prevalent in F-theory model building, where singularities are engineered independently of the full base geometry.
 
 To facilitate such workflows, users can define the Weierstrass sections `f` and `g` as elements in a multivariate polynomial ring. The variables in this ring are interpreted as sections of line bundles on the **auxiliary base space**.
@@ -69,6 +71,10 @@ The mathematical meaning and implementation details of symbolic base families ar
 ```@docs
 weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 ```
+
+To check whether a Weierstrass model has been constructed over a concrete base space or over a symbolic family, use `is_base_space_fully_specified`. This returns `true` if the base is fully specified, and `false` otherwise.
+
+### Concrete Toric Base Spaces
 
 Full support exists for constructing Weierstrass models over **concrete, complete toric base spaces**. Completeness is a technical assumption: it ensures that the set of global sections of a line bundle forms a finite-dimensional vector space, enabling OSCAR to handle these sets efficiently. In the future, this restriction may be relaxed. For now, completeness checks—though sometimes slow—are performed in many methods involving Weierstrass models. To skip them and improve performance, use the optional keyword:
 
@@ -116,9 +122,13 @@ calabi_yau_hypersurface(w::WeierstrassModel)
 
 ---
 
-## Studying and Resolving Singularities of Weierstrass Models
+## Singularities in Weierstrass Models: Detection, Tuning, and Resolution
 
-Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. A key quantity in this context is the discriminant locus of the fibration—i.e., the subset of the base space over which the elliptic fibers degenerate:
+Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. 
+
+### Detecting Singularities
+
+A key quantity in this context is the discriminant locus of the fibration—i.e., the subset of the base space over which the elliptic fibers degenerate:
 ```@docs
 discriminant(w::WeierstrassModel)
 ```
@@ -128,8 +138,7 @@ Even more critical than the discriminant itself is its **decomposition**: the di
 singular_loci(w::WeierstrassModel)
 ```
 
-!!! warning
-    The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling. While extensively tested and highly reliable, the method's probabilistic nature may lead to non-deterministic results in rare cases.
+### Tuning the Singularities
 
 Often, one may wish to start with an existing model and modify some of its parameters—specifically its *tunable sections*—to generate a different singularity structure. This is supported through the following method:
 ```@docs
@@ -138,8 +147,11 @@ tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}
 
 More details—particularly on what qualifies as a tunable section—are given in the exposition of the `tune` function in [Functionality for all F-theory models](@ref).
 
-While singularities encode much of the interesting physics, our ability to extract physical content directly from the singular geometry is limited. As such, the standard approach in F-theory model building is to perform a **crepant resolution** and analyze the resulting smooth geometry.
+### Resolving Singularities
 
-Among various resolution techniques, we focus on **blowups**, which can be applied using the `blow_up` function. The resulting model will generally be only *partially* resolved: a full crepant resolution may not always exist, or may not resolve all singularities. At present, OSCAR does not automatically check whether the resolved model is smooth. Instead, the function `is_partially_resolved` simply returns `true` if *any* blowup has been applied.
+In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding of physical data. However, several important caveats apply:
 
-Further information on resolution techniques is available on the page [Functionality for all F-theory models](@ref).
+- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
+- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
+
+After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above, OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable singularities have been removed via crepant methods. Instead, the function `is_partially_resolved` simply returns `true` if *any* resolution step has been applied.

@@ -13,7 +13,7 @@
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
-Return the Tate section ``a_1``.
+Returns the Tate section ``a_1``.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -31,7 +31,7 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 @doc raw"""
     tate_section_a2(t::GlobalTateModel)
 
-Return the Tate section ``a_2``.
+Returns the Tate section ``a_2``.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -49,7 +49,7 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 @doc raw"""
     tate_section_a3(t::GlobalTateModel)
 
-Return the Tate section ``a_3``.
+Returns the Tate section ``a_3``.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -67,7 +67,7 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 @doc raw"""
     tate_section_a4(t::GlobalTateModel)
 
-Return the Tate section ``a_4``.
+Returns the Tate section ``a_4``.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -85,7 +85,7 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 @doc raw"""
     tate_section_a6(t::GlobalTateModel)
 
-Return the Tate section ``a_6``.
+Returns the Tate section ``a_6``.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -107,11 +107,9 @@ tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
 
-Return the Tate polynomial of the global Tate model.
+Returns the Tate polynomial of the model.
 
-For convenience and uniformity with (general) hypersurface
-models, we also support the method `hypersurface_equation`
-to access the Tate polynomial.
+Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -140,13 +138,23 @@ function tate_polynomial(t::GlobalTateModel)
   return t.tate_polynomial
 end
 
+
+@doc raw"""
+    hypersurface_equation(t::GlobalTateModel)
+
+Alias for [`tate_polynomial(t::GlobalTateModel)`](@ref).
+"""
 hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 
 
 @doc raw"""
     tate_ideal_sheaf(t::GlobalTateModel)
 
-Return the Tate ideal sheaf of the global Tate model.
+Returns the Tate ideal sheaf of the global Tate model.
+
+This method is relevant when the global Tate model cannot be represented by a single
+global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
+locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -207,8 +215,8 @@ end
 @doc raw"""
     calabi_yau_hypersurface(t::GlobalTateModel)
 
-Return the Calabi-Yau hypersurface in the toric ambient space
-which defines the global Tate model.
+Returns the Calabi–Yau hypersurface that defines the global Tate model
+as a closed subvariety of its toric ambient space.
 
 ```jldoctest
 julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
@@ -232,7 +240,7 @@ end
 @doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
-Return the Weierstrass model which is equivalent to the given Tate model.
+Returns the Weierstrass model which is equivalent to the given global Tate model.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -345,7 +353,7 @@ end
 @doc raw"""
     discriminant(t::GlobalTateModel)
 
-Return the discriminant of the global Tate model.
+Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -365,36 +373,23 @@ end
 @doc raw"""
     singular_loci(t::GlobalTateModel)
 
-Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
+Returns the singular loci of the Weierstrass model equivalent to the given Tate model,
+along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
+refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
 
-For the time being, we either explicitly or implicitly focus on toric varieties
-as base spaces. Explicitly, in case the user provides such a variety as base space,
-and implicitly, in case we work over a non-fully specified base. This has the
-advantage that we can "filter out" trivial singular loci.
+!!! warning
+    The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling. While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
 
-Specifically, recall that every closed subvariety of a simplicial toric variety is
-of the form ``V(I)``, where ``I`` is a homogeneous ideal of the Cox ring. Let ``B``
-be the irrelevant ideal of this toric variety. Then, by proposition 5.2.6. of
-[CLS11](@cite), ``V(I)`` is trivial/empty iff ``B^l \subseteq I`` for a suitable ``l \geq 0``.
-This can be checked by checking if the saturation ``I:B^\infty`` is the ideal generated by ``1``.
-
-By treating a non-fully specified base space implicitly as a toric space, we can extend this
-result straightforwardly to this situation also. This is the reason for constructing this
-auxiliary base space.
-
-Let us demonstrate the functionality by computing the singular loci of a Type ``III`` Tate model
-[KMSS11](@cite). In this case, we  will consider Global Tate model over a non-fully specified base.
-The Tate sections are factored as follows:
+Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
+[KMSS11](@cite). In this case, the Tate sections are factored as follows:
 - ``a_1 = a_{11} w^1``,
 - ``a_2 = a_{21} w^1``,
 - ``a_3 = a_{31} w^1``,
 - ``a_4 = a_{41} w^1``,
 - ``a_6 = a_{62} w^2``.
-For this factorization, we expect a singularity of Kodaira type ``III`` over the divisor
-``W = {w = 0}``, as desired. So this should be one irreducible component of the discriminant. Moreover,
-we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, while the Weierstrass
-sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
+Hence, there is a Kodaira type ``III`` singularity over the divisor ``{w = 0}``. By theory,
+the discriminant ``\Delta`` vanishes to order 3 on ``{w = 0}``, while the Weierstrass
+sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
 
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];

@@ -49,7 +49,7 @@ weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 
 Returns the Weierstrass polynomial of the model.
 
-Alias: [`hypersurface_equation`](@ref).
+Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 
 ```jldoctest
 julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
@@ -79,7 +79,7 @@ end
 @doc raw"""
     hypersurface_equation(w::WeierstrassModel)
 
-Alias for [`weierstrass_polynomial`](@ref).
+Alias for [`weierstrass_polynomial(w::WeierstrassModel)`](@ref).
 """
 hypersurface_equation(w::WeierstrassModel) = weierstrass_polynomial(w)
 
@@ -199,6 +199,8 @@ for some ``l \geq 0``. This can be checked by testing whether the saturation
 
 By treating unspecified base spaces as symbolic toric varieties, we can
 extend this check to those cases as well.
+
+Advanced technical details are available in [BMT25](@cite BMT25).
 
 !!! warning
     The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling. While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
