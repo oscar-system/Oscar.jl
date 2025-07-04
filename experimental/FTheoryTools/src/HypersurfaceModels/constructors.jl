@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
 
 Construct a hypersurface model, for which the user can specify a fiber ambient space
 as well as divisor classes of the toric base space, in which the first two homogeneous

@@ -27,7 +27,7 @@ end
 #####################################################
 
 @doc raw"""
-    function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
 Tune a hypersurface model by fixing a special choice for the model sections.
 Note that it is in particular possible to set a section to zero. We anticipate
