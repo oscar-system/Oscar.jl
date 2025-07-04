@@ -1,15 +1,3 @@
-###################################################################
-###################################################################
-# 1: Attributes that work the same tor toric and non-toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 1.1 Tate sections and Tate polynomial
-#####################################################
-
-
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
@@ -99,10 +87,6 @@ julia> tate_section_a6(t)
 """
 tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 
-
-#####################################################
-# 1.2 Tate polynomial
-#####################################################
 
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
@@ -200,18 +184,6 @@ function tate_ideal_sheaf(t::GlobalTateModel)
 end
 
 
-
-###################################################################
-###################################################################
-# 2: Attributes that currently only works in toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 2.1 Calabi-Yau hypersurface
-#####################################################
-
 @doc raw"""
     calabi_yau_hypersurface(t::GlobalTateModel)
 
@@ -232,10 +204,6 @@ Closed subvariety of a normal toric variety
   return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
 end
 
-
-#####################################################
-# 2.2 Turn a Tate into a Weierstrass model
-#####################################################
 
 @doc raw"""
     weierstrass_model(t::GlobalTateModel)
@@ -345,10 +313,6 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   return model
 end
 
-
-#####################################################
-# 2.3 Discriminant and singular loci
-#####################################################
 
 @doc raw"""
     discriminant(t::GlobalTateModel)

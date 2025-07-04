@@ -122,7 +122,7 @@ calabi_yau_hypersurface(w::WeierstrassModel)
 
 ---
 
-## Singularities in Weierstrass Models: Detection, Tuning, and Resolution
+## Singularities in Weierstrass Models
 
 Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. 
 

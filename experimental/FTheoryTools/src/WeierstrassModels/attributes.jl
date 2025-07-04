@@ -1,14 +1,3 @@
-###################################################################
-###################################################################
-# 1: Attributes that work the same tor toric and non-toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 1.1 Weierstrass sections and Weierstrass polynomial
-#####################################################
-
 @doc raw"""
     weierstrass_section_f(w::WeierstrassModel)
 
@@ -38,11 +27,6 @@ julia> weierstrass_section_g(w);
 """
 weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 
-
-
-#####################################################
-# 1.2 Weierstrass polynomial
-#####################################################
 
 @doc raw"""
     weierstrass_polynomial(w::WeierstrassModel)

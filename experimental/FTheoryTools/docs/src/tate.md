@@ -147,7 +147,7 @@ calabi_yau_hypersurface(t::GlobalTateModel)
 
 ---
 
-## Singularities in Global Tate Models: Detection, Tuning, and Resolution
+## Singularities in Global Tate Models
 
 Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics.
 
@@ -184,7 +184,7 @@ In F-theory, the standard approach to handling singular geometries is to replace
 
 After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above, OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable singularities have been removed via crepant methods. Instead, the function `is_partially_resolved` simply returns `true` if *any* resolution step has been applied.
 
-### Analyzing Fiber Structure
+### Analyzing the resolved Fiber Structure
 
 After resolution, one typically studies the structure of the (resolved) fibers to extract intersection numbers and representation theory information. The following method computes the fiber components and their intersection graph:
 
