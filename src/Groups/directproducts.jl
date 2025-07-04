@@ -355,10 +355,10 @@ where `f` is a group homomorphism from `H` to the automorphism group of `N`.
 # Examples
 ```jldoctest
 julia> Q = quaternion_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators x, y, y2
 
 julia> C = cyclic_group(2)
-Pc group of order 2
+Pc group of order 2 with 1 generator f1
 
 julia> A = automorphism_group(Q)
 Automorphism group of
@@ -505,7 +505,7 @@ W(g_1,...,g_n, h).
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
 Symmetric group of degree 2
@@ -568,7 +568,7 @@ Return `G`, where `W` is the wreath product of `G` and `H`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
 Symmetric group of degree 2
@@ -577,7 +577,7 @@ julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
 
 julia> normal_subgroup(W)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 ```
 """
 normal_subgroup(W::WreathProductGroup) = W.G
@@ -590,7 +590,7 @@ Return `H`, where `W` is the wreath product of `G` and `H`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(3)
-Pc group of order 3
+Pc group of order 3 with 1 generator f1
 
 julia> H = symmetric_group(2)
 Symmetric group of degree 2
