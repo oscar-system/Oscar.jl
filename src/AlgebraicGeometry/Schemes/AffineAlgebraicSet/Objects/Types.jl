@@ -47,7 +47,9 @@ defined by ideal(y, x)
       set_attribute!(A.Xred, :is_geometrically_reduced, true)
       set_attribute!(A.Xred, :is_reduced, true)
     end
+    set_attribute!(A, :is_reduced, true)
     @check is_geometrically_reduced(A) "Algebraic sets must be geometrically reduced"
+    set_attribute!(A, :is_geometrically_reduced, true)
     return A
   end
 end

@@ -10,7 +10,9 @@
       set_attribute!(Y.Xred, :is_reduced, true)
       set_attribute!(Y.Xred, :is_geometrically_reduced, true)
     end
+    set_attribute!(Y, :is_reduced, true)
     @check is_geometrically_reduced(Y) "Algebraic sets must be geometrically reduced"
+    set_attribute!(Y, :is_geometrically_reduced, true)
     return Y
   end
 end
