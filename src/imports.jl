@@ -8,9 +8,6 @@ using UUIDs
 if VERSION < v"1.11.0-DEV.1562"
   using Compat: allequal, allunique
 end
-if VERSION < v"1.8.0-DEV.1494"
-  export allequal
-end
 
 # our packages
 import AbstractAlgebra
