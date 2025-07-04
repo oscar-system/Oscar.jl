@@ -41,6 +41,14 @@
   g = map_on_affine_cones(phi)
 
   #@test is_well_defined(phi) # deprecated
+
+  # This makes sure that `derivative` works correctly
+  I = grassmann_pluecker_ideal(2, 5);
+  S, _ = grade(base_ring(I));
+  I = ideal(S, S.(gens(I)));
+  P = projective_scheme(I);
+  R = ambient_coordinate_ring(P);
+  mat = jacobian_matrix(R, gens(I));
 end
 
 @testset "projective_schemes_2" begin
