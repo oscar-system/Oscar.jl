@@ -138,3 +138,19 @@ end
 function reduced_scheme(X::AbsProjectiveScheme{S,T}) where {S, T<:MPolyDecRing}
   return X
 end
+
+"""
+See [`minimal_primes`](@ref) for algorithms and keyword arguments. 
+"""
+function irreducible_components(X::AbsProjectiveScheme; kwargs...)
+  I = defining_ideal(X)
+  PP = minimal_primes(I; kwargs...)
+  C = AbsProjectiveScheme[] 
+  for p in PP
+    Y = subscheme(X, p)
+    set_attribute!(Y, is_reduced=>true)
+    set_attribute!(Y, is_integral=>true)
+    push!(C, Y)
+  end
+  return C
+end 
