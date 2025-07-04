@@ -2952,7 +2952,7 @@ _cmp_reps(a::MPolyLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoRingElem) = y->(y.f == a.f)
 
-@attr function is_local(
+@attr Bool function is_local(
     R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
   ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
   return !is_trivial(R)
