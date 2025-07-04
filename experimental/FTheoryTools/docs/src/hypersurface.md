@@ -18,8 +18,8 @@ The setup of a hypersurface model following [KM-POPR15](@cite) consists of the f
 
 - A **base space** ``B``, over which the elliptic fibration is defined.
 - A **fiber ambient space** ``F``, in which the elliptic fiber appears as a hypersurface.
-- Two divisor classes ``D_1`` and ``D_2`` in ``\text{Cl}(B)``, such that the first two homogeneous coordinates of ``F`` transform over ``B`` as sections of the line bundles associated to ``D_1`` and ``D_2``, respectively.
-- A hypersurface equation defining the total space of the elliptic fibration as a section of the anti-canonical bundle ``\overline{K}_A`` of the full ambient space ``A``, which combines both the fiber ambient space ``F`` and the base space ``B``.
+- Two divisor classes ``D_1`` and ``D_2`` in ``\text{Cl}(B)``, and a choice of two homogeneous coordinates of the fiber ambient space ``F``. These two coordinates transform over the base ``B`` as sections of the line bundles associated to ``D_1`` and ``D_2``, respectively. All remaining homogeneous coordinates of ``F`` transform as sections of the trivial line bundle over ``B``.
+- A hypersurface equation defining the total space of the elliptic fibration as a section of the anti-canonical bundle ``\overline{K}_A`` of the full ambient space ``A``, which combines both the fiber ambient space ``F`` and the base space ``B``. This ensures that the hypersurface equation is Calabi–Yau.
 
 It is worth noting that any elliptic fibration, for which the fiber ambient space is toric, can be cast into this form [KM-POPR15](@cite). Consequently, this approach allows for a uniform interface for constructing and manipulating hypersurface models in a way that generalizes [Global Tate Models](@ref) and [Weierstrass Models](@ref) naturally. Our standing assumption is therefore that the fiber ambient space ``F`` is toric.
 
@@ -27,18 +27,15 @@ It is worth noting that any elliptic fibration, for which the fiber ambient spac
 
 ## Constructing Hypersurface Models
 
-Recall that the hypersurface equation must be a section of the anti-canonical bundle ``\overline{K}_A``, so that the total space of the elliptic fibration is **Calabi--Yau**. This is a key requirement for F-theory compactifications. However, clearly we must first create the ambient space ``A`` in order to specify the hypersurface equation or to verify that it is indeed a section of 
-``\overline{K}_A``. This means that typically, the hypersurface model workflow operates in two-stage. First, based on ``B``, ``F``, ``D_1`` and ``D_2``, we compute a hypersurface model in which the hypersurface equation is generic. Second, the user may apply tuning procedures to change this generic section to the desired hypersurface equation.
-
-Our implementation in `FTheoryTools` is most effective when the base ``B`` is toric. However, we also provide elementary support for unspecified base spaces. Crucially, the computational tools become much more limited in this setup.
-
 ### Unspecified Base Spaces
 
-To construct a hypersurface model over an unspecified base space, we provide the following constructor:
+We support the construction of hypersurface models over unspecified base spaces, though computational capabilities are significantly limited in this setting. These models can be constructed using the following interface:
 
 ```@docs
 hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
 ```
+
+THIS METHOD MUST ALSO SUPPORT TWO DIVISOR CLASSES, WHICH ARE THEN SET FOR THE FIRST TWO COORDINATES AND ZEROS OTHERWISE. AND WE MUST ALSO HAVE A METHOD TO SET ANY TWO COORDINATES TO TRANSFORM...
 
 ### Concrete Toric Base Spaces
 

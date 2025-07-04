@@ -177,31 +177,28 @@ end
 # 3: Constructors without specified base
 ################################################
 
-
 @doc raw"""
     hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
 
-This method constructs a hypersurface model over a base space that is not
-fully specified. In the background, we construct a family of spaces to represent
-the base space. This method requires the following information:
-1. The names of the homogeneous coordinates of the coordinate ring of the generic member
-of the family of bsae spaces.
-2. The grading of the coordinate ring of the generic member of the family of base spaces.
-3. The weights telling us how the fiber ambient space coordinates transform under the base.
-4. The dimension of the generic member of the family of base spaces.
-5. The fiber ambient space.
-6. The hypersurface equation.
+Constructs a hypersurface model over an unspecified base space by defining a **family** of base varieties
+via auxiliary data.
 
-Note that many studies in the literature use the class of the anticanonical bundle
-in their analysis. We anticipate this by adding this class as a variable of the
-coordinate ring of the generic member of the family of base space, unless the user
-already provides this grading. Our convention is that the first row of the grading
-matrix refers to Kbar and that the homogeneous variable corresponding to this class
-carries the name "Kbar".
+The base is represented by:
+1. `auxiliary_base_vars`: Names of the homogeneous coordinates in the Cox ring of a generic base variety.
+2. `auxiliary_base_grading`: A grading matrix specifying the line bundle degrees of these coordinates.
+3. `d`: The (Krull) dimension of the base.
 
-For convenience, the `fiber_twist_divisor_classes` can also be provided as `ZZMatrix`.
+Additionally, the fiber data must be provided:
+4. `fiber_ambient_space`: A toric variety defining the ambient space for the fiber.
+5. `fiber_twist_divisor_classes`: A list of weight vectors specifying how the fiber coordinates transform under the base line bundles.
+6. `p`: A multivariate polynomial defining the hypersurface equation in the total ambient space.
 
-The following example exemplifies this constructor.
+To ensure that the hypersurface is Calabi--Yau, the equation `p` must define a section of the anti-canonical bundle of the total
+ambient space. If the provided grading matrix does not include this class, a new grading row corresponding to the anti-canonical
+class is automatically added. By convention, this first row corresponds to ``\overline{K}_A`` and the associated variable is named `"Kbar"`.
+
+!!! tip
+    For convenience, `fiber_twist_divisor_classes` may also be passed as a `ZZMatrix`.
 
 # Examples
 ```jldoctest
