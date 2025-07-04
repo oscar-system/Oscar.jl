@@ -33,9 +33,8 @@ We support the construction of hypersurface models over unspecified base spaces,
 
 ```@docs
 hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
+hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, indices::Vector{Int}, p::MPolyRingElem)
 ```
-
-THIS METHOD MUST ALSO SUPPORT TWO DIVISOR CLASSES, WHICH ARE THEN SET FOR THE FIRST TWO COORDINATES AND ZEROS OTHERWISE. AND WE MUST ALSO HAVE A METHOD TO SET ANY TWO COORDINATES TO TRANSFORM...
 
 ### Concrete Toric Base Spaces
 
