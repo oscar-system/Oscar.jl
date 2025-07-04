@@ -178,7 +178,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)
-          upgraded_refs = Dict()
+          upgraded_refs = Dict{Symbol, Any}()
           for (k, v) in upgraded_dict[:_refs]
             upgraded_refs[k] = upgrade_script(upgrade_state, v)
           end

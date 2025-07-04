@@ -1,7 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
   function upgrade_1_4_0(s::UpgradeState, dict::Dict)
-    dict = dict
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -241,9 +240,20 @@ push!(upgrade_scripts_set, UpgradeScript(
               ))
             end
           end
-          
-          dict[:_type] =  Dict(:name => "Dict", :params=>Dict()),
-          dict[:data] => Dict()
+
+          if haskey(dict, :_refs)
+            dict = Dict(
+              :_type => Dict(:name => "Dict", :params=>Dict()),
+              :data => Dict(),
+              :_refs => dict[:_refs]
+            )
+          else
+            dict = Dict(
+              :_type => Dict(:name => "Dict", :params=>Dict()),
+              :data => Dict(),
+            )
+          end
+
           for (k, v) in d
             if k == :key_type || k == :key_params
               dict[:_type][:params][:key_params] = v
