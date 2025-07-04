@@ -36,7 +36,8 @@ gen(L::LieAlgebraModule, i::Int) = basis(L, i)
 
 Return the dimension of the Lie algebra module `V`.
 """
-dim(V::LieAlgebraModule) = V.dim
+dim(V::LieAlgebraModule) = vector_space_dim(V)
+vector_space_dim(V::LieAlgebraModule) = V.dim
 
 @doc raw"""
     basis(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModuleElem{C}}

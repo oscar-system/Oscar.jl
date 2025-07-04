@@ -46,7 +46,8 @@ end
 
 Return the dimension of the Lie subalgebra `S`.
 """
-dim(S::LieSubalgebra) = length(basis(S))
+dim(S::LieSubalgebra) = vector_space_dim(S)
+vector_space_dim(S::LieSubalgebra) = length(basis(S))
 
 coefficient_ring(S::LieSubalgebra) = coefficient_ring(base_lie_algebra(S))
 
