@@ -284,6 +284,22 @@ function preimage(
   return ideal(domain(f), help_map.(gens(K)))
 end
 
+# preimag if target is a Laurent polynomial ring
+
+function preimage(f::MPolyAnyMap{<:Any, <:Any}, I::LaurentMPolyIdeal)
+  @req base_ring(I) === codomain(f) "Parent mismatch"
+  S = codomain(f)
+  q = _polyringquo(S) # isomorphism q : S -> K[x]/Q
+  ff = hom(f, codomain(q), [q(f(x)) for x in gens(domain(f))])
+  J = image(q, I)
+  return preimage(f, J)
+end
+
+@attr Any function kernel(f::MPolyAnyMap{<:Union{MPolyRing, MPolyQuoRing}, <:Generic.LaurentMPolyWrapRing, <:Any, <:Any})
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
+end
+
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
 # Construct the polynomial ring K[y, x], the natural maps K[x] -> K[y, x]
 # and K[y, x] -> K[y], and the ideal I_2 + (y_i - f_i) in it.
