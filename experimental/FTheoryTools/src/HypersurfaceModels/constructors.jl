@@ -173,16 +173,8 @@ function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::
 end
 
 
-
 ################################################
-# 2: Constructors with scheme as base
-################################################
-
-# Yet to come...
-
-
-################################################
-# 3: Constructors without specified base
+# 2: Constructors with unspecified base
 ################################################
 
 @doc raw"""
@@ -398,7 +390,7 @@ end
 
 
 ################################################
-# 4: Display
+# 3: Display
 ################################################
 
 # Detailed printing

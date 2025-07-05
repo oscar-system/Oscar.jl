@@ -1,7 +1,3 @@
-#####################################################
-# 1: Tune a Weierstrass model
-#####################################################
-
 @doc raw"""
     tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 

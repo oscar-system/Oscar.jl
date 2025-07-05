@@ -1,7 +1,3 @@
-#####################################################
-# 1: Fiber analysis of a global Tate model
-#####################################################
-
 @doc raw"""
     analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
 
@@ -74,10 +70,6 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
 
 end
 
-
-#####################################################
-# 2: Tune a global Tate model
-#####################################################
 
 @doc raw"""
     tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)

@@ -88,16 +88,7 @@ end
 
 
 ################################################
-# 2: Constructors with scheme as base
-################################################
-
-# Yet to come...
-# This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
-# -> Types to be generalized then.
-
-
-################################################
-# 3: Constructors without specified base
+# 2: Constructors with unspecified base
 ################################################
 
 @doc raw"""
@@ -194,9 +185,8 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 end
 
 
-
 ################################################
-# 4: Display
+# 3: Display
 ################################################
 
 # Detailed printing
