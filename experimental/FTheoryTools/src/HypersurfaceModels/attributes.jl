@@ -128,7 +128,7 @@ function weierstrass_model(h::HypersurfaceModel)
   if w isa WeierstrassModel
     return w
   end
-  @req t isa String "Internal inconsistency encountered"
+  @req w isa String "Internal inconsistency encountered"
   directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   if is_base_space_fully_specified(h)
