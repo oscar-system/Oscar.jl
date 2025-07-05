@@ -9,7 +9,7 @@ This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
 
 ```jldoctest
-julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
+julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Global Tate model over a concrete base
 ```
 """
@@ -23,7 +23,7 @@ This method operates analogously to `global_tate_model(base::NormalToricVarietyT
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> a1 = generic_section(anticanonical_bundle(chosen_base));

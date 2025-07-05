@@ -9,7 +9,8 @@ Constructs a Weierstrass model over a given toric base space. The Weierstrass se
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
 ```jldoctest
-julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
+
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
@@ -26,7 +27,7 @@ Constructs a Weierstrass model over a given toric base space ``X``. The Weierstr
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
 
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> f = generic_section(anticanonical_bundle(chosen_base)^4);

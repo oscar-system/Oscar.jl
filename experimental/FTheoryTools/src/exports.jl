@@ -180,7 +180,6 @@ export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
 export resolve
-export sample_toric_variety
 export set_arxiv_doi
 export set_arxiv_id
 export set_arxiv_link
