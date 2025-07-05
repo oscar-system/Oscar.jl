@@ -6,7 +6,11 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Weierstrass Models
 
-Weierstrass models are central to many constructions in F-theory. Such a model describes a particular form of an elliptic fibration. Our primary focus is on Weierstrass models built over **toric base spaces**. These models receive the most comprehensive support. Weierstrass models over more general bases, such as arbitrary schemes or unspecified base spaces, are under development.
+Weierstrass models are central to many constructions in F-theory. Such a model describes
+a particular form of an elliptic fibration. Our primary focus is on Weierstrass models
+built over **toric base spaces**. These models receive the most comprehensive support.
+Weierstrass models over more general bases, such as arbitrary schemes or unspecified
+base spaces, are under development.
 
 ---
 
@@ -58,25 +62,48 @@ This can be read-off from the Weierstrass table, which we have reproduced from
 
 ## Constructing Weierstrass Models
 
-Weierstrass models are most robustly supported over **toric base spaces**. While there are plans to extend support to toric schemes, covered schemes, and unspecified base families, these directions remain experimental and are reserved for future development. This section briefly discusses constructing Weierstrass models over arbitrary bases, but primarily focuses on working with a **concrete toric base**.
+Weierstrass models are most robustly supported over **toric base spaces**. While there are
+plans to extend support to toric schemes, covered schemes, and unspecified base families,
+these directions remain experimental and are reserved for future development. This section
+briefly discusses constructing Weierstrass models over arbitrary bases, but primarily focuses
+on working with a **concrete toric base**.
 
 ### Unspecified Base Spaces
 
-As mentioned, a Weierstrass model is defined as a hypersurface within an ambient space. Thus, constructing the ambient space is the first step. When working with a family of base spaces, this ambient space can be treated symbolically—flexible enough to represent an entire family while still allowing algebraic manipulations. In particular, it is often useful to construct a Weierstrass model **without explicitly specifying the base space**. This is especially common when engineering singularities through specific factorizations of the Weierstrass sections `f` and `g`, as seen in the Weierstrass table. This method is prevalent in F-theory model building, where singularities are engineered independently of the full base geometry.
+As mentioned, a Weierstrass model is defined as a hypersurface within an ambient space. Thus,
+constructing the ambient space is the first step. When working with a family of base spaces,
+this ambient space can be treated symbolically—flexible enough to represent an entire family
+while still allowing algebraic manipulations. In particular, it is often useful to construct
+a Weierstrass model **without explicitly specifying the base space**. This is especially common
+when engineering singularities through specific factorizations of the Weierstrass sections `f`
+and `g`, as seen in the Weierstrass table. This method is prevalent in F-theory model building,
+where singularities are engineered independently of the full base geometry.
 
-To facilitate such workflows, users can define the Weierstrass sections `f` and `g` as elements in a multivariate polynomial ring. The variables in this ring are interpreted as sections of line bundles on the **auxiliary base space**.
+To facilitate such workflows, users can define the Weierstrass sections `f` and `g` as elements
+in a multivariate polynomial ring. The variables in this ring are interpreted as sections of
+line bundles on the **auxiliary base space**.
 
-The mathematical meaning and implementation details of symbolic base families are subtle and under active discussion. We do not elaborate on them further here. Let us only mention that users can create such models with the following constructor, though support for these models may be limited:
+The mathematical meaning and implementation details of symbolic base families are subtle and
+under active discussion. We do not elaborate on them further here. Let us only mention that
+users can create such models with the following constructor, though support for these models
+may be limited:
 
 ```@docs
 weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 ```
 
-To check whether a Weierstrass model has been constructed over a concrete base space or over a symbolic family, use `is_base_space_fully_specified`. This returns `true` if the base is fully specified, and `false` otherwise.
+To check whether a Weierstrass model has been constructed over a concrete base space or over a
+symbolic family, use `is_base_space_fully_specified`. This returns `true` if the base is fully
+specified, and `false` otherwise.
 
 ### Concrete Toric Base Spaces
 
-Full support exists for constructing Weierstrass models over **concrete, complete toric base spaces**. Completeness is a technical assumption: it ensures that the set of global sections of a line bundle forms a finite-dimensional vector space, enabling OSCAR to handle these sets efficiently. In the future, this restriction may be relaxed. For now, completeness checks—though sometimes slow—are performed in many methods involving Weierstrass models. To skip them and improve performance, use the optional keyword:
+Full support exists for constructing Weierstrass models over **concrete, complete toric base spaces**.
+Completeness is a technical assumption: it ensures that the set of global sections of a line
+bundle forms a finite-dimensional vector space, enabling OSCAR to handle these sets efficiently.
+In the future, this restriction may be relaxed. For now, completeness checks—though sometimes
+slow—are performed in many methods involving Weierstrass models. To skip them and improve performance,
+use the optional keyword:
 
 ```julia
 completeness_check = false
@@ -84,7 +111,13 @@ completeness_check = false
 
 We proceed under the assumption that the base space is a fixed, complete toric variety.
 
-In this setting, constructing a suitable ambient space becomes significantly more efficient. First, we focus on toric ambient spaces. Second, rather than enumerating large numbers of ambient spaces from polytope triangulations—a resource-intensive process—we adopt a **performance-optimized** approach. Starting from the rays and maximal cones of the toric base, we **extend** them to construct a compatible polyhedral fan defining the toric ambient space. This avoids triangulation entirely and yields a single suitable ambient toric variety. The resulting space may not be smooth and may differ from those commonly used in the F-theory literature, but it is guaranteed to be compatible with the elliptic fibration structure.
+In this setting, constructing a suitable ambient space becomes significantly more efficient. First,
+we focus on toric ambient spaces. Second, rather than enumerating large numbers of ambient spaces from
+polytope triangulations—a resource-intensive process—we adopt a **performance-optimized** approach.
+Starting from the rays and maximal cones of the toric base, we **extend** them to construct a compatible
+polyhedral fan defining the toric ambient space. This avoids triangulation entirely and yields a single
+suitable ambient toric variety. The resulting space may not be smooth and may differ from those commonly
+used in the F-theory literature, but it is guaranteed to be compatible with the elliptic fibration structure.
 
 Users can construct Weierstrass models over such concrete toric bases with the following constructors:
 
@@ -93,7 +126,8 @@ weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
-For convenience—ideal for quick experiments and educational use—we also support constructors for Weierstrass models over commonly used base spaces:
+For convenience—ideal for quick experiments and educational use—we also support constructors for Weierstrass
+models over commonly used base spaces:
 
 ```@docs
 weierstrass_model_over_projective_space(d::Int)
@@ -101,15 +135,23 @@ weierstrass_model_over_hirzebruch_surface(r::Int)
 weierstrass_model_over_del_pezzo_surface(b::Int)
 ```
 
-Several Weierstrass models have gained popularity in the F-theory community. These models are often associated with specific publications and may be informally referred to by author names or recognizable keywords. For these established constructions, we provide support through the specialized `literature_model` interface, which is discussed on the page [Literature constructions](@ref).
+Several Weierstrass models have gained popularity in the F-theory community. These models are often
+associated with specific publications and may be informally referred to by author names or recognizable
+keywords. For these established constructions, we provide support through the specialized `literature_model`
+interface, which is discussed on the page [Literature constructions](@ref).
 
 ---
 
 ## Attributes of Weierstrass Models
 
-Weierstrass models are one way to represent an elliptic fibration as a hypersurface in an ambient space. While different representations may vary in implementation details, they share a common structure in broad strokes. As such, many attributes and properties are shared across model representations. These shared components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page [Functionality for all F-theory models](@ref).
+Weierstrass models are one way to represent an elliptic fibration as a hypersurface in an ambient space.
+While different representations may vary in implementation details, they share a common structure in broad
+strokes. As such, many attributes and properties are shared across model representations. These shared
+components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
+[Functionality for all F-theory models](@ref).
 
-Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to other representations (such as global Tate models or hypersurface models):
+Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to
+other representations (such as global Tate models or hypersurface models):
 
 ```@docs
 weierstrass_section_f(w::WeierstrassModel)
@@ -124,34 +166,55 @@ calabi_yau_hypersurface(w::WeierstrassModel)
 
 ## Singularities in Weierstrass Models
 
-Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. 
+Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance
+(cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. 
 
 ### Detecting Singularities
 
-A key quantity in this context is the discriminant locus of the fibration—i.e., the subset of the base space over which the elliptic fibers degenerate:
+A key quantity in this context is the discriminant locus of the fibration—i.e., the subset of the
+base space over which the elliptic fibers degenerate:
+
 ```@docs
 discriminant(w::WeierstrassModel)
 ```
 
-Even more critical than the discriminant itself is its **decomposition**: the discriminant locus can split into multiple irreducible components. Over each such component, one can determine the singularity type of the fiber. The function `singular_loci` returns a list of these irreducible base loci, together with the corresponding singularity types:
+Even more critical than the discriminant itself is its **decomposition**: the discriminant locus can
+split into multiple irreducible components. Over each such component, one can determine the singularity
+type of the fiber. The function `singular_loci` returns a list of these irreducible base loci, together
+with the corresponding singularity types:
+
 ```@docs
 singular_loci(w::WeierstrassModel)
 ```
 
 ### Tuning the Singularities
 
-Often, one may wish to start with an existing model and modify some of its parameters—specifically its *tunable sections*—to generate a different singularity structure. This is supported through the following method:
+Often, one may wish to start with an existing model and modify some of its parameters—specifically its
+*tunable sections*—to generate a different singularity structure. This is supported through the following
+method:
+
 ```@docs
 tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
 ```
 
-More details—particularly on what qualifies as a tunable section—are given in the exposition of the `tune` function in [Functionality for all F-theory models](@ref).
+More details—particularly on what qualifies as a tunable section—are given in the exposition of the `tune`
+function in [Functionality for all F-theory models](@ref).
 
 ### Resolving Singularities
 
-In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding of physical data. However, several important caveats apply:
+In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones
+via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
+of physical data. However, several important caveats apply:
 
-- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
-- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
+- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved
+without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a
+given singularity admits a crepant resolution.
+- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry.
+In practice, one applies all known resolution techniques, guided by mathematical structure and physical
+expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup
+functionality in [Functionality for all F-theory models](@ref).
 
-After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above, OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable singularities have been removed via crepant methods. Instead, the function `is_partially_resolved` simply returns `true` if *any* resolution step has been applied.
+After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above,
+OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable
+singularities have been removed via crepant methods. Instead, the function `is_partially_resolved` simply returns
+`true` if *any* resolution step has been applied.
