@@ -9,7 +9,6 @@ Constructs a Weierstrass model over a given toric base space. The Weierstrass se
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
 ```jldoctest
-
 julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Weierstrass model over a concrete base
 ```

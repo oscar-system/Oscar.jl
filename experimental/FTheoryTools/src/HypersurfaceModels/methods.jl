@@ -29,7 +29,7 @@ Divisor class on a normal toric variety
 julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
 (Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
 
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
 
 julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
 Hypersurface model over a concrete base
@@ -79,7 +79,7 @@ Divisor class on a normal toric variety
 julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
 (Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
 
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
 
 julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
 Hypersurface model over a concrete base
@@ -87,9 +87,13 @@ Hypersurface model over a concrete base
 julia> x1, x2, x3 = gens(cox_ring(B2));
 
 julia> a1 = 13 * x3^3;
+
 julia> a2 = 7 * x1 * x2^5;
+
 julia> a3 = x1^2 * x2^4 * x3^3;
+
 julia> a4 = x1^3 * (x2 + x3)^9;
+
 julia> a6 = zero(cox_ring(B2));
 
 julia> t = global_tate_model(B2, [a1, a2, a3, a4, a6])
