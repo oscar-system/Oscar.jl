@@ -4,7 +4,7 @@
 Returns the Weierstrass section ``f`` of the Weierstrass model.
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
@@ -19,7 +19,7 @@ weierstrass_section_f(w::WeierstrassModel) = explicit_model_sections(w)["f"]
 Returns the Weierstrass section ``g`` of the Weierstrass model.
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
@@ -36,7 +36,7 @@ Returns the Weierstrass polynomial of the model.
 Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w) == hypersurface_equation(w)
@@ -76,36 +76,22 @@ global polynomial—e.g., after non-toric blowups. In such cases, the model is d
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
 ```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, non-prime divisor on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> w = weierstrass_model(t)
-Weierstrass model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> w =  weierstrass_model_over_projective_space(2)
+Weierstrass model over a concrete base
 
 julia> weierstrass_ideal_sheaf(w)
 Sheaf of ideals
-  on normal, simplicial toric variety
+  on normal toric variety
 with restrictions
-   1: Ideal with 1 generator
-   2: Ideal with 1 generator
-   3: Ideal with 1 generator
-   4: Ideal with 1 generator
-   5: Ideal with 2 generators
-   6: Ideal with 2 generators
-   7: Ideal with 2 generators
-   8: Ideal with 2 generators
-   9: Ideal with 5 generators
-  10: Ideal with 5 generators
-  11: Ideal with 5 generators
-  12: Ideal with 5 generators
+  1: Ideal with 1 generator
+  2: Ideal with 1 generator
+  3: Ideal with 1 generator
+  4: Ideal with 2 generators
+  5: Ideal with 2 generators
+  6: Ideal with 2 generators
+  7: Ideal with 5 generators
+  8: Ideal with 5 generators
+  9: Ideal with 5 generators
 ```
 """
 function weierstrass_ideal_sheaf(w::WeierstrassModel)
@@ -129,7 +115,7 @@ Returns the Calabi–Yau hypersurface that defines the Weierstrass model
 as a closed subvariety of its toric ambient space.
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> calabi_yau_hypersurface(w)
@@ -149,7 +135,7 @@ end
 Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> discriminant(w);
@@ -185,10 +171,11 @@ extend this check to those cases as well.
 Advanced technical details are available in [BMT25](@cite BMT25).
 
 !!! warning
-    The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling. While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
+    The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling.
+    While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
 
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
+julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
 julia> length(singular_loci(w))

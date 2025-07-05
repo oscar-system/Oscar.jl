@@ -126,33 +126,22 @@ global polynomial—e.g., after non-toric blowups. In such cases, the model is d
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
 ```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, non-prime divisor on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> tate_ideal_sheaf(t)
 Sheaf of ideals
-  on normal, simplicial toric variety
+  on normal toric variety
 with restrictions
-   1: Ideal with 1 generator
-   2: Ideal with 1 generator
-   3: Ideal with 1 generator
-   4: Ideal with 1 generator
-   5: Ideal with 3 generators
-   6: Ideal with 3 generators
-   7: Ideal with 3 generators
-   8: Ideal with 3 generators
-   9: Ideal with 4 generators
-  10: Ideal with 4 generators
-  11: Ideal with 4 generators
-  12: Ideal with 4 generators
+  1: Ideal with 1 generator
+  2: Ideal with 1 generator
+  3: Ideal with 1 generator
+  4: Ideal with 2 generators
+  5: Ideal with 2 generators
+  6: Ideal with 2 generators
+  7: Ideal with 5 generators
+  8: Ideal with 5 generators
+  9: Ideal with 5 generators
 ```
 """
 function tate_ideal_sheaf(t::GlobalTateModel)
@@ -176,7 +165,7 @@ Returns the Calabi–Yau hypersurface that defines the global Tate model
 as a closed subvariety of its toric ambient space.
 
 ```jldoctest
-julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
+julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
 
 julia> calabi_yau_hypersurface(t)
@@ -196,13 +185,11 @@ end
 Returns the Weierstrass model which is equivalent to the given global Tate model.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> weierstrass_model(t)
-Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+Weierstrass model over a concrete base
 ```
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
@@ -305,12 +292,11 @@ end
 Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> discriminant(t);
+julia> degree(discriminant(t))
+Abelian group element [36]
 ```
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
@@ -327,7 +313,8 @@ along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the co
 refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
 
 !!! warning
-    The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling. While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
+    While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
 
 Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
 [KMSS11](@cite). In this case, the Tate sections are factored as follows:
