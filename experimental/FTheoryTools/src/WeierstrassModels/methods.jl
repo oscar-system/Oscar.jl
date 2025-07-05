@@ -1,18 +1,18 @@
-#####################################################
-# 1: Tune a Weierstrass model
-#####################################################
-
 @doc raw"""
-    function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
-Tune a Weierstrass model by fixing a special choice for the model sections.
-Note that it is in particular possible to set a section to zero. We anticipate
-that people might want to be able to come back from this by assigning a non-trivial
-value to a section that was previously tuned to zero. This is why we keep such
-trivial sections and do not delete them, say from `explicit_model_sections`
-or `classes_of_model_sections`.
+Takes a Weierstrass model `w` and returns a new model in which the tunable
+sections have been fixed to specific values provided by the user.
 
-# Examples
+The `input_sections` argument is a dictionary mapping section names (as strings)
+to values, typically given as elements of a multivariate polynomial ring. It is
+also possible to set a section to zero.
+
+Importantly, even if a section is tuned to zero, it is **not removed** from the
+model’s metadata (such as `explicit_model_sections` or `classes_of_model_sections`).
+This ensures the ability to later reintroduce non-trivial values for those sections,
+preserving model flexibility and reversibility.
+
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety

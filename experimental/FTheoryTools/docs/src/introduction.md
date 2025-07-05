@@ -8,11 +8,17 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Overview
 
-**FTheoryTools** is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/), designed to assist researchers in working with F-theory models. It focuses on automating and simplifying calculations involving **singular elliptic fibrations**—key geometric objects in F-theory phenomenology.
+**FTheoryTools** is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
+designed to assist researchers in working with F-theory models. It focuses on automating and simplifying
+calculations involving **singular elliptic fibrations**—key geometric objects in F-theory phenomenology.
 
-While the module is tailored for string theorists, it is equally accessible to mathematicians interested in the rich geometry of singular fibrations, even if they are not familiar with F-theory itself.
+While the module is tailored for string theorists, it is equally accessible to mathematicians interested
+in the rich geometry of singular fibrations, even if they are not familiar with F-theory itself.
 
-This page is meant for *end users* of OSCAR, including students and researchers in mathematics and the natural sciences. No background in string theory or theoretical physics is assumed beyond what is needed to understand the geometry of elliptic fibrations. We encourage interested readers to consult the exposition in [Weigand 2018](@cite Wei18) for more background information.
+This page is meant for *end users* of OSCAR, including students and researchers in mathematics and the natural
+sciences. No background in string theory or theoretical physics is assumed beyond what is needed to understand the
+geometry of elliptic fibrations. We encourage interested readers to consult the exposition in
+[Weigand 2018](@cite Wei18) for more background information.
 
 ## Why Use FTheoryTools?
 
@@ -21,7 +27,9 @@ F-theory encodes physical data into the structure of singular elliptic fibration
 - The **type and location** of singularities relate directly to gauge groups and matter content.
 - **Smooth** fibrations typically yield trivial physics and are therefore less interesting for physical applications.
 
-To analyze the geometry effectively, model builders look for a **crepant resolution** of the singular space—one that preserves the Calabi-Yau condition and retains physical meaning. These resolutions are challenging to compute, especially in higher codimension or for non-toric singularities.
+To analyze the geometry effectively, model builders look for a **crepant resolution** of the singular space—one that
+preserves the Calabi-Yau condition and retains physical meaning. These resolutions are challenging to compute,
+especially in higher codimension or for non-toric singularities.
 
 FTheoryTools aims to:
 
@@ -40,7 +48,8 @@ FTheoryTools supports construction of elliptic fibrations via:
 - [Global Tate models](@ref),
 - [Hypersurface models](@ref).
 
-All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This shared functionality is documented at [Functionality for all F-theory models](@ref).
+All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
+shared functionality is documented at [Functionality for all F-theory models](@ref).
 
 Fibrations can be defined over various base spaces:
 
@@ -52,11 +61,13 @@ Physically relevant cases often have base dimension 1, 2, or 3, but *FTheoryTool
 
 ### General Blowups (Beyond Toric)
 
-FTheoryTools enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of singularities, including those without a known toric resolution.
+FTheoryTools enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
+singularities, including those without a known toric resolution.
 
 ### Literature Models
 
-*FTheoryTools* includes a curated database of well-known F-theory models from the literature. These models are stored using the **MaRDI file format**, a JSON-based format aligned with FAIR data principles:
+*FTheoryTools* includes a curated database of well-known F-theory models from the literature. These models are stored
+using the **MaRDI file format**, a JSON-based format aligned with FAIR data principles:
 
 - **Findability**
 - **Accessibility**
@@ -114,7 +125,8 @@ These walk through:
 
 ## Project Status
 
-FTheoryTools is an **experimental** module. Most features are well-tested for **toric** models, with active development underway for:
+FTheoryTools is an **experimental** module. Most features are well-tested for **toric** models, with active development
+underway for:
 
 - Support for general base families and schemes
 - Line bundle cohomology for vector-like spectra
@@ -136,6 +148,13 @@ Community platforms:
 
 ## Acknowledgements
 
-We thank [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic) and [Mohab Safey El Din](https://www.lip6.fr/actualite/personnes-fiche.php?ident=P816#) for valuable discussions.
+We thank [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic) and
+[Mohab Safey El Din](https://www.lip6.fr/actualite/personnes-fiche.php?ident=P816#) for valuable discussions.
 
-The authors are thankful for the support offered by the [TU-Nachwuchsring](https://rptu.de/en/tu-nachwuchsring-network-for-young-scientists-support/home-page). This work was supported by the [_SFB-TRR 195 Symbolic Tools in Mathematics and their Application_](https://www.computeralgebra.de/sfb/) of the [German Research Foundation (DFG)](https://www.dfg.de/en). Martin Bies acknowledges financial support from the \emph{Forschungsinitiative des Landes Rheinland-Pfalz} through the project [_SymbTools -- Symbolic Tools in Mathematics and their Application_](https://fingolfin.github.io/SymbTools/). Andrew P. Turner acknowledges funding from _DOE (HEP) Award DE-SC0013528_ and NSF grant _PHY-2014086_.
+The authors are thankful for the support offered by the
+[**TU-Nachwuchsring**](https://rptu.de/en/tu-nachwuchsring-network-for-young-scientists-support/home-page). This work is
+supported by the [**SFB-TRR 195 Symbolic Tools in Mathematics and their Application**](https://www.computeralgebra.de/sfb/)
+of the [**German Research Foundation** (DFG)](https://www.dfg.de/en). Martin Bies acknowledges financial support from the
+**Forschungsinitiative des Landes Rheinland-Pfalz** through the project
+[**SymbTools -- Symbolic Tools in Mathematics and their Application**](https://fingolfin.github.io/SymbTools/). Andrew P.
+Turner acknowledges funding from **DOE (HEP) Award DE-SC0013528** and NSF grant **PHY-2014086**.

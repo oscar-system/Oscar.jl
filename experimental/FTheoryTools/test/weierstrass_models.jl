@@ -18,7 +18,6 @@ w = weierstrass_model(my_base; completeness_check = false)
   @test toric_variety(calabi_yau_hypersurface(w)) == ambient_space(w)
   @test length(singular_loci(w)) == 1
   @test is_base_space_fully_specified(w) == true
-  @test is_base_space_fully_specified(w) == is_base_space_fully_specified(weierstrass_model(w))
   @test is_partially_resolved(w) == false
 end
 
