@@ -13,7 +13,6 @@ model’s metadata (such as `explicit_model_sections` or `classes_of_model_secti
 This ensures the ability to later reintroduce non-trivial values for those sections,
 preserving model flexibility and reversibility.
 
-# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety

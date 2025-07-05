@@ -14,7 +14,6 @@ The hypersurface equation `p` defines a section of the anti-canonical bundle of 
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref).
 
-# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -79,7 +78,6 @@ The polynomial `p`, which encodes the hypersurface equation, can also be passed 
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref).
 
-# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -205,7 +203,6 @@ For convenience, `fiber_twist_divisor_classes` can also be passed as a `ZZMatrix
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref).
 
-# Examples
 ```jldoctest
 julia> auxiliary_base_vars = ["a1", "a21", "a32", "a43", "a65", "w"];
 
@@ -284,7 +281,6 @@ For convenience, `fiber_twist_divisor_classes` can also be provided as `ZZMatrix
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref).
 
-# Examples
 ```jldoctest
 julia> auxiliary_base_vars = ["a1", "a21", "a32", "a43", "a65", "w"];
 

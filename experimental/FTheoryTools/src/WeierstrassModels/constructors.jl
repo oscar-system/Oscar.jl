@@ -8,7 +8,6 @@
 Constructs a Weierstrass model over a given toric base space. The Weierstrass sections
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
-# Examples
 ```jldoctest
 julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
 Weierstrass model over a concrete base
@@ -26,7 +25,6 @@ end
 Constructs a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
 
-# Examples
 ```jldoctest
 julia> chosen_base = sample_toric_variety()
 Normal toric variety
@@ -102,7 +100,6 @@ To support typical F-theory constructions, a variable `Kbar` representing a sect
 
 Note: This interface is more symbolic and less robust than the constructors for concrete toric bases.
 
-# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])

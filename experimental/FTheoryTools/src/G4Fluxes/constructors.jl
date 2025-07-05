@@ -14,7 +14,6 @@ Construct a candidate ``G_4``-flux for a resolved F-theory model from a given co
 ### Parameters
 - `check` (default: `true`): Perform basic consistency and necessary quantization checks.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -105,7 +104,6 @@ Return the ``G_4``-flux associated with one of the Quadrillion F-theory Standard
 
 This flux has been pre-validated to pass essential consistency checks.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
