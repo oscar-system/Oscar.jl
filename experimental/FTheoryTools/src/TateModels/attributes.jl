@@ -4,13 +4,11 @@
 Returns the Tate section ``a_1``.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a1(t)
-a1
+julia> degree(tate_section_a1(t))
+Abelian group element [3]
 ```
 """
 tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
@@ -22,13 +20,11 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 Returns the Tate section ``a_2``.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a2(t)
-w*a21
+julia> degree(tate_section_a2(t))
+Abelian group element [6]
 ```
 """
 tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
@@ -40,13 +36,11 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 Returns the Tate section ``a_3``.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a3(t)
-w^2*a32
+julia> degree(tate_section_a3(t))
+Abelian group element [9]
 ```
 """
 tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
@@ -58,13 +52,11 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 Returns the Tate section ``a_4``.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a4(t)
-w^3*a43
+julia> degree(tate_section_a4(t))
+Abelian group element [12]
 ```
 """
 tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
@@ -76,13 +68,11 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 Returns the Tate section ``a_6``.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a6(t)
-0
+julia> degree(tate_section_a6(t))
+Abelian group element [18]
 ```
 """
 tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
@@ -96,13 +86,8 @@ Returns the Tate polynomial of the model.
 Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_polynomial(t)
-w^3*a43*x*z^4 - w^2*a32*y*z^3 + w*a21*x^2*z^2 - a1*x*y*z + x^3 - y^2
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> tate_polynomial(t) == hypersurface_equation(t)
 true

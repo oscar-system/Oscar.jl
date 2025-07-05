@@ -39,8 +39,6 @@ Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 julia> w = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
 Weierstrass model over a concrete base
 
-julia> weierstrass_polynomial(w);
-
 julia> weierstrass_polynomial(w) == hypersurface_equation(w)
 true
 ```
