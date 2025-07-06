@@ -6,6 +6,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Literature Models
 
+
+## What is a Literature Model?
+
+
+## Interlude: Model Sections And Alike
+
 ```@docs
 model_sections(m::AbstractFTheoryModel)
 tunable_sections(m::AbstractFTheoryModel)
@@ -14,11 +20,15 @@ model_section_parametrization(m::AbstractFTheoryModel)
 classes_of_model_sections(m::AbstractFTheoryModel)
 classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
+model_parameters(m::AbstractFTheoryModel)
 ```
 
 ```@docs
 hypersurface_equation_parametrization(h::HypersurfaceModel)
 ```
+
+
+## Constructing Literature Models
 
 Certain models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We
@@ -29,7 +39,7 @@ literature_model(; doi::String="", arxiv_id::String="", version::String="", equa
 ```
 
 
-## Attributes
+## Meta Data Attributes for Liteature Models
 
 For literature models, we provide the following attributes referencing meta data:
 ```@docs
@@ -53,7 +63,6 @@ journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
-model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
@@ -69,22 +78,6 @@ we also offer a method that adds a new value. For instance, we have a function
 
 !!! warning
     Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
-
-In addition, the following attributes are available to access advanced model information:
-```@docs
-resolutions(m::AbstractFTheoryModel)
-resolution_generating_sections(m::AbstractFTheoryModel)
-resolution_zero_sections(m::AbstractFTheoryModel)
-weighted_resolutions(m::AbstractFTheoryModel)
-weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-zero_section(m::AbstractFTheoryModel)
-zero_section_class(m::AbstractFTheoryModel)
-zero_section_index(m::AbstractFTheoryModel)
-exceptional_classes(m::AbstractFTheoryModel)
-exceptional_divisor_indices(m::AbstractFTheoryModel)
-torsion_sections(m::AbstractFTheoryModel)
-```
 
 One can check if a model has a particular set of information. This is achieved with the
 following methods:
@@ -114,18 +107,52 @@ following methods:
 * `has_paper_buzzwords(m::AbstractFTheoryModel)`,
 * `has_paper_description(m::AbstractFTheoryModel)`,
 * `has_paper_title(m::AbstractFTheoryModel)`,
-* `has_birational_literature_models(m::AbstractFTheoryModel)`,
+
+
+
+
+
+## Attributes for Liteature Models
+
+In addition, the following attributes are available to access advanced model information:
+```@docs
+resolutions(m::AbstractFTheoryModel)
+resolution_generating_sections(m::AbstractFTheoryModel)
+resolution_zero_sections(m::AbstractFTheoryModel)
+torsion_sections(m::AbstractFTheoryModel)
+weighted_resolutions(m::AbstractFTheoryModel)
+weighted_resolution_generating_sections(m::AbstractFTheoryModel)
+weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+zero_section(m::AbstractFTheoryModel)
+zero_section_class(m::AbstractFTheoryModel)
+zero_section_index(m::AbstractFTheoryModel)
+exceptional_classes(m::AbstractFTheoryModel)
+exceptional_divisor_indices(m::AbstractFTheoryModel)
+```
+
+
+
+
 * `has_resolutions(m::AbstractFTheoryModel)`,
 * `has_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_resolution_zero_sections(m::AbstractFTheoryModel)`,
+* `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolutions(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
 * `has_zero_section(m::AbstractFTheoryModel)`,
 * `has_zero_section_class(m::AbstractFTheoryModel)`,
-* `has_torsion_sections(m::AbstractFTheoryModel)`,
+* `has_zero_section_index(m::AbstractFTheoryModel)`, DOES THAT WORK????
+
+For the following, the corresponding methods are not listed above.
+Do they exist? Do they have a doc string?
+
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
+* `has_birational_literature_models(m::AbstractFTheoryModel)`,
+
+
+
 
 ## The Quadrillion F-Theory Standard Models
 
@@ -135,6 +162,7 @@ A yet more special instance of literature models are the Quadrillion F-theory St
 The base geometry of an F-theory QSM is obtained from triangulating one of 708 reflexive 3-dimensional
 polytopes. The models, whose bases are obtained from triangulations of the same polytope form a family.
 The following information on the polytope in question and its triangulations is available within our database:
+
 ```@docs
 vertices(m::AbstractFTheoryModel)
 polytope_index(m::AbstractFTheoryModel)
@@ -145,6 +173,7 @@ estimated_number_of_triangulations(m::AbstractFTheoryModel)
 
 Beyond the polytope and its triangulations, a number of other integers are of key importance. The following
 are supported in our database.
+
 ```@docs
 kbar3(m::AbstractFTheoryModel)
 hodge_h11(m::AbstractFTheoryModel)
@@ -162,6 +191,7 @@ Let s in H^0(B3, Kbar_B3), then V(s) is a K3-surface. Moreover, let xi be the co
 of the Cox ring of B3. Then V(xi) is a divisor in B3. Consequently, Ci = V(xi) cap V(s)
 is a divisor in the K3-surface V(s). For the root bundle counting program, these curves Ci are
 of ample importance (cf. [Bie24](@cite)). We support the following information on these curves:
+
 ```@docs
 genera_of_ci_curves(m::AbstractFTheoryModel)
 degrees_of_kbar_restrictions_to_ci_curves(m::AbstractFTheoryModel)
@@ -186,6 +216,7 @@ corresponding nodes. Otherwise, if the topological intersection number is positi
 there are exactly n edges between the nodes in question.
 
 The following functions access/create the so-obtained dual graph:
+
 ```@docs
 dual_graph(m::AbstractFTheoryModel)
 components_of_dual_graph(m::AbstractFTheoryModel)
@@ -196,6 +227,7 @@ genera_of_components_of_dual_graph(m::AbstractFTheoryModel)
 The dual graph is essential in counting root bundles (cf. [BCL21](@cite)). It turns out, that one
 can simplify this graph so that the computations at hand can be conducted on a simpler graph
 instead. The following functionality exists to access this simplified dual graph.
+
 ```@docs
 simplified_dual_graph(m::AbstractFTheoryModel)
 components_of_simplified_dual_graph(m::AbstractFTheoryModel)
