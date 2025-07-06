@@ -4,11 +4,11 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Welcome to FTheoryTools
+# Welcome to *FTheoryTools*
 
 ## Overview
 
-**FTheoryTools** is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
+*FTheoryTools* is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
 designed to assist researchers in working with F-theory models. It focuses on automating and simplifying
 calculations involving **singular elliptic fibrations**—key geometric objects in F-theory phenomenology.
 
@@ -20,7 +20,7 @@ sciences. No background in string theory or theoretical physics is assumed beyon
 geometry of elliptic fibrations. We encourage interested readers to consult the exposition in
 [Weigand 2018](@cite Wei18) for more background information.
 
-## Why Use FTheoryTools?
+## Why Use *FTheoryTools*?
 
 F-theory encodes physical data into the structure of singular elliptic fibrations. In these models:
 
@@ -31,7 +31,7 @@ To analyze the geometry effectively, model builders look for a **crepant resolut
 preserves the Calabi-Yau condition and retains physical meaning. These resolutions are challenging to compute,
 especially in higher codimension or for non-toric singularities.
 
-FTheoryTools aims to:
+*FTheoryTools* aims to:
 
 - Automate and streamline the crepant resolution process,
 - Make computations more reproducible,
@@ -42,7 +42,7 @@ FTheoryTools aims to:
 
 ### Constructing Elliptic Fibrations
 
-FTheoryTools supports construction of elliptic fibrations via:
+*FTheoryTools* supports construction of elliptic fibrations via:
 
 - [Weierstrass models](@ref),
 - [Global Tate models](@ref),
@@ -61,7 +61,7 @@ Physically relevant cases often have base dimension 1, 2, or 3, but *FTheoryTool
 
 ### General Blowups (Beyond Toric)
 
-FTheoryTools enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
+*FTheoryTools* enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
 singularities, including those without a known toric resolution.
 
 ### Literature Models
