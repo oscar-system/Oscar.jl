@@ -5,7 +5,6 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 
 !!! warning
     This method may run for very long time and is currently not tested as part of the regular OSCAR CI due to its excessive run times.
-```
 """
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
   

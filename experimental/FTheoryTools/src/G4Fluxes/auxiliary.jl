@@ -400,7 +400,7 @@ and ``b``-th toric variables defines a cohomology class on the ambient toric var
 ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
 
 This symbolic representation can be used to reconstruct cohomology class generators 
-via Cox ring monomials. For the actual cohomology class generators, see ``gens_of_h22_hypersurface``.
+via Cox ring monomials. For the actual cohomology class generators, see `gens_of_h22_hypersurface`.
 
 Use `check = false` to skip completeness and simplicity verification.
 
@@ -502,10 +502,10 @@ to linear combinations of generators of ``S \subseteq H^{2,2}(\widehat{Y}_4, \ma
 where ``\widehat{Y}_4`` is the (smooth) hypersurface associated to the F-theory model and
 ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
 
-The generating set of ``S`` is the one returned by ``gens_of_h22_hypersurface``, 
+The generating set of ``S`` is the one returned by `gens_of_h22_hypersurface`,
 and this converter enables expressing any ambient class in terms of these restricted generators.
 
-For the analogous map in the ambient toric variety, see ``converter_dict_h22_ambient``.
+For the analogous map in the ambient toric variety, see `converter_dict_h22_ambient`.
 
 Use `check = false` to skip completeness and simplicity verification.
 
@@ -548,10 +548,10 @@ end
 Given an F-theory model `m` defined as a hypersurface in a simplicial and
 complete toric space ``X_\Sigma``, this method computes a basis of
 ``H^{2,2}(X_\Sigma, \mathbb{Q})`` (using the method `basis_of_h22`) and then
-filters out ``---``based on fairly elementary, sufficent but not necessary checks``---``
-basis elements whose restriction to the hypersurface in question is non-trivial. The
-list of these basis elements ---``cast into G4-flux ambient space candidates``---
-is then returned by this method.
+filters out—based on fairly elementary, sufficent but not necessary checks—basis
+elements whose restriction to the hypersurface in question is non-trivial. The
+list of these basis elements—cast into ``G_4``-flux ambient space candidates—is then
+returned by this method.
 
 Use `check = false` to skip completeness and simplicity verification.
 

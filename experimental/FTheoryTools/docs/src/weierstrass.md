@@ -206,13 +206,8 @@ In F-theory, the standard approach to handling singular geometries is to replace
 via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
 of physical data. However, several important caveats apply:
 
-- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved
-without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a
-given singularity admits a crepant resolution.
-- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry.
-In practice, one applies all known resolution techniques, guided by mathematical structure and physical
-expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup
-functionality in [Functionality for all F-theory models](@ref).
+- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
+- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
 
 After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above,
 OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable

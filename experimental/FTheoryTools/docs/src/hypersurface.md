@@ -28,15 +28,8 @@ following ingredients:
 
 - A **base space** ``B``, over which the elliptic fibration is defined.
 - A **fiber ambient space** ``F``, in which the elliptic fiber appears as a hypersurface.
-- Two divisor classes ``D_1`` and ``D_2`` in ``\text{Cl}(B)``, and a choice of two
-homogeneous coordinates of the fiber ambient space ``F``. These two coordinates transform
-over the base ``B`` as sections of the line bundles associated to ``D_1`` and ``D_2``,
-respectively. All remaining homogeneous coordinates of ``F`` transform as sections of the
-trivial line bundle over ``B``.
-- A hypersurface equation defining the total space of the elliptic fibration as a section
-of the anti-canonical bundle ``\overline{K}_A`` of the full ambient space ``A``, which
-combines both the fiber ambient space ``F`` and the base space ``B``. This ensures that
-the hypersurface equation is Calabi–Yau.
+- Two divisor classes ``D_1`` and ``D_2`` in ``\text{Cl}(B)``, and a choice of two homogeneous coordinates of the fiber ambient space ``F``. These two coordinates transform over the base ``B`` as sections of the line bundles associated to ``D_1`` and ``D_2``, respectively. All remaining homogeneous coordinates of ``F`` transform as sections of the trivial line bundle over ``B``.
+- A hypersurface equation defining the total space of the elliptic fibration as a section of the anti-canonical bundle ``\overline{K}_A`` of the full ambient space ``A``, which combines both the fiber ambient space ``F`` and the base space ``B``. This ensures that the hypersurface equation is Calabi–Yau.
 
 It is worth noting that any elliptic fibration, for which the fiber ambient space is toric,
 can be cast into this form [KM-POPR15](@cite). Consequently, this approach allows for a

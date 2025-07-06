@@ -5,14 +5,11 @@
 @doc raw"""
     g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; check::Bool = true)
 
-Construct a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class on the toric ambient space.
+Constructs a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class
+on the toric ambient space.
 
-### Requirements
-- The model must be defined via a Weierstrass, global Tate, or hypersurface construction.
-- The ambient space must a smooth and complete toric variety.
-
-### Parameters
-- `check` (default: `true`): Perform basic consistency and necessary quantization checks.
+By default, `check = true` enables basic consistency and quantization checks. Set `check = false`
+to skip these checks, which can improve performance or allow for exploratory computations.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -100,7 +97,8 @@ end
 @doc raw"""
     qsm_flux(qsm_model::AbstractFTheoryModel)
 
-Return the ``G_4``-flux associated with one of the Quadrillion F-theory Standard models, as described in [CHLLT19](@cite CHLLT19).
+Returns the ``G_4``-flux associated with one of the Quadrillion F-theory
+Standard models, as described in [CHLLT19](@cite CHLLT19).
 
 This flux has been pre-validated to pass essential consistency checks.
 
