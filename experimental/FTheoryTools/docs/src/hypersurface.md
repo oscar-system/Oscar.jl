@@ -119,8 +119,9 @@ and references therein): singularities signal non-trivial physics.
 
 A key step in analyzing an elliptic fibration is identifying its singular fibers—those whose structure degenerates
 over certain loci in the base. The **discriminant locus** is the subset of the base space over which the fibers degenerate.
-For hypersurface models, we provide this functionality only if a corresponding Weierstrass model or a corresponding global
-Tate model is known.
+
+For hypersurface models, we provide this functionality only if corresponding [Weierstrass Models](@ref) or
+[Global Tate Models](@ref) are known.
 
 ```@docs
 discriminant(h::HypersurfaceModel)

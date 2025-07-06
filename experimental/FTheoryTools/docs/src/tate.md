@@ -45,9 +45,9 @@ $y^2 + a_1(q) x y z + a_3(q) y z^3 = x^3 + a_2(q) x^2 z^2 + a_4(q) x z^4 + a_6(q
 where the ``a_i(q)`` are the values of the Tate sections at a local coordinate ``q \in U``. This
 formulation is known as a **Tate model**. One may define the elliptic fibration globally by specifying
 a single Tate polynomial as above. Such constructions, known as **global Tate models**, are strictly less
-general than Weierstrass models but have proven especially useful for model building in F-theory: Engineering
-the desired fiber singularities—crucial for F-theory model building—is often simpler in the global Tate
-form than in the Weierstrass form. 
+general than [Weierstrass Models](@ref) but have proven especially useful for model building in F-theory: Engineering
+the desired fiber singularities—crucial for F-theory model building—is often simpler for global Tate
+models than for [Weierstrass Models](@ref).
 
 Much like the Kodaira classification, in a global Tate model the singularities of the elliptic fiber are
 characterized by the vanishing orders of the Tate sections ``a_i``, although no additional monodromy needs
@@ -96,7 +96,7 @@ arbitrary bases, but primarily focuses on working with a **concrete toric base**
 
 ### Unspecified Base Spaces
 
-As with Weierstrass models, constructing a global Tate model begins with building a suitable **ambient space**.
+As with [Weierstrass Models](@ref), constructing a global Tate model begins with building a suitable **ambient space**.
 When the base is not fully specified, the ambient space can be treated symbolically. This symbolic flexibility
 is particularly useful when **engineering singular fibers** via specified vanishing orders or factorizations of
 the Tate sections ``a_i``. This method is foundational to F-theory model building.

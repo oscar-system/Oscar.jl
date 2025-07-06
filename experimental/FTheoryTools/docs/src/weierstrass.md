@@ -151,7 +151,7 @@ components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—
 [Functionality for all F-theory models](@ref).
 
 Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to
-other representations (such as global Tate models or hypersurface models):
+other representations (such as [Global Tate Models](@ref) or [Hypersurface Models](@ref)):
 
 ```@docs
 weierstrass_section_f(w::WeierstrassModel)
