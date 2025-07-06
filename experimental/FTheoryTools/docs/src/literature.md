@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Literature constructions
+# Literature Models
 
 Certain models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We

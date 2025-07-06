@@ -91,7 +91,7 @@ Current literature models include:
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
 
-More information: [Literature constructions](@ref).
+More information: [Literature Models](@ref).
 
 ### ``G_4``-Flux Enumeration
 

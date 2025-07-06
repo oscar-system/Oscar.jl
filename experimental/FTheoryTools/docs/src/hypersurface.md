@@ -81,6 +81,13 @@ hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVar
 hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
 ```
 
+### Famous Hypersurface Models
+
+Several hypersurface models have gained popularity in the F-theory community. These models are often
+associated with specific publications and may be informally referred to by author names or recognizable
+keywords. For these established constructions, we provide support through the specialized `literature_model`
+interface, which is discussed on the page [Literature Models](@ref).
+
 ---
 
 ## Attributes of Hypersurface Models
