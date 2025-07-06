@@ -14,6 +14,7 @@ hinders efficiency but can also deter newcomers from engaging deeply with the fi
 To overcome these obstacles, we introduce the concept of a **literature model**: a well-established F-theory
 construction from the research literature, made accessible in a fully computational format.
 
+---
 
 ## What is a Literature Model?
 
@@ -60,35 +61,160 @@ research. Authors can supplement future publications with accompanying data file
 and build upon their work. This aligns with growing community efforts—such as those within [MaRDI](https://www.mardi4nfdi.de)—to
 ensure that mathematical software and data are as verifiable and accessible as the results they support.
 
-
-
-## Interlude: Model Sections And Alike
-
-```@docs
-model_sections(m::AbstractFTheoryModel)
-tunable_sections(m::AbstractFTheoryModel)
-explicit_model_sections(m::AbstractFTheoryModel)
-model_section_parametrization(m::AbstractFTheoryModel)
-classes_of_model_sections(m::AbstractFTheoryModel)
-classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
-defining_classes(m::AbstractFTheoryModel)
-model_parameters(m::AbstractFTheoryModel)
-```
-
-```@docs
-hypersurface_equation_parametrization(h::HypersurfaceModel)
-```
-
+---
 
 ## Constructing Literature Models
 
-Certain models have been studied in the physics literature over and over again.
-Thereby, these constructions became famous and some were given special names. We
-aim to provide support for such standard constructions.
+The constructor for literature models is necessarily complex, reflecting the wide range of constructions explored in the F-theory
+literature. While some keyword arguments are self-explanatory—for example, the string `doi` uniquely identifies a publication—others
+are more technical or use terminology that may be non-standard. A prominent example is `model_sections`, which plays a key role in
+defining the geometry of the model.
+
+We defer a detailed discussion of these technical inputs to the next section. For now, the constructor signature below serves as a
+high-level overview of how literature models are initialized in practice.
+
+A literature model can be created using the constructor:
 
 ```@docs
 literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
+
+---
+
+## Understanding Model Sections and Their Structure
+
+The construction of any F-theory model in `FTheoryTools`—and especially of literature models—relies on a structured set of sections,
+each of which is a global function (or section of a line bundle) on the base. This infrastructure allows us to control how models are
+tuned, how sections are related to each other, and how the underlying geometry is encoded.
+
+While most users will interact primarily with the high-level geometry or physics of a model, understanding how these sections are organized
+is essential for advanced use cases, including database extension, flux computations, or custom model construction.
+
+We explain each component below in recommended order of conceptual introduction.
+
+---
+
+### Defining Classes
+
+This is the minimal set of divisor classes needed to describe how a model is tuned. It records the classes of key input parameters that define the structure of the model, such as blowup divisors or additional section factors introduced in a tuning.
+
+For instance, in a [Global Tate Model](@ref) with an ``\mathrm{SU}(5)`` tuning like
+
+```julia
+a1 = a10 * w
+a2 = a21 * w
+a3 = a32 * w^2
+a4 = a43 * w^3
+a6 = a65 * w^5
+```
+
+the section `w` has a well-defined divisor class. That class would be part of the `defining_classes`.
+
+```@docs
+defining_classes(::AbstractFTheoryModel)
+```
+
+---
+
+### Tunable Sections
+
+These are the named parameters that can be adjusted to tune the model. They include sections like `a21`, `a32`, and any additional inputs like `w` from the example above.
+
+These tunable sections are the symbolic "building blocks" from which other sections in the model are constructed.
+
+```@docs
+tunable_sections(::AbstractFTheoryModel)
+```
+
+---
+
+### Classes of Tunable Sections
+
+```@docs
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(::AbstractFTheoryModel)
+```
+
+This dictionary expresses the divisor classes of each tunable section in a specific basis: namely the anti-canonical class `K̄` of the base, together with the defining classes of the model.
+
+Each entry gives the class of a tunable section as a linear combination in this basis.
+
+---
+
+### Model Section Parametrization
+
+```@docs
+model_section_parametrization(::AbstractFTheoryModel)
+```
+
+This dictionary explains how the standard sections used in the model (e.g., `a2`, `a3`, `a4`, etc.) are written in terms of the tunable sections.
+
+Using the earlier example:
+
+```julia
+"a2" => a21 * w
+```
+
+means that the section `a2` is not an independent section—it is constructed as a product of tunable ones. This information is key to understanding how the model was derived from a more generic form.
+
+---
+
+### Model Sections
+
+```@docs
+model_sections(::AbstractFTheoryModel)
+```
+
+This function returns the complete list of all named sections that appear in the model. It includes:
+- The tunable sections (like `w`, `a21`, `a32`, ...)
+- Any derived sections that are constructed from them (like `a2`, `a3`, ...)
+
+It is the union of the keys from `model_section_parametrization` and `tunable_sections`.
+
+---
+
+### Explicit Model Sections
+
+```@docs
+explicit_model_sections(::AbstractFTheoryModel)
+```
+
+This dictionary gives the actual expressions for all model sections—written as polynomials in the coordinates of the base.
+
+Each entry in the dictionary corresponds to a name returned by `model_sections`.
+
+---
+
+### Classes of Model Sections
+
+```@docs
+classes_of_model_sections(::AbstractFTheoryModel)
+```
+
+This dictionary assigns a divisor class to every model section in the model. Again, the keys match those in `model_sections`.
+
+---
+
+### Hypersurface Equation Parametrization
+
+```@docs
+hypersurface_equation_parametrization(::HypersurfaceModel)
+```
+
+This function ties all the above together by giving the hypersurface equation that defines the geometry of the model, written in terms of the symbolic model sections.
+
+---
+
+Together, these tools provide fine-grained control over the algebraic structure of F-theory models and allow users to trace back each part of the geometry to its symbolic origin.
+
+
+
+
+
+
+
+
+
+
 
 
 ## Meta Data Attributes for Liteature Models
