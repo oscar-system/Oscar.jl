@@ -83,83 +83,84 @@ hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVar
 
 ---
 
-## Attributes
+## Attributes of Hypersurface Models
 
-### Basic attributes
+Hypersurface models represent an elliptic fibration as a hypersurface in an ambient space. While different types
+of models may vary in implementation, they share a broadly similar structure. Common attributes—such as `base_space`,
+`ambient_space`, and `fiber_ambient_space`—are documented on the page [Functionality for all F-theory models](@ref).
 
-All hypersurface models come with a hypersurface equation:
+The following attributes are **specific to hypersurface models** and do not generally apply to other representations
+(such as [Weierstrass Models](@ref) or [Global Tate Models](@ref)):
+
 ```@docs
 hypersurface_equation(h::HypersurfaceModel)
-```
-Note that this equation is a polynomial in the coordinate ring of a suitable
-ambient space. This ambient space is computed by our constructors. Consequently,
-the coordinate ring, in which the hypersurface equation is an element, is only
-available after the model has been constructed.
-
-Some hypersurface models parametrize the hypersurface equation with sections
-of line bundles of the base space. One can obtain those sections and their
-explicit polynomial expressions over the base with `explicit_model_sections`.
-The parametrization of the hypersurface equation by these sections is found as
-follows:
-```@docs
-hypersurface_equation_parametrization(h::HypersurfaceModel)
-```
-
-To specify a custom value for the hypersurface equation, first use one of the above
-constructors. Once completed, employ the `tune` function described in the methods
-section to set the hypersurface equation to your desired value.
-
-The base space can be obtained with `base_space`, the ambient space with `ambient_space`
-and the fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified`
-will tell if the model has been constructed over a concrete space (in which case
-the function returns `true`) or a family of spaces (returning `false`).
-
-
-### Attributes in toric settings
-
-If the base space of the hypersurface model is a toric space, then we
-also provide a special type for the Calabi-Yau hypersurface:
-```@docs
 calabi_yau_hypersurface(h::HypersurfaceModel)
+weierstrass_model(h::HypersurfaceModel)
+global_tate_model(h::HypersurfaceModel)
 ```
 
-### Attributes based on the corresponding global Tate and Weierstrass models
+Currently, we do not provide automatic functionality to convert a hypersurface model into a [Weierstrass Model](@ref) or
+a [Global Tate Model](@ref). However, such relations may be known or derived in the literature. If desired, users can
+manually establish the connection using the functions below:
 
-Currently, we do not provide functionality to convert a hypersurface model into
-a Weierstrass or global Tate model. Still, for some constructions this might be
-known or detailed in the literature. If the user wishes, one can then associate
-a corresponding Weierstrass or global Tate model as follows:
 ```@docs
 set_weierstrass_model(h::HypersurfaceModel, w::WeierstrassModel)
 set_global_tate_model(h::HypersurfaceModel, w::GlobalTateModel)
 ```
-These models can then be accessed with the following functions:
-```@docs
-weierstrass_model(h::HypersurfaceModel)
-global_tate_model(h::HypersurfaceModel)
-```
-Provided that the corresponding Weierstrass model is known for a hypersurface model,
-we can compute the discriminant locus of this corresponding Weierstrass model:
+
+---
+
+## Singularities in Hypersurface Models
+
+Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite)
+and references therein): singularities signal non-trivial physics.
+
+### Detecting Singularities
+
+A key step in analyzing an elliptic fibration is identifying its singular fibers—those whose structure degenerates
+over certain loci in the base. The **discriminant locus** is the subset of the base space over which the fibers degenerate.
+For hypersurface models, we provide this functionality only if a corresponding Weierstrass model or a corresponding global
+Tate model is known.
+
 ```@docs
 discriminant(h::HypersurfaceModel)
 ```
-Even more critical than the discriminant itself is its decomposition into irreducible
-components. Over each of these components, the singularities of the elliptic fiber are
-classified. The function below returns the list of irreducible base loci—arising from
-the discriminant of the associated Weierstrass model—along with the corresponding singularity
-types:
+
+More informative than the discriminant itself is its **decomposition** into irreducible components. Each component
+corresponds to a locus where the fiber exhibits a distinct singularity structure. These can be classified using:
 
 ```@docs
 singular_loci(h::HypersurfaceModel)
 ```
-!!! warning
-    The classification of singularities is performed using a Monte Carlo algorithm, i.e.
-    it involves random sampling. While the implementation has been extensively tested
-    and meets high standards, its probabilistic nature may occasionally yield non-deterministic
-    results.
 
-## Methods
+### Tuning the Singularities
 
-### Tuning
+One often seeks to enhance the singularity structure of a model—for example, to engineer a larger gauge group. This is
+done by adjusting the defining sections.
 
-Tuning is possible with the `tune` function, cf. [Functionality for all F-theory models](@ref).
+```@docs
+tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+```
+
+The following may the useful in this context at all. (But must be explained better on a separate page, including a discussion
+of the different types of model sections.)
+
+```@docs
+hypersurface_equation_parametrization(h::HypersurfaceModel)
+```
+
+See also [Functionality for all F-theory models](@ref) for further discussion.
+
+### Resolving Singularities
+
+In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones via
+**crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding of physical
+data. However, several important caveats apply:
+
+- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
+- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
+
+After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above, OSCAR
+does not currently verify whether the model has been fully resolved—i.e., whether all resolvable singularities have been
+removed via crepant methods. Instead, the function `is_partially_resolved` simply returns `true` if *any* resolution step
+has been applied.
