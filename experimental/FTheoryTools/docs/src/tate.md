@@ -200,8 +200,6 @@ calabi_yau_hypersurface(t::GlobalTateModel)
 Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite)
 and references therein): singularities signal non-trivial physics.
 
-### Detecting Singularities
-
 A key step in analyzing an elliptic fibration is identifying its singular fibers—those whose structure degenerates
 over certain loci in the base. The **discriminant locus** is the subset of the base space over which the fibers degenerate:
 
@@ -216,36 +214,5 @@ corresponds to a locus where the fiber exhibits a distinct singularity structure
 singular_loci(t::GlobalTateModel)
 ```
 
-### Tuning the Singularities
-
-One often seeks to enhance the singularity structure of a model—for example, to engineer a larger gauge group. This is
-done by adjusting the defining sections:
-
-```@docs
-tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-```
-
-See also [Functionality for all F-theory models](@ref) for further discussion.
-
-### Resolving Singularities
-
-In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones via
-**crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding of physical
-data. However, several important caveats apply:
-
-- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
-- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
-
-After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above, OSCAR
-does not currently verify whether the model has been fully resolved—i.e., whether all resolvable singularities have been
-removed via crepant methods. Instead, the function `is_partially_resolved` simply returns `true` if *any* resolution step
-has been applied.
-
-### Analyzing the resolved Fiber Structure
-
-After resolution, one typically studies the structure of the (resolved) fibers to extract intersection numbers and
-representation theory information. The following method computes the fiber components and their intersection graph:
-
-```@docs
-analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
-```
+We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
+structure and how to resolve them—in [Resolving F-Theory Models](@ref).

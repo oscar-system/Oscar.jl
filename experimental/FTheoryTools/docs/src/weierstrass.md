@@ -171,8 +171,6 @@ calabi_yau_hypersurface(w::WeierstrassModel)
 Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance
 (cf. [Wei18](@cite) and references therein): singularities signal non-trivial physics. 
 
-### Detecting Singularities
-
 A key quantity in this context is the discriminant locus of the fibration—i.e., the subset of the
 base space over which the elliptic fibers degenerate:
 
@@ -189,29 +187,5 @@ with the corresponding singularity types:
 singular_loci(w::WeierstrassModel)
 ```
 
-### Tuning the Singularities
-
-Often, one may wish to start with an existing model and modify some of its parameters—specifically its
-*tunable sections*—to generate a different singularity structure. This is supported through the following
-method:
-
-```@docs
-tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
-```
-
-More details—particularly on what qualifies as a tunable section—are given in the exposition of the `tune`
-function in [Functionality for all F-theory models](@ref).
-
-### Resolving Singularities
-
-In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones
-via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
-of physical data. However, several important caveats apply:
-
-- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition. No algorithm is known to the authors that determines whether a given singularity admits a crepant resolution.
-- Likewise, no general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**. We discuss the available blowup functionality in [Functionality for all F-theory models](@ref).
-
-After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above,
-OSCAR does not currently verify whether the model has been fully resolved—i.e., whether all resolvable
-singularities have been removed via crepant methods. Instead, the function `is_partially_resolved` simply returns
-`true` if *any* resolution step has been applied.
+We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
+structure and how to resolve them—in [Resolving F-Theory Models](@ref).

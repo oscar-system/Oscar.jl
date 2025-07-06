@@ -6,6 +6,20 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Literature Models
 
+```@docs
+model_sections(m::AbstractFTheoryModel)
+tunable_sections(m::AbstractFTheoryModel)
+explicit_model_sections(m::AbstractFTheoryModel)
+model_section_parametrization(m::AbstractFTheoryModel)
+classes_of_model_sections(m::AbstractFTheoryModel)
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+defining_classes(m::AbstractFTheoryModel)
+```
+
+```@docs
+hypersurface_equation_parametrization(h::HypersurfaceModel)
+```
+
 Certain models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We
 aim to provide support for such standard constructions.
@@ -13,6 +27,7 @@ aim to provide support for such standard constructions.
 ```@docs
 literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
+
 
 ## Attributes
 
@@ -111,26 +126,6 @@ following methods:
 * `has_torsion_sections(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
-
-
-## Methods
-
-### Resolution(s) of a singular model
-
-A central task in F-theory is to resolve a singular model.
-For literature models, we have stored resolutions in our data base.
-Upon construction of a literature model, we load these known resolutions.
-
-In addition to listing the known resolutions with `resolutions(m::AbstractFTheoryModel)`,
-the user might want to add a resolution. This can be achieved with the following method:
-```@docs
-add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
-```
-Provided that a resolution for a model is known, we can (attempt to) resolve the model.
-```@docs
-resolve(m::AbstractFTheoryModel, index::Int)
-```
-
 
 ## The Quadrillion F-Theory Standard Models
 
