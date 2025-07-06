@@ -6,8 +6,60 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Literature Models
 
+In the landscape of F-theory model building, many constructions introduced over the years remain relevant
+and influential. However, revisiting or building upon these models can be challenging—especially when prior
+computations must be repeated manually due to evolving mathematical techniques or notation. This not only
+hinders efficiency but can also deter newcomers from engaging deeply with the field.
+
+To overcome these obstacles, we introduce the concept of a **literature model**: a well-established F-theory
+construction from the research literature, made accessible in a fully computational format.
+
 
 ## What is a Literature Model?
+
+### A Computational Interface to the Literature
+
+The `LiteratureModels` framework provides a curated database of such models, drawn from influential F-theory papers.
+Each entry is preprocessed to automate core calculations, store topological and geometric data, and support further
+exploration. Rather than repeating extensive algebraic or topological derivations, researchers can immediately load
+a literature model and apply the full power of `FTheoryTools` to study or extend it.
+
+This offers several advantages:
+- **Rapid access to existing constructions**: Retrieve previously published models without manually reproducing their setup.
+- **Integrated results**: Access known data, such as intersection numbers, crepant resolutions, or gauge groups.
+- **Targeted search**: Filter models by desired features (e.g., gauge symmetry, fiber type).
+- **Seamless analysis**: Load a model and perform further computations using the broader functionality of `FTheoryTools`.
+
+The current database includes a wide range of examples, including models:
+
+- [Krause, Mayrhofer, Weigand 2011](@cite KMW12),
+- [Morrison, Park 2012](@cite MP12),
+- [Lawrie, Schafer-Nameki 2013](@cite LS13),
+- [Klevers, Mayorga, Damian, Oehlmann, Piragua, Reuter 2015](@cite KM-POPR15),
+- [Cvetič, Klevers, Piragua, Taylor 2015](@cite CKPT15),
+- [Taylor, Wang 2015](@cite TW15),
+- [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
+
+This collection is actively expanding.
+
+### Interoperable and Reproducible Model Storage
+
+All literature models are stored in a structured and platform-independent format based on JSON. The framework is transitioning
+toward the **MaRDI file format**, a standardized data format developed as part of the
+[Mathematics Research Data Initiative (MaRDI)](https://www.mardi4nfdi.de). This format ensures that models built in `FTheoryTools`
+can be used across a wide range of computer algebra systems, including `Oscar`, `Sage`, `Macaulay`, and others.
+
+The benefits of this include:
+- **Interoperability**: Models can be exported, shared, and loaded across different systems.
+- **Data compression**: Efficient storage of complex models (via subtree reduction).
+- **Machine-readability**: Makes it easy to contribute new models or verify existing ones.
+- **Transparency**: Published models can be peer-reviewed in both mathematical and computational terms.
+
+We envision literature models not only as a computational resource, but also as a **new standard for reproducibility** in F-theory
+research. Authors can supplement future publications with accompanying data files, making it easier for others to explore, verify,
+and build upon their work. This aligns with growing community efforts—such as those within [MaRDI](https://www.mardi4nfdi.de)—to
+ensure that mathematical software and data are as verifiable and accessible as the results they support.
+
 
 
 ## Interlude: Model Sections And Alike
