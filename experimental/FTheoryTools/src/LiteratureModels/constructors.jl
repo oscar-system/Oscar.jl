@@ -80,15 +80,106 @@ Some literature models require additional input to be uniquely determined and co
 * `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
 
-See the [Literature Models](@ref) documentation page for a deeper discussion of these fields and more advanced usage examples.
+See the [Literature Models](@ref) documentation page for a deeper discussion of these fields.
 
-Below is a minimal example illustrating basic usage:
+First, notice how you can create the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12)
+over an unspecified base:
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> coordinate_ring(ambient_space(t))
+Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
+  over rational field  
+```
+
+Certainly, this is also possible over a concrete base, provided that the defining classes are provided:
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+```
+
+Certainly, this can be mimiced for Weierstrass models, e.g. [Morrison, Park 2012](@cite MP12):
+
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia> length(singular_loci(w))
+1
+```
+
+For convenience, we also support a simplified constructor. Instead of the meta data of the article,
+this constructor accepts an integer, which specifies the position of this model in our database.
+Here is how this can be used to create the model [Morrison, Park 2012](@cite MP12):
+
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia> length(singular_loci(w))
+1
+```
+
+Finally, let us showcase that we also support hypersurface model constructions from the literature.
+For this, we stay with [Morrison, Park 2012](@cite MP12), but this time create this model as a
+hypersurface model. This works as follows:
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> explicit_model_sections(h)
+Dict{String, MPolyRingElem} with 5 entries:
+  "c2" => c2
+  "c1" => c1
+  "c3" => c3
+  "b"  => b
+  "c0" => c0
+
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> hypersurface_equation_parametrization(h2)
+b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)

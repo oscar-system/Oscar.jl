@@ -70,10 +70,8 @@ literature. While some keyword arguments are self-explanatory—for example, the
 are more technical or use terminology that may be non-standard. A prominent example is `model_sections`, which plays a key role in
 defining the geometry of the model.
 
-We defer a detailed discussion of these technical inputs to the next section. For now, the constructor signature below serves as a
-high-level overview of how literature models are initialized in practice.
-
-A literature model can be created using the constructor:
+We defer a detailed discussion of these technical inputs (and outputs) to the next section. The examples in the constructor below serve as
+a high-level overview of how literature models are initialized in practice:
 
 ```@docs
 literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
@@ -81,34 +79,53 @@ literature_model(; doi::String="", arxiv_id::String="", version::String="", equa
 
 ---
 
-## Understanding Model Sections and Their Structure
+## Understanding Defining Classes, Model Parameters and Their Structure
 
-The construction of any F-theory model in `FTheoryTools`—and especially of literature models—relies on a structured set of sections,
-each of which is a global function (or section of a line bundle) on the base. This infrastructure allows us to control how models are
-tuned, how sections are related to each other, and how the underlying geometry is encoded.
+The construction of any F-theory model in `FTheoryTools`—especially those inspired by the literature—relies
+on a systematic set of global sections of line bundles over the base of the elliptic fibration. These sections
+can be grouped according to their role. For instance, there are **tunable sections**, which play a crucial role
+when modifying the singularity structure of the model by tuning it.
 
-While most users will interact primarily with the high-level geometry or physics of a model, understanding how these sections are organized
-is essential for advanced use cases, including database extension, flux computations, or custom model construction.
+Some models also require additional input parameters. For instance, the constructions in [Lawrie, Schafer-Nameki 2013](@cite LS13)
+describe a family of global Tate models with gauge group ``\mathrm{SU}(2k)``, where the integer parameter ``k``
+must be specified to define a concrete model. Another example appears in [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19),
+where models are classified by three-dimensional reflexive polytopes indexed by an integer. A unique base geometry
+is then obtained by choosing a fine, regular, star triangulation of the selected polytope. We refer to such structural or discrete
+data (e.g., integers fixing singularity types, choices of triangulations, etc.), as model parameters.
 
-We explain each component below in recommended order of conceptual introduction.
+In general, the `literature_model` constructor must support a broad spectrum of such inputs from model parameters to divisor classes.
+
+Although most users will engage primarily with the high-level geometry or physics of a model, understanding the underlying
+structure of these sections and parameters is essential for advanced tasks such as extending the database, computing fluxes,
+or constructing custom geometries. The following sections detail the core components of this infrastructure.
 
 ---
 
 ### Defining Classes
 
-This is the minimal set of divisor classes needed to describe how a model is tuned. It records the classes of key input parameters that define the structure of the model, such as blowup divisors or additional section factors introduced in a tuning.
+The **defining classes** of an F-theory model constitute the minimal set of divisor classes used to disambiguate the model
+from its most generic form, i.e. generic Weierstrass, Tate, or hypersurface model.
 
-For instance, in a [Global Tate Model](@ref) with an ``\mathrm{SU}(5)`` tuning like
+As an example, consider the global Tate model introduced in [Krause, Mayrhofer, Weigand 2011](@cite KMW12). In that construction,
+the Tate coefficients are factored as follows:
 
 ```julia
 a1 = a10 * w
 a2 = a21 * w
 a3 = a32 * w^2
 a4 = a43 * w^3
-a6 = a65 * w^5
+a6 = 0
 ```
 
-the section `w` has a well-defined divisor class. That class would be part of the `defining_classes`.
+Here, ``w`` is a section of a line bundle associated to a divisor class ``W`` on the base. The class ``W`` is the sole defining
+class for this model—it uniquely determines how all the Tate sections are twisted.
+
+The `literature_model` constructor accepts an optional `defining_classes` argument, which should be a dictionary mapping
+parameter names (such as `"w"`) to their corresponding divisor classes. To enable this, the base space must also be provided
+explicitly and must be a concrete variety—typically a toric variety.
+
+The following example demonstrates how to construct the model of [Krause, Mayrhofer, Weigand 2011](@cite KMW12) over a toric base
+with a chosen defining class ``W``:
 
 ```@docs
 defining_classes(::AbstractFTheoryModel)
@@ -118,13 +135,36 @@ defining_classes(::AbstractFTheoryModel)
 
 ### Tunable Sections
 
-These are the named parameters that can be adjusted to tune the model. They include sections like `a21`, `a32`, and any additional inputs like `w` from the example above.
+The hypersurface equation of an F-theory model—whether a Weierstrass, Tate, or hypersurface model—is built from a number of global
+sections of line bundles over the base. These sections fall into two conceptual categories:
 
-These tunable sections are the symbolic "building blocks" from which other sections in the model are constructed.
+- **Structural sections**, such as the Weierstrass or Tate coefficients, are determined by the type of model being constructed. To preserve the model's nature—e.g., that it remains a Weierstrass or global Tate model—these sections must retain their prescribed divisor classes. Altering them would fundamentally change the class of the model.
+
+- **Tunable sections** are those sections in the defining hypersurface equation that can be freely varied or further factorized, without changing the qualitative structure of the model. In particular, sections of the defining classes are tunable sections.
+
+For example, in the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12), the Tate coefficients are factorized as:
+
+```julia
+a1 = a10 * w
+a2 = a21 * w
+a3 = a32 * w^2
+a4 = a43 * w^3
+a6 = 0
+```
+
+This model is, by definition, a global Tate model. To preserve this, the classes of the `a1`, `a2`, etc., must remain fixed. However,
+the section ``w`` of the defining class ``W`` as well as the auxiliary sections ``aij`` introduced via the factorization can be adjusted
+freely. Therefore the tunable sections of this model are `w`, `a10`, `a21`, `a32` and `a43`.
 
 ```@docs
 tunable_sections(::AbstractFTheoryModel)
 ```
+
+
+
+
+
+
 
 ---
 
@@ -216,6 +256,10 @@ Together, these tools provide fine-grained control over the algebraic structure 
 
 
 
+
+
+
+---
 
 ## Meta Data Attributes for Liteature Models
 

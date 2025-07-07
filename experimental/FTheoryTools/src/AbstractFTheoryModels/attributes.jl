@@ -183,9 +183,9 @@ end
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Return the defining divisor classes of the model in question.
-This is the minimum set of information required to specify a
-family of models. 
+Returns the defining divisor classes of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1416,8 +1416,9 @@ end
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that can be tuned.
-This is a list of the names of all parameters appearing in the model.
+Returns the tunable sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
