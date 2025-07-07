@@ -2,7 +2,9 @@ name: Cleanup Doc Preview
 
 on:
   pull_request:
-    types: [closed, opened]
+    types: [closed]
+
+permissions: write-all
 
 jobs:
   cleanup-doc-preview:
