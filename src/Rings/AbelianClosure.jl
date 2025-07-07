@@ -249,7 +249,7 @@ julia> root_of_unity(K, 6) == z(6)
 true
 ```
 """
-function root_of_unity(K::QQAbField{AbsSimpleNumField}, n::Int)
+function root_of_unity(K::QQAbField, n::Int)
   # Represent the root in the smallest possible cyclotomic field.
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
@@ -260,21 +260,7 @@ function root_of_unity(K::QQAbField{AbsSimpleNumField}, n::Int)
   if c != n
     z = -z^div(c+1, 2)
   end
-  return QQAbFieldElem{AbsSimpleNumFieldElem}(z, c)
-end
-
-function root_of_unity(K::QQAbField{AbsNonSimpleNumField}, n::Int)
-  # Represent the root in the smallest possible cyclotomic field.
-  if n % 2 == 0 && n % 4 != 0
-    c = div(n, 2)
-  else
-    c = n
-  end
-  K, z = cyclotomic_field(K, c)
-  if c != n
-    z = -z^div(c+1, 2)
-  end
-  return QQAbFieldElem{AbsNonSimpleNumFieldElem}(z, c)
+  return QQAbFieldElem(z, c)
 end
 
 function root_of_unity2(K::QQAbField, c::Int)
