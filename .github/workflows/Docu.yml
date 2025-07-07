@@ -29,6 +29,7 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'
+      - uses: julia-actions/cache@v2
       - name: Build package
         uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
