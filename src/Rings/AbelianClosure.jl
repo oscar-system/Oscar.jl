@@ -100,6 +100,9 @@ const _QQAbGen_sparse = QQAbFieldGen(_QQAb_sparse)
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
 and a generator `z` that can be used to construct primitive roots of unity in
 `K`.
+For each positive  integer `n`, `z(n)` is the primitive `n`-th root of unity
+that corresponds to the complex number $\exp(2\pi i/n)$.
+In particular, we have `z(n)^m = z(div(n, m))`, for all divisors `m` of `n`.
 
 An optional keyword argument `sparse` can be set to `true` to switch to a 
 sparse representation. Depending on the application this can be much faster
@@ -233,40 +236,37 @@ Hecke.data(a::QQAbFieldElem) = a.data
 #
 ################################################################################
 
-# This function finds a primitive root of unity in our field, note this is
-# not always e^(2*pi*i)/n
+@doc raw"""
+    root_of_unity(K::QQAbField, n::Int)
 
-function root_of_unity(K::QQAbField{AbsSimpleNumField}, n::Int)
+Return the root of unity $\exp(2\pi i/n)$ as an element of `K`.
+
+# Examples
+```jldocstring
+julia> K, z = abelian_closure(QQ);
+
+julia> root_of_unity(K, 6) == z(6)
+true
+```
+"""
+function root_of_unity(K::QQAbField, n::Int)
+  # Represent the root in the smallest possible cyclotomic field.
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
     c = n
   end
   K, z = cyclotomic_field(K, c)
-  if c == n
-    return QQAbFieldElem{AbsSimpleNumFieldElem}(z, c)
-  else
-    return QQAbFieldElem{AbsSimpleNumFieldElem}(-z, c)
+  if c != n
+    z = -z^div(c+1, 2)
   end
+  return QQAbFieldElem(z, c)
 end
-
-function root_of_unity(K::QQAbField{AbsNonSimpleNumField}, n::Int)
-  if n % 2 == 0 && n % 4 != 0
-    c = div(n, 2)
-  else
-    c = n
-  end
-  K, z = cyclotomic_field(K, c)
-  if c == n
-    return QQAbFieldElem{AbsNonSimpleNumFieldElem}(z, c)
-  else
-    return QQAbFieldElem{AbsNonSimpleNumFieldElem}(-z, c)
-  end
-end
-
 
 function root_of_unity2(K::QQAbField, c::Int)
-  # This function returns the primitive root of unity e^(2*pi*i/n)
+  # This function returns the primitive root of unity e^(2*pi*i/c),
+  # as an element of the `c`-th cyclotomic field,
+  # also if `mod(c, 4 ) = 2` holds.
   K, z = cyclotomic_field(K, c)
   return QQAbFieldElem(z, c)
 end
