@@ -2223,7 +2223,7 @@ end
 
 Return whether I is equidimensional
 """
-@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal)
+@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal})
   return is_equidimensional(saturated_ideal(I))
 end
 
