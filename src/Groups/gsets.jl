@@ -1394,8 +1394,10 @@ end
 """
     all_blocks(G::PermGroup)
 
-Return a vector of smallest representatives of all block systems
+Return a vector of smallest blocks of all non-trivial block systems
 for the action of `G` on the set of moved points of `G`.
+
+Each block in the returned list is sorted and contains the smallest point moved by `G`.
 
 # Examples
 ```jldoctest
