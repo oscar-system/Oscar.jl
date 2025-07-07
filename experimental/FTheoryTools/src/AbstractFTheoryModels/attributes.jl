@@ -183,9 +183,9 @@ end
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Return the defining divisor classes of the model in question.
-This is the minimum set of information required to specify a
-family of models. 
+Returns the defining divisor classes of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1416,8 +1416,9 @@ end
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that can be tuned.
-This is a list of the names of all parameters appearing in the model.
+Returns the tunable sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1470,9 +1471,11 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
-Returns a dictionary giving the classes of all parameters (tunable sections)
-in terms of Kbar and the defining classes. Each value gives the divisor
-class of the corresponding section/key in this basis. This information is currently only available for literature models.
+Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+of the base and the defining classes of the given model.
+
+!!! warning
+    This information is currently only available for literature models.
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))

@@ -5,7 +5,7 @@
 @doc raw"""
     model(gf::G4Flux)
 
-Return the F-theory model used to construct the ``G_4``-flux candidate.
+Returns the F-theory model used to construct the ``G_4``-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -31,7 +31,7 @@ model(gf::G4Flux) = gf.model
 @doc raw"""
     cohomology_class(gf::G4Flux)
 
-Return the ambient space cohomology class which defines the ``G_4``-flux candidate.
+Returns the ambient space cohomology class which defines the ``G_4``-flux candidate.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -62,7 +62,7 @@ cohomology_class(gf::G4Flux) = gf.class
 @doc raw"""
     d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
 
-Return the d3-tapdole of a G4-flux, that is compute and return the quantity
+Returns the d3-tapdole of a G4-flux, that is compute and return the quantity
 ``- \frac{1}{2} \cdot \int_{\widehat{Y_4}}{G_4 \wedge G_4} + \frac{1}{24} \cdot \chi(\widehat{Y}_4)``.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))

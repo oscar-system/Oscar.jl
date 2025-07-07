@@ -10,11 +10,10 @@ identify ambient space candidates of G4-fluxes. In terms of these
 candidates, we can define a family of G4-fluxes as:
 - ``\mathbb{Z}``-linear combinations, provided by a matrix ``\text{mat}_{\text{int}}``,
 - ``\mathbb{Q}``-linear combinations, provided by a matrix ``\text{mat}_{\text{rat}}``,
-- a shift ``---``resembling the appearance of ``\frac{1}{2} \cdot c_2`` in the flux quantization condition``---`` provided by a vector ``\text{offset}``.
+- a shift—resembling the appearance of ``\frac{1}{2} \cdot c_2`` in the flux quantization condition—provided by a vector ``\text{offset}``.
 
 For convenience we also allow to only provide ``\text{mat}_{\text{int}}``or ``\text{mat}_{\text{rat}}``. In this case, the shift is taken to be zero.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
