@@ -66,7 +66,7 @@ is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
   end
 
   if algorithm == :default
-    if is_equidimensional(P)
+    if (has_attribute(P, :is_equidimensional) && is_equidimensional(P))
       algorithm = :projective_jacobian
     elseif base_ring(P) isa Field
       algorithm = :affine_cone
@@ -102,7 +102,12 @@ is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
     end
     return _jacobian_criterion(covered_scheme(P))
   elseif algorithm == :affine_cone
-    return isone(_affine_cone_singular_locus_ideal(P))
+    # Compute the singular locus of the affine cone (an affine scheme)
+    # and test whether the affine dimension of this locus is less than 1.
+    # The dimension check avoids saturation of the result by the origin.
+    # Compute_radical is switched off, as we only want the dimension.
+    SL = _affine_cone_singular_locus_ideal(P; compute_radical=false, saturate=false)
+    return dim(SL) < 1
   elseif algorithm == :projective_jacobian
     return is_one(_projective_jacobian_singular_locus_ideal(P))
   end
@@ -115,16 +120,18 @@ function _affine_cone_singular_locus_ideal(P::AbsProjectiveScheme{<:Ring, <:MPol
   if !(base_ring(P) isa Field)
     throw(NotImplementedError(
       :is_smooth,
-      "Algorithm `:affine_cone` only implemented when the base ring is a field"
-      # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
+      "affine Jacobian criterion only implemented when the base ring is a field"
+      # because the underlying algorithms are not implemented for
+      # affine schemes over a non-field base ring
     ))
   end
-  # TODO: Implement `is_smooth` for affine schemes. Then, this algorithm would work for arbitrary schemes. A similar algorithm can be used for quasismoothness of subschemes of toric varieties.
+  # TODO: `non_smooth_locus` and `non_regular_locus` for affine schemes over 
+  # non-field baserings. Then, this algorithm would work for arbitrary schemes. 
   # We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
   aff, _ = affine_cone(P)
   sing, _ = singular_locus(aff; compute_radical)
   !saturate && return saturated_ideal(defining_ideal(sing))
-  origin = ideal(gens(ambient_coordinate_ring(sing)))
+  origin = ideal(ambient_coordinate_ring(sing),gens(ambient_coordinate_ring(sing)))
   return saturation(saturated_ideal(defining_ideal(sing)), origin)
 end
 
@@ -200,7 +207,7 @@ function singular_locus(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}; algorith
   end
 
   if algorithm == :default
-    if is_equidimensional(P)
+    if (has_attribute(P,:is_equidimensional) && is_equidimensional(P))
       algorithm = :projective_jacobian
     elseif base_ring(P) isa Field
       algorithm = :affine_cone
