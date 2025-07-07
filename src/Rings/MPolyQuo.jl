@@ -1980,7 +1980,7 @@ function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Boo
 end
 
 @attr Bool function is_local(Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
-  is_zero(dim(Q)) || return false
+  is_zero(krull_dim(Q)) || return false
   return is_one(length(minimal_primes(modulus(Q)))) 
 end
 
@@ -1989,7 +1989,12 @@ function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldEle
   return false
 end
 
+function is_known(::typeof(krull_dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(krull_dim, modulus(Q))
+end
+
 function is_known(::typeof(dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
   return is_known(dim, modulus(Q))
 end
+
 

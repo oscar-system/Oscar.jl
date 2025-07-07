@@ -2148,8 +2148,10 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyQuoLocalizedIdeal)
-  return dim(pre_image_ideal(I))
+dim(I::MPolyQuoLocalizedIdeal) = krull_dim(I)
+
+@attr Union{Int, NegInf} function krull_dim(I::MPolyQuoLocalizedIdeal)
+  return krull_dim(pre_image_ideal(I))
 end
 
 #############################################################################
@@ -2322,7 +2324,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing;
   kk === coefficient_ring(R)::Field || error("change of base field not implemented")
   I = modulus(W)::MPolyLocalizedIdeal
   I_sat = saturated_ideal(modulus(W))::MPolyIdeal
-  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  @assert iszero(krull_dim(I_sat)) "algebra must be zero dimensional"
   o = ordering
   # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
   A, pr = quo(R, I_sat) 
@@ -2348,7 +2350,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   # Collect all monomials which are not in the leading ideal as representatives 
   # of a basis over kk.
   lead_I = leading_ideal(I_shift, ordering=ordering)
-  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  @assert iszero(krull_dim(lead_I)) "quotient must be zero dimensional"
   V_gens = elem_type(R)[]
   done = false
   d = 0
@@ -2587,36 +2589,21 @@ end
   return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
-@attr Int function dim(R::MPolyLocRing)
-  error("Not implemented")
+dim(R::MPolyQuoLocRing) = krull_dim(R)
+
+function krull_dim(R::MPolyQuoLocRing)
+  return krull_dim(modulus(R))
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
   P = prime_ideal(inverted_set(R))
   I = saturated_ideal(modulus(R))
-  dim(I) === -inf && return -inf
-  return dim(I) - dim(P)
+  krull_dim(I) === -inf && return -inf
+  return krull_dim(I) - krull_dim(P)
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  return dim(saturated_ideal(modulus(R)))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
-  # zariski open subset of A^n
-  return dim(base_ring(R))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
-  P = prime_ideal(inverted_set(R))
-  return codim(P)
-end
-
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
-  # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
-  # because all maximal ideals have the same dimension in this case. 
-  return dim(base_ring(R))
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
+  return krull_dim(saturated_ideal(modulus(R)))
 end
 
 ########################################################################
@@ -2853,10 +2840,6 @@ morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPoly
 base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
-
-function dim(R::MPolyQuoLocRing)
-  return dim(modulus(R))
-end
 
 ### extra methods for speedup of mappings
 # See `src/Rings/MPolyMap/MPolyRing.jl` for the original implementation and 

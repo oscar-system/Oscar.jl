@@ -150,9 +150,9 @@ end
 Return the standard basis of `F`.
 """
 function basis(F::AbstractFreeMod)
-  bas = Vector{elem_type(F)}(undef, dim(F))
+  bas = Vector{elem_type(F)}(undef, rank(F))
   e = one(base_ring(F))
-  for i=1:dim(F)
+  for i=1:rank(F)
     s = sparse_row(base_ring(F), [i], [e])
     bas[i] = F(s)
   end
