@@ -2578,6 +2578,10 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
   end
 end
 
+##################compatibility functions##########
+
+is_equidimensional(I::MPolyIdeal{<:MPolyDecRingElem}) = is_equidimensional(forget_grading(I))
+
 ##################regularity#######################
 
 @doc raw"""
