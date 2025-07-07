@@ -29,7 +29,7 @@ julia> [X,X]
 #### An Example for the 2 + 1 print modes
 
 detailed mode:
-```jldoctest
+```jldoctest printing_example
 julia> E = elliptic_curve(QQ, [-82, 0])
 Elliptic curve
   over rational field
@@ -38,13 +38,13 @@ with equation
 ```
 
 one line mode:
-```jldoctest
+```jldoctest printing_example
 julia> println(E)
 Elliptic curve over QQ with equation y^2 = x^3 - 82*x
 ```
 
 terse mode:
-```jldoctest
+```jldoctest printing_example
 julia> println(Oscar.terse(stdout),E)
 Elliptic curve
 ```
