@@ -4,8 +4,6 @@ on:
   pull_request:
     types: [closed]
 
-permissions: write-all
-
 jobs:
   cleanup-doc-preview:
     runs-on: ubuntu-latest
@@ -15,7 +13,7 @@ jobs:
         with:
           repository: oscar-system/OscarDocumentation
           ref: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ssh-key: {{ secrets.DOCUMENTER_KEY_OUTOFTREE }}
       - name: Delete preview
         run: |
             if [ -d "previews/PR$PRNUM" ]; then
