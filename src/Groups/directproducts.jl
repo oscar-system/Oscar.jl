@@ -386,8 +386,8 @@ Group homomorphism
 
 julia> G = semidirect_product(Q,f,C)
 Semidirect product of
-  pc group of order 8
-  pc group of order 2
+  normal group: pc group of order 8
+  acting group: pc group of order 2
 
 julia> derived_subgroup(G)
 (Subgroup of Q : C, Hom: subgroup of semidirect product of groups -> semidirect product of groups)
@@ -539,9 +539,9 @@ julia> H = symmetric_group(2)
 Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-Wreath product of
-  pc group of order 3
-  symmetric group of degree 2
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -604,9 +604,9 @@ julia> H = symmetric_group(2)
 Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-Wreath product of
-  pc group of order 3
-  symmetric group of degree 2
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> normal_subgroup(W)
 Pc group of order 3
@@ -628,9 +628,9 @@ julia> H = symmetric_group(2)
 Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-Wreath product of
-  pc group of order 3
-  symmetric group of degree 2
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> acting_subgroup(W)
 Symmetric group of degree 2

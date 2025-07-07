@@ -28,24 +28,24 @@ Pc group x Sym(3)
 
 julia> show(stdout, MIME("text/plain"), D)
 Direct product of
-  Pc group of order 3
-  Sym(3)
+  pc group of order 3
+  symmetric group of degree 3
 
 julia> show(stdout, S)
-Pc group : aut( <pc group of size 3 with 1 generator> )
+Pc group : automorphism group
 
 julia> show(stdout, MIME("text/plain"), S)
 Semidirect product of
-  pc group of order 3
-  aut( <pc group of size 3 with 1 generator> )
+  normal group: pc group of order 3
+  acting group: automorphism group of pc group of order 3
 
 julia> show(stdout, W)
 Pc group wr Sym(3)
 
 julia> show(stdout, MIME("text/plain"), W)
-Wreath product of
-  pc group of order 3
-  Sym(3)
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 3
 
 julia> allow_unicode(old; temporary=true);
 ```
@@ -60,24 +60,24 @@ Pc group × Sym(3)
 
 julia> show(stdout, MIME("text/plain"), D)
 Direct product of
-  Pc group of order 3
-  Sym(3)
+  pc group of order 3
+  symmetric group of degree 3
 
 julia> show(stdout, S)
-Pc group ⋊ aut( <pc group of size 3 with 1 generator> )
+Pc group ⋊ automorphism group
 
 julia> show(stdout, MIME("text/plain"), S)
 Semidirect product of
-  pc group of order 3
-  aut( <pc group of size 3 with 1 generator> )
+  normal group: pc group of order 3
+  acting group: automorphism group of pc group of order 3
 
 julia> show(stdout, W)
 Pc group ≀ Sym(3)
 
 julia> show(stdout, MIME("text/plain"), W)
-Wreath product of
-  pc group of order 3
-  Sym(3)
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 3
 
 julia> allow_unicode(old; temporary=true);
 ```
