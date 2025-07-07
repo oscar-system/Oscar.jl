@@ -730,7 +730,7 @@ See [`save`](@ref).
 
 # Examples
 
-```jldoctest setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> save("fourtitwo.mrdi", 42);
 
 julia> load("fourtitwo.mrdi")
