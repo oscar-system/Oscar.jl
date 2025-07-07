@@ -88,7 +88,7 @@ function character(V::DemazureModuleData)
     return V.character
 end
 
-function dim(V::DemazureModuleData)
+function vector_space_dim(V::DemazureModuleData)
     if !isdefined(V, :dim)
         V.dim = sum(values(character(V)); init=zero(ZZ))
     end
