@@ -18,6 +18,8 @@ using ..Oscar: _grading,
   scalar_types,
   VERSION_NUMBER
 
+using ..Oscar: is_terse, Lowercase, pretty, terse
+
 using Distributed: RemoteChannel
 
 # This type should not be exported and should be before serializers
