@@ -2,7 +2,7 @@ name: Cleanup Doc Preview
 
 on:
   pull_request:
-    types: [closed]
+    types: [closed, opened]
 
 jobs:
   cleanup-doc-preview:
@@ -11,7 +11,9 @@ jobs:
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
+          repository: oscar-system/OscarDocumentation
           ref: gh-pages
+          ssh-key: ${{ secrets.DOCUMENTER_KEY_OUTOFTREE }}
       - name: Delete preview
         run: |
             if [ -d "previews/PR$PRNUM" ]; then
