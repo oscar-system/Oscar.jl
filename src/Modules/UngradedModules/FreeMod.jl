@@ -147,15 +147,15 @@ function show(io::IO, F::FreeMod)
         print(io, "Graded free module ")
       end
       i = 1
-      while i <= dim(F)
+      while i <= rank(F)
           d = F.d[i]
           j = 1
-          while i+j <= dim(F) && d == F.d[i+j]
+          while i+j <= rank(F) && d == F.d[i+j]
               j += 1
           end
           print(io, base_ring(F), "^$j")
           print(io, "(", -d, ")")
-          if i+j <= dim(F)
+          if i+j <= rank(F)
               print(io, " + ")
           end
           i += j
