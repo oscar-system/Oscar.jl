@@ -59,142 +59,37 @@
 @doc raw"""
     literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 
-Many models have been created in the F-theory literature.
-A significant number of them have even been given specific
-names, for instance the "U(1)-restricted SU(5)-GUT model".
-This method has access to a database, from which it can
-look up such literature models.
+Returns a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
+Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
+[Krause, Mayrhofer, Weigand 2011](@cite KMW12)*—and are stored in a curated database accessible through this method.
 
-Currently, you can provide
-any combination of the following optional arguments
-to the method `literature_model`:
-* `doi`: A string representing the DOI of the publication that
-introduced the model in question.
-* `equation`: A string representing the number of the equation that introduced
-the model in question.
-For papers, that were posted on the arXiv, we can instead of the `doi` also
-provide the following:
-* `arxiv_id`: A string that represents the arXiv identifier of the paper that
-introduced the model in question.
-* `version`: A string representing the version of the arXiv upload.
-The method `literature_model` attempts to find a model in our database
-for which the provided data matches the information in our record. If no such
-model can be found, or multiple models exist with information matching the
-provided information, then an error is raised.
+To identify and retrieve a model from the database, supply one or more of the following optional arguments:
 
-Some literature models require additional parameters to specified to single out
-a model from a family of models. Such parameters can be provided using the optional
-argument `model_parameters`, which should be a dictionary such as `Dict("k" => 5)`.
+* `doi`: A string representing the DOI of the publication in which the model was introduced.
+* `arxiv_id`: A string specifying the arXiv identifier of the preprint version or the journal print version.
+* `version`: A string specifying the arXiv version (e.g. `"v1"`).
+* `equation`: A string indicating the equation label used to define the model within the source publication.
 
-Further, some literature models require the specification of one or more divisor
-classes that define the model. This information can be provided using the optional
-argument `defining_classes`, which should be a dictionary such as `Dict("w" => w)`,
-where `w` is a divisor, such as that provided by `torusinvariant_prime_divisors`.
+The method attempts to match the given identifiers with a unique entry in the database. If no match is found, or if the information
+is ambiguous (i.e., multiple matches exist), an error is raised.
+
+Some literature models require additional input to be uniquely determined and constructed. For such cases, more optional arguments must be provided:
+
+* `model_parameters`: A dictionary specifying parameters needed to fix a model within a family, e.g. `Dict("k" => 5)`.
+* `defining_classes`: A dictionary specifying divisor classes necessary to fully define the geometry.
+* `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
+* `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
+
+See the [Literature Models](@ref) documentation page for a deeper discussion of these fields and more advanced usage examples.
+
+Below is a minimal example illustrating basic usage:
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> v = ambient_space(t)
-Family of spaces of dimension d = 5
-
-julia> coordinate_ring(v)
-Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
-  over rational field
 ```
-It is also possible to construct a literature model over a particular base.
-Currently, this feature is only supported for toric base spaces.
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> w = torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> length(singular_loci(t2))
-2
-```
-Of course, this is also possible for Weierstrass models.
-```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> b = torusinvariant_prime_divisors(B2)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
-
-julia> length(singular_loci(w))
-1
-```
-For convenience, we also support a simplified constructor. Instead of the meta data of the article,
-this constructor accepts an integer, which specifies the position of this model in our database.
-```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> b = torusinvariant_prime_divisors(B2)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
-
-julia> length(singular_loci(w))
-1
-```
-Similarly, also hypersurface models are supported:
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Hypersurface model over a not fully specified base
-
-julia> explicit_model_sections(h)
-Dict{String, MPolyRingElem} with 5 entries:
-  "c2" => c2
-  "c1" => c1
-  "c3" => c3
-  "b"  => b
-  "c0" => c0
-
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> b = torusinvariant_prime_divisors(B2)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Hypersurface model over a concrete base
-
-julia> hypersurface_equation_parametrization(h2)
-b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
-```
-We can also create the model with the largest number of F-theory vacua.
-This happens by executing the line `h = literature_model(arxiv_id = "1511.03209")`.
-The first time this line is executed, it downloads .mrdi-files from zenodo,
-which encode pre-computed results regarding this model and one of its resolutions.
-Thereby, you can create this F-theory model including a lot of advanced information
-(e.g. more than 10.000.000 intersection numbers and explicit descriptions for the
-G4-fluxes on this space) within just a couple of minutes. For comparison, one a
-personal computer we expect that the computation of one resolution of this model
-takes about three to four hours. Identifying also all ``G_4``-fluxes (vertical,
-well-quantized and modelled by pullbacks from the toric ambient space) will likely
-take a few hours more. So, this infrastructure provides a very stark performence
-improvement.
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
