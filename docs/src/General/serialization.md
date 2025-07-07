@@ -116,7 +116,7 @@ with different `TypeParams`.
 Storing `Dict` types depends on the key and value types, for example if the keys are either `String`, `Symbol` or `Int` then the type parameters for the value may vary by key. 
 In the other cases the type parameters for all keys must be equal, and likewise all values must have equal type parameters."
 
-```jldoctest; setup=:(current=pwd(); cd(mktempdir()), teardown=:(cd(current))
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> Qxy, (x, y) = QQ[:x, :y]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
