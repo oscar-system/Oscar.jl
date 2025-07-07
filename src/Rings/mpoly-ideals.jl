@@ -1531,17 +1531,6 @@ end
 
 #######################################################
 @doc raw"""
-    is_equidimensional(I::MPolyIdeal)
-
-Given an ideal `I` in a multivariate polynomial ring, decide whether
-`I`is equidimensional based on comparison to its `equidimensional_hull`.
-"""
-@attr Bool function is_equidimensional(I::MPolyIdeal)
-  return is_subset(equidimensional_hull(I), I)
-end
-
-#######################################################
-@doc raw"""
     equidimensional_hull_radical(I::MPolyIdeal)
 
 Return the intersection of the associated primes of `I` of maximal dimension.
@@ -1592,6 +1581,20 @@ function equidimensional_hull_radical(
   I_ext = ideal(R_ext, iso_inv.(gens(I)))
   res = equidimensional_hull_radical(I_ext)
   return ideal(R, unique!(iso.(gens(res))))
+end
+
+#######################################################
+@doc raw"""
+    is_equidimensional(I::MPolyIdeal)
+
+Given an ideal `I` in a multivariate polynomial ring, decide whether
+`I`is equidimensional based on comparison to its `equidimensional_hull`.
+"""
+@attr Bool function is_equidimensional(I::MPolyIdeal)
+  if has_attribute(I,:is_prime) && is_prime(I)
+    return true
+  end
+  return is_subset(equidimensional_hull(I), I)
 end
 
 ################################################################################
