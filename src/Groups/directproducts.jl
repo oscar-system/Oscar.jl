@@ -486,8 +486,8 @@ function Base.show(io::IO, ::MIME"text/plain", G::SemidirectProductGroup)
     print(io, "Subgroup of ", Lowercase())
   end
   println(io, "Semidirect product of", Indent())
-  println(io, Lowercase(), G.N)
-  print(io, Lowercase(), G.H)
+  println(io, "normal group: ", Lowercase(), G.N)
+  print(io, "acting group: ", Lowercase(), G.H)
   print(io, Dedent())
 end
 
@@ -701,9 +701,9 @@ function Base.show(io::IO, ::MIME"text/plain", G::WreathProductGroup)
   if !G.isfull
     print(io, "Subgroup of ", Lowercase())
   end
-  println(io, "Wreath product of", Indent())
-  println(io, Lowercase(), G.G)
-  print(io, Lowercase(), G.H)
+  println(io, "Wreath product with", Indent())
+  println(io, "base group: ", Lowercase(), G.G)
+  print(io, "top group: ", Lowercase(), G.H)
   print(io, Dedent())
 end
 
