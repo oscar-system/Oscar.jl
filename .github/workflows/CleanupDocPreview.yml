@@ -13,7 +13,7 @@ jobs:
         with:
           repository: oscar-system/OscarDocumentation
           ref: gh-pages
-          ssh-key: ${{ secrets.DOCUMENTER_KEY_OUTOFTREE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete preview
         run: |
             if [ -d "previews/PR$PRNUM" ]; then
