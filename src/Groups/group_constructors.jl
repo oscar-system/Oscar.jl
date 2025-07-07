@@ -28,7 +28,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> order(G)
 120
@@ -74,7 +74,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Alt(5)
+Alternating group of degree 5
 
 julia> order(G)
 60
@@ -928,3 +928,86 @@ end
 
 @alias quaternion_group dicyclic_group
 @alias is_quaternion_group is_dicyclic_group
+
+
+@doc raw"""
+    extraspecial_group(::Type{T} = PcGroup, p::Int, n::Int, type::Symbol)}
+
+Return the extraspecial group of order `p^(2*n+1)` and of type `type`,
+as an instance of `T`,
+where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`}
+and `type` is either `:+` or `:-`.
+
+If `type` is `:+` then the result has exponent `p` if `p` is odd,
+and the result is isomorphic to a central product of `n` dihedral groups
+of order 8 if `p` is 2.
+
+If `type` is `:-` then the result has exponent `p^2` if `p` is odd,
+and the result is isomorphic to a central product of `n-1` dihedral groups
+of order 8 and one quaternion group of order 8 if `p` is 2.
+
+# Examples
+```jldoctest
+julia> extraspecial_group(3, 2, :-)
+Pc group of order 243
+
+julia> describe(extraspecial_group(2, 1, :+))
+"D8"
+
+julia> describe(extraspecial_group(PermGroup, 2, 1, :-))
+"Q8"
+```
+"""
+function extraspecial_group(p::Int, n::Int, type::Symbol)
+  @req is_prime(p) "p must be a prime"
+  @req (n > 0) "n must be positive"
+  @req (type === :+ || type === :-) "type must be :+ or :-"
+  return PcGroup(GAPWrap.ExtraspecialGroup(GAP.Globals.IsPcGroup,
+             GAPWrap.POW(GAP.Obj(p), GAP.Obj(2*n+1)), GapObj(type)))
+end
+
+function extraspecial_group(::Type{T}, p::Int, n::Int, type::Symbol) where T <: GAPGroup
+  return T(extraspecial_group(p, n, type))
+end
+
+@doc raw"""
+    is_extraspecial_group(G::GAPGroup)
+
+Return `true` if `G` is isomorphic to an extraspecial group,
+and `false` otherwise.
+
+A group $G$ is called extraspecial if it is a finite $p$-group of order
+$p^{2n+1}$, for a prime $p$ and $n > 0$,
+such that the centre of $G$ has order $p$ and is equal to the Frattini
+subgroup of $G$.
+
+# Examples
+```jldoctest
+julia> is_extraspecial_group(dihedral_group(8))
+true
+
+julia> is_extraspecial_group(dicyclic_group(8))
+true
+
+julia> is_extraspecial_group(sylow_subgroup(mathieu_group(12), 3)[1])
+true
+
+julia> is_extraspecial_group(symmetric_group(3))
+false
+
+julia> is_extraspecial_group(cyclic_group(7))
+false
+```
+"""
+function is_extraspecial_group(G::Group)
+  is_finite(G) || return false
+  facts = collect(factor(order(G)))
+  (length(facts) == 1) || return false
+  (p, n) = facts[1]
+  (n > 0 && is_odd(n)) || return false
+  C, embC = center(G)
+  (order(C) == p) || return false
+  F, embF = frattini_subgroup(G)
+  (order(F) == p) || return false
+  return has_preimage_with_preimage(embF, embC(cyclic_generator(C)))[1]
+end

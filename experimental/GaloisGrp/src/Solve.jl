@@ -291,12 +291,12 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
+(Symmetric group of degree 3, Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Sym(3)
- Alt(3)
+ Symmetric group of degree 3
+ Alternating group of degree 3
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)

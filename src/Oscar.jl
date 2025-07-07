@@ -53,11 +53,13 @@ function _print_banner(;is_dev = Oscar.is_dev)
 
   if displaysize(stdout)[2] >= 80 
     println(
-      raw"""  ___   ____   ____    _    ____
-             / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-            | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-            | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
+      raw"""  ___   ___   ___    _    ____
+             / _ \ / __\ / __\  / \  |  _ \  | Combining and extending ANTIC, GAP,
+            | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
+             \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information""")
+    printstyled(raw"""o--------o-----o-----o--------o""", color = :yellow)
+    println(raw"""  | Documentation: https://docs.oscar-system.org""")
+    println(raw"""  S Y M B O L I C   T O O L S    | """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
@@ -167,7 +169,7 @@ function __init__()
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
-  if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+  if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
       Pkg.is_manifest_current() :
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
@@ -243,13 +245,14 @@ include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
 
-include("../gap/pkg/OscarInterface/julia/alnuth.jl")
+include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
 
 include("Combinatorics/Graphs/structs.jl")
@@ -262,6 +265,8 @@ include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PartiallyOrderedSet/structs.jl")
+include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
 

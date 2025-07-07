@@ -8,7 +8,7 @@
   @test n_rays(ambient_space(t)) == 104
   @test n_rays(ambient_space(fully_resolved_big_model)) == 313
   @test typeof(get_attribute(fully_resolved_big_model, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
-  @test length(chosen_g4_flux_basis(fully_resolved_big_model)) == 629
+  @test length(chosen_g4_flux_gens(fully_resolved_big_model)) == 629
   @test is_well_quantized(g1) == true
   @test breaks_non_abelian_gauge_group(g2) == false
   @test size(matrix_integral(f1)) == (629, 224)
@@ -20,7 +20,7 @@
   @test (104 in exceptional_divisor_indices(fully_resolved_big_model)) == false
   @test 105 in exceptional_divisor_indices(fully_resolved_big_model)
   @test length(exceptional_divisor_indices(fully_resolved_big_model)) == 206
-  @test length(fully_resolved_big_model.__attrs) == 47
+  @test length(fully_resolved_big_model.__attrs) == 48
   @test length(fully_resolved_big_model.__attrs[:inter_dict]) == 14154797
   @test maximum(values(fully_resolved_big_model.__attrs[:inter_dict])) == 407568
   @test fully_resolved_big_model.__attrs[:inter_dict][(103,103,103,103)] == 407568
@@ -43,7 +43,7 @@ end
       @test obj1 == obj2
     end
     qsm_g4_flux = qsm_flux(qsm_model)
-    h22_basis = basis_of_h22_hypersurface_indices(qsm_model, check = false)
+    h22_basis = gens_of_h22_hypersurface_indices(qsm_model, check = false)
     flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
     ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
     flux_poly = Oscar.eval_poly(flux_poly_str, ring)
@@ -79,7 +79,7 @@ end
       sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
     end
     for (k,v) in sampled_dict
-      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly))
+      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly), true)
       @test v == integrate(desired_class, check = false)
     end
   end

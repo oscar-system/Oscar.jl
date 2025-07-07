@@ -22,6 +22,37 @@ function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
+
+@doc raw"""
+    free_module(::Type{<:FreeMod}, R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+                n::Int, name::VarName = :e; cached::Bool = false)
+
+Construct a free module of rank `n` over the ring `R` using a sparse implementation
+compatible with the generic modules framework, in cases where the `free_module` constructor 
+returns a free module with a dense implementation.
+
+The string `name` specifies how the basis vectors are printed.
+
+# Examples
+```jldoctest
+julia> F = free_module(FreeMod, ZZ, 3, "f")
+Free module of rank 3 over integer ring
+
+julia> F[1]
+f[1]
+
+julia> K = GF(7);
+
+julia> FK = free_module(FreeMod, K, 2)
+Free module of rank 2 over K
+
+julia> FK[1]
+e[1]
+```
+"""
+free_module(::Type{<:FreeMod}, R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+    n::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, n, name, cached=cached)
+
 @doc raw"""
     free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false)
     free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false)
@@ -153,13 +184,23 @@ end
 @doc raw"""
     rank(F::FreeMod)
     number_of_generators(F::AbstractFreeMod)
-    dim(F::AbstractFreeMod)
+    dim(F::AbstractFreeMod{T}) where T <: FieldElem
+    vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem
 
 Return the rank of `F`.
 """
-dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
+# dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
+dim(F::AbstractFreeMod) = rank(F)  # FIXME: remove this again
+dim(kk::Field) = 0                 # FIXME: remove this again
+dim(R::ZZRing) = 1                 # FIXME: remove this again
 number_of_generators(F::AbstractFreeMod) = rank(F)
+vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
+
+function dim(R::Union{zzModRing, ZZModRing}) # FIXME: remove this again
+  is_trivial(R) && return -inf
+  return 0
+end
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)
@@ -176,16 +217,16 @@ function (==)(F::FreeMod, G::FreeMod)
   # TODO it this enough or e.g. stored morphisms also be considered?
   is_graded(F) == is_graded(G) || return false
   if is_graded(F) && is_graded(G) 
-    return F.R == G.R && F.d == G.d && F.S == G.S
+    return F.R == G.R && F.d == G.d && symbols(F) == symbols(G)
   end
-  return F.R == G.R && rank(F) == rank(G) && F.S == G.S
+  return F.R == G.R && rank(F) == rank(G) && symbols(F) == symbols(G)
 end
 
 function hash(F::FreeMod, h::UInt)
   b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
   h = hash(base_ring(F), h)
   h = hash(rank(F), h)
-  h = hash(F.S, h)
+  h = hash(symbols(F), h)
   is_graded(F) && (h = hash(F.d, h))
   return xor(h, b)
 end
@@ -372,4 +413,36 @@ function syzygy_generators(
   @assert rank(s) == length(a)
   return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
 end
+
+# access to the symbols for printing of `F`
+#
+# Creating the symbols turns out to be rather expensive in some edge cases; for 
+# instance for direct products with many (>1000) summands. Therefore, we lazyfied 
+# this process and a given `FreeMod` will usually not store the symbols themselves 
+# in its field `.S`, but a function to compute them. 
+#
+# If the user needs the concrete symbols, then a lookup is done: Do we have them already? 
+# Or do we need to compute them? This lookup is decided by dispatch on the contents of 
+# the field `.S` with the internal functions below. If the field is filled with a list 
+# of symbols, then these are returned. If not, then the function stored in `.S` is 
+# called and the result stored in `.S`, instead. 
+function symbols(F::FreeMod)
+  return _get_symbols!(F, F.S)
+end
+
+function symbol(F::FreeMod, i::Int)
+  return symbols(F)[i]
+end
+
+function _get_symbols!(F::FreeMod, S::Vector{Symbol})
+  return S
+end
+
+function _get_symbols!(F::FreeMod, symbol_fun::Function)
+  F.S = symbol_fun()
+  return F.S::Vector{Symbol}
+end
+
+# an alias for backwards compatibility
+generator_symbols(F::FreeMod) = symbols(F)
 

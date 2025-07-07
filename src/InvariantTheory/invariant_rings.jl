@@ -108,7 +108,7 @@ Invariant ring
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring
-  of Sym(3)
+  of symmetric group of degree 3
 
 julia> coefficient_ring(IRp)
 Rational field

@@ -27,6 +27,33 @@ function dehomogenization(p::AbsProjectiveRationalPoint, i::Int)
   return [s*c[j] for j in 1:length(c) if j!=i]
 end
 
+
+@doc raw"""
+    rational_point(X::AbsProjectiveScheme, coordinates; check::Bool=true)
+    
+Return the rational point of ``X`` defined by the given coordinates. 
+
+# Examples
+```jldoctest
+julia> P1 = projective_space(QQ,1)
+Projective space of dimension 1
+  over rational field
+with homogeneous coordinates [s0, s1]
+
+julia> rational_point(P1, [0,1])
+Projective rational point
+  of Projective 1-space over QQ with coordinates [s0, s1]
+with coordinates (0 : 1)
+
+julia> P1([0,1])
+Projective rational point
+  of Projective 1-space over QQ with coordinates [s0, s1]
+with coordinates (0 : 1)
+```
+"""
+rational_point(X::AbsProjectiveScheme, coordinates; check::Bool=true) = X(coordinates;check)
+
+  
 function (X::AbsProjectiveScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)

@@ -192,7 +192,7 @@ function is_irreducible(a::AbsSimpleNumFieldOrderElem)
   I = identity_matrix(ZZ, length(S))
   A = hcat(I, I)
   #so A*(x|y) = x+y = sol is the  1. condition
-  C = cat(V, V, dims=(1,2))
+  C = cat(transpose(V), transpose(V), dims=(1,2))
   # C(x|y) >=0 iff Cx >=0 and Cy >=0
   #Cx <> 0 iff (1,..1)*Cx >= 1
   one = matrix(ZZ, 1, length(S), [1 for p = S])

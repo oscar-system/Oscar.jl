@@ -127,9 +127,9 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = singular_poly_ring(Q)
-  SI = I.gens.gens.S
-  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
+  SQ = Oscar.singular_poly_ring(Q)
+  SI = Oscar.singular_generators(I.gens)
+  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
@@ -226,7 +226,7 @@ end
   a = ideal(A, V)
   dim(a) # cashes a.gb
   gens(a.gb)
-  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+  @test Oscar.oscar_generators(a.gb) == MPolyDecRingElem[y, z^2]
 end
 
 @testset "quotients as vector spaces" begin
@@ -385,5 +385,30 @@ end
   @test J2.dim === nothing
   @test dim(J2) == -inf
   @test J2.dim !== nothing
+end
+
+@testset "local rings" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
+  I1 = ideal(R, [x^2*(x-1), y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
 end
 

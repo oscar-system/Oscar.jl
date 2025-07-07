@@ -8,13 +8,11 @@
 Given an F-theory model with a toric ambient space, we can 
 identify ambient space candidates of G4-fluxes. In terms of these
 candidates, we can define a family of G4-fluxes as:
-- $\mathbb{Z}$-linear combinations, provided by a matrix $mat_int$,
-- $\mathbb{Q}$-linear combinations, provided by a matrix $mat_rat$,
-- a shift (invoked for instance by the appearance of $\frac{1}{2} \cdot c_2$ in the quantization condition), provided by a vector $offset$.
+- ``\mathbb{Z}``-linear combinations, provided by a matrix ``\text{mat}_{\text{int}}``,
+- ``\mathbb{Q}``-linear combinations, provided by a matrix ``\text{mat}_{\text{rat}}``,
+- a shift ``---``resembling the appearance of ``\frac{1}{2} \cdot c_2`` in the flux quantization condition``---`` provided by a vector ``\text{offset}``.
 
-For convenience we also allow to only provide $mat_int$, $mat_rat$. In this case, the shift is taken to be zero.
-
-An example is in order.
+For convenience we also allow to only provide ``\text{mat}_{\text{int}}``or ``\text{mat}_{\text{rat}}``. In this case, the shift is taken to be zero.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -44,7 +42,7 @@ function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
   @req nrows(mat_int) == length(offset) "Number of rows of integral matrix and length offset must coincide"
-  n_gens = length(chosen_g4_flux_basis(m, check = check))
+  n_gens = length(chosen_g4_flux_gens(m, check = check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
   return FamilyOfG4Fluxes(m, mat_int, mat_rat, offset)
 end

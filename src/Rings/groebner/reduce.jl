@@ -38,11 +38,12 @@ julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
 ```
 """
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
-  @assert base_ring(J) == base_ring(I)
+  R = base_ring(I)
+  @assert base_ring(J) == R
   Is = singular_generators(I, ordering)
   Js = singular_generators(J, ordering)
   res = reduce(Is, Js, complete_reduction=complete_reduction)
-  return [J.gens.Ox(x) for x = gens(res)]
+  return [R(x) for x in gens(res)]
 end
 
 @doc raw"""
@@ -390,11 +391,12 @@ function reduce_with_quotients(F::Vector{T}, G::IdealGens{T}; ordering::Monomial
 end
 
 function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = complete_reduction)
-  @assert base_ring(J) == base_ring(I)
+  R = base_ring(I)
+  @assert base_ring(J) == R
   sI = singular_generators(I, ordering)
   sJ = singular_generators(J, ordering)
   res = Singular.divrem2(sI, sJ, complete_reduction=complete_reduction)
-  return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
+  return matrix(R, res[3]), matrix(R, res[1]), [R(x) for x in gens(res[2])]
 end
 
 @doc raw"""
@@ -517,7 +519,7 @@ function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem
     groebner_basis_f4(J, complete_reduction = true)
   end
 
-  AJ = AlgebraicSolving.Ideal(J.gens.O)
+  AJ = AlgebraicSolving.Ideal(oscar_generators(J))
   AJ.gb[0] = oscar_groebner_generators(J, degrevlex(base_ring(J)), true)
   
   return AlgebraicSolving.normal_form(A, AJ)

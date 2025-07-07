@@ -131,7 +131,7 @@ end
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx # Singular Poly Ring or Algebra, poss. with different ordering
+  Sx::NCRing # Singular Poly Ring or Algebra, poss. with different ordering
   f #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
@@ -159,7 +159,7 @@ mutable struct BiPolyArray{S}
 end
 
 mutable struct IdealGens{S}
-  gens::BiPolyArray{S}
+  gensBiPolyArray::BiPolyArray{S}
   isGB::Bool
   isReduced::Bool
   ord::Orderings.MonomialOrdering
@@ -174,8 +174,7 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false, isReduced::Bool = false) where {T <: NCRingElem}
-    r = new{T}()
-    r.gens = BiPolyArray(Ox, O)
+    r = new{T}(BiPolyArray(Ox, O))
     r.ord = ordering
     r.isGB = isGB
     r.isReduced = isReduced
@@ -184,9 +183,8 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
-    r = new{T}()
+    r = new{T}(BiPolyArray(Ox, O))
     r.isGB = false
-    r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
   end
@@ -198,7 +196,7 @@ mutable struct IdealGens{S}
       else
           r = new{elem_type(T)}()
       end
-      r.gens = BiPolyArray(Ox, S)
+      r.gensBiPolyArray = BiPolyArray(Ox, S)
       r.isGB = S.isGB
       r.isReduced = isReduced
       if T <: MPolyRing
@@ -206,41 +204,6 @@ mutable struct IdealGens{S}
       end
       r.keep_ordering = true
       return r
-  end
-end
-
-function Base.getproperty(idealgens::IdealGens, name::Symbol)
-  if name == :Ox
-    return getfield(idealgens, :gens).Ox
-  elseif name == :O
-    return getfield(idealgens, :gens).O
-  elseif name == :Sx
-    return getfield(idealgens, :gens).Sx
-  elseif name == :S
-    #singular_assure(idealgens)
-    return getfield(idealgens, :gens).S
-  elseif name == :gens
-    return getfield(idealgens, name)
-  elseif name == :isGB
-    return getfield(idealgens, name)
-  elseif name == :isReduced
-    return getfield(idealgens, name)
-  elseif name == :ord
-    return getfield(idealgens, name)
-  elseif name == :keep_ordering
-    return getfield(idealgens, name)
-  else
-    error("undefined property: ", name)
-  end
-end
-
-function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
-  if name == :Ox || name == :O || name == :Sx || name == :S
-    setfield!(idealgens.gens, name, x)
-  elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
-    setfield!(idealgens, name, x)
-  else
-    error("undefined property: ", name)
   end
 end
 
@@ -294,19 +257,6 @@ function show(io::IO, I::IdealGens)
   end
 end
 
-function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
-  if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
-  end
-  return A.S[i]
-end
-
-function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-    if !isdefined(A, :O)
-      oscar_assure(A)
-  end
-  return A.O[i]
-end
 
 function Base.length(A::BiPolyArray)
   if isdefined(A, :S)
@@ -320,40 +270,31 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return oscar_generators(A)[s], s+1
 end
 
 Base.eltype(::Type{<:BiPolyArray{S}}) where S = S
 
-function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
-  return A.gens[Val(:S), i]
-end
-
-function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
-  return A.gens[Val(:O), i]
-end
-
 function gen(A::IdealGens, i::Int)
-  oscar_assure(A)
-  return A.gens.O[i]
+  return oscar_generators(A)[i]
 end
 
 Base.getindex(A::IdealGens, i::Int) = gen(A, i)
 
 
 function Base.length(A::IdealGens)
-  return length(A.gens)
+  return length(A.gensBiPolyArray)
 end
 
 function base_ring(A::IdealGens)
-  return A.gens.Ox
+  return A.gensBiPolyArray.Ox
 end
 
 function Base.iterate(A::IdealGens, s::Int = 1)
   if s > length(A)
     return nothing
   end
-  return A[Val(:O), s], s+1
+  return gen(A, s), s+1
 end
 
 Base.eltype(::Type{IdealGens{S}}) where S = S
@@ -378,14 +319,23 @@ function set_ordering!(G::IdealGens, monord::MonomialOrdering)
 end
 
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
-  singular_assure(B)
+  if !isdefined(B.gensBiPolyArray, :S)
+    g = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
+    B.gensBiPolyArray.Sx = codomain(g)
+    B.gensBiPolyArray.f = g
+    B.gensBiPolyArray.S = Singular.Ideal(B.gensBiPolyArray.Sx, elem_type(B.gensBiPolyArray.Sx)[g(x) for x in oscar_generators(B)])
+  end
+  if B.isGB && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gensBiPolyArray.Sx))
+    B.gensBiPolyArray.S.isGB = true
+  end
+
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
-  isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
-  g = iso_oscar_singular_poly_ring(B.Ox, monorder)
+  isa(base_ring(B), MPolyQuoRing) && return B.gensBiPolyArray.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gensBiPolyArray.S))) == B.ord && return B.gensBiPolyArray.S
+  g = iso_oscar_singular_poly_ring(base_ring(B), monorder)
   SR = codomain(g)
-  f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
-  S = Singular.map_ideal(f, B.gens.S)
+  f = Singular.AlgebraHomomorphism(B.gensBiPolyArray.Sx, SR, gens(SR))
+  S = Singular.map_ideal(f, B.gensBiPolyArray.S)
   if isdefined(B, :ord) && B.ord == monorder
     S.isGB = B.isGB
   end
@@ -438,7 +388,7 @@ function Base.:(==)(G1::IdealGens, G2::IdealGens)
   if isdefined(G1, :ord) && G1.ord != G2.ord
       return false
   end
-  return G1.gens == G2.gens
+  return G1.gensBiPolyArray == G2.gensBiPolyArray
 end
 
 function Base.hash(G::IdealGens, h::UInt)
@@ -447,7 +397,7 @@ function Base.hash(G::IdealGens, h::UInt)
   if isdefined(G, :ord)
     h = hash(h, G.ord)
   end
-  h = hash(G.gens, h)
+  h = hash(G.gensBiPolyArray, h)
   return h
 end
 
@@ -635,10 +585,9 @@ Fields:
 
   function MPolyIdeal(B::IdealGens{T}) where T
     if length(B) >= 1
-      oscar_assure(B)
-      R = B.gens.Ox
+      R = base_ring(B)
       if is_graded(R)
-        @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
+        @req all(is_homogeneous, oscar_generators(B)) "The generators of an ideal in a graded ring must be homogeneous"
       end
     end
     r = new{T}()
@@ -660,10 +609,6 @@ function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
 end
 
-function singular_assure(I::MPolyIdeal)
-  singular_assure(I.gens)
-end
-
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
 end
@@ -676,71 +621,20 @@ function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord
   return (singular_generators(G, monorder)).base_ring
 end
 
-function singular_assure(I::BiPolyArray)
-  if !isdefined(I, :S)
-    I.Sx = singular_poly_ring(I.Ox)
-    I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-  end
-end
+oscar_generators(I::MPolyIdeal) = oscar_generators(I.gens)
 
-function singular_assure(I::IdealGens)
-  if !isdefined(I.gens, :S)
-    g = iso_oscar_singular_poly_ring(I.Ox; keep_ordering = I.keep_ordering)
-    I.gens.Sx = codomain(g)
-    I.gens.f = g
-    I.gens.S = Singular.Ideal(I.gens.Sx, elem_type(I.gens.Sx)[g(x) for x = I.gens.O])
-  end
-  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(I.gens.Ox, internal_ordering(I.gens.Sx)))
-    I.gens.S.isGB = true
-  end
-end
+oscar_generators(IG::IdealGens) = oscar_generators(IG.gensBiPolyArray)
 
-# will be removed TODO
-function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
-   singular_assure(I.gens, ordering)
-end
-
-# will be removed TODO
-function singular_assure(I::IdealGens, ordering::MonomialOrdering)
-  if !isdefined(I.gens, :S)
-      I.ord = ordering
-      I.gens.Sx = singular_poly_ring(I.Ox, ordering)
-      I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-      if I.isGB
-          I.gens.S.isGB = true
-      end
-  else
-      #= singular ideal exists, but the singular ring has the wrong ordering
-       = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering
-          I.ord = ordering
-          SR    = singular_poly_ring(I.Ox, ordering)
-          f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
-          I.gens.S   = Singular.map_ideal(f, I.S)
-          I.gens.Sx  = SR
-      end
-  end
-end
-
-function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens.gens, :O)
-    I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
-  end
-end
-
-function oscar_assure(B::BiPolyArray)
-  if !isdefined(B, :O) || !isassigned(B.O, 1)
+function oscar_generators(B::BiPolyArray)
+  if !isdefined(B, :O)
     if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
       R = B.Ox
     end
-    B.O = [R(x) for x = gens(B.S)]
+    B.O = [R(x) for x in gens(B.S)]
   end
-end
-
-function oscar_assure(B::IdealGens)
-  oscar_assure(B.gens)
+  return B.O
 end
 
 function map_entries(R, M::Singular.smatrix)

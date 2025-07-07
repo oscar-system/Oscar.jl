@@ -8,12 +8,8 @@ DocTestSetup = Oscar.doctestsetup()
 
 Certain models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We
-aim to provide support for such standard constructions. An example of such a model is
-the following:
-```@docs
-su5_tate_model_over_arbitrary_3d_base()
-```
-More generally, we support literature constructions.
+aim to provide support for such standard constructions.
+
 ```@docs
 literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
@@ -55,6 +51,9 @@ model in question as the first argument and the desired description - provided a
 as the second argument. Such a setter function exists for all of the above. If appropriate,
 we also offer a method that adds a new value. For instance, we have a function
 `add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
+
+!!! warning
+    Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
 
 In addition, the following attributes are available to access advanced model information:
 ```@docs

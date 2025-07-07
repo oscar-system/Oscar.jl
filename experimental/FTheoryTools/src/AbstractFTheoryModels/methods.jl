@@ -237,7 +237,7 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
       new_e_classes = Vector{CohomologyClass}()
       for i in indices
         poly = sum(coeff_ring(coefficients(divs[i])[k]) * indets[k] for k in 1:length(indets))
-        push!(new_e_classes, CohomologyClass(ambient_space(model), cohomology_ring(ambient_space(model), check = false)(poly)))
+        push!(new_e_classes, CohomologyClass(ambient_space(model), cohomology_ring(ambient_space(model), check = false)(poly), true))
       end
 
       set_attribute!(model, :exceptional_classes, new_e_classes)
@@ -873,7 +873,13 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   if has_attribute(m, :arxiv_id)
     if resolution_index == 1 && arxiv_id(m) == "1511.03209"
       model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      return load(model_data_path)
+      model = load(model_data_path)
+      # Modify attributes, see PR #5031 for details
+      set_attribute!(model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface))
+      set_attribute!(model, :gens_of_h22_hypersurface_indices, get_attribute(model, :basis_of_h22_hypersurface_indices))
+      delete!(model.__attrs, :basis_of_h22_hypersurface)
+      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
+      return model
     end
   end
 

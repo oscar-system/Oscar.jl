@@ -25,7 +25,7 @@ g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "Test properties of the QSM" begin
   @test H == U + E1 + E2 + E4 == V + E2 + E3
-  @test chern_classes(qsm_model)[3] == c2_B - 7 * E4^2 - E1 * Kbar - E2 * Kbar - E3 * Kbar - E4 * Kbar + 3 * H * Kbar
+  @test chern_classes(qsm_model)[2] == c2_B - 7 * E4^2 - E1 * Kbar - E2 * Kbar - E3 * Kbar - E4 * Kbar + 3 * H * Kbar
   @test euler_characteristic(qsm_model) == integrate((3 * Kbar * (4 * c2_B + 5 * Kbar^2)) * V * cy)
   @test d3_tadpole_constraint(g4_exp) == 12 + 5//8 * Kbar3 - 45//(2 * Kbar3)
 end
@@ -41,7 +41,7 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
-  h22_basis = basis_of_h22_hypersurface_indices(qsm_model, check = false)
+  h22_basis = gens_of_h22_hypersurface_indices(qsm_model, check = false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
   flux_poly = Oscar.eval_poly(flux_poly_str, ring)

@@ -10,9 +10,8 @@ Note that the input of this example and the print of an `IncidenceMatrix` list t
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> IM[1, 2]
 true
@@ -36,15 +35,14 @@ Return an `IncidenceMatrix` of size r x c whose entries are all `false`.
 ```jldoctest
 julia> IM = incidence_matrix(8, 5)
 8×5 IncidenceMatrix
-[]
-[]
-[]
-[]
-[]
-[]
-[]
-[]
-
+ []
+ []
+ []
+ []
+ []
+ []
+ []
+ []
 ```
 """
 incidence_matrix(r::Base.Integer, c::Base.Integer) = IncidenceMatrix(undef, r, c)
@@ -58,9 +56,8 @@ Convert `mat` to an `IncidenceMatrix`.
 ```jldoctest
 julia> IM = incidence_matrix([true false true false true false; false true false true false true])
 2×6 IncidenceMatrix
-[1, 3, 5]
-[2, 4, 6]
-
+ [1, 3, 5]
+ [2, 4, 6]
 ```
 """
 incidence_matrix(mat::Union{AbstractMatrix{Bool},IncidenceMatrix}) = IncidenceMatrix(mat)
@@ -74,9 +71,8 @@ Convert the `0`/`1` matrix `mat` to an `IncidenceMatrix`. Entries become `true` 
 ```jldoctest
 julia> IM = incidence_matrix([1 0 1 0 1 0; 0 1 0 1 0 1])
 2×6 IncidenceMatrix
-[1, 3, 5]
-[2, 4, 6]
-
+ [1, 3, 5]
+ [2, 4, 6]
 ```
 """
 function incidence_matrix(mat::AbstractMatrix)
@@ -101,10 +97,9 @@ Return an `IncidenceMatrix` of size r x c. The i-th element of `incidenceRows` l
 ```jldoctest
 julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
 3×4 IncidenceMatrix
-[2, 3]
-[1]
-[]
-
+ [2, 3]
+ [1]
+ []
 ```
 """
 incidence_matrix(
@@ -122,9 +117,8 @@ Return an `IncidenceMatrix` where the i-th element of `incidenceRows` lists the 
 ```jldoctest
 julia> IM = incidence_matrix([[2, 3], [1]])
 2×3 IncidenceMatrix
-[2, 3]
-[1]
-
+ [2, 3]
+ [1]
 ```
 """
 incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) =
@@ -142,12 +136,11 @@ number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> row(IM, 2)
 Set{Int64} with 3 elements:
@@ -167,9 +160,8 @@ Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> column(IM, 5)
 Set{Int64} with 1 element:
@@ -450,11 +442,7 @@ stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
 function stack(VV::AbstractVector{<:AbstractVector})
   @req length(VV) > 0 "at least one vector required"
-  if VERSION >= v"1.9"
-    permutedims(Base.stack(VV))
-  else
-    permutedims(reshape(collect(Iterators.flatten(VV)), length(VV[1]), length(VV)))
-  end
+  permutedims(Base.stack(VV))
 end
 stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
 stack(x) = stack(x, nothing)

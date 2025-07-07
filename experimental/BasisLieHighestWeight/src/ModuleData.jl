@@ -1,10 +1,14 @@
 abstract type ModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} end
 
+function dim(V::ModuleData)
+  return vector_space_dim(V)
+end
+
 # To be implemented by subtypes:
 # Mandatory:
 #   base_lie_algebra(V::MyModuleData) -> LieAlgebra
 #   highest_weight(V::MyModuleData) -> WeightLatticeElem
-#   dim(V::MyModuleData) -> ZZRingElem
+#   vector_space_dim(V::MyModuleData) -> ZZRingElem
 #   character(V::MyModuleData) -> Dict{WeightLatticeElem,ZZRingElem}
 
 mutable struct SimpleModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: ModuleData{C,LieT}
@@ -36,7 +40,7 @@ function highest_weight(V::SimpleModuleData)
   return V.highest_weight
 end
 
-function dim(V::SimpleModuleData)
+function vector_space_dim(V::SimpleModuleData)
   if !isdefined(V, :dim)
     V.dim = dim_of_simple_module(ZZRingElem, base_lie_algebra(V), highest_weight(V))
   end

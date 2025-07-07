@@ -71,7 +71,7 @@ default `show` with unicode
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2       .       .
  3  1  .       1       1
@@ -90,7 +90,7 @@ default `show` without unicode
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2        .        .
   3  1  .        1        1
@@ -109,7 +109,7 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -135,7 +135,7 @@ in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2  .  .
  3  1  .  1  1
@@ -155,7 +155,7 @@ A̅ = ζ₃
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2  .  .
   3  1  .  1  1
@@ -176,7 +176,7 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -600,7 +600,7 @@ show indicators in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -619,7 +619,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -644,7 +644,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -663,7 +663,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -688,7 +688,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
        end
-2-modular Brauer table of Alt(4)
+2-modular Brauer table of alternating group of degree 4
 
     2  2       .       .
     3  1       1       1
@@ -706,7 +706,7 @@ julia> Oscar.with_unicode() do
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-2-modular Brauer table of Alt(4)
+2-modular Brauer table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
@@ -849,6 +849,7 @@ end
   re = regular_character(g)
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
+  @test re == permutation_character(g, trivial_subgroup(g)[1])
   @test coordinates(re) == degree.(t)
   lin = @inferred linear_characters(g)
   @test length(lin) == 2
@@ -1073,6 +1074,17 @@ end
   @test class_positions_of_pcore(tbl, 2) == [1, 2]
   @test class_positions_of_pcore(tbl, 3) == [1]
   @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
+end
+
+@testset "character tables of factor groups" begin
+  g = symmetric_group(4)
+  gtbl = character_table(g)
+  n = class_positions_of_pcore(gtbl, 2)
+  ftbl, fus = quo(gtbl, n)
+  f = group(ftbl)
+  @test conjugacy_classes(f) == conjugacy_classes(ftbl)
+  @test fus == known_class_fusion(gtbl, ftbl)[2]
+  @test all(x -> restrict(x, gtbl) in gtbl, ftbl)
 end
 
 @testset "character fields of ordinary characters" begin
