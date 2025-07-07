@@ -174,7 +174,7 @@ type(tp::TypeParams) = tp.type
 Return the parameters needed for the serialization of `T` as a `TypeParams`.
 
 # Example
-```jldoctest; setup=:(current=pwd(); path=mktempdir(); cd(path)), teardown=:(cd(current))
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> R1, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
