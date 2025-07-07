@@ -12,11 +12,5 @@ end
 
 deploydocs(
    repo   = "github.com/oscar-system/Oscar.jl.git",
-#  deps = Deps.pip("pymdown-extensions", "pygments", "mkdocs", "python-markdown-math", "mkdocs-material", "mkdocs-cinder"),
-   deps = nothing,
-   target = "build",
    push_preview = should_push_preview,
-#  make = () -> run(`mkdocs build`),
-   make = nothing,
-   forcepush = true
 )
