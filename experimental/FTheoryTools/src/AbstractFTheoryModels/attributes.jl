@@ -1471,9 +1471,11 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
-Returns a dictionary giving the classes of all parameters (tunable sections)
-in terms of Kbar and the defining classes. Each value gives the divisor
-class of the corresponding section/key in this basis. This information is currently only available for literature models.
+Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+of the base and the defining classes of the given model.
+
+!!! warning
+    This information is currently only available for literature models.
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))

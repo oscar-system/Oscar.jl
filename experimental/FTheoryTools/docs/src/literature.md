@@ -160,23 +160,44 @@ freely. Therefore the tunable sections of this model are `w`, `a10`, `a21`, `a32
 tunable_sections(::AbstractFTheoryModel)
 ```
 
-
-
-
-
-
-
 ---
 
 ### Classes of Tunable Sections
 
+The function `classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes` returns a matrix encoding the divisor
+classes of all **tunable sections** of an F-theory model. These classes are expressed in a basis formed by the
+anticanonical class ``\overline{K}_B`` of the base space and the defining classes of the model.
+
+Each **column** of the returned matrix corresponds to a tunable section, and each **row** corresponds to a basis element—i.e.,
+the first row gives the coefficient with respect to ``\overline{K}_B``, and the subsequent rows represent contributions
+from the defining classes.
+
+For an example, consider the global Tate model presented in [Krause, Mayrhofer, Weigand 2011](@cite KMW12), where the
+Tate sections are factorized as follows:
+
+```julia
+a1 = a10 * w
+a2 = a21 * w
+a3 = a32 * w^2
+a4 = a43 * w^3
+a6 = 0
+```
+
+The tunable sections in this model are `w`, `a10`, `a21`, `a32` and `a43`. The only defining class is `W`. Therefore, the
+divisor classes of the tunable sections in the basis (``\overline{K}_B``, `W`) are given by the matrix:
+
+$$
+\begin{bmatrix}
+0 & 1 & 2 & 3 & 4 \\
+1 & 0 & -1 & -2 & -3
+\end{bmatrix}
+$$
+
+Each column in this matrix corresponds to one of the tunable sections, listed in the same order as above.
+
 ```@docs
 classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(::AbstractFTheoryModel)
 ```
-
-This dictionary expresses the divisor classes of each tunable section in a specific basis: namely the anti-canonical class `K̄` of the base, together with the defining classes of the model.
-
-Each entry gives the class of a tunable section as a linear combination in this basis.
 
 ---
 
