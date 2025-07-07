@@ -302,7 +302,7 @@ end
 end
 
 @attr Bool function is_equidimensional(P::AbsProjectiveScheme)
-  if has_attribute(P,:is_irreducible) && is_irreducibe(P)
+  if has_attribute(P,:is_irreducible) && is_irreducible(P)
     return true
   end
 
