@@ -109,7 +109,7 @@ is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
     SL = _affine_cone_singular_locus_ideal(P; compute_radical=false, saturate=false)
     return dim(SL) < 1
   elseif algorithm == :projective_jacobian
-    return dim(_projective_jacobian_singular_locus_ideal(P;saturate = false)) < 0
+    return dim(_projective_jacobian_singular_locus_ideal(P;saturate = false)) <= 0
   end
 end
 
