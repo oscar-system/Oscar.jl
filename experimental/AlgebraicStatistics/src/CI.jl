@@ -236,3 +236,21 @@ function make_elementary(stmt::CIStmt; semigaussoid=false)
   end
   return elts
 end
+
+@doc raw"""
+    is_elementary(stmt::CIStmt)
+
+Check if `stmt` is an elementary CI statement, i.e., its `I` and `J`
+components are both 1-element sets.
+
+## Examples
+
+```jldoctest
+julia> is_elementary(CI"12,34|56")
+false
+
+julia> is_elementary(CI"12|3456")
+true
+```
+"""
+is_elementary(stmt::CIStmt) = length(stmt.I) == 1 && length(stmt.J) == 1
