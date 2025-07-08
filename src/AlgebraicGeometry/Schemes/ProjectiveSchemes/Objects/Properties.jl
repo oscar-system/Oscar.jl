@@ -154,7 +154,7 @@ end
 @doc raw"""
     singular_locus(P::AbsProjectiveScheme; algorithm::Symbol=:default, saturate::Bool=true) -> AbsProjectiveScheme
 
-Given an equidimensional projective scheme, returns the possibly
+Given a projective scheme, return the possibly
 nonreduced subscheme of projective space describing the singular locus.
 
 If the boolean keyword argument `saturate` is true (which is the default
