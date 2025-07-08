@@ -108,13 +108,13 @@ type_params
 ```
 
 ## Container Types
-We use the name container types to refer to the types `Vector`, `Tuple`, `NamedTuple`, `Set`, `Dict` and `Matrix`. 
-Serializing container types that contain serializable OSCAR types is also possible.
+We use the term "container types" to refer to the types `Vector`, `Tuple`, `NamedTuple`, `Set`, `Dict` and `Matrix`. 
+Container types that contain serializable OSCAR types can themselves be serialized.
 However, there are some caveats. Although your data type might be a `Vector` of an OSCAR type say `Vector{MPolyRingElem}`, this type might not be serializable.
 To serialize a `Vector` all entries must have the output of [`type_params`](@ref) be equal (`==` returns true), this allows us to provide a size efficient storage of homogeneous data. The `Tuple` and `NamedTuple` types will store type information (type names and parameters) for each entry separately, this is the recommended way of serializing collections of types
 with different `TypeParams`. 
 Storing `Dict` types depends on the key and value types, for example if the keys are either `String`, `Symbol` or `Int` then the type parameters for the value may vary by key. 
-In the other cases the type parameters for all keys must be equal, and likewise all values must have equal type parameters."
+In the other cases the type parameters for all keys must be equal, and likewise all values must have equal type parameters.
 
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> Qxy, (x, y) = QQ[:x, :y]
