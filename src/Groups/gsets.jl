@@ -315,6 +315,7 @@ end
 
 @doc raw"""
     induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+    induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
 
 Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
 
@@ -847,6 +848,20 @@ end
   return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
+############################################################################
+##
+##  For restricting a `GSetBySubgroupTransversal` via a group homomorphism,
+##  construct a `GSetByElements` from it.
+
+function induced_action_function(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::Map{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return induced_action(action_function(Omega), phi)
+end
+
+function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
+end
 
 ############################################################################
 ##

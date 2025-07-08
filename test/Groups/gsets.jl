@@ -396,7 +396,7 @@ end
 
 @testset "G-sets by right transversals" begin
   G = symmetric_group(5)
-  H = sylow_subgroup(G, 2)[1]
+  H, emb = sylow_subgroup(G, 2)
   Omega = right_cosets(G, H)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Right cosets of groups"
   @test isa(Omega, GSet)
@@ -458,6 +458,10 @@ end
   @test rep[1]
   @test x * rep[2] == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
+
+  # restrict to a subgroup (creates G-sets of a different type)
+  rest = induce(Omega, emb)
+  @test sort!(map(length, orbits(rest))) == [1, 2, 4, 8]
 end
 
 @testset "General G-set action" begin
