@@ -295,6 +295,7 @@
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
+    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Straight Line Programs" => [
