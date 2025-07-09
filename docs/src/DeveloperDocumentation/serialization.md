@@ -298,7 +298,7 @@ refer to the same object, but does not want to store the refs in each file.
 Instead, one can now store the refs in a separate file, and store the objects
 themselves without the refs.
 
-Currently the only other serializer is the `IPCSerializer` which at the moment is
+There is also the `IPCSerializer` which at the moment is
 equal to the `JSONSerializer(serialize_refs = false)`. However, this serializer
 may be changed in the future to support binary representations of some types
 for faster inter-process communication (IPC).
