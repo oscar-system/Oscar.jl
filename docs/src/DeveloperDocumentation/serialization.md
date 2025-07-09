@@ -287,12 +287,21 @@ Note for now `save_typed_object` must be wrapped in either a `save_data_array` o
 
 The code for the different types of serializers and their states is found in the
 `serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writing to a file. Currently
-the only other serializer is the `IPCSerializer` which at the moment is
-quite similar to the `JSONSerializer` except that it does not store the refs of
-any types that are registered with the `uses_id` flag. When using the `IPCSerializer`
-it is left up to the user to guarantee that any refs required by a process are sent
-prior.
+default serializer `JSONSerializer` is used for writing to a file.
+
+When passing `serialize_refs = false` to the `JSONSerializer` it will not
+store the refs of any types that are registered with the `uses_id` flag.
+When using this flag it is left up to the user to guarantee that any refs
+mentioned in the file are loaded prior to loading the file.
+This is useful for cases where the user wants to store multiple objects that
+refer to the same object, but does not want to store the refs in each file.
+Instead, one can now store the refs in a separate file, and store the objects
+themselves without the refs.
+
+Currently the only other serializer is the `IPCSerializer` which at the moment is
+equal to the `JSONSerializer(serialize_refs = false)`. However, this serializer
+may be changed in the future to support binary representations of some types
+for faster inter-process communication (IPC).
 
 ### Upgrades
 
