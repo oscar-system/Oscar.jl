@@ -347,16 +347,16 @@ end
         matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
     end
     for n in 2:50
-        ∂ = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
-        C = chain_complex([∂])
+        d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
+        C = chain_complex([d])
         H = homology(C)
-        ker_∂ = kernel(∂)[1]
-        @test dim(ker_∂) == 0
-        @test H[1] == ker_∂
-        coker_∂, coker_proj = cokernel(∂)
-        @test dim(coker_∂) == 1
-        @test H[2][1] == coker_∂
-        @test all(g -> iszero(coker_proj(∂(g))), gens(domain(∂)))
+        ker_d = kernel(d)[1]
+        @test dim(ker_d) == 0
+        @test H[1] == ker_d
+        coker_d, coker_proj = cokernel(d)
+        @test dim(coker_d) == 1
+        @test H[2][1] == coker_d
+        @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
     end
 end
 
