@@ -194,7 +194,7 @@ function inv_action(C::GModule)
 end
 
 # convert G-module into a matrix group
-Oscar.matrix_group(C::GModule) = matrix_group(matrix.(action(C)))
+Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
 
 function fp_group_with_isomorphism(C::GModule)
   if !isdefined(C, :F)
