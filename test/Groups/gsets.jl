@@ -462,6 +462,12 @@ end
   # restrict to a subgroup (creates G-sets of a different type)
   rest = induce(Omega, emb)
   @test sort!(map(length, orbits(rest))) == [1, 2, 4, 8]
+
+  # a "natural" way to restrict to a subgroup (less general than `induce`,
+  # internally represented in a different way than the `induce` result)
+  rest2 = gset(H, Omega)
+  @test sort!(map(length, orbits(rest2))) == [1, 2, 4, 8]
+  @test_throws ArgumentError gset(symmetric_group(6), Omega)
 end
 
 @testset "General G-set action" begin
