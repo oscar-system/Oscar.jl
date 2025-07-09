@@ -503,7 +503,7 @@ projective_scheme_type(::Type{T}) where {T<:AbsAffineScheme} = projective_scheme
 
 @attr Union{Int, NegInf} function dim(P::AbsProjectiveScheme{<:Field})
   d = dim(defining_ideal(P))
-  return d > 0 ? dim(defining_ideal(P)) - 1 : -inf
+  return d > 0 ? d - 1 : -inf
 end
 
 @attr Union{Int, NegInf} function codim(P::AbsProjectiveScheme{<:Field})
