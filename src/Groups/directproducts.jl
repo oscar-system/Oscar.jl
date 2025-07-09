@@ -550,14 +550,26 @@ function (W::WreathProductGroup)(
   d = GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))
   @req length(L) == d + 1 "Wrong number of arguments"
   for i in 1:d
-    @req L[i] in W.G "Wrong input"
+    @req L[i] in normal_subgroup(W) "Wrong input"
   end
-  @req L[d + 1] in W.H "Wrong input"
+  @req L[d + 1] in acting_subgroup(W) "Wrong input"
   # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-  arr = [GAPWrap.Image(GAPWrap.Embedding(W.Xfull, i),GapObj(L[i])) for i in 1:length(L)]
-  xgap = prod(arr)
+  list = GapObj(L; recursive = true)
+  xgap = GAP.Globals.WreathProductElementList(W.Xfull, list) # something does not work here
   @req xgap in GapObj(W) "Element not in the group"
   return group_element(W, xgap)
+end
+
+# TODO: come up with a better name, add docstring, put into manual
+function decompose_wreath_product_element(x::GAPGroupElem{WreathProductGroup})
+  W = parent(x)
+  G = normal_subgroup(W)
+  H = acting_subgroup(W)
+  list = GAP.Globals.ListWreathProductElement(W.Xfull, GapObj(x))
+  @assert length(list) == GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1
+  gs = [group_element(G, g) for g in list[1:end-1]]
+  h = canonical_projection(W)(x) # group_element(H, list[end]) does not work if MovedPoints(Image(W.a.map)) has holes
+  return gs, h
 end
 
 """
