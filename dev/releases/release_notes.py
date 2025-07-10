@@ -281,7 +281,7 @@ def main(new_version: str) -> None:
         # "major" OSCAR release which changes just the minor version
         release_type = 1
         previous_minor = minor - 1
-        basetag = f"{major}.{minor}dev"
+        basetag = f"v{major}.{minor}dev"
         # *exclude* PRs backported to previous stable-1.X branch
         extra = f'-label:"backport {major}.{previous_minor}.x"'
     else:
