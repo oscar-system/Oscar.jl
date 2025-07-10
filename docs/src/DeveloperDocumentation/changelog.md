@@ -113,8 +113,10 @@ submitting a pull request. In particular, don't manually add anything to `CHANGE
 
 ### Changelog Script
 
-The script is located at `dev/releases/release_notes.py`. It must be run from
-inside the `dev/releases` directory. Running it updates `CHANGELOG.md`, for review.
+The script is located at `dev/releases/release_notes.py`. Running it updates `CHANGELOG.md`, for
+review. The script requires the github CLI program to be installed, and the environment variable
+`GH_TOKEN` to be set to a Github Personal Access Token with sufficient rights. (Which rights ?) The
+github action takes care of this via a github actions secret.
 
 ### GitHub Workflow
 
