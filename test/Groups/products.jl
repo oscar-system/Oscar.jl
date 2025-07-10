@@ -1,3 +1,88 @@
+Oscar.@_AuxDocTest "show and print group products", (fix = false),
+raw"""
+common setup
+
+```jldoctest group.products.show
+julia> using Oscar
+
+julia> G = cyclic_group(3);
+
+julia> H = symmetric_group(3);
+
+julia> A = automorphism_group(G);
+
+julia> D = direct_product(G, H);
+
+julia> S = semidirect_product(G, id_hom(A), A);
+
+julia> W = wreath_product(G, H);
+```
+
+default `show` without unicode
+
+```jldoctest group.products.show
+julia> old = allow_unicode(false; temporary=true);
+
+julia> show(stdout, D)
+Pc group x Sym(3)
+
+julia> show(stdout, MIME("text/plain"), D)
+Direct product of
+  pc group of order 3
+  symmetric group of degree 3
+
+julia> show(stdout, S)
+Pc group : automorphism group
+
+julia> show(stdout, MIME("text/plain"), S)
+Semidirect product of
+  normal group: pc group of order 3
+  acting group: automorphism group of pc group of order 3
+
+julia> show(stdout, W)
+Pc group wr Sym(3)
+
+julia> show(stdout, MIME("text/plain"), W)
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 3
+
+julia> allow_unicode(old; temporary=true);
+```
+
+default `show` with unicode
+
+```jldoctest group.products.show
+julia> old = allow_unicode(true; temporary=true);
+
+julia> show(stdout, D)
+Pc group × Sym(3)
+
+julia> show(stdout, MIME("text/plain"), D)
+Direct product of
+  pc group of order 3
+  symmetric group of degree 3
+
+julia> show(stdout, S)
+Pc group ⋊ automorphism group
+
+julia> show(stdout, MIME("text/plain"), S)
+Semidirect product of
+  normal group: pc group of order 3
+  acting group: automorphism group of pc group of order 3
+
+julia> show(stdout, W)
+Pc group ≀ Sym(3)
+
+julia> show(stdout, MIME("text/plain"), W)
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 3
+
+julia> allow_unicode(old; temporary=true);
+```
+"""
+
 @testset "Directproducts" begin
    S = symmetric_group(4)
    C = abelian_group(PcGroup, [2,2])
