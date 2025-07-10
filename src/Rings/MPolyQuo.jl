@@ -1992,9 +1992,3 @@ end
 function is_known(::typeof(krull_dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
   return is_known(krull_dim, modulus(Q))
 end
-
-function is_known(::typeof(dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
-  return is_known(dim, modulus(Q))
-end
-
-
