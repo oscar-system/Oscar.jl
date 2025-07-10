@@ -24,16 +24,11 @@ jobs:
       uses: actions/checkout@v4
 
     # Run the update script
-    - name: Setup venv and install requests
-      run: |
-        pip install requests
-
     - name: Run python script
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        cd dev/releases
-        python3 release_notes.py ${{ github.event.inputs.version }}
+        python3 dev/releases/release_notes.py ${{ github.event.inputs.version }}
 
     # Configure git for the PR
     - name: Set up git
