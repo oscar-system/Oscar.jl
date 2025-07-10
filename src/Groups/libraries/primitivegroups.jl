@@ -196,12 +196,12 @@ The type of the returned groups is `PermGroup`.
 ```jldoctest
 julia> all_primitive_groups(4)
 2-element Vector{PermGroup}:
- Alt(4)
- Sym(4)
+ Alternating group of degree 4
+ Symmetric group of degree 4
 
 julia> all_primitive_groups(degree => 3:5, is_abelian)
 2-element Vector{PermGroup}:
- Alt(3)
+ Alternating group of degree 3
  Permutation group of degree 5 and order 5
 ```
 """

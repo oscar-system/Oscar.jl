@@ -87,11 +87,10 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  vector_space_dim,
   zero_map,
   ⊕,
   ⊗
-
-Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 

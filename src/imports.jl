@@ -4,14 +4,9 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, myid, nworkers
-import Distributed: remotecall, workers, remotecall_fetch
 
 if VERSION < v"1.11.0-DEV.1562"
   using Compat: allequal, allunique
-end
-if VERSION < v"1.8.0-DEV.1494"
-  export allequal
 end
 
 # our packages
@@ -102,9 +97,12 @@ import AbstractAlgebra:
   is_finite_order,
   is_equal_as_morphism,
   is_known,
+  is_local,
+  is_noetherian,
   is_terse,
   is_trivial,
   is_unicode_allowed,
+  krull_dim,
   Lowercase,
   LowercaseOff,
   map,
@@ -132,6 +130,7 @@ import AbstractAlgebra:
   symbols,
   terse,
   total_degree,
+  vector_space_dim,
   with_unicode
 
 import GAP:

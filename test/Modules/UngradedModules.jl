@@ -328,6 +328,15 @@ end
   FM3 = free_resolution(M, length = 2, algorithm = :nres)
   FM3[4]
   @test all(iszero, homology(FM3))
+
+  R, (v, w, x, y, z) = polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  U = complement_of_point_ideal(R, [0, 0, 0, 0, 0]);
+  RL, _ = localization(R, U);
+  I = ideal(RL, [v, w,x, y, z])
+  MI = ideal_as_module(I)
+  FMI = free_resolution_via_kernels(MI)
+  @test is_complete(FMI)
+  @test length(FMI) == 4
 end
 
 @testset "Prune With Map" begin
@@ -1783,3 +1792,61 @@ end
     @test size(L) == 1
   end
 end
+
+@testset "minimization of resolutions" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
+  A = R[x y z; y-1 z-1 x]
+  I = ideal(R, minors(A, 2))
+  Q, _ = quo(R, I)
+  @test !AbstractAlgebra.is_known(is_local, Q)
+  M = quotient_ring_as_module(Q)
+  res = free_resolution(M)
+  @test_throws ErrorException minimize(res)
+
+  U1 = complement_of_point_ideal(R, [0, 0, 0])
+  L1, _ = localization(R, U1)
+  @test AbstractAlgebra.is_known(is_local, L1)
+  M1, _ = change_base_ring(L1, M)
+  res1 = free_resolution(M1)
+  res1[3]
+  res1min = minimize(res1)
+  @test [ngens(res1min[i]) for i in 0:2] == [1, 2, 1]
+
+  U2 = complement_of_prime_ideal(ideal(R, gens(R)))
+  L2, _ = localization(R, U2)
+  @test AbstractAlgebra.is_known(is_local, L2)
+  M2, _ = change_base_ring(L2, M)
+  res2 = free_resolution(M2)
+  res2min = minimize(res2)
+  @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
+
+  f = x^2 + y^2 + z^2
+  I = ideal(f)
+  Q, _ = quo(R, f)
+  M0, _ = change_base_ring(Q, M)
+
+  res = free_resolution(M0; length=5)
+  @test_throws ErrorException minimize(res)
+
+  L1, _ = localization(Q, U1)
+  @test !AbstractAlgebra.is_known(is_local, L1)
+  M1, _ = change_base_ring(L1, M)
+  res1 = free_resolution(M1; length=5)
+  res1[3]
+  res1min = minimize(res1)
+  @test [ngens(res1min[i]) for i in 0:2] == [1, 2, 1]
+
+  U2 = complement_of_prime_ideal(ideal(R, gens(R)))
+  L2, _ = localization(Q, U2)
+  @test !AbstractAlgebra.is_known(is_local, L2)
+  M2, _ = change_base_ring(L2, M)
+  res2 = free_resolution(M2; length=5)
+  res2min = minimize(res2)
+  @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
+end
+
+

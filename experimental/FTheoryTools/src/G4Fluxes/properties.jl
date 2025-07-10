@@ -5,19 +5,22 @@
 @doc raw"""
     is_well_quantized(gf::G4Flux)
 
-G4-fluxes are subject to the quantization condition
-[Wit97](@cite) ``G_4 + \frac{1}{2} c_2(Y) \in H^{(2,2)}(Y, \mathbb{Z})``.
-It is hard to verify that this condition is met. However,
-we can execute a number of simple consistency checks, by
-verifying that ``\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} \in \mathbb{Z}``
-for any two toric divisors ``D_1``, ``D_2``. If all of these
-simple consistency checks are met, this method will return
-`true` and otherwise `false`.
+Checks whether the given ``G_4``-flux candidate satisfies necessary consistency conditions
+for flux quantization as formulated in [Wit97](@cite):
 
-It is worth mentioning that currently (August 2024), we only
-support this check for ``G_4``-fluxes defined on Weierstrass,
-global Tate and hypersurface models. If this condition is not
-met, this method will return an error.
+$G_4 + \frac{1}{2} c_2(\widehat{Y}_4) \in H^{(2,2)}(\widehat{Y}_4, \mathbb{Z})\,.$
+
+Since verifying this integrality condition is generally very difficult, this method performs
+a series of simpler checks. The flux candidate is modelled by ``g \in H^{2,2}(X_\Sigma, \mathbb{Q})``.
+This method evaluates
+
+$\int_{X_\Sigma} \left(g + \frac{1}{2} \hat{c}_2 \right) \wedge [H] \wedge [D_i] \wedge [D_j]$
+
+for all pairs of toric divisors ``D_i``, ``D_j`` in the ambient variety, where ``[H]`` denotes
+the class of the hypersurface divisor defining ``\widehat{Y}_4`` and ``\hat{c}_2 \in H^{2,2}(X_\Sigma, \mathbb{Q})``
+restricts to ``c_2(\widehat{Y}_4)`` on the hypersurface.
+
+If all these integrals evaluate to integers, this method returns `true`; otherwise, it returns `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -74,8 +77,8 @@ end
 @doc raw"""
     passes_transversality_checks(gf::G4Flux)
 
-G4-fluxes are subject to transversality conditions (cf. [Wei18](@cite)).
-If these conditions are met, this method will return `true` and otherwise `false`
+Checks whether the ``G_4``-flux satisfies the transversality conditions
+(cf. [Wei18](@cite)). Returns `true` if all conditions are met, otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -139,8 +142,12 @@ end
 @doc raw"""
     passes_tadpole_cancellation_check(gf::G4Flux)
 
-G4-fluxes are subject to the D3-tadpole cancellation condition described in [Wei18](@cite).
-This check verifies that ``euler_characteristic(Y)/24 - 1/2 * \int_{Y}{G_4 \wedge G_4}`` is a non-negative integer.
+Checks whether the given ``G_4``-flux satisfies the D3-tadpole cancellation condition. This
+amounts to verifying that
+
+$\frac{\chi(\widehat{Y}_4)}{24} - \frac{1}{2} \int_{\widehat{Y}_4} G_4 \wedge G_4$
+
+is a non-negative integer.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -185,10 +192,8 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(gf::G4Flux)
 
-G4-fluxes may break the non-abelian gauge group (cf. [Wei18](@cite)).
-This function verifies if this is the case for the given G4-flux.
-If it does not break any non-abelian gauge factor, we return 
-`true` and otherwise `false`
+Checks whether the given ``G_4``-flux candidate breaks any non-abelian gauge
+symmetries. Returns `true` if any breaking occurs, and `false` otherwise.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))

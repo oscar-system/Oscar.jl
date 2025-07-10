@@ -11,7 +11,7 @@
       set_attribute!(X, :is_geometrically_reduced => true)
       set_attribute!(X, :is_reduced => true)
     end
-    new{typeof(base_ring(X)), typeof(OO(X))}(X)
+    new{S,T}(X)
   end
 
 end

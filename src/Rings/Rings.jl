@@ -13,7 +13,9 @@ include("oscar_singular.jl")
 
 include("special_ideals.jl")
 
+
 include("MPolyMap/Types.jl")
+include("Laurent.jl")
 include("MPolyMap/MPolyAnyMap.jl")
 include("MPolyMap/MPolyRing.jl")
 include("MPolyMap/MPolyQuo.jl")
@@ -32,7 +34,6 @@ include("NumberField.jl")
 include("FunctionField.jl")
 include("AbelianClosure.jl")
 include("AlgClosureFp.jl")
-include("Laurent.jl")
 include("binomial_ideals.jl")
 
 include("PBWAlgebra.jl")

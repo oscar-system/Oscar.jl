@@ -156,6 +156,14 @@
     @test is_negative(b)
     @test_throws DomainError x < n
     @test_throws DomainError y < F(n)
+
+    # compatibility of roots of unity in `K` and `F`
+    i = F(z(4))
+    for n in 1:20
+      @test z(n) == root_of_unity(K, n)
+      @test all(d -> z(n)^d == z(div(n, d)), divisors(n))
+      @test F(z(n)) == cospi(F(2)/n) + i*sinpi(F(2)/n)
+    end
   end
 
   @testset "Conversion to Float64 and ComplexF64" begin

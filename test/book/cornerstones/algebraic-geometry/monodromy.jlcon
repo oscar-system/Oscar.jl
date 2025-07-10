@@ -21,7 +21,7 @@ julia> g1t = phi(g1yz[1]);
 julia> G1,_ = galois_group(g1t);
 
 julia> G1
-Sym(24)
+Symmetric group of degree 24
 
 julia> g2 = 7713*f1 - 1313*f2;
 

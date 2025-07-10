@@ -193,6 +193,9 @@ function inv_action(C::GModule)
   return C.iac
 end
 
+# convert G-module into a matrix group
+Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
+
 function fp_group_with_isomorphism(C::GModule)
   if !isdefined(C, :F)
     iso = isomorphism(FPGroup, group(C), on_gens=true)
@@ -1675,9 +1678,17 @@ compute the map
   f : M -> prod N_i : m -> (f_i(m))_i
 """
 function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingElement}, FinGenAbGroupHom}})
-  D = direct_product([codomain(x) for x = a]...; task = :none)
-  return hom(domain(a[1]), D, hcat([matrix(x) for x = a]...))
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_product(codomain.(a)...; task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
+
+function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_sum(codomain.(a); task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
+end
+
 
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
