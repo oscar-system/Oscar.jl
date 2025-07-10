@@ -342,8 +342,8 @@ end
 @testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
     F = GF(2)
     function _rep_mat(n)
-        I = [i for i in 1:n-1 for δ in (0,1)]
-        J = [(i+δ-1) % n + 1 for i in 1:n-1 for δ in (0,1)]
+        I = [i for i in 1:n-1 for d in (0,1)]
+        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
         matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
     end
     for n in 2:50
