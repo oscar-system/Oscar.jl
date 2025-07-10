@@ -14,7 +14,8 @@ Before preparing the release branch two developers are chosen to take care of ma
 
 Assuming the current master has version number `X.Y.0-DEV`, in preparation for the next release
 a branch `release-X.Y` is created directly on GitHub.
-Once that is done the master should be set to `X.Y+1.0-DEV`.
+Once that is done the master should be set to `X.Y+1.0-DEV`. At this point, a new tag should be
+created named `vX.Y+1dev`
 
 !!! note 
     Please use the script `etc/update_version.sh` for version changes.
