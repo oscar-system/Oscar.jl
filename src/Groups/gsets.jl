@@ -73,6 +73,7 @@ end
 
 """
     acting_group(Omega::GSetByElements)
+    acting_group(Omega::GSetBySubgroupTransversal)
 
 Return the group `G` acting on `Omega`.
 
@@ -171,7 +172,6 @@ end
 
 gset(G::T, seeds; closed::Bool = false) where T<:Group = gset_by_type(G, seeds, eltype(seeds); closed = closed)
 
-
 ## natural action of permutations on positive integers
 function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:IntegerUnion
   return GSetByElements(G, ^, Omega; closed = closed, check = false)
@@ -218,6 +218,16 @@ function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = fal
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
+
+## another situation:
+## If a `G`-set `Omega` is given then view it as a `H`-set for a given group,
+## w.r.t. the action function of `Omega`.
+## For that, require that `H` is a subgroup of `G` in the sense of `is_subset`.
+
+function gset(H::T, Omega::GSet) where T<:Group
+  @req is_subset(H, acting_group(Omega)) "H must be a subgroup of acting_group(Omega)"
+  return gset(H, action_function(Omega), Omega; closed = true)
+end
 
 #############################################################################
 ##
@@ -315,6 +325,7 @@ end
 
 @doc raw"""
     induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+    induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
 
 Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
 
@@ -847,6 +858,20 @@ end
   return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
+############################################################################
+##
+##  For restricting a `GSetBySubgroupTransversal` via a group homomorphism,
+##  construct a `GSetByElements` from it.
+
+function induced_action_function(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::Map{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return induced_action(action_function(Omega), phi)
+end
+
+function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+  @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
+  return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
+end
 
 ############################################################################
 ##
