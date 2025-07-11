@@ -74,9 +74,9 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Return the model sections in explicit form, that is as polynomials
-of the base space coordinates. The set of keys of the returned
-dictionary matches the output of `model_sections`. 
+Returns the explicit polynomial expressions for all model sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -95,6 +95,19 @@ Dict{String, QQMPolyRingElem} with 9 entries:
   "a4"  => w^3*a43
   "a43" => a43
   "a32" => a32
+
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> explicit_model_sections(t2);
 ```
 """
 function explicit_model_sections(m::AbstractFTheoryModel)
@@ -106,9 +119,10 @@ end
 @doc raw"""
     model_section_parametrization(m::AbstractFTheoryModel)
 
-Return a dictionary that defines how the "default" parameters of
-the given model type are defined in terms of the tunable sections
-(those returned by `tunable_sections`).
+Returns a dictionary that defines how the structural sections of the given F-theory model
+are parametrized by the tunable sections.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -133,9 +147,9 @@ end
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Return the divisor classes of all model sections. The set
-of keys of the returned dictionary matches the output
-of `model_sections`.
+Returns the divisor classes of all model sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1441,10 +1455,9 @@ julia> tunable_sections(m)
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that were used in the definition of the model.
-This includes the sections returned by `tunable_sections` and all sections parametrized by
-them (the keys of the dictionary returned by `model_section_parametrization`). These are
-the keys of the dictionaries returned by of `explicit_model_sections` and `classes_of_model_sections`.
+Returns the model sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1474,23 +1487,21 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
 of the base and the defining classes of the given model.
 
-!!! warning
-    This information is currently only available for literature models.
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
-Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
-Dict{String, Vector{Int64}} with 6 entries:
-  "b1" => [1, 0]
-  "b3" => [3, -5]
-  "b4" => [4, -6]
-  "b6" => [6, -11]
-  "b2" => [2, -1]
-  "ζ0" => [0, 1]
+Dict{String, Vector{Int64}} with 5 entries:
+  "a21" => [2, -1]
+  "w"   => [0, 1]
+  "a1"  => [1, 0]
+  "a43" => [4, -3]
+  "a32" => [3, -2]
 ```
 """
 @attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
