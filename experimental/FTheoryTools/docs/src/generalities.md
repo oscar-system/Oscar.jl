@@ -40,8 +40,6 @@ More information is available [here](http://www.thofma.com/Hecke.jl/dev/features
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
-gauge_algebra(m::AbstractFTheoryModel)
-global_gauge_group_quotient(m::AbstractFTheoryModel)
 chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)

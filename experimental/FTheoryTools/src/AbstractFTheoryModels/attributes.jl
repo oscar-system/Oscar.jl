@@ -71,49 +71,94 @@ function fiber_ambient_space(m::AbstractFTheoryModel)
 end
 
 
-@doc raw"""
-    explicit_model_sections(m::AbstractFTheoryModel)
 
-Returns the explicit polynomial expressions for all model sections of the given F-theory model.
+
+##########################################
+### (2) Section attributes
+##########################################
+
+@doc raw"""
+    defining_classes(m::AbstractFTheoryModel)
+
+Returns the defining divisor classes of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref).
 
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> explicit_model_sections(t)
-Dict{String, QQMPolyRingElem} with 9 entries:
-  "a6"  => 0
-  "a21" => a21
-  "a3"  => w^2*a32
-  "w"   => w
-  "a2"  => w*a21
-  "a1"  => a1
-  "a4"  => w^3*a43
-  "a43" => a43
-  "a32" => a32
-
+```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> explicit_model_sections(t2);
+julia> defining_classes(t)
+Dict{String, ToricDivisorClass} with 1 entry:
+  "w" => Divisor class on a normal toric variety
 ```
 """
-function explicit_model_sections(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
-  return m.explicit_model_sections
+function defining_classes(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :defining_classes) "defining_classes not supported for this F-theory model"
+  return m.defining_classes
 end
+
+
+@doc raw"""
+    model_sections(m::AbstractFTheoryModel)
+
+Returns the model sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> model_sections(m)
+9-element Vector{String}:
+ "a6"
+ "a21"
+ "a3"
+ "w"
+ "a2"
+ "a1"
+ "a4"
+ "a43"
+ "a32"
+```
+"""
+model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
+
+
+@doc raw"""
+    tunable_sections(m::AbstractFTheoryModel)
+
+Returns the tunable sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> tunable_sections(m)
+5-element Vector{String}:
+ "a21"
+ "w"
+ "a1"
+ "a43"
+ "a32"
+```
+"""
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
 
 
 @doc raw"""
@@ -142,6 +187,32 @@ function model_section_parametrization(m::AbstractFTheoryModel)
   @req hasfield(typeof(m), :model_section_parametrization) "model_section_parametrization not supported for this F-theory model"
   return m.model_section_parametrization
 end
+
+
+@doc raw"""
+    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
+
+Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+of the base and the defining classes of the given model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
+
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
+Dict{String, Vector{Int64}} with 5 entries:
+  "a21" => [2, -1]
+  "w"   => [0, 1]
+  "a1"  => [1, 0]
+  "a43" => [4, -3]
+  "a32" => [3, -2]
+```
+"""
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel) = get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, "Classes of tunable sections in basis of Kbar and defining classes not known for this model")::Dict{String, Vector{Int64}}
 
 
 @doc raw"""
@@ -195,646 +266,55 @@ end
 
 
 @doc raw"""
-    defining_classes(m::AbstractFTheoryModel)
+    explicit_model_sections(m::AbstractFTheoryModel)
 
-Returns the defining divisor classes of the given F-theory model.
+Returns the explicit polynomial expressions for all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref).
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> explicit_model_sections(t)
+Dict{String, QQMPolyRingElem} with 9 entries:
+  "a6"  => 0
+  "a21" => a21
+  "a3"  => w^2*a32
+  "w"   => w
+  "a2"  => w*a21
+  "a1"  => a1
+  "a4"  => w^3*a43
+  "a43" => a43
+  "a32" => a32
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> defining_classes(t)
-Dict{String, ToricDivisorClass} with 1 entry:
-  "w" => Divisor class on a normal toric variety
+julia> explicit_model_sections(t2);
 ```
 """
-function defining_classes(m::AbstractFTheoryModel)
-  @req hasfield(typeof(m), :defining_classes) "defining_classes not supported for this F-theory model"
-  return m.defining_classes
+function explicit_model_sections(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
+  return m.explicit_model_sections
 end
 
 
-##########################################
-### (2) Meta data attributes
-##########################################
 
-@doc raw"""
-    arxiv_id(m::AbstractFTheoryModel)
 
-Return the `arxiv_id` of the preprint that introduced
-the given model. If no `arxiv_id` is
-known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_id(m)
-"1109.3454"
-```
-"""
-function arxiv_id(m::AbstractFTheoryModel)
-  @req has_arxiv_id(m) "No arxiv identifier known for this model"
-  return get_attribute(m, :arxiv_id)::String
-end
-
-
-@doc raw"""
-    arxiv_doi(m::AbstractFTheoryModel)
-
-Return the `arxiv_doi` of the preprint that introduced
-the given model. If no `arxiv_doi` is
-known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_doi(m)
-"10.48550/arXiv.1109.3454"
-```
-"""
-function arxiv_doi(m::AbstractFTheoryModel)
-  @req has_arxiv_doi(m) "No arXiv DOI known for this model"
-  return get_attribute(m, :arxiv_doi)::String
-end
-
-
-@doc raw"""
-    arxiv_link(m::AbstractFTheoryModel)
-
-Return the `arxiv_link` (formatted as string) to the arXiv
-version of the paper that introduced the given model.
-If no `arxiv_link` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_link(m)
-"https://arxiv.org/abs/1109.3454v2"
-```
-"""
-function arxiv_link(m::AbstractFTheoryModel)
-  @req has_arxiv_link(m) "No arXiv link known for this model"
-  return get_attribute(m, :arxiv_link)::String
-end
-
-
-@doc raw"""
-    arxiv_model_equation_number(m::AbstractFTheoryModel)
-
-Return the `arxiv_model_equation_number` in which the given model was introduced
-in the arXiv preprint in our record. If no `arxiv_model_equation_number`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_model_equation_number(m)
-"3.1"
-```
-"""
-function arxiv_model_equation_number(m::AbstractFTheoryModel)
-  @req has_arxiv_model_equation_number(m) "No arXiv equation number known for this model"
-  return get_attribute(m, :arxiv_model_equation_number)::String
-end
-
-
-@doc raw"""
-    arxiv_model_page(m::AbstractFTheoryModel)
-
-Return the `arxiv_model_page` on which the given model was introduced
-in the arXiv preprint in our record. If no `arxiv_model_page`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_model_page(m)
-"10"
-```
-"""
-function arxiv_model_page(m::AbstractFTheoryModel)
-  @req has_arxiv_model_page(m) "No arXiv page number known for this model"
-  return get_attribute(m, :arxiv_model_page)::String
-end
-
-
-@doc raw"""
-    arxiv_model_section(m::AbstractFTheoryModel)
-
-Return the `arxiv_model_section` in which the given model was introduced
-in the arXiv preprint in our record. If no `arxiv_model_section`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_model_section(m)
-"3"
-```
-"""
-function arxiv_model_section(m::AbstractFTheoryModel)
-  @req has_arxiv_model_section(m) "No arXiv section number known for this model"
-  return get_attribute(m, :arxiv_model_section)::String
-end
-
-
-@doc raw"""
-    arxiv_version(m::AbstractFTheoryModel)
-
-Return the `arxiv_version` of the arXiv preprint that
-introduced the given model. If no
-`arxiv_version` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_version(m)
-"2"
-```
-"""
-function arxiv_version(m::AbstractFTheoryModel)
-  @req has_arxiv_version(m) "No arXiv version known for this model"
-  return get_attribute(m, :arxiv_version)::String
-end
-
-
-@doc raw"""
-    birational_literature_models(m::AbstractFTheoryModel)
-
-Return a list of the unique identifiers of `birational_literature_models` of
-the given model. These are either other presentations (Weierstrass, Tate, ...)
-of the given model, or other version of the same model from a different paper
-in the literature. If no `birational_literature_models` are known,
-an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1507.05954", equation = "A.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
-
-julia> birational_literature_models(m)
-1-element Vector{String}:
- "1507_05954-1"
-```
-"""
-function birational_literature_models(m::AbstractFTheoryModel)
-  @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
-  return get_attribute(m, :birational_literature_models)::Vector{String}
-end
-
-
-@doc raw"""
-    journal_doi(m::AbstractFTheoryModel)
-
-Return the `journal_doi` of the publication that introduced
-the given model. If no `journal_doi` is
-known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_doi(m)
-"10.1016/j.nuclphysb.2011.12.013"
-```
-"""
-function journal_doi(m::AbstractFTheoryModel)
-  @req has_journal_doi(m) "No journal DOI known for this model"
-  return get_attribute(m, :journal_doi)::String
-end
-
-
-@doc raw"""
-    journal_link(m::AbstractFTheoryModel)
-
-Return the `journal_link` (formatted as string) to the published
-version of the paper that introduced the given model.
-If no `journal_link` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_link(m)
-"https://www.sciencedirect.com/science/article/pii/S0550321311007115"
-```
-"""
-function journal_link(m::AbstractFTheoryModel)
-  @req has_journal_link(m) "No journal link known for this model"
-  return get_attribute(m, :journal_link)::String
-end
-
-
-@doc raw"""
-    journal_model_equation_number(m::AbstractFTheoryModel)
-
-Return the `journal_model_equation_number` in which the given model was introduced
-in the published paper in our record. If no `journal_model_equation_number`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_model_equation_number(m)
-"3.1"
-```
-"""
-function journal_model_equation_number(m::AbstractFTheoryModel)
-  @req has_journal_model_equation_number(m) "No journal equation number known for this model"
-  return get_attribute(m, :journal_model_equation_number)::String
-end
-
-
-@doc raw"""
-    journal_model_page(m::AbstractFTheoryModel)
-
-Return the `journal_model_page` on which the given model was introduced
-in the published paper in our record. If no `journal_model_page`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_model_page(m)
-"9"
-```
-"""
-function journal_model_page(m::AbstractFTheoryModel)
-  @req has_journal_model_page(m) "No journal page number known for this model"
-  return get_attribute(m, :journal_model_page)::String
-end
-
-
-@doc raw"""
-    journal_model_section(m::AbstractFTheoryModel)
-
-Return the `journal_model_section` in which the given model was introduced
-in the published paper in our record. If no `journal_model_section`
-is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_model_section(m)
-"3"
-```
-"""
-function journal_model_section(m::AbstractFTheoryModel)
-  @req has_journal_model_section(m) "No journal section number known for this model"
-  return get_attribute(m, :journal_model_section)::String
-end
-
-
-@doc raw"""
-    journal_pages(m::AbstractFTheoryModel)
-
-Return the `journal_pages` of the published paper in which the given model was introduced.
-If no `journal_pages` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_pages(m)
-"1–47"
-```
-"""
-function journal_pages(m::AbstractFTheoryModel)
-  @req has_journal_pages(m) "No journal pages known for this model"
-  return get_attribute(m, :journal_pages)::String
-end
-
-
-@doc raw"""
-    journal_report_numbers(m::AbstractFTheoryModel)
-
-Return the `journal_report_numbers` of the published paper in which the given model was introduced.
-If no `journal_report_numbers` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1507.05954", equation = "A.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
-
-julia> journal_report_numbers(m)
-3-element Vector{String}:
- "UPR-1274-T"
- "CERN-PH-TH-2015-157"
- "MIT-CTP-4678"
-```
-"""
-function journal_report_numbers(m::AbstractFTheoryModel)
-  @req has_journal_report_numbers(m) "No journal report numbers known for this model"
-  return get_attribute(m, :journal_report_numbers)::Vector{String}
-end
-
-
-@doc raw"""
-    journal_volume(m::AbstractFTheoryModel)
-
-Return the `journal_volume` of the published paper in which the given model was introduced.
-If no `journal_volume` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_volume(m)
-"858"
-```
-"""
-function journal_volume(m::AbstractFTheoryModel)
-  @req has_journal_volume(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_volume)::String
-end
-
-
-@doc raw"""
-    journal_name(m::AbstractFTheoryModel)
-
-Return the `journal_name` of the published paper in which the given model was introduced.
-If no `journal_name` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_name(m)
-"Nucl. Phys. B"
-```
-"""
-function journal_name(m::AbstractFTheoryModel)
-@req has_journal_name(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_name)::String
-end
-
-
-@doc raw"""
-    journal_year(m::AbstractFTheoryModel)
-
-Return the `journal_year` of the published paper in which the given model was introduced.
-If no `journal_year` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> journal_year(m)
-"2012"
-```
-"""
-function journal_year(m::AbstractFTheoryModel)
-  @req has_journal_year(m) "No journal year known for this model"
-  return get_attribute(m, :journal_year)::String
-end
-
-
-@doc raw"""
-    literature_identifier(m::AbstractFTheoryModel)
-
-Return the `literature_identifier` of the given mode, which is a unique string
-that distinguishes the model from all others in the literature model database.
-If no `literature_identifier` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> literature_identifier(m)
-"1109_3454"
-```
-"""
-function literature_identifier(m::AbstractFTheoryModel)
-  @req has_literature_identifier(m) "No literature identifier known for this model"
-  return get_attribute(m, :literature_identifier)::String
-end
-
-
-@doc raw"""
-    model_description(m::AbstractFTheoryModel)
-
-Return the `model_description` of the given model.
-If no `model_description` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> model_description(m)
-"SU(5)xU(1) restricted Tate model"
-```
-"""
-function model_description(m::AbstractFTheoryModel)
-  @req has_model_description(m) "No model description known for this model"
-  return get_attribute(m, :model_description)::String
-end
-
-
-@doc raw"""
-    model_parameters(m::AbstractFTheoryModel)
-
-Return the `model_parameters` of the given model.
-If no `model_parameters` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
-
-julia> model_parameters(m)
-Dict{String, Int64} with 1 entry:
-  "k" => 5
-```
-"""
-function model_parameters(m::AbstractFTheoryModel)
-  @req has_model_parameters(m) "No model parameters known for this model"
-  return get_attribute(m, :model_parameters)::Dict{String, Int64}
-end
-
-
-@doc raw"""
-    paper_authors(m::AbstractFTheoryModel)
-
-Return the `paper_authors` of the paper that introduced the given model.
-If no `paper_authors` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> paper_authors(m)
-3-element Vector{String}:
- "Sven Krause"
- "Christoph Mayrhofer"
- "Timo Weigand"
-```
-"""
-function paper_authors(m::AbstractFTheoryModel)
-  @req has_paper_authors(m) "No paper authors known for this model"
-  return get_attribute(m, :paper_authors)::Vector{String}
-end
-
-
-@doc raw"""
-    paper_buzzwords(m::AbstractFTheoryModel)
-
-Return the `paper_buzzwords` of the paper that introduced the given model.
-If no `paper_buzzwords` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> paper_buzzwords(m)
-4-element Vector{String}:
- "GUT model"
- "Tate"
- "U(1)"
- "SU(5)"
-```
-"""
-function paper_buzzwords(m::AbstractFTheoryModel)
-  @req has_paper_buzzwords(m) "No paper buzzwords known for this model"
-  return get_attribute(m, :paper_buzzwords)::Vector{String}
-end
-
-
-@doc raw"""
-    paper_description(m::AbstractFTheoryModel)
-
-Return the `paper_description` of the paper that introduced the given model.
-If no `paper_description` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> paper_description(m)
-"SU(5)xU(1) restricted Tate model"
-```
-"""
-function paper_description(m::AbstractFTheoryModel)
-  @req has_paper_description(m) "No paper description known for this model"
-  return get_attribute(m, :paper_description)::String
-end
-
-
-@doc raw"""
-    paper_title(m::AbstractFTheoryModel)
-
-Return the `paper_title` of the arXiv preprint that introduced the given model.
-If no `paper_title` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> paper_title(m)
-"\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-```
-"""
-function paper_title(m::AbstractFTheoryModel)
-  @req has_paper_title(m) "No paper title known for this model"
-  return get_attribute(m, :paper_title)::String
-end
-
-
-@doc raw"""
-    associated_literature_models(m::AbstractFTheoryModel)
-
-Return a list of the unique identifiers of any `associated_literature_models` of
-the given model. These are models that are introduced in the same paper as
-the given model, but that are distinct from the given model. If no
-`associated_literature_models` are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
-
-julia> associated_literature_models(m)
-6-element Vector{String}:
- "1212_2949-2"
- "1212_2949-3"
- "1212_2949-4"
- "1212_2949-5"
- "1212_2949-6"
- "1212_2949-7"
-```
-"""
-function associated_literature_models(m::AbstractFTheoryModel)
-  @req has_associated_literature_models(m) "No associated models known for this model"
-  return get_attribute(m, :associated_literature_models)::Vector{String}
-end
-
+##############################################
+### (3) Position of model in our database
+##############################################
 
 @doc raw"""
     model_index(m::AbstractFTheoryModel)
@@ -859,416 +339,140 @@ end
 
 
 
+
 ##########################################
-### (3) Specialized model attributes
+### (4) Data attributes macro
 ##########################################
 
-@doc raw"""
-    generating_sections(m::AbstractFTheoryModel)
+macro define_model_attribute_getter(arg_expr)
+    if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
+        error("Expected input like: (function_name, ReturnType)")
+    end
 
-Return a list of the known Mordell–Weil generating sections of
-the given model.  If no generating sections are known,
-an error is raised.
+    fname = arg_expr.args[1]
+    rettype = arg_expr.args[2]
+    sym = QuoteNode(fname)
+    msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+    doc = """
+    Returns `$(fname)` of the F-theory model if known, otherwise throws an error.
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+    See [Literature Models](@ref) for more details.
+    """
 
-julia> generating_sections(m)
-1-element Vector{Vector{QQMPolyRingElem}}:
- [0, 0, 1]
-```
-"""
-function generating_sections(m::AbstractFTheoryModel)
-  @req has_generating_sections(m) "No generating sections known for this model"
-  return get_attribute(m, :generating_sections)
+    return quote
+        @doc $doc
+        function $(esc(fname))(m::AbstractFTheoryModel)
+            @req has_attribute(m, $sym) $msg
+            return get_attribute(m, $sym)::$(esc(rettype))
+        end
+    end
 end
 
 
-@doc raw"""
-    resolutions(m::AbstractFTheoryModel)
 
-Return the list of all known resolutions for the given model.
-If no resolutions are known, an error is raised.
 
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+##########################################
+### (5) Meta data getters
+##########################################
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+meta_data = [
+    (:associated_literature_models, Vector{String}),
+    (:arxiv_doi, String),
+    (:arxiv_id, String),
+    (:arxiv_link, String),
+    (:arxiv_model_equation_number, String),
+    (:arxiv_model_page, String),
+    (:arxiv_model_section, String),
+    (:arxiv_version, String),
+    (:birational_literature_models, Vector{String}),
+    (:journal_doi, String),
+    (:journal_link, String),
+    (:journal_model_equation_number, String),
+    (:journal_model_page, String),
+    (:journal_model_section, String),
+    (:journal_pages, String),
+    (:journal_report_numbers, Vector{String}),
+    (:journal_volume, String),
+    (:journal_name, String),
+    (:journal_year, String),
+    (:literature_identifier, String),
+    (:model_description, String),
+    (:model_parameters, Dict{String, Int64}),
+    (:paper_authors, Vector{String}),
+    (:paper_buzzwords, Vector{String}),
+    (:paper_description, String),
+    (:paper_title, String)
+]
 
-julia> resolutions(m)
-1-element Vector{Tuple{Vector{Vector{String}}, Vector{String}}}:
- ([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
-```
-"""
-function resolutions(m::AbstractFTheoryModel)
-  @req has_resolutions(m) "No resolutions known for this model"
-  return get_attribute(m, :resolutions)
+for (name, typ) in meta_data
+    @eval @define_model_attribute_getter ($name, $typ)
 end
 
 
-@doc raw"""
-    resolution_generating_sections(m::AbstractFTheoryModel)
-
-Return a list of lists of known Mordell–Weil generating sections
-for the given model after each known resolution. Each element of
-the outer list corresponds to a known resolution (in the same order),
-and each element of the list associated to a given resolution
-corresponds to a known generating section (in the same order).
-If no resolution generating sections are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
-```
-"""
-function resolution_generating_sections(m::AbstractFTheoryModel)
-  @req has_resolution_generating_sections(m) "No resolution generating sections known for this model"
-  return get_attribute(m, :resolution_generating_sections)
-end
 
 
-@doc raw"""
-    resolution_zero_sections(m::AbstractFTheoryModel)
+##########################################
+### (5) Predefined geometric data getters
+##########################################
 
-Return a list of known Mordell–Weil zero sections for the
-given model after each known resolution. Each element of the
-list corresponds to a known resolution (in the same order).
-If no resolution zero sections are known, an error is raised.
+# Return a list of the known Mordell–Weil generating sections of the given model.  If no generating sections are known, an error is raised.
+@define_model_attribute_getter (generating_sections, Vector{Vector{T}} where T <: Any)
 
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+# Return the list of all known resolutions for the given model. If no resolutions are known, an error is raised.
+@define_model_attribute_getter (resolutions, Vector{Tuple{Vector{Vector{String}}, Vector{String}}})
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+# Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution. Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list associated to a given resolution corresponds to a known generating section (in the same order). If no resolution generating sections are known, an error is raised.
+@define_model_attribute_getter (resolution_generating_sections, Vector{Vector{Vector{Vector{T}}}} where T <: Any)
 
-julia> resolution_zero_sections(m)
-1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
- [[1, 1, 0], [1, 1, w], [1, 1], [1, 1], [1, 1], [1, 1]]
-```
-"""
-function resolution_zero_sections(m::AbstractFTheoryModel)
-  @req has_resolution_zero_sections(m) "No resolution zero sections known for this model"
-  return get_attribute(m, :resolution_zero_sections)
-end
+# Return a list of known Mordell–Weil zero sections for the given model after each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
+@define_model_attribute_getter (resolution_zero_sections, Vector{Vector{Vector{T}}} where T <: Any)
 
+# Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error is raised.
+@define_model_attribute_getter (weighted_resolutions, Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}})
 
-@doc raw"""
-    weighted_resolutions(m::AbstractFTheoryModel)
+# Return a list of lists of known Mordell–Weil generating sections for the given model after each known weighted resolution. Each element of the outer list corresponds to a known weighted resolution (in the same order), and each element of the list associated to a given weighted resolution corresponds to a known generating section (in the same order). If no weighted resolution generating sections are known, an error is raised.
+@define_model_attribute_getter (weighted_resolution_generating_sections, Vector{Vector{Vector{Vector{T}}}} where T <: Any)
 
-Return the list of all known weighted resolutions for the given model.
-If no weighted resolutions are known, an error is raised.
+# Return a list of known Mordell–Weil zero sections for the given model after each known weighted resolution. Each element of the list corresponds to a known weighted resolution (in the same order). If no weighted resolution zero sections are known, an error is raised.
+@define_model_attribute_getter (weighted_resolution_zero_sections, Vector{Vector{Vector{T}}} where T <: Any)
 
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+# Return the zero section of the given model. If no zero section is known, an error is raised. This information is not typically stored as an attribute for Weierstrass and global Tate models, whose zero sections are known.
+@define_model_attribute_getter (zero_section, Vector{T} where T <: Any)
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+# Return the zero section class of a model as a cohomology class in the toric ambient space. If no zero section class is known, an error is raised. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
+@define_model_attribute_getter (zero_section_class, CohomologyClass)
 
-julia> weighted_resolutions(m)
-1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
- ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
-```
-"""
-function weighted_resolutions(m::AbstractFTheoryModel)
-  @req has_weighted_resolutions(m) "No weighted resolutions known for this model"
-  return get_attribute(m, :weighted_resolutions)
-end
+# Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model. If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
+@define_model_attribute_getter (zero_section_index, Int)
 
-
-@doc raw"""
-    weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-
-Return a list of lists of known Mordell–Weil generating sections
-for the given model after each known weighted resolution. Each element of
-the outer list corresponds to a known weighted resolution (in the same order),
-and each element of the list associated to a given weighted resolution
-corresponds to a known generating section (in the same order).
-If no weighted resolution generating sections are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> weighted_resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
-```
-"""
-function weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-  @req has_weighted_resolution_generating_sections(m) "No weighted resolution generating sections known for this model"
-  return get_attribute(m, :weighted_resolution_generating_sections)
-end
-
-
-@doc raw"""
-    weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-
-Return a list of known Mordell–Weil zero sections for the
-given model after each known weighted resolution. Each element of the
-list corresponds to a known weighted resolution (in the same order).
-If no weighted resolution zero sections are known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> weighted_resolution_zero_sections(m)
-1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
- [[1, 1, 0], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1]]
-```
-"""
-function weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-  @req has_weighted_resolution_zero_sections(m) "No weighted resolution zero sections known for this model"
-  return get_attribute(m, :weighted_resolution_zero_sections)
-end
-
-
-@doc raw"""
-    zero_section(m::AbstractFTheoryModel)
-
-Return the zero section of the given model.
-If no zero section is known, an error is raised.
-This information is not typically stored as an attribute for
-Weierstrass and global Tate models, whose zero sections are known.
-
-```jldoctest
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Hypersurface model over a not fully specified base
-
-julia> zero_section(h)
-3-element Vector{QQMPolyRingElem}:
- 0
- 1
- 0
-```
-"""
-function zero_section(m::AbstractFTheoryModel)
-  @req has_zero_section(m) "No zero section stored for this model"
-  return get_attribute(m, :zero_section)
-end
-
-
-@doc raw"""
-    zero_section_class(m::AbstractFTheoryModel)
-
-Return the zero section class of a model as a cohomology class in the toric ambient space.
-If no zero section class is known, an error is raised.
-This information is always available for
-Weierstrass and global Tate models, whose zero section classes are known.
-
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-Hypersurface model over a concrete base
-
-julia> zero_section_class(qsm_model)
-Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
-```
-"""
-function zero_section_class(m::AbstractFTheoryModel)
-  @req has_zero_section_class(m) "No zero section class stored for this model"
-  return get_attribute(m, :zero_section_class)
-end
-
-
-@doc raw"""
-    zero_section_index(m::AbstractFTheoryModel)
-
-Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model.
-If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class.
-This information is always available for
-Weierstrass and global Tate models, whose zero section classes are known.
-
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Hypersurface model over a concrete base
-
-julia> zero_section_index(foah15_B3)
-5
-```
-"""
-function zero_section_index(m::AbstractFTheoryModel)
-  @req has_zero_section_class(m) "No zero section class stored for this model"
-  return get_attribute(m, :zero_section_index)::Int
-end
-
-
-@doc raw"""
-    exceptional_classes(m::AbstractFTheoryModel)
-
-Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
-This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a toric blow up this information is updated.
-
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Hypersurface model over a concrete base
-
-julia> exceptional_classes(foah11_B3)
-4-element Vector{CohomologyClass}:
- Cohomology class on a normal toric variety given by e1
- Cohomology class on a normal toric variety given by e2
- Cohomology class on a normal toric variety given by e3
- Cohomology class on a normal toric variety given by e4
-```
-"""
+# Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space. This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case. After a toric blow up this information is updated.
 function exceptional_classes(m::AbstractFTheoryModel)
   @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
   return get_attribute(m, :exceptional_classes, Vector{CohomologyClass}())
 end
 
-
-@doc raw"""
-    exceptional_divisor_indices(m::AbstractFTheoryModel)
-
-Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
-This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a toric blow up this information is updated.
-
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Hypersurface model over a concrete base
-
-julia> exceptional_divisor_indices(foah11_B3)
-4-element Vector{Int64}:
-  8
-  9
- 10
- 11
-```
-"""
+# Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors. This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case. After a toric blow up this information is updated.
 @attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
   @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
-  return get_attribute(m, :exceptional_divisor_indices, Vector{Int}())
+  return get_attribute(m, :exceptional_divisor_indices, Vector{Int64}())
 end
 
+# Return the torsion sections of the given model. If no torsion sections are known, an error is raised.
+@define_model_attribute_getter (torsion_sections, Vector{Vector{T}} where T <: Any)
 
-@doc raw"""
-    torsion_sections(m::AbstractFTheoryModel)
+# Return the gauge algebra of the given model. If no gauge algebra is known, an error is raised. This information is typically available for all models, however.
+@define_model_attribute_getter (gauge_algebra, DirectSumLieAlgebra{QQBarFieldElem})
 
-Return the torsion sections of the given model.
-If no torsion sections are known, an error is raised.
-
-```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Hypersurface model over a concrete base
-
-julia> length(torsion_sections(foah15_B3))
-1
-```
-"""
-function torsion_sections(m::AbstractFTheoryModel)
-  @req has_torsion_sections(m) "No torsion sections stored for this model"
-  return get_attribute(m, :torsion_sections)
-end
+# Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`. These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra. This list combined with `gauge_algebra(m)` completely determines the gauge group of the model. If no gauge quotients are known, an error is raised.
+@define_model_attribute_getter (global_gauge_group_quotient, Vector{Vector{String}})
 
 
-@doc raw"""
-    gauge_algebra(m::AbstractFTheoryModel)
-
-Return the gauge algebra of the given model.
-If no gauge algebra is known, an error is raised.
-This information is typically available for all models, however.
-
-```jldoctest
-julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Hypersurface model over a not fully specified base
-
-julia> gauge_algebra(t)
-Direct sum Lie algebra
-  of dimension 13
-with summands
-  sl_2
-  sl_2
-  sl_2
-  sl_2
-  linear Lie algebra
-over algebraic closure of rational field
-```
-"""
-function gauge_algebra(m::AbstractFTheoryModel)
-  @req has_gauge_algebra(m) "No gauge algebra stored for this model"
-  return get_attribute(m, :gauge_algebra)
-end
 
 
-@doc raw"""
-    global_gauge_group_quotient(m::AbstractFTheoryModel)
-
-Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
-These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
-This list combined with `gauge_algebra(m)` completely determines the gauge group of the model.
-If no gauge quotients are known, an error is raised.
-
-```jldoctest
-julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Hypersurface model over a not fully specified base
-
-julia> global_gauge_group_quotient(t)
-5-element Vector{Vector{String}}:
- ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
- ["-identity_matrix(C,2)"]
- ["-identity_matrix(C,2)"]
- ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
- ["-identity_matrix(C,1)"]
-```
-"""
-function global_gauge_group_quotient(m::AbstractFTheoryModel)
-  @req has_global_gauge_group_quotient(m) "No gauge quotients stored for this model"
-  return get_attribute(m, :global_gauge_quotients)
-end
-
+##########################################
+### (5) Computed geometric data getters
+##########################################
 
 @doc raw"""
     chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
@@ -1427,92 +631,12 @@ julia> h = euler_characteristic(qsm_model; check = false)
 end
 
 
-@doc raw"""
-    tunable_sections(m::AbstractFTheoryModel)
-
-Returns the tunable sections of the given F-theory model.
-
-For a detailed explanation of the concept, see [Literature Models](@ref).
-
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tunable_sections(m)
-5-element Vector{String}:
- "a21"
- "w"
- "a1"
- "a43"
- "a32"
-```
-"""
-@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
 
 
-@doc raw"""
-    model_sections(m::AbstractFTheoryModel)
+######################################################
+### (6) Predefined geometric data getters for the QSMs
+######################################################
 
-Returns the model sections of the given F-theory model.
-
-For a detailed explanation of the concept, see [Literature Models](@ref).
-
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> model_sections(m)
-9-element Vector{String}:
- "a6"
- "a21"
- "a3"
- "w"
- "a2"
- "a1"
- "a4"
- "a43"
- "a32"
-```
-"""
-model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
-
-
-@doc raw"""
-    classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
-
-Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
-of the base and the defining classes of the given model.
-
-For a detailed explanation of the concept, see [Literature Models](@ref).
-
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m)
-Dict{String, Vector{Int64}} with 5 entries:
-  "a21" => [2, -1]
-  "w"   => [0, 1]
-  "a1"  => [1, 0]
-  "a43" => [4, -3]
-  "a32" => [3, -2]
-```
-"""
-@attr Dict{String, Vector{Int}} function classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
-  @req has_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes) "No detailed information about tunable sections stored for this model"
-  return get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes)
-end
-
-
-##########################################
-### (4) Attributes specially for the QSMs
-##########################################
 
 ### (4.1) Attributes regarding the polytope in the Kreuzer-Skarke database
 

@@ -500,36 +500,38 @@ end
 #######################################################
 
 function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{String, Any}, model_parameters::Dict{String,<:Any})
-  set_attribute!(model, :partially_resolved, false)
-  set_literature_identifier(model, model_dict["literature_identifier"])
-  
-  set_model_description(model, model_dict["model_descriptors"]["description"])
-  
-  set_paper_authors(model, string.(model_dict["paper_metadata"]["authors"]))
-  set_paper_buzzwords(model, string.(model_dict["paper_metadata"]["buzzwords"]))
-  set_paper_description(model, model_dict["paper_metadata"]["description"])
-  set_paper_title(model, model_dict["paper_metadata"]["title"])
 
-  set_arxiv_doi(model, model_dict["arxiv_data"]["doi"])
-  set_arxiv_link(model, model_dict["arxiv_data"]["link"])
-  set_arxiv_id(model, model_dict["arxiv_data"]["id"])
-  set_arxiv_version(model, model_dict["arxiv_data"]["version"])
-  set_arxiv_model_equation_number(model, model_dict["arxiv_data"]["model_location"]["equation"])
-  set_arxiv_model_page(model, model_dict["arxiv_data"]["model_location"]["page"])
-  set_arxiv_model_section(model, model_dict["arxiv_data"]["model_location"]["section"])
+  # Metadata
   
-  set_journal_doi(model, model_dict["journal_data"]["doi"])
-  set_journal_link(model, model_dict["journal_data"]["link"])
-  set_journal_year(model, model_dict["journal_data"]["year"])
-  set_journal_volume(model, model_dict["journal_data"]["volume"])
-  set_journal_name(model, model_dict["journal_data"]["journal"])
+  set_attribute!(model, :literature_identifier => model_dict["literature_identifier"])
+  
+  set_attribute!(model, :model_description => model_dict["model_descriptors"]["description"])
+  
+  set_attribute!(model, :paper_authors => string.(model_dict["paper_metadata"]["authors"]))
+  set_attribute!(model, :paper_buzzwords => string.(model_dict["paper_metadata"]["buzzwords"]))
+  set_attribute!(model, :paper_description => model_dict["paper_metadata"]["description"])
+  set_attribute!(model, :paper_title => model_dict["paper_metadata"]["title"])
+
+  set_attribute!(model, :arxiv_doi => model_dict["arxiv_data"]["doi"])
+  set_attribute!(model, :arxiv_link => model_dict["arxiv_data"]["link"])
+  set_attribute!(model, :arxiv_id => model_dict["arxiv_data"]["id"])
+  set_attribute!(model, :arxiv_version => model_dict["arxiv_data"]["version"])
+  set_attribute!(model, :arxiv_model_equation_number => model_dict["arxiv_data"]["model_location"]["equation"])
+  set_attribute!(model, :arxiv_model_page => model_dict["arxiv_data"]["model_location"]["page"])
+  set_attribute!(model, :arxiv_model_section => model_dict["arxiv_data"]["model_location"]["section"])
+  
+  set_attribute!(model, :journal_doi => model_dict["journal_data"]["doi"])
+  set_attribute!(model, :journal_link => model_dict["journal_data"]["link"])
+  set_attribute!(model, :journal_year => model_dict["journal_data"]["year"])
+  set_attribute!(model, :journal_volume => model_dict["journal_data"]["volume"])
+  set_attribute!(model, :journal_name => model_dict["journal_data"]["journal"])
   if haskey(model_dict["journal_data"], "report_numbers")
-    set_journal_report_numbers(model, string.(model_dict["journal_data"]["report_numbers"]))
+    set_attribute!(model, :journal_report_numbers => string.(model_dict["journal_data"]["report_numbers"]))
   end
-  set_journal_pages(model, model_dict["journal_data"]["pages"])
-  set_journal_model_equation_number(model, model_dict["journal_data"]["model_location"]["equation"])
-  set_journal_model_page(model, model_dict["journal_data"]["model_location"]["page"])
-  set_journal_model_section(model, model_dict["journal_data"]["model_location"]["section"])
+  set_attribute!(model, :journal_pages => model_dict["journal_data"]["pages"])
+  set_attribute!(model, :journal_model_equation_number => model_dict["journal_data"]["model_location"]["equation"])
+  set_attribute!(model, :journal_model_page => model_dict["journal_data"]["model_location"]["page"])
+  set_attribute!(model, :journal_model_section => model_dict["journal_data"]["model_location"]["section"])
   
   if haskey(model_dict, "birational_models")
     set_attribute!(model, :birational_literature_models => [str[6:end - 5] for str in model_dict["birational_models"]])
@@ -539,14 +541,107 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_attribute!(model, :associated_literature_models => [str[6:end - 5] for str in model_dict["associated_models"]])
   end
   
+
+  # Geometric data
+
+  set_attribute!(model, :partially_resolved, false)
+
+  if haskey(model_dict, "birational_models")
+    for m in model_dict["birational_models"]
+      model_directory = joinpath(@__DIR__, "Models/")
+      model_data = JSON.parsefile(model_directory * m)
+      if model_data["model_descriptors"]["type"] == "weierstrass"
+        set_attribute!(model, :weierstrass_model => m)
+      end
+    end
+  end
+
   if haskey(model_dict, "model_parameters")
     set_attribute!(model, :model_parameters => model_parameters)
   end
-  
+    
   if haskey(model_dict["model_data"], "resolutions")
-    set_resolutions(model, [([string.(c) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["resolutions"]])
+    set_attribute!(model, :resolutions => [([string.(c) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["resolutions"]])
+  end
+
+  if haskey(model_dict["model_data"], "weighted_resolutions")
+    set_attribute!(model, :weighted_resolutions => [([(string.(c[1]), Int.(c[2])) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["weighted_resolutions"]])
+  end
+    
+  if haskey(model_dict["model_descriptors"], "global_gauge_group_quotients")
+    set_attribute!(model, :global_gauge_group_quotient => map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_group_quotients"]))
+  end
+
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))), cached = false)
+  f = hom(R, cox_ring(base_space(model)), collect(values(explicit_model_sections(model))))
+
+  if haskey(model_dict["model_data"], "resolution_generating_sections")    
+    vs = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
+    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+    set_attribute!(model, :resolution_generating_sections => result)
   end
   
+  if haskey(model_dict["model_data"], "resolution_zero_sections")
+    vs = [[string.(a) for a in b] for b in model_dict["model_data"]["resolution_zero_sections"]]
+    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+    set_attribute!(model, :resolution_zero_sections => result)
+  end
+  
+  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
+    vs = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["weighted_resolution_generating_sections"]]
+    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+    set_attribute!(model, :weighted_resolution_generating_sections => result)
+  end
+  
+  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
+    vs = [[string.(a) for a in b] for b in model_dict["model_data"]["weighted_resolution_zero_sections"]]
+    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+    set_attribute!(model, :weighted_resolution_zero_sections => result)
+  end
+  
+  if haskey(model_dict["model_data"], "zero_section")
+    vs = string.(model_dict["model_data"]["zero_section"])
+    set_attribute!(model, :zero_section => [f(eval_poly(l, R)) for l in vs])
+  end
+  
+  if haskey(model_dict["model_data"], "generating_sections")
+    vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
+    set_attribute!(model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+  end
+  
+  if haskey(model_dict["model_data"], "torsion_sections")
+    vs = map(k -> string.(k), model_dict["model_data"]["torsion_sections"])
+    set_attribute!(model, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+  end
+
+  if base_space(model) isa NormalToricVariety && ambient_space(model) isa NormalToricVariety
+    
+    divs = torusinvariant_prime_divisors(ambient_space(model))
+    cohomology_ring(ambient_space(model); check=false)
+    cox_gens = symbols(cox_ring(ambient_space(model)))
+
+    if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
+      desired_value = Symbol(string.(model_dict["model_data"]["zero_section_class"]))
+      @req desired_value in cox_gens "Specified zero section is invalid"
+      index = findfirst(==(desired_value), cox_gens)
+      set_attribute!(model, :zero_section_index => index::Int)
+      set_attribute!(model, :zero_section_class => cohomology_class(divs[index]))
+    end
+
+    if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety
+      desired_value = string.(model_dict["model_data"]["exceptional_classes"])
+      @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
+      exceptional_divisor_indices = Vector{Int}()
+      for class in desired_value
+        index = findfirst(==(Symbol(class)), cox_gens)
+        push!(exceptional_divisor_indices, index)
+      end
+      set_attribute!(model, :exceptional_divisor_indices => exceptional_divisor_indices::Vector{Int})
+      set_attribute!(model, :exceptional_classes => [cohomology_class(divs[index]) for index in exceptional_divisor_indices])
+    end
+
+  end
+
   if haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes")
     D = Dict{String, Vector{Int}}()
     tun_sections = model_dict["model_data"]["model_sections"]
@@ -563,66 +658,33 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     end
     set_attribute!(model, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, D)
   end
-
-  if haskey(model_dict["model_data"], "resolution_generating_sections")
-    value = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
-    set_resolution_generating_sections(model, value)
-  end
-  
-  if haskey(model_dict["model_data"], "resolution_zero_sections")
-    set_resolution_zero_sections(model, [[string.(a) for a in b] for b in model_dict["model_data"]["resolution_zero_sections"]])
-  end
-  
-  if haskey(model_dict["model_data"], "weighted_resolutions")
-    set_weighted_resolutions(model, [([(string.(c[1]), Int.(c[2])) for c in r[1]], string.(r[2])) for r in model_dict["model_data"]["weighted_resolutions"]])
-  end
-  
-  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
-    value = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["weighted_resolution_generating_sections"]]
-    set_weighted_resolution_generating_sections(model, value)
-  end
-  
-  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
-    set_weighted_resolution_zero_sections(model, [[string.(a) for a in b] for b in model_dict["model_data"]["weighted_resolution_zero_sections"]])
-  end
-  
-  if haskey(model_dict["model_data"], "zero_section")
-    set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
-  end
-  
-  if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
-    set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
-  end
-
-  if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety
-    set_exceptional_classes(model, string.(model_dict["model_data"]["exceptional_classes"]))
-  end
-
-  if haskey(model_dict["model_data"], "generating_sections")
-    set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
-  end
-  
-  if haskey(model_dict["model_data"], "torsion_sections")
-    set_torsion_sections(model, map(k -> string.(k), model_dict["model_data"]["torsion_sections"]))
-  end
   
   if haskey(model_dict["model_descriptors"], "gauge_algebra")
-    set_gauge_algebra(model, string.(model_dict["model_descriptors"]["gauge_algebra"]))
-  end
-  
-  if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
-    set_global_gauge_group_quotient(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
-  end
-  
-  if haskey(model_dict, "birational_models")
-    for m in model_dict["birational_models"]
-      model_directory = joinpath(@__DIR__, "Models/")
-      model_data = JSON.parsefile(model_directory * m)
-      if model_data["model_descriptors"]["type"] == "weierstrass"
-        set_attribute!(model, :weierstrass_model => m)
+    algebras = string.(model_dict["model_descriptors"]["gauge_algebra"])
+    C = algebraic_closure(QQ)
+    function _construct(g::String)
+      if g == "0"
+        return abelian_lie_algebra(C, 0)
+      elseif g == "u(1)"
+        return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
+      elseif g[1:2] == "su"
+        return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
+      elseif g[1:2] == "so"
+        return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
+      elseif g[1:2] == "sp"
+        return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
+      elseif g[1:1] == "e"
+        return lie_algebra(C, :E, parse(Int, g[3:end-1]))
+      elseif g[1:1] == "f"
+        return lie_algebra(C, :F, parse(Int, g[3:end-1]))
+      elseif g[1:1] == "g"
+        return lie_algebra(C, :G, parse(Int, g[3:end-1]))
       end
+      error("Unknown algebra description")
     end
-  end  
+    set_attribute!(model, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
+  end
+  
 end
 
 

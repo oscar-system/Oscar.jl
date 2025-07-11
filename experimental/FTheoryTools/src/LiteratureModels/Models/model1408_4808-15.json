@@ -42,7 +42,7 @@
         "type": "hypersurface",
         "description": "F-theory hypersurface model with fiber ambient space F_15",
         "gauge_algebra": ["su(2)", "su(2)", "su(2)", "su(2)", "u(1)"],
-        "global_gauge_quotients": [["-identity_matrix(C,2)", "-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)", "-identity_matrix(C,2)"], ["-identity_matrix(C,1)"]]
+        "global_gauge_group_quotients": [["-identity_matrix(C,2)", "-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)", "-identity_matrix(C,2)"], ["-identity_matrix(C,1)"]]
     },
     "model_data": {
         "base_dim": 3,
