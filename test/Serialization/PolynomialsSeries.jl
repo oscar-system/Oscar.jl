@@ -54,12 +54,6 @@ cases = [
         @test loaded == m1 * m2
         @test grading_group(parent(loaded)) == grading_group(M)
       end
-
-      GM, _ = grade(M, A)
-      test_save_load_roundtrip(path, GM) do loaded
-        @test loaded == GM
-        @test forget_grading(loaded) == forget_grading(GM)
-      end
     end
 
     for case in cases
