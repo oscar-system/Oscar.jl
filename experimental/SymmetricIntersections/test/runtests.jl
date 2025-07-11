@@ -13,7 +13,7 @@ using Oscar
     el = Oscar.elevator(x, weight, i)
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
-    @test Oscar.number_of_elevations(el) == rank(Si)
+    @test Oscar.number_of_elevations(el) == vector_space_dim(Si)
     @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
