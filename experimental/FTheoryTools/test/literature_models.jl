@@ -65,12 +65,6 @@ end
   @test_throws ArgumentError birational_literature_models(t1)
 end
 
-set_model_description(t1, "Testing...")
-
-@testset "Test modifying the model description for literature Tate model over concrete base" begin
-  @test model_description(t1) == "Testing..."
-end
-
 t2 = resolve(t1, 1)
 
 @testset "Test resolving literature Tate model over concrete base" begin

@@ -286,7 +286,7 @@ a32=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^3*W^(-2)))
 a43=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^4*W^(-3)))
 a65 = 0
 t = global_tate_model(B3, [a10, a21 * w, a32 * w^2, a43 * w^3, a65 * w^5])
-set_resolutions(t, [([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])])
+add_resolution(t, [["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
 explicit_model_sections(t)["w"] = w
 t_res = resolve(t, 1)
 

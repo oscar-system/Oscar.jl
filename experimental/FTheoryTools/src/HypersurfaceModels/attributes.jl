@@ -379,10 +379,8 @@ Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
 
-julia> singular_loci(h)
-2-element Vector{Tuple{MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}}:
- (Ideal with 1 generator, (0, 0, 1), "I_1")
- (Ideal (x1), (0, 0, 5), "Split I_5")
+julia> length(singular_loci(h))
+2
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)

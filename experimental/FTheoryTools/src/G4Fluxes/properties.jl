@@ -115,7 +115,7 @@ G4-flux candidate
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
-  @req has_zero_section_class(m) "Transversality checks require zero section class"
+  @req has_attribute(m, :zero_section_class) "Transversality checks require zero section class"
   
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))

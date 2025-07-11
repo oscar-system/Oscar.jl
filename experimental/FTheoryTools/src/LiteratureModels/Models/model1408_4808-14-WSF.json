@@ -42,7 +42,7 @@
         "type": "weierstrass",
         "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_14",
         "gauge_algebra": ["su(3)","su(2)","su(2)","u(1)"],
-        "global_gauge_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["diagonal_matrix(root_of_unity(C,6,-1),1)"]]
+        "global_gauge_group_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["-identity_matrix(C,2)"], ["-identity_matrix(C,2)"], ["diagonal_matrix(root_of_unity(C,6,-1),1)"]]
     },
     "model_data": {
         "base_dim": 3,
