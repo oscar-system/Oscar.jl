@@ -386,6 +386,10 @@ function Nemo.charpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
   return charpoly(matrix(h))
 end
 
+function Nemo.matrix(h::Oscar.GModuleHom{<:Any, <:AbstractAlgebra.FPModule{<:Any}})
+  return matrix(h.module_map)
+end
+
 end # module
 using .Misc
 export relative_field
