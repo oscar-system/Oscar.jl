@@ -273,7 +273,7 @@ end
   L, _ = localization(R, powers_of_element(x-8))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
   f = (x*3*y-4)^5
   f = A(f)
@@ -287,7 +287,7 @@ end
   L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   f = (x*3*y-4)^5
   f = A(f)
   @test id(preimage(id, f)) == f

@@ -189,14 +189,14 @@ function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPMod
   B = hB[1]
   D = norm(B, s, os)
   lambda = D[1,1]
-  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C)) #What is C here?
   alpha = norm_equation(K, preimage(phi, lambda))
   B *= inv(alpha)
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
   F = free_module(k, dim(M))
-  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])
+  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])#C also appears here
   # TODO: Get this map working
   # psi = GModuleHom(N, M, , phi)
   psi = nothing
@@ -1998,7 +1998,7 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   return E, mE
 end
 
-Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = dim(M)
+Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = vector_space_dim(M)
 
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []

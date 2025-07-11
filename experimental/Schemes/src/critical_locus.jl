@@ -33,7 +33,7 @@ function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoRingElem
   g = gens(modulus(A))
   dg = jacobi_matrix(g)
   M = hcat(M, dg)
-  s = r + ngens(R) - dim(A)
+  s = r + ngens(R) - krull_dim(A)
   return ideal(A, minors(M, s))
 end
 
@@ -44,7 +44,7 @@ function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoLocRingE
   g = gens(modulus(L))
   dg = jacobi_matrix(g)
   M = hcat(M, dg)
-  s = r + ngens(R) - dim(L)
+  s = r + ngens(R) - krull_dim(L)
   return ideal(L, minors(M, s))
 end
 

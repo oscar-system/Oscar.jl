@@ -997,7 +997,7 @@ Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
-  @assert dim(parent(a)) == length(b)
+  @assert rank(parent(a)) == length(b)
   s = zero(parent(a))
   for (p,v) in coordinates(a)
     s += v*b[p]

@@ -491,7 +491,7 @@ julia> f = symmetric_form(invariant_symmetric_forms(g)[1]);
 
 julia> U, emb = radical(f);
 
-julia> dim(U)
+julia> vector_space_dim(U)
 1
 ```
 """

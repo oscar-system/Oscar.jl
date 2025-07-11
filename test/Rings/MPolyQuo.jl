@@ -234,7 +234,7 @@ end
   I = ideal(R, [x^3- 2, y^2+3*x])
   A, pr = quo(R, I)
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
   f = (x*3*y-4)^5
   f = A(f)

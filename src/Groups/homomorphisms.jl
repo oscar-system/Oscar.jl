@@ -1116,7 +1116,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
           end
         end
         c = elem_type(k)[]
-        for i=1:dim(M)
+        for i=1:vector_space_dim(M)
           push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
         end
         return M(c)

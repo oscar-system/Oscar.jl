@@ -1004,7 +1004,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   Vp = codomain(VtoVp)
 
   # Should never happen, but who knows...
-  dim(Qp) == 0 && return res
+  vector_space_dim(Qp) == 0 && return res
 
   # We descend G to V for computing stabilizers later on
   GV, GtoGV = restrict_automorphism_group(G, Vinq; check=false)
@@ -1016,12 +1016,12 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   # wanted)
   act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
   act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[solve(VptoQp.matrix, g*VptoQp.matrix; side=:right) for g in act_GV]
-  MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV)
+  MGp = matrix_group(base_ring(Qp), vector_space_dim(Qp), act_GV)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV); check=false)
   GtoMGp = compose(GtoGV, GVtoMGp)
   satV, _ = kernel(GtoMGp)
 
-  g-ngens(snf(abelian_group(H0))[1]) >= dim(Qp) && return res
+  g-ngens(snf(abelian_group(H0))[1]) >= vector_space_dim(Qp) && return res
 
   F = base_ring(Qp)
   # K is H0 but seen a subvector space of Vp (which is V)

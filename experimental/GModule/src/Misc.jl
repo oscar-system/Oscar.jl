@@ -283,8 +283,8 @@ Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
   k = base_ring(F)
   @assert base_ring(G) == k
-  H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+  H = free_module(k, rank(F)*rank(G))
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end
 
 function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
@@ -295,11 +295,11 @@ end
 #TODO: for modern fin. fields as well
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
+  A = abelian_group([characteristic(k) for i = 1:vector_space_dim(M)*degree(k)])
   n = degree(k)
   function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
     a = ZZRingElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       c = m[i]
       for j=0:n-1
         push!(a, coeff(c, j))
@@ -309,7 +309,7 @@ function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   end
   function to_M(a::FinGenAbGroupElem)
     m = fqPolyRepFieldElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
     end
     return M(m)
