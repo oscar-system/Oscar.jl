@@ -1003,9 +1003,9 @@ end
 # TODO: For modules over polynomial rings this should make 
 # use of the `dim` in Singular. But this does not seem 
 # to be available as of yet.
-@attr Union{Int,NegInf} function dim(M::ModuleFP)
+@attr Union{Int,NegInf} function krull_dim(M::ModuleFP)
   ann = annihilator(M)
-  return dim(ann)
+  return krull_dim(ann)
 end
 
 
@@ -1038,7 +1038,7 @@ false
   n = codim(I)
 
   # Check the S2 condition
-  test_range = 0:(dim(R_B) - n - 2)
+  test_range = 0:(krull_dim(R_B) - n - 2)
 
   for j in test_range
     # Check if codimension of Ext^{j+n+1} is at least j+n+3
@@ -1048,18 +1048,18 @@ false
     if is_zero(E)
       d = -1
     else 
-      d = dim(E)
+      d = krull_dim(E)
     end
-    cod = dim(R_B) - d
+    cod = krull_dim(R_B) - d
     if cod < j+n+3
         return false
     end               # S2 condition not satisfied
   end
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
-  d = dim(Jac)                   # Get dimension of the Jacobian
+  d = krull_dim(Jac)                   # Get dimension of the Jacobian
   d < 0 && (d = -Inf)            # Handle negative dimensions
-  return (dim(R) - d >= 2)       # Check the condition
+  return (krull_dim(R) - d >= 2)       # Check the condition
 end
 
 is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true

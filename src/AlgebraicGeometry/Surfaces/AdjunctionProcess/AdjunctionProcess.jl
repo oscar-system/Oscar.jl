@@ -42,7 +42,7 @@ function _arithmetic_genus(I::MPolyIdeal)
     #req is_standard_graded(S) "The base ring must be standard graded."
    A, _ = quo(S, I)
    H = hilbert_polynomial(A)
-   return (-1)^(dim(A)-1)*(ZZ(coeff(H, 0)) - 1)
+   return (-1)^(krull_dim(A)-1)*(ZZ(coeff(H, 0)) - 1)
 end
 
 @doc raw"""

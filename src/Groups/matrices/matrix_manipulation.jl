@@ -64,26 +64,26 @@ the direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
    @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
-   if dim(W)==0 return sub(V,basis(V)) end
+   if rank(W)==0 return sub(V,basis(V)) end
 
    e = W.map
 
-   H = matrix( vcat([e(g) for g in gens(W)], [zero(V) for i in 1:(dim(V)-dim(W)) ]) )
-   A_left = identity_matrix(base_ring(V), dim(V))
-   A_right = identity_matrix(base_ring(V), dim(V))
-   for rn in 1:dim(W)     # rn = row number
+   H = matrix( vcat([e(g) for g in gens(W)], [zero(V) for i in 1:(rank(V)-rank(W)) ]) )
+   A_left = identity_matrix(base_ring(V), rank(V))
+   A_right = identity_matrix(base_ring(V), rank(V))
+   for rn in 1:rank(W)     # rn = row number
       cn = rn    # column number
       while H[rn,cn]==0 cn+=1 end   # bring on the left the first non-zero entry
       swap_cols!(H,rn,cn)
       swap_rows!(A_right,rn,cn)
-      for j in rn+1:dim(W)
+      for j in rn+1:rank(W)
          add_row!(H,H[j,rn]*H[rn,rn]^-1,rn,j)
          add_column!(A_left,A_left[j,rn]*A_left[rn,rn]^-1,j,rn)
       end
    end
-   for j in dim(W)+1:dim(V)  H[j,j]=1  end
+   for j in rank(W)+1:rank(V)  H[j,j]=1  end
    H = A_left*H*A_right
-   _gens = [V([H[i,j] for j in 1:dim(V)]) for i in dim(W)+1:dim(V) ]
+   _gens = [V([H[i,j] for j in 1:rank(V)]) for i in rank(W)+1:rank(V) ]
 
    return sub(V,_gens)
 end

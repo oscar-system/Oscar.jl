@@ -487,7 +487,7 @@ function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) 
 end
 function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
-  d = prod(dim(x) for x = F)
+  d = prod(rank(x) for x = F)
   G = free_module(base_ring(F[1]), d)
   if task == :none
     return G
@@ -547,7 +547,7 @@ export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
-_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = dim(M)
+_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = vector_space_dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -2208,7 +2208,7 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
 end
 
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
-  G = GL(dim(F), base_ring(F))
+  G = GL(vector_space_dim(F), base_ring(F))
   set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
                          x->hom(F, F, matrix(x)),
