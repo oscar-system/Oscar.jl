@@ -1164,7 +1164,7 @@ can be used instead.
 # Examples
 ```jldoctest
 julia> G = dihedral_group(6)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
@@ -1268,13 +1268,13 @@ generators, the number of relators, and the relator lengths.
 # Examples
 ```jldoctest
 julia> F = free_group(3)
-Free group of rank 3
+Free group of rank 3 with 3 generators f1, f2, f3
 
 julia> G = quo(F, [gen(F,1)])[1]
-Finitely presented group of infinite order
+Finitely presented group of infinite order with 3 generators f1, f2, f3 and 1 relator
 
 julia> simplified_fp_group(G)[1]
-Finitely presented group of infinite order
+Finitely presented group of infinite order with 2 generators f2, f3
 ```
 """
 function simplified_fp_group(G::FPGroup)
