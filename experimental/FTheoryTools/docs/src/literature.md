@@ -201,117 +201,76 @@ explicit_model_sections(::AbstractFTheoryModel)
 
 ---
 
-## Meta Data Attributes for Liteature Models
+# Metadata Attributes for Literature Models
 
-For literature models, we provide the following attributes referencing meta data:
+We provide the following metadata attributes for literature models, each of which returns
+the corresponding attribute if it exists and otherwise throws an error:
+
 ```@docs
-arxiv_id(m::AbstractFTheoryModel)
+associated_literature_models(m::AbstractFTheoryModel)
 arxiv_doi(m::AbstractFTheoryModel)
+arxiv_id(m::AbstractFTheoryModel)
 arxiv_link(m::AbstractFTheoryModel)
 arxiv_model_equation_number(m::AbstractFTheoryModel)
 arxiv_model_page(m::AbstractFTheoryModel)
 arxiv_model_section(m::AbstractFTheoryModel)
 arxiv_version(m::AbstractFTheoryModel)
-associated_literature_models(m::AbstractFTheoryModel)
+birational_literature_models(m::AbstractFTheoryModel)
 journal_doi(m::AbstractFTheoryModel)
 journal_link(m::AbstractFTheoryModel)
 journal_model_equation_number(m::AbstractFTheoryModel)
 journal_model_page(m::AbstractFTheoryModel)
 journal_model_section(m::AbstractFTheoryModel)
-journal_name(m::AbstractFTheoryModel)
 journal_pages(m::AbstractFTheoryModel)
 journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
+journal_name(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
+model_description(m::AbstractFTheoryModel)
+model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
-birational_literature_models(m::AbstractFTheoryModel)
 ```
-Such meta data can be modified with setters. For instance, there is a function
-`set_description(m::AbstractFTheoryModel, description::String)`, which takes the
-model in question as the first argument and the desired description - provided as string -
-as the second argument. Such a setter function exists for all of the above. If appropriate,
-we also offer a method that adds a new value. For instance, we have a function
-`add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
 
-!!! warning
-    Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
+For metadata fields that are collections, we provide helper functions to add new entries:
 
-One can check if a model has a particular set of information. This is achieved with the
-following methods:
-* `has_arxiv_id(m::AbstractFTheoryModel)`,
-* `has_arxiv_doi(m::AbstractFTheoryModel)`,
-* `has_arxiv_link(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_equation_number(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_page(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_section(m::AbstractFTheoryModel)`,
-* `has_arxiv_version(m::AbstractFTheoryModel)`,
-* `has_associated_literature_models(m::AbstractFTheoryModel)`,
-* `has_generating_sections(m::AbstractFTheoryModel)`,
-* `has_journal_doi(m::AbstractFTheoryModel)`,
-* `has_journal_link(m::AbstractFTheoryModel)`,
-* `has_journal_model_equation_number(m::AbstractFTheoryModel)`,
-* `has_journal_model_page(m::AbstractFTheoryModel)`,
-* `has_journal_model_section(m::AbstractFTheoryModel)`,
-* `has_journal_name(m::AbstractFTheoryModel)`,
-* `has_journal_pages(m::AbstractFTheoryModel)`,
-* `has_journal_report_numbers(m::AbstractFTheoryModel)`,
-* `has_journal_volume(m::AbstractFTheoryModel)`,
-* `has_journal_year(m::AbstractFTheoryModel)`,
-* `has_literature_identifier(m::AbstractFTheoryModel)`,
-* `has_model_description(m::AbstractFTheoryModel)`,
-* `has_model_parameters(m::AbstractFTheoryModel)`,
-* `has_paper_authors(m::AbstractFTheoryModel)`,
-* `has_paper_buzzwords(m::AbstractFTheoryModel)`,
-* `has_paper_description(m::AbstractFTheoryModel)`,
-* `has_paper_title(m::AbstractFTheoryModel)`,
+```@docs
+add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
+add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+add_journal_report_number(m::AbstractFTheoryModel, addition::String)
+add_model_parameter(m::AbstractFTheoryModel, addition::String)
+add_paper_author(m::AbstractFTheoryModel, addition::String)
+add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
+```
 
+We do **not** provide `set_*` functions to overwrite attributes, in order to reduce the risk of
+accidental data loss. If you truly need to replace a value, use `set_attribute!(m, :attribute_name, value)`.
 
+---
 
-
-
-## Attributes for Liteature Models
+## Mathematical Attributes for Liteature Models
 
 In addition, the following attributes are available to access advanced model information:
-```@docs
-resolutions(m::AbstractFTheoryModel)
-resolution_generating_sections(m::AbstractFTheoryModel)
-resolution_zero_sections(m::AbstractFTheoryModel)
-torsion_sections(m::AbstractFTheoryModel)
-weighted_resolutions(m::AbstractFTheoryModel)
-weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-zero_section(m::AbstractFTheoryModel)
-zero_section_class(m::AbstractFTheoryModel)
-zero_section_index(m::AbstractFTheoryModel)
-exceptional_classes(m::AbstractFTheoryModel)
-exceptional_divisor_indices(m::AbstractFTheoryModel)
-generating_sections(m::AbstractFTheoryModel)
-```
 
+* resolutions(m::AbstractFTheoryModel)
+* resolution_generating_sections(m::AbstractFTheoryModel)
+* resolution_zero_sections(m::AbstractFTheoryModel)
+* torsion_sections(m::AbstractFTheoryModel)
+* weighted_resolutions(m::AbstractFTheoryModel)
+* weighted_resolution_generating_sections(m::AbstractFTheoryModel)
+* weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+* zero_section(m::AbstractFTheoryModel)
+* zero_section_class(m::AbstractFTheoryModel)
+* zero_section_index(m::AbstractFTheoryModel)
+* exceptional_classes(m::AbstractFTheoryModel)
+* exceptional_divisor_indices(m::AbstractFTheoryModel)
+* generating_sections(m::AbstractFTheoryModel)
+* gauge_algebra(m::AbstractFTheoryModel)
+* global_gauge_group_quotient(m::AbstractFTheoryModel)
 
-
-
-* `has_resolutions(m::AbstractFTheoryModel)`,
-* `has_resolution_generating_sections(m::AbstractFTheoryModel)`,
-* `has_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_torsion_sections(m::AbstractFTheoryModel)`,
-* `has_weighted_resolutions(m::AbstractFTheoryModel)`,
-* `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
-* `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_zero_section(m::AbstractFTheoryModel)`,
-* `has_zero_section_class(m::AbstractFTheoryModel)`,
-* `has_zero_section_index(m::AbstractFTheoryModel)`, DOES THAT WORK????
-
-For the following, the corresponding methods are not listed above.
-Do they exist? Do they have a doc string?
-
-* `has_gauge_algebra(m::AbstractFTheoryModel)`,
-* `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
-* `has_birational_literature_models(m::AbstractFTheoryModel)`,
 
 
 

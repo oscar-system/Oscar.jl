@@ -174,16 +174,16 @@ function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(w)
+  if has_attribute(w, :model_description)
     push!(properties_string, "-- " * model_description(w))
-    if has_model_parameters(w)
+    if has_attribute(w, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(w)
+  if has_attribute(w, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(w))
   end
-  if has_arxiv_model_equation_number(w)
+  if has_attribute(w, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")

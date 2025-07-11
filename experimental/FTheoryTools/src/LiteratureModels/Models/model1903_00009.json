@@ -42,7 +42,7 @@
         "type": "hypersurface",
         "description": "Quadrillion F-theory Standard Model",
         "gauge_algebra": ["su(3)","su(2)","u(1)"],
-        "global_gauge_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["-identity_matrix(C,2)"], ["diagonal_matrix(root_of_unity(C,6,-1),1)"]]
+        "global_gauge_group_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["-identity_matrix(C,2)"], ["diagonal_matrix(root_of_unity(C,6,-1),1)"]]
     },
     "model_parameters": ["k"],
     "model_data": {

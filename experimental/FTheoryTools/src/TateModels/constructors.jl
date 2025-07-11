@@ -200,16 +200,16 @@ function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(t)
+  if has_attribute(t, :model_description)
     push!(properties_string, "-- " * model_description(t))
-    if has_model_parameters(t)
+    if has_attribute(t, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(t)
+  if has_attribute(t, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
-  if has_arxiv_model_equation_number(t)
+  if has_attribute(t, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
