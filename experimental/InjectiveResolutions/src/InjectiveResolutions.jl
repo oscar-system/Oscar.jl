@@ -1058,7 +1058,7 @@ false
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
   d = krull_dim(Jac)                   # Get dimension of the Jacobian
-  d < 0 && (d = -Inf)            # Handle negative dimensions
+  d < 0 && return true            # Handle negative dimensions
   return (krull_dim(R) - d >= 2)       # Check the condition
 end
 
