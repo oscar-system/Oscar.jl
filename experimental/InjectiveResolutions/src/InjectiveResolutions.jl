@@ -1003,9 +1003,9 @@ end
 # TODO: For modules over polynomial rings this should make 
 # use of the `dim` in Singular. But this does not seem 
 # to be available as of yet.
-@attr Union{Int,NegInf} function krull_dim(M::ModuleFP)
+@attr Union{Int,NegInf} function dim(M::ModuleFP)
   ann = annihilator(M)
-  return krull_dim(ann)
+  return dim(ann)
 end
 
 

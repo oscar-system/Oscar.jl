@@ -261,6 +261,7 @@ function dim(A::MonoidAlgebra)
   return krull_dim(A.algebra)
 end
 
+krull_dim(A::MonoidAlgebra) = krull_dim(A.algebra)
 
 AbstractAlgebra.promote_rule(
                              ::Type{CoeffType}, ::Type{T}
@@ -523,6 +524,7 @@ function radical(I::MonoidAlgebraIdeal)
 end
 
 dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
+krull_dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
 
 # some generic functionality which should probably be elsewhere
 function is_subset(I::T, J::T) where {T<:Ideal}
