@@ -239,7 +239,8 @@ end
 
 @testset "compatibility of parents" begin
    G = symmetric_group(4)
-   g = symmetric_group(3); a = automorphism_group(g)
+   g = symmetric_group(3)
+   a = automorphism_group(g)
    L = [G,
         automorphism_group(alternating_group(4)),
         general_linear_group(2, 3),

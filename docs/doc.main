@@ -156,7 +156,8 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/module_data.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
@@ -295,6 +296,7 @@
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
+    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Straight Line Programs" => [

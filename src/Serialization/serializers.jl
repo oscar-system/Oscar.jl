@@ -8,7 +8,13 @@ convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
 # Serializers
 abstract type OscarSerializer end
 
-struct JSONSerializer <: OscarSerializer end
+struct JSONSerializer <: OscarSerializer
+  serialize_refs::Bool
+
+  function JSONSerializer(; serialize_refs::Bool = true)
+    return new(serialize_refs)
+  end
+end
 struct IPCSerializer <: OscarSerializer end
 
 abstract type MultiFileSerializer <: OscarSerializer end
@@ -164,6 +170,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function handle_refs(s::SerializerState)
+  should_handle_refs(s.serializer) || return nothing
   if !isempty(s.refs) 
     save_data_dict(s, :_refs) do
       for id in s.refs
@@ -177,7 +184,9 @@ function handle_refs(s::SerializerState)
   end
 end
 
-function handle_refs(s::SerializerState{IPCSerializer}) end
+should_handle_refs(::OscarSerializer) = true
+should_handle_refs(s::JSONSerializer) = s.serialize_refs
+should_handle_refs(::IPCSerializer) = false
 
 function serializer_close(s::SerializerState)
   finish_writing(s)

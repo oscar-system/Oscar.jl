@@ -2074,10 +2074,6 @@ function is_known(::typeof(krull_dim), I::MPolyIdeal)
   return I.dim !== nothing
 end
 
-function is_known(::typeof(dim), I::MPolyIdeal)
-  return I.dim !== nothing
-end
-
 #######################################################
 #######################################################
 @doc raw"""

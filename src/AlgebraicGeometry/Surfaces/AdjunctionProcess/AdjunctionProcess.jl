@@ -311,7 +311,7 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       if !any(x -> total_degree(x) > 1, Oscar._vec(D)) 
          adj = _adjoint_matrix(D)
       else
-        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
+        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = true))
       end
       rd = _random_matrix(Pn, 3, ncols(adj), 0)
       dd = dim(ideal(Pn, rd*gens(Pn))+I) 
@@ -331,13 +331,13 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
 	  Ipts = Ipts+AAi
       end
       Ipts = saturation(Ipts, ideal(Pn, gens(Pn)))
-      pts = algebraic_set(Ipts,  is_radical = false, check = false) 
+      pts = algebraic_set(Ipts,  is_radical = true, check = false) 
       if dim(pts) == 0
          l = degree(pts)
       else
          l = zero(ZZ)
       end
-      Y = variety(I, check = false, is_radical = false)
+      Y = variety(I, check = false, is_radical = true)
       dY = degree(Y)
       piY = sectional_genus(Y)
       dummy = (ZZ(ngens(Pn)-1), dY, piY)
