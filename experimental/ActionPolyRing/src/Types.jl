@@ -117,7 +117,7 @@ is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
 @doc raw"""
     difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Return a tuple consisting of the difference polynomial ring over the ring 'R' with the specified number of elementary variables and commuting endomorphisms, and the vector of
+Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables.
 """
 function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
@@ -129,7 +129,7 @@ end
 @doc raw"""
     difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Return a tuple consisting of the difference polynomial ring over the ring 'R' with the specified elementary variables and number of commuting endomorphisms, and the vector of
+Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided.
 """
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
@@ -186,8 +186,95 @@ one(dpr::DifferencePolyRing) = dpr(1)
 
 #######################################
 #
+#  Basic action polynomial functionality 
+#
+#######################################
+
+@doc raw"""
+    is_monomial(p::ActionPolyRingElem)
+
+Return `true` if `p` is a monomial, `false` otherwise.
+"""
+is_monomial(apre::ActionPolyRingElem) = is_monomial(__poly(apre))
+
+@doc raw"""
+    total_degree(p::ActionPolyRingElem) -> Int
+
+Return the total degree of `p`.
+"""
+total_degree(apre::ActionPolyRingElem) = total_degree(__poly(apre))
+
+@doc raw"""
+    degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) -> Int
+
+Return the degree of the polynomial `p` in the `i`-th elementary variable with
+multiindex `jet`. If this jet variable is valid but still untracked, return $0$.
+"""
+function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
+  apr = parent(apre)
+  @req __is_valid_jet(apr, i, jet) "invalid jet variable"
+  jtv = apr.jet_to_var
+  if haskey(jtv, (i,jet))
+    idx = findfirst(var -> var == __poly(jtv[(i,jet)]), gens(apr.upoly_ring))
+    return degree(__poly(apre), gen(apr.upoly_ring, idx))
+  end
+  return 0
+end
+
+@doc raw"""
+    gen(apr::ActionPolyRing, i::Int, jet::Vector{Int}) -> Int
+
+Return the the `i`-th elementary variable with multiindex `jet` in the action polynomial
+`apr`. If this jet variable is valid but still untracked, it is tracked afterwards.
+"""
+function gen(apr::ActionPolyRing, i::Int, jet::Vector)
+  @req __is_valid_jet(apr, i, jet) "invalid jet variable"
+  jtv = apr.jet_to_var
+  if haskey(jtv, (i,jet))
+    return jtv[(i, jet)]
+  end
+  upoly_new_var = gen(apr.upoly_ring, string(apr.elementary_symbols[i]) * "[" * join(jet) * "]")
+  jtv[(i, jet)] = apr(upoly_new_var)
+  apr.var_to_jet[apr(upoly_new_var)] = (i, jet)
+  return jtv[(i, jet)]
+end
+
+@doc raw"""
+    gens(apr::ActionPolyRing) -> Vector{ActionPolyRingElem}
+
+Return the currently tracked variables of the action polynomial ring `apr` as a vector.
+"""
+function gens(apr::ActionPolyRing)
+  #Probably sort this later
+  return collect(values(apr.jet_to_var))
+end
+
+@doc raw"""
+    number_of_generators(apr::ActionPolyRing)
+
+Return the number of generators of the action polynomial ring `apr`.
+"""
+number_of_generators(apr::ActionPolyRing) = number_of_generators(apr.upoly_ring)
+
+@doc raw"""
+    diff(p::ActionPolyRingElem, i::Int) -> ActionPolyRingElem
+
+Apply the `i`-th action to the polynomial `p`, that is, increase the multiindex of each
+variable occuring in `p` at position `i` by one and return the resulting polynomial.
+"""
+function diff(apre::ActionPolyRingElem, i::Int)
+  @req i in 1:ndiffs(parent(apre)) "index out of range"
+  return
+end
+
+#######################################
+#
 #  Aux 
 #
 #######################################
 
-__poly(dpre::DifferencePolyRingElem) = dpre.p
+__poly(apre::ActionPolyRingElem) = apre.p
+
+#Check if the jet_to_var dictionary of apr could contain the key (i,jet).
+__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:nelementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j>=0, jet)
+
