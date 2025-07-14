@@ -2200,7 +2200,7 @@ function is_known(::typeof(is_zero), M::SubquoModule)
 end
 
 #########################
-###Krull dimension
+### Krull dimension
 #########################
 
 @doc raw"""
@@ -2256,7 +2256,7 @@ end
 
 @attr Union{Int,NegInf} function krull_dim(F::FreeMod)
   if rank(F) == 0
-    return NegInf
+    return -inf
   end
   return krull_dim(base_ring(F))
 end
