@@ -2,7 +2,7 @@
 # 1: Global Tate models over concrete base space
 #############################################################
 
-my_base = sample_toric_variety()
+my_base = projective_space(NormalToricVariety, 3)
 sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)))
 sec_a2 = generic_section(anticanonical_bundle(my_base)^2)
 sec_a3 = generic_section(anticanonical_bundle(my_base)^3)
@@ -57,7 +57,7 @@ end
     end
   end
 
-  t2_copy = global_tate_model(sample_toric_variety(); completeness_check = false)
+  t2_copy = global_tate_model(my_base = projective_space(NormalToricVariety, 3); completeness_check = false)
 
   @testset "Saving and loading another global Tate model over concrete base space" begin
     mktempdir() do path

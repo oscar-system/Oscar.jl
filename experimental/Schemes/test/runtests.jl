@@ -127,3 +127,4 @@ end
   @test J_strict == ideal(S, [x_ + y_*z_^2])
   @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
 end
+

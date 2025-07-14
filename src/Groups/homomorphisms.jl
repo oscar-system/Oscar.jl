@@ -515,7 +515,7 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from Sym(3)
+  from symmetric group of degree 3
   to pc group of order 6
 ```
 """
@@ -907,7 +907,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.PcpElementByExponentsNC(C, exps))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g)))
+       finv = g -> A2_to_A(A2(exponent_vector(g)))
      else
 #TODO: As soon as https://github.com/gap-packages/polycyclic/issues/88 is fixed,
 #      we can change the code to create a `PcpGroup` in GAP also if the group
@@ -946,7 +946,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g) * M))
+       finv = g -> A2_to_A(A2(exponent_vector(g) * M))
      end
 
      return GroupIsomorphismFromFunc(A, G, f, finv)
@@ -1301,13 +1301,14 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> typeof(S)
 PermGroup
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 3 ] ) )
+Automorphism group of
+  symmetric group of degree 3
 
 julia> typeof(A)
 AutomorphismGroup{PermGroup}
@@ -1318,10 +1319,11 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> x = perm(S,[2,1,4,3])
 (1,2)(3,4)
@@ -1340,10 +1342,11 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> f = A[2]
 Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
@@ -1362,18 +1365,19 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> A(f)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1414,15 +1418,16 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1436,8 +1441,19 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup(AutGAP, G)
 end
 
+function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: GAPGroup
+  io = pretty(io)
+  println(io, "Automorphism group of", Indent())
+  print(io, Lowercase(), A.G, Dedent())
+end
+
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  print(io, "Aut( "* String(GAP.Globals.StringView(GapObj(A.G))) * " )")
+  if is_terse(io)
+    print(io, "Automorphism group")
+  else
+    io = pretty(io)
+    print(io, "Automorphism group of ", Lowercase(), A.G)
+  end
 end
 
 """

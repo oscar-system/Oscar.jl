@@ -1,5 +1,4 @@
 using JSON3
-import Base.haskey
 
 ################################################################################
 # Type Serializers (converting types to strings)
@@ -166,7 +165,7 @@ end
 
 function handle_refs(s::SerializerState)
   if !isempty(s.refs) 
-    save_data_dict(s, refs_key) do
+    save_data_dict(s, :_refs) do
       for id in s.refs
         ref_obj = global_serializer_state.id_to_obj[id]
         s.key = Symbol(id)
@@ -213,7 +212,7 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function haskey(s::DeserializerState, key::Symbol)
+function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
   load_node(s) do obj
     key in keys(obj)
@@ -258,10 +257,7 @@ end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
-  refs = nothing
-  if haskey(obj, refs_key)
-    refs = obj[refs_key]
-  end
+  refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end

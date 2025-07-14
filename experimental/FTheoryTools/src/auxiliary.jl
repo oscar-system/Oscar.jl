@@ -100,49 +100,14 @@ end
 
 
 ################################################################
-# 4: A base space for efficient testing
-################################################################
-
-@doc raw"""
-    sample_toric_variety()
-
-This method constructs a 3-dimensional toric variety, which we
-use for efficient testing of the provided functionality.
-"""
-function sample_toric_variety()
-  rays = [-1 -1 -1; -1 -1 0; -1 -1 1; -1 -1 2; -1 -1 3; -1 -1 4;
-          -1 -1 5; -1 0 -1; -1 0 0; -1 0 1; -1 0 2; -1 0 3; -1 0 4;
-          -1 1 -1; -1 1 0; -1 1 1; -1 1 2; -1 1 3; -1 2 -1; -1 2 0;
-          -1 2 1; -1 2 2; -1 3 -1; -1 3 0; -1 3 1; -1 4 -1; -1 4 0;
-          -1 5 -1; 0 -1 -1; 0 -1 0; 0 -1 1; 0 -1 2; 0 0 -1; 0 0 1;
-          0 1 -1; 0 1 0; 0 2 -1; 1 -1 -1]
-  cones = IncidenceMatrix([[36, 37, 38], [35, 37, 38], [34, 36, 38],
-          [33, 35, 38], [32, 34, 38], [31, 32, 38], [30, 31, 38],[29, 33, 38],
-          [29, 30, 38], [27, 28, 37], [26, 28, 37], [26, 27, 28], [25, 36, 37],
-          [25, 27, 37], [24, 26, 27], [24, 25, 27], [23, 26, 37], [23, 24, 26],
-          [22, 34, 36], [22, 25, 36], [21, 24, 25], [21, 22, 25], [20, 23, 24],
-          [20, 21, 24], [19, 35, 37], [19, 23, 37], [19, 20, 23], [18, 32, 34],
-          [18, 22, 34], [17, 21, 22], [17, 18, 22], [16, 20, 21], [16, 17, 21],
-          [15, 19, 20], [15, 16, 20], [14, 33, 35], [14, 19, 35], [14, 15, 19],
-          [13, 18, 32], [12, 17, 18], [12, 13, 18], [11, 16, 17], [11, 12, 17],
-          [10, 15, 16], [10, 11, 16], [9, 14, 15], [9, 10, 15], [8, 29, 33],
-          [8, 14, 33], [8, 9, 14], [7, 13, 32], [6, 12, 13], [6, 7, 32], [6, 7, 13],
-          [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
-          [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
-          [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(cones, rays)
-end
-
-
-################################################################
-# 5: Check if an ideal/subvariety is nontrivial
+# 4: Check if an ideal/subvariety is nontrivial
 ################################################################
 
 _is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem} = !is_one(id) && !is_one(saturation(id, irr))
 
 
 ################################################################
-# 6: Compute singularity Kodaira type and refined Tate type
+# 5: Compute singularity Kodaira type and refined Tate type
 ################################################################
 
 _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
@@ -294,7 +259,7 @@ end
 
 
 ##################################################################
-# 7: Blowups (old helper function, to be used for family of bases)
+# 6: Blowups (old helper function, to be used for family of bases)
 ##################################################################
 
 function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
@@ -338,7 +303,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
   
   return total_transform, strict_transform, exceptional_ideal, crepant, new_irr, new_sri, new_lin, S, S_gens, ring_map
 end
-_blowup_global(id::T, center::T, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global(ideal(map(g -> g.f, gens(id))), ideal(map(g -> g.f, gens(center))), ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+_blowup_global(id::T, center::T, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global(ideal(map(g -> lift(g), gens(id))), ideal(map(g -> lift(g), gens(center))), ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
 
 
 function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
@@ -366,12 +331,12 @@ function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vecto
   
   return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
 end
-_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> lift(g), gens(id))), centers, ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
 
 
 
 ###########################################################################
-# 8: Constructing a generic sample for models over not-fully specified spaces
+# 7: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
@@ -402,7 +367,7 @@ end
 
 
 ###########################################################################
-# 9: Evaluating a string to a polynomial
+# 8: Evaluating a string to a polynomial
 ###########################################################################
 
 function _eval_poly(E::Expr, vars)
@@ -457,10 +422,10 @@ eval_poly(n::Number, R) = R(n)
 
 
 ###########################################################################
-# 10: Convenience functions for blowups
-# 10: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
-# 10: They are not in use (as of Feb 1, 2025 and PR 4523)
-# 10: Gauge in the future if they are truly needed!
+# 9: Convenience functions for blowups
+# 9: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
+# 9: They are not in use (as of Feb 1, 2025 and PR 4523)
+# 9: Gauge in the future if they are truly needed!
 ###########################################################################
 
 @doc raw"""
@@ -476,7 +441,6 @@ Blow up the toric variety along a toric ideal sheaf.
 !!! warning
     This is an internal method. It is NOT exported.
 
-# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -521,7 +485,6 @@ By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional prime divisor. As third optional argument one can supply
 a custom variable name.
 
-# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

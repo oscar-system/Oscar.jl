@@ -100,7 +100,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 
   # we construct E as the projective bundle PN of N, see [E-H, p 472]
 
-  E = projective_bundle(N) 
+  E = projective_bundle(N)
   AE, RE = E.ring, base_ring(E.ring)
   g = E.struct_map
   ζ = g.O1  # the first Chern class of O_E(1)
@@ -124,7 +124,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   degs = [degree(Int, Z(gs[i])) + 1 for i in 1:ngs]
   degsRX = [Int(degree(g)[1])  for g in gens(RX)]
   RBl, ev, xv = graded_polynomial_ring(X.base, syms, symbols(RX); weights = vcat(degs, degsRX))
-  
+
   RXtoRBl = hom(RX, RBl, xv) # fˣ on polynomial ring level
   jₓgˣ = x -> sum(ev .* RXtoRBl.(sect(x.f))) # AZ --> RBl
 
@@ -163,7 +163,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
     rhs = sum([jₓgˣ(Z(gs[j]) * cN[k]) * (-ev[end])^(rN-k) for k in 1:rN])
     push!(Rels, lhs - rhs)
   end
- 
+
   Rels = minimal_generating_set(ideal(RBl, Rels)) ### TODO: make this an option?
   ABl, _ = quo(RBl, Rels)
   Bl = abstract_variety(X.dim, ABl)
@@ -175,15 +175,15 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   RBltoRX = hom(RBl, RX, vcat(repeat([RX()], ngs), gens(RX)))
   fₓ = x -> (xf = simplify(x).f;
 	     X(RBltoRX(xf));)
-  fₓ = map_from_func(fₓ, ABl, AX)
+  fₓ = MapFromFunc(ABl, AX, fₓ)
   f = AbstractVarietyMap(Bl, X, Bl.(xv), fₓ)
   Bl.struct_map = f
   if isdefined(X, :point) Bl.point = f.pullback(X.point) end
 
   # pullback of j
-  
+
   jˣ = vcat([-ζ * g.pullback(Z(xi)) for xi in gs], [g.pullback(i.pullback(f)) for f in gens(AX)])
-  
+
   # pushforward of j: write as a polynomial in ζ, and compute term by term
 
   REtoRZ = hom(RE, RZ, pushfirst!(gens(RZ), RZ()))
@@ -195,7 +195,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 	      xf -= q * ζ.f^k
 	    end;
 	    Bl(ans))
-  jₓ = map_from_func(jₓ, AE, AX)
+  jₓ = MapFromFunc(AE, ABl, jₓ)
   j = AbstractVarietyMap(E, Bl, jˣ, jₓ)
 
   # the normal bundle of E in Bl is O(-1)
@@ -339,7 +339,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   X⁺ = abstract_variety(X.dim, AX⁺)
 
   set_attribute!(X⁺, :description => "$X")
-  fₓ = map_from_func(x -> error("not defined"), X⁺.ring, X.ring)  # TODO check this
+  fₓ = MapFromFunc(X⁺.ring, X.ring, x -> error("not defined"))  # TODO check this
   f = AbstractVarietyMap(X⁺, X, X⁺.(xv), fₓ)
   X⁺.struct_map = f
   X⁺.T = pullback(f, X.T)
@@ -347,7 +347,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   X⁺.point = f.pullback(X.point)
   if isdefined(X, :O1) X⁺.O1 = f.pullback(X.O1) end
   jˣ = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
-  j_ = map_from_func(x -> X⁺(jₓ(x)), Z.ring, X⁺.ring)
+  j_ = MapFromFunc(Z.ring, X⁺.ring, x -> X⁺(jₓ(x)))
   j = AbstractVarietyMap(Z, X⁺, jˣ, j_)
   return j
 end

@@ -332,9 +332,160 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
   return can_compute_index(d, I)
 end
 
+#= 
+# `simplify` for `FreeResolution`
+#
+# `FreeResolution` is a wrapper-type for `ComplexOfMorphism` which indicates that 
+# this particular complex comes from a free resolution. For instance, it prints 
+# differently.
+=#
+function simplify(c::FreeResolution{T}) where T
+  cut_off = length(c.C.maps)-2
+  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
+  phi = map_to_original_complex(simp)
+  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
+  # fill the cache from behind (usually faster)
+  for i in cut_off:-1:0
+    simp[i]
+  end
 
-function simplify(c::FreeResolution)
-  return simplify(SimpleComplexWrapper(c.C))
+  # treat the augmentation map
+  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
+
+  # Fill in the remaining maps.
+  # If the resulting resolution is already complete, 
+  # preserve that information. The minimization might 
+  # also become complete, even though the original resolution 
+  # was not. In case we end up with a non-complete minimal 
+  # resolution, avoid storing the last map, as it can not be 
+  # properly minimized, yet. 
+  for j in 1:cut_off-1
+    psi = map(simp, j)
+    pushfirst!(result.maps, psi)
+    if is_zero(domain(psi))
+      result.complete = true
+      break
+    end
+  end
+
+  # the last map needs special treatment
+  psi = map(simp, cut_off)
+  if is_zero(domain(psi))
+    pushfirst!(result.maps, psi)
+    result.complete = true
+  end
+  set_attribute!(result, 
+                 :show=>Hecke.pres_show, 
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  return FreeResolution(result)
+end
+
+# An alias to cater for the common phrasing of the CA community:
+
+@doc raw"""
+    minimize(F::FreeResolution)
+
+If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
+
+If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
+
+!!! note
+    If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> Z = R(0)
+0
+
+julia> O = R(1)
+1
+
+julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+
+julia> A = transpose(matrix(B));
+
+julia> M = graded_cokernel(A)
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
+
+julia> FM = free_resolution(M)
+Free resolution of M
+R^2 <---- R^7 <---- R^8 <---- R^3 <---- 0
+0         1         2         3         4
+
+julia> betti(FM)
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  3  1
+     2: -  3  5  2
+------------------
+ total: 2  7  8  3
+
+julia> FMmin = minimize(FM)
+Free resolution of M
+R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> betti(FMmin)
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
+
+julia> FM2 = free_resolution(M, length = 2)
+Free resolution of M
+R^2 <---- R^7 <---- R^8
+0         1         2
+
+julia> betti_table(FM2)
+degree: 0  1  2
+---------------
+    -1: -  1  -
+     0: 2  -  -
+     1: -  3  3
+     2: -  3  5
+---------------
+ total: 2  7  8
+
+julia> FM2min = minimize(FM2)
+Free resolution of M
+R^1 <---- R^3
+0         1
+
+julia> betti_table(FM2min)
+degree: 0  1
+------------
+     0: 1  -
+     1: -  3
+------------
+ total: 1  3
+
+```
+"""
+function minimize(c::FreeResolution; check::Bool=true)
+  # The following assertion is a bit complicated. 
+  # This method is allowed for graded modules and modules over 
+  # local rings. Checking for being graded is cheap, but checking 
+  # for being a local ring is not. Hence the latter checks must be 
+  # behind an @check, but the gradedness check not. 
+  if !is_graded(c[-1]) 
+    @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
+  end
+  return simplify(c)
 end
 
 function simplify(c::ComplexOfMorphisms)

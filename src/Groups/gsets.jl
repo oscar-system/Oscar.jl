@@ -870,8 +870,8 @@ julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
 
 julia> acthom = action_homomorphism(Omega)
 Group homomorphism
-  from Sym(6)
-  to Sym(15)
+  from symmetric group of degree 6
+  to symmetric group of degree 15
 
 julia> g = gen(G, 1)
 (1,2,3,4,5,6)
@@ -1394,8 +1394,10 @@ end
 """
     all_blocks(G::PermGroup)
 
-Return a vector of smallest representatives of all block systems
+Return a vector that contains one block of each non-trivial block system
 for the action of `G` on the set of moved points of `G`.
+
+Each block in the returned list is sorted and contains the smallest point moved by `G`.
 
 # Examples
 ```jldoctest

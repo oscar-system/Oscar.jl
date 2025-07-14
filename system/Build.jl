@@ -1,7 +1,3 @@
-if VERSION < v"1.9.0-DEV"
-  error("Julia >= 1.9 required")
-end
-
 oscarpath = dirname(@__DIR__)
 
 using Pkg

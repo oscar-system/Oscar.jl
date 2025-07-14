@@ -18,7 +18,7 @@ Which means we use a JSON extension to serialize data.
 ## How it works
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
-```
+```julia-repl
 julia> save("/tmp/fourtitwo.mrdi", 42);
 
 julia> load("/tmp/fourtitwo.mrdi")
@@ -26,7 +26,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 
 ```
 The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
-```
+```json
 {
   "_ns": {
     "Oscar": [
@@ -65,7 +65,7 @@ The nested structure of the coefficient will depend on the description of the fi
 extension.
 
 
-```
+```json
 {
   "_ns": {
     "Oscar": [
@@ -156,7 +156,7 @@ should be called with a key that can be passed as the second parameter.
 ##### Examples
 
 ###### Example 1
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_array(s) do
     save_object(s, obj.1)
@@ -170,7 +170,7 @@ end
 ```
 
 This will result in a data format that looks like this.
-```
+```json
 [
   obj.1,
   obj.2,
@@ -183,7 +183,7 @@ This will result in a data format that looks like this.
 
 With the corresponding loading function similar to this.
 
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
     if entry isa JSON3.Object
@@ -203,7 +203,7 @@ end
 ```
 
 ##### Example 2
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key1)
@@ -216,7 +216,7 @@ end
 ```
 This will result in a data format that looks like this.
 
-```
+```json
 {
   "key1": obj.1,
   "key2":[
@@ -230,7 +230,7 @@ This will result in a data format that looks like this.
 ```
 
 The corresponding loading function would look something like this.
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
    obj1 = load_object(s, Obj1Type, params[1], :key1)
 
@@ -246,21 +246,21 @@ function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
 ```
 
 This is ok
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1)
 end
 ```
 
 While this will throw an error
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1, :key)
 end
 ```
 
 If you insist on having a key you should use a `save_data_dict`.
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key)
@@ -283,16 +283,6 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
-### Import helper
-
-When implementing the serialization of a new type in a module that is not
-`Oscar` (e.g. in a submodule of `Oscar`) it is necessary to import the
-a lot of helper functions (see the examples above).
-To ease this process, the `@import_all_serialization_functions` macro can be used.
-```@docs
-Oscar.@import_all_serialization_functions
-```
-
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
@@ -308,13 +298,13 @@ prior.
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
 The mechanics of upgrading are found in the `main.jl` file where the
-[`Oscar.upgrade`](@ref) function provides the core functionality. Upgrading
+[`Oscar.Serialization.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
 to be loaded is older than the current Oscar version.
 
 ```@docs
-Oscar.upgrade
-Oscar.upgrade_data
+Oscar.Serialization.upgrade
+Oscar.Serialization.upgrade_data
 ```
 
 #### Upgrade Scripts
@@ -324,7 +314,7 @@ they upgrade to. For example a script that upgrades to Oscar version 0.13.0
 should be named `0.13.0.jl`.
 
 ```@docs
-Oscar.UpgradeScript
+Oscar.Serialization.UpgradeScript
 ```
 
 ## Challenges

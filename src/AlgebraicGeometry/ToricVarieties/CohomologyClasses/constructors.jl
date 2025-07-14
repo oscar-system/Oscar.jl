@@ -61,7 +61,7 @@ function cohomology_class(d::ToricDivisor; quick::Bool = false)
     poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
     return CohomologyClass(toric_variety(d), poly, false)
   end
-  indets = gens(parent(cohomology_ring(toric_variety(d), check = false)))
+  indets = gens(base_ring(cohomology_ring(toric_variety(d), check = false)))
   coeff_ring = coefficient_ring(toric_variety(d))
   poly = cohomology_ring(toric_variety(d))(sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)))
   return CohomologyClass(toric_variety(d), poly, true)

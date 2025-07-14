@@ -69,7 +69,7 @@ coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
@@ -247,7 +247,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
-   r.gens.gens.O = [R(g) for g in gens(r.gens.gens.S)]
+   r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]
    B = r.gens
    if length(B) >= 1 && is_graded(R)
      @req all(is_homogeneous, oscar_generators(B)) "The generators of the ideal must be homogeneous"
@@ -305,14 +305,14 @@ function _groebner_basis(a::MPolyQuoIdeal)
   # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
-    a.gb.gens.S.isGB = a.gb.isGB = true
+    a.gb.gensBiPolyArray.S.isGB = a.gb.isGB = true
   end
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
   _groebner_basis(a)
 
-  return a.gb.gens.S
+  return a.gb.gensBiPolyArray.S
 end
 
 @doc raw"""
@@ -762,8 +762,8 @@ function simplify(a::MPolyQuoIdeal)
   red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
-  a.gens.gens.S = si
-  a.gens.gens.O = [R(g) for g in gens(si)]
+  a.gens.gensBiPolyArray.S = si
+  a.gens.gensBiPolyArray.O = [R(g) for g in gens(si)]
   return a
 end
 
@@ -1777,7 +1777,10 @@ julia> dim(a)
 0
 ```
 """
-function dim(a::MPolyQuoIdeal)
+dim(a::MPolyQuoIdeal) = krull_dim(a)
+
+function krull_dim(a::MPolyQuoIdeal)
+  @req is_noetherian(base_ring(a)) "Krull dimension is only supported for Noetherian rings."
   if a.dim === nothing 
     a.dim = Singular.dimension(singular_groebner_generators(a))
     a.dim == -1 && (a.dim = -inf)
@@ -1852,7 +1855,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(base_ring(I), sing_gb, true)
-    I.gb.gens.S.isGB = I.gb.isGB = true
+    I.gb.gensBiPolyArray.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
@@ -1975,3 +1978,23 @@ function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Boo
   end
   return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(B))); check = false)
 end
+
+@attr Bool function is_local(Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  is_zero(krull_dim(Q)) || return false
+  return is_one(length(minimal_primes(modulus(Q)))) 
+end
+
+function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  has_attribute(Q, :is_local) && return true
+  return false
+end
+
+function is_known(::typeof(krull_dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(krull_dim, modulus(Q))
+end
+
+function is_known(::typeof(dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(dim, modulus(Q))
+end
+
+

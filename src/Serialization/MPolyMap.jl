@@ -1,3 +1,5 @@
+using Oscar: _images, coefficient_map
+
 @register_serialization_type MPolyAnyMap
 
 function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}

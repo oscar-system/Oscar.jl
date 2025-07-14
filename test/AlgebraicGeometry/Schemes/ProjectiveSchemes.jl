@@ -422,3 +422,9 @@ end
   sec = rational_map(IP1, IP1xIP1, [s, t, s, t])
 end
 
+@testset "irreducible components" begin 
+  P1 = projective_space(QQ,1)
+  (s0,s1) = homogeneous_coordinates(P1)
+  X = subscheme(P1,ideal(s0^2*s1))
+  @test length(irreducible_components(X))==2
+end 

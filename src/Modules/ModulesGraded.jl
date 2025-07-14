@@ -727,7 +727,7 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
@@ -1457,28 +1457,13 @@ degree: 0  1  2  3
 ------------------
  total: 1  4  4  1
 
-julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
-
-julia> I = ideal(R, [x, y, x+y]);
-
-julia> M = quotient_ring_as_module(I);
-
-julia> FM = free_resolution(M, algorithm = :nres);
-
-julia> betti_table(FM)
-degree: 0  1  2
----------------
-     0: 1  2  1
----------------
- total: 1  2  1
 ```
 """
 function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
   @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
-  rng = Hecke.map_range(C)
-  n = first(rng)
+  n = first(Hecke.map_range(C))
   for i in 0:n
     module_degrees = F[i].d
     for degree in module_degrees
@@ -2291,12 +2276,12 @@ end
 
 
 @doc raw"""
-    generator_symbols(F::FreeMod_dec)
+    symbols(F::FreeMod_dec)
 
 Return the list of symbols of the standard unit vectors.
 """
-function generator_symbols(F::FreeMod_dec)
-  return generator_symbols(forget_decoration(F))
+function symbols(F::FreeMod_dec)
+  return symbols(forget_decoration(F))
 end
 @enable_all_show_via_expressify FreeModElem_dec
 
@@ -2516,8 +2501,7 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> I = ideal(R, [w^2-x*z, w*x-y*z, x^2-w*y, x*y-z^2, y^2-w*z]);
 
-julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal (w^2 - x*z, w*x - y*z, -w*y + x^2, x*y - z^2, -w*z + y^2), Map: R -> A)
+julia> A, _ = quo(R, I);
 
 julia> minimal_betti_table(A)
 degree: 0  1  2  3
@@ -2554,12 +2538,15 @@ end
 @doc raw"""
     minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
 
-Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
+Given a (possibly non-complete) graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
-Betti table of the minimal free resolution arising from `F`.
+Betti table of the (possibly non-complete) minimal free resolution arising from `F`.
 
 !!! note
     The algorithm proceeds without actually minimizing the resolution.
+
+!!! note
+    In the case of a non-complete free resolution, the minimal Betti table is computed only up to the second last known non-zero module. 
 
 # Examples
 ```jldoctest
@@ -2593,18 +2580,95 @@ degree: 0  1  2  3
 ------------------
  total: 1  5  5  1
 ```
+
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> Z = R(0)
+0
+
+julia> O = R(1)
+1
+
+julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+
+julia> A = transpose(matrix(B));
+
+julia> M = graded_cokernel(A)
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
+
+julia> FM = free_resolution(M)
+Free resolution of M
+R^2 <---- R^7 <---- R^8 <---- R^3 <---- 0
+0         1         2         3         4
+
+julia> betti_table(FM)
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  3  1
+     2: -  3  5  2
+------------------
+ total: 2  7  8  3
+
+julia> minimal_betti_table(FM)
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
+
+julia> FM2 = free_resolution(M, length = 2)
+Free resolution of M
+R^2 <---- R^7 <---- R^8
+0         1         2
+
+julia> betti_table(FM2)
+degree: 0  1  2
+---------------
+    -1: -  1  -
+     0: 2  -  -
+     1: -  3  3
+     2: -  3  5
+---------------
+ total: 2  7  8
+
+julia> minimal_betti_table(FM2)
+degree: 0  1
+------------
+     0: 1  -
+     1: -  3
+------------
+ total: 1  3
+
+```
 """
 function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
-  @assert is_complete(res) "resolution must be complete"
   rng = range(C)
-  # The following needs the resolution to be complete to be true
-  res_length = first(rng)-1
+  res_length = length(res)
+  # If the resolution is complete, then we can print the full 
+  # Betti table, including the last inclusion of the zero-module.
+  # If not, then we must stop earlier in order to not trigger 
+  # the computation of another step.
+  if is_complete(res)
+    res_length += 1
+  end
   offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
-  for i in 1:res_length+1
+  for i in 1:res_length
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
@@ -2616,11 +2680,15 @@ function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<
         _, _, sub_mat = _constant_sub_matrix(phi, d; check)
         r = rank(sub_mat)
         c = ncols(sub_mat) - r - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
         offsets[d] = r
       else
         c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
-        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        if !iszero(c)
+          betti_hash_table[(i-1, d)] = c
+        end
       end
     end
   end

@@ -5,17 +5,12 @@
 @doc raw"""
     is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Executes elementary tests (they are necessary but not sufficient)
-to tell if Family of $G_4$-fluxes is well-quantized. In case
-any of these tests fails, we know that this family of $G_4$-fluxes
-is definitely not well-quantized. This method then returns `false`.
+Performs elementary necessary (but not sufficient) tests to check if the 
+family of ``G_4``-fluxes is well-quantized.
 
-In the opposite case that all elementary tests pass, this method
-returns `true`. Note however that this does not imply that the
-family is well-quantized. At least, according to the current
-theoretical understanding it does not. Rather, this means that
-to the best of our current means, this family of fluxes appears
-to be well-quantized.
+If any test fails, the family is definitely not well-quantized and the method 
+returns `false`. If all tests pass, it returns `true`, indicating the fluxes 
+appear well-quantized based on current knowledge, but without guaranteeing it.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -54,7 +49,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
@@ -91,8 +86,8 @@ end
 @doc raw"""
     passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if the given family of $G_4$-fluxes passes the transversality checks.
-If so, this method returns `true` and otherwise `false`.
+Checks if the given family of ``G_4``-fluxes passes the transversality conditions.
+Returns `true` if the checks pass, and `false` otherwise.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -131,7 +126,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
@@ -156,9 +151,8 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if Family of G4-fluxes breaks the non-abelian
-gauge group. If so, this method returns `true` and
-otherwise `false`.
+Checks if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
+Returns `true` if it does, and `false` otherwise.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -206,7 +200,7 @@ false
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group
