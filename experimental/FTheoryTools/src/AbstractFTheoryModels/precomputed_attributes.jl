@@ -3,13 +3,15 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
         error("Expected input like: (function_name, ReturnType)")
     end
 
-    fname = arg_expr.args[1]
+    fname_expr = arg_expr.args[1]
     rettype = arg_expr.args[2]
-    sym = QuoteNode(fname)
-    msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
-    doc = """
-    Returns `$(fname)` of the F-theory model if known, otherwise throws an error.
+    fname_sym = fname_expr isa Symbol ? fname_expr : fname_expr.args[1]
+    quoted_sym = QuoteNode(fname_sym)
+    msg = "No $(replace(string(fname_sym), '_' => ' ')) known for this model"
+
+    doc = raw"""
+    Returns `$(fname_sym)` of the F-theory model if known, otherwise throws an error.
 
     See [Literature Models](@ref) for more details.
 
@@ -17,13 +19,16 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
     """
 
     return quote
-        @doc $doc
-        function $(esc(fname))(m::AbstractFTheoryModel)
-            @req has_attribute(m, $sym) $msg
-            return get_attribute(m, $sym)::$(esc(rettype))
+        if !isdefined(@__MODULE__, $(QuoteNode(fname_sym)))
+            @doc $doc
+            function $(esc(fname_expr))(m::AbstractFTheoryModel)
+                @req has_attribute(m, $quoted_sym) $msg
+                return get_attribute(m, $quoted_sym)::$(esc(rettype))
+            end
         end
     end
 end
+
 
 
 
@@ -72,7 +77,7 @@ end
 ##########################################
 
 # Return a list of the known Mordell–Weil generating sections of the given model.  If no generating sections are known, an error is raised.
-@define_model_attribute_getter((generating_sections, Vector{Vector{T}} where T <: Any),
+@define_model_attribute_getter((generating_sections, Vector{GeneratingSectionType}),
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
@@ -95,13 +100,8 @@ julia> resolutions(m)
 ```
 """)
 
-const GeneratingSectionType = Union{
-    Vector{Vector{Vector{Vector{QQMPolyRingElem}}}},
-    Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}
-}
-
 # Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution. Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list associated to a given resolution corresponds to a known generating section (in the same order). If no resolution generating sections are known, an error is raised.
-@define_model_attribute_getter ((resolution_generating_sections, GeneratingSectionType),
+@define_model_attribute_getter ((resolution_generating_sections, Vector{ResolutionGeneratingSectionType}),
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
@@ -113,7 +113,7 @@ julia> resolution_generating_sections(m)
 """)
 
 # Return a list of known Mordell–Weil zero sections for the given model after each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
-@define_model_attribute_getter ((resolution_zero_sections, (Vector{Vector{Vector{T}}} where T <: Any)),
+@define_model_attribute_getter ((resolution_zero_sections, Vector{ResolutionZeroSectionType}),
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
@@ -124,23 +124,8 @@ julia> resolution_zero_sections(m)
 ```
 """)
 
-# Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error is raised.
-@define_model_attribute_getter ((weighted_resolutions, Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}),
-"""
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> weighted_resolutions(m)
-1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
- ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
-```
-""")
-
 # Return a list of lists of known Mordell–Weil generating sections for the given model after each known weighted resolution. Each element of the outer list corresponds to a known weighted resolution (in the same order), and each element of the list associated to a given weighted resolution corresponds to a known generating section (in the same order). If no weighted resolution generating sections are known, an error is raised.
-@define_model_attribute_getter ((weighted_resolution_generating_sections, (Vector{Vector{Vector{Vector{T}}}} where T <: Any)),
+@define_model_attribute_getter ((weighted_resolution_generating_sections, Vector{WeightedResolutionGeneratingSectionType}),
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
@@ -151,8 +136,21 @@ julia> weighted_resolution_generating_sections(m)
 ```
 """)
 
+#=
+# Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error is raised.
+@define_model_attribute_getter ((weighted_resolutions, Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}),
+"""
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
+
+julia> weighted_resolutions(m)
+1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
+ ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
+```
+""")
+
 # Return a list of known Mordell–Weil zero sections for the given model after each known weighted resolution. Each element of the list corresponds to a known weighted resolution (in the same order). If no weighted resolution zero sections are known, an error is raised.
-@define_model_attribute_getter ((weighted_resolution_zero_sections, (Vector{Vector{Vector{T}}} where T <: Any)),
+@define_model_attribute_getter ((weighted_resolution_zero_sections, WeightedResolutionZeroSectionType),
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1");
@@ -164,7 +162,7 @@ julia> weighted_resolution_zero_sections(m)
 """)
 
 # Return the zero section of the given model. If no zero section is known, an error is raised. This information is not typically stored as an attribute for Weierstrass and global Tate models, whose zero sections are known.
-@define_model_attribute_getter ((zero_section, (Vector{T} where T <: Any)),
+@define_model_attribute_getter ((zero_section, ZeroSectionType),
 """
 ```jldoctest
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5");
@@ -210,7 +208,7 @@ julia> zero_section_index(foah15_B3)
 """)
 
 # Return the torsion sections of the given model. If no torsion sections are known, an error is raised.
-@define_model_attribute_getter ((torsion_sections, (Vector{Vector{T}} where T <: Any)),
+@define_model_attribute_getter ((torsion_sections, Vector{TorsionSectionType}),
 """
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -335,3 +333,4 @@ julia> exceptional_divisor_indices(foah11_B3)
   @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
   return get_attribute(m, :exceptional_divisor_indices, Vector{Int64}())
 end
+=#

@@ -177,3 +177,25 @@ end
   offset::Vector{QQFieldElem}
   FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}) = new(model, mat_int, mat_rat, offset)
 end
+
+
+
+################################################
+# 5: The julia types for advanced attributes
+################################################
+
+const PolyElemType = Union{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
+
+const GeneratingSectionType = Vector{PolyElemType}
+
+const ResolutionGeneratingSectionType = Vector{Vector{Vector{PolyElemType}}}
+
+const ResolutionZeroSectionType = Vector{Vector{PolyElemType}},
+
+const WeightedResolutionGeneratingSectionType = Vector{Vector{Vector{PolyElemType}}}
+
+const WeightedResolutionZeroSectionType = Vector{Vector{PolyElemType}}
+
+const ZeroSectionType = Vector{PolyElemType}
+
+const TorsionSectionType = Vector{PolyElemType}
