@@ -41,7 +41,7 @@ function parent_type(::Type{PBWAlgebraElem{T}}) where {T}
 end
 
 function is_domain_type(::Type{PBWAlgebraElem{T}}) where {T}
-  return is_domain_type(T)
+  return false
 end
 
 function is_exact_type(::Type{PBWAlgebraElem{T}}) where {T}
@@ -293,6 +293,14 @@ end
 
 function divexact_right(x::PBWAlgebraElem{T}, a::T) where {T}
   return PBWAlgebraElem(parent(x), divexact(x.poly, a))
+end
+
+function divexact_left(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  error("not implemented")
+end
+
+function divexact_right(x::PBWAlgebraElem{T}, y::PBWAlgebraElem{T}) where {T}
+  error("not implemented")
 end
 
 ###############################################################################

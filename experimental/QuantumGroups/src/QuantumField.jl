@@ -110,6 +110,11 @@ function (QF::QuantumField)(n::Integer)
   return QuantumFieldElem(QF, QF.d(n))
 end
 
+function (QF::QuantumField)(x::QuantumFieldElem)
+  @req QF === parent(x) "parent mismatch"
+  return x
+end
+
 ###############################################################################
 #
 #   Accessors
@@ -236,7 +241,7 @@ function Base.:^(x::QuantumFieldElem, n::Int)
   return QuantumFieldElem(parent(x), x.d^n)
 end
 
-function divexact(x::QuantumFieldElem, y::QuantumFieldElem)
+function divexact(x::QuantumFieldElem, y::QuantumFieldElem; check::Bool=true)
   check_parent(x, y)
   return div!(zero(x), x, y)
 end

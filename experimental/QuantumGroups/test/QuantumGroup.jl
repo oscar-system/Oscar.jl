@@ -1,5 +1,6 @@
 @testset "QuantumGroups.QuantumGroup" begin
   @testset "Conformance Tests" begin
+    ConformanceTests.test_NCRing_interface(quantum_group(:A, 2))
     #ConformanceTests.test_NCRing_interface(quantum_group(:A, 5))
     #ConformanceTests.test_NCRing_interface(quantum_group(:B, 3))
     #ConformanceTests.test_NCRing_interface(quantum_group(:C, 3))
