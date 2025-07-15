@@ -255,23 +255,25 @@ accidental data loss. If you truly need to replace a value, use `set_attribute!(
 
 In addition, the following attributes are available to access advanced model information:
 
-* resolutions(m::AbstractFTheoryModel)
-* resolution_generating_sections(m::AbstractFTheoryModel)
-* resolution_zero_sections(m::AbstractFTheoryModel)
-* torsion_sections(m::AbstractFTheoryModel)
-* weighted_resolutions(m::AbstractFTheoryModel)
-* weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-* weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-* zero_section(m::AbstractFTheoryModel)
-* zero_section_class(m::AbstractFTheoryModel)
-* zero_section_index(m::AbstractFTheoryModel)
-* exceptional_classes(m::AbstractFTheoryModel)
-* exceptional_divisor_indices(m::AbstractFTheoryModel)
-* generating_sections(m::AbstractFTheoryModel)
-* gauge_algebra(m::AbstractFTheoryModel)
-* global_gauge_group_quotient(m::AbstractFTheoryModel)
-
-
+```@docs
+resolutions(m::AbstractFTheoryModel)
+resolution_generating_sections(m::AbstractFTheoryModel)
+resolution_zero_sections(m::AbstractFTheoryModel)
+torsion_sections(m::AbstractFTheoryModel)
+weighted_resolutions(m::AbstractFTheoryModel)
+weighted_resolution_generating_sections(m::AbstractFTheoryModel)
+weighted_resolution_zero_sections(m::AbstractFTheoryModel)
+zero_section(m::AbstractFTheoryModel)
+zero_section_class(m::AbstractFTheoryModel)
+zero_section_index(m::AbstractFTheoryModel)
+exceptional_classes(m::AbstractFTheoryModel)
+exceptional_divisor_indices(m::AbstractFTheoryModel)
+generating_sections(m::AbstractFTheoryModel)
+gauge_algebra(m::AbstractFTheoryModel)
+global_gauge_group_quotient(m::AbstractFTheoryModel)
+exceptional_classes(m::AbstractFTheoryModel)
+exceptional_divisor_indices(m::AbstractFTheoryModel)
+```
 
 
 
