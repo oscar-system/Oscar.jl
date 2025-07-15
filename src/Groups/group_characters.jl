@@ -2850,7 +2850,7 @@ function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, FinGenAbGrou
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
     pi = [findfirst(x -> x^g in c, reps) for c in ccl]
-    return class_function(tbl, values(chi)[pi])
+    return class_function(tbl, chi[pi])
 end
 
 @doc raw"""
