@@ -283,14 +283,14 @@ def main(new_version: str) -> None:
         previous_minor = minor - 1
         basetag = f"v{major}.{minor}dev"
         # *exclude* PRs backported to previous stable-1.X branch
-        extra = f'-label:"backport {major}.{previous_minor}.x"'
+        extra = f'-label:"backport {major}.{previous_minor}.x done"'
     else:
         # "minor" OSCAR release which changes just the patchlevel
         release_type = 2
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
-        extra = f'label:"backport {major}.{minor}.x"'
+        extra = f'label:"backport {major}.{minor}.x done"'
 
     if release_type == 2:
         startdate = get_tag_date(basetag)
