@@ -93,7 +93,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        # if: runner.os == 'macOS' # commented out as bandaid for #4806
+        if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Use multiple processes for self-hosted macOS runners"
@@ -248,7 +248,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        # if: runner.os == 'macOS' # commented out as bandaid for #4806
+        if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Setup package"
