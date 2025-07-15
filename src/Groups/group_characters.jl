@@ -2671,7 +2671,7 @@ end
 # access character values by positions
 function Base.getindex(chi::GAPGroupClassFunction, v::AbstractVector{Int})
   vals = GAPWrap.ValuesOfClassFunction(GapObj(chi))
-  return [QQAbFieldElem(x) for x in vals]
+  return [QQAbFieldElem(vals[i]) for i in v]
 end
 
 # access character values by class name
