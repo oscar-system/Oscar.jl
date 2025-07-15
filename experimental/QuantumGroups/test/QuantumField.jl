@@ -25,6 +25,7 @@
   end
 
   @testset "q_binomial" begin
+    QF, q = quantum_field()
     for _ in 1:10
       n = rand(0:10)
       k = rand(0:n)
