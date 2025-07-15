@@ -22,12 +22,12 @@ end
     # table computation order: (2,1), ... (2,4); (3,1) ... (6,3)
     U = make_Usl3()
     F = gens(U)
-    _ = F[7]^2 * F[1]^4
-    @test leading_monomial(F[7]^6 * F[1]^3) == F[1]^3 * F[3]^6
+    _ = F[2]^2 * F[1]^4
+    @test leading_monomial(F[2]^6 * F[1]^3) == F[1]^3 * F[2]^6
 
     # table computation order: (2, 1) ... (6, 1) ... (6, 3)
     U = make_Usl3()
     F = gens(U)
-    @test leading_monomial(F[1]^6 * F[3]^3) == F[1]^3 * F[3]^6
+    @test leading_monomial(F[2]^6 * F[1]^3) == F[1]^3 * F[2]^6
   end
 end

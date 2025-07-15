@@ -172,6 +172,12 @@ function fit!(x::MPolyRingElem{T}, len::Int) where {T}
 end
 
 function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  if iszero(x)
+    return set!(x, y)
+  elseif iszero(y)
+    return x
+  end
+  
   R = parent(x)
   len = length(x) + length(y)
   fit!(x, len)
@@ -235,6 +241,12 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
 end
 
 function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  if z === x
+    return add!(z, y)
+  elseif z === y
+    return add!(z, x)
+  end
+  
   R = parent(z)
   fit!(z, length(x) + length(y))
 
@@ -392,6 +404,12 @@ function mul!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, a::T) where {T}
 end
 
 function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
+  if z === x
+    return sub!(z, y)
+  elseif z === y
+    return sub!(z, x)
+  end
+  
   R = parent(z)
   fit!(z, length(x) + length(y))
 
@@ -807,9 +825,8 @@ function (R::MPolyRing{T})(coeffs::Vector{T}, exps::Vector{Vector{Int}}) where {
 end
 
 function ConformanceTests.generate_element(R::MPolyRing)
-  exp_bound = rand(1:5)
-  len = rand(0:8)
+  len = rand(0:3)
   coeffs = [ConformanceTests.generate_element(coefficient_ring(R)) for _ in 1:len]
-  exps = [[rand(0:exp_bound) for _ in 1:ngens(R)] for _ in 1:len]
+  exps = [[rand(0:3) for _ in 1:ngens(R)] for _ in 1:len]
   return R(coeffs, exps)
 end

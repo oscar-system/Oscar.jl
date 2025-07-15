@@ -204,6 +204,10 @@ function parent_type(::Type{QuantumGroupElem})
   return QuantumGroup
 end
 
+function is_domain_type(::Type{QuantumGroupElem})
+  return false
+end
+
 function is_exact_type(::Type{QuantumGroupElem})
   return is_exact_type(QuantumFieldElem)
 end
@@ -213,6 +217,23 @@ end
 #   Basic manipulation
 #
 ###############################################################################
+
+function (U::QuantumGroup)()
+  return zero(U)
+end
+
+function (U::QuantumGroup)(a::Integer)
+  return QuantumGroupElem(U, U.algebra(a))
+end
+
+function (U::QuantumGroup)(a::QuantumFieldElem)
+  return QuantumGroupElem(U, U.algebra(a))
+end
+
+function (U::QuantumGroup)(x::QuantumGroupElem)
+  @req A === parent(x) "parent mismatch"
+  return x
+end
 
 function ngens(U::QuantumGroup)
   return ngens(U.algebra)
