@@ -585,7 +585,7 @@ end
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = get_attribute(m, :generating_sections, Vector{T}[] where T <: Any)
+  values = get_attribute(m, :generating_sections, Vector{<:LineBundleSectionType}[] where T <: Any)
   !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
 end
 

@@ -184,18 +184,26 @@ end
 # 5: The julia types for advanced attributes
 ################################################
 
-const PolyElemType = Union{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
+# TODO: The type below should eventually be defined in toric varieties, maybe as a mutable struct, specific printing etc.
+# TODO: In addition, we also allow this symbolically for a family of spaces as base. This geometry thus requires a similar mutable structure for line bundle sections.
+const LineBundleSectionType = Union{Vector{QQMPolyRingElem}, Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}
 
-const GeneratingSectionType = Vector{PolyElemType}
 
-const ResolutionGeneratingSectionType = Vector{Vector{Vector{PolyElemType}}}
+const ZeroSectionType = LineBundleSectionType
+const GeneratingSectionsType = Vector{<:LineBundleSectionType}
+const TorsionSectionsType = Vector{<:LineBundleSectionType}
 
-const ResolutionZeroSectionType = Vector{Vector{PolyElemType}},
 
-const WeightedResolutionGeneratingSectionType = Vector{Vector{Vector{PolyElemType}}}
+# TODO: Mikelis, why are these types nested the way they are? I am inclined to say there is one nesting level too much.
+# TODO: ResolutionGeneratingSectionsType should, so I assume, have for each resolution a list with the generating sections. So it should be a list of lists of sections.
+# TODO: So this is then a vector(vector(vector))? But it nests four vectors...
+const ResolutionZeroSectionsType = Union{Vector{Vector{Vector{QQMPolyRingElem}}}, Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}
+const WeightedResolutionZeroSectionsType = Union{Vector{Vector{Vector{QQMPolyRingElem}}}, Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}
+const ResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
+const WeightedResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
 
-const WeightedResolutionZeroSectionType = Vector{Vector{PolyElemType}}
-
-const ZeroSectionType = Vector{PolyElemType}
-
-const TorsionSectionType = Vector{PolyElemType}
+# TODO: Even if it was as above, I should expect that we can formalize these types as follows, but this errors
+#const ResolutionZeroSectionsType = Vector{Vector{<:LineBundleSectionType}}
+#const WeightedResolutionZeroSectionsType = Vector{Vector{<:LineBundleSectionType}}
+#const ResolutionGeneratingSectionsType = Vector{Vector{Vector{<:LineBundleSectionType}}}
+#const WeightedResolutionGeneratingSectionsType = Vector{Vector{Vector{<:LineBundleSectionType}}}

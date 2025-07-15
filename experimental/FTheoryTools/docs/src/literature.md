@@ -271,8 +271,6 @@ exceptional_divisor_indices(m::AbstractFTheoryModel)
 generating_sections(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
 global_gauge_group_quotient(m::AbstractFTheoryModel)
-exceptional_classes(m::AbstractFTheoryModel)
-exceptional_divisor_indices(m::AbstractFTheoryModel)
 ```
 
 
