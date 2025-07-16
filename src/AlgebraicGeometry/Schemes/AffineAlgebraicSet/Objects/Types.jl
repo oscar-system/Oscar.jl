@@ -44,6 +44,7 @@ defined by ideal(y, x)
     A.X = X
     if is_reduced
       A.Xred = X
+      A.__attrs = copy(X.__attrs)
       set_attribute!(A.Xred, :is_geometrically_reduced, true)
       set_attribute!(A.Xred, :is_reduced, true)
     end
