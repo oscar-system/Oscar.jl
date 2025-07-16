@@ -197,7 +197,7 @@ true
 @attr Bool function is_fano(v::NormalToricVarietyType)
   # [CLS11] Fano implies projective, thus non-projective implies non-Fano. But
   # non-complete implies non-projective.
-  if(!is_complete(v))
+  if !is_complete(v)
     return false
   else
     return is_ample(anticanonical_divisor(v))
