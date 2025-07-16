@@ -23,8 +23,7 @@ julia> f = family_of_spaces(ring, grading, d)
 Family of spaces of dimension d = 3
 
 julia> coordinate_ring(f)
-Multivariate polynomial ring in 4 variables f, g, Kbar, u
-  over rational field
+SOMETHING!!!
 ```
 """
 coordinate_ring(f::FamilyOfSpaces) = f.coordinate_ring

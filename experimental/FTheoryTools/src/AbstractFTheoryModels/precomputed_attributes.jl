@@ -115,7 +115,7 @@ julia> resolution_generating_sections(m)
 """)
 
 
-# Return a list of known Mordell–Weil zero sections for the given model after each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
+# Return a list of known Mordell–Weil zero sections for the given model after each blowup of each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
 @define_model_attribute_getter((resolution_zero_sections, ResolutionZeroSectionsType),
 """
 ```jldoctest
