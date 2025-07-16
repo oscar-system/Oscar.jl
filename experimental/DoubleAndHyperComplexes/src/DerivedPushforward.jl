@@ -559,20 +559,29 @@ function set_global_exponent_vector!(ctx::ToricCtx, k::Int)
   return set_global_exponent_vector!(ctx, Int[k for _ in 1:length(cech_complex_generators(ctx))])
 end
 
+function get_cache_thing(ctx::ToricCtx)
+  if !isdefined(ctx, :D)
+    ctx.D = Dict()
+  end
+  return ctx.D
+end
+
 # return the minimal exponent vector `alpha` such that the whole 
-# cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
-function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
+# cohomology in degree `m` is contained in the truncated ̌Cech-complex for `alpha`
+function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
   if isdefined(ctx, :fixed_exponent_vector)
     return ctx.fixed_exponent_vector
   end
-  error("dynamic exponent vectors are currently not supported in the toric context; consider manually setting one via `set_global_exponent_vector!`")
-  return get!(ctx.exp_vec_cache, d) do
+  #error("dynamic exponent vectors are currently not supported in the toric context; consider manually setting one via `set_global_exponent_vector!`")
+  return get!(ctx.exp_vec_cache, m) do
     #This based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), but only part of the algorithm is executed and explicit lattice points are calculated for each polyhedron.
     v = toric_variety(ctx)
-    rationoms, = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
-    # rationoms, D = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
-    k = max(-min(minimum(hcat(rationoms...)), 0), 1)
     n = ngens(irrelevant_ideal(v))
+    rationoms, _ = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=get_cache_thing(ctx))
+    isempty(rationoms) && return [1 for i in 1:n]
+    # rationoms, D = cohomology_support(v, Vector{Int}(m.coeff[1,:]), D=D)
+    k = -minimum(hcat(rationoms...), init=-1)
+    #k = max(-min(minimum(hcat(rationoms...)), 0), 1)
     return [k for i in 1:n]
 
     # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
@@ -649,9 +658,17 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGe
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
       strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
     end
-  elseif all(a >= b for (a, b) in zip(alpha, beta)) && ctx.algorithm == :cech
-    return get!(ctx.strand_projections, (alpha, beta, d)) do
-      SummandProjection(ctx[beta, alpha, d])
+  elseif all(a >= b for (a, b) in zip(alpha, beta)) 
+    if ctx.algorithm == :cech
+      return get!(ctx.strand_projections, (alpha, beta, d)) do
+        SummandProjection(ctx[beta, alpha, d])
+      end
+    elseif ctx.algorithm == :ext
+      return get!(ctx.strand_projections, (alpha, beta, d)) do
+        HomologyPseudoInverse(ctx[beta, alpha, d])
+      end
+    else
+      error("algorithm not recognized")
     end
   elseif ctx.algorithm == :cech
     c = Int[max(a, b) for (a, b) in zip(alpha, beta)]
