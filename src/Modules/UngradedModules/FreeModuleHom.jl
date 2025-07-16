@@ -455,9 +455,18 @@ represented as subquotient with no relations -> F)
 function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
-  return kernel_atomic(h)  # explicitly call kernel_atomic
+  return kernel_atomic(h)
 end
 
+@doc raw"""
+    kernel_atomic(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+
+Return the kernel `K` of `a` together with the inclusion map `K` $\to$ `domain(a)`.
+
+Throws an error if not implemented over the ring type under consideration.
+
+When implementing a new signature for this function, `K` should be constructed via the sub constructor `sub(F, v)` where `F` is the domain of `a` and `v` is a vector of elements of `F` generating the kernel.
+"""
 function kernel_atomic(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   error("not implemented for modules over rings of type $(typeof(base_ring(domain(h))))")
 end

@@ -173,6 +173,7 @@
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",
      ],
      "Frameworks for Developers" => [
+        "CommutativeAlgebra/FrameWorks/modules_atomic.md",
         "CommutativeAlgebra/FrameWorks/ring_localizations.md",
         "CommutativeAlgebra/FrameWorks/module_localizations.md",
      ],

@@ -536,6 +536,12 @@ function prune_with_map(M::ModuleFP)
 end
 
 # generic fallback
+@doc raw"""
+    prune_with_map_atomic(M::ModuleFP)
+
+Compute a simplified presentation of the module `M`. This is a generic fallback,
+if possible implement a more efficient version of this function for your ring type.
+"""
 function prune_with_map_atomic(M::ModuleFP)
   # TODO: take special care of graded modules 
   # by stripping off the grading and rewrapping it afterwards.

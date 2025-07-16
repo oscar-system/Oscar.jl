@@ -515,6 +515,14 @@ function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {T<:Union{
   return can_solve(ctx, vec_a; side=:left)
 end
 
+@doc raw"""
+    in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
+
+Check if `a` is an element of `M`. 
+  
+Throws an error if not implemented over the ring type under consideration.
+
+"""
 function in_atomic(a::FreeModElem, M::SubModuleOfFreeModule)
   error("Membership test 'in' is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
 end
