@@ -231,7 +231,7 @@ function (U::QuantumGroup)(a::QuantumFieldElem)
 end
 
 function (U::QuantumGroup)(x::QuantumGroupElem)
-  @req A === parent(x) "parent mismatch"
+  @req U === parent(x) "parent mismatch"
   return x
 end
 
@@ -448,6 +448,10 @@ end
 
 function isone(x::QuantumGroupElem)
   return isone(x.elem)
+end
+
+function is_unit(x::QuantumGroupElem)
+  return is_unit(x.elem)
 end
 
 function iszero(x::QuantumGroupElem)
