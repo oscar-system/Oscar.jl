@@ -38,8 +38,15 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> coordinate_ring(ambient_space(t))
-Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
-  over rational field  
+Multivariate polynomial ring in 8 variables over QQ graded by
+  w -> [0 1 0]
+  a1 -> [1 0 0]
+  a21 -> [2 -1 0]
+  a32 -> [3 -2 0]
+  a43 -> [4 -3 0]
+  x -> [2 0 2]
+  y -> [3 0 3]
+  z -> [0 0 1]
 ```
 
 Certainly, this is also possible over a concrete base, provided that the defining classes are provided:

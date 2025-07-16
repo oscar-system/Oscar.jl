@@ -143,7 +143,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
-1-element Vector{Vector{QQMPolyRingElem}}:
+1-element Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  [0, 0, 1]
 ```
 """)
@@ -195,7 +195,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
+1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
 ```
 """)
@@ -211,7 +211,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_zero_sections(m)
-1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
+1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1], [1, 1], [1, 1], [1, 1]]
 ```
 """)
@@ -264,7 +264,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
+1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
 ```
 """)
@@ -281,7 +281,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_zero_sections(m)
-1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
+1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1]]
 ```
 """)
@@ -298,7 +298,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> zero_section(h)
-3-element Vector{QQMPolyRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  0
  1
  0

@@ -200,7 +200,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> explicit_model_sections(t)
-Dict{String, QQMPolyRingElem} with 9 entries:
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 9 entries:
   "a6"  => 0
   "a21" => a21
   "a3"  => w^2*a32
