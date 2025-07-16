@@ -1849,4 +1849,16 @@ end
   @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
 end
 
+@testset "Krull dimension for subquos" begin
+    R, (a, b, c, d) = graded_polynomial_ring(QQ, [:a, :b, :c, :d])
+    I = ideal(R, [a*d - b*c])
+    M = quotient_ring_as_module(I)
 
+    E2 = ext(M, graded_free_module(R, 1), 0 + 2)
+    @test is_zero(E2)
+    @test krull_dim(E2) == -inf
+
+    E3 = ext(M, graded_free_module(R, 1), 1 + 2)
+    @test is_zero(E3)
+    @test krull_dim(E3) == -inf
+end
