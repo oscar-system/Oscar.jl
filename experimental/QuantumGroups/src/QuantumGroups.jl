@@ -38,6 +38,7 @@ import ..Oscar:
   is_unit,
   isone,
   iszero,
+  leading_monomial,
   length,
   monomial,
   mul!,
