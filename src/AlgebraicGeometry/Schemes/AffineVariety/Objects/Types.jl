@@ -7,7 +7,6 @@
       is_geometrically_integral(X) || error("varieties must be geometrically integral")
     end
     Y = new{S,T}(X)
-    Y.__attrs = copy(X.__attrs)
     set_attribute!(Y, :is_geometrically_integral => true)
     set_attribute!(Y, :is_integral => true)
     set_attribute!(Y, :is_geometrically_reduced => true)

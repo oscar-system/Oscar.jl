@@ -7,7 +7,6 @@
     Y.X = X
     if is_reduced
       Y.Xred = X
-      Y.__attrs = copy(Y.Xred.__attrs)
       set_attribute!(Y.Xred, :is_reduced, true)
       set_attribute!(Y.Xred, :is_geometrically_reduced, true)
     end
