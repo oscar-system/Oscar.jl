@@ -19,6 +19,7 @@ export add_birational_literature_model
 export add_resolution
 export add_resolution_generating_section
 export add_resolution_zero_section
+export add_torsion_section
 export add_weighted_resolution
 export add_weighted_resolution_generating_section
 export add_weighted_resolution_zero_section

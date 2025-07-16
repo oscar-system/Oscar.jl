@@ -585,8 +585,11 @@ end
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = get_attribute(m, :generating_sections, Vector{<:LineBundleSectionType}[] where T <: Any)
-  !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :generating_sections, GeneratingSectionsType())
+  !(new_entry in values) && set_attribute!(m, :generating_sections => vcat(values, [transformed]))
 end
 
 @doc raw"""
@@ -614,31 +617,55 @@ function add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}
 end
 
 function add_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = get_attribute(m, :resolution_generating_sections, Vector{Vector{Vector{T}}}[] where T <: Any)
-  # TODO ResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
-  # TODO So a cast from string to polynomial is missing here, right?!?
-  !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :resolution_generating_sections, ResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [transformed]))
 end
 
 function add_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = get_attribute(m, :resolution_zero_sections, Vector{Vector{T}}[] where T <: Any)
-  !(addition in values) && set_attribute!(m, :resolution_zero_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :resolution_zero_sections, ResolutionZeroSectionsType())
+  !(addition in values) && set_attribute!(m, :resolution_zero_sections => vcat(values, [transformed]))
+end
+
+function add_torsion_section(m::AbstractFTheoryModel, addition::Vector{String})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :torsion_sections, TorsionSectionsType())
+  !(addition in values) && set_attribute!(m, :torsion_sections => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution(m::AbstractFTheoryModel, addition::Vector{Vector})
-  values = get_attribute(m, :weighted_resolutions, Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}[])
-  !(addition in values) && set_attribute!(m, :weighted_resolutions => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolutions, WeightedResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolutions => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = get_attribute(m, :weighted_resolution_generating_sections, Vector{Vector{Vector{T}}}[] where T <: Any)
-  !(addition in values) && set_attribute!(m, :weighted_resolution_generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolution_generating_sections => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = get_attribute(m, :weighted_resolution_zero_sections, Vector{Vector{T}}[] where T <: Any)
-  !(addition in values) && set_attribute!(m, :weighted_resolution_zero_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolution_zero_sections => vcat(values, [transformed]))
 end
+
+
+
 
 
 
