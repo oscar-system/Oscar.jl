@@ -615,6 +615,8 @@ end
 
 function add_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
   values = get_attribute(m, :resolution_generating_sections, Vector{Vector{Vector{T}}}[] where T <: Any)
+  # TODO ResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
+  # TODO So a cast from string to polynomial is missing here, right?!?
   !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [addition]))
 end
 

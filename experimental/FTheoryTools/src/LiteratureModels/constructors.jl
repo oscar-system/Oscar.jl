@@ -607,6 +607,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if haskey(model_dict["model_data"], "generating_sections")
     vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
     set_attribute!(model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+    #set_attribute!(model, :generating_sections => [LineBundleSection([f(eval_poly(l, R)) for l in k]) for k in vs])
   end
   
   if haskey(model_dict["model_data"], "torsion_sections")

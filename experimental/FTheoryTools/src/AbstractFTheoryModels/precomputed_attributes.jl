@@ -13,7 +13,7 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
   Returns `$(fname)` of the F-theory model if known, otherwise throws an error.
 
   See [Literature Models](@ref) for more details.
-    
+
   $doc_example
   """
 
@@ -74,9 +74,14 @@ end
 
 
 # Return a list of the known Mordell–Weil generating sections of the given model.  If no generating sections are known, an error is raised.
-@define_model_attribute_getter((generating_sections, GeneratingSectionsType),
-"""
-```jldoctest
+@doc raw"""
+    generating_sections(m::AbstractFTheoryModel)
+
+Returns `generating_sections` of the F-theory model if known, otherwise throws an error.
+
+See [Literature Models](@ref) for more details.    
+
+  ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
@@ -86,7 +91,12 @@ julia> generating_sections(m)
 1-element Vector{Vector{QQMPolyRingElem}}:
  [0, 0, 1]
 ```
-""")
+"""
+function generating_sections(m::AbstractFTheoryModel)
+  @req has_attribute(m, :generating_sections) "No generating sections known for this model"
+  return get_attribute(m, :generating_sections)::GeneratingSectionsType
+end
+
 
 
 # Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution. Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list associated to a given resolution corresponds to a known generating section (in the same order). If no resolution generating sections are known, an error is raised.

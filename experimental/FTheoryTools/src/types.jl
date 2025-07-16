@@ -186,24 +186,43 @@ end
 
 # TODO: The type below should eventually be defined in toric varieties, maybe as a mutable struct, specific printing etc.
 # TODO: In addition, we also allow this symbolically for a family of spaces as base. This geometry thus requires a similar mutable structure for line bundle sections.
-const LineBundleSectionType = Union{Vector{QQMPolyRingElem}, Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}
+mutable struct LineBundleSection{T}
+  data::Vector{T}
+  function LineBundleSection(data::Vector{QQMPolyRingElem})
+    return LineBundleSection{QQMPolyRingElem}(data)
+  end
+  function LineBundleSection(data::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
+    return LineBundleSection{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}(data)
+  end
+end
 
+Base.getindex(s::LineBundleSection, i::Int) = s.data[i]
+Base.iterate(s::LineBundleSection) = iterate(s.data)
+Base.length(s::LineBundleSection) = length(s.data)
+Base.show(io::IO, s::LineBundleSection) = print(io, s.data)
 
-const ZeroSectionType = LineBundleSectionType
-const GeneratingSectionsType = Vector{<:LineBundleSectionType}
-const TorsionSectionsType = Vector{<:LineBundleSectionType}
+#const LineBundleSectionType = Union{Vector{QQMPolyRingElem}, Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}
+
+const ZeroSectionType = LineBundleSection
+const GeneratingSectionsType = Vector{LineBundleSection}
+const TorsionSectionsType = Vector{LineBundleSection}
+
+#const ZeroSectionType = LineBundleSectionType
+#const GeneratingSectionsType = Vector{<:LineBundleSectionType}
+#const TorsionSectionsType = Vector{<:LineBundleSectionType}
 
 
 # TODO: Mikelis, why are these types nested the way they are? I am inclined to say there is one nesting level too much.
 # TODO: ResolutionGeneratingSectionsType should, so I assume, have for each resolution a list with the generating sections. So it should be a list of lists of sections.
 # TODO: So this is then a vector(vector(vector))? But it nests four vectors...
 const ResolutionZeroSectionsType = Union{Vector{Vector{Vector{QQMPolyRingElem}}}, Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}
+#const ResolutionZeroSectionsType = Vector{Vector{LineBundleSectionType}}
+
 const WeightedResolutionZeroSectionsType = Union{Vector{Vector{Vector{QQMPolyRingElem}}}, Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}
 const ResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
 const WeightedResolutionGeneratingSectionsType = Union{Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}, Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}}
 
 # TODO: Even if it was as above, I should expect that we can formalize these types as follows, but this errors
-#const ResolutionZeroSectionsType = Vector{Vector{<:LineBundleSectionType}}
 #const WeightedResolutionZeroSectionsType = Vector{Vector{<:LineBundleSectionType}}
 #const ResolutionGeneratingSectionsType = Vector{Vector{Vector{<:LineBundleSectionType}}}
 #const WeightedResolutionGeneratingSectionsType = Vector{Vector{Vector{<:LineBundleSectionType}}}
