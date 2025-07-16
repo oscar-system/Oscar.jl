@@ -27,56 +27,30 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
 
-
   function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
     @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
     @req internal_ordering[1] in [:lex, :deglex, :degrevlex] "ordering of the elementary variables must be one of :lex, :deglex, :degrevlex"
     @req internal_ordering[2] in [:top, :pot] "extension must be one of :top (term-over-position) or :pot (position-over-term)"
-    zeroind = fill(0, ndiffs)
     elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
-    elem_syms_index = map(x -> Symbol("u" * string(x) * "["* join(zeroind) * "]"), 1:nelementary_symbols) 
-    upoly_ring, elemvars = universal_polynomial_ring(R, elem_syms_index)
-    
-    dpr = new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering)
+    upoly_ring = universal_polynomial_ring(R)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
-
-    for i in 1:nelementary_symbols
-      jet, var = (i, zeroind), dpr(elemvars[i])
-      jet_to_var[jet], var_to_jet[var] = var, jet
-    end
-
-    dpr.jet_to_var = jet_to_var
-    dpr.var_to_jet = var_to_jet
     
-    return dpr
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet)
   end
  
   function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
     @req internal_ordering[1] in [:lex, :deglex, :degrevlex] "ordering of the elementary variables must be one of :lex, :deglex, :degrevlex"
     @req internal_ordering[2] in [:top, :pot] "extension must be one of :top (term-over-position) or :pot (position-over-term)"
-    zeroind = fill(0, ndiffs)
-    nelementary_symbols = length(elementary_symbols)
-    elem_syms_index = map(s -> string(s) * "[" * join(zeroind) * "]", elementary_symbols)
-    upoly_ring, elemvars = universal_polynomial_ring(R, elem_syms_index)
+    upoly_ring = universal_polynomial_ring(R)
     
-    dpr = new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering)
-
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
-
-    for i in 1:nelementary_symbols
-      jet, var = (i, zeroind), dpr(elemvars[i])
-      jet_to_var[jet], var_to_jet[var] = var, jet
-    end
-      
-    dpr.jet_to_var = jet_to_var
-    dpr.var_to_jet = var_to_jet
     
-    return dpr
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet)
   end
 
 end
@@ -127,8 +101,10 @@ these elementary variables.
 """
 function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs, internal_ordering)
-  zeroind = fill(0, ndiffs)
-  return (dpr, map(i -> dpr.jet_to_var[(i, zeroind)], 1:nelementary_symbols))
+  for i in 1:nelementary_symbols
+    __add_new_jetvar!(dpr, i, fill(0, ndiffs))
+  end
+  return (dpr, map(i -> dpr.jet_to_var[(i, fill(0, ndiffs))], 1:nelementary_symbols))
 end
 
 @doc raw"""
@@ -139,8 +115,10 @@ these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' i
 """
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs, internal_ordering)
-  zeroind = fill(0, ndiffs)
-  return (dpr, map(i -> dpr.jet_to_var[(i, zeroind)], 1:nelementary_symbols(dpr)))
+  for i in 1:length(elementary_symbols)
+    __add_new_jetvar!(dpr, i, fill(0, ndiffs))
+  end
+  return (dpr, map(i -> dpr.jet_to_var[(i, fill(0, ndiffs))], 1:length(elementary_symbols)))
 end
 
 ### Differential ###
