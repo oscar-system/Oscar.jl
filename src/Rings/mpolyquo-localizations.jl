@@ -2221,6 +2221,19 @@ function minimal_primes(
 end
 
 @doc raw"""
+    is_equidimensional(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return whether I is equidimensional
+"""
+@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal})
+  return is_equidimensional(saturated_ideal(I))
+end
+
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
+end
+
+@doc raw"""
     saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
 Return ``I:J^\infty``.

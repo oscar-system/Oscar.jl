@@ -775,23 +775,6 @@ end
 
 is_equidimensional(I::PrimeIdealSheafFromChart) = true
 
-@attr Bool function is_equidimensional(I::MPolyIdeal)
-  decomp = equidimensional_decomposition_weak(I)
-  return isone(length(decomp))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
-  is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
-  return is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
-  return is_equidimensional(pre_image_ideal(I))
-end
-
 @doc raw"""
     _minimal_power_such_that(
         I::Ideal, P::PropertyType;
