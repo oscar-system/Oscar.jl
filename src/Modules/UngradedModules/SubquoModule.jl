@@ -2243,16 +2243,20 @@ julia> krull_dim(M)
   return krull_dim(ann)
 end
 
-@attr Int function krull_dim(M::SubquoModule{T}) where {T <: MPolyRingElem}
-  F = ambient_free_module(M)
-
-  if !all(repres(v) == F[i] for (i, v) in enumerate(gens(M)))
-    M = present_as_cokernel(M)
-  end
-
-  gb = groebner_basis(M.quo)
-  return Singular.dimension(singular_generators(gb))
+@attr Union{Int,NegInf} function krull_dim(M::SubquoModule{T}) where {T <: MPolyRingElem}
+    is_zero(M) && return -inf
+    F = ambient_free_module(M)
+    if !all(repres(v) == F[i] for (i, v) in enumerate(gens(M)))
+        M = present_as_cokernel(M)
+    end
+    if isdefined(M, :quo)
+        gb = groebner_basis(M.quo)
+        return Singular.dimension(singular_generators(gb))
+    else
+        return krull_dim(base_ring(M))
+    end
 end
+
 
 @attr Union{Int,NegInf} function krull_dim(F::FreeMod)
   if rank(F) == 0
