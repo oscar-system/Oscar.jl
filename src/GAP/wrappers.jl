@@ -78,6 +78,8 @@ GAP.@wrap DefiningPolynomial(x::GapObj)::GapObj
 GAP.@wrap DegreeFFE(x::Any)::Int
 GAP.@wrap DegreeOfLaurentPolynomial(x::GapObj)::GapInt
 GAP.@wrap DegreeOverPrimeField(x::GapObj)::Int
+GAP.@wrap Depth(x::GapObj)::Int
+GAP.@wrap DepthOfPcElement(x::GapObj, y::GapObj)::Int
 GAP.@wrap DenominatorCyc(x::Any)::GapInt
 GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap DescriptionOfRootOfUnity(x::Any)::GapObj
@@ -137,6 +139,7 @@ GAP.@wrap HasKernelRecogNode(x::GapObj)::Bool
 GAP.@wrap HasMaxes(x::GapObj)::Bool
 GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
 GAP.@wrap HasSize(x::Any)::Bool
+GAP.@wrap HirschLength(x::GapObj)::Int
 GAP.@wrap Identifier(x::GapObj)::GapObj
 GAP.@wrap Identity(x::GapObj)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
@@ -283,6 +286,8 @@ GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap KernelRecogNode(x::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
+GAP.@wrap LeadingExponent(x::GapObj)::GapInt
+GAP.@wrap LeadingExponentOfPcElement(x::GapObj, y::GapObj)::GapInt
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LetterRepAssocWord(x::GapObj)::GapObj
 GAP.@wrap LibInfoCharacterTable(x::GapObj)::GapObj
@@ -327,6 +332,7 @@ GAP.@wrap PCore(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap PcpElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PcpGroupByCollectorNC(x::GapObj)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj
+GAP.@wrap PermutationCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
@@ -346,6 +352,8 @@ GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap RecognizeGroup(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
+GAP.@wrap RelativeOrder(x::GapObj)::GapInt
+GAP.@wrap RelativeOrderOfPcElement(x::GapObj, y::GapObj)::GapInt
 GAP.@wrap RelativeOrders(x::GapObj)::GapObj
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj

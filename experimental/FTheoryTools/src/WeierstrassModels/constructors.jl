@@ -5,13 +5,11 @@
 @doc raw"""
     weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 
-This method constructs a Weierstrass model over a given toric base
-3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
-coefficients.
+Constructs a Weierstrass model over a given toric base space. The Weierstrass sections
+``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
-# Examples
 ```jldoctest
-julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
@@ -24,12 +22,11 @@ end
 @doc raw"""
     weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
-This method operates analogously to `weierstrass_model(base::NormalToricVarietyType)`.
-The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
+Constructs a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
+``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
 
-# Examples
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> f = generic_section(anticanonical_bundle(chosen_base)^4);
@@ -81,33 +78,28 @@ end
 
 
 #####################################################################
-# 2: Constructors with scheme as base
-#####################################################################
-
-# Yet to come...
-# This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
-# -> Types to be generalized then.
-
-
-#####################################################################
-# 3: Constructor with toric base attempting to represent moduli space
+# 2: Constructors with unspecified base
 #####################################################################
 
 @doc raw"""
     weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
-This method constructs a Weierstrass model over a base space that is not
-fully specified.
+Constructs a Weierstrass model over an *unspecified* base space.
 
-Note that many studies in the literature use the class of the anticanonical bundle
-in their analysis. We anticipate this by adding this class as a variable of the
-auxiliary base space, unless the user already provides this grading. Our convention
-is that the first grading refers to Kbar and that the homogeneous variable corresponding
-to this class carries the name "Kbar".
+This method is intended for workflows where the base space is not concretely fixed,
+such as in singularity engineering or symbolic studies. The variables in
+`auxiliary_base_ring` are interpreted as sections of line bundles on the (unspecified) base space. 
+The corresponding line bundles are encoded by the `auxiliary_base_grading` matrix.
 
-The following example illustrates this approach.
+**Grading convention:**
+- The **first row** of the grading corresponds to twists by the anticanonical bundle ``\overline{K}_B``.  
+- Subsequent rows correspond to additional user-defined gradings.
 
-# Examples
+To support typical F-theory constructions, a variable `Kbar` representing a section of
+``\overline{K}_B`` is automatically included unless already provided.
+
+Note: This interface is more symbolic and less robust than the constructors for concrete toric bases.
+
 ```jldoctest
 julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -165,7 +157,7 @@ end
 
 
 #####################################################################
-# 4: Display
+# 3: Display
 #####################################################################
 
 # Detailed printing

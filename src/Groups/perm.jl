@@ -142,7 +142,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -277,7 +277,7 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Sym(3)
+Symmetric group of degree 3
 
 julia> x == y
 true
@@ -817,7 +817,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym(8)
+Symmetric group of degree 8
 
 julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
@@ -853,7 +853,7 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym(14)
+Symmetric group of degree 14
 ```
 """
 macro perm(expr)

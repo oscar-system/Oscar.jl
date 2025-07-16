@@ -6,9 +6,8 @@
 @doc raw"""
     flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
 
-Create an element of a family of G4-fluxes.
+Creates an element of a family of G4-fluxes.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -111,7 +110,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m), check = check)
-    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r), true))
+    return g4_flux(m, cohomology_class(ambient_space(m), zero(r), quick = true), check = check)
   end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
@@ -149,9 +148,8 @@ end
 @doc raw"""
     random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Create a random element of a family of G4-fluxes.
+Creates a random element of a family of G4-fluxes.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -203,9 +201,8 @@ end
 @doc raw"""
     random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
-Create a random ``G_4``-flux on a given F-theory model.
+Creates a random ``G_4``-flux on a given F-theory model.
 
-# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base

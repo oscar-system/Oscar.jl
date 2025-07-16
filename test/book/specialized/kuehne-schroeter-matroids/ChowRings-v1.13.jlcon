@@ -1,0 +1,97 @@
+julia> M = cycle_matroid(complete_graph(4))
+Matroid of rank 3 on 6 elements
+
+julia> tutte_polynomial(M)
+x^3 + 3*x^2 + 4*x*y + 2*x + y^3 + 3*y^2 + 2*y
+
+julia> char_poly = characteristic_polynomial(M)
+q^3 - 6*q^2 + 11*q - 6
+
+julia> factor(char_poly)
+1 * (q - 3) * (q - 2) * (q - 1)
+
+julia> A = chow_ring(M);
+
+julia> GR, _ = graded_polynomial_ring(QQ,symbols(base_ring(A)));
+
+julia> AA = chow_ring(M,ring=GR);
+
+julia> vol_map = volume_map(M,AA)
+#3605 (generic function with 1 method)
+
+julia> e = matroid_groundset(M)[1];
+
+julia> proper_flats = flats(M)[2:length(flats(M))-1];
+
+julia> a = sum([AA[i] for i in 1:length(proper_flats) if e in proper_flats[i]])
+x_{Edge(2, 1)} + x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(2, 1),Edge(4, 1),Edge(4, 2)} + x_{Edge(2, 1),Edge(4, 3)}
+
+julia> b = sum([AA[i] for i in 1:length(proper_flats) if !(e in proper_flats[i])])
+x_{Edge(3, 1)} + x_{Edge(3, 2)} + x_{Edge(4, 1)} + x_{Edge(4, 2)} + x_{Edge(4, 3)} + x_{Edge(3, 1),Edge(4, 2)} + x_{Edge(3, 1),Edge(4, 1),Edge(4, 3)} + x_{Edge(3, 2),Edge(4, 1)} + x_{Edge(3, 2),Edge(4, 2),Edge(4, 3)}
+
+julia> k = 1
+1
+
+julia> R = base_ring(AA);
+
+julia> g = grading_group(R)[1];
+
+julia> PD1, mapPD1 = homogeneous_component(AA,k*g);
+
+julia> basis_PD1 = [mapPD1(x) for x in gens(PD1)];
+
+julia> PD2, mapPD2 = homogeneous_component(AA,(rank(M)-k-1)*g);
+
+julia> basis_PD2 = [mapPD2(x) for x in gens(PD2)];
+
+julia> Mat1 = matrix(QQ,[[vol_map(b1*b2) for b1 in basis_PD1] for b2 in basis_PD2])
+[-1    0    0    0    0    0    0    1]
+[ 0   -1    0    0    0    0    0    0]
+[ 0    0   -1    0    0    0    0    1]
+[ 0    0    0   -1    0    0    0    0]
+[ 0    0    0    0   -1    0    0    1]
+[ 0    0    0    0    0   -1    0    0]
+[ 0    0    0    0    0    0   -1    0]
+[ 1    0    1    0    1    0    0   -2]
+
+julia> Mat2 = matrix(QQ,[[vol_map(b1*b^(rank(M)-2k-1)*b2) for b1 in basis_PD1] for b2 in basis_PD1]);
+
+julia> Mat1 == Mat2
+true
+
+julia> RR, _ = graded_polynomial_ring(QQ,"y_#" => 1:length(basis_PD1));
+
+julia> map = hom(RR,AA,basis_PD1);
+
+julia> K = kernel(hom(RR,AA,[b^(rank(M)-2k)*b3 for b3 in basis_PD1]));
+
+julia> basis_HR = [map(h) for h in gens(K) if degree(h).coeff==k*g.coeff]
+7-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x_{Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(2, 1),Edge(4, 1),Edge(4, 2)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(2, 1),Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(3, 1),Edge(4, 2)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(3, 1),Edge(4, 1),Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(3, 2),Edge(4, 1)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(3, 2),Edge(4, 2),Edge(4, 3)}
+
+julia> Mat3 = matrix(QQ,[[(-1)^k*vol_map(b1*b^(rank(M)-2k-1)*b2) for b1 in basis_HR] for b2 in basis_HR])
+[ 2   0   -2   0   -1   0   -1]
+[ 0   2    1   1    1   1    1]
+[-2   1    5   1    1   1    1]
+[ 0   1    1   5    1   1    1]
+[-1   1    1   1    2   1    1]
+[ 0   1    1   1    1   5    1]
+[-1   1    1   1    1   1    2]
+
+julia> is_positive_definite(matrix(ZZ,[ZZ(i) for i in Mat3]))
+true
+
+julia> reduced_characteristic_polynomial(M)
+q^2 - 5*q + 6
+
+julia> [vol_map(a^(rank(M)-j-1)*b^j) for j in range(0,rank(M)-1)]
+3-element Vector{QQFieldElem}:
+ 1
+ 5
+ 6

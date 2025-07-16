@@ -302,7 +302,7 @@ end
   I = ideal(R, x)
   # A priori we expect nothing to be known
   @test !Oscar.is_known(is_one, I)
-  @test !Oscar.is_known(dim, I)
+  @test !Oscar.is_known(krull_dim, I)
   @test !Oscar.is_known(groebner_basis, I)
   # ...except things which are really easy to check.
   @test Oscar.is_known(is_zero, I)

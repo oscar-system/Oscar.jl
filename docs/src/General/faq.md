@@ -29,7 +29,7 @@ NormalToricVariety
 ```
 Suppose that we now want to find all methods that accept a `NormalToricVariety` as one of their arguments.
 This can be achieved as follows:
-```
+```julia-repl
 julia> methodswith(typeof(v))
 [1] intersection_form(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/CohomologyClasses/special_attributes.jl:101
 [2] mori_cone(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/NormalToricVarieties/attributes.jl:976
@@ -38,14 +38,14 @@ julia> methodswith(typeof(v))
 [5] volume_form(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/CohomologyClasses/special_attributes.jl:50
 ```
 Often it can be beneficial to also include supertypes in the search:
-```
+```julia-repl
 julia> methodswith(typeof(v), supertypes = true)
 ```
 As of December 2022, this results in a list of 101 functions.
 
 Note that we can also find the constructors, i.e. functions that return an object of type `NormalToricVariety`.
 This is possible with the Julia function [methods](https://docs.julialang.org/en/v1/base/base/#Base.methods):
-```julia
+```julia-repl
 julia> methods(typeof(v))
 # 5 methods for type constructor:
 [1] NormalToricVariety(P::Polyhedron) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/NormalToricVarieties/constructors.jl:183

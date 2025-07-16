@@ -57,6 +57,10 @@
   G, C = galois_group((x^3-2)^2*(x^3-5)^2*(x^2-6))
   @test order(G) == 36
   @test degree(G) == 14
+
+  #Fabian Gundlach...
+  G, C = galois_group(x^8 - 2*x^7 - 48*x^6 + 58*x^5 + 846*x^4 - 4614*x^3 + 6609*x^2 + 48742*x + 493474)
+  @test order(G) == 32
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures

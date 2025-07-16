@@ -125,15 +125,11 @@ end
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModElem{T}
 parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
 
-function generator_symbols(F::FreeMod)
-  return F.S
-end
-
 function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
   for (pos, val) in coordinates(e)
-     # assuming generator_symbols(parent(e)) is an array of strings/symbols
-     push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
+     # assuming symbols(parent(e)) is an array of strings/symbols
+     push!(sum.args, Expr(:call, :*, expressify(val, context = context), symbols(parent(e))[pos]))
   end
   return sum
 end
@@ -154,9 +150,9 @@ end
 Return the standard basis of `F`.
 """
 function basis(F::AbstractFreeMod)
-  bas = Vector{elem_type(F)}(undef, dim(F))
+  bas = Vector{elem_type(F)}(undef, rank(F))
   e = one(base_ring(F))
-  for i=1:dim(F)
+  for i=1:rank(F)
     s = sparse_row(base_ring(F), [i], [e])
     bas[i] = F(s)
   end

@@ -1,12 +1,10 @@
-#####################################################
-# 1: Fiber analysis
-#####################################################
-
 @doc raw"""
     analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
 
 Determine the fiber of a (singular) global Tate model over a particular base locus.
-```
+
+!!! warning
+    This method may run for very long time and is currently not tested as part of the regular OSCAR CI due to its excessive run times.
 """
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
   
@@ -72,21 +70,17 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
 end
 
 
-#####################################################
-# 2: Tune a Tate model
-#####################################################
-
 @doc raw"""
     tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
-Tune a Tate model by fixing a special choice for the model sections.
-Note that it is in particular possible to set a section to zero. We anticipate
-that people might want to be able to come back from this by assigning a non-trivial
-value to a section that was previously tuned to zero. This is why we keep such
-trivial sections and do not delete them, say from `explicit_model_sections`
-or `classes_of_model_sections`.
+Tunes a global Tate model by specifying values for some of its defining sections.
 
-# Examples
+This mechanism allows for specialized constructions—for example, setting certain sections to zero
+to engineer enhanced singularities. Note that trivial (zero) sections are retained internally,
+rather than deleted from attributes like `explicit_model_sections` or `classes_of_model_sections`.
+This design choice enables users to later reintroduce nontrivial values for such sections
+without loss of structure.
+
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

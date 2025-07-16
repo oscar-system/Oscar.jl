@@ -15,15 +15,16 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   if !all(gs) && !all(!x for x in gs)
     error("All factors must either be graded or all must be ungraded.")
   end
-  s = G[1].S
   t = [[x] for x = 1:ngens(G[1])]
   for H = G[2:end]
-    s = [Symbol("$x \\otimes $y") for x = s  for y = H.S]
     t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
   end
 
   F = FreeMod(G[1].R, prod([rank(g) for g in G]))
-  F.S = s
+  F.S = function _get_tensor_symbols()
+    return Symbol.([join(["$(symbol(G[k], i[length(G)-k+1]))" for k in 1:length(G)], " \\otimes ") for i in AbstractAlgebra.ProductIterator([1:ngens(g) for g in reverse(G)])])
+  end
+
   set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
 
   function pure(g::FreeModElem...)

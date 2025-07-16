@@ -12,7 +12,7 @@ parent(x::AbstractLieAlgebraElem) = x.parent
 
 coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::AbstractLieAlgebra) = L.dim
+vector_space_dim(L::AbstractLieAlgebra) = L.dim
 
 _struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
   L.struct_consts::Matrix{sparse_row_type(C)}

@@ -2,7 +2,7 @@
 # 1: Weierstrass models over concrete base space
 #############################################################
 
-my_base = sample_toric_variety()
+my_base = projective_space(NormalToricVariety, 3)
 sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)
 sec_g = generic_section(anticanonical_bundle(my_base)^6)
 w = weierstrass_model(my_base; completeness_check = false)
@@ -18,7 +18,6 @@ w = weierstrass_model(my_base; completeness_check = false)
   @test toric_variety(calabi_yau_hypersurface(w)) == ambient_space(w)
   @test length(singular_loci(w)) == 1
   @test is_base_space_fully_specified(w) == true
-  @test is_base_space_fully_specified(w) == is_base_space_fully_specified(weierstrass_model(w))
   @test is_partially_resolved(w) == false
 end
 
@@ -55,7 +54,7 @@ w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
   end
 end
 
-w3_copy = weierstrass_model(sample_toric_variety(); completeness_check = false)
+w3_copy = weierstrass_model(projective_space(NormalToricVariety, 3); completeness_check = false)
 
 @testset "Saving and loading another Weierstrass model over concrete base space" begin
   mktempdir() do path

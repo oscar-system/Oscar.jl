@@ -37,6 +37,8 @@ export basis_of_h22_ambient
 export basis_of_h22_ambient_indices
 export basis_of_h22_hypersurface
 export basis_of_h22_hypersurface_indices
+export gens_of_h22_hypersurface
+export gens_of_h22_hypersurface_indices
 export birational_literature_models
 export blow_up
 export breaks_non_abelian_gauge_group
@@ -178,7 +180,6 @@ export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
 export resolve
-export sample_toric_variety
 export set_arxiv_doi
 export set_arxiv_id
 export set_arxiv_link
@@ -222,8 +223,6 @@ export set_zero_section_class
 export simplified_dual_graph
 export singular_loci
 export special_flux_family
-export su5_tate_model_over_arbitrary_3d_base
-export su5_weierstrass_model_over_arbitrary_3d_base
 export tate_ideal_sheaf
 export tate_polynomial
 export tate_section_a1
@@ -254,3 +253,5 @@ export zero_section_class
 export zero_section_index
 
 @deprecate chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) chosen_g4_flux_gens(m, check = check)
+@deprecate basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface(m, check = check)
+@deprecate basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface_indices(m, check = check)

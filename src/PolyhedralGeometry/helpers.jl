@@ -442,11 +442,7 @@ stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
 function stack(VV::AbstractVector{<:AbstractVector})
   @req length(VV) > 0 "at least one vector required"
-  if VERSION >= v"1.9"
-    permutedims(Base.stack(VV))
-  else
-    permutedims(reshape(collect(Iterators.flatten(VV)), length(VV[1]), length(VV)))
-  end
+  permutedims(Base.stack(VV))
 end
 stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
 stack(x) = stack(x, nothing)

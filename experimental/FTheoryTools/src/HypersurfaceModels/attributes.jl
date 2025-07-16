@@ -7,21 +7,36 @@
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
-Return the hypersurface equation.
+Returns the hypersurface equation of the hypersurface model.
 
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
+julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> b = torusinvariant_prime_divisors(B2)[1]
-Torus-invariant, prime divisor on a normal toric variety
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
 
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
+julia> D1 = 2 * anticanonical_divisor_class(b)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(b)
+Divisor class on a normal toric variety
+
+julia> new_gens = string.(vcat(gens(cox_ring(b)), gens(cox_ring(fiber_ambient_space))));
+
+julia> ambient_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, new_gens, cached=false)
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z
+x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
+
+julia> h = hypersurface_model(b, fiber_ambient_space, [D1, D2], p; completeness_check = false)
 Hypersurface model over a concrete base
 
-julia> hypersurface_equation(h);
+julia> hypersurface_equation(h)
+x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
 ```
 """
 hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
@@ -30,8 +45,7 @@ hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 @doc raw"""
     hypersurface_equation_parametrization(h::HypersurfaceModel)
 
-Return the parametrization of the hypersurface
-equation by the model sections.
+Returns the parametrization of the hypersurface equation by the model sections.
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
@@ -64,51 +78,141 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
 
-Return the Weierstrass model corresponding to the
-hypersurface model, provided that the former is known.
+Returns the Weierstrass model corresponding to the given hypersurface model, if known.
+
+In the example below, we construct a hypersurface model and its corresponding Weierstrass
+model (see [BMT25](@cite BMT25) for background), and then establish the relationship
+between the two models.
 
 ```jldoctest
-julia> t = literature_model(14)
-Assuming that the first row of the given grading is the grading under Kbar
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
 
-Hypersurface model over a not fully specified base
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
 
-julia> weierstrass_model(t)
-Assuming that the first row of the given grading is the grading under Kbar
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
-Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_1 based on arXiv paper 1408.4808 Eq. (3.4)
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+Weierstrass model over a concrete base
+
+julia> set_weierstrass_model(h, w)
+
+julia> weierstrass_model(h) === w
+true
 ```
 """
 function weierstrass_model(h::HypersurfaceModel)
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   w = get_attribute(h, :weierstrass_model)
-  if w isa String
-    directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
-    model_indices = JSON.parsefile(directory * "model_indices.json")
-    if is_base_space_fully_specified(h)
-      w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
-    else
-      w_model = literature_model(parse(Int, model_indices[w]))
-    end
-    set_weierstrass_model(h, w_model)
-    return w_model
-  else
+  if w isa WeierstrassModel
     return w
   end
+  @req w isa String "Internal inconsistency encountered"
+  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  model_indices = JSON.parsefile(directory * "model_indices.json")
+  if is_base_space_fully_specified(h)
+    w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+  else
+    w_model = literature_model(parse(Int, model_indices[w]))
+  end
+  set_weierstrass_model(h, w_model)
+  return w_model
 end
 
 
 @doc raw"""
     global_tate_model(h::HypersurfaceModel)
 
-Return the global Tate model corresponding to the
-hypersurface model, provided that the latter is known.
+Returns the global Tate model corresponding to the given hypersurface model, if known.
+
+In the example below, we construct a hypersurface model and its corresponding global
+Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
+between the two models.
+
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
+
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> a1 = 13 * x3^3;
+
+julia> a2 = 7 * x1 * x2^5;
+
+julia> a3 = x1^2 * x2^4 * x3^3;
+
+julia> a4 = x1^3 * (x2 + x3)^9;
+
+julia> a6 = zero(cox_ring(B2));
+
+julia> t = global_tate_model(B2, [a1, a2, a3, a4, a6])
+Global Tate model over a concrete base
+
+julia> set_global_tate_model(h, t)
+
+julia> global_tate_model(h) === t
+true
+```
 """
 function global_tate_model(h::HypersurfaceModel)
   @req has_attribute(h, :global_tate_model) "No corresponding global Tate model is known"
-  return get_attribute(h, :global_tate_model)
+  t = get_attribute(h, :global_tate_model)
+  if t isa GlobalTateModel
+    return t
+  end
+  @req t isa String "Internal inconsistency encountered"
+  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  model_indices = JSON.parsefile(directory * "model_indices.json")
+  if is_base_space_fully_specified(h)
+    t_model = literature_model(parse(Int, model_indices[t]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+  else
+    t_model = literature_model(parse(Int, model_indices[t]))
+  end
+  set_global_tate_model(h, t_model)
+  return t_model
 end
-
 
 
 ############################################################################################################
@@ -125,19 +229,33 @@ end
 @doc raw"""
     calabi_yau_hypersurface(h::HypersurfaceModel)
 
-Return the Calabi-Yau hypersurface in the toric ambient space
-which defines the hypersurface model.
+Returns the Calabi–Yau hypersurface that defines the hypersurface model
+as a closed subvariety of its toric ambient space.
 
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
+julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> b = torusinvariant_prime_divisors(B2)[1]
-Torus-invariant, prime divisor on a normal toric variety
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
 
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
+julia> D1 = 2 * anticanonical_divisor_class(b)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(b)
+Divisor class on a normal toric variety
+
+julia> new_gens = string.(vcat(gens(cox_ring(b)), gens(cox_ring(fiber_ambient_space))));
+
+julia> ambient_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, new_gens, cached=false)
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z
+x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
+
+julia> h = hypersurface_model(b, fiber_ambient_space, [D1, D2], p; completeness_check = false)
 Hypersurface model over a concrete base
 
 julia> calabi_yau_hypersurface(h)
@@ -158,7 +276,51 @@ end
 @doc raw"""
     discriminant(h::HypersurfaceModel)
 
-Return the discriminant of the hypersurface model.
+Returns the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
+with the given hypersurface model.
+
+Raises an error if no such Weierstrass model is known.
+
+In the example below, we construct a hypersurface model and its corresponding Weierstrass
+model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
+
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
+
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+Weierstrass model over a concrete base
+
+julia> set_weierstrass_model(h, w)
+
+julia> degree(discriminant(h))
+Abelian group element [36]
+```
 """
 @attr MPolyRingElem function discriminant(h::HypersurfaceModel)
   @req base_space(h) isa NormalToricVariety "Discriminant currently only supported for toric varieties as base space"
@@ -170,9 +332,56 @@ end
 @doc raw"""
     singular_loci(h::HypersurfaceModel)
 
-Return the singular loci of the hypersurface model, along with the order of
-vanishing of the Weierstrass sections and discriminant ``(f, g, \Delta)```
-at each locus. Also the refined Tate fiber type is returned.
+Returns the singular loci of the Weierstrass model equivalent to the given hypersurface model,
+along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
+refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
+
+Raises an error if no such Weierstrass model is known.
+
+In the example below, we construct a hypersurface model and its corresponding Weierstrass
+model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
+
+!!! warning
+    The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
+    While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
+
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+Weierstrass model over a concrete base
+
+julia> set_weierstrass_model(h, w)
+
+julia> length(singular_loci(h))
+2
+```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)
   @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"

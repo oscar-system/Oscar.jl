@@ -19,19 +19,11 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing)
-  return dim(modulus(A))
-end
+dim(A::MPolyQuoRing) = krull_dim(A)
 
-function dim(A::zzModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-function dim(A::ZZModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
@@ -41,8 +33,8 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 as a `K`-vector space, `false` otherwise.
 
 !!! note 
-    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension zero. This condition is checked by the function.
-    
+    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
+    less or equal zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -61,7 +53,7 @@ false
 """
 function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   # We check '<=' because A might be the zero ring, so dim(A) == -1
-  return dim(A) <= 0
+  return krull_dim(A) <= 0
 end
 
 struct InfiniteDimensionError <: Exception
@@ -73,7 +65,7 @@ function Base.showerror(io::IO, err::InfiniteDimensionError)
 end
 
 @doc raw"""
-    vector_space_dimension(A::MPolyQuoRing)
+    vector_space_dim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
@@ -87,7 +79,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
-julia> vector_space_dimension(A)
+julia> vector_space_dim(A)
 6
 
 julia> I = modulus(A)
@@ -105,9 +97,9 @@ with respect to the ordering
   lex([x, y, z])
 ```
 """
-function vector_space_dimension(A::MPolyQuoRing)
+function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
-    error("vector_space_dimension requires a coefficient ring that is a field")
+    error("vector_space_dim requires a coefficient ring that is a field")
   end
   is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = modulus(A)

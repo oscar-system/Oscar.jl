@@ -176,3 +176,5 @@ function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Tropi
     end
     return TropL
 end
+
+@deprecate vector_space_dimension vector_space_dim

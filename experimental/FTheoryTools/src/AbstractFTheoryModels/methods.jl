@@ -8,7 +8,6 @@
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 
-# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -26,7 +25,6 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 ```
 Here is an example for a Weierstrass model.
 
-# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -55,7 +53,6 @@ end
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 
-# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -112,7 +109,6 @@ end
 Resolve an F-theory model by blowing up a locus in the ambient space.
 For this method, the blowup center is encoded by an ideal sheaf.
 
-# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -268,7 +264,6 @@ end
 # Note that there is less functionality for hypersurface models than for Weierstrass or Tate
 # models. For instance, `singular_loci` can (currently) not be computed for hypersurface models.
 
-# # Examples
 # ```jldoctest
 # julia> B3 = projective_space(NormalToricVariety, 3)
 # Normal toric variety
@@ -331,7 +326,6 @@ Put an F-theory model defined over a family of spaces over a concrete base.
 
 Currently, this functionality is limited to Tate and Weierstrass models.
 
-# Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", completeness_check = false)
 Assuming that the first row of the given grading is the grading under Kbar
@@ -873,7 +867,13 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   if has_attribute(m, :arxiv_id)
     if resolution_index == 1 && arxiv_id(m) == "1511.03209"
       model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      return load(model_data_path)
+      model = load(model_data_path)
+      # Modify attributes, see PR #5031 for details
+      set_attribute!(model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface))
+      set_attribute!(model, :gens_of_h22_hypersurface_indices, get_attribute(model, :basis_of_h22_hypersurface_indices))
+      delete!(model.__attrs, :basis_of_h22_hypersurface)
+      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
+      return model
     end
   end
 

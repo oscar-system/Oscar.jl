@@ -89,7 +89,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-      length(v) == dim(R) - dim(X) || error("not a complete intersection")
+      length(v) == krull_dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -101,7 +101,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-      length(v) == dim(R) - dim(X) || error("not a complete intersection")
+      length(v) == krull_dim(R) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -337,7 +337,7 @@ function rational_point_coordinates(I::MPolyIdeal)
   G=groebner_basis(I)
   LG = leading_ideal(I;ordering=o)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
-  vd = vector_space_dimension(quo(base_ring(LG),LG)[1])
+  vd = vector_space_dim(quo(base_ring(LG),LG)[1])
   vd ==1 || error("Ideal does not describe a single K-point")
   nf_vec = [normal_form(v,I) for v in gens(R)]
   return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
@@ -560,7 +560,7 @@ function CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Uni
   U = MPolyComplementOfKPointIdeal(R,b)
   L,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
-  length(mingens) == dim(R) - dim(L) || error("not a complete intersection")
+  length(mingens) == krull_dim(R) - dim(L) || error("not a complete intersection")
   w = mingens
   Y = CompleteIntersectionGerm(spec(L),w)
   set_attribute!(Y,:representative,X)
@@ -857,7 +857,7 @@ function CompleteIntersectionGerm(A::LocalRing)
   I = modulus(A)
   !iszero(I) || error("zero ideal not allowed for complete intersection germ")
   v = minimal_generating_set(I)
-  length(v) == dim(base_ring(I)) - dim(A) || error("not a complete intersection germ")
+  length(v) == krull_dim(base_ring(I)) - krull_dim(A) || error("not a complete intersection germ")
   return CompleteIntersectionGerm(spec(A),v)
 end
 
@@ -1109,7 +1109,7 @@ end
 Return the local Milnor number of `(X,p)` at p
 """
 function milnor_number(X::HypersurfaceGerm)
-  return vector_space_dimension(milnor_algebra(X))
+  return vector_space_dim(milnor_algebra(X))
 end
 
 function milnor_number(X::CompleteIntersectionGerm)
@@ -1173,8 +1173,8 @@ function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   LJ = leading_ideal(J;ordering=o)
 
   ## we might have a violated colength condition (i.e. dim(LJ)>0)
-  dim(quo(R,LJ)[1]) == 0 || return (-1)
-  return vector_space_dimension(LJ)
+  krull_dim(quo(R,LJ)[1]) == 0 || return (-1)
+  return vector_space_dim(LJ)
 end
 
 @doc raw"""
@@ -1199,9 +1199,9 @@ function milnor_number(X::AffineScheme{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
   v = gens(modulus(OO(X)))
   if length(v) == 1
-    return vector_space_dimension(milnor_algebra(X))
+    return vector_space_dim(milnor_algebra(X))
   end
-  length(v) == dim(R) - dim(X) || error("not a complete intersection (or unnecessary generators in specified generating set)")
+  length(v) == krull_dim(R) - dim(X) || error("not a complete intersection (or unnecessary generators in specified generating set)")
   w = typeof(v[1])[]   ## already used entries of v
   dims = 0             ## for building up the alternating sum
   sign = 1
@@ -1248,5 +1248,5 @@ function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
 
   ## we might have a violated colength condition (i.e. dim(LJ)>0)
   dim(LJ) == 0 || return -1
-  return vector_space_dimension(quo(R,LJ)[1])
+  return vector_space_dim(quo(R,LJ)[1])
 end

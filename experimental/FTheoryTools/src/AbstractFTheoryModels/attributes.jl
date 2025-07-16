@@ -50,10 +50,16 @@ end
 Return the fiber ambient space of an F-theory model.
 
 ```jldoctest
-julia> t = su5_tate_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
 
-Global Tate model over a not fully specified base
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> fiber_ambient_space(t)
 Normal toric variety
@@ -177,9 +183,9 @@ end
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Return the defining divisor classes of the model in question.
-This is the minimum set of information required to specify a
-family of models. 
+Returns the defining divisor classes of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -1410,8 +1416,9 @@ end
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Return a vector containing all sections that can be tuned.
-This is a list of the names of all parameters appearing in the model.
+Returns the tunable sections of the given F-theory model.
+
+For a detailed explanation of the concept, see [Literature Models](@ref).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -1464,9 +1471,11 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
-Returns a dictionary giving the classes of all parameters (tunable sections)
-in terms of Kbar and the defining classes. Each value gives the divisor
-class of the corresponding section/key in this basis. This information is currently only available for literature models.
+Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+of the base and the defining classes of the given model.
+
+!!! warning
+    This information is currently only available for literature models.
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
@@ -1732,7 +1741,9 @@ we may use the coordinates xi as labels for the curves Ci.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(genera_of_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(genera_of_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> genera_of_ci_curves(qsm_model)[my_key]
@@ -1757,7 +1768,9 @@ this line bundle for every Ci curve.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> my_key = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)))[1]
+julia> keys_list = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)));
+
+julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
 x7
 
 julia> degrees_of_kbar_restrictions_to_ci_curves(qsm_model)[my_key]

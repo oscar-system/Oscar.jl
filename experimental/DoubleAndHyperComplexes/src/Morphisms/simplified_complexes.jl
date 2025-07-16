@@ -374,25 +374,117 @@ function simplify(c::FreeResolution{T}) where T
     pushfirst!(result.maps, psi)
     result.complete = true
   end
+  set_attribute!(result, 
+                 :show=>Hecke.pres_show, 
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
   return FreeResolution(result)
-
-  # The following is left here as a prototype for later recycling.
-  result.fill = function _fill(cc::ComplexOfMorphisms, i::Int)
-    cc[i-1] # make sure cache is up to date
-    if is_zero(i)
-      pushfirst!(cc.maps, compose(phi[0], map(c, 0)))
-    else
-      pushfirst!(cc.maps, map(simp, i))
-    end
-    first(cc.maps)
-  end
-  final_res = FreeResolution(result)
-  return final_res
 end
 
-# An alias to cater for the common phrasing of the CA community. 
-function minimize(c::FreeResolution)
-  @assert is_graded(c[-1]) "complex does not consist of graded modules"
+# An alias to cater for the common phrasing of the CA community:
+
+@doc raw"""
+    minimize(F::FreeResolution)
+
+If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
+
+If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
+
+!!! note
+    If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> Z = R(0)
+0
+
+julia> O = R(1)
+1
+
+julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+
+julia> A = transpose(matrix(B));
+
+julia> M = graded_cokernel(A)
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
+
+julia> FM = free_resolution(M)
+Free resolution of M
+R^2 <---- R^7 <---- R^8 <---- R^3 <---- 0
+0         1         2         3         4
+
+julia> betti(FM)
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  3  1
+     2: -  3  5  2
+------------------
+ total: 2  7  8  3
+
+julia> FMmin = minimize(FM)
+Free resolution of M
+R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> betti(FMmin)
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
+
+julia> FM2 = free_resolution(M, length = 2)
+Free resolution of M
+R^2 <---- R^7 <---- R^8
+0         1         2
+
+julia> betti_table(FM2)
+degree: 0  1  2
+---------------
+    -1: -  1  -
+     0: 2  -  -
+     1: -  3  3
+     2: -  3  5
+---------------
+ total: 2  7  8
+
+julia> FM2min = minimize(FM2)
+Free resolution of M
+R^1 <---- R^3
+0         1
+
+julia> betti_table(FM2min)
+degree: 0  1
+------------
+     0: 1  -
+     1: -  3
+------------
+ total: 1  3
+
+```
+"""
+function minimize(c::FreeResolution; check::Bool=true)
+  # The following assertion is a bit complicated. 
+  # This method is allowed for graded modules and modules over 
+  # local rings. Checking for being graded is cheap, but checking 
+  # for being a local ring is not. Hence the latter checks must be 
+  # behind an @check, but the gradedness check not. 
+  if !is_graded(c[-1]) 
+    @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
+  end
   return simplify(c)
 end
 

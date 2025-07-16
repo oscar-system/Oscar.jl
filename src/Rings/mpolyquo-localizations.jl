@@ -1811,12 +1811,12 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLoc
   return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
 end 
 
-function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
+function vector_space_dim(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
                                  <:MPolyComplementOfKPointIdeal})
   I = shifted_ideal(modulus(R))
   o = negdegrevlex(gens(base_ring(R)))
   LI=leading_ideal(standard_basis(I, ordering = o))
-  return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
+  return vector_space_dim(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
 @doc raw"""
@@ -1945,7 +1945,7 @@ julia> monomial_basis(TfL2)
 1-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  1
 
-julia> vector_space_dimension(Tf) == vector_space_dimension(TfL0) + vector_space_dimension(TfL1) + vector_space_dimension(TfL2)
+julia> vector_space_dim(Tf) == vector_space_dim(TfL0) + vector_space_dim(TfL1) + vector_space_dim(TfL2)
 true
 ```
 """
@@ -2148,8 +2148,10 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyQuoLocalizedIdeal)
-  return dim(pre_image_ideal(I))
+dim(I::MPolyQuoLocalizedIdeal) = krull_dim(I)
+
+@attr Union{Int, NegInf} function krull_dim(I::MPolyQuoLocalizedIdeal)
+  return krull_dim(pre_image_ideal(I))
 end
 
 #############################################################################
@@ -2216,6 +2218,19 @@ function minimal_primes(
   end
 
   return result
+end
+
+@doc raw"""
+    is_equidimensional(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return whether I is equidimensional
+"""
+@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal})
+  return is_equidimensional(saturated_ideal(I))
+end
+
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
 end
 
 @doc raw"""
@@ -2322,7 +2337,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing;
   kk === coefficient_ring(R)::Field || error("change of base field not implemented")
   I = modulus(W)::MPolyLocalizedIdeal
   I_sat = saturated_ideal(modulus(W))::MPolyIdeal
-  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  @assert iszero(krull_dim(I_sat)) "algebra must be zero dimensional"
   o = ordering
   # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
   A, pr = quo(R, I_sat) 
@@ -2348,7 +2363,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   # Collect all monomials which are not in the leading ideal as representatives 
   # of a basis over kk.
   lead_I = leading_ideal(I_shift, ordering=ordering)
-  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  @assert iszero(krull_dim(lead_I)) "quotient must be zero dimensional"
   V_gens = elem_type(R)[]
   done = false
   d = 0
@@ -2587,36 +2602,21 @@ end
   return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
-@attr Int function dim(R::MPolyLocRing)
-  error("Not implemented")
+dim(R::MPolyQuoLocRing) = krull_dim(R)
+
+function krull_dim(R::MPolyQuoLocRing)
+  return krull_dim(modulus(R))
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
   P = prime_ideal(inverted_set(R))
   I = saturated_ideal(modulus(R))
-  dim(I) === -inf && return -inf
-  return dim(I) - dim(P)
+  krull_dim(I) === -inf && return -inf
+  return krull_dim(I) - krull_dim(P)
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  return dim(saturated_ideal(modulus(R)))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
-  # zariski open subset of A^n
-  return dim(base_ring(R))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
-  P = prime_ideal(inverted_set(R))
-  return codim(P)
-end
-
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
-  # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
-  # because all maximal ideals have the same dimension in this case. 
-  return dim(base_ring(R))
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
+  return krull_dim(saturated_ideal(modulus(R)))
 end
 
 ########################################################################
@@ -2854,10 +2854,6 @@ base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
 
-function dim(R::MPolyQuoLocRing)
-  return dim(modulus(R))
-end
-
 ### extra methods for speedup of mappings
 # See `src/Rings/MPolyMap/MPolyRing.jl` for the original implementation and 
 # the rationale. These methods make speedup available for quotient rings 
@@ -2951,4 +2947,35 @@ _exponents(x::MPolyQuoLocRingElem) = AbstractAlgebra.exponent_vectors(lifted_num
 _cmp_reps(a::MPolyLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoRingElem) = y->(y.f == a.f)
+
+@attr Bool function is_local(
+    R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return !is_trivial(R)
+end
+
+function is_known(::typeof(is_local), 
+    Q::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  has_attribute(Q, :is_local) && return true
+  is_known(is_trivial, Q) && return true
+  return false
+end
+
+function is_known(::typeof(is_trivial), 
+    Q::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return is_known(is_one, modulus(Q))
+end
+
+function is_known(::typeof(is_one), 
+    I::MPolyLocalizedIdeal{T}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}, 
+           T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+          }
+  is_known(is_one, I.pre_saturated_ideal) && is_one(I.pre_saturated_ideal) && return true
+  isdefined(I, :saturated_ideal) && is_known(is_one, I.saturated_ideal) && return true
+  return false
+end
+
 
