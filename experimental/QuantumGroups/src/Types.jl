@@ -25,9 +25,8 @@ end
 
 function MPolyRingElem(R::MPolyRing{T}, coeff::T, exp::Vector{Int}) where {T}
   x = MPolyRingElem(R)
-  fit!(x, 1)
-  x.coeffs[1] = coeff
-  copyto!(x.exps, exp)
+  x.coeffs = [coeff]
+  x.exps = exp
   x.len = 1
 
   return x

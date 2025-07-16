@@ -407,7 +407,7 @@ function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
   if z === x
     return sub!(z, y)
   elseif z === y
-    return sub!(z, x)
+    return add!(neg!(z), x)
   end
   
   R = parent(z)
@@ -646,7 +646,17 @@ function (R::MPolyRing)()
   return zero(R)
 end
 
-function (R::MPolyRing{T})(a::Union{T,Integer}) where {T}
+function (R::MPolyRing)(a::Integer)
+  if iszero(a)
+    return zero(R)
+  end
+
+  z = one(R)
+  z.coeffs[1] = coefficient_ring(R)(a)
+  return z
+end
+
+function (R::MPolyRing{T})(a::T) where {T}
   if iszero(a)
     return zero(R)
   end
@@ -767,6 +777,13 @@ function Base.:(==)(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   end
 
   return true
+end
+
+function leading_monomial(x::MPolyRingElem)
+  @req !iszero(x) "zero element does not have a leading monomial"
+  
+  R = parent(x)
+  return MPolyRingElem(R, one(coefficient_ring(R)), exponent_vector(x, 1))
 end
 
 ###############################################################################

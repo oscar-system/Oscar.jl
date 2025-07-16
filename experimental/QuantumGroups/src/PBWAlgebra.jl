@@ -223,6 +223,10 @@ function set_exponent_vector!(x::PBWAlgebraElem, i::Int, exp::Vector{Int})
   return x
 end
 
+function leading_monomial(x::PBWAlgebraElem)
+  return PBWAlgebraElem(parent(x), leading_monomial(x.poly))
+end
+
 ###############################################################################
 #
 #   Comparison
