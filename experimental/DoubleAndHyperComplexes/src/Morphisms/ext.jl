@@ -1,13 +1,11 @@
 struct HomChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   d::AbsHyperComplex
   c::AbsHyperComplex
-  auto_extend::Bool
 
   function HomChainFactory(
-      ::Type{ChainType}, d::AbsHyperComplex, c::AbsHyperComplex;
-      auto_extend::Bool=false
+      ::Type{ChainType}, d::AbsHyperComplex, c::AbsHyperComplex
     ) where {ChainType}
-    return new{ChainType}(d, c, auto_extend)
+    return new{ChainType}(d, c)
   end
 end
 
@@ -33,13 +31,11 @@ end
 struct HomMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
   d::AbsHyperComplex
   c::AbsHyperComplex
-  auto_extend::Bool
 
   function HomMapFactory(
-      ::Type{MorphismType}, d::AbsHyperComplex, c::AbsHyperComplex;
-      auto_extend::Bool=false
+      ::Type{MorphismType}, d::AbsHyperComplex, c::AbsHyperComplex
     ) where {MorphismType}
-    return new{MorphismType}(d, c, auto_extend)
+    return new{MorphismType}(d, c)
   end
 end
 
@@ -72,7 +68,6 @@ function (fac::HomMapFactory)(hc::AbsHyperComplex, p::Int, i::Tuple)
 end
 
 function can_compute(fac::HomMapFactory, h::AbsHyperComplex, p::Int, i::Tuple)
-  fac.auto_extend && return true
   I = collect(i)
   d = fac.d
   c = fac.c
@@ -114,15 +109,13 @@ codomain(c::HomComplex) = c.codomain
 
 ### User facing constructors
 function hom(
-    d::AbsHyperComplex{DCT, DMT}, c::AbsHyperComplex{CCT, CMT};
-    auto_extend::Bool=true
+    d::AbsHyperComplex{DCT, DMT}, c::AbsHyperComplex{CCT, CMT}
   ) where {DCT, DMT, CCT, CMT}
-  return _hom(d, c; auto_extend)
+  return _hom(d, c)
 end
 
 function _hom(
-    d::AbsHyperComplex{DCT, DMT}, c::AbsHyperComplex{CCT, CMT};
-    auto_extend::Bool=true
+    d::AbsHyperComplex{DCT, DMT}, c::AbsHyperComplex{CCT, CMT}
   ) where {DCT, DMT, CCT, CMT}
   NCT = typejoin(chain_type(d), chain_type(c))
   NMT = typejoin(morphism_type(d), morphism_type(c))
@@ -130,8 +123,8 @@ function _hom(
   d1 = dim(d)
   d2 = dim(c)
 
-  chain_fac = HomChainFactory(NCT, d, c; auto_extend)
-  map_fac = HomMapFactory(NMT, d, c; auto_extend)
+  chain_fac = HomChainFactory(NCT, d, c)
+  map_fac = HomMapFactory(NMT, d, c)
 
   directions = [direction(d, i) for i in 1:d1]
   directions = vcat(directions, [direction(c, i) for i in 1:d2])
@@ -152,16 +145,16 @@ end
 #  return SimpleComplexWrapper(_hom(c, ZeroDimensionalComplex(M); auto_extend))
 #end
 
-function hom(c::AbsHyperComplex{ChainType}, M::ModuleFP; auto_extend::Bool=false) where {ChainType<:ModuleFP}
-  return _hom(c, ZeroDimensionalComplex(M); auto_extend)
+function hom(c::AbsHyperComplex{ChainType}, M::ModuleFP) where {ChainType<:ModuleFP}
+  return _hom(c, ZeroDimensionalComplex(M))
 end
 
 #function hom(M::ModuleFP, c::AbsSimpleComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: ModuleFP}
 #  return SimpleComplexWrapper(_hom(ZeroDimensionalComplex(M), c; auto_extend))
 #end
 
-function hom(M::ModuleFP, c::AbsHyperComplex{ChainType}; auto_extend::Bool=false) where {ChainType <: ModuleFP}
-  return _hom(ZeroDimensionalComplex(M), c; auto_extend)
+function hom(M::ModuleFP, c::AbsHyperComplex{ChainType}) where {ChainType <: ModuleFP}
+  return _hom(ZeroDimensionalComplex(M), c)
 end
 
 #function hom(c1::AbsSimpleComplex, c2::AbsSimpleComplex; auto_extend::Bool=false)
