@@ -181,6 +181,19 @@
     @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, QQFieldElem) == QQAbFieldElem
   end
 
+  @testset "Test for integrality and rationality"
+    for sparse in (true, false)
+      K, z = abelian_closure(QQ; sparse)
+      z_3 = z(3)
+      @test isinteger(z_3^3)
+      @test !isinteger(z_3)
+      @test is_rational(1//2*z_3^3)
+      @test !is_rational(1//2*z_3)
+      @test is_algebraic_integer(z_3)
+      @test !is_algebraic_integer(1//2*z_3)
+    end
+  end
+
   @testset "Arithmetic" begin
     K, z = abelian_closure(QQ)
     @test is_unit(z(1))

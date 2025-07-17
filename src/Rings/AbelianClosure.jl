@@ -30,7 +30,7 @@ module AbelianClosure
 using ..Oscar
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
-             deepcopy_internal, hash, reduce
+             deepcopy_internal, hash, reduce, isinteger
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
@@ -41,7 +41,7 @@ import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic
 import Oscar: pretty, Lowercase
 
 using Hecke
-import Hecke: conductor, data
+import Hecke: conductor, data, is_rational, is_integral, is_algebraic_integer
 
 ################################################################################
 #
@@ -927,6 +927,41 @@ AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{Int}) = QQAbFieldElem
 AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{ZZRingElem}) = QQAbFieldElem
 
 AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbFieldElem
+
+###############################################################################
+#
+#  isinteger, is_rational, is_integral
+#
+###############################################################################
+
+@doc raw"""
+    isinteger(a::QQAbFieldElem)
+
+Return whether $a$ is an integer.
+"""
+isinteger(a::QQAbFieldElem) = isinteger(data(a))
+
+@doc raw"""
+    is_rational(a::QQAbFieldElem)
+
+Return whether $a$ is a rational number.
+"""
+is_rational(a::QQAbFieldElem) = is_rational(data(a))
+
+@doc raw"""
+    is_integral(a::QQAbFieldElem)
+
+Returns whether $a$ is integral, that is, whether the minimal
+polynomial of $a$ has integral coefficients.
+"""
+is_integral(a::QQAbFieldElem) = is_integral(data(a))
+
+@doc raw"""
+    is_algebraic_integer(a::QQAbFieldElem)
+
+Return whether $a$ is an algebraic integer.
+"""
+is_algebraic_integer(a::QQAbFieldElem) = is_integral(a)
 
 ###############################################################################
 #
