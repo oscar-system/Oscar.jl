@@ -152,8 +152,6 @@ end
 
 @register_serialization_type PermGroupElem
 
-type_params(x::T) where T <: GroupElem = TypeParams(T, parent(x))
-
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
