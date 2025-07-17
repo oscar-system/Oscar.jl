@@ -290,7 +290,7 @@ save_object(s::SerializerState, G::MatrixGroup) = save_object(s, matrix.(gens(G)
 function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
   R = params[:base_ring]
   d = params[:degree]
-  generators = load_object(s, Vector{Matrix{elem_type(R)}}, R)
+  generators = load_object(s, Vector{dense_matrix_type(R)}, R)
   return matrix_group(R, d, generators)
 end
 
@@ -300,5 +300,5 @@ save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
 
 function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
   R = base_ring(G)
-  G(load_object(s, Matrix{elem_type(R)}, R))
+  return G(load_object(s, dense_matrix_type(R), R))
 end
