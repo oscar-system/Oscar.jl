@@ -6,7 +6,7 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   !isdir(Main.serialization_upgrade_test_path) ||
   !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
 
-  serialization_upgrade_test_path = let commit_hash = "f0da73d6a1a169ff29c3793aa5e26eb53a7cc2ac"
+  serialization_upgrade_test_path = let commit_hash = "5f395d156a25d1c12a580682eaf7e11c92abe21a"
     tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
 
     destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
@@ -31,7 +31,7 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
 
     type_folders = joinpath(Main.serialization_upgrade_test_path, "version_1_3_0")
     for dir_name in readdir(type_folders)
-      type_str = split(dir_name, "-")[1]
+      type_str = dir_name
       type_str in exclude_types && continue
       !isnothing(only) && !(type_str in only_types) && !(haskey(only_type_ids, type_str)) && continue
       T = Oscar.Serialization.reverse_type_map[type_str]
