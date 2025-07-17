@@ -160,11 +160,11 @@ Base.:*(H::GAPGroup, g::GAPGroupElem) = right_coset(H,g)
 Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
 
 function Base.:*(c::GroupCoset, y::GAPGroupElem)
-   @assert y in c.G "element not in the group"
+   yy = c.G(y)
    if is_right(c)
-      return right_coset(c.H, representative(c)*y)
+      return right_coset(c.H, representative(c)*yy)
    else
-      return left_coset(c.H^y, representative(c)*y)
+      return left_coset(c.H^y, representative(c)*yy)
    end
 end
 
