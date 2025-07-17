@@ -1,24 +1,110 @@
 struct LeechPair
   leech::ZZLat
   G::MatrixGroup{QQFieldElem, QQMatrix}
-  id::Int
-  
-  _info::Dict
-  
+  _id::Int
+  rank::Int 
+  order::ZZRingElem
+  alpha::Int
+  icoinvbar::Int
+  iinvbar::Int
+  ind::Int
+  hinv::Int
+  N::Int
+  type::String
+
   function LeechPair(id::Int, leech::ZZLat, gg::Vector{QQMatrix})
-    path = @__DIR__
-    l = readlines(path*"/query.csv")[id]
+    l = readlines("/homes/combi/vecchia/local/repositories/FinGrpTorelliVar/HKData/LeechPairs/query.csv")[id]
     vl = split(l, "|")
-    info = Dict(:rank => parse(Int, vl[2]),
-                :order => Hecke.parse(ZZRingElem, vl[3]),
-                :alpha => parse(Int, vl[4]),
-                :icoinvbar => parse(Int, vl[5]),
-                :iinvbar => parse(Int, vl[6]),
-                :ind => parse(Int, vl[7]),
-                :hinv => parse(Int, vl[8]),
-                :N => parse(Int, vl[9]),
-                :type => vl[10]
-           )
-    return new(leech, matrix_group(gg), id, info)
+    return new(
+      leech,
+      matrix_group(gg),
+      id,
+      parse(Int, vl[2]),
+      Hecke.parse(ZZRingElem, vl[3]),
+      parse(Int, vl[4]),
+      parse(Int, vl[5]),
+      parse(Int, vl[6]),
+      parse(Int, vl[7]),
+      parse(Int, vl[8]),
+      parse(Int, vl[9]),
+      vl[10]
+    )
   end
 end
+
+###############################################################################
+#
+# Accessors and methods
+#
+###############################################################################
+
+Oscar.lattice(LG::LeechPair) = LG.leech
+
+Oscar.group(LG::LeechPair) = LG.G
+
+group_description(LG::LeechPair) = describe(LG.G)
+
+number(LG::LeechPair) = LG._id
+
+rank_invariant_lattice(LG::LeechPair) = LG.rank
+
+order_group(LG::LeechPair) = LG.order
+
+alpha(LG::LeechPair) = LG.alpha
+
+index_image_in_Oq_coinvariant(LG::LeechPair) = LG.icoinvbar
+
+index_image_in_Oq_invariant(LG::LeechPair) = LG.iinvbar
+
+index_normaliser_modulo_group(LG::LeechPair) = LG.ind
+
+class_number_invariant_lattice(LG::LeechPair) = LG.hinv
+
+number_of_niemeier_embeddings(LG::LeechPair) = LG.N
+
+Oscar.type(LG::LeechPair) = LG.type
+
+Oscar.invariant_lattice(LG::LeechPair) = invariant_lattice(lattice(LG), group(LG))
+
+Oscar.coinvariant_lattice(LG::LeechPair) = coinvariant_lattice(lattice(LG), group(LG))
+
+Oscar.invariant_coinvariant_pair(LG::LeechPair) = invariant_coinvariant_pair(lattice(LG), group(LG))
+
+###############################################################################
+#
+# Printing
+#
+###############################################################################
+
+function Base.show(io::IO, LG::LeechPair)
+  print(io, "Leech pair no. $(number(LG))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", LG::LeechPair)
+  if get(io, :supercompact, false)
+    print(io, "Leech pair")
+  else
+    println(io, "Leech pair no. $(number(LG))")
+    println(io, "Rank:  $(rank_invariant_lattice(LG))")
+    println(io, "Order: $(order_group(LG))")
+    print(io, "Type:  $(type(LG))")
+  end
+end
+
+@register_serialization_type LeechPair
+type_params(x::LeechPair) = TypeParams(LeechPair, group(x))
+
+function save_object(s::SerializerState, LG::LeechPair)
+  save_data_dict(s) do
+    save_object(s, group(LG), :group)
+    save_object(s, number(LG), :_id)
+    save_object(s, rank_invariant_lattice(LG), :rank)
+    save_object(s, index_image_in_Oq_coinvariant(LG), :icoinvbar)
+    save_object(s, index_image_in_Oq_invariant(LG), :iinvbar)
+    save_object(s, index_normaliser_modulo_group(LG), :hinv)
+    save_object(s, number_of_niemeier_embeddings(LG), :N)
+    # want to avoid using type key here to avoid confusion with file format
+    save_object(s, number_of_niemeier_embeddings(LG), :leech_pair_type) 
+  end
+end
+
