@@ -279,7 +279,7 @@ end
 ##############################################################################
 # MatrixGroup
 
-@register_serialization_type MatrixGroup uses_id
+@register_serialization_type MatrixGroup uses_id [:descr]
 
 type_params(G::MatrixGroup) = TypeParams(MatrixGroup,
                                          :base_ring => base_ring(G),
