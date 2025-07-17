@@ -9,6 +9,11 @@
     p = R(L)
     loaded_p = load(path; params=R);
     @test p == loaded_p
+
+    loaded_container1 = load(joinpath(Main.serialization_upgrade_test_path, "version_0_11_0", "Containers.mrdi"))
+    loaded_container2 = load(joinpath(Main.serialization_upgrade_test_path, "version_0_11_3", "Containers.mrdi"))
+    @test loaded_container1 == loaded_container2
+    @test loaded_container1 == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
   end
 
   @testset "< 0.12.0 Upgrade" begin
