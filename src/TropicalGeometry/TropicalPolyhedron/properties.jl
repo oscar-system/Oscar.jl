@@ -92,9 +92,7 @@ function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {
   TT = tropical_semiring(convention(P))
 
   return SubObjectIterator{as}(
-    P,
-    (_,_,i)->point_vector(TT,TT.(pm_object(P).PSEUDOVERTICES[ind[i],2:end])),
-    n
+    P,_pseudovertices,n
   )
 end
 
@@ -107,6 +105,7 @@ pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) wh
 
 n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> size |> first
 function n_pseudovertices(P::TropicalPolyhedron) 
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
   ind = findall(1:size(CT, 1)) do i
     all(!iszero, CT[i,:])
   end
@@ -118,7 +117,7 @@ function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{
 
   return point_vector(
     T,
-    T.(pm_object(P).PSEUDOVERTICES[i,2:end])
+    T.(pm_object(P).PSEUDOVERTICES[i,:])
   )
 end
 
@@ -274,34 +273,18 @@ julia> CD |> maximal_polyhedra
 ```
 """
 function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
-  pv = pm_object(P).PSEUDOVERTICES
-  cov = pm_object(P).POLYTOPE_MAXIMAL_COVECTOR_CELLS
-  ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
-  ind = findall(1:size(ct, 1)) do i
-    all(!iszero, ct[i,:])
-  end
-
+  # The following is sufficient for Polymake v4.14 and above
   if !isnothing(dehomogenize_by)
-    coords = filter(!=(dehomogenize_by+1), 1:size(pv, 2))
-    for i in 1:size(pv, 1)
-      pv[i, 2:end] .-= pv[i, dehomogenize_by+1]
-    end
-    return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,coords],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
+    return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
   else
-    return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
+   pv = pm_object(P).PSEUDOVERTICES
+   cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS
+   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
+   ind = findall(1:size(ct, 1)) do i
+     all(!iszero, ct[i,:])
+   end
+   return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
   end
-  ## The following is sufficient for Polymake v4.14 and above
-  #if !isnothing(dehomogenize_by)
-  #  return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
-  #else
-  # pv = pm_object(P).PSEUDOVERTICES
-  # cov = pm_object(P).POLYTOPE_MAXIMAL_COVECTOR_CELLS
-  # ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
-  # ind = findall(1:size(ct, 1)) do i
-  #   all(!iszero, ct[i,:])
-  # end
-  # return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
-  #end
 end
 
 @doc raw"""
