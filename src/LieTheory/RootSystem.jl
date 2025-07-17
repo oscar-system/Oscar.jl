@@ -829,50 +829,42 @@ function Base.:-(r::RootSpaceElem)
 end
 
 function zero!(r::RootSpaceElem)
-  r.vec = zero!(r.vec)
-  return r
-end
-
-function add!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
-  rr.vec = add!(rr.vec, r1.vec, r2.vec)
-  return rr
+  return RootSpaceElem(root_system(r), zero!(r.vec))
 end
 
 function neg!(rr::RootSpaceElem, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = neg!(rr.vec, r.vec)
-  return rr
+  return RootSpaceElem(root_system(rr), neg!(rr.vec, r.vec))
+end
+
+function add!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  return RootSpaceElem(root_system(rr), add!(rr.vec, r1.vec, r2.vec))
 end
 
 function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
   @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
-  rr.vec = sub!(rr.vec, r1.vec, r2.vec)
-  return rr
+  return RootSpaceElem(root_system(rr), sub!(rr.vec, r1.vec, r2.vec))
 end
 
 function mul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = mul!(rr.vec, r.vec, q)
-  return rr
+  return RootSpaceElem(root_system(rr), mul!(rr.vec, r.vec, q))
 end
 
 function mul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = mul!(rr.vec, q, r.vec)
-  return rr
+  return RootSpaceElem(root_system(rr), mul!(rr.vec, q, r.vec))
 end
 
 function addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = addmul!(rr.vec, r.vec, q)
-  return rr
+  return RootSpaceElem(root_system(rr), addmul!(rr.vec, r.vec, q))
 end
 
 function addmul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = addmul!(rr.vec, q, r.vec)
-  return rr
+  return RootSpaceElem(root_system(rr), addmul!(rr.vec, q, r.vec))
 end
 
 # ignore temp storage
@@ -881,14 +873,12 @@ addmul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem, t) = addmul!
 
 function submul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnionOrPtr)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = submul!(rr.vec, r.vec, q)
-  return rr
+  return RootSpaceElem(root_system(rr), submul!(rr.vec, r.vec, q))
 end
 
 function submul!(rr::RootSpaceElem, q::RationalUnionOrPtr, r::RootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
-  rr.vec = submul!(rr.vec, q, r.vec)
-  return rr
+  return RootSpaceElem(root_system(rr), submul!(rr.vec, q, r.vec))
 end
 
 # ignore temp storage

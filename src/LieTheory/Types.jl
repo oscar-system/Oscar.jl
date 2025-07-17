@@ -54,7 +54,7 @@ end
 
 Type for roots and linear combinations thereof.
 """
-mutable struct RootSpaceElem
+struct RootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
 
