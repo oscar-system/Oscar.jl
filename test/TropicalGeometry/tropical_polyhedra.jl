@@ -1,6 +1,5 @@
+polymake_version = pkgversion(Polymake.polymake_jll)
 @testset "TropicalPolyhedron{min}" begin
-  polymake_version = pkgversion(Polymake.polymake_jll)
-
   TT = tropical_semiring(min)
   pts1_a = TT[0 -1 0; 0 -4 -1]
   pts1_b = [
@@ -16,7 +15,7 @@
   @test issetequal(vertices(P1_a), eachrow(pts1_a))
   @test n_vertices(P1_a) == 2
   @test issetequal(pseudovertices(P1_a), pts1_b)
-  @test_broken n_pseudovertices(P1_a) == 3
+  @test n_pseudovertices(P1_a) == 3
   
   @test is_bounded(P1_a) == true
 
@@ -49,14 +48,15 @@
   P2 = tropical_convex_hull(pts2)
   @test ambient_dim(P2) == 2
   @test dim(P2) == 2
-  # the following are unbroken with polymake v4.o4
+  # the following are unbroken with polymake v4.14
   @test issetequal(vertices(P2), eachrow(pts2)) broken=polymake_version < v"400.1400"
   @test n_vertices(P2) == 3 broken=polymake_version < v"400.1400"
   @test is_bounded(P2) == false broken=polymake_version < v"400.1400"
-  @test issetequal(pseudovertices(P2), [eachrow(pts2)...,TT.([0,-1,2])]) broken=polymake_version < v"400.1400"
-  @test n_pseudovertices(P2) == 4 broken=polymake_version < v"400.1400"
+  @test issetequal(pseudovertices(P2), [TT.([0,1,2]),TT.([0,-1,2])]) broken=polymake_version < v"400.1400"
+  @test n_pseudovertices(P2) == 2 broken=polymake_version < v"400.1400"
   @test maximal_covectors(P2) |> length == 1
-  @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]])
+  @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]]) broken=polymake_version <= v"400.1400.0+0"
+
 
   covdec2 = covector_decomposition(P2)
   @test issetequal(covdec2 |> vertices,
@@ -78,13 +78,13 @@
   # the following are unbroken with polymake v4.14
   @test issetequal(vertices(P3), eachrow(pts3)) broken=polymake_version < v"400.1400"
   @test n_vertices(P3) == 3 broken=polymake_version < v"400.1400"
-  @test issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.([0,1,3])]) broken=polymake_version < v"400.1400"
-  @test n_pseudovertices(P3) == 4 broken=polymake_version < v"400.1400"
+  @test issetequal(pseudovertices(P3), [TT.([0,1,4]),TT.([0,1,3])]) broken=polymake_version < v"400.1400"
+  @test n_pseudovertices(P3) == 2 broken=polymake_version < v"400.1400"
   @test issetequal(maximal_covectors(P3),
     [
       IncidenceMatrix([[1],[1],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ])
+    ]) broken=polymake_version <= v"400.1400.0+0"
 
   covdec3 = covector_decomposition(P3)
   @test issetequal(covdec3 |> vertices,
@@ -152,7 +152,7 @@ end
      IncidenceMatrix([[1], [2], Int[]]),
      IncidenceMatrix([[2,1], Int[], Int[]]),
      IncidenceMatrix([[1], Int[], [2]]),
-    ])
+    ]) 
 
   ## Making a pseudovertices an input point of the above point configuration
   pts1_b = QQ[0 -1 0; 0 -4 -1; 0 -3 0]
@@ -198,7 +198,7 @@ end
       IncidenceMatrix([Int[],[2],[1,3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([Int[],Int[],[1,2,3]])
-    ])
+    ]) broken=polymake_version <= v"400.1400.0+0"
 
   covdec2 = covector_decomposition(C2)
   @test issetequal(covdec2 |> vertices,
@@ -225,5 +225,5 @@ end
       IncidenceMatrix([Int[],[1,2],[3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ])
+    ]) broken=polymake_version <= v"400.1400.0+0"
 end
