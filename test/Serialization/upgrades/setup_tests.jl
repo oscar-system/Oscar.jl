@@ -6,13 +6,14 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   !isdir(Main.serialization_upgrade_test_path) ||
   !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
 
-  commit_hash = "f0da73d6a1a169ff29c3793aa5e26eb53a7cc2ac"
-  tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
+  serialization_upgrade_test_path = let commit_hash = "f0da73d6a1a169ff29c3793aa5e26eb53a7cc2ac"
+    tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
 
-  destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
-    Tar.extract(io)
+    destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
+      Tar.extract(io)
+    end
+    joinpath(destpath, "serialization-upgrade-tests-$(commit_hash)")
   end
-  Main.serialization_upgrade_test_path = joinpath(destpath, "serialization-upgrade-tests-$(commit_hash)")
 end
 
 if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
