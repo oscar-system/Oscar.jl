@@ -279,19 +279,32 @@ end
 ##############################################################################
 # MatrixGroup
 
-@register_serialization_type MatrixGroup uses_id [:descr]
+@register_serialization_type MatrixGroup uses_id
 
 type_params(G::MatrixGroup) = TypeParams(MatrixGroup,
                                          :base_ring => base_ring(G),
                                          :degree => degree(G))
 
-save_object(s::SerializerState, G::MatrixGroup) = save_object(s, matrix.(gens(G)))
+function save_object(s::SerializerState, G::MatrixGroup)
+  save_data_dict(s) do
+    save_object(s, matrix.(gens(G)), :gens)
+
+    if isdefined(G, :descr)
+      save_object(s, G.descr, :descr)
+    end
+  end
+end
 
 function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
   R = params[:base_ring]
   d = params[:degree]
-  generators = load_object(s, Vector{dense_matrix_type(R)}, R)
-  return matrix_group(R, d, generators)
+  generators = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, d, d), :gens)
+  G = matrix_group(R, d, generators; check=false)
+
+  if haskey(s, :descr)
+    G.descr = load_object(s, Symbol, :descr)
+  end
+  return G
 end
 
 @register_serialization_type MatrixGroupElem
@@ -300,5 +313,6 @@ save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
 
 function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
   R = base_ring(G)
-  return G(load_object(s, dense_matrix_type(R), R))
+  d = degree(G)
+  return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))))
 end
