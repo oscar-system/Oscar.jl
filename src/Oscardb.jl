@@ -58,12 +58,13 @@ julia> typeof(db)
 Oscar.Oscardb.Database
 ```
 """
-function get_db()
-   # we explicitly set the cacert file, otherwise we might get connection errors because the certificate cannot be validated
-   username = "oscar-pub"
-   password = escapeuri(raw"oShea/fooC$ie6h")
-   client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/oscar?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
-   return Database(client[OSCAR_DB])
+function get_db(;dev::Bool=false)
+  # we explicitly set the cacert file, otherwise we might get connection errors because the certificate cannot be validated
+  username = "oscar-pub"
+  password = escapeuri(raw"oShea/fooC$ie6h")
+  db_name = dev ? "oscar-dev" : "oscar"
+  client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/$(db_name)?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
+  return Database(client[OSCAR_DB])
 end
 
 """

@@ -11,25 +11,6 @@ struct LeechPair
   hinv::Int
   N::Int
   type::String
-
-  function LeechPair(id::Int, leech::ZZLat, gg::Vector{QQMatrix})
-    l = readlines("/homes/combi/vecchia/local/repositories/FinGrpTorelliVar/HKData/LeechPairs/query.csv")[id]
-    vl = split(l, "|")
-    return new(
-      leech,
-      matrix_group(gg),
-      id,
-      parse(Int, vl[2]),
-      Hecke.parse(ZZRingElem, vl[3]),
-      parse(Int, vl[4]),
-      parse(Int, vl[5]),
-      parse(Int, vl[6]),
-      parse(Int, vl[7]),
-      parse(Int, vl[8]),
-      parse(Int, vl[9]),
-      vl[10]
-    )
-  end
 end
 
 ###############################################################################
@@ -108,3 +89,7 @@ function save_object(s::SerializerState, LG::LeechPair)
   end
 end
 
+function load_object(s::DeserializerState, ::Type::LeechPair, G::MatrixGroup)
+  leech = 
+  LeechPair()
+end
