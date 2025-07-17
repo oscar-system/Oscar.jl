@@ -76,7 +76,7 @@ end
 
 Type for coroots and linear combinations thereof.
 """
-mutable struct DualRootSpaceElem
+struct DualRootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
 
@@ -87,9 +87,9 @@ mutable struct DualRootSpaceElem
 
   `vec` must be a row vector of the same length as the rank of `R`.
   """
-  function DualRootSpaceElem(root_system::RootSystem, vec::QQMatrix)
-    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
-    return new(root_system, vec)
+  function DualRootSpaceElem(R::RootSystem, vec::QQMatrix)
+    @req size(vec) == (1, rank(R)) "Invalid dimension"
+    return new(R, vec)
   end
 end
 
