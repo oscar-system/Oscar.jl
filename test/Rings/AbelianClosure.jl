@@ -181,7 +181,7 @@
     @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, QQFieldElem) == QQAbFieldElem
   end
 
-  @testset "Test for integrality and rationality"
+  @testset "Test for integrality and rationality" begin
     for sparse in (true, false)
       K, z = abelian_closure(QQ; sparse)
       z_3 = z(3)
