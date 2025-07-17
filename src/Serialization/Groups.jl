@@ -277,3 +277,21 @@ end
 function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
   return G(vec(load_object(s, Matrix{ZZRingElem})))
 end
+
+##############################################################################
+# MatrixGroup
+
+@register_serialization_type MatrixGroup uses_id
+
+type_params(G::MatrixGroup) = TypeParams(MatrixGroup,
+                                         :base_ring => base_ring(G),
+                                         :degree => degree(G))
+
+save_object(s::SerializerState, G::MatrixGroup) = save_object(s, matrix.(gens(G)))
+
+function load_object(s::DeserializerState, ::Type{MatrixGroup}, params::Dict)
+  R = params[:base_ring]
+  d = params[:degree]
+  generators = load_object(s, Vector{Matrix{elem_type(R)}}, R)
+  return matrix_group(R, d, generators)
+end
