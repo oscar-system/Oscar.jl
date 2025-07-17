@@ -169,11 +169,11 @@ function Base.:*(c::GroupCoset, y::GAPGroupElem)
 end
 
 function Base.:*(y::GAPGroupElem, c::GroupCoset)
-   @assert y in c.G "element not in the group"
+   yy = c.G(y)
    if is_left(c)
-      return left_coset(c.H, y*representative(c))
+      return left_coset(c.H, yy*representative(c))
    else
-      return right_coset(c.H^(y^-1), y*representative(c))
+      return right_coset(c.H^(y^-1), yy*representative(c))
    end
 end
 
