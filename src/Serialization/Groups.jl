@@ -295,3 +295,12 @@ function load_object(s::DeserializerState, ::Type{MatrixGroup}, params::Dict)
   generators = load_object(s, Vector{Matrix{elem_type(R)}}, R)
   return matrix_group(R, d, generators)
 end
+
+@register_serialization_type MatrixGroupElem
+
+save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
+
+function load_object(s::DeserializerState, ::Type{MatrixGroupElem}, G::MatrixGroup)
+  R = base_ring(G)
+  G(load_object(s, Matrix{elem_type(R)}, R))
+end

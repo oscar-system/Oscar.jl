@@ -226,5 +226,13 @@
         @test parent(loadedw[1]) === parent(loadedv[1])
       end
     end
+
+    @testset "Matrix Groups" begin
+      G = general_linear_group(3, 5)
+      product_of_gens = reduce(*, gens(G))
+      test_save_load_roundtrip(path, product_of_gens) do loaded
+        @test loaded == product_of_gens
+      end
+    end
   end
 end
