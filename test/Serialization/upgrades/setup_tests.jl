@@ -1,3 +1,20 @@
+import Downloads
+import CodecZlib
+import Tar
+
+if !isdefined(Main, :serialization_upgrade_test_path) ||
+  !isdir(Main.serialization_upgrade_test_path) ||
+  !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
+
+  commit_hash = "f0da73d6a1a169ff29c3793aa5e26eb53a7cc2ac"
+  tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
+
+  destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
+    Tar.extract(io)
+  end
+  Main.serialization_upgrade_test_path = joinpath(destpath, "serialization-upgrade-tests-$(commit_hash)")
+end
+
 if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
   function test_1_4_0_upgrade(;
     exclude::Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#=String[],
@@ -11,11 +28,7 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
       only_type_ids = Dict{String, Vector{Int}}(first(pair) => collect(last(pair)) for pair in only if pair isa Pair)
     end
 
-    artifact_toml = Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)
-    Oscar.LazyArtifacts.ensure_artifact_installed("version-1-3-0-files", artifact_toml)
-    _hash = Oscar.LazyArtifacts.artifact_hash("version-1-3-0-files", artifact_toml)
-    dir = Oscar.LazyArtifacts.artifact_path(_hash)
-    type_folders = joinpath(dir, "version_1_3_0_files")
+    type_folders = joinpath(Main.serialization_upgrade_test_path, "version_1_3_0")
     for dir_name in readdir(type_folders)
       type_str = split(dir_name, "-")[1]
       type_str in exclude_types && continue
