@@ -103,7 +103,7 @@ julia> length(collection, query)
 4
 ```
 """
-function Base.length(c::Collection, d::Dict=Dict())
+function Base.length(c::Collection, d::Dict{String, Any}=Dict{String, Any}())
    return Base.length(c.mcol, Mongoc.BSON(d))
 end
 
@@ -126,12 +126,13 @@ julia> typeof(results)
 Polymake.Polydb.Cursor{Polymake.BigObject}
 ```
 """
-function Mongoc.find(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing) where T
+function Mongoc.find(c::Collection, d::Dict{String, Any}=DictString, Any();
+                     opts::Union{Nothing, Dict{String, Any}}=nothing) where T
    return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
 end
 
 """
-      find_one(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
+      find_one(c::Collection{T}, d::Dict{String, Any}=Dict(); opts::Union{Nothing, Dict})
 
 Return one document from a collection `c` matching the criteria given by `d`.
 `T` can be chosen from `Polymake.BigObject` and `Mongoc.BSON`.
@@ -159,7 +160,7 @@ julia> typeof(pm_object)
 Mongoc.BSON
 ```
 """
-function find_one(c::Oscardb.Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
+function find_one(c::Oscardb.Collection, d::Dict{String, Any}=Dict{String, Any}(); opts::Union{Nothing, Dict}=nothing)
    p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
    return isnothing(p) ? nothing : parse_document(p)
 end

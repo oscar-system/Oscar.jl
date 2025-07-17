@@ -201,9 +201,9 @@ function save_object(s::SerializerState, LG::LeechPair)
   end
 end
 
-#function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatrixGroup)
-#  LeechPair()
-#end
+function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatrixGroup)
+  # need to be able to load from oscar-dev 
+end
 
 ################################################################################
 # TransitiveSimplicialComplex
