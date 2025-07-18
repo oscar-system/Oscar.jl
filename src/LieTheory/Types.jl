@@ -117,7 +117,7 @@ end
 
 Type for weights and linear combinations thereof, elem type of `WeightLattice`.
 """
-mutable struct WeightLatticeElem <: AbstractAlgebra.AdditiveGroupElem
+struct WeightLatticeElem <: AbstractAlgebra.AdditiveGroupElem
   parent_lat::WeightLattice
   vec::ZZMatrix # the coordinate (row) vector with respect to the fundamental weights
 
