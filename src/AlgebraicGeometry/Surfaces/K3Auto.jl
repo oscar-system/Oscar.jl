@@ -2076,14 +2076,18 @@ function is_virtually_abelian(L::ZZLat, gensAutL)
   f = _get_pos_entropy_element(gensAutL)
   K = kernel(f^12-1)
   k = nrows(K)
-  @assert k==rank(L)-2
-  for g in gensAutL
-    r = rank(vcat(K,K*g))
-    if r > k
-      return false
+  if k == rank(L)-2
+    for g in gensAutL
+      r = rank(vcat(K,K*g))
+      if r > k
+        return false
+      end
     end
-  end
-  return true
+    return true
+  end 
+  # now k = 0 
+  @assert k == 0
+  return all(g*f == f*g for g in gensAutL)
 end
 
 function has_zero_entropy(L::ZZLat, gensAutL)
