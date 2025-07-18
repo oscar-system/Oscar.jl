@@ -38,7 +38,7 @@ domain(M::GModuleHom) = M.GM1
 codomain(M::GModuleHom) = M.GM2
 parent(M::GModuleHom) = Hecke.MapParent(domain(M), codomain(M), "homomorphisms")
 
-mutable struct GModuleElem{T}
+struct GModuleElem{T}
   parent::GModule
   data::T
 end
