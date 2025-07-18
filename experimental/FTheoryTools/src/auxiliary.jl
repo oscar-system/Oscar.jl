@@ -558,6 +558,8 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
   msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
   default_doc = """
+      $(fname)(m::AbstractFTheoryModel)
+
   Returns `$(fname)` of the F-theory model if known, otherwise throws an error.
 
   See [Literature Models](@ref "Literature Models") for more details.
