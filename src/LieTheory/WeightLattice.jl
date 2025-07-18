@@ -485,7 +485,9 @@ This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 """
 function reflect!(w::WeightLatticeElem, s::Int)
   # the scalar `w.vec[s]` needs to be implicitly copied as it otherwise gets mutated by `submul!`
-  return WeightLatticeElem(parent(w), submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s]))
+  return WeightLatticeElem(
+    parent(w), submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
+  )
 end
 
 @doc raw"""
