@@ -57,6 +57,7 @@ include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 include("ToricLineBundles/standard_constructions.jl")
+include("ToricLineBundles/cech-cohomology.jl")
 
 include("CohomologyClasses/constructors.jl")
 include("CohomologyClasses/properties.jl")
