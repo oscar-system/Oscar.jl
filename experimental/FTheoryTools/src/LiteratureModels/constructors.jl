@@ -26,7 +26,7 @@ Some literature models require additional input to be uniquely determined and co
 * `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
 
-See the [Literature Models](@ref) documentation page for a deeper discussion of these fields.
+See the [Literature Models](@ref "Literature Models") documentation page for a deeper discussion of these fields.
 
 First, notice how you can create the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12)
 over an unspecified base:

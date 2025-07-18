@@ -501,7 +501,7 @@ end
 Adds a new entry to the list of associated literature models for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :associated_literature_models, String[])
@@ -515,7 +515,7 @@ end
 Adds a new entry to the list of journal report numbers for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_journal_report_number(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :journal_report_numbers, String[])
@@ -529,7 +529,7 @@ end
 Adds a new entry to the list of model parameters for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_model_parameter(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :model_parameters, String[])
@@ -543,7 +543,7 @@ end
 Adds a new entry to the list of paper authors for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_paper_author(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :paper_authors, String[])
@@ -557,7 +557,7 @@ end
 Adds a new entry to the list of paper buzzwords for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :paper_buzzwords, String[])
@@ -571,7 +571,7 @@ end
 Adds a new entry to the list of birational models for the F-theory model.
 If the entry is already present, nothing is changed.
 
-See [Literature Models](@ref) for more details.
+See [Literature Models](@ref "Literature Models") for more details.
 """
 function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
   values = get_attribute(m, :birational_literature_models, String[])

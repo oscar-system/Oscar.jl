@@ -560,7 +560,7 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
   default_doc = """
   Returns `$(fname)` of the F-theory model if known, otherwise throws an error.
 
-  See [Literature Models](@ref) for more details.
+  See [Literature Models](@ref "Literature Models") for more details.
 
   $doc_example
   """

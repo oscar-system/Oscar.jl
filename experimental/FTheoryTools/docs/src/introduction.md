@@ -44,12 +44,12 @@ especially in higher codimension or for non-toric singularities.
 
 `FTheoryTools` supports construction of elliptic fibrations via:
 
-- [Weierstrass models](@ref),
-- [Global Tate models](@ref),
-- [Hypersurface models](@ref).
+- [Weierstrass Models](@ref "Weierstrass Models"),
+- [Global Tate Models](@ref "Global Tate Models"),
+- [Hypersurface Models](@ref "Hypersurface Models").
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
-shared functionality is documented at [Functionality for all F-theory models](@ref).
+shared functionality is documented at [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
 
 Fibrations can be defined over various base spaces:
 
@@ -91,7 +91,7 @@ Current literature models include:
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
 
-More information: [Literature Models](@ref).
+More information: [Literature Models](@ref "Literature Models").
 
 ### ``G_4``-Flux Enumeration
 
@@ -106,7 +106,7 @@ FTheoryTools supports the enumeration of vertical ``G_4``-fluxes—important for
 
 The computed flux space: ``\mathbb{Z}^{224} \times \mathbb{Q}^{127}``.
 
-Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref).
+Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref "``G_4``-Fluxes").
 
 ## Tutorials
 

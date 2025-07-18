@@ -140,7 +140,7 @@ weierstrass_model_over_del_pezzo_surface(b::Int)
 Several Weierstrass models have gained popularity in the F-theory community. These models are often
 associated with specific publications and may be informally referred to by author names or recognizable
 keywords. For these established constructions, we provide support through the specialized `literature_model`
-interface, which is discussed on the page [Literature Models](@ref).
+interface, which is discussed on the page [Literature Models](@ref "Literature Models").
 
 ---
 
@@ -150,10 +150,11 @@ Weierstrass models are one way to represent an elliptic fibration as a hypersurf
 While different representations may vary in implementation details, they share a common structure in broad
 strokes. As such, many attributes and properties are shared across model representations. These shared
 components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
-[Functionality for all F-theory models](@ref).
+[Functionality for all F-theory models](@ref "Functionality for all F-theory models").
 
 Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to
-other representations (such as [Global Tate Models](@ref) or [Hypersurface Models](@ref)):
+other representations (such as [Global Tate Models](@ref "Global Tate Models") or
+[Hypersurface Models](@ref "Hypersurface Models")):
 
 ```@docs
 weierstrass_section_f(w::WeierstrassModel)
@@ -188,4 +189,4 @@ singular_loci(w::WeierstrassModel)
 ```
 
 We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
-structure and how to resolve them—in [Resolving F-Theory Models](@ref).
+structure and how to resolve them—in [Resolving F-Theory Models](@ref "Resolving F-Theory Models").
