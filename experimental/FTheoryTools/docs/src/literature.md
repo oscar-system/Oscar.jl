@@ -4,8 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Literature Models
-```@id literature-models
+# [Literature Models](@id literature_models)
 
 In the landscape of F-theory model building, many constructions introduced over the years remain relevant
 and influential. However, revisiting or building upon these models can be challenging—especially when prior

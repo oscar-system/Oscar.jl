@@ -91,9 +91,7 @@ Current literature models include:
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
 
-More information: [Literature Models](literature.md#literature-models)
-
-Test banane
+More information: [Literature Models](@ref literature_models)
 
 ### ``G_4``-Flux Enumeration
 
