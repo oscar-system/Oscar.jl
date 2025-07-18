@@ -86,7 +86,7 @@ hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVar
 Several hypersurface models have gained popularity in the F-theory community. These models are often
 associated with specific publications and may be informally referred to by author names or recognizable
 keywords. For these established constructions, we provide support through the specialized `literature_model`
-interface, which is discussed on the page [Literature Models](@ref "Literature Models").
+interface, which is discussed on the page [Literature Models](@ref literature_models).
 
 ---
 

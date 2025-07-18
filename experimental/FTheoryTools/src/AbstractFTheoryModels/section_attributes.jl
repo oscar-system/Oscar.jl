@@ -3,7 +3,7 @@
 
 Returns the defining divisor classes of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -33,7 +33,7 @@ end
 
 Returns the model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -62,7 +62,7 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 
 Returns the tunable sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -88,7 +88,7 @@ julia> tunable_sections(m)
 Returns a dictionary that defines how the structural sections of the given F-theory model
 are parametrized by the tunable sections.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -116,7 +116,7 @@ end
 Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
 of the base and the defining classes of the given model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -141,7 +141,7 @@ classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTh
 
 Returns the divisor classes of all model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
@@ -191,7 +191,7 @@ end
 
 Returns the explicit polynomial expressions for all model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref "Literature Models").
+For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
