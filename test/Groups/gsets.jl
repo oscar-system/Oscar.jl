@@ -155,7 +155,8 @@
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   orb = orbit(Omega, [0,1,0,1,0,1])
   @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
-  @test orbits(orb) == [orb]
+  orbs = orbits(orb)
+  @test (length(orbs) == 1) && (orbs[1] === orb)
 
   # permutation
   G = alternating_group(6)
@@ -617,4 +618,20 @@ end
   stab2 = stabilizer(Omega2)[1]
   @test order(stab2) == 2
   @test cperm([1,3], [2,4]) in stab2
+end
+
+@testset "required methods for a G-set type" begin
+  # declare a new type of G-sets
+  @attributes mutable struct GSetForTests{T,S} <: GSet{T,S}
+    group::T
+    action_function::Function
+    data::S
+  end
+
+  Omega = GSetForTests(symmetric_group(2), on_tuples, [1, 2], Dict{Symbol, Any}());
+  @test_throws ArgumentError acting_group(Omega)
+  @test_throws ArgumentError action_function(Omega)
+  @test_throws ArgumentError action_homomorphism(Omega)
+  @test_throws ArgumentError orbit(Omega, 1)
+  @test_throws ArgumentError Omega == Omega
 end
