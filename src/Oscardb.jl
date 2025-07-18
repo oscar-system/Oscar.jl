@@ -11,6 +11,7 @@ using Mongoc
 using URIs
 
 const OSCAR_DB = "oscar"
+const OSCAR_DEV_DB = "oscar-dev"
 
 """
       Database
@@ -58,13 +59,12 @@ julia> typeof(db)
 Oscar.Oscardb.Database
 ```
 """
-function get_db(;dev::Bool=false)
+function get_db(;dev=false)
   # we explicitly set the cacert file, otherwise we might get connection errors because the certificate cannot be validated
   username = "oscar-pub"
   password = escapeuri(raw"oShea/fooC$ie6h")
-  db_name = dev ? "oscar-dev" : "oscar"
-  client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/$(db_name)?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
-  return Database(client[OSCAR_DB])
+  client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/oscar?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
+  return Database(client[dev ? OSCAR_DEV_DB : OSCAR_DB])
 end
 
 """
@@ -103,7 +103,7 @@ julia> length(collection, query)
 4
 ```
 """
-function Base.length(c::Collection, d::Dict{String, Any}=Dict{String, Any}())
+function Base.length(c::Collection, d::Dict=Dict())
    return Base.length(c.mcol, Mongoc.BSON(d))
 end
 
@@ -126,13 +126,13 @@ julia> typeof(results)
 Polymake.Polydb.Cursor{Polymake.BigObject}
 ```
 """
-function Mongoc.find(c::Collection, d::Dict{String, Any}=DictString, Any();
-                     opts::Union{Nothing, Dict{String, Any}}=nothing) where T
+function Mongoc.find(c::Collection, d::Dict=Dict();
+                     opts::Union{Nothing, Dict}=nothing)
    return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
 end
 
 """
-      find_one(c::Collection{T}, d::Dict{String, Any}=Dict(); opts::Union{Nothing, Dict})
+      find_one(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
 
 Return one document from a collection `c` matching the criteria given by `d`.
 `T` can be chosen from `Polymake.BigObject` and `Mongoc.BSON`.
@@ -160,7 +160,7 @@ julia> typeof(pm_object)
 Mongoc.BSON
 ```
 """
-function find_one(c::Oscardb.Collection, d::Dict{String, Any}=Dict{String, Any}(); opts::Union{Nothing, Dict}=nothing)
+function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
    p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
    return isnothing(p) ? nothing : parse_document(p)
 end
@@ -202,8 +202,8 @@ Polymake.BigObjectAllocated
 ```
 """
 function parse_document(bson::Mongoc.BSON)
-   str = Mongoc.as_json(bson)
-   return Oscar.load(IOBuffer(str))
+  str = Mongoc.as_json(bson)
+  return Oscar.load(IOBuffer(str))
 end
 
 # Iterator
