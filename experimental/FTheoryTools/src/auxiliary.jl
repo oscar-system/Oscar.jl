@@ -564,6 +564,7 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
 
   See [Literature Models](@ref "Literature Models") for more details.
 
+  # Examples
   $doc_example
   """
 
