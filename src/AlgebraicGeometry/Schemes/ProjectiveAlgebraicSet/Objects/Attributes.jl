@@ -45,3 +45,4 @@ codim(X::AbsProjectiveAlgebraicSet) = codim(fat_scheme(X))
 
 relative_ambient_dimension(X::AbsProjectiveAlgebraicSet) = relative_ambient_dimension(fat_scheme(X))
 
+ambient_space(X::AbsProjectiveAlgebraicSet) = ambient_space(fat_scheme(X))
