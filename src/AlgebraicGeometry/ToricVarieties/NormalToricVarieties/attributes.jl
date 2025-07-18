@@ -742,11 +742,16 @@ Return the class group of the normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> class_group(p2)
-Z
+(Z, Map: Z^3 -> Z)
 ```
 """
-@attr FinGenAbGroup class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
-
+function class_group(v::NormalToricVarietyType)
+  map_into_cl = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  if !has_attribute(v, :class_group)
+    set_attribute!(v, :class_group, codomain(map_into_cl))
+  end
+  return codomain(map_into_cl), map_into_cl
+end
 
 @doc raw"""
     map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -769,7 +774,7 @@ Map
     # we cannot call class_group unless the attribute exists
     # but we need to make sure to have the correct codomain if it does exist
     if has_attribute(v, :class_group)
-      cg = class_group(v)
+      cg, _ = class_group(v)
       return map1*map2*hom(codomain(map2), cg, gens(cg))
     else
       return map1*map2
@@ -965,7 +970,8 @@ Map
 @attr FinGenAbGroupHom function map_from_picard_group_to_class_group(v::NormalToricVarietyType)
     f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
     g = snf(domain(f))[2] * f
-    return hom(picard_group(v), class_group(v), matrix(g))
+    cl, _ = class_group(v)
+    return hom(picard_group(v), cl, matrix(g))
 end
 
 
