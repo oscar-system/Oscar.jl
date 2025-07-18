@@ -379,6 +379,7 @@ GAP.@wrap SizeOfFieldOfDefinition(x::GapObj, y::GapInt)::GapInt
 GAP.@wrap SizesCentralizers(x::GapObj)::GapObj
 GAP.@wrap SizesConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
+GAP.@wrap SmallestMovedPoint(x::Any)::GapInt
 GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
