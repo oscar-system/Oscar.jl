@@ -71,6 +71,14 @@ GAP.gap_to_julia(::Type{QQAbFieldElem}, a::GapInt; recursive::Bool = true) = QQA
 
 (::QQAbField)(a::GapObj) = QQAbFieldElem(a)
 
+##
+## matrix conversion
+##
+
+function __ensure_gap_matrix(obj::GapObj)
+    @req GAPWrap.IsMatrixOrMatrixObj(obj) "<obj> is not a GAP matrix"
+end
+
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)
     @req Nemo.is_cyclo_type(F) "F is not a cyclotomic field"
