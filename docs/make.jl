@@ -14,4 +14,5 @@ deploydocs(
    repo   = "github.com/oscar-system/Oscar.jl.git",
    deploy_repo = "github.com/oscar-system/OscarDocumentation",
    push_preview = should_push_preview,
+   forcepush = true,
 )
