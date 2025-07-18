@@ -51,24 +51,24 @@ function cech_cohomologies(tl::ToricLineBundle)
     polyhedron_dict = Dict{Combination{Int64}, Vector{PointVector{ZZRingElem}}}()
     for l in combinations(n_maximal_cones(X), k+1)
       list_of_lattice_points = PointVector{ZZRingElem}[]
+      generating_ray_indices = reduce(intersect, ray_index_list[l])
       for p in bounded_max_polys
         
         # Verify if p's lattice points contribute
         sign_list = matrix(QQ, rays(X)) * 1//n_vertices(p) * sum(vertices(p)) + a_plane
-        generating_ray_indices = reduce(intersect, ray_index_list[l])
         any(x -> x < 0, sign_list[generating_ray_indices, :]) && continue
         
         # Find out which lattice points contribute
         append!(list_of_lattice_points, interior_lattice_points(p))
         for pt in boundary_lattice_points(p)
           pt_sign = matrix(QQ, rays(X)) * pt + a_plane
-          if all(i -> (sign_list[i] < 0 && pt_sign[i] < 0) || (sign_list[i] >= 0 && pt_sign[i] >= 0), 1:length(sign_list))
+          if !any(x -> x < 0, sign_list[generating_ray_indices, :])
             push!(list_of_lattice_points, pt)
           end
         end
         
       end
-      polyhedron_dict[l] = list_of_lattice_points
+      polyhedron_dict[l] = unique(list_of_lattice_points)
     end
     push!(cech_complex, polyhedron_dict)
   end
