@@ -84,6 +84,63 @@ function (G::PermGroup)(H::PermGroup)
   throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
 end
 
+@doc raw"""
+    smallest_moved_point(x::PermGroupElem) -> Int
+
+Return the smallest positive integer which is not fixed by `x` if
+such an integer exists, and `inf` if `x` is the identity.
+
+    smallest_moved_point(G::PermGroup) -> Int
+
+Return the smallest positive integer which is not fixed by `G` if
+such an integer exists, and `inf` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> smallest_moved_point(s)
+1
+
+julia> smallest_moved_point(gen(s, 1))
+1
+
+julia> smallest_moved_point(one(s))
+infinity
+```
+"""
+function smallest_moved_point(x::Union{PermGroupElem,PermGroup})
+  pt = GAPWrap.SmallestMovedPoint(GapObj(x))
+  pt isa Int && return pt
+  return inf
+end
+
+@doc raw"""
+    largest_moved_point(x::PermGroupElem) -> Int
+
+Return the largest positive integer which is not fixed by `x` if
+such an integer exists, and `0` if `x` is the identity.
+
+    largest_moved_point(G::PermGroup) -> Int
+
+Return the largest positive integer which is not fixed by `G` if
+such an integer exists, and `0` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> largest_moved_point(s)
+3
+
+julia> largest_moved_point(gen(s, 1))
+3
+
+julia> largest_moved_point(one(s))
+0
+```
+"""
+largest_moved_point(x::Union{PermGroupElem,PermGroup}) = GAPWrap.LargestMovedPoint(GapObj(x))
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
@@ -974,4 +1031,106 @@ macro permutation_group(n, gens...)
            sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end
+end
+
+function print_perm(io::IO, perm::PermGroupElem, cycle_limit::Int = 100)
+  dom = BitSet()
+  l = largest_moved_point(perm)
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = smallest_moved_point(perm)
+  while length(dom) < cycle_limit && i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(io, ")")
+    end
+    i = i + 1
+  end
+  if i < l && any(j -> j^perm != j && !(j in dom), i:l)
+    # if there are any cycles left, indicate that
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
+  dom = BitSet()
+  l = largest_moved_point(perm)
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = smallest_moved_point(perm)
+
+  str_io = IOBuffer()
+  str = nothing
+  while i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(str_io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(str_io, ")")
+      str = String(take!(str_io))
+      if length(str) <= width - 5
+        # TODO: handle the case where width-5 < length(str) <= width and this
+        # is the last cycle, so we don't need to abbreviate it
+        print(io, str)
+        width -= length(str)
+        str = nothing
+      else
+        break
+      end
+    end
+    i = i + 1
+  end
+
+  any_cycles_left = i < l && any(j -> j^perm != j && !(j in dom), i:l)
+  if str !== nothing
+    @assert length(str) >= width - 5
+    if any_cycles_left
+      width -= 5
+    end
+    # We would like to abbreviate the cycle printed in str by ending it with
+    # ",...)" so a comma followed by 5 characters. We thus only keep width-4
+    # characters, and then search for a comma.
+    pos = findprev(',', str, width - 4)
+
+    # If there is no comma within the first width character, e.g. if the
+    # cycle has large entries such as "(12345,12346,..." and we cut off before
+    # first comma, then don't print this cycle
+    if pos == nothing
+      any_cycles_left = true
+    else
+      print(io, str[1:pos], "...)")
+    end
+  end
+  if any_cycles_left
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+
+function Base.show(io::IO, x::PermGroupElem)
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    screenwidth -= 3 # leave some space for indentation
+    print_perm_with_limited_width(io, x, screenwidth)
+  else
+    print_perm(io, x)
+  end
 end
