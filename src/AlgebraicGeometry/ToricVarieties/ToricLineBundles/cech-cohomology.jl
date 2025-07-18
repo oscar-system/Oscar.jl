@@ -1,7 +1,5 @@
 export cech_cohomologies
 
-#=
-=#
 @doc raw"""
     structure_sheaf(v::NormalToricVarietyType)
 
