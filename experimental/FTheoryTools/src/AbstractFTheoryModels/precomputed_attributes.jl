@@ -2,38 +2,32 @@
 ### (1) Meta data getters
 ##########################################
 
-meta_data = [
-    (:associated_literature_models, Vector{String}),
-    (:arxiv_doi, String),
-    (:arxiv_id, String),
-    (:arxiv_link, String),
-    (:arxiv_model_equation_number, String),
-    (:arxiv_model_page, String),
-    (:arxiv_model_section, String),
-    (:arxiv_version, String),
-    (:birational_literature_models, Vector{String}),
-    (:journal_doi, String),
-    (:journal_link, String),
-    (:journal_model_equation_number, String),
-    (:journal_model_page, String),
-    (:journal_model_section, String),
-    (:journal_pages, String),
-    (:journal_report_numbers, Vector{String}),
-    (:journal_volume, String),
-    (:journal_name, String),
-    (:journal_year, String),
-    (:literature_identifier, String),
-    (:model_description, String),
-    (:model_parameters, Dict{String, Int64}),
-    (:paper_authors, Vector{String}),
-    (:paper_buzzwords, Vector{String}),
-    (:paper_description, String),
-    (:paper_title, String)
-]
-
-for (name, typ) in meta_data
-    @eval @define_model_attribute_getter ($name, $typ)
-end
+@define_model_attribute_getter(:associated_literature_models, Vector{String})
+@define_model_attribute_getter(:arxiv_doi, String)
+@define_model_attribute_getter(:arxiv_id, String)
+@define_model_attribute_getter(:arxiv_link, String)
+@define_model_attribute_getter(:arxiv_model_equation_number, String)
+@define_model_attribute_getter(:arxiv_model_page, String)
+@define_model_attribute_getter(:arxiv_model_section, String)
+@define_model_attribute_getter(:arxiv_version, String)
+@define_model_attribute_getter(:birational_literature_models, Vector{String})
+@define_model_attribute_getter(:journal_doi, String)
+@define_model_attribute_getter(:journal_link, String)
+@define_model_attribute_getter(:journal_model_equation_number, String)
+@define_model_attribute_getter(:journal_model_page, String)
+@define_model_attribute_getter(:journal_model_section, String)
+@define_model_attribute_getter(:journal_pages, String)
+@define_model_attribute_getter(:journal_report_numbers, Vector{String})
+@define_model_attribute_getter(:journal_volume, String)
+@define_model_attribute_getter(:journal_name, String)
+@define_model_attribute_getter(:journal_year, String)
+@define_model_attribute_getter(:literature_identifier, String)
+@define_model_attribute_getter(:model_description, String)
+@define_model_attribute_getter(:model_parameters, Dict{String, Int64})
+@define_model_attribute_getter(:paper_authors, Vector{String})
+@define_model_attribute_getter(:paper_buzzwords, Vector{String})
+@define_model_attribute_getter(:paper_description, String)
+@define_model_attribute_getter(:paper_title, String)
 
 
 

@@ -553,7 +553,7 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
 
   fname_expr = arg_expr.args[1]
   rettype_expr = arg_expr.args[2]
-  fname = fname_expr isa Symbol ? fname_expr : eval(fname_expr)
+  fname = fname_expr isa Symbol ? fname_expr : error("function_name is not a symbol")
   sym = QuoteNode(fname)
   msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
