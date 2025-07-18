@@ -154,13 +154,21 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   return aut
 end
 
-function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
-  T = domain(aut)
+function Base.show(io::IO,  ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
   io = pretty(io)
-  n = ngens(aut)
-  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T, " with ", ItemQuantity(n, "generator"))
+  println(io, "Orthogonal group of", Indent())
+  println(io, Lowercase(), OT.G)
+  print(io, Dedent(), "with ", ItemQuantity(ngens(OT), "generator"))
 end
-
+                                                                                                                                                                                        
+function Base.show(io::IO, OT::AutomorphismGroup{TorQuadModule})
+  if is_terse(io)
+    print(io, "Orthogonal group")
+  else
+    io = pretty(io)
+    print(io, "Orthogonal group of ", Lowercase(), OT.G)
+  end
+end 
 
 @doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
@@ -195,14 +203,18 @@ function defines_automorphism(G::TorQuadModule, M::ZZMatrix)
   return true
 end
 
-function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{TorQuadModule})
   D = domain(parent(f))
   io = pretty(io)
-  println(IOContext(io, :compact => true), "Isometry of ", Lowercase(), D, " defined by")
-  print(io, Indent(), matrix(f), Dedent())
+  println(io, "Isometry of")
+  println(IOContext(io, :compact => true), Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
 end
 
-function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, f::AutomorphismGroupElem{TorQuadModule})
   print(io, matrix(f))
 end
 
@@ -434,7 +446,9 @@ Gram matrix quadratic form:
 [4//15]
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Orthogonal group of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -476,7 +490,9 @@ of the codomain of `i`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Orthogonal group of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -484,7 +500,7 @@ Map
   to finite quadratic module: Z/15 -> Q/2Z
 
 julia> S, _ = stabilizer(OT, T3inT)
-(Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators, Hom: group of isometries of finite quadratic module with 2 generators -> group of isometries of finite quadratic module with 2 generators)
+(Orthogonal group of finite quadratic module: Z/15 -> Q/2Z, Hom: orthogonal group -> orthogonal group)
 
 julia> order(S)
 4
