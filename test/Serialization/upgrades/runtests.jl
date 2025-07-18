@@ -44,6 +44,7 @@
     @test loaded isa FqField
     @test order(loaded) == 4
     Oscar.reset_global_serializer_state()
+    # This is the polynomial in the "A FAIR File Format for Mathematical Software" paper
     loaded = load(joinpath(Main.serialization_upgrade_test_path, "version_1_0_5", "FqMPolyRingElem.mrdi"))
     @test loaded isa FqMPolyRingElem
   end
