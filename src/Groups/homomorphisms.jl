@@ -1441,13 +1441,13 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup(AutGAP, G)
 end
 
-function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: GAPGroup
+function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
   io = pretty(io)
   println(io, "Automorphism group of", Indent())
   print(io, Lowercase(), A.G, Dedent())
 end
 
-function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
+function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
   if is_terse(io)
     print(io, "Automorphism group")
   else

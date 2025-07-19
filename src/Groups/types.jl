@@ -541,8 +541,19 @@ end
 
 const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
 
-function Base.show(io::IO, AGE::AutomorphismGroupElem{FinGenAbGroup}) 
-    print(io, "Automorphism of ", FinGenAbGroup, " with matrix representation ", matrix(AGE))
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{FinGenAbGroup})
+  D = domain(parent(f))
+  io = pretty(io)
+  println(io, "Automorphism of")
+  println(io, Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AutomorphismGroupElem{FinGenAbGroup})
+  print(io, matrix(f))
 end
 
 ################################################################################
