@@ -9,6 +9,7 @@ export restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
+export permutation_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
@@ -31,7 +32,7 @@ import Oscar: _vec, gmodule, GAPWrap
 import Oscar: MultGrp, MultGrpElem, CoChain, GrpCoh
 import Oscar: local_schur_indices
 
-import AbstractAlgebra: Group, Module
+import AbstractAlgebra: Group, Module, pretty
 import Base: parent
 
 """
@@ -377,6 +378,9 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
+  if is_abelian(G)
+    return _abs_irred_abelian(G)
+  end
   im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
   IM = GModule[]
   K = abelian_closure(QQ)[1]
@@ -752,7 +756,64 @@ function irreducible_modules(::typeof(CyclotomicField), G::Oscar.GAPGroup)
   return [gmodule(CyclotomicField, m) for m in z]
 end
 
+#TODO: add characters as well, should be fast given that we have
+#      the dual explicitly here!
+function _abs_irred_abelian(G::Oscar.GAPGroup)
+  @assert is_abelian(G)
+  mA = isomorphism(Hecke.FinGenAbGroup, G) # G -> A
+  A = codomain(mA)
+  R, mR = dual(A)
+  C, z = abelian_closure(QQ)
+  F = free_module(C, 1)
+  all = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{QQAbFieldElem{AbsSimpleNumFieldElem}}}[]
+  function conv(r)
+    e = r.elt  #in QQ mod ZZ, rep as a/b with b>a should be mapped to z(b)^a
+    return z(Int(denominator(e)))^Int(numerator(e))
+  end
+  for r = R
+    f = mR(r)
+    push!(all, gmodule(G, [hom(F, F, [F([conv(f(mA(g)))])]) for g = gens(G)]))
+  end
+  return all
+end
+
+function _irred_abelian(G::Oscar.GAPGroup)
+  @assert is_abelian(G)
+  mA = isomorphism(Hecke.FinGenAbGroup, G) # G -> A
+  A = codomain(mA)
+  R, mR = dual(A)
+  all = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{QQFieldElem}}[]
+
+  all_elem = []
+
+  for r = R
+    r in all_elem && continue
+    o = order(r)
+    for i=2:o
+      if gcd(o, i) == 1
+        push!(all_elem, i*r)
+      end
+    end
+    f = mR(r)
+    C, z = cyclotomic_field(Int(o); cached = false)
+    F = free_module(QQ, degree(C))
+    m = representation_matrix(z)
+
+    function conv(r)
+      e = r.elt::QQFieldElem
+      return (m^Int(divexact(o, denominator(e))))^Int(numerator(e))
+    end
+
+    push!(all, gmodule(G, [hom(F, F, conv(f(mA(g)))) for g = gens(G)]))
+  end
+  return all
+end
+
+
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
+  if is_abelian(G)
+    return _irred_abelian(G)::Vector{GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{QQFieldElem}}}
+  end
   #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
   temp = map(x -> galois_orbit_sum(character(x)), z)
@@ -912,6 +973,8 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
   return [(x[1], QQAb(em(preimage(mkK, x[2])))) for x = chr]
 end
 
+
+#
 """
     regular_gmodule(G::GAPGroup, R::Ring)
 
@@ -949,10 +1012,16 @@ end
 function _regular_gmodule(G::Group, M)
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
+  set_attribute!(ZG, :is_regular => ge)
   return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))),
     MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
              y->ge[Int(y)])
 end
+
+function is_regular_gmodule(G::GModule)
+  return has_attribute(G, :is_regular)
+end
+
 
 """
     natural_gmodule(G::PermGroup, R::Ring)
@@ -966,6 +1035,62 @@ function natural_gmodule(G::PermGroup, R::Ring)
 #TODO: We do not really want to write down these matrices.
 #      What is the appropriate way to construct a module homomorphism
 #      without storing a matrix?
+end
+
+function show_permutation_gmodule(io::IO, C::GModule)
+  io = pretty(io)
+  io = IOContext(io, :compact => true)
+  rc = get_attribute(C, :right_cosets)
+  print(io, "permutation module for $(rc.group) over $(base_ring(C)) for right cosets of $(rc.subgroup)")
+end
+
+function permutation_gmodule(G::Group, U::Group, R::Ring)
+  rc = right_cosets(G, U)
+  h = action_homomorphism(rc)
+  F = free_module(R, Int(divexact(order(G), order(U))))
+  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
+  set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule)
+  return C
+end
+
+function is_permutation_gmodule(C::GModule)
+  return has_attribute(C, :right_cosets)
+end
+
+function hom_base_perm_module(C::GModule, D::GModule)
+  @assert base_ring(C) == base_ring(D)
+  G = group(C)
+  @assert G == group(D)
+  rC = get_attribute(C, :right_cosets)
+  rD = get_attribute(D, :right_cosets)
+  @assert rC !== nothing && rD !== nothing
+  J = rC.subgroup
+  H = rD.subgroup
+  #hom: basis for C is given by the transversal in rC
+  all = []
+  ac = action_homomorphism(rD)
+  O = orbits(gset(J, *, rD)) #to be improved... this are J-orbits of H\G
+  F = free_module(base_ring(C), length(O))
+  FG = trivial_gmodule(G, F)
+
+  for o = O #each orbit gives a map
+    M = zero_matrix(base_ring(C), dim(C), dim(D))
+#    z = zero(ZG)
+    # Je -> sum Hx for x in o, so this should be a norm map!
+    for i = 1:length(rC)
+      k = representative(rC[i])
+      i > 1 || isone(k)
+      for x = o
+        M[i, ac(representative(x)*k)(1)] += one(base_ring(C))
+#        if i == 1
+#          z += ZG(representative(x)*k)
+#        end
+      end
+    end
+#    push!(all, (M, z))
+    push!(all, M)
+  end
+  return all
 end
 
 """
@@ -1064,7 +1189,7 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
   S = domain(f)
   Sac = [hom(S, S, elem_type(S)[preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
   D = gmodule(S, M.G, Sac)
-  return D, hom(D, M, f)
+  return D, hom(D, M, f; check = false)
 end
 
 function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
@@ -1637,11 +1762,16 @@ end
 The group of Z[G]-homomorphisms as a k-module, not a k[G] one. (The G operation
 is trivial)
 """
-function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
+function Oscar.hom(C::S, D::T) where S <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}} where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
+  @assert group(C) == group(D)
   b = hom_base(C, D)
   H, mH = hom(C.M, D.M)
-  s, ms = sub(H, [H(vec(collect(x))) for x = b])
-  return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(matrix(C.ac[i]))*g*matrix(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms * mH
+  s, ms = sub(H, [preimage(mH, hom(C.M, D.M, x)) for x = b])
+#    s, ms = sub(H, [H(vec(collect(x))) for x = b])
+  E = GModule(group(C), [hom(s, s, identity_matrix(QQ, dim(s))) for i=1:ngens(group(C))])
+  mE = ms*mH
+  set_attribute!(E, :is_trivial => true)
+  return E, mE
 end
 
 #a bad implementation of hom: as the fix module of ghom
@@ -1652,7 +1782,6 @@ function Hecke.hom(C::GModule{T, FinGenAbGroup}, D::GModule{T, FinGenAbGroup}) w
  q, mq = H_zero(H)
  mmH = hom(q, H.M, [mq(x)() for x = gens(q)])
  return q, mmH*mH
- return gmodule(C.G, [hom(q, q, gens(q)) for x = gens(C.G)]), mmH*mH
 end
 
 """
@@ -1720,10 +1849,10 @@ function _rref!(V::Vector{<:MatElem{<:FieldElem}})
   #@show :in, V
   @assert allequal(size, V)
   n = nrows(V[1])
-  @assert ncols(V[1]) == n
+  m = ncols(V[1])
 
   o = 1
-  for i = CartesianIndices((1:n, 1:n))
+  for i = CartesianIndices((1:n, 1:m))
     j = findall(x->!iszero(x[i]), V)
     isempty(j) && continue
     if j[1] != o
@@ -1912,8 +2041,13 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
 end
 
 
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
+function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   @assert base_ring(C) == base_ring(D)
+  @assert group(C) == group(D)
+
+  if is_permutation_gmodule(C) && is_permutation_gmodule(D)
+    return hom_base_perm_module(C, D)
+  end
 
   p = Hecke.p_start
   p = 2^10
@@ -1981,19 +2115,90 @@ function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, 
   if mE !== nothing
     return domain(mE), mE
   end
-  E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
-  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  if is_regular_gmodule(M)
+    b = map(matrix, M.ac)
+    E  = matrix_algebra(base_ring(M), b)
+    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  else
+    E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
+    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  end
   set_attribute!(M, :endo => mE)
   return E, mE
 end
+
+###
+# idea: E acts on C, but E is too large, ie. acts trivially, or
+# several e induce the same endo on C
+# so we find out which part maps C to 0, and return E mod the kern
+#
+# proj does the same for the quotient...
+#
+function restrict_endo(mE, mC)
+  E = domain(mE)
+  C = domain(mC)
+  mmC = mC.module_map
+  #mE maps E -> End(M) and C is a submodule of M
+  h, mh = hom(C.M, C.M) # hom of the vector spaces, so Q^(n x n)
+                        # NO G-action here
+  EE = free_module(QQ, dim(E)) #E and EE are isomorphic as Q-vector spaces
+
+  z = hom(EE, h, [preimage(mh, hom(C.M, C.M, [preimage(mmC, (mmC*mE(E[i]).module_map)(x)) for x = gens(C.M)])) for i=1:dim(E)])
+  # E = EE -> hom(C, C) as Q-vector space map
+  #      e -> (C->M) * e * (C->M)^-1 is the map
+  # then endo(C) as an algebra is E/kern of this map (I hope)
+  # EE/kern has basis b_i, then endo(C) is generated by images of this basis
+  Q, mQ = quo(EE, kernel(z)[1])
+  all = QQMatrix[]
+  for q = gens(Q)
+    qq = preimage(mQ, q)
+    push!(all, matrix(mh(z(qq))))
+  end
+  F = matrix_algebra(QQ, all; isbasis = true)
+  return F, map_from_func(F, Hecke.MapParent(C, C, "homomorphisms"), 
+              x -> hom(C, C, matrix(x); check = false),
+              y -> E(y.module_map))
+end
+
+function proj_endo(mE, mC)
+  E = domain(mE)
+  C = codomain(mC)
+  mmC = mC.module_map
+  #mE maps E -> End(M) and C is a quotient of M
+  #logic as above.
+  h, mh = hom(C.M, C.M)
+  EE = free_module(QQ, dim(E))
+  z = hom(EE, h, [preimage(mh, hom(C.M, C.M, [mmC(mE(E[i]).module_map(preimage(mmC, x))) for x = gens(C.M)])) for i=1:dim(E)])
+  #      e -> (M->C)^-1 * e * (M->C) is the map
+  Q, mQ = quo(EE, kernel(z)[1])
+  all = QQMatrix[]
+  for q = gens(Q)
+    qq = preimage(mQ, q)
+    push!(all, matrix(mh(z(qq))))
+  end
+  F = matrix_algebra(QQ, all; isbasis = true)
+  return F, map_from_func(F, Hecke.MapParent(C, C, "homomorphisms"), 
+                 x -> hom(C, C, matrix(x); check = false),
+                 y -> E(matrix(y.module_map)))
+end
+
 
 function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   mE = get_attribute(M, :center_endo)
   if mE !== nothing
     return domain(mE), mE
   end
-  E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
-  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+  if is_regular_gmodule(M)
+    ge = get_attribute(M, :is_regular)
+    G = group(M)
+    C = conjugacy_classes(G) 
+    #TODO: speed this up! (reuse sub-words, ...)
+    base = [sum(matrix(action(M, g)) for g = c) for c = C]
+    E = matrix_algebra(base_ring(M), base)
+  else
+    E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
+  end
+  mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   set_attribute!(M, :center_endo => mE)
   return E, mE
 end
@@ -2233,8 +2438,15 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
   #         with lots of repetition
   #TODO: write and use CentreOfEndomorphismRing
   #      have a sane overall strategy
-  E, mE = endo(M)
-  C, mC = center(E)
+  #TODO: center_of_endo for sub and quo modules
+  #      irreducibles for abelian groups
+  if is_regular_gmodule(M) || has_attribute(M, :center_endo)
+    C, mC = center_of_endo(M)
+  else
+    E, mE = endo(M)
+    C, mC = center(E)
+    mC = mC*mE
+  end
   H = []
   for b = basis(C)
     f = minpoly(b)
@@ -2247,11 +2459,15 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
     end
     for (p, k) = lf
       x = (p^k)(b)
-      h = mE(mC(x))
+      h = mC(x)
       k, mk = kernel(h)
-      q, _ = quo(M, mk.module_map)
+      q, mq = quo(M, mk.module_map)
       @assert dim(q) > 0 && dim(k) > 0
+      _, mF = restrict_endo(mC, mk)
+      set_attribute!(k, :center_endo => mF)
       append!(H, split_into_homogenous(k))
+      _, mF = proj_endo(mC, hom(M, q, mq; check = false))
+      set_attribute!(q, :center_endo => mF)
       append!(H, split_into_homogenous(q))
       return H
     end
@@ -2555,6 +2771,7 @@ export restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
+export permutation_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
