@@ -4,11 +4,11 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Welcome to *FTheoryTools*
+# Welcome to `FTheoryTools`
 
 ## Overview
 
-*FTheoryTools* is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
+`FTheoryTools` is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
 designed to assist researchers in working with F-theory models. It focuses on automating and simplifying
 calculations involving **singular elliptic fibrations**—key geometric objects in F-theory phenomenology.
 
@@ -20,7 +20,7 @@ sciences. No background in string theory or theoretical physics is assumed beyon
 geometry of elliptic fibrations. We encourage interested readers to consult the exposition in
 [Weigand 2018](@cite Wei18) for more background information.
 
-## Why Use *FTheoryTools*?
+## Why Use `FTheoryTools`?
 
 F-theory encodes physical data into the structure of singular elliptic fibrations. In these models:
 
@@ -31,7 +31,7 @@ To analyze the geometry effectively, model builders look for a **crepant resolut
 preserves the Calabi-Yau condition and retains physical meaning. These resolutions are challenging to compute,
 especially in higher codimension or for non-toric singularities.
 
-*FTheoryTools* aims to:
+`FTheoryTools` aims to:
 
 - Automate and streamline the crepant resolution process,
 - Make computations more reproducible,
@@ -42,14 +42,14 @@ especially in higher codimension or for non-toric singularities.
 
 ### Constructing Elliptic Fibrations
 
-*FTheoryTools* supports construction of elliptic fibrations via:
+`FTheoryTools` supports construction of elliptic fibrations via:
 
-- [Weierstrass models](@ref),
-- [Global Tate models](@ref),
-- [Hypersurface models](@ref).
+- [Weierstrass Models](@ref "Weierstrass Models"),
+- [Global Tate Models](@ref "Global Tate Models"),
+- [Hypersurface Models](@ref "Hypersurface Models").
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
-shared functionality is documented at [Functionality for all F-theory models](@ref).
+shared functionality is documented at [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
 
 Fibrations can be defined over various base spaces:
 
@@ -57,16 +57,16 @@ Fibrations can be defined over various base spaces:
 - Toric varieties (best supported),
 - (Planned) General schemes and varieties.
 
-Physically relevant cases often have base dimension 1, 2, or 3, but *FTheoryTools* is not limited to these.
+Physically relevant cases often have base dimension 1, 2, or 3, but `FTheoryTools` is not limited to these.
 
 ### General Blowups (Beyond Toric)
 
-*FTheoryTools* enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
+`FTheoryTools` enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
 singularities, including those without a known toric resolution.
 
 ### Literature Models
 
-*FTheoryTools* includes a curated database of well-known F-theory models from the literature. These models are stored
+`FTheoryTools` includes a curated database of well-known F-theory models from the literature. These models are stored
 using the **MaRDI file format**, a JSON-based format aligned with FAIR data principles:
 
 - **Findability**
@@ -91,7 +91,7 @@ Current literature models include:
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
 
-More information: [Literature Models](@ref).
+More information: [Literature Models](@ref literature_models)
 
 ### ``G_4``-Flux Enumeration
 
@@ -106,7 +106,7 @@ FTheoryTools supports the enumeration of vertical ``G_4``-fluxes—important for
 
 The computed flux space: ``\mathbb{Z}^{224} \times \mathbb{Q}^{127}``.
 
-Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref).
+Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref "``G_4``-Fluxes").
 
 ## Tutorials
 

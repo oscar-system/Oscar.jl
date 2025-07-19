@@ -36,7 +36,7 @@
         "description": "",
         "comment": "",
         "gauge_algebra": [""],
-        "global_gauge_quotients": [""],
+        "global_gauge_group_quotients": [""],
         "discrete_factors": [""]
     },
     "model_parameters": [""],

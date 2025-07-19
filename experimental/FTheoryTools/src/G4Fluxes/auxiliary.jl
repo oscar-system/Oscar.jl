@@ -14,7 +14,7 @@ This is useful for rewriting cohomology classes in a fixed basis of the toric va
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -338,7 +338,7 @@ Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -365,7 +365,7 @@ associated with the rays of ``X_\Sigma``.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -404,7 +404,7 @@ via Cox ring monomials. For the actual cohomology class generators, see `gens_of
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -475,7 +475,7 @@ basis (constructed from toric coordinate products) to the hypersurface ``\wideha
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -509,7 +509,7 @@ For the analogous map in the ambient toric variety, see `converter_dict_h22_ambi
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
