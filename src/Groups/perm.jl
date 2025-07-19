@@ -85,12 +85,12 @@ function (G::PermGroup)(H::PermGroup)
 end
 
 @doc raw"""
-    smallest_moved_point(x::PermGroupElem) -> Int
+    smallest_moved_point(x::PermGroupElem) -> Union{Int, PosInf}
 
 Return the smallest positive integer which is not fixed by `x` if
 such an integer exists, and `inf` if `x` is the identity.
 
-    smallest_moved_point(G::PermGroup) -> Int
+    smallest_moved_point(G::PermGroup) -> Union{Int, PosInf}
 
 Return the smallest positive integer which is not fixed by `G` if
 such an integer exists, and `inf` if `G` is trivial.
