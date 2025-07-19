@@ -81,7 +81,7 @@ julia> is_isomorphic(ans, G_perm)
 true
 
 julia> G_fp = fp_group(G_perm)
-Finitely presented group of order 10
+Finitely presented group of order 10 with 2 generators F1, F2 and 3 relators
 
 julia> gens(G_fp)
 2-element Vector{FPGroupElem}:
@@ -95,7 +95,7 @@ julia> relators(G_fp)
  F2^5
 
 julia> F = free_group(2)
-Free group of rank 2
+Free group of rank 2 with 2 generators f1, f2
 
 julia> G_cox, _ = quo(F, [F[1]^2, F[2]^2, (F[1]*F[2])^5])
 (Finitely presented group, Hom: F -> G_cox)
@@ -133,7 +133,7 @@ julia> describe(quo(H, H2)[1])
 "(C3 x C3) : C2"
 
 julia> dihedral_group(10)
-Pc group of order 10
+Pc group of order 10 with 2 generators f1, f2
 
 julia> dihedral_group(PermGroup, 10)
 Permutation group of degree 5

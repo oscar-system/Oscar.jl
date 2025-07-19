@@ -3433,7 +3433,7 @@ julia> phi[1], n, m
 (3, 2, 3)
 
 julia> G = quaternion_group(8)
-Pc group of order 8
+Pc group of order 8 with 3 generators x, y, y2
 
 julia> t = character_table(G);
 

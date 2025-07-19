@@ -42,7 +42,7 @@ It describes a free abelian group of rank `n`.
 # Examples
 ```jldoctest
 julia> G = pc_group(collector(2))
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> is_abelian(G)
 true
@@ -447,7 +447,7 @@ julia> Oscar.set_relative_orders!(c, [2, 3])
 julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
 
 julia> gg = pc_group(c)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> describe(gg)
 "S3"
@@ -482,7 +482,7 @@ each entry corresponding to a group generator.
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
@@ -495,7 +495,7 @@ julia> exponent_vector(x)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -531,7 +531,7 @@ with respect to the defining generators. For generators with infinite order, we 
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
@@ -542,7 +542,7 @@ julia> relative_order(x)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -575,7 +575,7 @@ Return the depth of `g` as integer, relative to the defining generators.
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
@@ -586,7 +586,7 @@ julia> depth(x)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -615,7 +615,7 @@ relative to the defining generators. Throws an error if `g` is the neutral eleme
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
@@ -626,7 +626,7 @@ julia> leading_exponent(x)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -661,7 +661,7 @@ Return the Hirsch length of `G`.
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> hirsch_length(g)
 1
@@ -669,7 +669,7 @@ julia> hirsch_length(g)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> hirsch_length(gg)
 0
@@ -701,7 +701,7 @@ See also [`syllables(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [0, 5])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^-3*g2^2
@@ -717,7 +717,7 @@ julia> letters(x)
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -758,7 +758,7 @@ See also [`letters(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
 
 ```jldoctest
 julia> gg = small_group(6, 1)
-Pc group of order 6
+Pc group of order 6 with 2 generators f1, f2
 
 julia> x = gg[1]^5*gg[2]^-4
 f1*f2^2
@@ -777,7 +777,7 @@ true
 
 ```jldoctest
 julia> g = abelian_group(PcGroup, [5, 0])
-Pc group of infinite order
+Pc group of infinite order with 2 generators g1, g2
 
 julia> x = g[1]^-3 * g[2]^-3
 g1^2*g2^-3
@@ -862,12 +862,12 @@ Return a collector object for `G`.
 # Examples
 ```jldoctest
 julia> g = small_group(12, 3)
-Pc group of order 12
+Pc group of order 12 with 3 generators f1, f2, f3
 
 julia> c = collector(g);
 
 julia> gc = pc_group(c)
-Pc group of order 12
+Pc group of order 12 with 3 generators f1, f2, f3
 
 julia> is_isomorphic(g, gc)
 true
