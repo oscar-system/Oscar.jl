@@ -504,7 +504,7 @@ end
 @doc raw"""
     add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of associated literature models for the F-theory model.
+Add a new entry to the list of associated literature models for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
@@ -518,7 +518,7 @@ end
 @doc raw"""
     add_journal_report_number(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of journal report numbers for the F-theory model.
+Add a new entry to the list of journal report numbers for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
@@ -532,7 +532,7 @@ end
 @doc raw"""
     add_model_parameter(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of model parameters for the F-theory model.
+Add a new entry to the list of model parameters for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
@@ -546,7 +546,7 @@ end
 @doc raw"""
     add_paper_author(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of paper authors for the F-theory model.
+Add a new entry to the list of paper authors for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
@@ -560,7 +560,7 @@ end
 @doc raw"""
     add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of paper buzzwords for the F-theory model.
+Add a new entry to the list of paper buzzwords for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
@@ -574,7 +574,7 @@ end
 @doc raw"""
     add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
 
-Adds a new entry to the list of birational models for the F-theory model.
+Add a new entry to the list of birational models for the F-theory model.
 If the entry is already present, nothing is changed.
 
 See [Literature Models](@ref literature_models) for more details.
