@@ -58,7 +58,7 @@ function f4ncgb_add(handle::Ptr{Cvoid},
 end
 
 function f4ncgb_add(handle::Ptr{Cvoid}, polynomial::FreeAssociativeAlgebraElem)
-  for m in monomials(polynomial)
+  for m in terms(polynomial)
     c = coeff(m, 1)
     d = denominator(c)
     n = numerator(c)
