@@ -73,7 +73,6 @@ f4ncgb_end_poly(handle::Ptr{Cvoid}) = @ccall libf4ncgb.f4ncgb_end_poly(handle::P
 function f4ncgb_set_blocks(handle::Ptr{Cvoid}, block_lengths::Vector{UInt32})
     return @ccall libf4ncgb.f4ncgb_set_blocks(
       handle::Ptr{Cvoid},
-      blocks::Csize_t,
       length(block_lengths)::Csize_t,
       block_lengths::Ptr{UInt32})::Cstring
 end
@@ -202,6 +201,7 @@ function f4ncgb_groebner(I::FreeAssociativeAlgebraIdeal)
   r = base_ring(I)
   handle = f4ncgb_init()
   f4ncgb_set_nvars(handle, UInt32(ngens(r)))
+  f4ncgb_set_blocks(handle, UInt32[ngens(r)])
   f4ncgb_set_threads(handle, UInt32(1))
   f4ncgb_add.(Ref(handle), x)
   userdata = f4ncgb_polys_helper(r)
