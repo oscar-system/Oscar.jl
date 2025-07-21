@@ -6,6 +6,7 @@ export f4ncgb_version,
        f4ncgb_init,
        f4ncgb_add,
        f4ncgb_free,
+       f4ncgb_groebner,
        f4ncgb_get_state,
        f4ncgb_end_poly,
        f4ncgb_set_blocks,
@@ -196,6 +197,18 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
     end_poly_cb_c::Ptr{Cvoid})::Cint
 end
 
+function f4ncgb_groebner(I::FreeAssociativeAlgebraIdeal)
+  x = gens(I)
+  r = base_ring(I)
+  handle = f4ncgb_init()
+  f4ncgb_set_nvars(handle, UInt32(ngens(r)))
+  f4ncgb_set_threads(handle, UInt32(1))
+  f4ncgb_add.(Ref(handle), x)
+  userdata = f4ncgb_polys_helper(r)
+  f4ncgb_solve(handle, userdata)
+  f4ncgb_free(handle)
+  return userdata.gens
+end
 
 #=
 S1 = quantum_symmetric_group(4);
