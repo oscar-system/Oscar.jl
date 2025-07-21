@@ -1,9 +1,19 @@
 module OscarDB
 
 using ..Oscar
-using ..Oscar: SerializerState, DeserializerState
+using ..Oscar.Serialization
 
 import Oscar.Serialization: load_object, save_object, type_params
+
+# Transitivesimplicialcomplex imports
+import Oscar:
+  simplicial_complex,
+  dim,
+  f_vector,
+  automorphism_group,
+  homology,
+  betti_numbers,
+  n_vertices
 
 # for ca certificates
 using NetworkOptions, Mongoc, URIs
@@ -182,6 +192,7 @@ end
 include("exports.jl")
 
 include("LeechPairs.jl")
+include("TransitiveSimplicialComplex.jl")
 include("serialization.jl")
 
 

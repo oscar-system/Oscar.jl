@@ -1,1 +1,3 @@
 export LeechPair
+export TransitiveSimplicialComplex
+export transitive_simplicial_complex

@@ -46,8 +46,14 @@ type_params(tsc::TransitiveSimplicialComplex) = TypeParams(
 )
 
 function save_object(s::SerializerState, tsc::TransitiveSimplicialComplex)
-  save_data_dict(s) do 
-    save_object(s, simplicial_complex(tsc), :simplicial_complex)
+  save_data_dict(s) do
+    save_object(s, tsc._id, :name)
+    save_object(s, simplicial_complex(tsc), :complex)
+    save_object(s, dim(tsc), :dim)
+    save_object(s, n_vertices(tsc), :n_vertices)
+    save_object(s, f_vector(tsc), :f_vector)
+    save_object(s, betti_numbers(tsc), :betti_numbers)
+    save_object(s, automorphism_group(tsc), :aut_group)
     save_object(s, topological_type(tsc), :topological_type)
   end
 end
@@ -56,7 +62,12 @@ function load_object(s::DeserializerState, ::Type{TransitiveSimplicialComplex},
                      params::PermGroup)
   load_node(s) do _
     TransitiveSimplicialComplex(
-      load_object(s, SimplicialComplex, :simplicial_complex),
+      load_object(s, String, :name),
+      load_object(s, SimplicialComplex, :complex),
+      load_object(s, Int, :dim),
+      load_object(s, Int, :n_vertices),
+      load_object(s, Vector{Int}, :f_vector),
+      load_object(s, Vector{Int}, :betti_numbers),
       params,
       load_object(s, String, :topological_type)
     )
