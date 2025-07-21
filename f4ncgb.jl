@@ -14,7 +14,9 @@ export f4ncgb_version,
        f4ncgb_set_maxiter,
        f4ncgb_set_maxdeg,
        f4ncgb_set_threads,
-       f4ncgb_set_output_file
+       f4ncgb_set_output_file,
+       F4ncgb_Ideal,
+       f4ncgb_solve
 
 
 #libf4ncgb = f4ncgb_jll.libf4ncgb_path
@@ -53,6 +55,16 @@ function f4ncgb_add(handle::Ptr{Cvoid},
       denominator::Clong,
       length(vars)::Csize_t,
       vars::Ptr{UInt32})::Cstring
+end
+
+function f4ncgb_add(handle::Ptr{Cvoid}, polynomial::FreeAssociativeAlgebraElem)
+  for m in monomials(polynomial)
+    c = coeff(m, 1)
+    d = denominator(c)
+    n = numerator(c)
+    f4ncgb_add(handle, Int(n), Int(d), UInt32.(m.exps[1]))
+  end
+  f4ncgb_end_poly(handle)
 end
 
 f4ncgb_end_poly(handle::Ptr{Cvoid}) = @ccall libf4ncgb.f4ncgb_end_poly(handle::Ptr{Cvoid})::Cstring
@@ -117,8 +129,98 @@ function f4ncgb_set_tracer(handle::Ptr{Cvoid}, trace::Bool)
     trace::Cuchar)::Cstring
 end
 
+mutable struct F4ncgb_Ideal{T} <: Ideal{T}
+  gens::Vector{T}
+  current_poly::FreeAssociativeAlgebraElem
+  parent::FreeAssociativeAlgebra
+  function F4ncgb_Ideal(ideal::FreeAssociativeAlgebraIdeal{T}) where T <: FreeAssociativeAlgebraElem
+    r = new{T}()
+    r.gens = FreeAssociativeAlgebraElem[]
+    r.parent = base_ring(ideal)
+    r.current_poly = zero(r.parent)
+    return r
+  end
+end 
+
+function add_cb(a::F4ncgb_Ideal, monomial::FreeAssociativeAlgebraElem)
+  current_poly += monomial
+end
+
+function parent(a::F4ncgb_Ideal)
+  return a.parent
+end
+
+function zero(a::F4ncgb_Ideal)
+  return zero(parent(a))
+end
+
+function add_cb(pa::Ptr{F4ncgb_Ideal},
+                pnumerator::Ptr{BigInt},
+                pdenominator::Ptr{BigInt},
+                varcount::Csize_t,
+                pvars:: Ptr{UInt32})
+
+  println("hello there")
+  a = unsafe_pointer_to_objref(pa)
+  P = parent(a)
+  vars = unsafe_wrap(Array, pvars, varcount)
+  numerator = unsafe_pointer_to_objref(pnumerator)
+  denominator = unsafe_pointer_to_objref(pdenominator)
+
+  monomial = P(QQ(numerator,denominator))
+
+
+  for i in vars
+    monomial *= P[i]
+  end
+  a.current_poly += monomial
+  return nothing
+
+end
+
+function end_poly_cb(pa::Ptr{F4ncgb_Ideal})
+  println("hello there2")
+  a = unsafe_pointer_to_objref(pa)
+  push!(a.gens, a.current_poly)
+  a.current_poly = zero(parent(a))
+  return nothing
+end
+
+function Base.show(io::IO, a::F4ncgb_Ideal)
+  print(io, "F4ncgb Ideal of with $(length(a.gens)) generators")
+end
+
+function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::F4ncgb_Ideal)
+  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{BigInt}, Ptr{BigInt}, Csize_t, Ptr{UInt32}))
+  end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
+
+  return @ccall libf4ncgb.f4ncgb_solve(
+    handle::Ptr{Cvoid},
+    pointer_from_objref(ideal)::Ptr{Cvoid},
+    add_cb_c::Ptr{Cvoid},
+    end_poly_cb_c::Ptr{Cvoid})::Cint
+end
+
+
 #=
 S1 = quantum_symmetric_group(4);
+I = F4ncgb_Ideal(S1)
+x = S1[1]
+
+handle = f4ncgb_init()
+f4ncgb_set_nvars(handle, UInt32(4))
+f4ncgb_set_threads(handle, UInt32(1))
+f4ncgb_add(handle, x)
+
+userdata = F4ncgb_Ideal(S1)
+f4ncgb_solve(handle, userdata)
+
+for m in monomials(x)
+  println(m.exps[1])
+end
+y = collect(monomials(x))[1]
+
+
 x1 = gens(S1)[1]
 typeof(x1)
 =#
