@@ -3,6 +3,7 @@
 
 Returns the Weierstrass section ``f`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -18,6 +19,7 @@ weierstrass_section_f(w::WeierstrassModel) = explicit_model_sections(w)["f"]
 
 Returns the Weierstrass section ``g`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -35,6 +37,7 @@ Returns the Weierstrass polynomial of the model.
 
 Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -75,6 +78,7 @@ This method is relevant when the Weierstrass model cannot be represented by a si
 global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(2)
 Weierstrass model over a concrete base
@@ -114,6 +118,7 @@ end
 Returns the Calabi–Yau hypersurface that defines the Weierstrass model
 as a closed subvariety of its toric ambient space.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -134,6 +139,7 @@ end
 
 Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -174,6 +180,7 @@ Advanced technical details are available in [BMT25](@cite BMT25).
     The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling.
     While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base

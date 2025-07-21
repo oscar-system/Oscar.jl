@@ -26,6 +26,7 @@ Note that the coordinate ring can have strictly more variables than
 the dimension. This is a desired feature for most, if not all,
 F-theory literature constructions.
 
+# Examples
 ```jldoctest
 julia> coord_ring, _ = QQ[:f, :g, :Kbar, :u];
 
@@ -52,6 +53,7 @@ end
 
 Return a family of spaces.
 
+# Examples
 ```jldoctest
 julia> coord_ring, _ = QQ[:f, :g, :Kbar, :u];
 

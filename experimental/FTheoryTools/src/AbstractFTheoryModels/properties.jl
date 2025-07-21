@@ -7,6 +7,7 @@
 
 Return `true` if the F-theory model has a concrete base space and `false` otherwise.
 
+# Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -26,6 +27,7 @@ is_base_space_fully_specified(m::AbstractFTheoryModel) = !(m.base_space isa Fami
 Return `true` if resolution techniques were applied to the F-theory model,
 thereby potentially resolving its singularities. Otherwise, return `false`.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -65,6 +67,7 @@ If so, this method returns `true`. However, should information be missing, (e.g.
 Hodge numbers), or the dimension of the F-theory model differ form 4, then this method
 raises an error.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -108,6 +111,7 @@ of a cohomology class ``h`` on the toric ambient space. This in turn requires th
 toric ambient space is simplicial and complete. We provide a switch to turn off 
 these computationally very demanding checks. This is demonstrated in the example below.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base

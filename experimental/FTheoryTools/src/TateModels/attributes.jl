@@ -3,6 +3,7 @@
 
 Returns the Tate section ``a_1``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -19,6 +20,7 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 
 Returns the Tate section ``a_2``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -35,6 +37,7 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 
 Returns the Tate section ``a_3``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -51,6 +54,7 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 
 Returns the Tate section ``a_4``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -67,6 +71,7 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 
 Returns the Tate section ``a_6``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -85,6 +90,7 @@ Returns the Tate polynomial of the model.
 
 Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -125,6 +131,7 @@ This method is relevant when the global Tate model cannot be represented by a si
 global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -164,6 +171,7 @@ end
 Returns the Calabi–Yau hypersurface that defines the global Tate model
 as a closed subvariety of its toric ambient space.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -184,6 +192,7 @@ end
 
 Returns the Weierstrass model which is equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -291,6 +300,7 @@ end
 
 Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -327,6 +337,7 @@ Hence, there is a Kodaira type ``III`` singularity over the divisor ``{w = 0}``.
 the discriminant ``\Delta`` vanishes to order 3 on ``{w = 0}``, while the Weierstrass
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
 
+# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 

@@ -11,6 +11,7 @@ on the toric ambient space.
 By default, `check = true` enables basic consistency and quantization checks. Set `check = false`
 to skip these checks, which can improve performance or allow for exploratory computations.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -102,6 +103,7 @@ Standard models, as described in [CHLLT19](@cite CHLLT19).
 
 This flux has been pre-validated to pass essential consistency checks.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base

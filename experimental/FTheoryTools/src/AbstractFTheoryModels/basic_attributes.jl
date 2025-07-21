@@ -3,6 +3,7 @@
 
 Return the base space of the F-theory model.
 
+# Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -24,6 +25,7 @@ end
 
 Return the ambient space of the F-theory model.
 
+# Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -45,6 +47,7 @@ end
 
 Return the fiber ambient space of an F-theory model.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -72,6 +75,7 @@ end
 Return database index of a literature model. This index is a unique identifier that can be used to more conveniently construct the model. 
 All models have a model_index and these will not change in the future.
 
+# Examples
 ```jldoctest
 julia> t = literature_model(31)
 Assuming that the first row of the given grading is the grading under Kbar

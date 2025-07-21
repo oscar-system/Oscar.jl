@@ -5,6 +5,7 @@ Returns the defining divisor classes of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -35,6 +36,7 @@ Returns the model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -64,6 +66,7 @@ Returns the tunable sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -90,6 +93,7 @@ are parametrized by the tunable sections.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -118,6 +122,7 @@ of the base and the defining classes of the given model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -143,6 +148,7 @@ Returns the divisor classes of all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -193,6 +199,7 @@ Returns the explicit polynomial expressions for all model sections of the given 
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar

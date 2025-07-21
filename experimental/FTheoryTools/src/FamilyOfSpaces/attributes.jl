@@ -7,6 +7,7 @@
 
 Return the coordinate ring of a generic member of the family of spaces.
 
+# Examples
 ```jldoctest
 julia> ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -41,6 +42,7 @@ cox_ring(f::FamilyOfSpaces) = f.coordinate_ring
 
 Return the grading of the coordinate ring of a generic member of the family of spaces.
 
+# Examples
 ```jldoctest
 julia> ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -70,6 +72,7 @@ weights(f::FamilyOfSpaces) = f.grading
 
 Return the dimension of the generic member of the family of spaces.
 
+# Examples
 ```jldoctest
 julia> ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -102,6 +105,7 @@ dim(f::FamilyOfSpaces) = f.dim
 Return the equivalent of the irrelevant ideal
 for the generic member of the family of spaces.
 
+# Examples
 ```jldoctest
 julia> coord_ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -140,6 +144,7 @@ end
 Return the equivalent of the ideal of linear relations
 for the generic member of the family of spaces.
 
+# Examples
 ```jldoctest
 julia> coord_ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])

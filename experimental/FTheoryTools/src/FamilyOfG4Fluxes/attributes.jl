@@ -7,6 +7,7 @@
 
 Returns the F-theory model for which this family of ``G_4``-flux candidates is defined.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -40,6 +41,7 @@ model(gf::FamilyOfG4Fluxes) = gf.model
 Returns the matrix whose columns specify those combinations of ambient space ``G_4``-flux
 candidates, of which integral linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -73,6 +75,7 @@ matrix_integral(gf::FamilyOfG4Fluxes) = gf.mat_int
 Returns the matrix whose columns specify those combinations of ambient space ``G_4``-flux
 candidates, of which rational linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -106,6 +109,7 @@ matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
 Returns the vector whose entries specify the offset by which fluxes in this family
 of ``G_4``-fluxes are shifted away from the origin.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -156,6 +160,7 @@ the numerical coefficient values into this polynomial.
 
 The optional keyword argument `check` enables or disables internal consistency checks.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base

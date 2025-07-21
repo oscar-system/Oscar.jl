@@ -16,6 +16,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -340,6 +341,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -367,6 +369,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -406,6 +409,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -477,6 +481,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -511,6 +516,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -555,6 +561,7 @@ returned by this method.
 
 Use `check = false` to skip completeness and simplicity verification.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir))), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

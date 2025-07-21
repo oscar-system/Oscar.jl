@@ -7,6 +7,7 @@ This method returns the vertices of the polytope the the base of the F-theory QS
 build from. Note that those vertices are normalized according to the Polymake standard
 to rational numbers.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -31,6 +32,7 @@ end
 Of the 3-dimensional reflexive polytope that the base of this F-theory model is build from,
 this method returns the index within the Kreuzer-Skarke list.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -56,6 +58,7 @@ to provide an answer to this. It returns `true` if one should expect a timely re
 to the attempt to enumerate all (full, regular, star) triangulations. Otherwise, this
 method returns `false`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -80,6 +83,7 @@ the complexity of this triangulation task is the maximum number of lattice point
 in a facet of the polytope in question. This method returns this maximal number of
 lattice points.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -101,6 +105,7 @@ This method returns an estimate for the number of full, regular, star triangulat
 of the 3-dimensional reflexive polytope, those triangulations define the possible base
 spaces of the F-theory QSM in question.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -125,6 +130,7 @@ Let Kbar denote the anticanonical class of the 3-dimensional base space of the F
 Of ample importance is the triple intersection number of Kbar, i.e. Kbar * Kbar * Kbar.
 This method returns this intersection number.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -145,6 +151,7 @@ end
 This methods return the Hodge number h11 of the elliptically
 fibered 4-fold that defined the F-theory QSM in question.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -165,6 +172,7 @@ end
 This methods return the Hodge number h12 of the elliptically
 fibered 4-fold that defined the F-theory QSM in question.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -185,6 +193,7 @@ end
 This methods return the Hodge number h13 of the elliptically
 fibered 4-fold that defined the F-theory QSM in question.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -205,6 +214,7 @@ end
 This methods return the Hodge number h22 of the elliptically
 fibered 4-fold that defined the F-theory QSM in question.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -232,6 +242,7 @@ QSM hypersurface model in question, and s is a generic
 section of the anticanonical bundle of B3. Consequently,
 we may use the coordinates xi as labels for the curves Ci.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -259,6 +270,7 @@ QSM hypersurface model in question can be restricted to the Ci curves. The
 result of this operation is a line bundle. This method returns the degree of
 this line bundle for every Ci curve.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -284,6 +296,7 @@ end
 The topological intersection numbers among Ci curves are also of ample importance.
 This method returns those intersection numbers in the form of a matrix.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -309,6 +322,7 @@ This method returns the vector of all indices of trivial Ci curves.
 That is, should V(x23, s) be the empty set, then 23 will be included in
 the returned list.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -339,6 +353,7 @@ end
 The topological intersection numbers among the non-trivial Ci curves are used
 frequently. This method returns those intersection numbers in the form of a matrix.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -366,6 +381,7 @@ This method returns the dual graph of the QSM model in question.
 Note that no labels are (currently) attached to the vertices/nodes or edges.
 To understand/read this graph correctly, please use the methods listed below.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -399,6 +415,7 @@ reducible, then we introduce the labels Ci-0, Ci-1, Ci-2 etc. for those irreduci
 components of Ci. If Ci-0 corresponds to the k-th components of the dual graph,
 then the label "Ci-0" appears at position k of the vector returned by this method.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -441,6 +458,7 @@ question can be restricted to the (geometric counterparts of the) nodes/vertices
 the dual graph. The result is a line bundle for each node/vertex. This method returns
 a vector with the degrees of these line bundles.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -461,6 +479,7 @@ end
 This methods returns a vector with the genera of the (geometric
 counterparts of the) nodes/vertices of the dual graph.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -485,6 +504,7 @@ This method returns the simplified dual graph of the QSM model in question.
 Note that no labels are (currently) attached to the vertices/nodes or edges.
 To understand/read this graph correctly, please use the methods listed below.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -506,6 +526,7 @@ end
 This method returns a vector with labels for each node/vertex of the simplified dual graph.
 Otherwise, works identical to `components_of_dual_graph(m::AbstractFTheoryModel)`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -530,6 +551,7 @@ end
 Same as `degrees_of_kbar_restrictions_to_components_of_dual_graph(m::AbstractFTheoryModel)`,
 but for the simplified dual graph.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -550,6 +572,7 @@ end
 This methods returns a vector with the genera of the (geometric
 counterparts of the) nodes/vertices of the dual graph.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base

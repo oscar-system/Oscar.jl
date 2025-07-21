@@ -12,6 +12,7 @@ If any test fails, the family is definitely not well-quantized and the method
 returns `false`. If all tests pass, it returns `true`, indicating the fluxes 
 appear well-quantized based on current knowledge, but without guaranteeing it.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -89,6 +90,7 @@ end
 Checks if the given family of ``G_4``-fluxes passes the transversality conditions.
 Returns `true` if the checks pass, and `false` otherwise.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -154,6 +156,7 @@ end
 Checks if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
 Returns `true` if it does, and `false` otherwise.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base

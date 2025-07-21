@@ -8,6 +8,7 @@
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -25,6 +26,7 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 ```
 Here is an example for a Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -53,6 +55,7 @@ end
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -109,6 +112,7 @@ end
 Resolve an F-theory model by blowing up a locus in the ambient space.
 For this method, the blowup center is encoded by an ideal sheaf.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -264,6 +268,7 @@ end
 # Note that there is less functionality for hypersurface models than for Weierstrass or Tate
 # models. For instance, `singular_loci` can (currently) not be computed for hypersurface models.
 
+# # Examples
 # ```jldoctest
 # julia> B3 = projective_space(NormalToricVariety, 3)
 # Normal toric variety
@@ -326,6 +331,7 @@ Put an F-theory model defined over a family of spaces over a concrete base.
 
 Currently, this functionality is limited to Tate and Weierstrass models.
 
+# Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", completeness_check = false)
 Assuming that the first row of the given grading is the grading under Kbar
@@ -597,6 +603,7 @@ end
 
 Add a known resolution for a model.
 
+# Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -678,6 +685,7 @@ end
 
 Resolve a model with the index-th resolution that is known.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

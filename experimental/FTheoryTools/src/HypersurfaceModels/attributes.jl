@@ -9,6 +9,7 @@
 
 Returns the hypersurface equation of the hypersurface model.
 
+# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -47,6 +48,7 @@ hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 
 Returns the parametrization of the hypersurface equation by the model sections.
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -84,6 +86,7 @@ In the example below, we construct a hypersurface model and its corresponding We
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
 between the two models.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -150,6 +153,7 @@ In the example below, we construct a hypersurface model and its corresponding gl
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
 between the two models.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -232,6 +236,7 @@ end
 Returns the Calabi–Yau hypersurface that defines the hypersurface model
 as a closed subvariety of its toric ambient space.
 
+# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -284,6 +289,7 @@ Raises an error if no such Weierstrass model is known.
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -345,6 +351,7 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety

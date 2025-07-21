@@ -22,6 +22,7 @@ restricts to ``c_2(\widehat{Y}_4)`` on the hypersurface.
 
 If all these integrals evaluate to integers, this method returns `true`; otherwise, it returns `false`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -80,6 +81,7 @@ end
 Checks whether the ``G_4``-flux satisfies the transversality conditions
 (cf. [Wei18](@cite)). Returns `true` if all conditions are met, otherwise `false`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -149,6 +151,7 @@ $\frac{\chi(\widehat{Y}_4)}{24} - \frac{1}{2} \int_{\widehat{Y}_4} G_4 \wedge G_
 
 is a non-negative integer.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -195,6 +198,7 @@ end
 Checks whether the given ``G_4``-flux candidate breaks any non-abelian gauge
 symmetries. Returns `true` if any breaking occurs, and `false` otherwise.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base

@@ -441,6 +441,7 @@ Blow up the toric variety along a toric ideal sheaf.
 !!! warning
     This is an internal method. It is NOT exported.
 
+# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -485,6 +486,7 @@ By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional prime divisor. As third optional argument one can supply
 a custom variable name.
 
+# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
