@@ -154,33 +154,36 @@ function zero(a::F4ncgb_Ideal)
   return zero(parent(a))
 end
 
-function add_cb(pa::Ptr{F4ncgb_Ideal},
+function add_cb(pa::Ptr{Nothing},
                 pnumerator::Ptr{BigInt},
                 pdenominator::Ptr{BigInt},
                 varcount::Csize_t,
                 pvars:: Ptr{UInt32})
 
-  println("hello there")
-  a = unsafe_pointer_to_objref(pa)
+  a = unsafe_pointer_to_objref(convert(Ptr{F4ncgb_Ideal}, pa))
   P = parent(a)
   vars = unsafe_wrap(Array, pvars, varcount)
-  numerator = unsafe_pointer_to_objref(pnumerator)
-  denominator = unsafe_pointer_to_objref(pdenominator)
+  println(pnumerator)
+  println(pdenominator)
+  numerator = unsafe_load(pnumerator)
+  denominator = unsafe_load(pdenominator)
+  println(numerator,"//",denominator)
 
   monomial = P(QQ(numerator,denominator))
+  println(monomial)
+  #monomial = one(P)
 
 
   for i in vars
-    monomial *= P[i]
+    monomial *= P[Int(i)]
   end
   a.current_poly += monomial
   return nothing
 
 end
 
-function end_poly_cb(pa::Ptr{F4ncgb_Ideal})
-  println("hello there2")
-  a = unsafe_pointer_to_objref(pa)
+function end_poly_cb(pa::Ptr{Nothing})
+  a = unsafe_pointer_to_objref(convert(Ptr{F4ncgb_Ideal}, pa))
   push!(a.gens, a.current_poly)
   a.current_poly = zero(parent(a))
   return nothing
@@ -205,15 +208,16 @@ end
 #=
 S1 = quantum_symmetric_group(4);
 I = F4ncgb_Ideal(S1)
-x = S1[1]
+x = gens(S1)[end]
 
 handle = f4ncgb_init()
-f4ncgb_set_nvars(handle, UInt32(4))
+f4ncgb_set_nvars(handle, UInt32(16))
 f4ncgb_set_threads(handle, UInt32(1))
 f4ncgb_add(handle, x)
 
 userdata = F4ncgb_Ideal(S1)
 f4ncgb_solve(handle, userdata)
+userdata.gens
 
 for m in monomials(x)
   println(m.exps[1])
