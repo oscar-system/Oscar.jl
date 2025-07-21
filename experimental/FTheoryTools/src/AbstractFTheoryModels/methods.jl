@@ -492,271 +492,104 @@ end
 
 
 ##########################################
-### (3) Meta data setters
+### (3) Meta data adders
 ##########################################
 
-function set_arxiv_id(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_id => desired_value)
-end
+@doc raw"""
+    add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
 
-function set_arxiv_doi(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_doi => desired_value)
-end
+Adds a new entry to the list of associated literature models for the F-theory model.
+If the entry is already present, nothing is changed.
 
-function set_arxiv_link(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_link => desired_value)
-end
-
-function set_arxiv_model_equation_number(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_model_equation_number => desired_value)
-end
-
-function set_arxiv_model_page(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_model_page => desired_value)
-end
-
-function set_arxiv_model_section(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_model_section => desired_value)
-end
-
-function set_arxiv_version(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :arxiv_version => desired_value)
-end
-
-function set_associated_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :associated_literature_models => desired_value)
-end
-
-function set_journal_doi(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_doi => desired_value)
-end
-
-function set_journal_link(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_link => desired_value)
-end
-
-function set_journal_model_equation_number(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_model_equation_number => desired_value)
-end
-
-function set_journal_model_page(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_model_page => desired_value)
-end
-
-function set_journal_model_section(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_model_section => desired_value)
-end
-
-function set_journal_name(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_name => desired_value)
-end
-
-function set_journal_pages(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_pages => desired_value)
-end
-
-function set_journal_report_numbers(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :journal_report_numbers => desired_value)
-end
-
-function set_journal_volume(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_volume => desired_value)
-end
-
-function set_journal_year(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :journal_year => desired_value)
-end
-
-function set_literature_identifier(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :literature_identifier => desired_value)
-end
-
-function set_model_description(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :model_description => desired_value)
-end
-
-function set_model_parameters(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :model_parameters => desired_value)
-end
-
-function set_paper_authors(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :paper_authors => desired_value)
-end
-
-function set_paper_buzzwords(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :paper_buzzwords => desired_value)
-end
-
-function set_paper_description(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :paper_description => desired_value)
-end
-
-function set_paper_title(m::AbstractFTheoryModel, desired_value::String)
-  set_attribute!(m, :paper_title => desired_value)
-end
-
-function set_birational_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :birational_literature_models => desired_value)
-end
-
-
-
-##########################################
-### (4) Meta data adders
-##########################################
-
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = has_associated_literature_models(m) ? associated_literature_models(m) : []
+  values = get_attribute(m, :associated_literature_models, String[])
   !(addition in values) && set_attribute!(m, :associated_literature_models => vcat(values, [addition]))
 end
 
+
+@doc raw"""
+    add_journal_report_number(m::AbstractFTheoryModel, addition::String)
+
+Adds a new entry to the list of journal report numbers for the F-theory model.
+If the entry is already present, nothing is changed.
+
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_journal_report_number(m::AbstractFTheoryModel, addition::String)
-  values = has_journal_report_numbers(m) ? journal_report_numbers(m) : []
+  values = get_attribute(m, :journal_report_numbers, String[])
   !(addition in values) && set_attribute!(m, :journal_report_numbers => vcat(values, [addition]))
 end
 
+
+@doc raw"""
+    add_model_parameter(m::AbstractFTheoryModel, addition::String)
+
+Adds a new entry to the list of model parameters for the F-theory model.
+If the entry is already present, nothing is changed.
+
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_model_parameter(m::AbstractFTheoryModel, addition::String)
-  values = has_model_parameters(m) ? model_parameters(m) : []
+  values = get_attribute(m, :model_parameters, String[])
   !(addition in values) && set_attribute!(m, :model_parameters => vcat(values, [addition]))
 end
 
+
+@doc raw"""
+    add_paper_author(m::AbstractFTheoryModel, addition::String)
+
+Adds a new entry to the list of paper authors for the F-theory model.
+If the entry is already present, nothing is changed.
+
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_paper_author(m::AbstractFTheoryModel, addition::String)
-  values = has_paper_authors(m) ? paper_authors(m) : []
+  values = get_attribute(m, :paper_authors, String[])
   !(addition in values) && set_attribute!(m, :paper_authors => vcat(values, [addition]))
 end
 
+
+@doc raw"""
+    add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
+
+Adds a new entry to the list of paper buzzwords for the F-theory model.
+If the entry is already present, nothing is changed.
+
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
-  values = has_paper_buzzwords(m) ? paper_buzzwords(m) : []
+  values = get_attribute(m, :paper_buzzwords, String[])
   !(addition in values) && set_attribute!(m, :paper_buzzwords => vcat(values, [addition]))
 end
 
+
+@doc raw"""
+    add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+
+Adds a new entry to the list of birational models for the F-theory model.
+If the entry is already present, nothing is changed.
+
+See [Literature Models](@ref literature_models) for more details.
+"""
 function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = has_birational_literature_models(m) ? birational_literature_models(m) : []
+  values = get_attribute(m, :birational_literature_models, String[])
   !(addition in values) && set_attribute!(m, :birational_literature_models => vcat(values, [addition]))
 end
 
 
 
 ##########################################
-### (5) Specialized model data setters
-##########################################
-
-function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
-end
-
-function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
-end
-
-function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Vector{String}}, Vector{String}}})
-  set_attribute!(m, :resolutions => desired_value)
-end
-
-function set_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-  set_attribute!(m, :resolution_generating_sections => result)
-end
-
-function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-  set_attribute!(m, :resolution_zero_sections => result)
-end
-
-function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int}}}, Vector{String}}})
-  set_attribute!(m, :weighted_resolutions => desired_value)
-end
-
-function set_weighted_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-  set_attribute!(m, :weighted_resolution_generating_sections => result)
-end
-
-function set_weighted_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-  set_attribute!(m, :weighted_resolution_zero_sections => result)
-end
-
-function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
-end
-
-function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
-  desired_value = Symbol(desired_value)
-  divs = torusinvariant_prime_divisors(ambient_space(m))
-  cohomology_ring(ambient_space(m); check=false)
-  cox_gens = symbols(cox_ring(ambient_space(m)))
-  @req desired_value in cox_gens "Specified zero section is invalid"
-  index = findfirst(==(desired_value), cox_gens)
-  set_attribute!(m, :zero_section_index => index::Int)
-  set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
-end
-
-function set_exceptional_classes(m::AbstractFTheoryModel, desired_value::Vector{String})
-  divs = torusinvariant_prime_divisors(ambient_space(m))
-  cohomology_ring(ambient_space(m); check=false)
-  cox_gens = symbols(cox_ring(ambient_space(m)))
-  @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
-  exceptional_divisor_indices = Vector{Int}()
-  for class in desired_value
-      index = findfirst(==(Symbol(class)), cox_gens)
-      push!(exceptional_divisor_indices, index)
-  end
-  set_attribute!(m, :exceptional_divisor_indices => exceptional_divisor_indices::Vector{Int})
-  set_attribute!(m, :exceptional_classes => [cohomology_class(divs[index]) for index in exceptional_divisor_indices])
-end
-
-function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
-  C = algebraic_closure(QQ)
-  function _construct(g::String)
-    if g == "0"
-      return abelian_lie_algebra(C, 0)
-    elseif g == "u(1)"
-      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
-    elseif g[1:2] == "su"
-      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
-    elseif g[1:2] == "so"
-      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
-    elseif g[1:2] == "sp"
-      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
-    elseif g[1:1] == "e"
-      return lie_algebra(C, :E, parse(Int, g[3:end-1]))
-    elseif g[1:1] == "f"
-      return lie_algebra(C, :F, parse(Int, g[3:end-1]))
-    elseif g[1:1] == "g"
-      return lie_algebra(C, :G, parse(Int, g[3:end-1]))
-    end
-    error("Unknown algebra description")
-  end
-  set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
-end
-
-function set_global_gauge_group_quotient(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
- set_attribute!(m, :global_gauge_quotients => quotients)
-end
-
-
-##########################################
-### (6) Specialized model data adders
+### (4) Specialized model data adders
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = has_generating_sections(m) ? birational_literature_models(m) : []
-  !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :generating_sections, GeneratingSectionsType())
+  !(new_entry in values) && set_attribute!(m, :generating_sections => vcat(values, [transformed]))
 end
 
 @doc raw"""
@@ -778,40 +611,66 @@ julia> length(resolutions(m))
 """
 function add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
-  resolution = [centers, exceptionals]
-  known_resolutions = has_resolutions(m) ? resolutions(m) : []
+  resolution = (centers, exceptionals)
+  known_resolutions = get_attribute(m, :resolutions, Tuple{Vector{Vector{String}}, Vector{String}}[])
   !(resolution in known_resolutions) && set_attribute!(m, :resolutions => vcat(known_resolutions, [resolution]))
 end
 
 function add_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = has_resolution_generating_sections(m) ? resolution_generating_sections(m) : []
-  !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :resolution_generating_sections, ResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [transformed]))
 end
 
 function add_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = has_resolution_zero_sections(m) ? resolution_zero_sections(m) : []
-  !(addition in values) && set_attribute!(m, :resolution_zero_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :resolution_zero_sections, ResolutionZeroSectionsType())
+  !(addition in values) && set_attribute!(m, :resolution_zero_sections => vcat(values, [transformed]))
+end
+
+function add_torsion_section(m::AbstractFTheoryModel, addition::Vector{String})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :torsion_sections, TorsionSectionsType())
+  !(addition in values) && set_attribute!(m, :torsion_sections => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution(m::AbstractFTheoryModel, addition::Vector{Vector})
-  values = has_weighted_resolutions(m) ? weighted_resolutions(m) : []
-  !(addition in values) && set_attribute!(m, :weighted_resolutions => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolutions, WeightedResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolutions => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = has_weighted_resolution_generating_sections(m) ? weighted_resolution_generating_sections(m) : []
-  !(addition in values) && set_attribute!(m, :weighted_resolution_generating_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolution_generating_sections => vcat(values, [transformed]))
 end
 
 function add_weighted_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  values = has_weighted_resolution_zero_sections(m) ? weighted_resolution_zero_sections(m) : []
-  !(addition in values) && set_attribute!(m, :weighted_resolution_zero_sections => vcat(values, [addition]))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
+  values = get_attribute(m, :weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType())
+  !(addition in values) && set_attribute!(m, :weighted_resolution_zero_sections => vcat(values, [transformed]))
 end
+
+
+
 
 
 
 ##########################################
-### (7) Specialized model methods
+### (5) Specialized model methods
 ##########################################
 
 @doc raw"""
