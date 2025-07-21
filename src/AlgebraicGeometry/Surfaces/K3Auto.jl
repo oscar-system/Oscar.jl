@@ -2108,7 +2108,7 @@ function has_zero_entropy(L::ZZLat, gensAutL)
   length(gensAutL)==0 && return true
   C = lattice(rational_span(L), _common_invariant(gensAutL)[2])
   d = diagonal(rational_span(C))
-  return 0<= maximum(push!([sign(i) for i in d],-1))
+  return !all(i -> sign(i) < 0, d)
 end
   
 function is_elementary_hyperbolic(L::ZZLat, gensAutL)
