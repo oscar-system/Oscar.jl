@@ -87,7 +87,7 @@ end
 @doc raw"""
     passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if the given family of ``G_4``-fluxes passes the transversality conditions.
+Check if the given family of ``G_4``-fluxes passes the transversality conditions.
 Return `true` if the checks pass, and `false` otherwise.
 
 # Examples
@@ -153,7 +153,7 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Checks if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
+Check if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
 Return `true` if it does, and `false` otherwise.
 
 # Examples

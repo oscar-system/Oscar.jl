@@ -5,7 +5,7 @@
 @doc raw"""
     is_well_quantized(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux candidate satisfies necessary consistency conditions
+Check whether the given ``G_4``-flux candidate satisfies necessary consistency conditions
 for flux quantization as formulated in [Wit97](@cite):
 
 $G_4 + \frac{1}{2} c_2(\widehat{Y}_4) \in H^{(2,2)}(\widehat{Y}_4, \mathbb{Z})\,.$
@@ -78,7 +78,7 @@ end
 @doc raw"""
     passes_transversality_checks(gf::G4Flux)
 
-Checks whether the ``G_4``-flux satisfies the transversality conditions
+Check whether the ``G_4``-flux satisfies the transversality conditions
 (cf. [Wei18](@cite)). Return `true` if all conditions are met, otherwise `false`.
 
 # Examples
@@ -144,7 +144,7 @@ end
 @doc raw"""
     passes_tadpole_cancellation_check(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux satisfies the D3-tadpole cancellation condition. This
+Check whether the given ``G_4``-flux satisfies the D3-tadpole cancellation condition. This
 amounts to verifying that
 
 $\frac{\chi(\widehat{Y}_4)}{24} - \frac{1}{2} \int_{\widehat{Y}_4} G_4 \wedge G_4$
@@ -195,7 +195,7 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux candidate breaks any non-abelian gauge
+Check whether the given ``G_4``-flux candidate breaks any non-abelian gauge
 symmetries. Return `true` if any breaking occurs, and `false` otherwise.
 
 # Examples
