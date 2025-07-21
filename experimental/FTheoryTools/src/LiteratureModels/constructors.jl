@@ -296,7 +296,7 @@ end
 # 3. Constructing models over concrete bases
 #######################################################
 
-# Constructs literature model over concrete base
+# Construct literature model over concrete base
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, defining_classes::Dict{String, <:Any}, completeness_check::Bool)
 
   # Make list and dict of the defining divisor classes
@@ -442,7 +442,7 @@ end
 # 4. Constructing models over arbitrary bases
 #######################################################
 
-# Constructs literature model over arbitrary base
+# Construct literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
