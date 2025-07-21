@@ -161,6 +161,32 @@ end
   =#
 end
 
+@testset "virtually elementary automorphism groups" begin
+  L = integer_lattice(gram=QQ[22 11 9 9; 11 -2 9 8; 9 9 -2 5; 9 8 5 -2])
+  G = [QQ[24 69 -23 0; -2 -5 2 0; 19 57 -18 0; 14 42 -14 1],
+  QQ[-75 186 74 51; 6 -15 -6 -4; -58 138 57 39; -48 128 48 33],
+  QQ[11 1 -12 0; 0 1 0 0; 10 1 -11 0; 6 -2 -6 -1]]
+  @test Oscar.is_virtually_abelian(L,G)
+  @test !Oscar.is_finite(L,G)
+  @test !Oscar.has_zero_entropy(L,G)
+  @test Oscar.is_elementary_hyperbolic(L,G)
+
+  L = integer_lattice(gram=QQ[-2 1 1 1; 1 -2 0 -1; 1 0 -2 -1; 1 -1 -1 6])
+  G = [QQ[-1 -1 -1 0; 0 1 0 0; 0 0 1 0; 0 0 0 1], QQ[0 0 1 0; -2 -2 -1 -1; 1 0 0 0; 3 3 0 2], QQ[1 0 0 0; -2 -3 2 -2; 1 2 0 1; 3 6 -3 4]]
+  @test Oscar.is_virtually_abelian(L,G)
+  @test Oscar.is_finite(L,G)
+  @test Oscar.has_zero_entropy(L,G)
+  @test !Oscar.is_elementary_hyperbolic(L,G)
+ 
+  L = integer_lattice(gram=QQ[0 1 0; 1 0 0; 0 0 -50])
+  G = [ ZZ[1 0 0; 0 1 0; 0 0 -1], ZZ[1 0 0; 25 1 1; -50 0 -1]]
+  
+  @test Oscar.is_virtually_abelian(L,G)
+  @test !Oscar.is_finite(L,G)
+  @test Oscar.has_zero_entropy(L,G)
+  @test !Oscar.is_elementary_hyperbolic(L,G)
+end 
+  
 @testset "find_section" begin
   L = integer_lattice(gram=ZZ[0 2 3;  2 -2 1; 3 1 -2])
   f = QQ[1 0 0;]
