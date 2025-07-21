@@ -15,7 +15,7 @@ export f4ncgb_version,
        f4ncgb_set_maxdeg,
        f4ncgb_set_threads,
        f4ncgb_set_output_file,
-       F4ncgb_Ideal,
+       f4ncgb_polys_helper,
        f4ncgb_solve
 
 
@@ -129,28 +129,28 @@ function f4ncgb_set_tracer(handle::Ptr{Cvoid}, trace::Bool)
     trace::Cuchar)::Cstring
 end
 
-mutable struct F4ncgb_Ideal{T} <: Ideal{T}
-  gens::Vector{T}
-  current_poly::FreeAssociativeAlgebraElem
-  parent::FreeAssociativeAlgebra
-  function F4ncgb_Ideal(ideal::FreeAssociativeAlgebraIdeal{T}) where T <: FreeAssociativeAlgebraElem
-    r = new{T}()
-    r.gens = FreeAssociativeAlgebraElem[]
-    r.parent = base_ring(ideal)
+mutable struct f4ncgb_polys_helper
+  gens::Vector{FreeAssociativeAlgebraElem{QQFieldElem}}
+  current_poly::FreeAssociativeAlgebraElem{QQFieldElem}
+  parent::FreeAssociativeAlgebra{QQFieldElem}
+  function f4ncgb_polys_helper(ring::FreeAssociativeAlgebra{QQFieldElem})
+    r = new()
+    r.gens = FreeAssociativeAlgebraElem{QQFieldElem}[]
+    r.parent = ring
     r.current_poly = zero(r.parent)
     return r
   end
 end 
 
-function add_cb(a::F4ncgb_Ideal, monomial::FreeAssociativeAlgebraElem)
+function add_cb(a::f4ncgb_polys_helper, monomial::FreeAssociativeAlgebraElem)
   current_poly += monomial
 end
 
-function parent(a::F4ncgb_Ideal)
+function parent(a::f4ncgb_polys_helper)
   return a.parent
 end
 
-function zero(a::F4ncgb_Ideal)
+function zero(a::f4ncgb_polys_helper)
   return zero(parent(a))
 end
 
@@ -183,17 +183,17 @@ function add_cb(pa::Ptr{Nothing},
 end
 
 function end_poly_cb(pa::Ptr{Nothing})
-  a = unsafe_pointer_to_objref(convert(Ptr{F4ncgb_Ideal}, pa))
+  a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
   push!(a.gens, a.current_poly)
   a.current_poly = zero(parent(a))
   return nothing
 end
 
-function Base.show(io::IO, a::F4ncgb_Ideal)
-  print(io, "F4ncgb Ideal of with $(length(a.gens)) generators")
+function Base.show(io::IO, a::f4ncgb_polys_helper)
+  print(io, "f4ncgb polynomial helper with $(length(a.gens)) elements")
 end
 
-function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::F4ncgb_Ideal)
+function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
   add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{BigInt}, Ptr{BigInt}, Csize_t, Ptr{UInt32}))
   end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
 
