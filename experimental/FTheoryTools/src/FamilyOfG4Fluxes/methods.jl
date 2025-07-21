@@ -6,7 +6,7 @@
 @doc raw"""
     flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
 
-Creates an element of a family of G4-fluxes.
+Create an element of a family of G4-fluxes.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -149,7 +149,7 @@ end
 @doc raw"""
     random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Creates a random element of a family of G4-fluxes.
+Create a random element of a family of G4-fluxes.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -203,7 +203,7 @@ end
 @doc raw"""
     random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
-Creates a random ``G_4``-flux on a given F-theory model.
+Create a random ``G_4``-flux on a given F-theory model.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
