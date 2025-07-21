@@ -109,7 +109,6 @@ export K3Chamber
 export K3_surface_automorphism_group
 export LazyPoly
 export LazyPolyRing
-export LeechPair
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
