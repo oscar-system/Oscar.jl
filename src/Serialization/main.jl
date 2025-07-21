@@ -608,9 +608,6 @@ include("GAP.jl")
 include("Groups.jl")
 include("LieTheory.jl")
 
-# might want to move the structs out of this file at some point
-include("collections.jl")
-
 include("Upgrades/main.jl")
 include("parallel.jl")
 

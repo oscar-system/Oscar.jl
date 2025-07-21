@@ -291,14 +291,10 @@ include("LieTheory/LieTheory.jl")
 
 include("Misc/Misc.jl")
 
-include("collections.jl")
-
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should
 # be written inside the corresponding experimental code sub directory
 include("Serialization/main.jl")
-
-include("Oscardb.jl")
 
 include("../experimental/Experimental.jl")
 

@@ -1,3 +1,5 @@
+# this file is meant to contain the structs for the collections in the database
+
 ################################################################################
 # Leech Pair
 struct LeechPair

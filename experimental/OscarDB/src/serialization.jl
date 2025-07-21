@@ -19,8 +19,8 @@ end
 
 function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatrixGroup)
   # dev until we move collection to offical db
-  db = Oscar.Oscardb.get_db(;dev=true)
-  leech = Oscar.Oscardb.find_one(db["zzlattices"], Dict("_id" => "leech"))
+  db = Oscar.OscarDB.get_db(;dev=true)
+  leech = Oscar.OscarDB.find_one(db["zzlattices"], Dict("_id" => "leech"))
 
   LeechPair(
     leech,
