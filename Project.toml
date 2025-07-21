@@ -57,6 +57,3 @@ UUIDs = "1.6"
 cohomCalg_jll = "0.32.0"
 julia = "1.10"
 lib4ti2_jll = "1.6.10"
-
-[extras]
-GAP_lib_jll = "c863536a-3901-11e9-33e7-d5cd0df7b904"

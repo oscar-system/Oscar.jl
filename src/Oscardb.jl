@@ -19,7 +19,7 @@ const OSCAR_DEV_DB = "oscar-dev"
 Type for referencing a specific database (usually the `polyDB`)
 """
 struct Database
-   mdb::Mongoc.Database
+  mdb::Mongoc.Database
 end
 
 """
@@ -30,7 +30,7 @@ Type for referencing a specific collection.
 returned by operations applied on objects of this type.
 """
 struct Collection
-   mcol::Mongoc.Collection
+  mcol::Mongoc.Collection
 end
 
 """
@@ -40,7 +40,7 @@ Type containing the results of a query.
 Can be iterated, but the iterator can not be reset. For this cause, one has to query again.
 """
 struct Cursor
-   mcursor::Mongoc.Cursor{Mongoc.Collection}
+  mcursor::Mongoc.Cursor{Mongoc.Collection}
 end
 
 """
@@ -104,7 +104,7 @@ julia> length(collection, query)
 ```
 """
 function Base.length(c::Collection, d::Dict=Dict())
-   return Base.length(c.mcol, Mongoc.BSON(d))
+  return Base.length(c.mcol, Mongoc.BSON(d))
 end
 
 """
@@ -128,7 +128,7 @@ Polymake.Polydb.Cursor{Polymake.BigObject}
 """
 function Mongoc.find(c::Collection, d::Dict=Dict();
                      opts::Union{Nothing, Dict}=nothing)
-   return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
+  return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
 end
 
 """
@@ -161,8 +161,8 @@ Mongoc.BSON
 ```
 """
 function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
-   p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
-   return isnothing(p) ? nothing : parse_document(p)
+  p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
+  return isnothing(p) ? nothing : parse_document(p)
 end
 
 """
@@ -172,14 +172,14 @@ Load an entry given by the query `q` in the collection `c` in the database `s`.
 Currently, only the Oscar DB (indicated by `:Oscardb`) is supported.
 """
 function Oscar.load(q::String, c::String, s::Symbol = :Oscardb)
-    if s != :Oscardb
-        println("Not implemented for non Oscar databases!")
-        @assert s == :Oscardb
-    end
-    db = get_db()
-    collection = getindex(db, c)
-    result = Oscardb.find_one(collection, Dict("_id" => q))
-    return result
+  if s != :Oscardb
+    println("Not implemented for non Oscar databases!")
+    @assert s == :Oscardb
+  end
+  db = get_db()
+  collection = getindex(db, c)
+  result = Oscardb.find_one(collection, Dict("_id" => q))
+  return result
 end
 
 """
@@ -213,20 +213,18 @@ Base.IteratorSize(::Type{<:Collection}) = Base.SizeUnknown()
 
 # functions for `BSON` iteration
 Base.iterate(cursor::Cursor, state::Nothing=nothing) =
-    iterate(cursor.mcursor, state)
+  iterate(cursor.mcursor, state)
 
 Base.iterate(coll::Collection) =
-   iterate(coll.mcol)
+  iterate(coll.mcol)
 
 Base.iterate(coll::Collection, state::Mongoc.Cursor) =
-   iterate(coll.mcol, state)
+  iterate(coll.mcol, state)
 
 # shows information about a specific Collection
 function Base.show(io::IO, coll::Collection)
-    db = Database(coll.mcol.database)
-    print(io, typeof(coll), ": ", coll.mcol.name)
+  db = Database(coll.mcol.database)
+  print(io, typeof(coll), ": ", coll.mcol.name)
 end
-
-   
 
 end
