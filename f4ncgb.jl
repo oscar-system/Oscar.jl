@@ -160,20 +160,12 @@ function add_cb(pa::Ptr{Nothing},
                 varcount::Csize_t,
                 pvars:: Ptr{UInt32})
 
-  a = unsafe_pointer_to_objref(convert(Ptr{F4ncgb_Ideal}, pa))
+  a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
   P = parent(a)
   vars = unsafe_wrap(Array, pvars, varcount)
-  println(pnumerator)
-  println(pdenominator)
   numerator = unsafe_load(pnumerator)
   denominator = unsafe_load(pdenominator)
-  println(numerator,"//",denominator)
-
   monomial = P(QQ(numerator,denominator))
-  println(monomial)
-  #monomial = one(P)
-
-
   for i in vars
     monomial *= P[Int(i)]
   end
@@ -207,15 +199,14 @@ end
 
 #=
 S1 = quantum_symmetric_group(4);
-I = F4ncgb_Ideal(S1)
-x = gens(S1)[end]
+x = gens(S1)[end-7:end]
 
 handle = f4ncgb_init()
 f4ncgb_set_nvars(handle, UInt32(16))
 f4ncgb_set_threads(handle, UInt32(1))
-f4ncgb_add(handle, x)
+f4ncgb_add.(Ref(handle), x)
 
-userdata = F4ncgb_Ideal(S1)
+userdata = f4ncgb_polys_helper(base_ring(S1))
 f4ncgb_solve(handle, userdata)
 userdata.gens
 
