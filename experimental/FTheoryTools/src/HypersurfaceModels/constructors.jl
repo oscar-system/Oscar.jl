@@ -5,7 +5,7 @@
 @doc raw"""
     hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
 
-Constructs a hypersurface model where fiber coordinates transform as sections of line bundles over the base.
+Construct a hypersurface model where fiber coordinates transform as sections of line bundles over the base.
 
 - If two `fiber_twist_divisor_classes` are provided, they specify the line bundle charges of the **first two** fiber coordinates. All remaining fiber coordinates are treated as base-trivial (i.e., constant over the base).
 - Alternatively, a `fiber_twist_divisor_class` can be given **for each fiber coordinate**, allowing full control over how the entire fiber ambient space twists over the base.
@@ -71,7 +71,7 @@ end
 @doc raw"""
     hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
 
-Constructs a hypersurface model where the two fiber coordinates at the given
+Construct a hypersurface model where the two fiber coordinates at the given
 `indices` transform as sections of the line bundles associated to the specified
 base divisor classes.
 
@@ -180,7 +180,7 @@ end
 @doc raw"""
     hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
 
-Constructs a hypersurface model over an unspecified base space by defining a **family** of base varieties
+Construct a hypersurface model over an unspecified base space by defining a **family** of base varieties
 via auxiliary data.
 
 The base is represented by:
@@ -263,7 +263,7 @@ end
 @doc raw"""
     hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, indices::Vector{Int}, p::MPolyRingElem)
 
-Constructs a hypersurface model over an unspecified base space by defining a **family** of base varieties
+Construct a hypersurface model over an unspecified base space by defining a **family** of base varieties
 via auxiliary data.
 
 The base is represented by:

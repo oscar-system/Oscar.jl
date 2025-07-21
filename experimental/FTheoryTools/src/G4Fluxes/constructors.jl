@@ -5,7 +5,7 @@
 @doc raw"""
     g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; check::Bool = true)
 
-Constructs a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class
+Construct a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class
 on the toric ambient space.
 
 By default, `check = true` enables basic consistency and quantization checks. Set `check = false`

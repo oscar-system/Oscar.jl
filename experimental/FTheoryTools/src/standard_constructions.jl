@@ -5,7 +5,7 @@
 @doc raw"""
     global_tate_model_over_projective_space(d::Int)
 
-Constructs a global Tate model over the ``d``-dimensional projective space,
+Construct a global Tate model over the ``d``-dimensional projective space,
 represented as a toric variety. The Tate sections ``a_i`` are
 automatically generated with pseudorandom coefficients.
 
@@ -21,7 +21,7 @@ global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_s
 @doc raw"""
     weierstrass_model_over_projective_space(d::Int)
 
-Constructs a Weierstrass model over the ``d``-dimensional projective space,
+Construct a Weierstrass model over the ``d``-dimensional projective space,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
 automatically generated with pseudorandom coefficients.
 
@@ -41,7 +41,7 @@ weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_s
 @doc raw"""
     global_tate_model_over_hirzebruch_surface(r::Int)
 
-Constructs a global Tate model over the Hirzebruch surface ``F_r``,
+Construct a global Tate model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Tate sections ``a_i`` are
 automatically generated with pseudorandom coefficients.
 
@@ -57,7 +57,7 @@ global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch
 @doc raw"""
     weierstrass_model_over_hirzebruch_surface(r::Int)
 
-Constructs a Weierstrass model over the Hirzebruch surface ``F_r``,
+Construct a Weierstrass model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
 automatically generated with pseudorandom coefficients.
 
@@ -77,7 +77,7 @@ weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch
 @doc raw"""
     global_tate_model_over_del_pezzo_surface(b::Int)
 
-Constructs a global Tate model over the del Pezzo surface ``\text{dP}_b``,
+Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Tate sections ``a_i`` are
 automatically generated with pseudorandom coefficients.
 
@@ -93,7 +93,7 @@ global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_s
 @doc raw"""
     weierstrass_model_over_del_pezzo_surface(b::Int)
 
-Constructs a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
+Construct a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
 automatically generated with pseudorandom coefficients.
 

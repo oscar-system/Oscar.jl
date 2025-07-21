@@ -5,7 +5,7 @@
 @doc raw"""
     weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 
-Constructs a Weierstrass model over a given toric base space. The Weierstrass sections
+Construct a Weierstrass model over a given toric base space. The Weierstrass sections
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
 # Examples
@@ -23,7 +23,7 @@ end
 @doc raw"""
     weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
-Constructs a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
+Construct a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
 
 # Examples
@@ -86,7 +86,7 @@ end
 @doc raw"""
     weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
-Constructs a Weierstrass model over an *unspecified* base space.
+Construct a Weierstrass model over an *unspecified* base space.
 
 This method is intended for workflows where the base space is not concretely fixed,
 such as in singularity engineering or symbolic studies. The variables in
