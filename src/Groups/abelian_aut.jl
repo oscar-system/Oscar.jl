@@ -154,7 +154,7 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   return aut
 end
 
-function Base.show(io::IO,  ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
+function Base.show(io::IO, ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
   io = pretty(io)
   println(io, "Orthogonal group of", Indent())
   println(io, Lowercase(), OT.G)
