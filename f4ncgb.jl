@@ -1,4 +1,3 @@
-module f4ncgb
 
 using f4ncgb_jll
 
@@ -118,5 +117,12 @@ function f4ncgb_set_tracer(handle::Ptr{Cvoid}, trace::Bool)
     trace::Cuchar)::Cstring
 end
 
+#=
+S1 = quantum_symmetric_group(4);
+x1 = gens(S1)[1]
+typeof(x1)
+=#
 
-end # module f4ncgb
+
+
+

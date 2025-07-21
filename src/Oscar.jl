@@ -299,6 +299,7 @@ include("Serialization/main.jl")
 include("../experimental/Experimental.jl")
 
 include("deprecations.jl")
+include("../f4ncgb.jl")
 
 @doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
