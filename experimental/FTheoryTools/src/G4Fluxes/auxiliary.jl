@@ -361,7 +361,7 @@ end
 @doc raw"""
     basis_of_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
+Compute a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
 and simplicial toric variety ``X_\Sigma`` by multiplying pairs of cohomology classes
 associated with the rays of ``X_\Sigma``.
 
@@ -469,7 +469,7 @@ end
 @doc raw"""
     gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
+Compute a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
 to generators of the subspace ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``, where ``\widehat{Y}_4`` 
 is the (smooth) hypersurface in the ambient toric variety ``X_\Sigma`` associated to the F-theory model
 and ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.

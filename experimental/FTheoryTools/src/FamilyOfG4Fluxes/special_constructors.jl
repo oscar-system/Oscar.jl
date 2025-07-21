@@ -1,7 +1,7 @@
 @doc raw"""
     special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
-Computes a family of ``G_4``-fluxes for the F-theory model `m`, defined as a hypersurface
+Compute a family of ``G_4``-fluxes for the F-theory model `m`, defined as a hypersurface
 in a simplicial, complete toric ambient space. The returned fluxes satisfy necessary
 quantization and transversality checks.
 
