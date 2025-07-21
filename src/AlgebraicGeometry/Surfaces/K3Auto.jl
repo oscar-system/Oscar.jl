@@ -2051,15 +2051,24 @@ function _get_pos_entropy_element(gensAutL)
   f = first(gensAutL)^0
   n = nrows(f)
   n<= 4 || error("not implemented")
+  R, x  = polynomial_ring(base_ring(f),:x;cached=false)
+  c = x-1
   while true
     Gnew = []
     for g in G
       for h in gensAutL
         f = g*h
         push!(Gnew, f)
-        if rank(f^12-1)==2   # positive entropy
-          return f
-        end
+        p = charpoly(R, f^12)
+        # either 
+        # p = s(x) of deg 4 
+        # or 
+        # p = s(x)(x-1)^2
+        # or 
+        # p = (x-1)^4
+        if valuation(p, c) <= 2
+          return f # positive entropy
+        end 
       end
     end
     G = Gnew
