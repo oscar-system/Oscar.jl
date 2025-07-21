@@ -98,7 +98,7 @@ end
 @doc raw"""
     qsm_flux(qsm_model::AbstractFTheoryModel)
 
-Returns the ``G_4``-flux associated with one of the Quadrillion F-theory
+Return the ``G_4``-flux associated with one of the Quadrillion F-theory
 Standard models, as described in [CHLLT19](@cite CHLLT19).
 
 This flux has been pre-validated to pass essential consistency checks.

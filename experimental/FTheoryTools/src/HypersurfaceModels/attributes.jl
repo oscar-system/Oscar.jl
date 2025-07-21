@@ -7,7 +7,7 @@
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
-Returns the hypersurface equation of the hypersurface model.
+Return the hypersurface equation of the hypersurface model.
 
 # Examples
 ```jldoctest
@@ -46,7 +46,7 @@ hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 @doc raw"""
     hypersurface_equation_parametrization(h::HypersurfaceModel)
 
-Returns the parametrization of the hypersurface equation by the model sections.
+Return the parametrization of the hypersurface equation by the model sections.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -80,7 +80,7 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
 
-Returns the Weierstrass model corresponding to the given hypersurface model, if known.
+Return the Weierstrass model corresponding to the given hypersurface model, if known.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -147,7 +147,7 @@ end
 @doc raw"""
     global_tate_model(h::HypersurfaceModel)
 
-Returns the global Tate model corresponding to the given hypersurface model, if known.
+Return the global Tate model corresponding to the given hypersurface model, if known.
 
 In the example below, we construct a hypersurface model and its corresponding global
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -233,7 +233,7 @@ end
 @doc raw"""
     calabi_yau_hypersurface(h::HypersurfaceModel)
 
-Returns the Calabi–Yau hypersurface that defines the hypersurface model
+Return the Calabi–Yau hypersurface that defines the hypersurface model
 as a closed subvariety of its toric ambient space.
 
 # Examples
@@ -281,7 +281,7 @@ end
 @doc raw"""
     discriminant(h::HypersurfaceModel)
 
-Returns the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
+Return the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
 with the given hypersurface model.
 
 Raises an error if no such Weierstrass model is known.
@@ -338,7 +338,7 @@ end
 @doc raw"""
     singular_loci(h::HypersurfaceModel)
 
-Returns the singular loci of the Weierstrass model equivalent to the given hypersurface model,
+Return the singular loci of the Weierstrass model equivalent to the given hypersurface model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
 refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
 

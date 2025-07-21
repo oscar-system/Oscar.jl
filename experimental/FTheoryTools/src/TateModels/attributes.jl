@@ -1,7 +1,7 @@
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
-Returns the Tate section ``a_1``.
+Return the Tate section ``a_1``.
 
 # Examples
 ```jldoctest
@@ -18,7 +18,7 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 @doc raw"""
     tate_section_a2(t::GlobalTateModel)
 
-Returns the Tate section ``a_2``.
+Return the Tate section ``a_2``.
 
 # Examples
 ```jldoctest
@@ -35,7 +35,7 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 @doc raw"""
     tate_section_a3(t::GlobalTateModel)
 
-Returns the Tate section ``a_3``.
+Return the Tate section ``a_3``.
 
 # Examples
 ```jldoctest
@@ -52,7 +52,7 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 @doc raw"""
     tate_section_a4(t::GlobalTateModel)
 
-Returns the Tate section ``a_4``.
+Return the Tate section ``a_4``.
 
 # Examples
 ```jldoctest
@@ -69,7 +69,7 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 @doc raw"""
     tate_section_a6(t::GlobalTateModel)
 
-Returns the Tate section ``a_6``.
+Return the Tate section ``a_6``.
 
 # Examples
 ```jldoctest
@@ -86,7 +86,7 @@ tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
 
-Returns the Tate polynomial of the model.
+Return the Tate polynomial of the model.
 
 Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
@@ -125,7 +125,7 @@ hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 @doc raw"""
     tate_ideal_sheaf(t::GlobalTateModel)
 
-Returns the Tate ideal sheaf of the global Tate model.
+Return the Tate ideal sheaf of the global Tate model.
 
 This method is relevant when the global Tate model cannot be represented by a single
 global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
@@ -168,7 +168,7 @@ end
 @doc raw"""
     calabi_yau_hypersurface(t::GlobalTateModel)
 
-Returns the Calabi–Yau hypersurface that defines the global Tate model
+Return the Calabi–Yau hypersurface that defines the global Tate model
 as a closed subvariety of its toric ambient space.
 
 # Examples
@@ -190,7 +190,7 @@ end
 @doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
-Returns the Weierstrass model which is equivalent to the given global Tate model.
+Return the Weierstrass model which is equivalent to the given global Tate model.
 
 # Examples
 ```jldoctest
@@ -298,7 +298,7 @@ end
 @doc raw"""
     discriminant(t::GlobalTateModel)
 
-Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
 # Examples
 ```jldoctest
@@ -318,7 +318,7 @@ end
 @doc raw"""
     singular_loci(t::GlobalTateModel)
 
-Returns the singular loci of the Weierstrass model equivalent to the given Tate model,
+Return the singular loci of the Weierstrass model equivalent to the given Tate model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
 refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
 

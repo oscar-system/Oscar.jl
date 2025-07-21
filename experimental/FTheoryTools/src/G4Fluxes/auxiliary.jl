@@ -7,7 +7,7 @@
 @doc raw"""
     converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
+Return a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
 in terms of the basis computed by `basis_of_h22_ambient`.
 
 This is useful for rewriting cohomology classes in a fixed basis of the toric variety ``X_\Sigma``.
@@ -331,7 +331,7 @@ end
 @doc raw"""
     basis_of_h22_ambient_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns the index pairs of toric cohomology classes whose products span the 
+Return the index pairs of toric cohomology classes whose products span the 
 basis of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` computed by `basis_of_h22_ambient`.
 
 Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and 
@@ -396,7 +396,7 @@ end
 @doc raw"""
     gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
+Return a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
 and ``b``-th toric variables defines a cohomology class on the ambient toric variety 
 ``X_\Sigma`` whose restriction to the hypersurface lies in the subspace 
 ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})`` obtained from restricting
@@ -502,7 +502,7 @@ end
 @doc raw"""
     converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
+Return a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
 to linear combinations of generators of ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``,
 where ``\widehat{Y}_4`` is the (smooth) hypersurface associated to the F-theory model and
 ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.

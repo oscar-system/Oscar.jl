@@ -1,7 +1,7 @@
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Returns the defining divisor classes of the given F-theory model.
+Return the defining divisor classes of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
@@ -32,7 +32,7 @@ end
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
-Returns the model sections of the given F-theory model.
+Return the model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
@@ -62,7 +62,7 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Returns the tunable sections of the given F-theory model.
+Return the tunable sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
@@ -88,7 +88,7 @@ julia> tunable_sections(m)
 @doc raw"""
     model_section_parametrization(m::AbstractFTheoryModel)
 
-Returns a dictionary that defines how the structural sections of the given F-theory model
+Return a dictionary that defines how the structural sections of the given F-theory model
 are parametrized by the tunable sections.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
@@ -117,7 +117,7 @@ end
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
-Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+Return the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
 of the base and the defining classes of the given model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
@@ -144,7 +144,7 @@ classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTh
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Returns the divisor classes of all model sections of the given F-theory model.
+Return the divisor classes of all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
@@ -195,7 +195,7 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Returns the explicit polynomial expressions for all model sections of the given F-theory model.
+Return the explicit polynomial expressions for all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 

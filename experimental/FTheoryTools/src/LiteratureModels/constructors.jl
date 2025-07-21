@@ -5,7 +5,7 @@
 @doc raw"""
     literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 
-Returns a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
+Return a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
 Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
 [Krause, Mayrhofer, Weigand 2011](@cite KMW12)*—and are stored in a curated database accessible through this method.
 

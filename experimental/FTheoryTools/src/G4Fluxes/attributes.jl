@@ -5,7 +5,7 @@
 @doc raw"""
     model(gf::G4Flux)
 
-Returns the F-theory model used to construct the ``G_4``-flux candidate.
+Return the F-theory model used to construct the ``G_4``-flux candidate.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -32,7 +32,7 @@ model(gf::G4Flux) = gf.model
 @doc raw"""
     cohomology_class(gf::G4Flux)
 
-Returns the ambient space cohomology class which defines the ``G_4``-flux candidate.
+Return the ambient space cohomology class which defines the ``G_4``-flux candidate.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -64,7 +64,7 @@ cohomology_class(gf::G4Flux) = gf.class
 @doc raw"""
     d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
 
-Returns the d3-tapdole of a G4-flux, that is compute and return the quantity
+Return the d3-tapdole of a G4-flux, that is compute and return the quantity
 ``- \frac{1}{2} \cdot \int_{\widehat{Y_4}}{G_4 \wedge G_4} + \frac{1}{24} \cdot \chi(\widehat{Y}_4)``.
 
 # Examples
@@ -151,7 +151,7 @@ end
 @doc raw"""
     g4_flux_family(gf::G4Flux; check::Bool = true)
 
-Returns the family of ``G_4``-fluxes sharing the following properties
+Return the family of ``G_4``-fluxes sharing the following properties
 with the given ``G_4``-flux: transversality and breaking of the
 non-abelian gauge group.
 
@@ -277,7 +277,7 @@ end
 @doc raw"""
     integral_coefficients(gf::G4Flux)
 
-Returns the integral coefficients of a ``G_4``-flux.
+Return the integral coefficients of a ``G_4``-flux.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -310,7 +310,7 @@ end
 @doc raw"""
     rational_coefficients(gf::G4Flux)
 
-Returns the rational coefficients of a ``G_4``-flux.
+Return the rational coefficients of a ``G_4``-flux.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -343,7 +343,7 @@ end
 @doc raw"""
     offset(gf::G4Flux)
 
-Returns the offset of a ``G_4``-flux.
+Return the offset of a ``G_4``-flux.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))

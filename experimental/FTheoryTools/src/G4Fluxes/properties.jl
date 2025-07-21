@@ -79,7 +79,7 @@ end
     passes_transversality_checks(gf::G4Flux)
 
 Checks whether the ``G_4``-flux satisfies the transversality conditions
-(cf. [Wei18](@cite)). Returns `true` if all conditions are met, otherwise `false`.
+(cf. [Wei18](@cite)). Return `true` if all conditions are met, otherwise `false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -196,7 +196,7 @@ end
     breaks_non_abelian_gauge_group(gf::G4Flux)
 
 Checks whether the given ``G_4``-flux candidate breaks any non-abelian gauge
-symmetries. Returns `true` if any breaking occurs, and `false` otherwise.
+symmetries. Return `true` if any breaking occurs, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))

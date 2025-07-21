@@ -88,7 +88,7 @@ end
     passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
 Checks if the given family of ``G_4``-fluxes passes the transversality conditions.
-Returns `true` if the checks pass, and `false` otherwise.
+Return `true` if the checks pass, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -154,7 +154,7 @@ end
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
 Checks if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
-Returns `true` if it does, and `false` otherwise.
+Return `true` if it does, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
