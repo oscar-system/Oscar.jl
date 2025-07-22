@@ -26,6 +26,7 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   internal_ordering::Tuple{Symbol, Symbol}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
+  jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
 
   function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
     @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
@@ -37,8 +38,9 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
+    jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
     
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet)
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
  
   function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
@@ -49,8 +51,9 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
+    jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
     
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet)
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
@@ -206,16 +209,33 @@ function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
 end
 
 @doc raw"""
+    trailing_coefficient(p::ActionPolyRingElem)
+
+Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last nonzero term, or zero if the polynomial is zero.
+"""
+trailing_coefficient(apre::ActionPolyRingElem) = parent(apre)(trailing_coefficient(__poly(apre)))
+
+@doc raw"""
+    is_constant(p::ActionPolyRingElem)
+
+Return `true` if `p` is a degree zero polynomial or the zero polynomial, i.e. a constant polynomial. 
+"""
+is_constant(apre::ActionPolyRingElem) = is_constant(__poly(apre))
+
+@doc raw"""
     vars(p::ActionPolyRingElem)
 
 Return the variables actually occuring in `p`.
 """
 vars(apre::ActionPolyRingElem) = parent(apre).(vars(__poly(apre)))
 
-@doc raw"""
-    gen(apr::ActionPolyRing, i::Int, jet::Vector{Int}) -> Int
+#combine_like_terms!
+#sort_terms!
 
-Return the the `i`-th elementary variable with multiindex `jet` in the action polynomial
+@doc raw"""
+    gen(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+
+Return the `i`-th elementary variable with multiindex `midx` in the action polynomial
 `apr`. If this jet variable was untracked, it is tracked afterwards.
 """
 function gen(apr::ActionPolyRing, i::Int, jet::Vector)
@@ -245,25 +265,74 @@ Return the number of generators of the action polynomial ring `apr`.
 """
 number_of_generators(apr::ActionPolyRing) = number_of_generators(apr.upoly_ring)
 
+=#
 @doc raw"""
     diff_action(p::ActionPolyRingElem, i::Int) -> ActionPolyRingElem
 
 Apply the `i`-th diff-action to the polynomial `p`, that is, increase the multiindex of each
 variable occuring in `p` at position `i` by one and return the resulting polynomial.
 """
-function diff_action(apre::ActionPolyRingElem, i::Int)
-  apr = parent(apre)
-  @req i in 1:ndiffs(apr) "index out of range"
-  jet_idxs = map(var -> apr.var_to_jet[var], vars(apre))
-  for j in 1:length(jet_idxs)
-    jet_idx = jet_idxs[j]
-    jet_idx[2][i] += 1 #increase the i-th multiindex by 1
-    if !haskey(apr.jet_to_var, jet_idx) #if this leads to an untracked variable...
-      __add_new_jetvar!(apr, jet_idx[1], jet_idx[2]) #track it
+function diff_action(apre::ActionPolyRingElem{T}, i::Int) where {T}
+    apr = parent(apre)
+    @req i in 1:ndiffs(apr) "index out of range"
+
+    # Remove constant term: d_i(1) = 0
+    apre -= trailing_coefficient(apre)
+
+    if is_zero(apre)
+        return apre
     end
-    
-  end
+
+    upre = __poly(apre)
+
+    # Precompute mapping from existing variable -> shifted variable position
+    upoly_var_to_shifted_pos = Dict{AbstractAlgebra.Generic.UnivPoly{T}, Int}()
+    for var in vars(upre)
+        jet_idx = apr.var_to_jet[apr(var)]
+        new_jet_idx = copy(jet_idx[2])
+        new_jet_idx[i] += 1
+
+        if !haskey(apr.jet_to_upoly_idx, (jet_idx[1], new_jet_idx))
+            __add_new_jetvar!(apr, jet_idx[1], new_jet_idx)
+        end
+
+        shifted_var_elem = apr.jet_to_var[(jet_idx[1], new_jet_idx)]
+        shifted_var = __poly(shifted_var_elem)
+        shifted_var_pos = findfirst(==(shifted_var), gens(apr.upoly_ring))
+        upoly_var_to_shifted_pos[var] = shifted_var_pos
+    end
+
+    C = MPolyBuildCtx(apr.upoly_ring)
+
+    for term in terms(upre)
+        coeff_t = coeff(term, 1)
+        vars_t = vars(term)
+        ev = append!(exponent_vector(term, 1), fill(0, length(exponent_vector(term, 1))))
+
+        for var in vars_t
+            exp = ev[findfirst(==(var), gens(apr.upoly_ring))]
+
+            jet_idx = apr.var_to_jet[apr(var)]
+            var_pos = findfirst(==(var), gens(apr.upoly_ring))
+            shifted_var_pos = upoly_var_to_shifted_pos[var]
+
+            new_exp_vec = copy(ev)
+            new_exp_vec[var_pos] -= 1
+            new_exp_vec[shifted_var_pos] += 1
+
+            push_term!(C, coeff_t * exp, new_exp_vec)
+        end
+    end
+
+    return apr(finish(C))
 end
+
+@doc raw"""
+    getindex(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+
+Alias for `gen(apr, i, midx)`.
+"""
+getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
 
 #######################################
 #
@@ -280,6 +349,7 @@ function __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int})
   jtv = apr.jet_to_var
   upoly_new_var = gen(apr.upoly_ring, string(apr.elementary_symbols[i]) * "[" * join(jet) * "]")
   jtv[(i, jet)] = apr(upoly_new_var)
+  apr.jet_to_upoly_idx[(i,jet)] = ngens(apr.upoly_ring)
   apr.var_to_jet[apr(upoly_new_var)] = (i, jet)
   return jtv[(i, jet)]
 end
