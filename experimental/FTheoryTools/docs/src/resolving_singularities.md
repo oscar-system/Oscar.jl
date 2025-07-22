@@ -46,7 +46,7 @@ resolve(m::AbstractFTheoryModel, index::Int)
 
 ### Analyzing the resolved Fiber Structure
 
-The following is currently only supported for [Global Tate Models](@ref "Global Tate Models").
+The following is currently only supported for [Global Tate Models](@ref global_tate_models).
 
 After resolution, one typically studies the structure of the (resolved) fibers to extract intersection numbers and
 representation theory information. The following method computes the fiber components and their intersection graph:

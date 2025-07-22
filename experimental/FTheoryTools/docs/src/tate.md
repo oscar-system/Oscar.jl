@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Global Tate Models
+# [Global Tate Models](@id global_tate_models)
 
 Global Tate models provide a powerful framework to systematically engineer elliptic fibrations
 with prescribed fiber singularities. They are widely used in F-theory model building because

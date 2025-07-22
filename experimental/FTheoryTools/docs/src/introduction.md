@@ -45,7 +45,7 @@ especially in higher codimension or for non-toric singularities.
 `FTheoryTools` supports construction of elliptic fibrations via:
 
 - [Weierstrass Models](@ref weierstrass_models),
-- [Global Tate Models](@ref "Global Tate Models"),
+- [Global Tate Models](@ref global_tate_models),
 - [Hypersurface Models](@ref "Hypersurface Models").
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
