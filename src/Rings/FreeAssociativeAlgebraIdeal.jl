@@ -184,7 +184,9 @@ Ideal generating system with elements
 function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   deg_bound::Int=-1;
   protocol::Bool=false,
-  interreduce::Bool=false)
+  interreduce::Bool=false,
+  algorithm::Symbol=:f4ncgb
+  )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
   I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce)
   I.deg_bound = deg_bound
@@ -194,7 +196,9 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
   protocol::Bool=false,
-  interreduce::Bool=false)
+  interreduce::Bool=false,
+  algorithm::Symbol=:f4ncgb
+  )
   gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce)
   return IdealGens(gb)
 end
@@ -202,7 +206,8 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
   protocol::Bool=false,
-  interreduce::Bool=false)
+  interreduce::Bool=false,
+  algorithm::Symbol=:f4ncgb)
 
   R = parent(g[1])
   @req all(x -> parent(x) == R, g) "parent mismatch"

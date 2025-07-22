@@ -1,27 +1,8 @@
-
-using f4ncgb_jll
-
-export f4ncgb_version,
-       f4ncgb_set_msg_printing,
-       f4ncgb_init,
-       f4ncgb_add,
-       f4ncgb_free,
-       f4ncgb_groebner,
-       f4ncgb_get_state,
-       f4ncgb_end_poly,
-       f4ncgb_set_blocks,
-       f4ncgb_set_nvars,
-       f4ncgb_set_characteristic,
-       f4ncgb_set_maxiter,
-       f4ncgb_set_maxdeg,
-       f4ncgb_set_threads,
-       f4ncgb_set_output_file,
-       f4ncgb_polys_helper,
-       f4ncgb_solve
+#=
+ Reference Clemens here
 
 
-#libf4ncgb = f4ncgb_jll.libf4ncgb_path
-
+=#
 function f4ncgb_version()
     ret_c = @ccall libf4ncgb.f4ncgb_version()::Cstring
     ret = unsafe_string(ret_c)
@@ -34,18 +15,9 @@ function f4ncgb_set_msg_printing(on::Bool)
 end
 
 f4ncgb_init() = @ccall libf4ncgb.f4ncgb_init()::Ptr{Cvoid}
-
 f4ncgb_free(handle::Ptr{Cvoid}) = @ccall libf4ncgb.f4ncgb_free(handle::Ptr{Cvoid})::Cvoid
-
 f4ncgb_get_state(handle::Ptr{Cvoid}) = @ccall libf4ncgb.f4ncgb_get_state(handle::Ptr{Cvoid})::Ptr{Cvoid}
-#=
-handle = f4ncgb_init()
 
-f4ncgb_add(handle, 1, 2, UInt32[1, 2, 3])
-f4ncgb_set_output_file(handle, "output.txt")
-
-
-=#
 function f4ncgb_add(handle::Ptr{Cvoid},
                     numerator::Int,
                     denominator::Int,
@@ -196,9 +168,9 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
     end_poly_cb_c::Ptr{Cvoid})::Cint
 end
 
-function f4ncgb_groebner(I::FreeAssociativeAlgebraIdeal)
-  x = gens(I)
-  r = base_ring(I)
+function f4ncgb_groebner(x::Vector{<:FreeAssociativeAlgebraElem{QQFieldElem}})
+  @req length(x) > 0 "Fix your shit"
+  r = parent(first(x))
   handle = f4ncgb_init()
   f4ncgb_set_nvars(handle, UInt32(ngens(r)))
   f4ncgb_set_blocks(handle, UInt32[ngens(r)])
@@ -212,27 +184,5 @@ end
 
 #=
 S1 = quantum_symmetric_group(4);
-x = gens(S1)[end-7:end]
-
-handle = f4ncgb_init()
-f4ncgb_set_nvars(handle, UInt32(16))
-f4ncgb_set_threads(handle, UInt32(1))
-f4ncgb_add.(Ref(handle), x)
-
-userdata = f4ncgb_polys_helper(base_ring(S1))
-f4ncgb_solve(handle, userdata)
-userdata.gens
-
-for m in monomials(x)
-  println(m.exps[1])
-end
-y = collect(monomials(x))[1]
-
-
-x1 = gens(S1)[1]
-typeof(x1)
+Oscar.f4ncgb_groebner(gens(S1))
 =#
-
-
-
-

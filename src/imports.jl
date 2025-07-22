@@ -226,3 +226,7 @@ end
 
 import cohomCalg_jll
 import lib4ti2_jll
+
+import f4ncgb_jll
+using f4ncgb_jll: libf4ncgb
+
