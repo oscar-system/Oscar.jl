@@ -629,9 +629,9 @@ end
   end
 
   Omega = GSetForTests(symmetric_group(2), on_tuples, [1, 2], Dict{Symbol, Any}());
-  @test_throws ArgumentError acting_group(Omega)
-  @test_throws ArgumentError action_function(Omega)
-  @test_throws ArgumentError action_homomorphism(Omega)
-  @test_throws ArgumentError orbit(Omega, 1)
-  @test_throws ArgumentError Omega == Omega
+  @test_throws NotImplementedError acting_group(Omega)
+  @test_throws NotImplementedError action_function(Omega)
+  @test_throws NotImplementedError action_homomorphism(Omega)
+  @test_throws NotImplementedError orbit(Omega, 1)
+  @test_throws NotImplementedError Omega == Omega
 end

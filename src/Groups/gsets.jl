@@ -37,7 +37,7 @@ true
 ```
 """
 function acting_group(Omega::GSet)
-  throw(ArgumentError("acting_group method for type $(typeof(Omega)) missing"))
+  throw(NotImplementedError(:acting_group, Omega))
 end
 
 @doc raw"""
@@ -60,7 +60,7 @@ true
 ```
 """
 function action_function(Omega::GSet)
-  throw(ArgumentError("action_function method for type $(typeof(Omega)) missing"))
+  throw(NotImplementedError(:action_function, Omega))
 end
 
 """
@@ -100,7 +100,7 @@ true
 ```
 """
 function action_homomorphism(Omega::GSet)
-  throw(ArgumentError("action_homomorphism method for type $(typeof(Omega)) missing"))
+  throw(NotImplementedError(:action_homomorphism, Omega))
 end
 
 """
@@ -121,13 +121,13 @@ julia> length(orbit(Omega, 1))
 ```
 """
 function orbit(Omega::GSet, omega)
-  throw(ArgumentError("orbit method for type $(typeof(Omega)) missing"))
+  throw(NotImplementedError(:orbit, Omega))
 end
 
 # Do not check equality of G-sets via `===` (the default),
 # and do not provide dedicated `==` methods for G-sets.
 function ==(Omega1::GSet, Omega2::GSet)
-  throw(ArgumentError("comparison of G-sets via == is not supported"))
+  throw(NotImplementedError(:(==), (Omega1, Omega2)))
 end
 
 
