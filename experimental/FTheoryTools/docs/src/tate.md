@@ -45,9 +45,9 @@ $y^2 + a_1(q) x y z + a_3(q) y z^3 = x^3 + a_2(q) x^2 z^2 + a_4(q) x z^4 + a_6(q
 where the ``a_i(q)`` are the values of the Tate sections at a local coordinate ``q \in U``. This
 formulation is known as a **Tate model**. One may define the elliptic fibration globally by specifying
 a single Tate polynomial as above. Such constructions, known as **global Tate models**, are strictly less
-general than [Weierstrass Models](@ref "Weierstrass Models") but have proven especially useful for model
+general than [Weierstrass Models](@ref weierstrass_models) but have proven especially useful for model
 building in F-theory: Engineering the desired fiber singularities—crucial for F-theory model building—is
-often simpler for global Tate models than for [Weierstrass Models](@ref "Weierstrass Models").
+often simpler for global Tate models than for [Weierstrass Models](@ref weierstrass_models).
 
 Much like the Kodaira classification, in a global Tate model the singularities of the elliptic fiber are
 characterized by the vanishing orders of the Tate sections ``a_i``, although no additional monodromy needs
@@ -96,7 +96,7 @@ arbitrary bases, but primarily focuses on working with a **concrete toric base**
 
 ### Unspecified Base Spaces
 
-As with [Weierstrass Models](@ref "Weierstrass Models"), constructing a global Tate model begins with building
+As with [Weierstrass Models](@ref weierstrass_models), constructing a global Tate model begins with building
 a suitable **ambient space**. When the base is not fully specified, the ambient space can be treated symbolically.
 This symbolic flexibility is particularly useful when **engineering singular fibers** via specified vanishing orders
 or factorizations of the Tate sections ``a_i``. This method is foundational to F-theory model building.
@@ -179,7 +179,7 @@ such, many attributes and properties are shared across model representations. Th
 [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
 
 Below, we list the attributes that are **specific to global Tate models** and do not generally apply to other
-representations (such as [Weierstrass Models](@ref "Weierstrass Models") or [Hypersurface Models](@ref "Hypersurface Models")):
+representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref "Hypersurface Models")):
 
 ```@docs
 tate_section_a1(t::GlobalTateModel)
