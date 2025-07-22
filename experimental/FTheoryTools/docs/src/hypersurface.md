@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Hypersurface Models
+# [Hypersurface Models](@id hypersurface_models)
 
 A **hypersurface model** is a description of an elliptic fibration whose
 total space is defined as the vanishing locus of a single polynomial in a

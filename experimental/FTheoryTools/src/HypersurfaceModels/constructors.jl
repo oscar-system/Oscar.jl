@@ -12,7 +12,7 @@ Construct a hypersurface model where fiber coordinates transform as sections of 
 
 The hypersurface equation `p` defines a section of the anti-canonical bundle of the total ambient space and may also be passed as a string for convenience.
 
-For a full explanation of hypersurface models, see [Hypersurface Models](@ref "Hypersurface Models").
+For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
 
 # Examples
 ```jldoctest
@@ -77,7 +77,7 @@ base divisor classes.
 
 The polynomial `p`, which encodes the hypersurface equation, can also be passed as a string.
 
-For a full explanation of hypersurface models, see [Hypersurface Models](@ref "Hypersurface Models").
+For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
 
 # Examples
 ```jldoctest
@@ -203,7 +203,7 @@ class is automatically added. By convention, this first row corresponds to ``\ov
 
 For convenience, `fiber_twist_divisor_classes` can also be passed as a `ZZMatrix` instead of a `Vector{Vector{Int64}}`.
 
-For a full explanation of hypersurface models, see [Hypersurface Models](@ref "Hypersurface Models").
+For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
 
 # Examples
 ```jldoctest
@@ -282,7 +282,7 @@ class is automatically added. By convention, this first row corresponds to ``\ov
 
 For convenience, `fiber_twist_divisor_classes` can also be provided as `ZZMatrix`.
 
-For a full explanation of hypersurface models, see [Hypersurface Models](@ref "Hypersurface Models").
+For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
 
 # Examples
 ```jldoctest

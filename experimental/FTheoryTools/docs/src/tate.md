@@ -179,7 +179,7 @@ such, many attributes and properties are shared across model representations. Th
 [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
 
 Below, we list the attributes that are **specific to global Tate models** and do not generally apply to other
-representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref "Hypersurface Models")):
+representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref hypersurface_models)):
 
 ```@docs
 tate_section_a1(t::GlobalTateModel)

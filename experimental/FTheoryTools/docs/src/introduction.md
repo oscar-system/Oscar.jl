@@ -46,7 +46,7 @@ especially in higher codimension or for non-toric singularities.
 
 - [Weierstrass Models](@ref weierstrass_models),
 - [Global Tate Models](@ref global_tate_models),
-- [Hypersurface Models](@ref "Hypersurface Models").
+- [Hypersurface Models](@ref hypersurface_models).
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
 shared functionality is documented at [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
