@@ -10,6 +10,7 @@ julia> q_integer(3, q)
 
 julia> q_integer(2, q^2)
 (q^4 + 1)/q^2
+```
 """
 function q_integer(n::Int, q::QuantumFieldElem)
   return div(q^n - q^-n, q - q^-1)
@@ -27,6 +28,7 @@ julia> q_factorial(3, q)
 
 julia> q_integer(2, q^2)
 (q^4 + 1)/q^2
+```
 """
 function q_factorial(n::Int, q::QuantumFieldElem)
   return get!(
@@ -48,6 +50,7 @@ julia> q_binomial(4, 2, q)
 
 julia> q_binomial(5, 3, q^2)
 (q^24 + q^20 + 2*q^16 + 2*q^12 + 2*q^8 + q^4 + 1)//q^12
+```
 """
 function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
   z = one(q)
