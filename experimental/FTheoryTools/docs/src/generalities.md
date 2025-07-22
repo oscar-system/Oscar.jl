@@ -37,6 +37,24 @@ global_gauge_group_quotient(m::AbstractFTheoryModel)
 
 ---
 
+## [Not Yet Computed Advanced Mathematical Attributes](@id non_yet_algorithmic_advanced_attributes)
+
+In principle, the following can be computed, but we do not compute
+them yet. So they are only currently available only if the information
+has been stored for a literature model.
+
+The following methods return the Hodge numbers of the elliptically
+fibered 4-fold that defines the F-theory model in question.
+
+```@docs
+hodge_h11(m::AbstractFTheoryModel)
+hodge_h12(m::AbstractFTheoryModel)
+hodge_h13(m::AbstractFTheoryModel)
+hodge_h22(m::AbstractFTheoryModel)
+```
+
+---
+
 ## Tuning Singularities
 
 Often, one may wish to start with an existing model and modify some of its parameters—specifically its

@@ -548,7 +548,7 @@ end
 # 11: Macro for function generation
 ###########################################################################
 
-macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="")
+macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="", attr_name=nothing)
   if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
     error("Expected input like: (function_name, ReturnType)")
   end
@@ -556,7 +556,11 @@ macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="")
   fname_expr = arg_expr.args[1]
   rettype_expr = arg_expr.args[2]
   fname = fname_expr isa Symbol ? fname_expr : error("function_name is not a symbol")
-  sym = QuoteNode(fname)
+
+  # Determine attribute name symbol: use attr_name if provided, else function name
+  attr_sym = attr_name === nothing ? fname : (attr_name isa Symbol ? attr_name : error("attr_name must be a Symbol if provided"))
+  sym = QuoteNode(attr_sym)  
+  
   msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
   # Conditionally build doc section
