@@ -3,7 +3,7 @@
 
 Return the defining divisor classes of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest
@@ -34,7 +34,7 @@ end
 
 Return the model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -64,7 +64,7 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 
 Return the tunable sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -91,7 +91,7 @@ julia> tunable_sections(m)
 Return a dictionary that defines how the structural sections of the given F-theory model
 are parametrized by the tunable sections.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -120,7 +120,7 @@ end
 Return the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
 of the base and the defining classes of the given model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -146,7 +146,7 @@ classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTh
 
 Return the divisor classes of all model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -197,7 +197,7 @@ end
 
 Return the explicit polynomial expressions for all model sections of the given F-theory model.
 
-For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
+For a detailed explanation of the concept, see [Model Parameters, Defining Classes, and Related Concepts](@ref model_section_explanation_section).
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
