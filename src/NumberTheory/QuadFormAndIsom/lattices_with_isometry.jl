@@ -780,12 +780,7 @@ function integer_lattice_with_isometry(
     ok, f = can_solve_with_solution(B, B*f_ambient; side=:left)
     @req ok "Isometry does not preserve the lattice"
   else
-    V = ambient_space(L)
-    B = basis_matrix(L)
-    B2 = orthogonal_complement(V, B)
-    C = vcat(B, B2)
-    f_ambient = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
-    f_ambient = inv(C)*f_ambient*C
+    f_ambient = representation_in_ambient_coordinates(L, f; check)
     Vf = quadratic_space_with_isometry(V, f_ambient; check)
   end
 
@@ -1520,17 +1515,20 @@ end
       L::ZZLat,
       G::MatrixGroup;
       ambient_representation::Bool=true,
-      check::Bool=true
+      full::Bool=true,
+      check::Bool=true,
     ) -> GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
-orthogonal representation $G\to O(D_L)$ of $G$ on the discriminant group $D_L$
-of $L$.
+orthogonal representation $\pi\colon G\to O(D_L)$ of $G$ on the discriminant
+group $D_L$ of $L$.
 
 If `ambient_representation` is set to `true`, then the isometries in $G$ are
 considered as matrix representation of their action on the standard basis of
 the ambient space of $L$. Otherwise, they are considered as matrix
 representation of their action on the basis matrix of $L$.
+
+If `full` is set to `false`, return the corestriction of $\pi$ to its image.
 
 See [`discriminant_group(::ZZLat)`](@ref).
 """
@@ -1538,32 +1536,57 @@ function discriminant_representation(
     L::ZZLat,
     G::MatrixGroup;
     ambient_representation::Bool=true,
-    check::Bool=true
+    full::Bool=true,
+    check::Bool=true,
   )
-  V = ambient_space(L)
-  if ambient_representation
-    @check all(g -> matrix(g)*gram_matrix(V)*transpose(matrix(g)) == gram_matrix(V), gens(G)) "G does not define a group of isometries of the ambient space of L"
-  else
-    @check all(g -> matrix(g)*gram_matrix(L)*transpose(matrix(g)) == gram_matrix(L), gens(G)) "G does not define a group of isometries of L"
-    B = basis_matrix(L)
-    B2 = orthogonal_complement(V, B)
-    C = vcat(B, B2)
-    iC = inv(C)
+  @check is_isometry_group(L, G, ambient_representation) "G does not define a group of isometries of L"
+  if !ambient_representation
+    G = representation_in_ambient_coordinates(L, G; check=false)
   end
   q = discriminant_group(L)
-  Oq = orthogonal_group(q)
-  imag_lis = elem_type(Oq)[]
+  imag_lis_map = TorQuadModuleMap[]
   geneG = gens(G)
   for g in geneG
-    if !ambient_representation
-      mg = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      mg = iC*mg*C
-    else
-      mg = matrix(g)
-    end
-    push!(imag_lis, Oq(hom(q, q, TorQuadModuleElem[q(lift(a)*mg) for a in gens(q)]); check=false))
+    mg = matrix(g)
+    push!(imag_lis_map, hom(q, q, TorQuadModuleElem[q(lift(a)*mg) for a in gens(q)]))
+  end
+  if full
+    Oq = orthogonal_group(q)
+    imag_lis = elem_type(Oq)[Oq(f; check=false) for f in imag_lis_map]
+  else
+    Oq = Oscar._orthogonal_group(q, matrix.(imag_lis); check=false)
+    imag_lis = gens(Oq)
   end
   return hom(G, Oq, geneG, imag_lis; check=false)
+end
+
+@doc raw"""
+    stable_subgroup(
+      L::ZZLat,
+      G::MatrixGroup;
+      ambient_representation::Bool=true,
+      check::Bool=true
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
+kernel $G^\#$ of the orthogonal representation $G\to O(D_L)$ of $G$ on the
+discriminant group $D_L$ of $L$, together with embedding $G^\# \to G$.
+
+If `ambient_representation` is set to `true`, then the isometries in $G$ are
+considered as matrix representation of their action on the standard basis of
+the ambient space of $L$. Otherwise, they are considered as matrix
+representation of their action on the basis matrix of $L$.
+
+See [`discriminant_representation`](@ref).
+"""
+function stable_subgroup(
+    L::ZZLat,
+    G::MatrixGroup;
+    kwargs...,
+  )
+  @req is_finite(G) "The group G must be finite"
+  discL = discriminant_representation(L, G; kwargs...)
+  return kernel(discL)
 end
 
 @doc raw"""
@@ -2026,25 +2049,13 @@ function coinvariant_lattice(
   )
   F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
-  if !ambient_representation
-    V = ambient_space(L)
-    B = basis_matrix(L)
-    B2 = orthogonal_complement(V, B)
-    B3 = vcat(B, B2)
-    iB3 = inv(B3)
+  if ambient_representation
+    return C, G
+  else
+    gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
+    gene = representation_in_lattice_coordinates(C, gene; check=false)
+    return C, matrix_group(gene)
   end
-  gene = QQMatrix[]
-  for g in gens(G)
-    if !ambient_representation
-      g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = iB3*g_ambient*B3
-      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side=:left)
-      push!(gene, m)
-    else
-      push!(gene, matrix(g))
-    end
-  end
-  return C, matrix_group(gene)
 end
 
 @doc raw"""
@@ -2111,25 +2122,13 @@ function invariant_coinvariant_pair(
   )
   F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
-  if !ambient_representation
-    V = ambient_space(L)
-    B = basis_matrix(L)
-    B2 = orthogonal_complement(V, B)
-    B3 = vcat(B, B2)
-    iB3 = inv(B3)
+  if ambient_representation
+    return F, C, G
+  else
+    gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
+    gene = representation_in_lattice_coordinates(C, gene; check=false)
+    return F, C, matrix_group(gene)
   end
-  gene = QQMatrix[]
-  for g in gens(G)
-    if !ambient_representation
-      g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = iB3*g_ambient*B3
-      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side=:left)
-      push!(gene, m)
-    else
-      push!(gene, matrix(g))
-    end
-  end
-  return F, C, matrix_group(gene)
 end
 
 ##############################################################################

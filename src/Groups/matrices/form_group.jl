@@ -762,24 +762,6 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
 end
 
 """
-    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
-
-Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
-
-The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
-
-First computes the orthogonal group of ``K`` and then its subgroup 
-consisting of isometries extending to ``L``.
-"""
-function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
-  V = lattice(ambient_space(L),v)
-  K = orthogonal_submodule(L, V)
-  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
-  OK = orthogonal_group(K; kwargs...)
-  return stabilizer(OK, L, on_lattices)[1]
-end
-
-"""
     _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
@@ -947,3 +929,18 @@ orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 
 unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 
+@doc raw"""
+    stable_orthogonal_group(L::ZZLat; kwargs...) -> MatrixGroup
+
+Given an integer lattice $L$ with finite isometry group, return the
+subgroup $O^\#(L)$ of the isometry group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$.
+"""
+function stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  @req is_finite(OL) "Isometry group must be of finite order"
+  return stable_subgroup(L, OL; check=false)
+end
