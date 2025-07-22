@@ -189,4 +189,4 @@ singular_loci(w::WeierstrassModel)
 ```
 
 We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
-structure and how to resolve them—in [Resolving F-Theory Models](@ref "Resolving F-Theory Models").
+structure and how to resolve them—in [Resolving F-Theory Models](@ref resolving_f_theory_models).
