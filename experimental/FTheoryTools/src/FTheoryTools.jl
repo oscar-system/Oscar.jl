@@ -8,9 +8,9 @@ include("FamilyOfSpaces/attributes.jl")
 include("AbstractFTheoryModels/basic_attributes.jl")
 include("AbstractFTheoryModels/section_attributes.jl")
 include("AbstractFTheoryModels/precomputed_attributes.jl")
+include("AbstractFTheoryModels/not_yet_computed_attributes.jl")
 include("AbstractFTheoryModels/computed_attributes.jl")
 include("AbstractFTheoryModels/qsm_attributes.jl")
-
 include("AbstractFTheoryModels/properties.jl")
 include("AbstractFTheoryModels/methods.jl")
 
