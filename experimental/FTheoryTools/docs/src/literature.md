@@ -193,7 +193,7 @@ Express model sections explicitly as polynomials in the Cox ring of the base spa
 
 !!! warning
     If the base is a family of spaces, the polynomial expressions are equivalent to the return values of
-    [model_section_parametrization(::AbstractFTheoryModel)](@ref).
+    [`model_section_parametrization(::AbstractFTheoryModel)`](@ref).
 
 ```@docs
 explicit_model_sections(::AbstractFTheoryModel)
