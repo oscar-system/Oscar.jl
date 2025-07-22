@@ -49,7 +49,7 @@ especially in higher codimension or for non-toric singularities.
 - [Hypersurface Models](@ref hypersurface_models).
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
-shared functionality is documented at [Functionality for all F-theory models](@ref "Functionality for all F-theory models").
+shared functionality is documented at [Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
 
 Fibrations can be defined over various base spaces:
 
