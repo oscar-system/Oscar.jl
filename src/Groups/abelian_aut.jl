@@ -69,11 +69,29 @@ end
 
 @doc raw"""
     hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom
+    hom(f::AutomorphismGroupElem{TorQuadModule}) -> TorQuadModuleMap
 
-Return the element `f` of type `FinGenAbGroupHom`.
+Return the underlying homomorphism of ``f``.
 
 # Examples
 ```jldoctest
+julia> A = abelian_group([2, 3, 4]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> hom(f)
+Map
+  from finitely generated abelian group with 3 generators and 3 relations
+  to finitely generated abelian group with 3 generators and 3 relations
+
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//9]));
 
 julia> OT = orthogonal_group(T)
