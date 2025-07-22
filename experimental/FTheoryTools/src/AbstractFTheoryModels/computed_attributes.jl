@@ -20,6 +20,7 @@ be switched off by setting the optional argument `check` to the value `false`, a
     Internally, we integrate those ambient space classes against the class of the hypersurface, which automatically
     executes the restriction to the hypersurface.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -93,6 +94,7 @@ The theory guarantees that the implemented algorithm works for toric ambient spa
 simplicial and complete. The check for completeness can be very time consuming. This check can
 be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -128,6 +130,7 @@ as a hypersurface in a toric ambient space, we can compute the Euler characteris
 assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
 error.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base

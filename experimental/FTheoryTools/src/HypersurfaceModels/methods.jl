@@ -11,6 +11,7 @@ In the example below, we construct a hypersurface model and its corresponding
 Weierstrass model (see [BMT25](@cite BMT25) for background), and demonstrate how 
 to associate them using this function.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -59,6 +60,7 @@ In the example below, we construct a hypersurface model and its corresponding
 global Tate model (see [BMT25](@cite BMT25) for background), and demonstrate how 
 to associate them using this function.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -122,6 +124,7 @@ value to a section that was previously tuned to zero. This is why we keep such
 trivial sections and do not delete them, say from `explicit_model_sections`
 or `classes_of_model_sections`.
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety

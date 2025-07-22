@@ -7,7 +7,7 @@
 @doc raw"""
     converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
+Return a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
 in terms of the basis computed by `basis_of_h22_ambient`.
 
 This is useful for rewriting cohomology classes in a fixed basis of the toric variety ``X_\Sigma``.
@@ -16,6 +16,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -330,7 +331,7 @@ end
 @doc raw"""
     basis_of_h22_ambient_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns the index pairs of toric cohomology classes whose products span the 
+Return the index pairs of toric cohomology classes whose products span the 
 basis of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` computed by `basis_of_h22_ambient`.
 
 Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and 
@@ -340,6 +341,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -359,7 +361,7 @@ end
 @doc raw"""
     basis_of_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
+Compute a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
 and simplicial toric variety ``X_\Sigma`` by multiplying pairs of cohomology classes
 associated with the rays of ``X_\Sigma``.
 
@@ -367,6 +369,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -393,7 +396,7 @@ end
 @doc raw"""
     gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
+Return a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
 and ``b``-th toric variables defines a cohomology class on the ambient toric variety 
 ``X_\Sigma`` whose restriction to the hypersurface lies in the subspace 
 ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})`` obtained from restricting
@@ -406,6 +409,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -465,7 +469,7 @@ end
 @doc raw"""
     gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
+Compute a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
 to generators of the subspace ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``, where ``\widehat{Y}_4`` 
 is the (smooth) hypersurface in the ambient toric variety ``X_\Sigma`` associated to the F-theory model
 and ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
@@ -477,6 +481,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -497,7 +502,7 @@ end
 @doc raw"""
     converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
+Return a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
 to linear combinations of generators of ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``,
 where ``\widehat{Y}_4`` is the (smooth) hypersurface associated to the F-theory model and
 ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
@@ -511,6 +516,7 @@ Use `check = false` to skip completeness and simplicity verification.
 
 For mathematical background shared across related methods see [Advanced Methods](@ref "Advanced Methods").
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
@@ -555,6 +561,7 @@ returned by this method.
 
 Use `check = false` to skip completeness and simplicity verification.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir))), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

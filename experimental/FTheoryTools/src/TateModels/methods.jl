@@ -81,6 +81,7 @@ rather than deleted from attributes like `explicit_model_sections` or `classes_o
 This design choice enables users to later reintroduce nontrivial values for such sections
 without loss of structure.
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety

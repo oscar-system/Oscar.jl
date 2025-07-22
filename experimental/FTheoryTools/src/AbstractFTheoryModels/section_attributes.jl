@@ -1,10 +1,11 @@
 @doc raw"""
     defining_classes(m::AbstractFTheoryModel)
 
-Returns the defining divisor classes of the given F-theory model.
+Return the defining divisor classes of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -31,10 +32,11 @@ end
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
-Returns the model sections of the given F-theory model.
+Return the model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -60,10 +62,11 @@ model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
-Returns the tunable sections of the given F-theory model.
+Return the tunable sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -85,11 +88,12 @@ julia> tunable_sections(m)
 @doc raw"""
     model_section_parametrization(m::AbstractFTheoryModel)
 
-Returns a dictionary that defines how the structural sections of the given F-theory model
+Return a dictionary that defines how the structural sections of the given F-theory model
 are parametrized by the tunable sections.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -113,11 +117,12 @@ end
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
-Returns the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
+Return the divisor classes of the tunable sections expressed in the basis of the anticanonical divisor
 of the base and the defining classes of the given model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -139,10 +144,11 @@ classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTh
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
 
-Returns the divisor classes of all model sections of the given F-theory model.
+Return the divisor classes of all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -189,10 +195,11 @@ end
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)
 
-Returns the explicit polynomial expressions for all model sections of the given F-theory model.
+Return the explicit polynomial expressions for all model sections of the given F-theory model.
 
 For a detailed explanation of the concept, see [Literature Models](@ref literature_models).
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar

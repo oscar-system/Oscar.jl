@@ -5,7 +5,7 @@
 @doc raw"""
     literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 
-Returns a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
+Return a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
 Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
 [Krause, Mayrhofer, Weigand 2011](@cite KMW12)*—and are stored in a curated database accessible through this method.
 
@@ -31,6 +31,7 @@ See the [Literature Models](@ref literature_models) documentation page for a dee
 First, notice how you can create the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12)
 over an unspecified base:
 
+# Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -51,6 +52,7 @@ Multivariate polynomial ring in 8 variables over QQ graded by
 
 Certainly, this is also possible over a concrete base, provided that the defining classes are provided:
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -66,6 +68,7 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 Certainly, this can be mimiced for Weierstrass models, e.g. [Morrison, Park 2012](@cite MP12):
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -86,6 +89,7 @@ For convenience, we also support a simplified constructor. Instead of the meta d
 this constructor accepts an integer, which specifies the position of this model in our database.
 Here is how this can be used to create the model [Morrison, Park 2012](@cite MP12):
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -106,6 +110,7 @@ Finally, let us showcase that we also support hypersurface model constructions f
 For this, we stay with [Morrison, Park 2012](@cite MP12), but this time create this model as a
 hypersurface model. This works as follows:
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -291,7 +296,7 @@ end
 # 3. Constructing models over concrete bases
 #######################################################
 
-# Constructs literature model over concrete base
+# Construct literature model over concrete base
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, defining_classes::Dict{String, <:Any}, completeness_check::Bool)
 
   # Make list and dict of the defining divisor classes
@@ -437,7 +442,7 @@ end
 # 4. Constructing models over arbitrary bases
 #######################################################
 
-# Constructs literature model over arbitrary base
+# Construct literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"

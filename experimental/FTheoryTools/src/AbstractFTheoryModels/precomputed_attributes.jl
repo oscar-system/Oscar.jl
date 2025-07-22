@@ -44,6 +44,7 @@ Return the cohomology classes of the exceptional toric divisors of a model as a 
 This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
 After a toric blow up this information is updated.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -77,6 +78,7 @@ Return the indices of the generators of the Cox ring of the ambient space which 
 This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
 After a toric blow up this information is updated.
 
+# Examples
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
