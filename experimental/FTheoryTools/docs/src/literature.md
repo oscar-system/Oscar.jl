@@ -167,7 +167,7 @@ model_section_parametrization(::AbstractFTheoryModel)
 The hypersurface equation can also be written explicitly in terms of structural and tunable sections. This is accessible via:
 
 !!! warning
-    Currently supported only for [Hypersurface Models](@ref "Hypersurface Models").
+    Currently supported only for [Hypersurface Models](@ref hypersurface_models).
 
 ```@docs
 hypersurface_equation_parametrization(::HypersurfaceModel)

@@ -154,7 +154,7 @@ components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—
 
 Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to
 other representations (such as [Global Tate Models](@ref global_tate_models) or
-[Hypersurface Models](@ref "Hypersurface Models")):
+[Hypersurface Models](@ref hypersurface_models)):
 
 ```@docs
 weierstrass_section_f(w::WeierstrassModel)
