@@ -91,6 +91,10 @@ Current literature models include:
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
 
+The models of [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19) receive special support within `FTheoryTools`,
+including structured access to the full dataset of standard models constructed therein. For more information, see:
+[The Quadrillion F-Theory Standard Models (QSMs)](@ref qsm_models).
+
 More information: [Literature Models](@ref literature_models)
 
 ### ``G_4``-Flux Enumeration
