@@ -95,7 +95,7 @@ interface, which is discussed on the page [Literature Models](@ref literature_mo
 Hypersurface models represent an elliptic fibration as a hypersurface in an ambient space. While different types
 of models may vary in implementation, they share a broadly similar structure. Common attributes—such as `base_space`,
 `ambient_space`, and `fiber_ambient_space`—are documented on the page
-[Functionality for all F-theory models](@ref "Functionality for all F-theory models").
+[Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
 
 The following attributes are **specific to hypersurface models** and do not generally apply to other representations
 (such as [Weierstrass Models](@ref weierstrass_models) or [Global Tate Models](@ref global_tate_models)):
