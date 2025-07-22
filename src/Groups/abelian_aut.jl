@@ -13,6 +13,21 @@ end
     automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup}
 
 Return the automorphism group of `G`.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([2, 3, 4, 4, 4]);
+
+julia> automorphism_group(A)
+Automorphism group of
+  finitely generated abelian group with 5 generators and 5 relations
+
+julia> S, _ = snf(A);
+
+julia> automorphism_group(S)
+Automorphism group of
+  Z/2 x (Z/4)^2 x Z/12
+```
 """
 function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
@@ -21,7 +36,6 @@ function automorphism_group(G::FinGenAbGroup)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
-
 
 function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   aut = parent(f)
@@ -57,6 +71,28 @@ end
     hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom
 
 Return the element `f` of type `FinGenAbGroupHom`.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Orthogonal group of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with 3 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with matrix representation
+  [2   0]
+  [0   1]
+
+julia> hom(f)
+Map
+  from finite quadratic module: Z/3 x Z/9 -> Q/2Z
+  to finite quadratic module: Z/3 x Z/9 -> Q/2Z
+```
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
@@ -64,8 +100,7 @@ function hom(f::AutGrpAbTorElem)
   return hom(A, A, imgs)
 end
 
-
-function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::Bool=true)
+function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap}; check::Bool=true)
   !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -82,7 +117,6 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::B
   !check || fgap in aut.X || error("Map does not define an element of the group")
   return aut(fgap)
 end
-
 
 function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
   !check || defines_automorphism(domain(aut),M) || error("Matrix does not define an automorphism of the abelian group.")
@@ -104,6 +138,26 @@ end
     matrix(f::AutomorphismGroupElem{FinGenAbGroup}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([3, 9, 12]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   7]
+
+julia> matrix(f)
+[1   0   0]
+[0   1   0]
+[0   0   7]
+```
 """
 matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 
@@ -111,9 +165,10 @@ matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 @doc raw"""
     defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) -> Bool
 
-If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
+If `M` defines an endomorphism of `G`, return `true` if `M` defines an
+automorphism of `G`, else `false`.
 """
-defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
+defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G, G, M))
 
 ################################################################################
 #
@@ -174,6 +229,27 @@ end
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
 
 Return a matrix inducing `f`.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//12 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Orthogonal group of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with 4 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with matrix representation
+  [1    0]
+  [0   19]
+
+julia> matrix(f)
+[1    0]
+[0   19]
+```
 """
 matrix(f::AutomorphismGroupElem{TorQuadModule}) = matrix(hom(f))
 
@@ -223,6 +299,27 @@ end
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
 Return the full orthogonal group of this torsion quadratic module.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//4 1//2; 1//2 3//4]))
+Finite quadratic module
+  over integer ring
+Abelian group: (Z/4)^2
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[1//4   1//2]
+[1//2   3//4]
+
+julia> OT = orthogonal_group(T)
+Orthogonal group of
+  finite quadratic module: (Z/4)^2 -> Q/2Z
+with 2 generators
+
+julia> order(OT)
+4
+```
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
   if is_trivial(abelian_group(T))
