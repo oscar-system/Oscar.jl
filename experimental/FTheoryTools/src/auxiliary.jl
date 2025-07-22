@@ -205,10 +205,10 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
       coord_inds = randperm(num_gens)[1:end-2]
       rand_ints = rand(-100:100, num_gens - 2)
 
-      push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
-      push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))
-      push!(g2s, evaluate(forget_decoration(g), coord_inds, rand_ints))
-      push!(d2s, evaluate(forget_decoration(d), coord_inds, rand_ints))
+      push!(gauge2s, evaluate(gens(id)[1], coord_inds, rand_ints))
+      push!(f2s, evaluate(f, coord_inds, rand_ints))
+      push!(g2s, evaluate(g, coord_inds, rand_ints))
+      push!(d2s, evaluate(d, coord_inds, rand_ints))
     end
 
     # Check monodromy conditions for remaining cases.
