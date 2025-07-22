@@ -2,32 +2,32 @@
 ### (1) Meta data getters
 ##########################################
 
-@define_model_attribute_getter((associated_literature_models, Vector{String}))
-@define_model_attribute_getter((arxiv_doi, String))
-@define_model_attribute_getter((arxiv_id, String))
-@define_model_attribute_getter((arxiv_link, String))
-@define_model_attribute_getter((arxiv_model_equation_number, String))
-@define_model_attribute_getter((arxiv_model_page, String))
-@define_model_attribute_getter((arxiv_model_section, String))
-@define_model_attribute_getter((arxiv_version, String))
-@define_model_attribute_getter((birational_literature_models, Vector{String}))
-@define_model_attribute_getter((journal_doi, String))
-@define_model_attribute_getter((journal_link, String))
-@define_model_attribute_getter((journal_model_equation_number, String))
-@define_model_attribute_getter((journal_model_page, String))
-@define_model_attribute_getter((journal_model_section, String))
-@define_model_attribute_getter((journal_pages, String))
-@define_model_attribute_getter((journal_report_numbers, Vector{String}))
-@define_model_attribute_getter((journal_volume, String))
-@define_model_attribute_getter((journal_name, String))
-@define_model_attribute_getter((journal_year, String))
-@define_model_attribute_getter((literature_identifier, String))
-@define_model_attribute_getter((model_description, String))
-@define_model_attribute_getter((model_parameters, Dict{String, Int64}))
-@define_model_attribute_getter((paper_authors, Vector{String}))
-@define_model_attribute_getter((paper_buzzwords, Vector{String}))
-@define_model_attribute_getter((paper_description, String))
-@define_model_attribute_getter((paper_title, String))
+@define_model_attribute_getter((associated_literature_models, Vector{String}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_doi, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_id, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_link, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_model_equation_number, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_model_page, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_model_section, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((arxiv_version, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((birational_literature_models, Vector{String}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_doi, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_link, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_model_equation_number, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_model_page, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_model_section, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_pages, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_report_numbers, Vector{String}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_volume, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_name, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((journal_year, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((literature_identifier, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((model_description, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((model_parameters, Dict{String, Int64}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((paper_authors, Vector{String}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((paper_buzzwords, Vector{String}), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((paper_description, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
+@define_model_attribute_getter((paper_title, String), "", "See [Metadata Attributes](@ref meta_data_attributes) for more details.")
 
 
 
@@ -125,7 +125,7 @@ with summands
   linear Lie algebra
 over algebraic closure of rational field
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 
@@ -142,7 +142,7 @@ julia> generating_sections(m)
 1-element Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  [0, 0, 1]
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`. These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra. This list combined with `gauge_algebra(m)` completely determines the gauge group of the model. If no gauge quotients are known, an error is raised.
@@ -162,7 +162,7 @@ julia> global_gauge_group_quotient(t)
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
  ["-identity_matrix(C,1)"]
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the list of all known resolutions for the given model. If no resolutions are known, an error is raised.
@@ -178,7 +178,7 @@ julia> resolutions(m)
 1-element Vector{Tuple{Vector{Vector{String}}, Vector{String}}}:
  ([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution. Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list associated to a given resolution corresponds to a known generating section (in the same order). If no resolution generating sections are known, an error is raised.
@@ -194,7 +194,7 @@ julia> resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return a list of known Mordell–Weil zero sections for the given model after each blowup of each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
@@ -210,7 +210,7 @@ julia> resolution_zero_sections(m)
 1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1], [1, 1], [1, 1], [1, 1]]
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the torsion sections of the given model. If no torsion sections are known, an error is raised.
@@ -231,7 +231,7 @@ Hypersurface model over a concrete base
 julia> length(torsion_sections(foah15_B3))
 1
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error is raised.
@@ -247,7 +247,7 @@ julia> weighted_resolutions(m)
 1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
  ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return a list of lists of known Mordell–Weil generating sections for the given model after each known weighted resolution. Each element of the outer list corresponds to a known weighted resolution (in the same order), and each element of the list associated to a given weighted resolution corresponds to a known generating section (in the same order). If no weighted resolution generating sections are known, an error is raised.
@@ -263,8 +263,7 @@ julia> weighted_resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
 ```
-""")
-
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return a list of known Mordell–Weil zero sections for the given model after each known weighted resolution. Each element of the list corresponds to a known weighted resolution (in the same order). If no weighted resolution zero sections are known, an error is raised.
@@ -280,8 +279,7 @@ julia> weighted_resolution_zero_sections(m)
 1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1]]
 ```
-""")
-
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the zero section of the given model. If no zero section is known, an error is raised. This information is not typically stored as an attribute for Weierstrass and global Tate models, whose zero sections are known.
@@ -299,7 +297,7 @@ julia> zero_section(h)
  1
  0
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the zero section class of a model as a cohomology class in the toric ambient space. If no zero section class is known, an error is raised. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
@@ -312,7 +310,7 @@ Hypersurface model over a concrete base
 julia> zero_section_class(qsm_model)
 Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
 
 # Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model. If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
@@ -333,4 +331,4 @@ Hypersurface model over a concrete base
 julia> zero_section_index(foah15_B3)
 5
 ```
-""")
+""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
