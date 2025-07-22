@@ -79,7 +79,7 @@ literature_model(; doi::String="", arxiv_id::String="", version::String="", equa
 
 ---
 
-## Model Parameters, Defining Classes, and Related Concepts
+## [Model Parameters, Defining Classes, and Related Concepts](@id model_section_explanation_section)
 
 ### General Overview
 
