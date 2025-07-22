@@ -548,7 +548,7 @@ end
 # 11: Macro for function generation
 ###########################################################################
 
-macro define_model_attribute_getter(arg_expr, doc_example="")
+macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="")
   if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
     error("Expected input like: (function_name, ReturnType)")
   end
@@ -559,15 +559,13 @@ macro define_model_attribute_getter(arg_expr, doc_example="")
   sym = QuoteNode(fname)
   msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
+  # Conditionally build doc section
+  doc_link_section = isempty(doc_link) ? "" : "\n\n$doc_link"
+  examples_section = isempty(doc_example) ? "" : "\n\n# Examples\n$doc_example"  
   default_doc = """
       $(fname)(m::AbstractFTheoryModel)
-
-  Return `$(fname)` of the F-theory model if known, otherwise throws an error.
-
-  See [Literature Models](@ref literature_models) for more details.
-
-  # Examples
-  $doc_example
+  
+  Return `$(fname)` of the F-theory model if known, otherwise throws an error.$doc_link_section$examples_section
   """
 
   return quote

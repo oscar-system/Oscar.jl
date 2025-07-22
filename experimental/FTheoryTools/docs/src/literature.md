@@ -201,7 +201,7 @@ explicit_model_sections(::AbstractFTheoryModel)
 
 ---
 
-## Metadata Attributes for Literature Models
+## [Metadata Attributes](@id meta_data_attributes)
 
 We provide the following metadata attributes for literature models, each of which returns
 the corresponding attribute if it exists and otherwise throws an error:
