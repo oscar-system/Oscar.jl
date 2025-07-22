@@ -312,13 +312,13 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     defining_classes_of_model[defng_cls[k]] = class_candidate
   end
 
-  # Find divisor classes of all sections.
-  @req haskey(model_dict["model_data"], "model_sections") "Database does not specify model sections for given model"
-  sec_names = string.(model_dict["model_data"]["model_sections"])
+  # Find divisor classes of all tunable sections.
+  @req haskey(model_dict["model_data"], "tunable_sections") "Database does not specify model sections for given model"
+  tune_sec_names = string.(model_dict["model_data"]["tunable_sections"])
   cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
   model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] = cfs
-  cl_of_secs = Dict(sec_names[k] => sum(cfs[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(sec_names))
+  cl_of_secs = Dict(tune_sec_names[k] => sum(cfs[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(tune_sec_names))
 
   # Next, generate random values for all involved sections.
   model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
@@ -336,8 +336,8 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   end
 
   # Construct the model
-  auxiliary_ring, _ = polynomial_ring(QQ, sec_names, cached=false)
-  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in sec_names])
+  auxiliary_ring, _ = polynomial_ring(QQ, tune_sec_names, cached=false)
+  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in tune_sec_names])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -356,19 +356,19 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Find model_section_parametrization
     model_section_parametrization = Dict{String, MPolyRingElem}()
-    if !("a1" in sec_names) || (a1 != eval_poly("a1", parent(a1)))
+    if !("a1" in tune_sec_names) || (a1 != eval_poly("a1", parent(a1)))
       model_section_parametrization["a1"] = a1
     end
-    if !("a2" in sec_names) || (a2 != eval_poly("a2", parent(a2)))
+    if !("a2" in tune_sec_names) || (a2 != eval_poly("a2", parent(a2)))
       model_section_parametrization["a2"] = a2
     end
-    if !("a3" in sec_names) || (a3 != eval_poly("a3", parent(a3)))
+    if !("a3" in tune_sec_names) || (a3 != eval_poly("a3", parent(a3)))
       model_section_parametrization["a3"] = a3
     end
-    if !("a4" in sec_names) || (a4 != eval_poly("a4", parent(a4)))
+    if !("a4" in tune_sec_names) || (a4 != eval_poly("a4", parent(a4)))
       model_section_parametrization["a4"] = a4
     end
-    if !("a6" in sec_names) || (a6 != eval_poly("a6", parent(a6)))
+    if !("a6" in tune_sec_names) || (a6 != eval_poly("a6", parent(a6)))
       model_section_parametrization["a6"] = a6
     end
 
@@ -387,10 +387,10 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Find model_section_parametrization
     model_section_parametrization = Dict{String, MPolyRingElem}()
-    if !("f" in sec_names) || (f != eval_poly("f", parent(f)))
+    if !("f" in tune_sec_names) || (f != eval_poly("f", parent(f)))
       model_section_parametrization["f"] = f
     end
-    if !("g" in sec_names) || (g != eval_poly("g", parent(g)))
+    if !("g" in tune_sec_names) || (g != eval_poly("g", parent(g)))
       model_section_parametrization["g"] = g
     end
 
@@ -413,11 +413,11 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     fiber_twist_divisor_classes = [sum([fiber_twist_matrix[l, k] * Kbar_and_defng_cls_as_divisor_classes[l] for l in 1:nrows(fiber_twist_matrix)]) for k in 1:ncols(fiber_twist_matrix)]
 
     # Compute the hypersurface equation and its parametrization
-    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(sec_names, fiber_amb_coordinates), cached=false)
+    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(tune_sec_names, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
     base_coordinates = string.(gens(cox_ring(base_space)))
     auxiliary_ambient_ring2, _ = polynomial_ring(QQ, vcat(base_coordinates, fiber_amb_coordinates), cached=false)
-    images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in sec_names]
+    images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in tune_sec_names]
     images2 = [eval_poly(string(k), auxiliary_ambient_ring2) for k in fiber_amb_coordinates]
     map = hom(auxiliary_ambient_ring, auxiliary_ambient_ring2, vcat(images1, images2))
     hyper_equ = map(parametrized_hypersurface_equation)
@@ -445,8 +445,8 @@ end
 # Construct literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
-  @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
-  vars = string.(model_dict["model_data"]["model_sections"])
+  @req haskey(model_dict["model_data"], "tunable_sections") "No base coordinates specified for model"
+  vars = string.(model_dict["model_data"]["tunable_sections"])
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
@@ -656,10 +656,10 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
 
   if haskey(model_dict["model_data"], "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes")
     D = Dict{String, Vector{Int}}()
-    tun_sections = model_dict["model_data"]["model_sections"]
+    tun_sections = model_dict["model_data"]["tunable_sections"]
     M = model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"]
     if typeof(M) != Matrix{Int}
-      vars = string.(model_dict["model_data"]["model_sections"])
+      vars = string.(model_dict["model_data"]["tunable_sections"])
       auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
       M = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in M]...)))
       M = vcat([[Int(k) for k in M[i:i,:]] for i in 1:nrows(M)]...)
