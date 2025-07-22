@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Weierstrass Models
+# [Weierstrass Models](@id weierstrass_models)
 
 Weierstrass models are central to many constructions in F-theory. Such a model describes
 a particular form of an elliptic fibration. Our primary focus is on Weierstrass models
