@@ -315,7 +315,7 @@ jobs:
           - 27017:27017
     env:
       JULIA_PKG_SERVER: ""
-      POLYDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
+      OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
     steps:
       - uses: actions/checkout@v4
       - name: "Set up Julia"
