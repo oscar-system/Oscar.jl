@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Resolving F-Theory Models
+# [Resolving F-Theory Models](@id resolving_f_theory_models)
 
 In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones
 via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
