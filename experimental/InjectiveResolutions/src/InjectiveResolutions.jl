@@ -985,36 +985,11 @@ function injective_resolution(I::MonoidAlgebraIdeal, i::Int)
   return injective_resolution(quotient_ring_as_module(I), i)
 end
 
-#= to be enabled, once #861 is merged in Singular.jl
-@attr Int function dim(M::SubquoModule{T}) where {CT<:FieldElem, T<:MPolyRingElem}
-  F = ambient_free_module(M)
-
-  if !all(repres(v) == F[i] for (i, v) in enumerate(gens(M)))
-    MM, _ = present_as_cokernel(M)
-    return dim(MM)
-  end
-
-  gb = groebner_basis(M.quo)
-  return Singular.dimension(singular_generators(gb))
-end
-=#
-
-#get Krull dimension of module
-# TODO: For modules over polynomial rings this should make 
-# use of the `dim` in Singular. But this does not seem 
-# to be available as of yet.
-@attr Union{Int,NegInf} function dim(M::ModuleFP)
-  ann = annihilator(M)
-  return dim(ann)
-end
-
-
 @doc raw"""
     is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
 
 Test if the given monoid algebra is normal by testing first the S2 and then the
 R1 condition.
-
 # Examples
 ```jldoctest
 julia> A = monoid_algebra([[4,0],[3,1],[1,3],[0,4]],QQ)
@@ -1038,7 +1013,7 @@ false
   n = codim(I)
 
   # Check the S2 condition
-  test_range = 0:(dim(R_B) - n - 2)
+  test_range = 0:(krull_dim(R_B) - n - 2)
 
   for j in test_range
     # Check if codimension of Ext^{j+n+1} is at least j+n+3
@@ -1048,18 +1023,18 @@ false
     if is_zero(E)
       d = -1
     else 
-      d = dim(E)
+      d = krull_dim(E)
     end
-    cod = dim(R_B) - d
+    cod = krull_dim(R_B) - d
     if cod < j+n+3
         return false
     end               # S2 condition not satisfied
   end
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
-  d = dim(Jac)                   # Get dimension of the Jacobian
-  d < 0 && (d = -Inf)            # Handle negative dimensions
-  return (dim(R) - d >= 2)       # Check the condition
+  d = krull_dim(Jac)                   # Get dimension of the Jacobian
+  d < 0 && return true            # Handle negative dimensions
+  return (krull_dim(R) - d >= 2)       # Check the condition
 end
 
 is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true

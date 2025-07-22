@@ -12,7 +12,7 @@ parent(x::AbstractLieAlgebraElem) = x.parent
 
 coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::AbstractLieAlgebra) = L.dim
+vector_space_dim(L::AbstractLieAlgebra) = L.dim
 
 _struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
   L.struct_consts::Matrix{sparse_row_type(C)}
@@ -359,11 +359,11 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     elseif ((fl, k) = is_root_with_index(beta_i_plus_beta_j); fl)
       # complicated case
       if i <= npos
-        struct_consts[i, j] = sparse_row(R, [k], [N[i, j]])
+        struct_consts[i, j] = sparse_row(R, [(k, N[i, j])])
       elseif j <= npos
-        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j + npos]])
+        struct_consts[i, j] = sparse_row(R, [(k, -N[i - npos, j + npos])])
       else
-        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j - npos]])
+        struct_consts[i, j] = sparse_row(R, [(k, -N[i - npos, j - npos])])
       end
     else
       # [e_βi, e_βj] = 0

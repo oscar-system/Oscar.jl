@@ -13,33 +13,38 @@ e.g. to print the `base_ring(X)` when in `one line` mode.
 It exists to make sure that `one line` stays compact and human readable.
 
 Top-level REPL printing of an object will use `detailed` mode by default
-```julia
+```julia-repl
 julia> X
 detailed
 ```
 Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
-```julia
+```julia-repl
 julia> [X,X]
 3-element Vector{TypeofX{T}}
-one line
-one line
-one line
+ one line
+ one line
+ one line
 ```
 
 #### An Example for the 2 + 1 print modes
-```
-# detailed
+
+detailed mode:
+```jldoctest printing_example
 julia> E = elliptic_curve(QQ, [-82, 0])
 Elliptic curve
   over rational field
 with equation
   y^2 = x^3 - 82*x
+```
 
-# one line
+one line mode:
+```jldoctest printing_example
 julia> println(E)
 Elliptic curve over QQ with equation y^2 = x^3 - 82*x
+```
 
-# terse
+terse mode:
+```jldoctest printing_example
 julia> println(Oscar.terse(stdout),E)
 Elliptic curve
 ```
@@ -63,7 +68,7 @@ This is useful for objects storing a string representation of themselves, e.g.
 generators of a module.
 
 Here is an example with and without output using Unicode:
-```
+```julia-repl
 julia> allow_unicode(false);
 
 julia> R, (x,y) = QQ[:x,:y];
@@ -86,23 +91,23 @@ defined by ideal (x, y)
 ## LaTeX and HTML printing
 
 Some types support LaTeX or HTML output:
-```
+```julia-repl
 julia> Qx, x = QQ[:x];
 
-julia> show(stdout, "text/latex", x^2 + 2x + x^10)
+julia> show(stdout, MIME"text/latex"(), x^2 + 2x + x^10)
 x^{10} + x^{2} + 2 x
 
-julia> show(stdout, "text/html", x^2 + 2x + x^10)
+julia> show(stdout, MIME"text/html"(), x^2 + 2x + x^10)
 x^10 + x^2 + 2*x
 
-julia> show(stdout, "text/latex", Qx[x x^2; 1 1])
+julia> show(stdout, MIME"text/latex"(), Qx[x x^2; 1 1])
 \begin{array}{cc}
 x & x^{2} \\
 1 & 1
 \end{array}
 ```
 Note: While using IJulia, you can enable LaTeX rendering in Jupyter notebooks using the following function:
-```
+```julia-repl
 julia> Qx, x = QQ[:x];
 
 julia> AbstractAlgebra.set_html_as_latex(true);

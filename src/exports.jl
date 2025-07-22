@@ -977,6 +977,7 @@ export is_negative_coroot_with_index
 export is_negative_root
 export is_negative_root_with_index
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
+export is_noetherian
 export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
@@ -1093,10 +1094,12 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
+export krull_dim
 export label!
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
+export largest_moved_point
 export lattice_homomorphism
 export lattice_of_cyclic_flats
 export lattice_of_flats
@@ -1498,6 +1501,7 @@ export rank
 export rank_action
 export rational_equivalence_class
 export rational_map
+export rational_point
 export rational_point_conic
 export rational_solutions
 export rational_spinor_norm
@@ -1650,6 +1654,7 @@ export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
 export smaller_degree_permutation_representation
+export smallest_moved_point
 export snub_cube
 export snub_dodecahedron
 export socle, has_socle, set_socle

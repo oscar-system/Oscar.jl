@@ -212,54 +212,35 @@ process_result!(ctx, id::Int, res) = ctx
 # `OscarWorkerPool` is being used, loads of other functionality like `pmap`
 # will run out of the box.
 =#
-@static if v"1.10" <= VERSION
-  function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
-    wid = take!(wp)
-    for a in args
-      put_type_params(get_channel(wp, wid), a)
-    end
-    for a in kwargs
-      put_type_params(get_channel(wp, wid), a)
-    end
-
-    # Copied from Distributed.jl/src/workerpool.jl.
-    # This puts the worker back to the pool once the future is ready
-    # and we do not have to worry about this ourselves.
-    local fut
-    try
-      fut = remotecall(f, wid, args...; kwargs...)
-    catch
-      put!(wp, wid)
-      rethrow()
-    end
-    t = Threads.@spawn Threads.threadpool() try
-      wait(fut)
-    catch
-    finally
-      put!(wp, wid)
-    end
-    errormonitor(t)
-
-    return fut
+function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
+  wid = take!(wp)
+  for a in args
+    put_type_params(get_channel(wp, wid), a)
   end
-else
-  function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
-    wid = take!(wp)
-    for a in args
-      put_type_params(get_channel(wp, wid), a)
-    end
-    for a in kwargs
-      put_type_params(get_channel(wp, wid), a)
-    end
-    
-    try
-      remotecall(f, wid, args...; kwargs...)
-    finally
-      put!(wp, wid)
-    end
+  for a in kwargs
+    put_type_params(get_channel(wp, wid), a)
   end
+
+  # Copied from Distributed.jl/src/workerpool.jl.
+  # This puts the worker back to the pool once the future is ready
+  # and we do not have to worry about this ourselves.
+  local fut
+  try
+    fut = remotecall(f, wid, args...; kwargs...)
+  catch
+    put!(wp, wid)
+    rethrow()
+  end
+  t = Threads.@spawn Threads.threadpool() try
+    wait(fut)
+  catch
+  finally
+    put!(wp, wid)
+  end
+  errormonitor(t)
+
+  return fut
 end
-
 
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)

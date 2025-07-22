@@ -562,6 +562,7 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
+  iszero(f) && return ideal(base_ring(I),[base_ring(I)(1)]) 
   return _iterative_saturation(I, typeof(f)[u for (u, _) in factor(f)])
 end
 
@@ -773,23 +774,6 @@ function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I
 end
 
 is_equidimensional(I::PrimeIdealSheafFromChart) = true
-
-@attr Bool function is_equidimensional(I::MPolyIdeal)
-  decomp = equidimensional_decomposition_weak(I)
-  return isone(length(decomp))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
-  is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
-  return is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
-  return is_equidimensional(pre_image_ideal(I))
-end
 
 @doc raw"""
     _minimal_power_such_that(

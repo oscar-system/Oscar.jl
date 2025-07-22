@@ -5,7 +5,47 @@
 @doc raw"""
     set_weierstrass_model(h::HypersurfaceModel, w::WeierstrassModel)
 
-Allows to define the Weierstrass model corresponding to the hypersurface model.
+Assigns a Weierstrass model to the given hypersurface model.
+
+In the example below, we construct a hypersurface model and its corresponding 
+Weierstrass model (see [BMT25](@cite BMT25) for background), and demonstrate how 
+to associate them using this function.
+
+# Examples
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
+
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
+
+julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+Weierstrass model over a concrete base
+
+julia> set_weierstrass_model(h, w)
+```
 """
 function set_weierstrass_model(h::HypersurfaceModel, w::WeierstrassModel)
   set_attribute!(h, :weierstrass_model => w)
@@ -14,7 +54,55 @@ end
 @doc raw"""
     set_global_tate_model(h::HypersurfaceModel, w::GlobalTateModel)
 
-Allows to define the global Tate model corresponding to the hypersurface model.
+Assigns a global Tate model to the given hypersurface model.
+
+In the example below, we construct a hypersurface model and its corresponding 
+global Tate model (see [BMT25](@cite BMT25) for background), and demonstrate how 
+to associate them using this function.
+
+# Examples
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal toric variety
+
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+
+julia> D1 = 2 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> D2 = 3 * anticanonical_divisor_class(B2)
+Divisor class on a normal toric variety
+
+julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
+
+julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+Hypersurface model over a concrete base
+
+julia> x1, x2, x3 = gens(cox_ring(B2));
+
+julia> a1 = 13 * x3^3;
+
+julia> a2 = 7 * x1 * x2^5;
+
+julia> a3 = x1^2 * x2^4 * x3^3;
+
+julia> a4 = x1^3 * (x2 + x3)^9;
+
+julia> a6 = zero(cox_ring(B2));
+
+julia> t = global_tate_model(B2, [a1, a2, a3, a4, a6])
+Global Tate model over a concrete base
+
+julia> set_global_tate_model(h, t)
+```
 """
 function set_global_tate_model(h::HypersurfaceModel, t::GlobalTateModel)
   set_attribute!(h, :global_tate_model => t)
@@ -27,7 +115,7 @@ end
 #####################################################
 
 @doc raw"""
-    function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
 Tune a hypersurface model by fixing a special choice for the model sections.
 Note that it is in particular possible to set a section to zero. We anticipate

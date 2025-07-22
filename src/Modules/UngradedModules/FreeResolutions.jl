@@ -270,7 +270,7 @@ end
 
 Return a free resolution of `M`.
 
-If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
 Current options for `algorithm` are `:mres` and `:nres`, as well as `:fres` (for multivariate
 polynomial rings) and `:sres` (for quotients of multivariate polynomial rings), see below.
 
@@ -606,6 +606,79 @@ function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
   return FreeResolution(p)
 end
 
+@doc raw"""
+    free_resolution(M::SubquoModule{T};
+        length::Union{Int, PosInf} = 0,
+        algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
+
+Return a free resolution of `M`.
+
+If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
+method makes use of the generic function `free_resolution_via_kernels`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(QQ, :x => 1:12);
+
+julia> M = matrix(R, 3, 4, x)
+[x[1]    x[2]    x[3]    x[4]]
+[x[5]    x[6]    x[7]    x[8]]
+[x[9]   x[10]   x[11]   x[12]]
+
+julia> U1 = complement_of_point_ideal(R, zeros(Int, 12));
+
+julia> RL1, _ = localization(R, U1);
+
+julia> I1 = ideal(RL1, minors(M, 3));
+
+julia> M1 = quotient_ring_as_module(I1);
+
+julia> FM1 = free_resolution(M1)
+Free resolution of M1
+RL1^1 <---- RL1^4 <---- RL1^3 <---- 0
+0           1           2           3
+
+julia> minimize(FM1)
+Free resolution of M1
+RL1^1 <---- RL1^4 <---- RL1^3 <---- 0
+0           1           2           3
+
+julia> U2 = complement_of_point_ideal(R, vcat([1], zeros(Int, 11)));
+
+julia> RL2, _ = localization(R, U2);
+
+julia> I2 = ideal(RL2, minors(M, 3));
+
+julia> M2 = quotient_ring_as_module(I2);
+
+julia> FM2 = free_resolution(M2)
+Free resolution of M2
+RL2^1 <---- RL2^4 <---- RL2^3 <---- 0
+0           1           2           3
+
+julia> minimize(FM2)
+Free resolution of M2
+RL2^1 <---- RL2^3 <---- RL2^2 <---- 0
+0           1           2           3
+
+```
+
+"""
+function free_resolution(M::SubquoModule{T};
+                         length::Union{Int, PosInf} = 0,
+                         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
+  if length == 0
+    length = -1
+  end
+  if algorithm == :generic
+    F = free_resolution_via_kernels(M, length)
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+  set_attribute!(F.C, :algorithm, algorithm)
+  return F
+end
 
 @doc raw"""
     free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
@@ -615,15 +688,120 @@ Return a free resolution of `M`.
 If `limit != -1`, the free resolution
 is only computed up to the `limit`-th free module.
 
+!!! note
+    This is a generic function which can be applied whenever kernels of homomorphisms between free modules can be computed.
 # Examples
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> U = complement_of_point_ideal(R, [0, 0, 0]);
+
+julia> RL, _ = localization(R, U);
+
+julia> F = free_module(RL, 1)
+Free module of rank 1 over localization of R at complement of maximal ideal of point (0, 0, 0)
+
+julia> A = RL[x; y]
+[x]
+[y]
+
+julia> B = RL[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> FM = free_resolution_via_kernels(M, 2)
+Free resolution of M
+RL^2 <---- RL^5 <---- RL^4
+0          1          2
+
+julia> is_complete(FM)
+false
+
+julia> FM[4]
+Free module of rank 0 over localization of R at complement of maximal ideal of point (0, 0, 0)
+
+julia> FM
+Free resolution of M
+RL^2 <---- RL^5 <---- RL^4 <---- RL^1 <---- 0
+0          1          2          3          4
+
+julia> is_complete(FM)
+true
+
+```
+
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = graded_free_module(R, 1)
+Graded free module R^1([0]) of rank 1 over R
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Graded subquotient of graded submodule of F with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by graded submodule of F with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> FM = free_resolution_via_kernels(M, 2)
+Free resolution of M
+R^2 <---- R^5 <---- R^4
+0         1         2
+
+julia> FM[4]
+Graded free module R^0 of rank 0 over R
+
+julia> FM
+Free resolution of M
+R^2 <---- R^5 <---- R^4 <---- R^1 <---- 0
+0         1         2         3         4
+
+julia> betti(FM)
+degree: 0  1  2  3
+------------------
+     1: 2  2  -  -
+     2: -  1  -  -
+     3: -  -  1  -
+     4: -  2  2  -
+     5: -  -  1  -
+     6: -  -  -  1
+------------------
+ total: 2  5  4  1
+
+```
 """
 function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
   while true
+    if limit != -1 && length(mp) > limit+1
+      break
+    end
     k, mk = kernel(mp[1])
     nz = findall(!is_zero, gens(k))
-    if length(nz) == 0 
+    if length(nz) == 0
       if is_graded(domain(mp[1]))
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       else
@@ -631,8 +809,6 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
         h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       end
       insert!(mp, 1, h)
-      break
-    elseif limit != -1 && length(mp) > limit
       break
     end
     if is_graded(codomain(mk))
@@ -644,10 +820,58 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     insert!(mp, 1, g)
   end
   C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
+  C.fill = _extend_free_resolution_via_kernels
+  C.complete = false
+  if is_zero(domain(C.maps[begin]))
+    C.complete = true
+  end
   #set_attribute!(C, :show => free_show, :free_res => M) # doesn't work
   set_attribute!(C, :show => Hecke.pres_show, :free_res => M)
   return FreeResolution(C)
 end
+
+function _extend_free_resolution_via_kernels(cc::Hecke.ComplexOfMorphisms, idx::Int)
+  r = Hecke.map_range(cc)
+  if idx < last(r)
+    error("extending past the final zero not supported")
+  end
+  len_missing = idx - first(r)
+  @assert len_missing > 0
+  if cc.complete == true
+    return map(cc, first(r))
+  end
+  mp = cc.maps
+  R = base_ring(domain(mp[1]))
+  while true
+    if idx != -1 && length(mp) > idx+1
+      break
+    end
+    k, mk = kernel(mp[1])
+    nz = findall(!is_zero, gens(k))
+    if length(nz) == 0
+      if is_graded(domain(mp[1]))
+        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
+      else
+        Z = FreeMod(R, 0)
+        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
+      end
+      insert!(mp, 1, h)
+      break
+    end
+    if is_graded(codomain(mk))
+      g = graded_map(codomain(mk), collect(k.sub.gens)[nz]; check=false)
+    else
+      F = FreeMod(R, length(nz))
+      g = hom(F, codomain(mk), collect(k.sub.gens)[nz]; check=false)
+    end
+    insert!(mp, 1, g)
+  end
+  if is_zero(domain(first(cc.maps)))
+    cc.complete=true
+  end
+  return first(cc.maps)
+end
+
 
 @doc raw"""
     free_resolution(I::MPolyIdeal; length::Int = 0, algorithm::Symbol = :fres)
@@ -678,6 +902,23 @@ Submodule with 3 generators
   2: x*y*e[1]
   3: y^2*e[1]
 represented as subquotient with no relations
+
+```
+
+```
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> I = ideal(R, [w, x, y, z, w+x+y+z]);
+
+julia> FI1 = free_resolution(I, algorithm = :nres)
+Free resolution of I
+R^5 <---- R^7 <---- R^4 <---- R^1 <---- 0
+0         1         2         3         4
+
+julia> FI2 = free_resolution(I, algorithm = :mres)
+Free resolution of I
+R^4 <---- R^6 <---- R^4 <---- R^1 <---- 0
+0         1         2         3         4
 
 ```
 """

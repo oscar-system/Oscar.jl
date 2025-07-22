@@ -1116,7 +1116,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
           end
         end
         c = elem_type(k)[]
-        for i=1:dim(M)
+        for i=1:vector_space_dim(M)
           push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
         end
         return M(c)
@@ -1307,7 +1307,8 @@ julia> typeof(S)
 PermGroup
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 3 ] ) )
+Automorphism group of
+  symmetric group of degree 3
 
 julia> typeof(A)
 AutomorphismGroup{PermGroup}
@@ -1321,7 +1322,8 @@ julia> S = symmetric_group(4)
 Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> x = perm(S,[2,1,4,3])
 (1,2)(3,4)
@@ -1343,7 +1345,8 @@ julia> S = symmetric_group(4)
 Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> f = A[2]
 Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
@@ -1373,7 +1376,8 @@ Group homomorphism
   to symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> A(f)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1417,7 +1421,8 @@ julia> S = symmetric_group(4)
 Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
@@ -1436,8 +1441,19 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup(AutGAP, G)
 end
 
+function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: GAPGroup
+  io = pretty(io)
+  println(io, "Automorphism group of", Indent())
+  print(io, Lowercase(), A.G, Dedent())
+end
+
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  print(io, "Aut( "* String(GAP.Globals.StringView(GapObj(A.G))) * " )")
+  if is_terse(io)
+    print(io, "Automorphism group")
+  else
+    io = pretty(io)
+    print(io, "Automorphism group of ", Lowercase(), A.G)
+  end
 end
 
 """

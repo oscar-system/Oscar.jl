@@ -234,7 +234,7 @@ Create a Singular module from a given free module.
 """
 function singular_module(F::FreeMod)
   Sx = singular_poly_ring(base_ring(F), keep_ordering=false)
-  return Singular.FreeModule(Sx, dim(F))
+  return Singular.FreeModule(Sx, rank(F))
 end
 
 @doc raw"""
@@ -244,7 +244,7 @@ Create a Singular module from a given free module over the given Singular polyno
 """
 function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
   Sx = singular_poly_ring(base_ring(F), singular(ordering))
-  return Singular.FreeModule(Sx, dim(F))
+  return Singular.FreeModule(Sx, rank(F))
 end
 
 @doc raw"""

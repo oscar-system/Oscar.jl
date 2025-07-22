@@ -234,7 +234,7 @@ end
   I = ideal(R, [x^3- 2, y^2+3*x])
   A, pr = quo(R, I)
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
   f = (x*3*y-4)^5
   f = A(f)
@@ -385,5 +385,30 @@ end
   @test J2.dim === nothing
   @test dim(J2) == -inf
   @test J2.dim !== nothing
+end
+
+@testset "local rings" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
+  I1 = ideal(R, [x^2*(x-1), y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test !is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
+
+  I1 = ideal(R, [x^2, y, z])
+  Q1, _ = quo(R, I1)
+  @test !AbstractAlgebra.is_known(is_local, Q1)
+  @test is_local(Q1)
+  @test AbstractAlgebra.is_known(is_local, Q1)
 end
 

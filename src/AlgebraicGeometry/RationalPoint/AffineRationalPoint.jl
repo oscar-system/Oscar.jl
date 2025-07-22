@@ -27,6 +27,28 @@ The coordinates are with respect to the ambient space of its ambient scheme.
 """
 coordinates(p::AffineRationalPoint) = p.coordinates
 
+@doc raw"""
+    rational_point(X::AbsAffineScheme, coordinates; check::Bool=true) -> AbsAffineRationalPoint 
+    
+Return the rational point of ``X`` given by `coordinates`.
+
+# Examples 
+```jldoctest
+julia> A1 = affine_space(QQ,1)
+Affine space of dimension 1
+  over rational field
+with coordinate [x1]
+
+julia> rational_point(A1,[1])
+Rational point
+  of affine 1-space over QQ with coordinate [x1]
+with coordinates (1)
+
+```
+"""
+rational_point(X::AbsAffineScheme, coordinates; check::Bool=true) = X(coordinates;check)
+
+
 function (X::AbsAffineScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)

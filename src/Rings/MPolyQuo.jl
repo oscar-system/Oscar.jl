@@ -1777,7 +1777,10 @@ julia> dim(a)
 0
 ```
 """
-function dim(a::MPolyQuoIdeal)
+dim(a::MPolyQuoIdeal) = krull_dim(a)
+
+function krull_dim(a::MPolyQuoIdeal)
+  @req is_noetherian(base_ring(a)) "Krull dimension is only supported for Noetherian rings."
   if a.dim === nothing 
     a.dim = Singular.dimension(singular_groebner_generators(a))
     a.dim == -1 && (a.dim = -inf)
@@ -1974,4 +1977,18 @@ function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Boo
     set_default_ordering!(P, o)
   end
   return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(B))); check = false)
+end
+
+@attr Bool function is_local(Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  is_zero(krull_dim(Q)) || return false
+  return is_one(length(minimal_primes(modulus(Q)))) 
+end
+
+function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  has_attribute(Q, :is_local) && return true
+  return false
+end
+
+function is_known(::typeof(krull_dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(krull_dim, modulus(Q))
 end

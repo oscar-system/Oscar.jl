@@ -84,6 +84,63 @@ function (G::PermGroup)(H::PermGroup)
   throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
 end
 
+@doc raw"""
+    smallest_moved_point(x::PermGroupElem) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `x` if
+such an integer exists, and `inf` if `x` is the identity.
+
+    smallest_moved_point(G::PermGroup) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `G` if
+such an integer exists, and `inf` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> smallest_moved_point(s)
+1
+
+julia> smallest_moved_point(gen(s, 1))
+1
+
+julia> smallest_moved_point(one(s))
+infinity
+```
+"""
+function smallest_moved_point(x::Union{PermGroupElem,PermGroup})
+  pt = GAPWrap.SmallestMovedPoint(GapObj(x))
+  pt isa Int && return pt
+  return inf
+end
+
+@doc raw"""
+    largest_moved_point(x::PermGroupElem) -> Int
+
+Return the largest positive integer which is not fixed by `x` if
+such an integer exists, and `0` if `x` is the identity.
+
+    largest_moved_point(G::PermGroup) -> Int
+
+Return the largest positive integer which is not fixed by `G` if
+such an integer exists, and `0` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> largest_moved_point(s)
+3
+
+julia> largest_moved_point(gen(s, 1))
+3
+
+julia> largest_moved_point(one(s))
+0
+```
+"""
+largest_moved_point(x::Union{PermGroupElem,PermGroup}) = GAPWrap.LargestMovedPoint(GapObj(x))
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
