@@ -7,8 +7,9 @@
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
-Returns the hypersurface equation of the hypersurface model.
+Return the hypersurface equation of the hypersurface model.
 
+# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -45,8 +46,9 @@ hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 @doc raw"""
     hypersurface_equation_parametrization(h::HypersurfaceModel)
 
-Returns the parametrization of the hypersurface equation by the model sections.
+Return the parametrization of the hypersurface equation by the model sections.
 
+# Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -78,12 +80,13 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
 
-Returns the Weierstrass model corresponding to the given hypersurface model, if known.
+Return the Weierstrass model corresponding to the given hypersurface model, if known.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
 between the two models.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -144,12 +147,13 @@ end
 @doc raw"""
     global_tate_model(h::HypersurfaceModel)
 
-Returns the global Tate model corresponding to the given hypersurface model, if known.
+Return the global Tate model corresponding to the given hypersurface model, if known.
 
 In the example below, we construct a hypersurface model and its corresponding global
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
 between the two models.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -229,9 +233,10 @@ end
 @doc raw"""
     calabi_yau_hypersurface(h::HypersurfaceModel)
 
-Returns the Calabi–Yau hypersurface that defines the hypersurface model
+Return the Calabi–Yau hypersurface that defines the hypersurface model
 as a closed subvariety of its toric ambient space.
 
+# Examples
 ```jldoctest
 julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -276,7 +281,7 @@ end
 @doc raw"""
     discriminant(h::HypersurfaceModel)
 
-Returns the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
+Return the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
 with the given hypersurface model.
 
 Raises an error if no such Weierstrass model is known.
@@ -284,6 +289,7 @@ Raises an error if no such Weierstrass model is known.
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -332,7 +338,7 @@ end
 @doc raw"""
     singular_loci(h::HypersurfaceModel)
 
-Returns the singular loci of the Weierstrass model equivalent to the given hypersurface model,
+Return the singular loci of the Weierstrass model equivalent to the given hypersurface model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
 refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
 
@@ -345,6 +351,7 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
 
+# Examples
 ```jldoctest
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -379,10 +386,8 @@ Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
 
-julia> singular_loci(h)
-2-element Vector{Tuple{MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}}:
- (Ideal with 1 generator, (0, 0, 1), "I_1")
- (Ideal (x1), (0, 0, 5), "Split I_5")
+julia> length(singular_loci(h))
+2
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)

@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Resolving F-Theory Models
+# [Resolving F-Theory Models](@id resolving_f_theory_models)
 
 In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones
 via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
@@ -46,7 +46,7 @@ resolve(m::AbstractFTheoryModel, index::Int)
 
 ### Analyzing the resolved Fiber Structure
 
-The following is currently only supported for [Global Tate Models](@ref).
+The following is currently only supported for [Global Tate Models](@ref global_tate_models).
 
 After resolution, one typically studies the structure of the (resolved) fibers to extract intersection numbers and
 representation theory information. The following method computes the fiber components and their intersection graph:

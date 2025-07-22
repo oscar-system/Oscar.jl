@@ -441,6 +441,7 @@ Blow up the toric variety along a toric ideal sheaf.
 !!! warning
     This is an internal method. It is NOT exported.
 
+# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -485,6 +486,7 @@ By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional prime divisor. As third optional argument one can supply
 a custom variable name.
 
+# Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
@@ -524,4 +526,55 @@ true
 """
 function _martins_desired_blowup(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
   return _martins_desired_blowup(v, ideal_sheaf(v, I))
+end
+
+
+
+###########################################################################
+# 10: Apply a function to the innermost nested structure
+###########################################################################
+
+function deepmap(f, x)
+    if x isa AbstractArray
+        return map(e -> deepmap(f, e), x)
+    else
+        return f(x)
+    end
+end
+
+
+
+###########################################################################
+# 11: Macro for function generation
+###########################################################################
+
+macro define_model_attribute_getter(arg_expr, doc_example="")
+  if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
+    error("Expected input like: (function_name, ReturnType)")
+  end
+
+  fname_expr = arg_expr.args[1]
+  rettype_expr = arg_expr.args[2]
+  fname = fname_expr isa Symbol ? fname_expr : error("function_name is not a symbol")
+  sym = QuoteNode(fname)
+  msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
+
+  default_doc = """
+      $(fname)(m::AbstractFTheoryModel)
+
+  Return `$(fname)` of the F-theory model if known, otherwise throws an error.
+
+  See [Literature Models](@ref literature_models) for more details.
+
+  # Examples
+  $doc_example
+  """
+
+  return quote
+    @doc $default_doc
+    function $(esc(fname))(m::AbstractFTheoryModel)
+      @req has_attribute(m, $sym) $msg
+      return get_attribute(m, $sym)::$(esc(rettype_expr))
+    end
+  end
 end

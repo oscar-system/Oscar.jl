@@ -5,9 +5,10 @@
 @doc raw"""
     weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 
-Constructs a Weierstrass model over a given toric base space. The Weierstrass sections
+Construct a Weierstrass model over a given toric base space. The Weierstrass sections
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
+# Examples
 ```jldoctest
 julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Weierstrass model over a concrete base
@@ -22,9 +23,10 @@ end
 @doc raw"""
     weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
-Constructs a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
+Construct a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
 
+# Examples
 ```jldoctest
 julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -84,7 +86,7 @@ end
 @doc raw"""
     weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
-Constructs a Weierstrass model over an *unspecified* base space.
+Construct a Weierstrass model over an *unspecified* base space.
 
 This method is intended for workflows where the base space is not concretely fixed,
 such as in singularity engineering or symbolic studies. The variables in
@@ -100,6 +102,7 @@ To support typical F-theory constructions, a variable `Kbar` representing a sect
 
 Note: This interface is more symbolic and less robust than the constructors for concrete toric bases.
 
+# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
@@ -174,16 +177,16 @@ function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(w)
+  if has_attribute(w, :model_description)
     push!(properties_string, "-- " * model_description(w))
-    if has_model_parameters(w)
+    if has_attribute(w, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(w)
+  if has_attribute(w, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(w))
   end
-  if has_arxiv_model_equation_number(w)
+  if has_attribute(w, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")

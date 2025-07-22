@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Global Tate Models
+# [Global Tate Models](@id global_tate_models)
 
 Global Tate models provide a powerful framework to systematically engineer elliptic fibrations
 with prescribed fiber singularities. They are widely used in F-theory model building because
@@ -45,9 +45,9 @@ $y^2 + a_1(q) x y z + a_3(q) y z^3 = x^3 + a_2(q) x^2 z^2 + a_4(q) x z^4 + a_6(q
 where the ``a_i(q)`` are the values of the Tate sections at a local coordinate ``q \in U``. This
 formulation is known as a **Tate model**. One may define the elliptic fibration globally by specifying
 a single Tate polynomial as above. Such constructions, known as **global Tate models**, are strictly less
-general than [Weierstrass Models](@ref) but have proven especially useful for model building in F-theory: Engineering
-the desired fiber singularities—crucial for F-theory model building—is often simpler for global Tate
-models than for [Weierstrass Models](@ref).
+general than [Weierstrass Models](@ref weierstrass_models) but have proven especially useful for model
+building in F-theory: Engineering the desired fiber singularities—crucial for F-theory model building—is
+often simpler for global Tate models than for [Weierstrass Models](@ref weierstrass_models).
 
 Much like the Kodaira classification, in a global Tate model the singularities of the elliptic fiber are
 characterized by the vanishing orders of the Tate sections ``a_i``, although no additional monodromy needs
@@ -96,10 +96,10 @@ arbitrary bases, but primarily focuses on working with a **concrete toric base**
 
 ### Unspecified Base Spaces
 
-As with [Weierstrass Models](@ref), constructing a global Tate model begins with building a suitable **ambient space**.
-When the base is not fully specified, the ambient space can be treated symbolically. This symbolic flexibility
-is particularly useful when **engineering singular fibers** via specified vanishing orders or factorizations of
-the Tate sections ``a_i``. This method is foundational to F-theory model building.
+As with [Weierstrass Models](@ref weierstrass_models), constructing a global Tate model begins with building
+a suitable **ambient space**. When the base is not fully specified, the ambient space can be treated symbolically.
+This symbolic flexibility is particularly useful when **engineering singular fibers** via specified vanishing orders
+or factorizations of the Tate sections ``a_i``. This method is foundational to F-theory model building.
 
 To support such workflows, the Tate sections ``a_i`` are defined as indeterminates of a multivariate polynomial
 ring. The indeterminates are interpreted as sections of line bundles on an **auxiliary base space**. This allows
@@ -166,7 +166,7 @@ global_tate_model_over_del_pezzo_surface(b::Int)
 Several global Tate models have gained popularity in the F-theory community. These models are often
 associated with specific publications and may be informally referred to by author names or recognizable
 keywords. For these established constructions, we provide support through the specialized `literature_model`
-interface, which is discussed on the page [Literature Models](@ref).
+interface, which is discussed on the page [Literature Models](@ref literature_models).
 
 ---
 
@@ -175,10 +175,11 @@ interface, which is discussed on the page [Literature Models](@ref).
 Global Tate models are one way to represent an elliptic fibration as a hypersurface in an ambient space. While
 different representations may vary in implementation details, they share a common structure in broad strokes. As
 such, many attributes and properties are shared across model representations. These shared components—such as
-`base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page [Functionality for all F-theory models](@ref).
+`base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
+[Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
 
 Below, we list the attributes that are **specific to global Tate models** and do not generally apply to other
-representations (such as [Weierstrass Models](@ref) or [Hypersurface Models](@ref)):
+representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref hypersurface_models)):
 
 ```@docs
 tate_section_a1(t::GlobalTateModel)
@@ -215,4 +216,4 @@ singular_loci(t::GlobalTateModel)
 ```
 
 We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
-structure and how to resolve them—in [Resolving F-Theory Models](@ref).
+structure and how to resolve them—in [Resolving F-Theory Models](@ref resolving_f_theory_models).

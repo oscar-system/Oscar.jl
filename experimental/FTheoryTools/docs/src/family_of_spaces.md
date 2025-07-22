@@ -20,6 +20,7 @@ code, of course).
 We currently support the following constructor:
 ```@docs
 family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int)
+family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, dim::Int) 
 ```
 
 ## Attributes

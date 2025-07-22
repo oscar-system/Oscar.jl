@@ -8,6 +8,7 @@
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Global Tate model over a concrete base
@@ -22,6 +23,7 @@ global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = g
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
+# Examples
 ```jldoctest
 julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -103,6 +105,7 @@ to this class carries the name "Kbar".
 
 The following code exemplifies this approach.
 
+# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
@@ -200,16 +203,16 @@ function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(t)
+  if has_attribute(t, :model_description)
     push!(properties_string, "-- " * model_description(t))
-    if has_model_parameters(t)
+    if has_attribute(t, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(t)
+  if has_attribute(t, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
-  if has_arxiv_model_equation_number(t)
+  if has_attribute(t, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")

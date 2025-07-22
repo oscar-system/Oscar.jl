@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Literature Models
+# [Literature Models](@id literature_models)
 
 In the landscape of F-theory model building, many constructions introduced over the years remain relevant
 and influential. However, revisiting or building upon these models can be challenging—especially when prior
@@ -79,285 +79,182 @@ literature_model(; doi::String="", arxiv_id::String="", version::String="", equa
 
 ---
 
-## Understanding Defining Classes, Model Parameters and Their Structure
+## [Model Parameters, Defining Classes, and Related Concepts](@id model_section_explanation_section)
 
-The construction of any F-theory model in `FTheoryTools`—especially those inspired by the literature—relies
-on a systematic set of global sections of line bundles over the base of the elliptic fibration. These sections
-can be grouped according to their role. For instance, there are **tunable sections**, which play a crucial role
-when modifying the singularity structure of the model by tuning it.
+### General Overview
 
-Some models also require additional input parameters. For instance, the constructions in [Lawrie, Schafer-Nameki 2013](@cite LS13)
-describe a family of global Tate models with gauge group ``\mathrm{SU}(2k)``, where the integer parameter ``k``
-must be specified to define a concrete model. Another example appears in [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19),
-where models are classified by three-dimensional reflexive polytopes indexed by an integer. A unique base geometry
-is then obtained by choosing a fine, regular, star triangulation of the selected polytope. We refer to such structural or discrete
-data (e.g., integers fixing singularity types, choices of triangulations, etc.), as model parameters.
+The `literature_model` constructor in `FTheoryTools` is designed to support a broad spectrum of input parameters,
+ranging from discrete numerical values to divisor classes. While most users will interact primarily with the geometric
+or physical properties of a model, understanding its internal structure is essential for advanced applications such
+as extending the model database, computing fluxes, or constructing custom geometries.
 
-In general, the `literature_model` constructor must support a broad spectrum of such inputs from model parameters to divisor classes.
+Some literature models require discrete input parameters. For instance, the constructions in [Lawrie, Schafer-Nameki 2013](@cite LS13)
+describe a family of global Tate models with gauge group ``\mathrm{SU}(2k)``, where the integer parameter ``k`` must be
+specified to define a concrete model. Similarly, in [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19), models are
+indexed by three-dimensional reflexive polytopes, each identified by an integer. A specific base geometry is selected by
+choosing a fine, regular, star triangulation of the chosen polytope. We refer to such discrete data—e.g., integers fixing
+singularity types, triangulation choices—as **model parameters**.
 
-Although most users will engage primarily with the high-level geometry or physics of a model, understanding the underlying
-structure of these sections and parameters is essential for advanced tasks such as extending the database, computing fluxes,
-or constructing custom geometries. The following sections detail the core components of this infrastructure.
+Let us now focus on the hypersurface equation of a model. Regardless of whether the model is a Weierstrass, global Tate, or
+hypersurface model, the hypersurface equation is constructed from global sections of line bundles over the base. These sections
+fall into two conceptual categories:
 
----
+- **Structural sections**, such as the Weierstrass or Tate coefficients, are determined by the type of model being constructed. To preserve the model's nature, these sections must retain their prescribed divisor classes. Altering them would fundamentally change the type of the model, e.g. turning a global Tate model into a Weierstrass model.
 
-### Defining Classes
+- **Tunable sections**: These are sections in the defining equation that can be freely varied or further factorized without altering the qualitative structure of the model. In other words, they preserve the type of the model.
 
-The **defining classes** of an F-theory model constitute the minimal set of divisor classes used to disambiguate the model
-from its most generic form, i.e. generic Weierstrass, Tate, or hypersurface model.
+These two categories are not mutually exclusive. Unless factorized at construction time, a structural section can also be a tunable section.
 
-As an example, consider the global Tate model introduced in [Krause, Mayrhofer, Weigand 2011](@cite KMW12). In that construction,
-the Tate coefficients are factored as follows:
+Together, structural and tunable sections form the set of **model sections**. Since each model section is a global section of a line bundle,
+it has an associated divisor class. However, not all of these classes are needed to construct the model. Only a subset—the classes of certain
+tunable sections—are generally required. These are called the **defining classes**.
+
+The defining classes play a central role in specifying literature models. The `literature_model` constructor accepts an optional `defining_classes`
+argument, which should be a dictionary mapping class symbols to their corresponding divisor classes. Note that because divisor classes are
+only supported over concrete base spaces, this assignment can only be made for explicitly chosen bases. For unspecified base families, the
+model is constructed to be compatible with a more general divisor class structure.
+
+In summary, the **defining classes** form the minimal set of divisor classes needed to distinguish a given F-theory model from its most generic
+Weierstrass, Tate, or hypersurface formulation.
+
+#### Example: Global Tate Model
+
+Consider the global Tate model introduced in [Krause, Mayrhofer, Weigand 2011](@cite KMW12). The Tate coefficients are factorized as:
 
 ```julia
-a1 = a10 * w
+a1 = a10
+
 a2 = a21 * w
+
 a3 = a32 * w^2
+
 a4 = a43 * w^3
+
 a6 = 0
 ```
 
-Here, ``w`` is a section of a line bundle associated to a divisor class ``W`` on the base. The class ``W`` is the sole defining
-class for this model—it uniquely determines how all the Tate sections are twisted.
+From this, we find:
 
-The `literature_model` constructor accepts an optional `defining_classes` argument, which should be a dictionary mapping
-parameter names (such as `"w"`) to their corresponding divisor classes. To enable this, the base space must also be provided
-explicitly and must be a concrete variety—typically a toric variety.
+- **Structural sections**: `a1`, `a2`, `a3`, `a4`, `a6`
+- **Tunable sections**: `w`, `a10`, `a21`, `a32`, `a43`
+- **Model sections**: `w`, `a10`, `a21`, `a32`, `a43`, `a1`, `a2`, `a3`, `a4`, `a6`
+- **Defining classes**: `W`, the divisor class of `w`
 
-The following example demonstrates how to construct the model of [Krause, Mayrhofer, Weigand 2011](@cite KMW12) over a toric base
-with a chosen defining class ``W``:
+The next section introduces accessor functions that allow users to retrieve defining classes, model sections, tunable sections, and
+related properties. Several examples are also included to demonstrate how to construct literature models by specifying defining classes.
+
+### Accessor Functions
+
+Retrieve the defining classes:
 
 ```@docs
 defining_classes(::AbstractFTheoryModel)
 ```
 
----
-
-### Tunable Sections
-
-The hypersurface equation of an F-theory model—whether a Weierstrass, Tate, or hypersurface model—is built from a number of global
-sections of line bundles over the base. These sections fall into two conceptual categories:
-
-- **Structural sections**, such as the Weierstrass or Tate coefficients, are determined by the type of model being constructed. To preserve the model's nature—e.g., that it remains a Weierstrass or global Tate model—these sections must retain their prescribed divisor classes. Altering them would fundamentally change the class of the model.
-
-- **Tunable sections** are those sections in the defining hypersurface equation that can be freely varied or further factorized, without changing the qualitative structure of the model. In particular, sections of the defining classes are tunable sections.
-
-For example, in the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12), the Tate coefficients are factorized as:
-
-```julia
-a1 = a10 * w
-a2 = a21 * w
-a3 = a32 * w^2
-a4 = a43 * w^3
-a6 = 0
-```
-
-This model is, by definition, a global Tate model. To preserve this, the classes of the `a1`, `a2`, etc., must remain fixed. However,
-the section ``w`` of the defining class ``W`` as well as the auxiliary sections ``aij`` introduced via the factorization can be adjusted
-freely. Therefore the tunable sections of this model are `w`, `a10`, `a21`, `a32` and `a43`.
+Access all model and tunable sections:
 
 ```@docs
+model_sections(::AbstractFTheoryModel)
 tunable_sections(::AbstractFTheoryModel)
 ```
 
----
-
-### Classes of Tunable Sections
-
-The function `classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes` returns a matrix encoding the divisor
-classes of all **tunable sections** of an F-theory model. These classes are expressed in a basis formed by the
-anticanonical class ``\overline{K}_B`` of the base space and the defining classes of the model.
-
-Each **column** of the returned matrix corresponds to a tunable section, and each **row** corresponds to a basis element—i.e.,
-the first row gives the coefficient with respect to ``\overline{K}_B``, and the subsequent rows represent contributions
-from the defining classes.
-
-For an example, consider the global Tate model presented in [Krause, Mayrhofer, Weigand 2011](@cite KMW12), where the
-Tate sections are factorized as follows:
-
-```julia
-a1 = a10 * w
-a2 = a21 * w
-a3 = a32 * w^2
-a4 = a43 * w^3
-a6 = 0
-```
-
-The tunable sections in this model are `w`, `a10`, `a21`, `a32` and `a43`. The only defining class is `W`. Therefore, the
-divisor classes of the tunable sections in the basis (``\overline{K}_B``, `W`) are given by the matrix:
-
-$$
-\begin{bmatrix}
-0 & 1 & 2 & 3 & 4 \\
-1 & 0 & -1 & -2 & -3
-\end{bmatrix}
-$$
-
-Each column in this matrix corresponds to one of the tunable sections, listed in the same order as above.
-
-```@docs
-classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(::AbstractFTheoryModel)
-```
-
----
-
-### Model Section Parametrization
+The tunable sections parametrize structural sections. The following method expresses each model section in terms of the tunable sections:
 
 ```@docs
 model_section_parametrization(::AbstractFTheoryModel)
 ```
 
-This dictionary explains how the standard sections used in the model (e.g., `a2`, `a3`, `a4`, etc.) are written in terms of the tunable sections.
+The hypersurface equation can also be written explicitly in terms of structural and tunable sections. This is accessible via:
 
-Using the earlier example:
-
-```julia
-"a2" => a21 * w
-```
-
-means that the section `a2` is not an independent section—it is constructed as a product of tunable ones. This information is key to understanding how the model was derived from a more generic form.
-
----
-
-### Model Sections
-
-```@docs
-model_sections(::AbstractFTheoryModel)
-```
-
-This function returns the complete list of all named sections that appear in the model. It includes:
-- The tunable sections (like `w`, `a21`, `a32`, ...)
-- Any derived sections that are constructed from them (like `a2`, `a3`, ...)
-
-It is the union of the keys from `model_section_parametrization` and `tunable_sections`.
-
----
-
-### Explicit Model Sections
-
-```@docs
-explicit_model_sections(::AbstractFTheoryModel)
-```
-
-This dictionary gives the actual expressions for all model sections—written as polynomials in the coordinates of the base.
-
-Each entry in the dictionary corresponds to a name returned by `model_sections`.
-
----
-
-### Classes of Model Sections
-
-```@docs
-classes_of_model_sections(::AbstractFTheoryModel)
-```
-
-This dictionary assigns a divisor class to every model section in the model. Again, the keys match those in `model_sections`.
-
----
-
-### Hypersurface Equation Parametrization
+!!! warning
+    Currently supported only for [Hypersurface Models](@ref hypersurface_models).
 
 ```@docs
 hypersurface_equation_parametrization(::HypersurfaceModel)
 ```
 
-This function ties all the above together by giving the hypersurface equation that defines the geometry of the model, written in terms of the symbolic model sections.
+To study the divisor classes of the tunable sections in more detail, the following method provides their expression in a basis consisting
+of the anticanonical divisor ``\overline{K}_B`` of the base and the model's defining classes. Each **column** of the returned matrix
+corresponds to a tunable section, while each **row** represents a basis element:
 
----
-
-Together, these tools provide fine-grained control over the algebraic structure of F-theory models and allow users to trace back each part of the geometry to its symbolic origin.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-
-## Meta Data Attributes for Liteature Models
-
-For literature models, we provide the following attributes referencing meta data:
 ```@docs
-arxiv_id(m::AbstractFTheoryModel)
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(::AbstractFTheoryModel)
+```
+
+Once the base of the elliptic fibration is a concrete toric variety, we can obtain further explicit information about the model sections.
+
+Retrieve the toric divisor class of each model section:
+
+```@docs
+classes_of_model_sections(::AbstractFTheoryModel)
+```
+
+Express model sections explicitly as polynomials in the Cox ring of the base space:
+
+!!! warning
+    If the base is a family of spaces, the polynomial expressions are equivalent to the return values of
+    [`model_section_parametrization(::AbstractFTheoryModel)`](@ref).
+
+```@docs
+explicit_model_sections(::AbstractFTheoryModel)
+```
+
+---
+
+# Metadata Attributes for Literature Models
+
+We provide the following metadata attributes for literature models, each of which returns
+the corresponding attribute if it exists and otherwise throws an error:
+
+```@docs
+associated_literature_models(m::AbstractFTheoryModel)
 arxiv_doi(m::AbstractFTheoryModel)
+arxiv_id(m::AbstractFTheoryModel)
 arxiv_link(m::AbstractFTheoryModel)
 arxiv_model_equation_number(m::AbstractFTheoryModel)
 arxiv_model_page(m::AbstractFTheoryModel)
 arxiv_model_section(m::AbstractFTheoryModel)
 arxiv_version(m::AbstractFTheoryModel)
-associated_literature_models(m::AbstractFTheoryModel)
-generating_sections(m::AbstractFTheoryModel)
+birational_literature_models(m::AbstractFTheoryModel)
 journal_doi(m::AbstractFTheoryModel)
 journal_link(m::AbstractFTheoryModel)
 journal_model_equation_number(m::AbstractFTheoryModel)
 journal_model_page(m::AbstractFTheoryModel)
 journal_model_section(m::AbstractFTheoryModel)
-journal_name(m::AbstractFTheoryModel)
 journal_pages(m::AbstractFTheoryModel)
 journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
+journal_name(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
+model_description(m::AbstractFTheoryModel)
+model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
-birational_literature_models(m::AbstractFTheoryModel)
 ```
-Such meta data can be modified with setters. For instance, there is a function
-`set_description(m::AbstractFTheoryModel, description::String)`, which takes the
-model in question as the first argument and the desired description - provided as string -
-as the second argument. Such a setter function exists for all of the above. If appropriate,
-we also offer a method that adds a new value. For instance, we have a function
-`add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
 
-!!! warning
-    Calling `set_description(m::AbstractFTheoryModel, description::String)` overwrites the existing description. This applies similarly to all other setter functions. Use with care, as existing data will be replaced without warning.
+For metadata fields that are collections, we provide helper functions to add new entries:
 
-One can check if a model has a particular set of information. This is achieved with the
-following methods:
-* `has_arxiv_id(m::AbstractFTheoryModel)`,
-* `has_arxiv_doi(m::AbstractFTheoryModel)`,
-* `has_arxiv_link(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_equation_number(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_page(m::AbstractFTheoryModel)`,
-* `has_arxiv_model_section(m::AbstractFTheoryModel)`,
-* `has_arxiv_version(m::AbstractFTheoryModel)`,
-* `has_associated_literature_models(m::AbstractFTheoryModel)`,
-* `has_generating_sections(m::AbstractFTheoryModel)`,
-* `has_journal_doi(m::AbstractFTheoryModel)`,
-* `has_journal_link(m::AbstractFTheoryModel)`,
-* `has_journal_model_equation_number(m::AbstractFTheoryModel)`,
-* `has_journal_model_page(m::AbstractFTheoryModel)`,
-* `has_journal_model_section(m::AbstractFTheoryModel)`,
-* `has_journal_name(m::AbstractFTheoryModel)`,
-* `has_journal_pages(m::AbstractFTheoryModel)`,
-* `has_journal_report_numbers(m::AbstractFTheoryModel)`,
-* `has_journal_volume(m::AbstractFTheoryModel)`,
-* `has_journal_year(m::AbstractFTheoryModel)`,
-* `has_literature_identifier(m::AbstractFTheoryModel)`,
-* `has_model_description(m::AbstractFTheoryModel)`,
-* `has_model_parameters(m::AbstractFTheoryModel)`,
-* `has_paper_authors(m::AbstractFTheoryModel)`,
-* `has_paper_buzzwords(m::AbstractFTheoryModel)`,
-* `has_paper_description(m::AbstractFTheoryModel)`,
-* `has_paper_title(m::AbstractFTheoryModel)`,
+```@docs
+add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
+add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+add_journal_report_number(m::AbstractFTheoryModel, addition::String)
+add_model_parameter(m::AbstractFTheoryModel, addition::String)
+add_paper_author(m::AbstractFTheoryModel, addition::String)
+add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
+```
 
+We do **not** provide `set_*` functions to overwrite attributes, in order to reduce the risk of
+accidental data loss. If you truly need to replace a value, use `set_attribute!(m, :attribute_name, value)`.
 
+---
 
-
-
-## Attributes for Liteature Models
+## Mathematical Attributes for Liteature Models
 
 In addition, the following attributes are available to access advanced model information:
+
 ```@docs
 resolutions(m::AbstractFTheoryModel)
 resolution_generating_sections(m::AbstractFTheoryModel)
@@ -371,29 +268,10 @@ zero_section_class(m::AbstractFTheoryModel)
 zero_section_index(m::AbstractFTheoryModel)
 exceptional_classes(m::AbstractFTheoryModel)
 exceptional_divisor_indices(m::AbstractFTheoryModel)
+generating_sections(m::AbstractFTheoryModel)
+gauge_algebra(m::AbstractFTheoryModel)
+global_gauge_group_quotient(m::AbstractFTheoryModel)
 ```
-
-
-
-
-* `has_resolutions(m::AbstractFTheoryModel)`,
-* `has_resolution_generating_sections(m::AbstractFTheoryModel)`,
-* `has_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_torsion_sections(m::AbstractFTheoryModel)`,
-* `has_weighted_resolutions(m::AbstractFTheoryModel)`,
-* `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
-* `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_zero_section(m::AbstractFTheoryModel)`,
-* `has_zero_section_class(m::AbstractFTheoryModel)`,
-* `has_zero_section_index(m::AbstractFTheoryModel)`, DOES THAT WORK????
-
-For the following, the corresponding methods are not listed above.
-Do they exist? Do they have a doc string?
-
-* `has_gauge_algebra(m::AbstractFTheoryModel)`,
-* `has_global_gauge_group_quotient(m::AbstractFTheoryModel)`.
-* `has_birational_literature_models(m::AbstractFTheoryModel)`,
-
 
 
 
