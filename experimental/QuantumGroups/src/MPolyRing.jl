@@ -257,17 +257,17 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
       if isnothing(z.coeffs[k])
         z.coeffs[k] = deepcopy(x.coeffs[i])
       else
-        z.coeffs[k] = set!(z.coeffs[k], x.coeffs[i])
+        z.coeffs[k] = set!(z.coeffs[k]::T, x.coeffs[i]::T)
       end
       monomial_set!(z, k, x, i)
       i += 1
     elseif cmp == 0
       if isnothing(z.coeffs[k])
-        z.coeffs[k] = x.coeffs[i] + y.coeffs[j]
+        z.coeffs[k] = x.coeffs[i]::T + y.coeffs[j]::T
       else
-        z.coeffs[k] = add!(z.coeffs[k], x.coeffs[i], y.coeffs[j])
+        z.coeffs[k] = add!(z.coeffs[k]::T, x.coeffs[i]::T, y.coeffs[j]::T)
       end
-      if !iszero(z.coeffs[k])
+      if !iszero(z.coeffs[k]::T)
         monomial_set!(z, k, x, i)
       else
         k -= 1
@@ -279,7 +279,7 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
       if isnothing(z.coeffs[k])
         z.coeffs[k] = deepcopy(y.coeffs[j])
       else
-        z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
+        z.coeffs[k] = set!(z.coeffs[k]::T, y.coeffs[j]::T)
       end
       monomial_set!(z, k, y, j)
       j += 1
@@ -302,7 +302,7 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
     if isnothing(z.coeffs[k])
       z.coeffs[k] = deepcopy(y.coeffs[j])
     else
-      z.coeffs[k] = set!(z.coeffs[k], y.coeffs[j])
+      z.coeffs[k] = set!(z.coeffs[k]::T, y.coeffs[j]::T)
     end
     monomial_set!(z, k, y, j)
     j += 1
@@ -733,8 +733,17 @@ function coeff(x::MPolyRingElem{T}, i::Int) where {T}
   return x.coeffs[i]::T
 end
 
+function setcoeff!(x::MPolyRingElem{T}, i::Int, a::T) where {T}
+  x.coeffs[i] = a
+  return x
+end
+
 function exponent(x::MPolyRingElem, i::Int, j::Int)
   return x.exps[(i - 1) * parent(x).N + j]
+end
+
+function set_exponent!(x::MPolyRingElem, i::Int, j::Int, e::Int)
+  x.exps[(i - 1) * parent(x).N + j] = e
 end
 
 function exponent_vector(x::MPolyRingElem, i::Int)
