@@ -60,7 +60,7 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
 
 ---
 
-## Simplified Presentation (`prune_with_map_atomic`)
+## Pruning a Module, also supplying the Isomorphism (`prune_with_map_atomic`)
 
 ```@docs
 prune_with_map_atomic(M::ModuleFP)
@@ -68,7 +68,8 @@ prune_with_map_atomic(M::ModuleFP)
 
 **Implementation Guidance:**
 
-There is a generic fallback for this function (which is not just the identity), but since this function is crucial for performance one should always try to make it as efficient as possible 
+There is a generic fallback for this function (which is not just the identity), but since this function is used to simplify presentations
+and hence is crucial for performance one should always try to make it as efficient as possible 
 (both with respect to its performance and size of its answer).
 
 The signature implemented should look like this:
