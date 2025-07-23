@@ -265,7 +265,6 @@ Return the number of generators of the action polynomial ring `apr`.
 """
 number_of_generators(apr::ActionPolyRing) = number_of_generators(apr.upoly_ring)
 
-=#
 @doc raw"""
     diff_action(p::ActionPolyRingElem, i::Int) -> ActionPolyRingElem
 

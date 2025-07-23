@@ -52,6 +52,3 @@ function Base.hash(dpre::DifferencePolyRingElem, h::UInt)
   return xor(h, b)
 end
 
-function Base.isless(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRingElem{T}) where {T<:RingElem}
-  return 0
-end
