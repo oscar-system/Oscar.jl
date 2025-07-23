@@ -69,14 +69,6 @@ tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_che
 
 ---
 
-## Printouts
-
-The user can decide to get information whenever a family of spaces is being used.
-To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
-More information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
-
----
-
 ## Attributes of all (or most) F-theory models
 
 ```@docs
