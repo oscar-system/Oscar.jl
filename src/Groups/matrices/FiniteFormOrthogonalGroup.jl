@@ -1052,3 +1052,175 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
   return gene
 end
 
+
+######################################################################################
+# Stabilizer of isotropic subspaces under Orthogonal groups.
+######################################################################################
+
+
+# 0 I 
+# I 0
+function _stabilizer_max_isotropic_nU(n, p)
+  gensStab = ZZMatrix[]
+  if n==0 || n==1
+    return gensStab
+  end 
+  F = matrix.(gens(GL(n,p)))
+  F = [map_entries(x->lift(ZZ,x),i) for i in F]
+  k = ZZ
+  if n==1 && p==2
+    # otherwise we get 2 times the trivial generator...
+    return gensStab 
+  end 
+  for f in F
+    g = diagonal_matrix(f,transpose(inv(f)))
+    push!(gensStab, g)
+  end
+  if n > 1
+    S = identity_matrix(k,2*n)
+    S[n+1,2] = 1
+    S[n+2,1] = -1
+    push!(gensStab, S)
+  end
+  return gensStab
+end 
+
+function _stabilizer_isotropic(T::TorQuadModule, p, rank)
+  @assert is_primary(T, p)
+  r = rank
+  N, toN = normal_form(T)
+  O = orthogonal_group(N)
+  G = ZZ.(p*gram_matrix_quadratic(N))
+  if p == 2
+    R,_ = residue_ring(ZZ, 4)
+  else
+    R,_ = residue_ring(ZZ, p)
+  end
+  GR = R.(G)
+  B, stab_gen = _stabilizer_isotropic(GR, r, p, false)
+  H = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
+    
+  res = [(H, sub(O,O.(stab_gen)))]
+  
+  if p==2 && nrows(G)>=2 && isodd(G[end,end]) && isodd(G[end-1,end-1]) && mod(G[end,end] + G[end-1,end-1],4)==0
+    B2, stab_gen2 = _stabilizer_isotropic(GR, r-1, 2, true)
+    H2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
+    push!(res, (H2, sub(O,O.(stab_gen2))))
+  end
+  @hassert :IsotropicStabilizer 1 all(all(H==on_subgroups_slow(H,s) for s in gens(S[1])) for ((H,_),S) in res)
+  return res
+end
+
+# Transforms G_normal_form to
+# 0 I 0
+# I 0 0
+# 0 0 G
+# and then computes the stabilizer
+function _stabilizer_isotropic(G_normal_form, r::Int, p, flag)
+  @assert !flag || p==2
+  k = ZZ
+  G = G_normal_form
+  n = nrows(G)
+  B = zero_matrix(k,n,n)
+  for i in 1:r
+    B[i,2*i-1] = 1
+    B[i+r, 2*i] = 1
+  end
+  for i in (2*r+1):n
+    B[i,i] = 1
+  end
+  Binv = inv(B)
+  s = 2*r+1
+  gensStab = _stabilizer_isotropic_semiregular_special(n, p, r, G[s:end,s:end],flag)
+  #return gensStab, B
+  gensStab = [Binv*i*B for i in gensStab]
+  Hbasis = B[1:r,:]
+  if flag 
+    Hbasis = vcat(Hbasis,B[end:end,:]+B[end-1:end-1,:])
+  end
+  return Hbasis, gensStab
+end 
+
+# I = r x r identity matrix
+# 0 I 0
+# I 0 0
+# 0 0 G
+# if flag is false, then H is the span of the first r standard basis vectors 
+# if flag is true (requires p==2) and the characteristic vector v is isotropic, then H is the span of the first r standard basis vectors and v
+function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
+  # f_1: O(V)_{H}->>O(H)
+  # lifts of generators of O(H)
+  e = count(isodd, lift.(diagonal(G)))
+  R = ZZ
+  S = _stabilizer_max_isotropic_nU(r, p)
+  k = n-2*r
+  Ik = identity_matrix(R, k)
+  S1 = [diagonal_matrix([s,Ik]) for s in S]
+  # now generators of the kernel O(V)_H of f_1
+  # f_2: O(V)_H->> O(H^\perp/H)
+  # lifts of the image O(H^\perp/H)
+  I2r = identity_matrix(R, 2*r)
+  tmp = [diagonal_matrix([I2r, lift.(f)]) for f in Oscar._orthogonal_grp_quadratic(G)]
+  append!(S1, tmp)
+  # Generators of the kernel of f_2
+  # look like this 
+  # I 0 0 
+  # A I B 
+  # S 0 I
+  # then squeeze out some linear equations
+  Gp = lift.(G)
+  Gp_inv = lift.(inv(G))
+  tmp = ZZMatrix[]
+  if r > 0  # avoid a corner case
+    for i in 1:(k-e) 
+      # we take k-e in place of k because
+      # the characteristic vector comes last and is fixed.
+      S = zero_matrix(R, k, r)
+      S[i,1] = 1
+      push!(tmp, S)
+    end 
+    if e == 2 
+      S[k-1, 1] = 1
+      S[k, 1] = 1
+      S = zero_matrix(R, k, r)
+      push!(tmp ,S)
+    end
+  end
+  
+  for S in tmp 
+    B = -transpose(S)*Gp_inv
+    T = B*Gp*transpose(B)
+    A = zero_matrix(R,r,r)
+    # solve A^t+A = T
+    for i in 1:r
+      for j in i+1:r
+        A[i,j]=T[i,j]
+      end
+      A[i,i] = divexact(T[i,i],2)
+    end
+    
+    Ir = identity_matrix(R,r)
+    g = [Ir 0*Ir zero_matrix(R, r, k); 
+    A  Ir  B;
+    S zero_matrix(R, k,r) identity_matrix(R,k)]
+    push!(S1,g)
+  end
+  if flag
+    S = identity_matrix(ZZ, n)
+    S[1, end-1] = 1
+    S[1, end] = 1
+    S[end-1, r+1] = 1
+    S[end, r+1] = 1
+    push!(S1, S)
+  end 
+  return S1
+end
+
+# slow but convenient
+function on_subgroups_slow(T::TorQuadModule, g::GAPGroupElem)
+  G = parent(g)
+  D = domain(G)
+  gensT = D.(lift.(gens(T)))
+  return sub(D, g.(gensT))[1]
+end 
+
