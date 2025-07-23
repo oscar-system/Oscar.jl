@@ -9,6 +9,7 @@ end
 function image!(
   z::PBWAlgebraElem{S}, hom::PBWAlgebraHom{T,S}, x::PBWAlgebraElem{T}
 ) where {T,S}
+  z = zero!(z)
   t1 = one(hom.codomain)
   t2 = zero(hom.codomain)
   cf = zero(coefficient_ring(parent(x)))

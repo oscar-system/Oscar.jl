@@ -210,6 +210,10 @@ function exponent(x::PBWAlgebraElem, i::Int, j::Int)
   return exponent(x.poly, i, j)
 end
 
+function set_exponent!(x::PBWAlgebraElem, i::Int, j::Int, e::Int)
+  return set_exponent!(x.poly, i, j, e)
+end
+
 function exponent_vector!(exp::Vector{Int}, x::PBWAlgebraElem, i::Int)
   return exponent_vector!(exp, x.poly, i)
 end
