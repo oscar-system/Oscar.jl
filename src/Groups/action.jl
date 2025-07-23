@@ -610,7 +610,7 @@ end
 # - stabilizer in a matrix group (over a finite field)
 #   of a `Set` of `FreeModuleElem`s via `on_sets`
 function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt)))
+    iso = _ring_iso(G)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         map_entries(iso, AbstractAlgebra.Generic._matrix(pnt)),
         GAP.Globals.OnRight))
@@ -618,7 +618,7 @@ end
 
 function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
     length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt[1])))
+    iso = _ring_iso(G)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
         GAP.Globals.OnTuples))
@@ -626,7 +626,7 @@ end
 
 function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}) where {ET,MT}
     length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt[1])))
+    iso = _ring_iso(G)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
         GAP.Globals.OnTuples))
@@ -634,7 +634,7 @@ end
 
 function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
     length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(iterate(pnt)[1])))
+    iso = _ring_iso(G)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GAPWrap.Set(GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt])),
         GAP.Globals.OnSets))
@@ -663,7 +663,7 @@ end
 function stabilizer(G::MatrixGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
     (actfun === on_echelon_form_mats) || return _stabilizer_generic(G, pnt, actfun)
     nrows(pnt) == 0 && return (G, identity_map(G))
-    iso = Oscar.iso_oscar_gap(base_ring(pnt))
+    iso = _ring_iso(G)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         map_entries(iso, pnt),
         GAP.Globals.OnSubspacesByCanonicalBasis))
