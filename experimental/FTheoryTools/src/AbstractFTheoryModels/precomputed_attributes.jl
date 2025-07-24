@@ -192,7 +192,7 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
+ [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, a43]]]
 ```
 """, "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
@@ -261,7 +261,7 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> weighted_resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
+ [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, a43]]]
 ```
 """, "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
 
