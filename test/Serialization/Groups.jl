@@ -233,6 +233,14 @@
       test_save_load_roundtrip(path, product_of_gens) do loaded
         @test loaded == product_of_gens
       end
+
+      mats = [[0 -1 0; 1 -1 0; 0 0 1], [0 1 0; 1 0 0; 0 0 1]]
+      matelms = map(m -> matrix(GF(5), m), mats)
+      g = G.(matelms)
+
+      test_save_load_roundtrip(path, g) do loaded
+        @test loaded == g
+      end
     end
   end
 end
