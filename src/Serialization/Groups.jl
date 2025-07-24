@@ -314,5 +314,5 @@ save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
 function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
   R = base_ring(G)
   d = degree(G)
-  return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))))
+  return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))); check = false)
 end
