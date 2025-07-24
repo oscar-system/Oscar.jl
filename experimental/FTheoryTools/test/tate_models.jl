@@ -193,39 +193,6 @@ end
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin
-  @test length(singular_loci(t_i1)) == 2
-  @test length(singular_loci(t_i2_ns)) == 2
-  @test length(singular_loci(t_i2_s)) == 2
-  @test length(singular_loci(t_i3_ns)) == 2
-  @test length(singular_loci(t_i3_s)) == 2
-  @test length(singular_loci(t_i4_ns)) == 2
-  @test length(singular_loci(t_i4_s)) == 2
-  @test length(singular_loci(t_i5_ns)) == 2
-  @test length(singular_loci(t_i5_s)) == 2
-  @test length(singular_loci(t_i6_ns)) == 2
-  @test length(singular_loci(t_i6_s)) == 2
-  @test length(singular_loci(t_i7_ns)) == 2
-  @test length(singular_loci(t_i7_s)) == 2
-  @test length(singular_loci(t_ii)) == 2
-  @test length(singular_loci(t_iii)) == 2
-  @test length(singular_loci(t_iv_ns)) == 2
-  @test length(singular_loci(t_iv_s)) == 2
-  @test length(singular_loci(t_istar0_ns)) == 2
-  @test length(singular_loci(t_istar0_ss)) == 2
-  @test length(singular_loci(t_istar0_s)) == 2
-  @test length(singular_loci(t_istar1_ns)) == 2
-  @test length(singular_loci(t_istar1_s)) == 2
-  @test length(singular_loci(t_istar2_ns)) == 2
-  @test length(singular_loci(t_istar2_s)) == 2
-  @test length(singular_loci(t_istar3_ns)) == 2
-  @test length(singular_loci(t_istar3_s)) == 2
-  @test length(singular_loci(t_istar4_ns)) == 2
-  @test length(singular_loci(t_istar4_s)) == 2
-  @test length(singular_loci(t_ivstar_ns)) == 2
-  @test length(singular_loci(t_ivstar_s)) == 2
-  @test length(singular_loci(t_iiistar)) == 2
-  @test length(singular_loci(t_iistar)) == 2
-  @test length(singular_loci(t_nm)) == 2
   @test [k[2:3] for k in singular_loci(t_i1)] == [((0, 0, 1), "I_1"), ((0, 0, 1), "I_1")]
   @test [k[2:3] for k in singular_loci(t_i2_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
   @test [k[2:3] for k in singular_loci(t_i2_s)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Split I_2")]
