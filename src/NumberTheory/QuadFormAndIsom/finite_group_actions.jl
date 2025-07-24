@@ -47,7 +47,7 @@ Return whether the matrix ``G`` defines a group of isometries of the quadratic
 space ``Q``.
 """
 function is_isometry_group(
-    Q::ZZLat,
+    Q::Hecke.QuadSpace,
     G::MatrixGroup,
     ambient_representation::Bool = false,
   )
@@ -144,12 +144,12 @@ representing a collection of isometries of ``L`` in the fixed basis of ``L``,
 return the same collection but represented in the standard basis of the ambient
 space of ``L``.
 
-If ``L`` is not of full rank, each isometry is extended to be the identity on
-the quadratic space orthogonal to $L\otimes\mathbb{Q}$.
+If ``L`` is not of full rank in its ambient quadratic space ``V``, each
+isometry is extended to be the identity on the quadratic space orthogonal to
+$L\otimes\mathbb{Q}$ inside ``V``.
 
 If `check` is set to `true`, the function checks whether ``F`` indeed defines
-a collection of isometries of ``L`` given by the representation in the fixed
-basis of ``L``.
+a collection of isometries of ``L``.
 """
 representation_in_ambient_coordinates
 
@@ -452,7 +452,7 @@ function _maximal_extension(
   return GL, svT
 end
 
-@foc raw"""
+@doc raw"""
     stabilizer_sublattice_in_orthogonal_group(
       L::ZZLat,
       S::Union{QQMatrix, ZZLat},
@@ -480,7 +480,7 @@ of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
 """
 function stabilizer_sublattice_in_orthogonal_group(
     L::ZZLat,
-    S::QQMatrix,
+    S::ZZLat,
     pointwize::Bool = false;
     check::Bool=true,
     kwargs...,

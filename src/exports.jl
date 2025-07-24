@@ -948,6 +948,9 @@ export is_invariant
 export is_inverse_of
 export is_invertible
 export is_irreducible
+export is_isometry
+export is_isometry_group
+export is_isometry_list
 export is_isomorphic
 export is_isomorphic_to_alternating_group, has_is_isomorphic_to_alternating_group, set_is_isomorphic_to_alternating_group
 export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, set_is_isomorphic_to_symmetric_group
@@ -1411,6 +1414,7 @@ export point_coordinates
 export point_matrix
 export point_vector
 export points
+export pointwize_stabilizer_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type
@@ -1546,6 +1550,8 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
+export representation_in_ambient_coordinates
+export representation_in_lattice_coordinates
 export representative
 export representative_field
 export representative_patch
@@ -1678,6 +1684,7 @@ export splitting_of_pure_mixed_prime_power
 export splitting_roots_mod2
 export src
 export stabilizer_in_orthogonal_group
+export stabilizer_sublattice_in_orthogonal_group
 export stable_intersection
 export stable_set_polytope
 export standard_basis
