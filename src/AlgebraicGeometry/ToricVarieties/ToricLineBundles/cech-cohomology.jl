@@ -32,6 +32,8 @@ function cech_cohomologies(tl::ToricLineBundle)
 
   # Compute the hyperplane arrangement
   a_plane = matrix(ZZ, n_rays(X), 1, coefficients(toric_divisor(tl)))
+  #println(a_plane)
+  #a_plane = transpose(matrix(ZZ, [[-1,-1,-1,0,0,0]]))
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
   H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
 
@@ -43,13 +45,16 @@ function cech_cohomologies(tl::ToricLineBundle)
   RI = ray_indices(maximal_cones(X))
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
+  # Length
+  cech_length = n_maximal_cones(X)
+
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
-  cech_complex_maps = Vector{Any}(undef, dim(X)+1)
-  cech_complexes = Vector{FreeMod}(undef, dim(X)+2)
+  cech_complex_maps = Vector{Any}(undef, cech_length+1)
+  cech_complexes = Vector{FreeMod}(undef, cech_length+2)
   comb_dict = Dict(); d_k = 0
 
-  for k in 0:dim(X)
+  for k in 0:cech_length
     polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
     combs = collect(combinations(n_maximal_cones(X), k+1))
     for i in 1:length(combs)
@@ -98,8 +103,8 @@ function cech_cohomologies(tl::ToricLineBundle)
     # return comb_dict
     push!(cech_complex_points, polyhedron_dict)
   end
-  cech_complexes[dim(X)+2] = FreeMod(QQ, 0)
-  cech_complex_maps[dim(X)+1] = matrix(QQ, zeros(QQ, rank(cech_complexes[dim(X)+1]), 0))
+  cech_complexes[cech_length+2] = FreeMod(QQ, 0)
+  cech_complex_maps[cech_length+1] = matrix(QQ, zeros(QQ, rank(cech_complexes[cech_length+1]), 0))
 
   return cech_complexes, cech_complex_maps, cech_complex_points
 end
