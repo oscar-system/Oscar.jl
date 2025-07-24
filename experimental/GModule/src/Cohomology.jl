@@ -212,6 +212,10 @@ function action(C::GModule, g, v::Array)
     return v
   end
 
+  if has_attribute(C, :action)
+    return get_attribute(C, :action)(C, g, v)
+  end
+
   ac = action(C)
   f = findfirst(isequal(g), gens(Group(C)))
   if f !== nothing
@@ -361,23 +365,52 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   end
   ac = []
   iac = []
+  o = one(base_ring(C))
   for s = gens(G)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
     @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q.v)
+      q.v[_q] = o
+
+      X = zero(indC)
+      for i=1:length(g)
+#        add!(X, inj[i^sigma](au[i](pro[i](q))))
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(ac, hom(indC, indC, [x for x = im_q]))
 
     s = inv(s)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
     @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q.v)
+      q.v[_q] = o
+      X = zero(indC)
+      for i=1:length(g)
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(iac, hom(indC, indC, [x for x = im_q]))
 
