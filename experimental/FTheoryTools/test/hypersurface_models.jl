@@ -2,6 +2,9 @@
 # 1: Hypersurface models over concrete bases
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 B3 = projective_space(NormalToricVariety, 3)
 ambient_space_of_fiber = weighted_projective_space(NormalToricVariety, [2,3,1])
 set_coordinate_names(ambient_space_of_fiber, ["x", "y", "z"])
@@ -25,7 +28,7 @@ end
   @test_throws ArgumentError weierstrass_model(h)
   @test_throws ArgumentError global_tate_model(h)
   @test_throws ArgumentError discriminant(h)
-  @test_throws ArgumentError singular_loci(h)
+  @test_throws ArgumentError singular_loci(h; rng = our_rng)
 end
 
 @testset "Saving and loading hypersurface models over concrete base space" begin

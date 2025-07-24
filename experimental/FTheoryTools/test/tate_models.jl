@@ -2,6 +2,9 @@
 # 1: Global Tate models over concrete base space
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 my_base = projective_space(NormalToricVariety, 3)
 sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)))
 sec_a2 = generic_section(anticanonical_bundle(my_base)^2)
@@ -193,39 +196,39 @@ end
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin
-  @test [k[2:3] for k in singular_loci(t_i1)] == [((0, 0, 1), "I_1"), ((0, 0, 1), "I_1")]
-  @test [k[2:3] for k in singular_loci(t_i2_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
-  @test [k[2:3] for k in singular_loci(t_i2_s)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Split I_2")]
-  @test [k[2:3] for k in singular_loci(t_i3_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Non-split I_3")]
-  @test [k[2:3] for k in singular_loci(t_i3_s)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3")]
-  @test [k[2:3] for k in singular_loci(t_i4_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 4), "Non-split I_4")]
-  @test [k[2:3] for k in singular_loci(t_i4_s)] == [((0, 0, 1), "I_1"), ((0, 0, 4), "Split I_4")]
-  @test [k[2:3] for k in singular_loci(t_i5_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 5), "Non-split I_5")]
-  @test [k[2:3] for k in singular_loci(t_i5_s)] == [((0, 0, 1), "I_1"), ((0, 0, 5), "Split I_5")]
-  @test [k[2:3] for k in singular_loci(t_i6_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 6), "Non-split I_6")]
-  @test [k[2:3] for k in singular_loci(t_i6_s)] == [((0, 0, 1), "I_1"), ((0, 0, 6), "Split I_6")]
-  @test [k[2:3] for k in singular_loci(t_i7_ns)] == [((0, 0, 1), "I_1"), ((0, 0, 7), "Non-split I_7")]
-  @test [k[2:3] for k in singular_loci(t_i7_s)] == [((0, 0, 1), "I_1"), ((0, 0, 7), "Split I_7")]
-  @test [k[2:3] for k in singular_loci(t_ii)] == [((0, 0, 1), "I_1"), ((1, 1, 2), "II")]
-  @test [k[2:3] for k in singular_loci(t_iii)] == [((0, 0, 1), "I_1"), ((1, 2, 3), "III")]
-  @test [k[2:3] for k in singular_loci(t_iv_ns)] == [((0, 0, 1), "I_1"), ((2, 2, 4), "Non-split IV")]
-  @test [k[2:3] for k in singular_loci(t_iv_s)] == [((0, 0, 1), "I_1"), ((2, 2, 4), "Split IV")]
-  @test [k[2:3] for k in singular_loci(t_istar0_ns)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Non-split I^*_0")]
-  @test [k[2:3] for k in singular_loci(t_istar0_ss)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Semi-split I^*_0")]
-  @test [k[2:3] for k in singular_loci(t_istar0_s)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Split I^*_0")]
-  @test [k[2:3] for k in singular_loci(t_istar1_ns)] == [((0, 0, 1), "I_1"), ((2, 3, 7), "Non-split I^*_1")]
-  @test [k[2:3] for k in singular_loci(t_istar1_s)] == [((0, 0, 1), "I_1"), ((2, 3, 7), "Split I^*_1")]
-  @test [k[2:3] for k in singular_loci(t_istar2_ns)] == [((0, 0, 1), "I_1"), ((2, 3, 8), "Non-split I^*_2")]
-  @test [k[2:3] for k in singular_loci(t_istar2_s)] == [((0, 0, 1), "I_1"), ((2, 3, 8), "Split I^*_2")]
-  @test [k[2:3] for k in singular_loci(t_istar3_ns)] == [((0, 0, 1), "I_1"), ((2, 3, 9), "Non-split I^*_3")]
-  @test [k[2:3] for k in singular_loci(t_istar3_s)] == [((0, 0, 1), "I_1"), ((2, 3, 9), "Split I^*_3")]
-  @test [k[2:3] for k in singular_loci(t_istar4_ns)] == [((0, 0, 1), "I_1"), ((2, 3, 10), "Non-split I^*_4")]
-  @test [k[2:3] for k in singular_loci(t_istar4_s)] == [((0, 0, 1), "I_1"), ((2, 3, 10), "Split I^*_4")]
-  @test [k[2:3] for k in singular_loci(t_ivstar_ns)] == [((0, 0, 1), "I_1"), ((3, 4, 8), "Non-split IV^*")]
-  @test [k[2:3] for k in singular_loci(t_ivstar_s)] == [((0, 0, 1), "I_1"), ((3, 4, 8), "Split IV^*")]
-  @test [k[2:3] for k in singular_loci(t_iiistar)] == [((0, 0, 1), "I_1"), ((3, 5, 9), "III^*")]
-  @test [k[2:3] for k in singular_loci(t_iistar)] == [((0, 0, 1), "I_1"), ((4, 5, 10), "II^*")]
-  @test [k[2:3] for k in singular_loci(t_nm)] == [((0, 0, 1), "I_1"), ((4, 6, 12), "Non-minimal")]
+  @test [k[2:3] for k in singular_loci(t_i1; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(t_i2_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(t_i2_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Split I_2")]
+  @test [k[2:3] for k in singular_loci(t_i3_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Non-split I_3")]
+  @test [k[2:3] for k in singular_loci(t_i3_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(t_i4_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 4), "Non-split I_4")]
+  @test [k[2:3] for k in singular_loci(t_i4_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 4), "Split I_4")]
+  @test [k[2:3] for k in singular_loci(t_i5_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 5), "Non-split I_5")]
+  @test [k[2:3] for k in singular_loci(t_i5_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 5), "Split I_5")]
+  @test [k[2:3] for k in singular_loci(t_i6_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 6), "Non-split I_6")]
+  @test [k[2:3] for k in singular_loci(t_i6_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 6), "Split I_6")]
+  @test [k[2:3] for k in singular_loci(t_i7_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 7), "Non-split I_7")]
+  @test [k[2:3] for k in singular_loci(t_i7_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((0, 0, 7), "Split I_7")]
+  @test [k[2:3] for k in singular_loci(t_ii; rng = our_rng)] == [((0, 0, 1), "I_1"), ((1, 1, 2), "II")]
+  @test [k[2:3] for k in singular_loci(t_iii; rng = our_rng)] == [((0, 0, 1), "I_1"), ((1, 2, 3), "III")]
+  @test [k[2:3] for k in singular_loci(t_iv_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 2, 4), "Non-split IV")]
+  @test [k[2:3] for k in singular_loci(t_iv_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 2, 4), "Split IV")]
+  @test [k[2:3] for k in singular_loci(t_istar0_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Non-split I^*_0")]
+  @test [k[2:3] for k in singular_loci(t_istar0_ss; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Semi-split I^*_0")]
+  @test [k[2:3] for k in singular_loci(t_istar0_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 6), "Split I^*_0")]
+  @test [k[2:3] for k in singular_loci(t_istar1_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 7), "Non-split I^*_1")]
+  @test [k[2:3] for k in singular_loci(t_istar1_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 7), "Split I^*_1")]
+  @test [k[2:3] for k in singular_loci(t_istar2_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 8), "Non-split I^*_2")]
+  @test [k[2:3] for k in singular_loci(t_istar2_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 8), "Split I^*_2")]
+  @test [k[2:3] for k in singular_loci(t_istar3_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 9), "Non-split I^*_3")]
+  @test [k[2:3] for k in singular_loci(t_istar3_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 9), "Split I^*_3")]
+  @test [k[2:3] for k in singular_loci(t_istar4_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 10), "Non-split I^*_4")]
+  @test [k[2:3] for k in singular_loci(t_istar4_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((2, 3, 10), "Split I^*_4")]
+  @test [k[2:3] for k in singular_loci(t_ivstar_ns; rng = our_rng)] == [((0, 0, 1), "I_1"), ((3, 4, 8), "Non-split IV^*")]
+  @test [k[2:3] for k in singular_loci(t_ivstar_s; rng = our_rng)] == [((0, 0, 1), "I_1"), ((3, 4, 8), "Split IV^*")]
+  @test [k[2:3] for k in singular_loci(t_iiistar; rng = our_rng)] == [((0, 0, 1), "I_1"), ((3, 5, 9), "III^*")]
+  @test [k[2:3] for k in singular_loci(t_iistar; rng = our_rng)] == [((0, 0, 1), "I_1"), ((4, 5, 10), "II^*")]
+  @test [k[2:3] for k in singular_loci(t_nm; rng = our_rng)] == [((0, 0, 1), "I_1"), ((4, 6, 12), "Non-minimal")]
 end
 
 #@testset "Blowups of global Tate models" begin

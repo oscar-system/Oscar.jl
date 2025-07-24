@@ -114,7 +114,7 @@ _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_prima
 
 _string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
 
-function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rand_seed::Union{Int64, Nothing} = nothing)
+function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rng::AbstractRNG = Random.default_rng())
   f_ord = ords[1]
   g_ord = ords[2]
   d_ord = ords[3]
@@ -198,12 +198,10 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     # five times and see if we get agreement among all of the results
     num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
-    if rand_seed != nothing
-      Random.seed!(rand_seed)
-    end
+    rng = MersenneTwister()
     for _ in 1:5
-      coord_inds = randperm(num_gens)[1:end-2]
-      rand_ints = rand(-100:100, num_gens - 2)
+      coord_inds = randperm(rng, num_gens)[1:end-2]
+      rand_ints = rand(rng, -100:100, num_gens - 2)
 
       push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
       push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))

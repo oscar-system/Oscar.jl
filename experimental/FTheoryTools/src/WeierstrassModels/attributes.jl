@@ -178,18 +178,21 @@ Advanced technical details are available in [BMT25](@cite BMT25).
 
 !!! warning
     The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling.
-    While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
+    While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random seed can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel; rng::AbstractRNG = Random.default_rng())
   @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   B = irrelevant_ideal(base_space(w))
   d_primes = factor(discriminant(w))
@@ -202,7 +205,7 @@ julia> length(singular_loci(w))
     g_order = valuation(g, p)
     ords = (f_order, g_order, d_order)
     I = ideal([p])
-    kodaira_types[i] = (I, ords, _kodaira_type(I, ords, w))
+    kodaira_types[i] = (I, ords, _kodaira_type(I, ords, w; rng))
   end
   sort!(kodaira_types, by = x -> (x[2][2], x[2][3]))
   return kodaira_types

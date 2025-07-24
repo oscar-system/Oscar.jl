@@ -2,6 +2,9 @@
 # 1: Weierstrass models over concrete base space
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 my_base = projective_space(NormalToricVariety, 3)
 sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)
 sec_g = generic_section(anticanonical_bundle(my_base)^6)
@@ -16,7 +19,7 @@ w = weierstrass_model(my_base; completeness_check = false)
   @test dim(ambient_space(w)) == 5
   @test is_smooth(ambient_space(w)) == false
   @test toric_variety(calabi_yau_hypersurface(w)) == ambient_space(w)
-  @test length(singular_loci(w)) == 1
+  @test length(singular_loci(w; rng = our_rng)) == 1
   @test is_base_space_fully_specified(w) == true
   @test is_partially_resolved(w) == false
 end
