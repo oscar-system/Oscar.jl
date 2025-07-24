@@ -1057,6 +1057,94 @@ function is_permutation_gmodule(C::GModule)
   return has_attribute(C, :right_cosets)
 end
 
+function gmodule_new(chi::Oscar.GAPGroupClassFunction)
+  G = group(chi)
+  s = [representative(x) for x = subgroup_classes(group(chi))]
+  sort!(s, lt = (a,b) -> isless(order(b), order(a)))
+  for i = s
+    if !is_zero(scalar_product(permutation_character(G, i), chi))
+      M = permutation_gmodule(G, i, QQ)
+      t = split_into_homogenous(M)
+      tt = map(character, t)
+      return [t[i] for i=1:length(t) if !is_zero(scalar_product(tt[i], chi))]
+    end
+  end
+  error("no plan yet")
+end
+
+function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}} = nothing)
+  X = character_table(G)
+  s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
+  s = [x for x = s if order(x) < order(G)]
+  sort!(s, lt = (a,b) -> isless(order(b), order(a)))
+  if t !== nothing
+    @assert length(t) == length(X)
+  else
+    t = [true for x = X]
+  end
+  res = []
+  for i = s
+    @show c = coordinates(permutation_character(G, i))
+    @show t
+    @show cc = map(iszero, c) .& t
+    if cc != t
+      @show :bingo
+      M = permutation_gmodule(G, i, QQ)
+      @show coordinates(character(M))
+      _t = split_into_homogenous(M)
+      for x = _t
+        @show coordinates(character(x))
+        _c = map(iszero, coordinates(character(x)))
+        if t .& _c == t
+          @show :bad
+          continue
+        end
+        t .&= map(iszero, coordinates(character(x)))
+        push!(res, x)
+      end
+      @show t
+      if !any(t)
+        return res
+      end
+    end
+  end
+
+  for i=s
+    XX = character_table(i)
+    for chi = XX
+      #careful with multiplicity
+      if degree(chi)*index(G, i) > limit
+        @show :too_large
+        continue
+      end
+      @show cc = map(iszero, coordinates(induce(chi, G))) .& t
+      if cc != t
+        v = gmodule_new(chi)
+        @assert length(v) == 1
+        v = v[1]
+        for j=1:length(t)
+          if cc[j] != t[j] 
+            @show :induce
+            V = induce(v, embedding(i, G))[1]
+            @show :split, dim(V)
+            @time _res = split_into_homogenous(V)
+            for mu = _res
+              _cc = map(iszero, coordinates(character(mu))) .& t
+              if _cc != t
+                push!(res, mu)
+                t = _cc
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  return res
+  error("no plan yet")
+end
+
+
 function hom_base_perm_module(C::GModule, D::GModule)
   @assert base_ring(C) == base_ring(D)
   G = group(C)
@@ -1067,11 +1155,17 @@ function hom_base_perm_module(C::GModule, D::GModule)
   J = rC.subgroup
   H = rD.subgroup
   #hom: basis for C is given by the transversal in rC
-  all = []
+  all = dense_matrix_type(base_ring(C))[]
+#  all = []
   ac = action_homomorphism(rD)
+  ac = hom(G, codomain(ac), [image(ac, x) for x in gens(G)]) #from Thomas
+          # until action_hom is sorted...
+          #MUCH faster than calling action_hom...
+
   O = orbits(gset(J, *, rD)) #to be improved... this are J-orbits of H\G
   F = free_module(base_ring(C), length(O))
   FG = trivial_gmodule(G, F)
+#  ZG = group_algebra(QQ, G)
 
   for o = O #each orbit gives a map
     M = zero_matrix(base_ring(C), dim(C), dim(D))
@@ -2072,7 +2166,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
       z2 = gmodule(base_ring(z1), D)
     end
 
-    t = hom_base(z1, z2)
+    @time t = hom_base(z1, z2)
 
     isempty(t) && return QQMatrix[]
     _rref!(t)
@@ -2085,6 +2179,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
       T = [induce_crt(tt[i], ZZRingElem(p), T[i], pp)[1] for i=1:length(T)]
       @assert base_ring(T[1]) == ZZ
       pp *= p
+      @show nbits(pp)
       S = QQMatrix[]
       if nbits(pp) > min(reco, bt)
         if nbits(pp) > reco
@@ -2113,6 +2208,12 @@ end
 function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem}}})
   mE = get_attribute(M, :endo)
   if mE !== nothing
+    return domain(mE), mE
+  end
+  ge = get_attribute(M, :get_endo)
+  if ge !== nothing
+    mE = ge(M)
+    set_attribute!(M, :endo => mE)
     return domain(mE), mE
   end
   if is_regular_gmodule(M)
@@ -2188,7 +2289,12 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   if mE !== nothing
     return domain(mE), mE
   end
-  if is_regular_gmodule(M)
+  ce = get_attribute(M, :get_center_endo)
+  if ce !== nothing
+    mE = ce(M)
+    set_attribute!(M, :center_endo => mE)
+    return domain(mE), mE
+  elseif is_regular_gmodule(M)
     ge = get_attribute(M, :is_regular)
     G = group(M)
     C = conjugacy_classes(G) 
@@ -2278,7 +2384,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   @assert all(!iszero, B)
   seen = Set{elem_type(E)}()
   
-  for b = B
+  for b = elem_gen_ctx(B)
     x = b.elem_in_algebra
     if x in seen
       continue
@@ -2290,34 +2396,16 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
       append!(S, z)
     end
   end
-  for b = B
-    for c = B
-      x = (b+c).elem_in_algebra
-      if x in seen
-        continue
-      end
-      push!(seen, x)
-      z = split_via_endo(x, M)
-      length(z) > 0 && return z
-      x = (b*c).elem_in_algebra
-      if x in seen
-        continue
-      end
-      push!(seen, x)
-      z = split_via_endo(x, M)
-      length(z) > 0 && return z
-    end
-  end
- #
- 
-  #=
-  p = 10000
+
+  return S
+
+  p = 20
   for i=1:10
     p = next_prime(p)
 
-    @time P = prime_ideals_over(Z_M, p)[1]
-    @time B = lll_basis(P)
-    for b = B
+    P = prime_ideals_over(Z_M, p)[1]
+    B = lll_basis(P)
+    for b = elem_gen_ctx(B)
       x = b.elem_in_algebra
       if x in seen
         continue
@@ -2330,25 +2418,6 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
       end
     end
   end
-  =#
-
-
-  mb = matrix(QQ, transpose(hcat([coefficients(x.elem_in_algebra) for x = B]...)))
-  T = 10
-  for i=1:T
-    @show i
-    g = [rand(B)*rand(B) for i=1:length(B)]
-    m = matrix(QQ, transpose(hcat([coefficients(x.elem_in_algebra) for x = g]...)))
-    m = lll(vcat(m, mb))
-    for j=1:nrows(m)
-      x = E(m[j, :])
-      iszero(x) && continue
-      z = split_via_endo(x, M)
-      length(z) > 0 && return z
-    end
-  end
-
-
   return S
 end
 
@@ -2381,18 +2450,29 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
 
 
   chi = character(M)
+  #homogeouns can have 2 problems
+  # - schur index
+  # - multiplicity
+  # eg X is rational, but has schur index 2 => there is one rep above over
+  # an extension
+  # or 
+  #   X is rational, but char field is quadratic, there are 2 reps over
+  # the extension. 
+  # in both basis is mult. 2
+  # they can happen together...
   chi, k, m = galois_representative_and_multiplicity(chi)
 
   #we should have k*(m*s)^2 = dim(E), so
   #s = sqrt(dim(E)/k)/m
-  @show s = divexact(root(divexact(dim(E), k), 2), m)
-  @assert s == schur_index(chi)
+#  @show s = divexact(root(divexact(dim(E), k), 2), m)
+  s = schur_index(chi)
+  m = divexact(m, s)
 
   first = true
   local best_f::QQPolyRingElem
   local best_i::elem_type(E)
 
-  for _i=lll_basis(Z_M)
+  for _i=elem_gen_ctx(lll_basis(Z_M))
     i = _i.elem_in_algebra
     f = minpoly(i)
     lf = factor(f)
@@ -2432,6 +2512,34 @@ function Oscar.eigenspace(f::Oscar.GModuleHom{<:Any, T, T}, a::AbsSimpleNumField
   return kernel(h)[1]
 end
 
+mutable struct elem_gen_ctx{T <: Any} 
+  bas::Vector{T}
+  function elem_gen_ctx(a::Vector{T}) where T
+    return new{T}(a)
+  end
+end
+
+function Base.iterate(a::elem_gen_ctx)
+  return a.bas[1], (1, length(a.bas)-1)
+end
+
+function Base.iterate(a::elem_gen_ctx, st::Tuple{Int, Int})
+  lev, len = st
+  if lev == 1 && len > 0
+    len -= 1
+    return a.bas[end-len], (lev, len)
+  end
+  if len <= 1
+    lev += 1
+    if lev > length(a.bas)
+      return nothing
+    end
+    len = Int(min(2^30, div(binomial(ZZ(length(a.bas)), ZZ(lev)), 2)))
+    # div(, 2) to avoid duplicates by birthday paradox
+  end
+  return sum(rand(a.bas) for i = 1:lev), (lev, len-1)
+end
+
 function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p28: HomogeneousComponents(M)
   #Careful: the list in the end contains homogenous components - but
@@ -2448,7 +2556,7 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
     mC = mC*mE
   end
   H = []
-  for b = basis(C)
+  for b = elem_gen_ctx(basis(C))
     f = minpoly(b)
     lf = factor(f)
     if length(lf) == 1
@@ -2457,23 +2565,55 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
       end
       continue
     end
+    @show lf, length(basis(C))
+    if degree(f) < length(basis(C))
+      @show :try_again
+      continue
+    end
+    #Q: under this comditions is the following true:
+    # - k is irreducible over Q
+    # - it will split (one way or other) over the field created by p
     for (p, k) = lf
       x = (p^k)(b)
       h = mC(x)
       k, mk = kernel(h)
-      q, mq = quo(M, mk.module_map)
-      @assert dim(q) > 0 && dim(k) > 0
-      _, mF = restrict_endo(mC, mk)
-      set_attribute!(k, :center_endo => mF)
-      append!(H, split_into_homogenous(k))
-      _, mF = proj_endo(mC, hom(M, q, mq; check = false))
-      set_attribute!(q, :center_endo => mF)
-      append!(H, split_into_homogenous(q))
-      return H
+      set_attribute!(k, :get_center_endo => x->restrict_endo(mC, mk)[2])
+      if has_attribute(M, :endo)
+        set_attribute!(k, :get_endo => x -> restrict_endo(get_attribute(M, :endo), mk)[2])
+      end
+#      if degree(p) > 1 #can we use it to split over this extension?
+#        set_attribute!(k, :split =>(p, b, mC))
+#      end
+#      q, mq = quo(M, mk.module_map)
+#      @assert dim(q) > 0 && dim(k) > 0
+#      _, mF = restrict_endo(mC, mk)
+#      set_attribute!(k, :center_endo => mF)
+      push!(H, k)
+#      append!(H, split_into_homogenous(k))
+#      _, mF = proj_endo(mC, hom(M, q, mq; check = false))
+#      set_attribute!(q, :center_endo => mF)
+#      append!(H, split_into_homogenous(q))
+#      return H
     end
+    return H
   end
   return H
 end
+
+#= Example
+  G = transitive_group(11, 6)
+  X = character_table(G)
+  c = Oscar.GModuleFromGap.gmodule_new(X[6])
+
+  depending on strategy:
+    there are elements in the center where the minpoly has too small degree
+    then the resulting modules are not irreducible
+  if we search for elements with maximal degree minpoly, then indeed the 
+      resulting kernels are irr.
+  but the search might be longer...
+
+=#  
+
 
 function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   F = free_module(K, dim(M))
@@ -2664,6 +2804,56 @@ end
 function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   return map(matrix, action(C))
 end
+
+function reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}}, a::ZZMatrix, act::Function)
+  G = group(C)
+  I = one(G)
+  de = ZZ(1)
+  iter = []
+  for x = gens(G)
+    push!(iter, [x])
+    l = 1
+    while !is_one(iter[end][end])
+      push!(iter[end], iter[end][1]*iter[end][end])
+      l += 1
+    end
+    @assert length(iter[end]) == l
+    @assert is_one(iter[end][end])
+    de *= l
+  end
+  for i=1:-4
+    l = rand(G)
+    is_one(l) && continue 
+
+    push!(iter, [I, l])
+    de *= 2
+  end
+
+  Iter = [[act(x) for x = i] for i = iter]
+ 
+  den = ZZ(1)
+  for i=1:70
+     for D = Iter
+       a = sum(t(a) for t = D)
+     end
+    den *= de
+    @show nbits(den), maximum(nbits, a)
+    aa = a*QQ(order(C.G), den)
+#    @assert is_positive_definite(aa)
+    aa = map_entries(x->abs(x-round(x)), aa)
+#    @show [nbits(denominator(x)) for x = convergents(continued_fraction(aa[10,10]))]
+    @show maximum(aa)*1.0
+    if maximum(aa) < 1e-5
+      a = map_entries(x->round(ZZRingElem, QQ(x*order(C.G), den)), a)
+      if any(x->act(x)(a) != a, gens(G))
+        @show :bad
+        continue
+      end
+      return a
+    end
+  end
+end
+
 
 function form_reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
   I = identity_matrix(ZZ, rank(C.M))
