@@ -4,7 +4,7 @@
 #
 #######################################
 
-Base.:-(apre::ActionPolyRingElem) = parent(apre)(-apre.p)
+Base.:-(apre::ActionPolyRingElem) = parent(apre)(-__poly(apre))
 
 #######################################
 #
@@ -14,27 +14,27 @@ Base.:-(apre::ActionPolyRingElem) = parent(apre)(-apre.p)
 
 function Base.:+(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.p + apre2.p)
+  return parent(apre1)(__poly(apre1) + __poly(apre2))
 end
 
 function Base.:-(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.p - apre2.p)
+  return parent(apre1)(__poly(apre1) - __poly(apre2))
 end
 
 function Base.:*(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.p * apre2.p)
+  return parent(apre1)(__poly(apre1) * __poly(apre2))
 end
 
 function Base.:/(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(apre1.p / apre2.p)
+  return parent(apre1)(__poly(apre1) / __poly(apre2))
 end
 
 function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElem}
   check_parent(apre1, apre2)
-  return parent(apre1)(divexact(apre1.p, apre2.p))
+  return parent(apre1)(divexact(__poly(apre1), __poly(apre2)))
 end
 
 #######################################

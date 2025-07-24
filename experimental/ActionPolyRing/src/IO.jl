@@ -31,5 +31,5 @@ end
 
 function Base.show(io::IO, apre::ActionPolyRingElem)
   io = pretty(io)
-  show(io, apre.p)
+  show(io, __poly(apre))
 end
