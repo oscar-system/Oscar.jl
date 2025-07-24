@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Families of Spaces
+# [Families of Spaces](@id family_of_spaces)
 
 Many F-theory constructions (e.g. in the literature) work without fully specifying
 the base space of the elliptic fibrations. Put differently, those works consider
