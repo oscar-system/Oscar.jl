@@ -161,12 +161,12 @@ Multivariate polynomial ring in 3 variables over QQ graded by
 ```
 
 Grading an already graded polynomial ring is not supported.
-To produce a new ring with different grading, you need to first
-call `forget_grading` and then `grade` the result.
 ```jldoctest grade-ex
 julia> grade(S)
 ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
 ```
+To produce a new ring with different grading, you need to first
+call `forget_grading` and then `grade` the result.
 """
 function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
