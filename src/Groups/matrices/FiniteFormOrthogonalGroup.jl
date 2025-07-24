@@ -1159,7 +1159,7 @@ function _stabilizer_isotropic_semiregular(N::TorQuadModule, p, rank)
     H = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
     res = [(H, sub(O,AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen]))]
   else 
-    res = Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}[]
+    res = Tuple{Tuple{TorQuadModule,TorQuadModuleMap},Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}}[]
   end
   
   if p==2 && nrows(G)>=2 && isodd(G[end,end]) && isodd(G[end-1,end-1]) && mod(G[end,end] + G[end-1,end-1],4)==0 && r<=witt_index+1
@@ -1272,7 +1272,7 @@ function _stabilizer_isotropic_semiregular_special( p, r, G, flag=false)
   n = nrows(G)
   extra = 0 
   if 2*r<n && G[2*r+1,2*r+1] == 2 
-    if isodd(n) || G[2*r+2,2*r+1]==0
+    if 2*r +2 <= n && G[2*r+2,2*r+1]==0
       extra = 1
     end 
   end 
@@ -1281,14 +1281,13 @@ function _stabilizer_isotropic_semiregular_special( p, r, G, flag=false)
   if extra==1
     G_2 = G_1[2:end,2:end]
   end
-  display(G)
   
     
   # f_1: O(V)_{H}->>O(H)
   # lifts of generators of O(H)
   e = count(isodd, lift.(diagonal(G)))
   R = ZZ
-  S = _stabilizer_max_isotropic_nU(r, p)
+  S = _stabilizer_max_isotropic_nU(r, Int(p))
   if n==2*r  # corner case G_1 =0  
     return S 
   end 
@@ -1387,7 +1386,6 @@ function _test_isotropic_stabilizer_orders(T::TorQuadModule,r,p)
   for ((H,iH),(S,iS)) in _stabilizer_isotropic(T,r,p)
     n1 = order(S)
     n2 = order(_stabilizer(G, H)[1])
-    @show n1, n2
     @assert n1==n2
   end
 end
@@ -1408,4 +1406,32 @@ function _stabilizer(G::AutomorphismGroup, T::TorQuadModule)
   return stabilizer(G, Tgap, on_subgroups)
 end 
 
-
+function _isotropic_subspaces_representatives(T::TorQuadModule,iG, rank::Int)
+  b, p= is_elementary_with_prime(T)
+  @req b "must be elementary"
+  dcs = _stabilizer_isotropic(T, rank, p)
+  O = orthogonal_group(T)
+  to_perm = isomorphism(PermGroup,O)
+  Op,to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
+  to_perm = compose(to_perm,to_perm2)
+  G = domain(iG)
+  Op = codomain(to_perm)
+  Gp,_ = compose(iG,to_perm)(G)
+  #@time Gp,_ = sub(Gp,small_generating_set(Gp))
+  @show order(Op)
+  @show order(Gp)
+  representatives = []
+  for ((H,iH),(S,iS)) in dcs 
+    Sp,_ = to_perm(S)
+    #@time Sp,_ = sub(Sp,small_generating_set(Sp))
+    @show order(Sp)
+    println("computing double cosets")
+    dc = double_cosets(Op, Sp, Gp)
+    for SxG in dc  
+      xp = representative(SxG)
+      x = preimage(to_perm,xp)
+      push!(representatives, on_subgroups_slow(H,x))
+    end 
+  end
+  return representatives
+end 
