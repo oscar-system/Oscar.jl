@@ -95,7 +95,7 @@ Map
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//9]));
 
 julia> OT = orthogonal_group(T)
-Orthogonal group of
+Group of isometries of
   finite quadratic module: Z/3 x Z/9 -> Q/2Z
 with 3 generators
 
@@ -229,17 +229,17 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
   io = pretty(io)
-  println(io, "Orthogonal group of", Indent())
+  println(io, "Group of isometries of", Indent())
   println(io, Lowercase(), OT.G)
   print(io, Dedent(), "with ", ItemQuantity(ngens(OT), "generator"))
 end
                                                                                                                                                                                         
 function Base.show(io::IO, OT::AutomorphismGroup{TorQuadModule})
   if is_terse(io)
-    print(io, "Orthogonal group")
+    print(io, "Group of isometries")
   else
     io = pretty(io)
-    print(io, "Orthogonal group of ", Lowercase(), OT.G)
+    print(io, "Group of isometries of ", Lowercase(), OT.G)
   end
 end 
 
@@ -253,7 +253,7 @@ Return a matrix inducing `f`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//12 0; 0 2//9]));
 
 julia> OT = orthogonal_group(T)
-Orthogonal group of
+Group of isometries of
   finite quadratic module: Z/3 x Z/36 -> Q/2Z
 with 4 generators
 
@@ -331,7 +331,7 @@ Gram matrix quadratic form:
 [1//2   3//4]
 
 julia> OT = orthogonal_group(T)
-Orthogonal group of
+Group of isometries of
   finite quadratic module: (Z/4)^2 -> Q/2Z
 with 2 generators
 
@@ -561,7 +561,7 @@ Gram matrix quadratic form:
 [4//15]
 
 julia> OT = orthogonal_group(T)
-Orthogonal group of
+Group of isometries of
   finite quadratic module: Z/15 -> Q/2Z
 with 2 generators
 
@@ -605,7 +605,7 @@ of the codomain of `i`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
-Orthogonal group of
+Group of isometries of
   finite quadratic module: Z/15 -> Q/2Z
 with 2 generators
 
@@ -615,7 +615,7 @@ Map
   to finite quadratic module: Z/15 -> Q/2Z
 
 julia> S, _ = stabilizer(OT, T3inT)
-(Orthogonal group of finite quadratic module: Z/15 -> Q/2Z, Hom: orthogonal group -> orthogonal group)
+(Group of isometries of finite quadratic module: Z/15 -> Q/2Z, Hom: group of isometries -> group of isometries)
 
 julia> order(S)
 4
