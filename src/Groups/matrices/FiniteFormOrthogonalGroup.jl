@@ -1058,6 +1058,148 @@ end
 ######################################################################################
 
 
+function _stabilizer_isotropic(T, rank, p)
+  @assert is_primary(T, p)
+  O = orthogonal_group(T)
+  N, toN = normal_form(T)
+  # Now we need to lift the subspaces
+  # since we are primary the kernel splits i.e. T = K \oplus R
+  # then the orbit of an isotropic subspace H is determined by
+  # the O(N) orbit of H/(H+K) and rank(H\cap K)
+  
+  # choose a section
+  RtoT = hom(N,T,[preimage(toN,i) for i in gens(N)])
+  K,iK = radical_quadratic(T)
+  K, i = snf(K)
+  iK = compose(i,iK)
+  k = length(elementary_divisors(K))
+  r = length(elementary_divisors(N))
+  idK = identity_matrix(ZZ,k)
+  idR = identity_matrix(ZZ,r)
+  idKR = identity_matrix(ZZ,k+r)
+  result = Tuple{Tuple{TorQuadModule, TorQuadModuleMap}, Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}}[] #bloody abomination
+  basis_KR = vcat([iK(K[i]) for i in 1:k], [RtoT(i) for i in gens(N)])
+  BKR = reduce(vcat,i.data.coeff for i in basis_KR)
+  BKRi = map_entries(i->lift(ZZ,i),inv(GF(p).(BKR)))
+  for kH in 0:min(rank,k)
+    for ((HR,iHR),(SR,iSR)) in _stabilizer_isotropic_semiregular(N, p, rank-kH)
+      _, iCR = has_complement(iHR)
+      CR,i = snf(domain(iCR))
+      iCR = compose(i,iCR)
+      gensH = vcat(TorQuadModuleElem[iK(K[i]) for i in 1:kH],TorQuadModuleElem[RtoT(iHR(i)) for i in gens(HR)])
+      rH = ngens(HR)
+      H = sub(T,gensH)
+      adapted_basis = vcat([iK(K[i]) for i in 1:k], [RtoT(iHR(i)) for i in gens(HR)], [RtoT(iCR(i)) for i in gens(CR)])
+      @assert all(parent(i)===T for i in adapted_basis)
+      B = reduce(vcat,i.data.coeff for i in adapted_basis)
+      Bp = GF(p).(B)
+      Bi = map_entries(i->lift(ZZ,i),inv(Bp))
+      gensStabH = ZZMatrix[]
+      if kH>0
+        tmp = ZZMatrix[map_entries(i->lift(ZZ,i),matrix(g)) for g in gens(GL(kH,p))]
+        idkHC = identity_matrix(ZZ,k-kH)
+        append!(gensStabH, [diagonal_matrix([g, idkHC, idR]) for g in tmp])
+      end 
+      if kH < k
+        append!(gensStabH, [diagonal_matrix([identity_matrix(ZZ,kH),map_entries(i->lift(ZZ,i),matrix(g)), idR]) for g in gens(GL(k-kH,p))])
+      end
+      if kH<k
+        # one is enough because of the two GL actions
+        s = deepcopy(idKR)
+        s[kH + 1, 1]=1
+        push!(gensStabH, s)
+      end
+      if kH>0
+        for i in k+1:k+r
+          s = deepcopy(idKR)
+          s[i, 1] = 1
+          push!(gensStabH, s)
+        end
+      end
+      if kH<k
+        for i in k+rH+1:k+r
+          s = deepcopy(idKR)
+          s[i, kH+1] = 1
+          push!(gensStabH, s)
+        end
+      end
+      # transform to the basis of T
+      G = gram_matrix_quadratic(T)
+      gensStabH = ZZMatrix[Bi*s*B for s in gensStabH]
+      gensSR_T = [BKRi*diagonal_matrix([idK, matrix(s)])*BKR for s in gens(SR)]
+      append!(gensStabH, gensSR_T)
+        
+      push!(result, (H, sub(O,AutomorphismGroupElem{TorQuadModule}[O(i) for i in gensStabH])))
+    end
+  end
+  @assert all(all(H==on_subgroups_slow(H,s) for s in gens(S[1])) for ((H,_),S) in result)
+  return result 
+end
+
+
+function _stabilizer_isotropic_semiregular(N::TorQuadModule, p, rank)
+  @assert is_primary(N, p)
+  @assert is_semi_regular(N)
+  @assert gram_matrix_quadratic(N) == gram_matrix_quadratic(normal_form(N)[1])
+  
+  r = rank
+  O = orthogonal_group(N)
+  G = ZZ.(p*gram_matrix_quadratic(N))
+  if p == 2
+    R,_ = residue_ring(ZZ, 4)
+  else
+    R,_ = residue_ring(ZZ, p)
+  end
+  GR = R.(G)
+  is_regular = !is_degenerate(N)
+  witt_index = divexact(count(iszero,diagonal(G)),2)
+  
+  if r<=witt_index
+    B, stab_gen = _stabilizer_isotropic_semiregular(GR, r, p, false, is_regular)
+    H = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
+    res = [(H, sub(O,AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen]))]
+  else 
+    res = Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}[]
+  end
+  
+  if p==2 && nrows(G)>=2 && isodd(G[end,end]) && isodd(G[end-1,end-1]) && mod(G[end,end] + G[end-1,end-1],4)==0 && r<=witt_index+1
+    B2, stab_gen2 = _stabilizer_isotropic_semiregular(GR, r-1, 2, true, is_regular)
+    H2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
+    push!(res, (H2, sub(O,AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen2])))
+  end
+  @assert all(all(H==on_subgroups_slow(H,s) for s in gens(S[1])) for ((H,_),S) in res)
+  @assert all(is_totally_isotropic(H) for ((H,_),S) in res)
+  return res
+end
+  
+ 
+function _stabilizer_isotropic_semiregular(G, r, p, flag, is_regular)
+  if !is_regular
+    # 2 0 
+    # 0 G 
+    # and G is regular
+    n = nrows(G)
+    E = identity_matrix(ZZ,n)
+    T = zero_matrix(ZZ,n,n)
+    if !is_regular 
+      T[1:2*r,:] = E[2:2*r+1,:]
+      T[2*r+1:2*r+1,:] = E[1:1,:]
+      T[2*r+2:end,:] = E[2*r+2:end,:]
+    else
+      T = E 
+    end 
+    Ti = inv(T)
+    
+    G2 = T*G*transpose(T)
+    B, S = _stabilizer_isotropic_regular(G2,r, p, flag)
+    stab = ZZMatrix[Ti*s*T for s in S]
+    B = B*T
+    return B,stab    
+  else 
+    return _stabilizer_isotropic_regular(G, r, p, flag)  
+  end 
+end 
+  
 # 0 I 
 # I 0
 function _stabilizer_max_isotropic_nU(n, p)
@@ -1085,38 +1227,12 @@ function _stabilizer_max_isotropic_nU(n, p)
   return gensStab
 end 
 
-function _stabilizer_isotropic(T::TorQuadModule, p, rank)
-  @assert is_primary(T, p)
-  r = rank
-  N, toN = normal_form(T)
-  O = orthogonal_group(N)
-  G = ZZ.(p*gram_matrix_quadratic(N))
-  if p == 2
-    R,_ = residue_ring(ZZ, 4)
-  else
-    R,_ = residue_ring(ZZ, p)
-  end
-  GR = R.(G)
-  B, stab_gen = _stabilizer_isotropic(GR, r, p, false)
-  H = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
-    
-  res = [(H, sub(O,O.(stab_gen)))]
-  
-  if p==2 && nrows(G)>=2 && isodd(G[end,end]) && isodd(G[end-1,end-1]) && mod(G[end,end] + G[end-1,end-1],4)==0
-    B2, stab_gen2 = _stabilizer_isotropic(GR, r-1, 2, true)
-    H2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
-    push!(res, (H2, sub(O,O.(stab_gen2))))
-  end
-  @hassert :IsotropicStabilizer 1 all(all(H==on_subgroups_slow(H,s) for s in gens(S[1])) for ((H,_),S) in res)
-  return res
-end
-
 # Transforms G_normal_form to
 # 0 I 0
 # I 0 0
 # 0 0 G
 # and then computes the stabilizer
-function _stabilizer_isotropic(G_normal_form, r::Int, p, flag)
+function _stabilizer_isotropic_regular(G_normal_form, r::Int, p, flag)
   @assert !flag || p==2
   k = ZZ
   G = G_normal_form
@@ -1131,36 +1247,59 @@ function _stabilizer_isotropic(G_normal_form, r::Int, p, flag)
   end
   Binv = inv(B)
   s = 2*r+1
-  gensStab = _stabilizer_isotropic_semiregular_special(n, p, r, G[s:end,s:end],flag)
+  gensStab = _stabilizer_isotropic_semiregular_special(p, r, G,flag)
   #return gensStab, B
   gensStab = [Binv*i*B for i in gensStab]
   Hbasis = B[1:r,:]
   if flag 
-    Hbasis = vcat(Hbasis,B[end:end,:]+B[end-1:end-1,:])
+    if G[end,end]!=2
+      Hbasis = vcat(Hbasis,B[end:end,:]+B[end-1:end-1,:])
+    else 
+      Hbasis = vcat(Hbasis,B[end-2:end-2,:]+B[end-1:end-1,:])
+    end
   end
   return Hbasis, gensStab
 end 
 
 # I = r x r identity matrix
-# 0 I 0
-# I 0 0
-# 0 0 G
+# G = 
+# [0  I  0  ]
+# [I  0  0  ]
+# [0  0  G_1]
 # if flag is false, then H is the span of the first r standard basis vectors 
 # if flag is true (requires p==2) and the characteristic vector v is isotropic, then H is the span of the first r standard basis vectors and v
-function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
+function _stabilizer_isotropic_semiregular_special( p, r, G, flag=false)
+  n = nrows(G)
+  extra = 0 
+  if 2*r<n && G[2*r+1,2*r+1] == 2 
+    if isodd(n) || G[2*r+2,2*r+1]==0
+      extra = 1
+    end 
+  end 
+  G_1 = G[2*r+1:end,2*r+1:end]
+  G_2 = G_1
+  if extra==1
+    G_2 = G_1[2:end,2:end]
+  end
+  display(G)
+  
+    
   # f_1: O(V)_{H}->>O(H)
   # lifts of generators of O(H)
   e = count(isodd, lift.(diagonal(G)))
   R = ZZ
   S = _stabilizer_max_isotropic_nU(r, p)
-  k = n-2*r
+  if n==2*r  # corner case G_1 =0  
+    return S 
+  end 
+  k = n-2*r-extra
   Ik = identity_matrix(R, k)
-  S1 = [diagonal_matrix([s,Ik]) for s in S]
+  S1 = [diagonal_matrix([s,identity_matrix(R, k+extra)]) for s in S]
   # now generators of the kernel O(V)_H of f_1
   # f_2: O(V)_H->> O(H^\perp/H)
   # lifts of the image O(H^\perp/H)
   I2r = identity_matrix(R, 2*r)
-  tmp = [diagonal_matrix([I2r, lift.(f)]) for f in Oscar._orthogonal_grp_quadratic(G)]
+  tmp = [diagonal_matrix([I2r, lift.(f)]) for f in _gens_mod_2(G_1)]
   append!(S1, tmp)
   # Generators of the kernel of f_2
   # look like this 
@@ -1168,8 +1307,8 @@ function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
   # A I B 
   # S 0 I
   # then squeeze out some linear equations
-  Gp = lift.(G)
-  Gp_inv = lift.(inv(G))
+  G_2p = lift.(G_2)
+  G_2p_inv = lift.(inv(G_2))
   tmp = ZZMatrix[]
   if r > 0  # avoid a corner case
     for i in 1:(k-e) 
@@ -1179,17 +1318,17 @@ function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
       S[i,1] = 1
       push!(tmp, S)
     end 
-    if e == 2 
+    if e == 2
+      S = zero_matrix(R, k, r)
       S[k-1, 1] = 1
       S[k, 1] = 1
-      S = zero_matrix(R, k, r)
       push!(tmp ,S)
     end
   end
   
   for S in tmp 
-    B = -transpose(S)*Gp_inv
-    T = B*Gp*transpose(B)
+    B = -transpose(S)*G_2p_inv
+    T = B*G_2p*transpose(B)
     A = zero_matrix(R,r,r)
     # solve A^t+A = T
     for i in 1:r
@@ -1200,9 +1339,17 @@ function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
     end
     
     Ir = identity_matrix(R,r)
-    g = [Ir 0*Ir zero_matrix(R, r, k); 
-    A  Ir  B;
-    S zero_matrix(R, k,r) identity_matrix(R,k)]
+    if extra ==1
+      g = [
+    Ir 0*Ir zero_matrix(R, r, 1) zero_matrix(R, r, k); 
+    A  Ir   zero_matrix(R, r, 1) B;
+    zero_matrix(R,1,r) zero_matrix(R,1,r) R[1;] zero_matrix(R,1,k)
+    S zero_matrix(R, k,r) R[0;]  identity_matrix(R,k)]
+    else 
+      g = [Ir 0*Ir zero_matrix(R, r, k); 
+      A  Ir  B;
+      S zero_matrix(R, k,r) identity_matrix(R,k)]
+    end 
     push!(S1,g)
   end
   if flag
@@ -1212,7 +1359,18 @@ function _stabilizer_isotropic_semiregular_special(n, p, r, G, flag=false)
     S[end-1, r+1] = 1
     S[end, r+1] = 1
     push!(S1, S)
-  end 
+  end
+  if extra==1 && r>0
+    S = identity_matrix(ZZ, n)
+    S[r+1,2*r+1]=1
+    S[r+1, 1]=1
+    push!(S1,S)
+  end
+#   @show extra
+#   for s in S1 
+#     display(s*G*transpose(s)-G)
+#     println()
+#   end
   return S1
 end
 
@@ -1223,4 +1381,31 @@ function on_subgroups_slow(T::TorQuadModule, g::GAPGroupElem)
   gensT = D.(lift.(gens(T)))
   return sub(D, g.(gensT))[1]
 end 
+
+function _test_isotropic_stabilizer_orders(T::TorQuadModule,r,p)
+  G = orthogonal_group(T)
+  for ((H,iH),(S,iS)) in _stabilizer_isotropic(T,r,p)
+    n1 = order(S)
+    n2 = order(_stabilizer(G, H)[1])
+    @show n1, n2
+    @assert n1==n2
+  end
+end
+
+function _stabilizer(G::AutomorphismGroup, j::TorQuadModuleMor)
+  to_gap = get_attribute(G,:to_gap)
+  Dgap = codomain(to_gap)
+  T = domain(j)
+  Tgap = sub(Dgap, to_gap.(j.(gens(T))))[1]
+  return stabilizer(G, Tgap, on_subgroups)
+end 
+
+function _stabilizer(G::AutomorphismGroup, T::TorQuadModule)
+  to_gap = get_attribute(G,:to_gap)
+  D = domain(G)
+  Dgap = codomain(to_gap)
+  Tgap = sub(Dgap, to_gap.(D.(lift.(gens(T)))))[1]
+  return stabilizer(G, Tgap, on_subgroups)
+end 
+
 
