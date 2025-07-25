@@ -1861,4 +1861,6 @@ end
     E3 = ext(M, graded_free_module(R, 1), 1 + 2)
     @test is_zero(E3)
     @test krull_dim(E3) == -inf
+
+    @test typeof(E2) == typeof(E3)
 end
