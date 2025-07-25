@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# [Functionality for all F-theory Models](@id functionality_for_all_f_theory_models)
+# [Common Model Ops](@id common_model_ops)
 
 All F-theory models describe elliptic (or genus-one) fibrations. While implementation details vary by
 model—e.g. [Weierstrass Model](@ref weierstrass_model), [Global Tate Model](@ref global_tate_model),
