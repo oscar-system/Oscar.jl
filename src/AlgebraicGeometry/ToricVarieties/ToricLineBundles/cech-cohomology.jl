@@ -13,7 +13,7 @@ Normal toric variety
 julia> l1 = toric_line_bundle(X, [1])
 Toric line bundle on a normal toric variety
 
-julia> cech_cohomologies(l1)
+julia> cech_cohomologies(l1);
 
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal toric variety
@@ -21,7 +21,21 @@ Normal toric variety
 julia> l2 = toric_line_bundle(dP3, [-3,-2,-2,-2])
 Toric line bundle on a normal toric variety
 
-julia> cech_cohomologies(l2)
+julia> cech_cohomologies(l2);
+
+julia> v = dP3 * dP3
+Normal toric variety
+
+julia> l3 = toric_line_bundle(v, [-i for i in 1:8])
+Toric line bundle on a normal toric variety
+
+julia> all_cohomologies(l3)
+5-element Vector{ZZRingElem}:
+ 0
+ 0
+ 196
+ 119
+ 0
 ```
 """
 function cech_cohomologies(tl::ToricLineBundle)
@@ -47,7 +61,8 @@ function cech_cohomologies(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Length
-  cech_length = n_maximal_cones(X)
+  #cech_length = n_maximal_cones(X)
+  cech_length = dim(X)
 
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
@@ -110,6 +125,7 @@ function cech_cohomologies(tl::ToricLineBundle)
   end
 
   # Append one final map to zero. Why is this needed?
+  cech_complexes[cech_length+1] = FreeMod(QQ, 0)
   cech_complex_maps[cech_length+1] = matrix(QQ, zeros(QQ, rank(cech_complexes[cech_length+1]), 0))
 
   # Return the result
@@ -137,7 +153,8 @@ function cech_cohomologies2(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Length
-  cech_length = n_maximal_cones(X)
+  #cech_length = n_maximal_cones(X)
+  cech_length = dim(X)
 
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
@@ -145,7 +162,8 @@ function cech_cohomologies2(tl::ToricLineBundle)
   cech_complexes = Vector{FreeMod}(undef, cech_length+1)
   comb_dict = Dict(); d_k = 0
 
-  for k in 0:cech_length
+  #for k in 0:cech_length
+  for k in 0:1
     polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
     combs = collect(combinations(n_maximal_cones(X), k+1))
     for i in 1:length(combs)
