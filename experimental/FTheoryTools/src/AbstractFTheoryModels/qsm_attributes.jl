@@ -66,26 +66,8 @@ julia> estimated_number_of_triangulations(qsm_model)
 """, "See [Underlying Polytope](@ref qsm_polytope) for more details.")
 
 
-
 ######################################################################
-# (2) Topological properties
-######################################################################
-
-@define_model_attribute_getter((kbar3, Int),
-"""
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-Hypersurface model over a concrete base
-
-julia> kbar3(qsm_model)
-6
-```
-""", "See [Topological Data of a `QSM`](@ref qsm_top_data) for more details.", Kbar3)
-
-
-
-######################################################################
-# (3) Attributes regarding the Ci-curves
+# (2) Attributes regarding the Ci-curves
 ######################################################################
 
 @define_model_attribute_getter((genera_of_ci_curves, Dict{MPolyDecRingElem, Int64}),
@@ -174,9 +156,8 @@ julia> n_columns(topological_intersection_numbers_among_nontrivial_ci_curves(qsm
 """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", intersection_number_among_nontrivial_ci_cj)
 
 
-
 ######################################################################
-# (4) Attributes regarding the dual graph
+# (3) Attributes regarding the dual graph
 ######################################################################
 
 @define_model_attribute_getter((dual_graph, Graph{Undirected}),
@@ -249,7 +230,7 @@ julia> genera_of_components_of_dual_graph(qsm_model)["C28-1"]
 
 
 ######################################################################
-# (5) Attributes regarding the simplified dual graph
+# (4) Attributes regarding the simplified dual graph
 ######################################################################
 
 @define_model_attribute_getter((simplified_dual_graph, Graph{Undirected}),

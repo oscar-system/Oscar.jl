@@ -33,12 +33,7 @@ is_base_space_fully_specified(m::AbstractFTheoryModel)
 
 ---
 
-## Topological Invariants: Chern Classes and Hodge Numbers
-
-This section provides access to key topological data of the elliptically fibered Calabi–Yau space underlying
-any F-theory model.
-
-### Chern Classes and Euler Characteristic
+## Chern Classes and Euler Characteristic
 
 The Chern classes of the variety can be computed—or retrieved if precomputed (e.g. in
 [Literature Models](@ref literature_models))—using:
@@ -60,7 +55,9 @@ The Euler characteristic is obtained by integrating the top Chern class:
 euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
-### [Hodge Numbers](@id non_yet_algorithmic_advanced_attributes)
+---
+
+## [Hodge Numbers](@id non_yet_algorithmic_advanced_attributes)
 
 Hodge numbers are essential topological invariants of Calabi–Yau spaces. While not yet (July 2025)
 computed algorithmically, they are stored for certain [Literature Models](@ref literature_models)
@@ -80,6 +77,19 @@ If Hodge numbers are available, they can be used to verify the Euler characteris
 ```@docs
 verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
 ```
+
+---
+
+## [Base Intersection Numbers](@id base_top_data)
+
+The following method returns the triple self-intersection number of the anticanonical class
+``\overline{K}_{B_3}`` of the 3-dimensional base:
+
+```@docs
+kbar3(m::AbstractFTheoryModel)
+```
+
+This number is of ample importance to the F-theory QSMs introduced in [CHLLT19](@cite).
 
 ---
 
