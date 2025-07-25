@@ -11,29 +11,17 @@ Return the hypersurface equation of the hypersurface model.
 
 # Examples
 ```jldoctest
-julia> b = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> kb = anticanonical_divisor_class(b);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> D1 = 2 * anticanonical_divisor_class(b)
-Divisor class on a normal toric variety
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D2 = 3 * anticanonical_divisor_class(b)
-Divisor class on a normal toric variety
+julia> p = "x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3 * x * y * z";
 
-julia> new_gens = string.(vcat(gens(cox_ring(b)), gens(cox_ring(fiber_ambient_space))));
-
-julia> ambient_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, new_gens, cached=false)
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z
-x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
-
-julia> h = hypersurface_model(b, fiber_ambient_space, [D1, D2], p; completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation(h)
@@ -88,35 +76,26 @@ between the two models.
 
 # Examples
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> kb = anticanonical_divisor_class(b);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> D1 = 2 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D2 = 3 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3";
 
-julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
-
-julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(B2));
+julia> x1, x2, x3 = gens(cox_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
 julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
-julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+julia> w = weierstrass_model(b, weier_f, weier_g; completeness_check = false)
 Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
@@ -155,31 +134,20 @@ between the two models.
 
 # Examples
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> x1, x2, x3 = gens(cox_ring(B2));
+julia> kb = anticanonical_divisor_class(b);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D1 = 2 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3";
 
-julia> D2 = 3 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
-
-julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
-
-julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(B2));
+julia> x1, x2, x3 = gens(cox_ring(b));
 
 julia> a1 = 13 * x3^3;
 
@@ -189,9 +157,9 @@ julia> a3 = x1^2 * x2^4 * x3^3;
 
 julia> a4 = x1^3 * (x2 + x3)^9;
 
-julia> a6 = zero(cox_ring(B2));
+julia> a6 = zero(cox_ring(b));
 
-julia> t = global_tate_model(B2, [a1, a2, a3, a4, a6])
+julia> t = global_tate_model(b, [a1, a2, a3, a4, a6])
 Global Tate model over a concrete base
 
 julia> set_global_tate_model(h, t)
@@ -238,29 +206,17 @@ as a closed subvariety of its toric ambient space.
 
 # Examples
 ```jldoctest
-julia> b = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> kb = anticanonical_divisor_class(b);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> D1 = 2 * anticanonical_divisor_class(b)
-Divisor class on a normal toric variety
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D2 = 3 * anticanonical_divisor_class(b)
-Divisor class on a normal toric variety
+julia> p = "x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z";
 
-julia> new_gens = string.(vcat(gens(cox_ring(b)), gens(cox_ring(fiber_ambient_space))));
-
-julia> ambient_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, new_gens, cached=false)
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z
-x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
-
-julia> h = hypersurface_model(b, fiber_ambient_space, [D1, D2], p; completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
 julia> calabi_yau_hypersurface(h)
@@ -291,35 +247,26 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
 
 # Examples
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> kb = anticanonical_divisor_class(b);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> D1 = 2 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D2 = 3 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3";
 
-julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
-
-julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(B2));
+julia> x1, x2, x3 = gens(cox_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
 julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
-julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+julia> w = weierstrass_model(b, weier_f, weier_g; completeness_check = false)
 Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
@@ -353,35 +300,26 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
 
 # Examples
 ```jldoctest
-julia> B2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> b = projective_space(NormalToricVariety, 2);
 
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal toric variety
+julia> kb = anticanonical_divisor_class(b);
 
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
 
-julia> D1 = 2 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
 
-julia> D2 = 3 * anticanonical_divisor_class(B2)
-Divisor class on a normal toric variety
+julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3";
 
-julia> amb_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, ["x1", "x2", "x3", "x", "y", "z"])
-(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
-
-julia> p = x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y*z - x1^2*x2^4*x3^3*y*z^3;
-
-julia> h = hypersurface_model(B2, fiber_ambient_space, [D1, D2], p, completeness_check = false)
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(B2));
+julia> x1, x2, x3 = gens(cox_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
 julia> weier_g = 1//864*(216*x1^4*x2^8*x3^6 + (28*x1*x2^5 + 169*x3^6)^3 - 36*(28*x1*x2^5 + 169*x3^6)*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
-julia> w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
+julia> w = weierstrass_model(b, weier_f, weier_g; completeness_check = false)
 Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
