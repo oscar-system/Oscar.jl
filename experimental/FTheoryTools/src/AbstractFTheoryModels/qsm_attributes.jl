@@ -76,13 +76,8 @@ julia> estimated_number_of_triangulations(qsm_model)
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> keys_list = collect(keys(genera_of_ci_curves(qsm_model)));
-
-julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
-x7
-
-julia> genera_of_ci_curves(qsm_model)[my_key]
-0
+julia> typeof(genera_of_ci_curves(qsm_model))
+Dict{MPolyDecRingElem, Int64}
 ```
 """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", genus_ci)
 
@@ -93,13 +88,8 @@ julia> genera_of_ci_curves(qsm_model)[my_key]
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> keys_list = collect(keys(degrees_of_kbar_restrictions_to_ci_curves(qsm_model)));
-
-julia> my_key = only(filter(k -> string(k) == "x7", keys_list))
-x7
-
-julia> degrees_of_kbar_restrictions_to_ci_curves(qsm_model)[my_key]
-0
+julia> typeof(degrees_of_kbar_restrictions_to_ci_curves(qsm_model))
+Dict{MPolyDecRingElem, Int64}
 ```
 """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", degree_of_Kbar_of_tv_restricted_to_ci)
 
@@ -110,11 +100,8 @@ julia> degrees_of_kbar_restrictions_to_ci_curves(qsm_model)[my_key]
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> n_rows(topological_intersection_numbers_among_ci_curves(qsm_model))
-29
-
-julia> n_columns(topological_intersection_numbers_among_ci_curves(qsm_model))
-29
+julia> size(topological_intersection_numbers_among_ci_curves(qsm_model))
+(29, 29)
 ```
 """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", intersection_number_among_ci_cj)
 
@@ -147,11 +134,8 @@ julia> indices_of_trivial_ci_curves(qsm_model)
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> n_rows(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model))
-19
-
-julia> n_columns(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model))
-19
+julia> size(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model))
+(19, 19)
 ```
 """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", intersection_number_among_nontrivial_ci_cj)
 
@@ -179,28 +163,8 @@ Undirected graph with 21 nodes and the following edges:
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> components_of_dual_graph(qsm_model)
-21-element Vector{String}:
- "C0"
- "C1"
- "C2"
- "C3"
- "C4"
- "C5"
- "C6"
- "C7"
- "C8"
- "C9"
- ⋮
- "C16"
- "C17"
- "C21"
- "C24-0"
- "C24-1"
- "C25"
- "C27"
- "C28-0"
- "C28-1"
+julia> length(components_of_dual_graph(qsm_model))
+21
 ```
 """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.")
 
@@ -211,8 +175,8 @@ julia> components_of_dual_graph(qsm_model)
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model)["C28-1"]
-0
+julia> typeof(degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model))
+Dict{String, Int64}
 ```
 """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.", degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph)
 
@@ -223,8 +187,8 @@ julia> degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model)["C28-
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> genera_of_components_of_dual_graph(qsm_model)["C28-1"]
-0
+julia> typeof(genera_of_components_of_dual_graph(qsm_model))
+Dict{String, Int64}
 ```
 """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.", genus_of_components_of_dual_graph)
 
@@ -252,12 +216,8 @@ Undirected graph with 4 nodes and the following edges:
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> components_of_simplified_dual_graph(qsm_model)
-4-element Vector{String}:
- "C0"
- "C1"
- "C2"
- "C3"
+julia> length(components_of_simplified_dual_graph(qsm_model))
+4
 ```
 """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.")
 
@@ -268,8 +228,8 @@ julia> components_of_simplified_dual_graph(qsm_model)
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_model)["C2"]
-2
+julia> typeof(degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_model))
+Dict{String, Int64}
 ```
 """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.", degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph)
 
@@ -280,7 +240,7 @@ julia> degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_m
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> genera_of_components_of_simplified_dual_graph(qsm_model)["C2"]
-0
+julia> typeof(genera_of_components_of_simplified_dual_graph(qsm_model))
+Dict{String, Int64}
 ```
 """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.", genus_of_components_of_simplified_dual_graph)

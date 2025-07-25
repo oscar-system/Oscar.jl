@@ -569,7 +569,7 @@ macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="", attr_
   default_doc = """
       $(fname)(m::AbstractFTheoryModel)
   
-  Return `$(fname)` of the F-theory model if known, otherwise throws an error.$doc_link_section$examples_section
+  Return `$(fname)` of the F-theory model if known, otherwise throw an error.$doc_link_section$examples_section
   """
 
   return quote

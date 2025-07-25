@@ -5,13 +5,10 @@ Return the base space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> w = weierstrass_model_over_projective_space(2);
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> base_space(m)
-Family of spaces of dimension d = 3
+julia> dim(base_space(w))
+2
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -27,13 +24,10 @@ Return the ambient space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> w = weierstrass_model_over_projective_space(2);
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> ambient_space(m)
-Family of spaces of dimension d = 5
+julia> dim(ambient_space(w))
+4
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)
@@ -49,19 +43,10 @@ Return the fiber ambient space of an F-theory model.
 
 # Examples
 ```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
+julia> w = weierstrass_model_over_projective_space(2);
 
-julia> w = torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> fiber_ambient_space(t)
-Normal toric variety
+julia> dim(fiber_ambient_space(w))
+2
 ```
 """
 function fiber_ambient_space(m::AbstractFTheoryModel)

@@ -107,11 +107,7 @@ Note: This interface is more symbolic and less robust than the constructors for 
 julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
-julia> auxiliary_base_grading = [4 6 1 0]
-1×4 Matrix{Int64}:
- 4  6  1  0
-
-julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
+julia> w = weierstrass_model(auxiliary_base_ring, [4 6 1 0], 3, f, g)
 Assuming that the first row of the given grading is the grading under Kbar
 
 Weierstrass model over a not fully specified base

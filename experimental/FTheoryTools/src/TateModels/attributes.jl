@@ -360,9 +360,6 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base
 
-julia> length(singular_loci(t))
-2
-
 julia> sort([k[2:3] for k in singular_loci(t)])
 2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
  ((0, 0, 1), "I_1")

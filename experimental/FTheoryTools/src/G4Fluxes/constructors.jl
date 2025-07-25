@@ -16,8 +16,6 @@ to skip these checks, which can improve performance or allow for exploratory com
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
-
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
