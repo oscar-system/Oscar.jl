@@ -6,45 +6,65 @@ DocTestSetup = Oscar.doctestsetup()
 
 # [Functionality for all F-theory Models](@id functionality_for_all_f_theory_models)
 
-All F-theory models focus on elliptic (or genus-one) fibrations. Details depend on the specific
-way in which the fibration is constructed/described. Still, some functionality is
-common among all or at least the majority of all supported models. We will document
-such common functionality here.
+All F-theory models describe elliptic (or genus-one) fibrations. While implementation details vary by
+model—e.g. [Weierstrass Model](@ref weierstrass_model), [Global Tate Model](@ref global_tate_model),
+[Hypersurface Model](@ref hypersurface_model), or [Literature Model](@ref literature_model)—a core set
+of functionality is shared across them. This page documents that common interface.
 
 ---
 
-## [Advanced Mathematical Attributes](@id non_algorithmic_advanced_attributes)
+## Model Geometry and Base Specification
 
-In addition, the following attributes are available to access advanced model information:
+These attributes describe the geometric building blocks of the F-theory model—its ambient space, fiber
+ambient space, and base.
 
 ```@docs
-resolutions(m::AbstractFTheoryModel)
-resolution_generating_sections(m::AbstractFTheoryModel)
-resolution_zero_sections(m::AbstractFTheoryModel)
-torsion_sections(m::AbstractFTheoryModel)
-weighted_resolutions(m::AbstractFTheoryModel)
-weighted_resolution_generating_sections(m::AbstractFTheoryModel)
-weighted_resolution_zero_sections(m::AbstractFTheoryModel)
-zero_section(m::AbstractFTheoryModel)
-zero_section_class(m::AbstractFTheoryModel)
-zero_section_index(m::AbstractFTheoryModel)
-exceptional_classes(m::AbstractFTheoryModel)
-exceptional_divisor_indices(m::AbstractFTheoryModel)
-generating_sections(m::AbstractFTheoryModel)
-gauge_algebra(m::AbstractFTheoryModel)
-global_gauge_group_quotient(m::AbstractFTheoryModel)
+ambient_space(m::AbstractFTheoryModel)
+base_space(m::AbstractFTheoryModel)
+fiber_ambient_space(m::AbstractFTheoryModel)
+```
+
+You can also check whether the base space is fully specified as a concrete geometry, or whether it is
+a [Families of Spaces](@ref family_of_spaces):
+
+```@docs
+is_base_space_fully_specified(m::AbstractFTheoryModel)
 ```
 
 ---
 
-## [Not Yet Computed Advanced Mathematical Attributes](@id non_yet_algorithmic_advanced_attributes)
+## Topological Invariants: Chern Classes and Hodge Numbers
 
-In principle, the following can be computed, but we do not compute
-them yet. So they are only currently available only if the information
-has been stored for a literature model.
+This section provides access to key topological data of the elliptically fibered Calabi–Yau space underlying
+any F-theory model.
 
-The following methods return the Hodge numbers of the elliptically
-fibered 4-fold that defines the F-theory model in question.
+### Chern Classes and Euler Characteristic
+
+The Chern classes of the variety can be computed—or retrieved if precomputed (e.g. in
+[Literature Models](@ref literature_models))—using:
+
+```@docs
+chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+```
+
+These classes allow for a consistency check on the Calabi–Yau condition:
+
+```@docs
+is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
+```
+
+The Euler characteristic is obtained by integrating the top Chern class:
+
+```@docs
+euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+```
+
+### [Hodge Numbers](@id non_yet_algorithmic_advanced_attributes)
+
+Hodge numbers are essential topological invariants of Calabi–Yau spaces. While not yet (July 2025)
+computed algorithmically, they are stored for certain [Literature Models](@ref literature_models)
+and can be accessed via:
 
 ```@docs
 hodge_h11(m::AbstractFTheoryModel)
@@ -53,15 +73,22 @@ hodge_h13(m::AbstractFTheoryModel)
 hodge_h22(m::AbstractFTheoryModel)
 ```
 
----
+Once algorithmic computation is implemented, these same functions will trigger it automatically.
 
-## Tuning Singularities
-
-Often, one may wish to start with an existing model and modify some of its parameters—specifically its
-*tunable sections*—to generate a different singularity structure. This is supported through the following
-method:
+If Hodge numbers are available, they can be used to verify the Euler characteristic independently:
 
 ```@docs
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+```
+
+---
+
+## Modifying or Instantiating Models
+
+These methods allow the user to modify tunable sections or instantiate a model over a concrete base.
+
+```@docs
+put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
 tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
 tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
 tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
@@ -69,39 +96,64 @@ tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_che
 
 ---
 
-## Printouts
+## [Zero Section](@id zero_section_data)
 
-The user can decide to get information whenever a family of spaces is being used.
-To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
-More information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+These following attributes specify the zero section both as a multivariate polynomial tuple and, when
+applicable, as a divisor class or coordinate ring variable index.
 
----
-
-## Attributes of all (or most) F-theory models
+Return the zero section of the given model. If no zero section is known, an error is raised. This information
+is not typically stored as an attribute for Weierstrass and global Tate models, whose zero sections are known.
 
 ```@docs
-ambient_space(m::AbstractFTheoryModel)
-base_space(m::AbstractFTheoryModel)
-fiber_ambient_space(m::AbstractFTheoryModel)
-chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
-chern_classes(m::AbstractFTheoryModel; check::Bool = true)
-euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+zero_section(::AbstractFTheoryModel)
+```
+
+Return the zero section class of a model as a cohomology class in the toric ambient space. If no zero section
+class is known, an error is raised. This information is always available for Weierstrass and global Tate models,
+whose zero section classes are known.
+
+```@docs
+zero_section_class(::AbstractFTheoryModel)
+```
+
+Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines
+the zero section of a model. If no zero section class is known, an error is raised. This attribute is always set
+simultaneously with zero_section_class. This information is always available for Weierstrass and global Tate models,
+whose zero section classes are known.
+
+```@docs
+zero_section_index(::AbstractFTheoryModel)
 ```
 
 ---
 
-## Properties of all (or most) F-theory models
+## [Mordell–Weil Group](@id mordell_weil_group_data)
+
+Returns the known generators and torsion sections of the Mordell–Weil group. This includes both sections
+visible in the original model and those that may arise after resolution.
 
 ```@docs
-is_base_space_fully_specified(m::AbstractFTheoryModel)
-is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
-verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+generating_sections(::AbstractFTheoryModel)
+torsion_sections(::AbstractFTheoryModel)
 ```
 
 ---
 
-## Methods for all (or most) F-theory models
+## [Gauge Group](@id gauge_group_data)
+
+Returns the (possibly reducible) gauge algebra and global gauge group structure. The gauge group is
+determined as a central quotient of the algebra, specified via known discrete identifications.
 
 ```@docs
-put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
+gauge_algebra(::AbstractFTheoryModel)
+```
+
+Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same
+index given by `gauge_algebra(m)`. These matrices are elements of the center of the corresponding gauge factor
+and quotienting by them replicates the action of some discrete group on the center of the lie algebra. This
+list combined with `gauge_algebra(m)` completely determines the gauge group of the model. If no gauge quotients
+are known, an error is raised.
+
+```@docs
+global_gauge_group_quotient(::AbstractFTheoryModel)
 ```

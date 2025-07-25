@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Families of Spaces
+# [Families of Spaces](@id family_of_spaces)
 
 Many F-theory constructions (e.g. in the literature) work without fully specifying
 the base space of the elliptic fibrations. Put differently, those works consider
@@ -33,3 +33,11 @@ dim(f::FamilyOfSpaces)
 irrelevant_ideal(f::FamilyOfSpaces)
 ideal_of_linear_relations(f::FamilyOfSpaces)
 ```
+
+---
+
+## Printouts
+
+The user can decide to get information whenever a family of spaces is being used.
+To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
+More information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).

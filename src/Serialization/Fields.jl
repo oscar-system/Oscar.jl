@@ -316,7 +316,7 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
                      parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
-  base = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
+  base = base_ring(parent_ring.fraction_field)
   coeff_type = elem_type(base)
 
   return load_node(s) do _

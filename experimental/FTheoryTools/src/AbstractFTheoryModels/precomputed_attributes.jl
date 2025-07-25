@@ -105,7 +105,6 @@ julia> exceptional_divisor_indices(foah11_B3)
 end
 
 
-# Return the gauge algebra of the given model. If no gauge algebra is known, an error is raised. This information is typically available for all models, however.
 @define_model_attribute_getter((gauge_algebra, DirectSumLieAlgebra{QQBarFieldElem}),
 """
 ```jldoctest
@@ -125,11 +124,9 @@ with summands
   linear Lie algebra
 over algebraic closure of rational field
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref gauge_group_data) for more details.")
 
 
-
-# Return a list of the known Mordell–Weil generating sections of the given model. If no generating sections are known, an error is raised.
 @define_model_attribute_getter((generating_sections, GeneratingSectionsType),
 """
 ```jldoctest
@@ -142,10 +139,9 @@ julia> generating_sections(m)
 1-element Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  [0, 0, 1]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref mordell_weil_group_data) for more details.")
 
 
-# Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`. These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra. This list combined with `gauge_algebra(m)` completely determines the gauge group of the model. If no gauge quotients are known, an error is raised.
 @define_model_attribute_getter((global_gauge_group_quotient, Vector{Vector{String}}),
 """
 ```jldoctest
@@ -162,10 +158,9 @@ julia> global_gauge_group_quotient(t)
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
  ["-identity_matrix(C,1)"]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref gauge_group_data) for more details.")
 
 
-# Return the list of all known resolutions for the given model. If no resolutions are known, an error is raised.
 @define_model_attribute_getter((resolutions, Vector{Tuple{Vector{Vector{String}}, Vector{String}}}),
 """
 ```jldoctest
@@ -178,10 +173,9 @@ julia> resolutions(m)
 1-element Vector{Tuple{Vector{Vector{String}}, Vector{String}}}:
  ([["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution. Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list associated to a given resolution corresponds to a known generating section (in the same order). If no resolution generating sections are known, an error is raised.
 @define_model_attribute_getter((resolution_generating_sections, ResolutionGeneratingSectionsType),
 """
 ```jldoctest
@@ -192,12 +186,11 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
+ [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, a43]]]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return a list of known Mordell–Weil zero sections for the given model after each blowup of each known resolution. Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are known, an error is raised.
 @define_model_attribute_getter((resolution_zero_sections, ResolutionZeroSectionsType),
 """
 ```jldoctest
@@ -210,10 +203,9 @@ julia> resolution_zero_sections(m)
 1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1], [1, 1], [1, 1], [1, 1]]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return the torsion sections of the given model. If no torsion sections are known, an error is raised.
 @define_model_attribute_getter((torsion_sections, TorsionSectionsType),
 """
 ```jldoctest
@@ -231,10 +223,9 @@ Hypersurface model over a concrete base
 julia> length(torsion_sections(foah15_B3))
 1
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref mordell_weil_group_data) for more details.")
 
 
-# Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error is raised.
 @define_model_attribute_getter((weighted_resolutions, Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}),
 """
 ```jldoctest
@@ -247,10 +238,9 @@ julia> weighted_resolutions(m)
 1-element Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}:
  ([(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])], ["e1", "e4", "e2", "e3", "s"])
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return a list of lists of known Mordell–Weil generating sections for the given model after each known weighted resolution. Each element of the outer list corresponds to a known weighted resolution (in the same order), and each element of the list associated to a given weighted resolution corresponds to a known generating section (in the same order). If no weighted resolution generating sections are known, an error is raised.
 @define_model_attribute_getter((weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType),
 """
 ```jldoctest
@@ -261,12 +251,11 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> weighted_resolution_generating_sections(m)
 1-element Vector{Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
- [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
+ [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, a43]]]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return a list of known Mordell–Weil zero sections for the given model after each known weighted resolution. Each element of the list corresponds to a known weighted resolution (in the same order). If no weighted resolution zero sections are known, an error is raised.
 @define_model_attribute_getter((weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType),
 """
 ```jldoctest
@@ -279,10 +268,9 @@ julia> weighted_resolution_zero_sections(m)
 1-element Vector{Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  [[1, 1, 0], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1]]
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref resolving_f_theory_models) for more details.")
 
 
-# Return the zero section of the given model. If no zero section is known, an error is raised. This information is not typically stored as an attribute for Weierstrass and global Tate models, whose zero sections are known.
 @define_model_attribute_getter((zero_section, ZeroSectionType),
 """
 ```jldoctest
@@ -297,10 +285,9 @@ julia> zero_section(h)
  1
  0
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref zero_section_data) for more details.")
 
 
-# Return the zero section class of a model as a cohomology class in the toric ambient space. If no zero section class is known, an error is raised. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
 @define_model_attribute_getter((zero_section_class, CohomologyClass),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -310,10 +297,9 @@ Hypersurface model over a concrete base
 julia> zero_section_class(qsm_model)
 Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref zero_section_data) for more details.")
 
 
-# Return the index of the generator of the Cox ring of the ambient space, whose corresponding vanishing locus defines the zero section of a model. If no zero section class is known, an error is raised. This attribute is always set simultaneously with zero_section_class. This information is always available for Weierstrass and global Tate models, whose zero section classes are known.
 @define_model_attribute_getter((zero_section_index, Int),
 """
 ```jldoctest
@@ -331,4 +317,4 @@ Hypersurface model over a concrete base
 julia> zero_section_index(foah15_B3)
 5
 ```
-""", "See [Advanced Mathematical Attributes](@ref non_algorithmic_advanced_attributes) for more details.")
+""", "See [Advanced Mathematical Attributes](@ref zero_section_data) for more details.")
