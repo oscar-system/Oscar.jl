@@ -36,13 +36,22 @@ blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
 blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 ```
 
-### Registering Known Resolution Sequences
+### [Registering And Extracting Known Resolution Sequences](@id working_with_resolution_sequences)
 
-Typically, a full resolution requires a sequence of blowups. If this sequence is known, it is advantageous to
+Typically, a full resolution requires a sequence of blowups. The known (weighted) blowup resolution
+sequences, can be accessed with the following methods.
+
+```@docs
+resolutions(::AbstractFTheoryModel)
+weighted_resolutions(::AbstractFTheoryModel)
+```
+
+If beyond this, a resolution sequence is known, it is advantageous to
 register it with the model:
 
 ```@docs
-add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+add_resolution!(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+add_weighted_resolution!(m::AbstractFTheoryModel, centers::Vector{Tuple{Vector{String}, Vector{Int64}}}, exceptionals::Vector{String})
 ```
 
 Once registered, the following method applies the complete sequence of blowups in a single step:
@@ -53,37 +62,29 @@ resolve(m::AbstractFTheoryModel, index::Int)
 
 ---
 
-## Resolution Metadata Functions
+## [Resolution Metadata Functions](@id resolution_meta_data)
 
-These methods retrieve known crepant resolutions and associated section data.
-
-```@docs
-resolutions(::AbstractFTheoryModel)
-```
+These methods retrieve known resolution associated section data.
 
 ```@docs
 resolution_zero_sections(::AbstractFTheoryModel)
-```
-
-```@docs
 resolution_generating_sections(::AbstractFTheoryModel)
-```
-
-```@docs
-weighted_resolutions(::AbstractFTheoryModel)
-```
-
-```@docs
 weighted_resolution_zero_sections(::AbstractFTheoryModel)
+weighted_resolution_generating_sections(::AbstractFTheoryModel)
 ```
 
+You can also add to this information, if more generating sections or zero sections are known.
+
 ```@docs
-weighted_resolution_generating_sections(::AbstractFTheoryModel)
+add_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
+add_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
+add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
+add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
 ```
 
 ---
 
-## Exceptional Divisors
+## [Exceptional Divisors](@id exceptional_divisors)
 
 The following methods return information on exceptional divisors introduced by toric blowups.
 Therefore, these attributes are only available for models build over a concrete toric base space.

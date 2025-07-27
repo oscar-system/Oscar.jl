@@ -79,7 +79,7 @@ t2 = resolve(t1, 1)
   @test length(exceptional_classes(t2)) == length(exceptional_classes(t1)) + 5
 end
 
-add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
+add_resolution!(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
 
 @testset "Test adding new resolution to literature Tate model over concrete base" begin
   @test length(resolutions(t1)) == 2
