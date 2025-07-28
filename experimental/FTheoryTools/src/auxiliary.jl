@@ -198,7 +198,6 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     # five times and see if we get agreement among all of the results
     num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
-    rng = MersenneTwister()
     for _ in 1:5
       coord_inds = randperm(rng, num_gens)[1:end-2]
       rand_ints = rand(rng, -100:100, num_gens - 2)

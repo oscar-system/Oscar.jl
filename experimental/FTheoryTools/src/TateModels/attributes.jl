@@ -325,7 +325,7 @@ refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for mo
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
-    The random seed can be set with the optional argument `rng`.
+    The random source can be set with the optional argument `rng`.
 
 Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
 [KMSS11](@cite). In this case, the Tate sections are factored as follows:

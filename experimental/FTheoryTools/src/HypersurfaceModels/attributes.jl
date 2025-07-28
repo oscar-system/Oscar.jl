@@ -297,7 +297,7 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
-    The random seed can be set with the optional argument `rng`.
+    The random source can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
