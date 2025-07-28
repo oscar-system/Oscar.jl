@@ -287,7 +287,7 @@ end
 
 Return the singular loci of the Weierstrass model equivalent to the given hypersurface model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
-refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
+refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for more details.
 
 Raises an error if no such Weierstrass model is known.
 
@@ -297,6 +297,7 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random source can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
@@ -324,12 +325,14 @@ Weierstrass model over a concrete base
 
 julia> set_weierstrass_model(h, w)
 
-julia> length(singular_loci(h))
+julia> using Random;
+
+julia> length(singular_loci(h; rng = Random.Xoshiro(1234)))
 2
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel; rng::AbstractRNG = Random.default_rng())
   @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) || has_attribute(h, :global_tate_model) "No corresponding Weierstrass model or global Tate model is known"
-  return has_attribute(h, :weierstrass_model) ? singular_loci(weierstrass_model(h)) : singular_loci(global_tate_model(h))
+  return has_attribute(h, :weierstrass_model) ? singular_loci(weierstrass_model(h); rng) : singular_loci(global_tate_model(h); rng)
 end

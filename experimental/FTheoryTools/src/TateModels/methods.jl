@@ -6,7 +6,7 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 !!! warning
     This method may run for very long time and is currently not tested as part of the regular OSCAR CI due to its excessive run times.
 """
-function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
+function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}}; rng::AbstractRNG = Random.default_rng())
   
   # This method only works if the model is defined over a toric variety over toric scheme
   @req base_space(model) isa NormalToricVariety "Analysis of fibers currently only supported for toric variety as base space"
@@ -23,7 +23,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   lin = ideal_of_linear_relations(tas);
   
   # Singular loci
-  sing_loc = singular_loci(model)
+  sing_loc = singular_loci(model; rng)
   
   # Pick out the singular loci that are more singular than an I_1
   # Then keep only the locus and not the extra info about it
