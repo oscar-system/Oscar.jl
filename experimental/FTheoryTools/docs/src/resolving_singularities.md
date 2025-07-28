@@ -78,7 +78,7 @@ You can also add to this information, if more generating sections or zero sectio
 ```@docs
 add_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
 add_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
+add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
 add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
 ```
 

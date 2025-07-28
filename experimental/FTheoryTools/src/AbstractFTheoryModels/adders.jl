@@ -167,6 +167,9 @@ end
 
 Add a generating section for a model.
 
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
+
 See [Mordell–Weil Group](@ref mordell_weil_group_data) for more details.
 
 # Examples
@@ -183,10 +186,9 @@ julia> length(generating_sections(m))
 ```
 """
 function add_generating_section!(m::AbstractFTheoryModel, addition::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
-  known_values = get_attribute(m, :generating_sections, Oscar.GeneratingSectionsType())
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
+  known_values =  get_attribute(m, :generating_sections, GeneratingSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :generating_sections => vcat(known_values, [new_entry]))
   end
@@ -198,6 +200,9 @@ end
     add_torsion_section!(m::AbstractFTheoryModel, addition::Vector{String})
 
 Add a torsion section for a model.
+
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
 
 See [Mordell–Weil Group](@ref mordell_weil_group_data) for more details.
 
@@ -215,9 +220,8 @@ julia> length(torsion_sections(m))
 ```
 """
 function add_torsion_section!(m::AbstractFTheoryModel, addition::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
   known_values = get_attribute(m, :torsion_sections, TorsionSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :torsion_sections => vcat(known_values, [new_entry]))
@@ -304,7 +308,7 @@ julia> length(weighted_resolutions(m))
 function add_weighted_resolution!(m::AbstractFTheoryModel, centers::Vector{Tuple{Vector{String}, Vector{Int64}}}, exceptionals::Vector{String})
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
   new_entry = (centers, exceptionals)
-  known_values = get_attribute(m, :weighted_resolutions, WeightedResolutionGeneratingSectionsType())
+  known_values = get_attribute(m, :weighted_resolutions, Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}[])
   if !(new_entry in known_values)
     set_attribute!(m, :weighted_resolutions => vcat(known_values, [new_entry]))
   end
@@ -322,6 +326,9 @@ end
 
 Add a resolution zero section for a model.
 
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
+
 See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 
 # Examples
@@ -338,9 +345,8 @@ julia> length(resolution_zero_sections(m))
 ```
 """
 function add_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
   known_values = get_attribute(m, :resolution_zero_sections, ResolutionZeroSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :resolution_zero_sections => vcat(known_values, [new_entry]))
@@ -353,6 +359,9 @@ end
     add_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
 
 Add a resolution generating section for a model.
+
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
 
 See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 
@@ -370,9 +379,8 @@ julia> length(resolution_generating_sections(m))
 ```
 """
 function add_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
   known_values = get_attribute(m, :resolution_generating_sections, ResolutionGeneratingSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :resolution_generating_sections => vcat(known_values, [new_entry]))
@@ -382,9 +390,12 @@ end
 
 
 @doc raw"""
-    add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
+    add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
 
 Add a weighted resolution zero section for a model.
+
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
 
 See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 
@@ -404,16 +415,15 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> add_weighted_resolution_zero_section!(m, [[["1", "1", "0"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1"]]])
+julia> add_weighted_resolution_zero_section!(m, [["1", "1", "0"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1"]])
 
 julia> length(weighted_resolution_zero_sections(m))
 1
 ```
 """
-function add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
+function add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
   known_values = get_attribute(m, :weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :weighted_resolution_zero_sections => vcat(known_values, [new_entry]))
@@ -426,6 +436,9 @@ end
     add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
 
 Add a weighted resolution generating section for a model.
+
+!!! warning
+    The newly added section must be specified in terms of the base space coordinates only.
 
 See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 
@@ -450,13 +463,12 @@ julia> addition = [[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0"
 julia> add_weighted_resolution_generating_section!(m, addition)
 
 julia> length(weighted_resolution_generating_sections(m))
-1
+2
 ```
 """
 function add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  new_entry = deepmap(s -> f(eval_poly(s, R)), addition)
+  R = parent(first(values(explicit_model_sections(m))))
+  new_entry = deepmap(s -> eval_poly(s, R), addition)
   known_values = get_attribute(m, :weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType())
   if !(new_entry in known_values)
     set_attribute!(m, :weighted_resolution_generating_sections => vcat(known_values, [new_entry]))
