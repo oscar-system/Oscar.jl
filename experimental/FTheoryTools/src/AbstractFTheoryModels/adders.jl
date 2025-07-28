@@ -93,35 +93,6 @@ end
 
 
 @doc raw"""
-    add_model_parameter!(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of model parameters for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Metadata Attributes](@ref meta_data_attributes) for more details.
-
-# Examples
-```jldoctest
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-Hypersurface model over a concrete base
-
-julia> model_parameters(qsm_model)
-Dict{String, Int64} with 1 entry:
-  "k" => 4
-
-julia> add_model_parameter!(qsm_model, "w")
-```
-"""
-function add_model_parameter!(m::AbstractFTheoryModel, addition::String)
-  known_values = get_attribute(m, :model_parameters, String[])
-  if !(addition in known_values)
-    set_attribute!(m, :model_parameters => vcat(known_values, [addition]))
-  end
-  return nothing
-end
-
-
-@doc raw"""
     add_paper_author!(m::AbstractFTheoryModel, addition::String)
 
 Add a new entry to the list of paper authors for the F-theory model.

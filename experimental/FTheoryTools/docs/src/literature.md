@@ -241,7 +241,6 @@ For metadata fields that are collections, we provide helper functions to add new
 add_associated_literature_model!(m::AbstractFTheoryModel, addition::String)
 add_birational_literature_model!(m::AbstractFTheoryModel, addition::String)
 add_journal_report_number!(m::AbstractFTheoryModel, addition::String)
-add_model_parameter!(m::AbstractFTheoryModel, addition::String)
 add_paper_author!(m::AbstractFTheoryModel, addition::String)
 add_paper_buzzword!(m::AbstractFTheoryModel, addition::String)
 ```

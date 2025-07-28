@@ -12,7 +12,6 @@ export _is_nontrivial
 export add_associated_literature_model!
 export add_generating_section!
 export add_journal_report_number!
-export add_model_parameter!
 export add_paper_author!
 export add_paper_buzzword!
 export add_birational_literature_model!
