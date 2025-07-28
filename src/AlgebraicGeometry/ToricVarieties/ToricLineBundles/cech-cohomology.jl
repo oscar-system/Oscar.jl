@@ -143,11 +143,20 @@ function cech_cohomologies2(tl::ToricLineBundle)
 
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
   H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
+  chamber_signs = matrix(ZZ,H.CHAMBER_SIGNATURES)
 
   # Compute the maximal chambers
   pff = Polymake.fan.PolyhedralComplex(POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES)
-  bounded_max_polys = filter(is_bounded, maximal_polyhedra(polyhedral_complex(pff)))
-  
+  max_polys = maximal_polyhedra(polyhedral_complex(pff))
+
+  # Keep only bounded chambers, but remember their sign
+  bounded_max_polys = Dict()
+  for i in 1:length(max_polys)
+    if is_bounded(max_polys[i])
+      bounded_max_polys[chamber_signs[i,:]] = max_polys[i]
+    end
+  end
+
   # Prepare information, which we use to iterate over the Cech complex and identify the relevant lattice points
   RI = ray_indices(maximal_cones(X))
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
@@ -167,31 +176,35 @@ function cech_cohomologies2(tl::ToricLineBundle)
     polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
     combs = collect(combinations(n_maximal_cones(X), k+1))
     for i in 1:length(combs)
-      list_of_lattice_points = PointVector{ZZRingElem}[]
-      generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
-      for p in bounded_max_polys
-        
-        # Verify if p's lattice points contribute
-        sign_list = matrix(QQ, rays(X)) * 1//n_vertices(p) * sum(vertices(p)) + a_plane
-        any(x -> x < 0, sign_list[generating_ray_indices, :]) && continue
-        
-        # Find out which lattice points contribute
-        append!(list_of_lattice_points, interior_lattice_points(p))
-        for pt in boundary_lattice_points(p)
+      if k == dim(X)
+        list_of_lattice_points = vcat(unique(values(cech_complex_points[k]))...)
+      else
+        list_of_lattice_points = PointVector{ZZRingElem}[]
+        generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
+        remaining_points = Dict{PointVector{ZZRingElem}, Any}()
+
+        for (sign_list, p) in bounded_max_polys
+
+          # Verify if p's lattice points contribute
+          any(x -> x < 0, sign_list[generating_ray_indices]) && continue
+          
+          # Interior points always contribute, but boundary points will have to be processed later
+          append!(list_of_lattice_points, interior_lattice_points(p))
+          for pt in boundary_lattice_points(p)
+            haskey(remaining_points, pt) && continue
+            remaining_points[pt] = sign_list
+          end
+        end
+
+        #Process remaining points
+        for (pt, sign_list) in remaining_points
           pt_sign = matrix(QQ, rays(X)) * pt + a_plane
-          if all(i -> (sign_list[i] < 0 && pt_sign[i] < 0) || (sign_list[i] >= 0 && pt_sign[i] >= 0), 1:length(sign_list))
+          if all(j -> (sign_list[j] < 0 && pt_sign[j] < 0) || (sign_list[j] >= 0 && pt_sign[j] >= 0), 1:length(sign_list))
+            push!(list_of_lattice_points, pt)
+          elseif count(==(0), pt_sign) > dim(X) && all(x -> x >= 0, pt_sign[generating_ray_indices, :])
             push!(list_of_lattice_points, pt)
           end
         end
-      end
-
-      #We are also interested in vertices that are 'almost regions', i.e., if a hyperplane were moved slightly then a new region could show up here 
-      for pt in vertices(polyhedral_complex(pff))
-        pt =  ZZRingElem.(Int.(pt))
-        pt_sign = matrix(QQ, rays(X)) * pt + a_plane
-        count(==(0), pt_sign) <= dim(X) && continue
-        any(x -> x < 0, pt_sign[generating_ray_indices, :]) && continue
-        push!(list_of_lattice_points, pt)
       end
 
       polyhedron_dict[combs[i]] = list_of_lattice_points
