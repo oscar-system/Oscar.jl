@@ -191,7 +191,6 @@ tate_polynomial(t::GlobalTateModel)
 hypersurface_equation(t::GlobalTateModel)
 tate_ideal_sheaf(t::GlobalTateModel)
 weierstrass_model(t::GlobalTateModel)
-calabi_yau_hypersurface(t::GlobalTateModel)
 ```
 
 ---

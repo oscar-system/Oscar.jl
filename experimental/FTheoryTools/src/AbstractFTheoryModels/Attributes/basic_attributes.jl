@@ -78,6 +78,51 @@ function model_index(m::AbstractFTheoryModel)
 end
 
 
+@doc raw"""
+    calabi_yau_hypersurface(m::AbstractFTheoryModel)
+
+Return the Calabi–Yau hypersurface that defines the hypersurface model
+as a closed subvariety of its toric ambient space.
+
+# Examples
+```jldoctest
+julia> w =  weierstrass_model_over_projective_space(3)
+Weierstrass model over a concrete base
+
+julia> calabi_yau_hypersurface(w)
+Closed subvariety of a normal toric variety
+
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
+
+julia> calabi_yau_hypersurface(t)
+Closed subvariety of a normal toric variety
+
+julia> b = projective_space(NormalToricVariety, 2);
+
+julia> kb = anticanonical_divisor_class(b);
+
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
+
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
+
+julia> p = "x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z";
+
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
+Hypersurface model over a concrete base
+
+julia> calabi_yau_hypersurface(h)
+Closed subvariety of a normal toric variety
+```
+"""
+@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(m::AbstractFTheoryModel)
+  @req (m isa HypersurfaceModel || m isa WeierstrassModel || m isa GlobalTateModel) "Calabi-Yau hypersurface currently not supported for this model"
+  @req base_space(m) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  is_base_space_fully_specified(m) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  return closed_subvariety_of_toric_variety(ambient_space(m), [hypersurface_equation(m)])
+end
+
+
 ######################################################################################
 ### Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################

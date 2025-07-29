@@ -166,28 +166,6 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(t::GlobalTateModel)
-
-Return the Calabi–Yau hypersurface that defines the global Tate model
-as a closed subvariety of its toric ambient space.
-
-# Examples
-```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
-Global Tate model over a concrete base
-
-julia> calabi_yau_hypersurface(t)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req base_space(t) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(t) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
-end
-
-
-@doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
 Return the Weierstrass model which is equivalent to the given global Tate model.

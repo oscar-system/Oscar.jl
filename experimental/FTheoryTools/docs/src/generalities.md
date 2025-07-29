@@ -16,12 +16,13 @@ of functionality is shared across them. This page documents that common interfac
 ## Model Geometry and Base Specification
 
 These attributes describe the geometric building blocks of the F-theory model—its ambient space, fiber
-ambient space, and base.
+ambient space, base space and the Calabi–Yau hypersurface.
 
 ```@docs
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
+calabi_yau_hypersurface(m::AbstractFTheoryModel)
 ```
 
 You can also check whether the base space is fully specified as a concrete geometry, or whether it is

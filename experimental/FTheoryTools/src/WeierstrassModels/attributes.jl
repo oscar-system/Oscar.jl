@@ -113,28 +113,6 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(w::WeierstrassModel)
-
-Return the Calabi–Yau hypersurface that defines the Weierstrass model
-as a closed subvariety of its toric ambient space.
-
-# Examples
-```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
-Weierstrass model over a concrete base
-
-julia> calabi_yau_hypersurface(w)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
-  @req base_space(w) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(w) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
-end
-
-
-@doc raw"""
     discriminant(w::WeierstrassModel)
 
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.

@@ -101,7 +101,6 @@ The following attributes are **specific to hypersurface models** and do not gene
 
 ```@docs
 hypersurface_equation(h::HypersurfaceModel)
-calabi_yau_hypersurface(h::HypersurfaceModel)
 weierstrass_model(h::HypersurfaceModel)
 global_tate_model(h::HypersurfaceModel)
 ```

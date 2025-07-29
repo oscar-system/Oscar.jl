@@ -175,38 +175,6 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(h::HypersurfaceModel)
-
-Return the Calabi–Yau hypersurface that defines the hypersurface model
-as a closed subvariety of its toric ambient space.
-
-# Examples
-```jldoctest
-julia> b = projective_space(NormalToricVariety, 2);
-
-julia> kb = anticanonical_divisor_class(b);
-
-julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
-
-julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
-
-julia> p = "x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z";
-
-julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
-Hypersurface model over a concrete base
-
-julia> calabi_yau_hypersurface(h)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(h::HypersurfaceModel)
-  @req base_space(h) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(h) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(h), [hypersurface_equation(h)])
-end
-
-
-@doc raw"""
     discriminant(h::HypersurfaceModel)
 
 Return the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
