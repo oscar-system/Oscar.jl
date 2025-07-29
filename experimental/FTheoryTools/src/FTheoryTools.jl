@@ -15,14 +15,15 @@ include("AbstractFTheoryModels/Attributes/qsm_attributes.jl")
 include("AbstractFTheoryModels/Properties/properties.jl")
 
 include("AbstractFTheoryModels/Methods/adders.jl")
-include("AbstractFTheoryModels/Methods/methods.jl")
+include("AbstractFTheoryModels/Methods/put_over_concrete_base.jl")
+include("AbstractFTheoryModels/Methods/blowups.jl")
+include("AbstractFTheoryModels/Methods/analyze_fibers.jl")
 
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
 
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")
-include("TateModels/methods.jl")
 
 include("HypersurfaceModels/constructors.jl")
 include("HypersurfaceModels/attributes.jl")

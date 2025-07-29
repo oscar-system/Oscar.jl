@@ -1,3 +1,6 @@
+# Check if an ideal/subvariety is nontrivial
+_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem} = !is_one(id) && !is_one(saturation(id, irr))
+
 @doc raw"""
     analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
 
