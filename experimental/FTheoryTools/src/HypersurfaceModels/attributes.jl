@@ -1,9 +1,3 @@
-###################################################################
-###################################################################
-# 1: Attributes that work the same tor toric and non-toric settings
-###################################################################
-###################################################################
-
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
@@ -57,13 +51,6 @@ b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 """
 hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equation_parametrization
 
-
-
-#########################################################################
-#########################################################################
-# 2: Attributes that define the corresponding Weierstrass and Tate models
-#########################################################################
-#########################################################################
 
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
@@ -187,17 +174,6 @@ function global_tate_model(h::HypersurfaceModel)
 end
 
 
-############################################################################################################
-############################################################################################################
-# 3: Attributes that rest on the corresponding Weierstrass model and (currently) only work in toric settings
-############################################################################################################
-############################################################################################################
-
-
-#####################################################
-# 3.1 Calabi-Yau hypersurface
-#####################################################
-
 @doc raw"""
     calabi_yau_hypersurface(h::HypersurfaceModel)
 
@@ -229,10 +205,6 @@ Closed subvariety of a normal toric variety
   return closed_subvariety_of_toric_variety(ambient_space(h), [hypersurface_equation(h)])
 end
 
-
-#####################################################
-# 3.2 Discriminant and singular loci
-#####################################################
 
 @doc raw"""
     discriminant(h::HypersurfaceModel)
