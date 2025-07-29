@@ -83,51 +83,6 @@ end
   end
 end
 
-Kbar = anticanonical_bundle(base_space(t))
-my_choice = Dict("a1" => basis_of_global_sections(Kbar)[1])
-my_choice["a2"] = basis_of_global_sections(Kbar^2)[1]
-my_choice["a3"] = basis_of_global_sections(Kbar^3)[1]
-my_choice["a4"] = basis_of_global_sections(Kbar^4)[1]
-my_choice["a6"] = basis_of_global_sections(Kbar^6)[1]
-t3 = tune(t, my_choice; completeness_check = false)
-
-# The tests associated to the below code did not actually test the tune functionality of Tate models,
-# but instead the tune functionality of abstract F-theory models, inherited by Tate models
-# This functionality has been removed for the time being, because it did not correspond to a proper tuning
-# These tests have been retained for the (potential) future date when we reintroduce this functionality
-#
-# x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t2)))
-# new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
-# tuned_t2 = tune(t2, new_tate_polynomial)
-
-@testset "Tuning of a Tate model over a concrete toric space" begin
-  @test base_space(t3) == base_space(t)
-  @test tate_section_a1(t3) == my_choice["a1"]
-  @test tate_section_a1(t3) != tate_section_a1(t)
-  @test tate_section_a2(t3) == my_choice["a2"]
-  @test tate_section_a2(t3) != tate_section_a2(t)
-  @test tate_section_a3(t3) == my_choice["a3"]
-  @test tate_section_a3(t3) != tate_section_a3(t)
-  @test tate_section_a4(t3) == my_choice["a4"]
-  @test tate_section_a4(t3) != tate_section_a4(t)
-  @test tate_section_a6(t3) == my_choice["a6"]
-  @test tate_section_a6(t3) != tate_section_a6(t)
-  # Removed, see above
-  # @test t2 == tune(t2, tate_polynomial(t2))
-  # @test hypersurface_equation(tuned_t2) == new_tate_polynomial
-  # @test base_space(tuned_t2) == base_space(t2)
-  # @test fiber_ambient_space(tuned_t2) == fiber_ambient_space(t2)
-end
-
-other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
-
-@testset "Error messages from tuning Tate models" begin
-  @test_throws ArgumentError tune(t, Dict("a1" => basis_of_global_sections(Kbar^2)[1]))
-  @test_throws ArgumentError tune(t, Dict("a1" => basis_of_global_sections(other_Kbar)[1]))
-  # Removed, see above
-  # @test_throws ArgumentError tune(t2, basis_of_global_sections(other_Kbar)[1])
-  # @test_throws ArgumentError tune(t2, x1)
-end
 
 
 #############################################################
@@ -191,8 +146,6 @@ end
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], 3, [a1p])
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, sec_a6])
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], -1, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5])
-  @test_throws ArgumentError tune(t_i5_s, Dict("a2" => basis_of_global_sections(other_Kbar)[1]))
-  # @test_throws ArgumentError tune(t_i5_s, basis_of_global_sections(other_Kbar)[1]) # Removed, see above
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin

@@ -17,7 +17,6 @@ include("AbstractFTheoryModels/methods.jl")
 
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
-include("WeierstrassModels/methods.jl")
 
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")
@@ -28,6 +27,8 @@ include("HypersurfaceModels/attributes.jl")
 include("HypersurfaceModels/methods.jl")
 
 include("standard_constructions.jl")
+
+include("TunedModels/constructors.jl")
 
 include("LiteratureModels/constructors.jl")
 include("LiteratureModels/create_index.jl")
