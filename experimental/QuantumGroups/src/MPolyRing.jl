@@ -177,7 +177,7 @@ function add!(x::MPolyRingElem{T}, y::MPolyRingElem{T}) where {T}
   elseif iszero(y)
     return x
   end
-  
+
   R = parent(x)
   len = length(x) + length(y)
   fit!(x, len)
@@ -246,7 +246,7 @@ function add!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
   elseif z === y
     return add!(z, x)
   end
-  
+
   R = parent(z)
   fit!(z, length(x) + length(y))
 
@@ -409,7 +409,7 @@ function sub!(z::MPolyRingElem{T}, x::MPolyRingElem{T}, y::MPolyRingElem{T}) whe
   elseif z === y
     return add!(neg!(z), x)
   end
-  
+
   R = parent(z)
   fit!(z, length(x) + length(y))
 
@@ -790,7 +790,7 @@ end
 
 function leading_monomial(x::MPolyRingElem)
   @req !iszero(x) "zero element does not have a leading monomial"
-  
+
   R = parent(x)
   return MPolyRingElem(R, one(coefficient_ring(R)), exponent_vector(x, 1))
 end
