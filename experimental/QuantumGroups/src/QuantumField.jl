@@ -5,6 +5,8 @@ Return the q-integer $[n]_q$.
 
 # Examples
 ```jldoctest
+julia> QF, q = quantum_field();
+
 julia> q_integer(3, q)
 (q^6 + q^4 + q^2 + 1)/q^3
 
@@ -23,6 +25,8 @@ Return the q-factorial $[n]_q!$.
 
 # Examples
 ```jldoctest
+julia> QF, q = quantum_field();
+
 julia> q_factorial(3, q)
 (q^6 + q^4 + q^2 + 1)/q^3
 
@@ -45,6 +49,8 @@ Return the q-binomial coefficient.
 
 # Examples
 ```jldoctest
+julia> QF, q = quantum_field();
+
 julia> q_binomial(4, 2, q)
 (q^8 + q^6 + 2*q^4 + q^2 + 1)//q^4
 
@@ -85,20 +91,19 @@ end
 #
 ###############################################################################
 
-function quantum_field()
-  return quantum_field(:q)
-end
-
 @doc raw"""
     quantum_field(s::Symbol) -> QuantumField, QuantumFieldElem
 
 # Examples
 ```jldoctest
+julia> QF, q = quantum_field()
+(Rational function field over QQ, q)
+
 julia> QF, v = quantum_field(:v)
 (Rational function field over QQ, v)
 ```
 """
-function quantum_field(s::Symbol)
+function quantum_field(s::Symbol=:q)
   A, _ = polynomial_ring(ZZ, s; cached=false)
   QQq = fraction_field(A; cached=false)
   QF = QuantumField(QQq, Dict{Tuple{Int,QuantumFieldElem},QuantumFieldElem}())
