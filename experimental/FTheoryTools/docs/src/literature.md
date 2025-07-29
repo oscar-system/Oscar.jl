@@ -77,6 +77,11 @@ a high-level overview of how literature models are initialized in practice:
 literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
 
+It can be interesting to observe all currently supported literature models. This is possible via the following function:
+```@docs
+display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
+```
+
 ---
 
 ## [Model Parameters, Defining Classes, and Related Concepts](@id model_section_explanation_section)
