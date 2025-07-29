@@ -72,7 +72,7 @@ julia> model_index(t)
 ```
 """
 function model_index(m::AbstractFTheoryModel)
-  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  directory = joinpath(dirname(dirname(@__DIR__)), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   return parse(Int, model_indices["model" * literature_identifier(m) * ".json"])
 end
