@@ -68,31 +68,9 @@ foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hy
   end
 end
 
-# The tests below did not actually test the tune functionality of hypersurface models,
-# but instead the tune functionality of abstract F-theory models, inherited by hypersurface models
-# This functionality has been removed for the time being, because it did not correspond to a proper tuning
-# These tests have been retained for the (potential) future date when we reintroduce this functionality
-#
-# (x1, x2, x3, x4, x, y, z) = gens(parent(hypersurface_equation(h)))
-# new_poly = x^3 - y^2 + 3*x1^16*x*z^4 - 7*x2^24*z^6
-# h2 = tune(h, new_poly)
-
-# @testset "Tune hypersurface model" begin
-#   @test h == tune(h, hypersurface_equation(h))
-#   @test hypersurface_equation(h2) == new_poly
-#   @test hypersurface_equation(h2) != hypersurface_equation(h)
-#   @test fiber_ambient_space(h2) == fiber_ambient_space(h)
-# end
-
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
 h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-
-# These tests have also been removed, see above
-# @testset "Errors from tuning hypersurface models" begin
-#   @test_throws ArgumentError tune(h, new_poly^2)
-#   @test_throws ArgumentError tune(h, hypersurface_equation(h3))
-# end
 
 # Currently, none of the hypersurface models in our database has corresponding Weierstrass/Tate models.
 # This code thus only tests if the code works, but the assignment is mathematically speaking wrong.
@@ -147,7 +125,6 @@ end
 
 @testset "Error messages in hypersurface models over not fully specified base spaces" begin
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, [D1, D2, D3], p)
-  # @test_throws ArgumentError tune(h4, hypersurface_equation(h4)) # Removed, see above
 end
 
 h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
