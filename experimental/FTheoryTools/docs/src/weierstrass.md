@@ -162,7 +162,6 @@ weierstrass_section_g(w::WeierstrassModel)
 weierstrass_polynomial(w::WeierstrassModel)
 hypersurface_equation(w::WeierstrassModel)
 weierstrass_ideal_sheaf(w::WeierstrassModel)
-calabi_yau_hypersurface(w::WeierstrassModel)
 ```
 
 ---
