@@ -1,7 +1,3 @@
-#####################################################
-# Setters
-#####################################################
-
 @doc raw"""
     set_weierstrass_model(h::HypersurfaceModel, w::WeierstrassModel)
 
