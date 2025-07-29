@@ -23,16 +23,14 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.Generic.UniversalPolyRing{T}
   elementary_symbols::Vector{Symbol}
   ndiffs::Int
-  internal_ordering::Tuple{Symbol, Symbol}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
   jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
+  ranking::Any 
 
-  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
+  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
     @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
-    @req internal_ordering[1] in [:lex, :deglex, :degrevlex] "ordering of the elementary variables must be one of :lex, :deglex, :degrevlex"
-    @req internal_ordering[2] in [:top, :pot] "extension must be one of :top (term-over-position) or :pot (position-over-term)"
     elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
     upoly_ring = universal_polynomial_ring(R; cached = false)
     
@@ -40,20 +38,18 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
     
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet, jet_to_upoly_idx)
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
  
-  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, internal_ordering::Tuple{Symbol, Symbol}) where {T}
+  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
-    @req internal_ordering[1] in [:lex, :deglex, :degrevlex] "ordering of the elementary variables must be one of :lex, :deglex, :degrevlex"
-    @req internal_ordering[2] in [:top, :pot] "extension must be one of :top (term-over-position) or :pot (position-over-term)"
-    upoly_ring = universal_polynomial_ring(R, cached = false)
+    upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
     
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, internal_ordering, jet_to_var, var_to_jet, jet_to_upoly_idx)
+    return new{T}(upoly_ring, elementary_symbols, ndiffs, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
@@ -102,9 +98,20 @@ is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables.
 """
-function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs, internal_ordering)
-  return (dpr, __add_new_jetvar!(dpr, map(i ->(i, fill(0, ndiffs)), 1:nelementary_symbols)))
+function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
+    partition_name::Symbol = :default,
+    index_ordering_name::Symbol = :default,
+    partition::Vector{Vector{Int}} = Vector{Int}[],
+    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
+  )
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
+  set_ranking!(dpr;
+      partition_name = partition_name,
+      index_ordering_name = index_ordering_name,
+      partition = partition,
+      index_ordering_matrix = index_ordering_matrix
+    )
+  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols); provide_info = false))
 end
 
 @doc raw"""
@@ -113,9 +120,20 @@ end
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided.
 """
-function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; internal_ordering = (:lex, :top)::Tuple{Symbol, Symbol})
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs, internal_ordering)
-  return (dpr, __add_new_jetvar!(dpr, map(i ->(i, fill(0, ndiffs)), 1:length(elementary_symbols))))
+function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
+    partition_name::Symbol = :default,
+    index_ordering_name::Symbol = :default,
+    partition::Vector{Vector{Int}} = Vector{Int}[],
+    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
+  )
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
+  set_ranking!(dpr;
+      partition_name = partition_name,
+      index_ordering_name = index_ordering_name,
+      partition = partition,
+      index_ordering_matrix = index_ordering_matrix
+    )
+  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)); provide_info = false))
 end
 
 ### Differential ###
@@ -148,8 +166,6 @@ ndiffs(dpr::DifferencePolyRing) = dpr.ndiffs
 elementary_symbols(dpr::DifferencePolyRing) = dpr.elementary_symbols
 
 nelementary_symbols(dpr::DifferencePolyRing) = length(elementary_symbols(dpr))
-
-internal_ordering(dpr::DifferencePolyRing) = dpr.internal_ordering
 
 ##### Elements #####
 
@@ -244,12 +260,25 @@ function gen(apr::ActionPolyRing, i::Int, jet::Vector)
 end
 
 @doc raw"""
+    gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) -> Vector{ActionPolyRingElem}
+
+Return the jet variables of the action polynomial ring `apr` specified by the entries of `jet_idxs` as
+a vector and track all new variables.
+"""
+function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
+  jtv = __jtv(apr)
+  new_jet_idxs = filter(jet_idx -> !haskey(jtv, jet_idx), jet_idxs)
+  __add_new_jetvar!(apr, new_jet_idxs)
+  return map(jet_idx -> jtv[jet_idx], jet_idxs)
+end
+
+@doc raw"""
     gens(apr::ActionPolyRing) -> Vector{ActionPolyRingElem}
 
 Return the currently tracked variables of the action polynomial ring `apr` as a vector.
 """
 function gens(apr::ActionPolyRing)
-  #Probably sort this later
+  #return collect(values(__jtv(apr)); ordering = ...) Sort this later
   return collect(values(__jtv(apr)))
 end
 
@@ -266,59 +295,59 @@ number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
 Apply the `i`-th diff-action to the polynomial `p`.
 """
 function diff_action(apre::ActionPolyRingElem{T}, i::Int) where {T}
-    apr = parent(apre)
-    @req i in 1:ndiffs(apr) "index out of range"
+  apr = parent(apre)
+  @req i in 1:ndiffs(apr) "index out of range"
 
-    # Remove constant term: d_i(1) = 0
-    apre -= trailing_coefficient(apre)
+  # Remove constant term: d_i(1) = 0
+  apre -= trailing_coefficient(apre)
 
-    if is_zero(apre)
-        return apre
+  if is_zero(apre)
+    return apre
+  end
+
+  upre = __poly(apre)
+  upr = __upr(apr)
+
+  # Precompute mapping from existing variable -> shifted variable position
+  upoly_var_to_shifted_pos = Dict{AbstractAlgebra.Generic.UnivPoly{T}, Int}()
+  for var in vars(upre)
+    jet_idx = __vtj(apr)[apr(var)]
+    new_jet_idx = copy(jet_idx[2])
+    new_jet_idx[i] += 1
+
+    if !haskey(__jtu_idx(apr), (jet_idx[1], new_jet_idx))
+      __add_new_jetvar!(apr, jet_idx[1], new_jet_idx; provide_info = false)
     end
 
-    upre = __poly(apre)
-    upr = __upr(apr)
+    shifted_var_elem = __jtv(apr)[(jet_idx[1], new_jet_idx)]
+    shifted_var = __poly(shifted_var_elem)
+    shifted_var_pos = findfirst(==(shifted_var), gens(upr))
+    upoly_var_to_shifted_pos[var] = shifted_var_pos
+  end
 
-    # Precompute mapping from existing variable -> shifted variable position
-    upoly_var_to_shifted_pos = Dict{AbstractAlgebra.Generic.UnivPoly{T}, Int}()
-    for var in vars(upre)
+  C = MPolyBuildCtx(upr)
+
+  for term in terms(upre)
+    coeff_t = coeff(term, 1)
+    vars_t = vars(term)
+    ev = append!(exponent_vector(term, 1), fill(0, length(exponent_vector(term, 1))))
+
+    for var in vars_t
+      exp = ev[findfirst(==(var), gens(upr))]
+
       jet_idx = __vtj(apr)[apr(var)]
-        new_jet_idx = copy(jet_idx[2])
-        new_jet_idx[i] += 1
+      var_pos = findfirst(==(var), gens(upr))
+      shifted_var_pos = upoly_var_to_shifted_pos[var]
 
-        if !haskey(__jtu_idx(apr), (jet_idx[1], new_jet_idx))
-            __add_new_jetvar!(apr, jet_idx[1], new_jet_idx)
-        end
+      new_exp_vec = copy(ev)
+      new_exp_vec[var_pos] -= 1
+      new_exp_vec[shifted_var_pos] += 1
 
-        shifted_var_elem = __jtv(apr)[(jet_idx[1], new_jet_idx)]
-        shifted_var = __poly(shifted_var_elem)
-        shifted_var_pos = findfirst(==(shifted_var), gens(upr))
-        upoly_var_to_shifted_pos[var] = shifted_var_pos
+      push_term!(C, coeff_t * exp, new_exp_vec)
     end
+  end
 
-    C = MPolyBuildCtx(upr)
-
-    for term in terms(upre)
-        coeff_t = coeff(term, 1)
-        vars_t = vars(term)
-        ev = append!(exponent_vector(term, 1), fill(0, length(exponent_vector(term, 1))))
-
-        for var in vars_t
-            exp = ev[findfirst(==(var), gens(upr))]
-
-            jet_idx = __vtj(apr)[apr(var)]
-            var_pos = findfirst(==(var), gens(upr))
-            shifted_var_pos = upoly_var_to_shifted_pos[var]
-
-            new_exp_vec = copy(ev)
-            new_exp_vec[var_pos] -= 1
-            new_exp_vec[shifted_var_pos] += 1
-
-            push_term!(C, coeff_t * exp, new_exp_vec)
-        end
-    end
-
-    return apr(finish(C))
+  return apr(finish(C))
 end
 
 @doc raw"""
@@ -365,8 +394,11 @@ __jtu_idx(dpr::DifferencePolyRing) = dpr.jet_to_upoly_idx
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
 __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:nelementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)
 
-function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
+function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}; provide_info::Bool = true)
   s_vec = map(jet_idx -> string(elementary_symbols(apr)[jet_idx[1]]) * "[" * join(jet_idx[2]) * "]", jet_idxs)
+  if provide_info
+    @info "New variables: " * join(s_vec, ", ")
+  end
   upr = __upr(apr)
   new_vars = apr.(gens(upr, s_vec))
   for k in 1:length(new_vars)
@@ -379,5 +411,5 @@ function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vect
   return new_vars
 end
 
-__add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jetvar!(apr, [(i, jet)])
+__add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}; provide_info::Bool = true) = __add_new_jetvar!(apr, [(i, jet)]; provide_info = provide_info)
 
