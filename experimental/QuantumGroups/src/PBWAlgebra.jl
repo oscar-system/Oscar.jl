@@ -518,7 +518,7 @@ function _addmul_gens(
       return addmul!(z, A.mult[ind][n, m], cf)
     end
   else
-    newSize = reqSize + pbwAlg_multGrow
+    newSize = reqSize + 5 # grow multiplication table
     mult = Matrix{MPolyRingElem{T}}(undef, newSize, newSize)
     for k in 1:curSize
       copyto!(mult, (k - 1) * newSize + 1, A.mult[ind], (k - 1) * curSize + 1, curSize)

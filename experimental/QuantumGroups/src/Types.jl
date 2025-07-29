@@ -1,5 +1,3 @@
-const pbwAlg_multGrow = 5
-
 struct MPolyRing{T} <: AbstractAlgebra.MPolyRing{T}
   N::Int
   coefficient_ring::Ring
@@ -45,7 +43,7 @@ function PBWAlgebra(
     if length(rels[i]) == 1 # quasi-commuative case
       mult[i] = Matrix{MPolyRingElem{T}}(undef, 1, 1)
     else
-      mult[i] = Matrix{MPolyRingElem{T}}(undef, pbwAlg_multGrow, pbwAlg_multGrow)
+      mult[i] = Matrix{MPolyRingElem{T}}(undef, 5, 5)
     end
     mult[i][1, 1] = rels[i]
   end
