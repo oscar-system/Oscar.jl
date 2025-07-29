@@ -26,8 +26,6 @@ include("HypersurfaceModels/constructors.jl")
 include("HypersurfaceModels/attributes.jl")
 include("HypersurfaceModels/methods.jl")
 
-include("standard_constructions.jl")
-
 include("TunedModels/constructors.jl")
 
 include("LiteratureModels/constructors.jl")
