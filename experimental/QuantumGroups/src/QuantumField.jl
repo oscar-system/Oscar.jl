@@ -8,10 +8,10 @@ Return the q-integer $[n]_q$.
 julia> QF, q = quantum_field();
 
 julia> q_integer(3, q)
-(q^6 + q^4 + q^2 + 1)/q^3
+(q^6 + q^4 + q^2 + 1)//q^3
 
 julia> q_integer(2, q^2)
-(q^4 + 1)/q^2
+(q^4 + 1)//q^2
 ```
 """
 function q_integer(n::Int, q::QuantumFieldElem)
@@ -28,10 +28,10 @@ Return the q-factorial $[n]_q!$.
 julia> QF, q = quantum_field();
 
 julia> q_factorial(3, q)
-(q^6 + q^4 + q^2 + 1)/q^3
+(q^6 + q^4 + q^2 + 1)//q^3
 
 julia> q_integer(2, q^2)
-(q^4 + 1)/q^2
+(q^4 + 1)//q^2
 ```
 """
 function q_factorial(n::Int, q::QuantumFieldElem)
