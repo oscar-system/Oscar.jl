@@ -52,40 +52,20 @@ Normal toric variety
 julia> l2 = toric_line_bundle(dP3, [-3,-2,-2,-2])
 Toric line bundle on a normal toric variety
 
+julia> l2 = toric_line_bundle(dP3, [3,3,3,3])
+Toric line bundle on a normal toric variety
+
 julia> all_cohomologies_via_cech(l2)
 ```
 """
 function all_cohomologies_via_cech(tl::ToricLineBundle)
-  our_free_modules, our_mapping_matrices = _toric_cech_complex(tl)
-  rks_modules = [rank(m) for m in our_free_modules]
+  our_maps = _toric_cech_complex(tl)
   X = toric_variety(tl)
-  @req length(rks_modules) >= dim(X) + 1 "Inconsistency encountered"
-  alternating_sum = 0
-  for k in dim(X) + 2:length(rks_modules)
-    alternating_sum += rks_modules[k] * (-1)^k
-  end
-  if alternating_sum < 0
-    alternating_sum = alternating_sum * (-1)
-  end
-  dim_kernel_last_map = rks_modules[dim(X) + 1] - alternating_sum
-
-  @req dim_kernel_last_map >= 0 "Inconsistency encountered"
-  #return [dim_kernel_last_map, rks]
-
-  # Drop all mapping matrices but the ones at position 1 to dim(X)
-  rks_maps = [rank(our_mapping_matrices[k]) for k in 1:dim(X)]
-  push!(rks_maps, alternating_sum)
-  #return rks_modules[1:dim(X) + 1], rks_maps
-
-  # Compute cohomologies
-  coho = Int[]
-  push!(coho, rks_modules[1] - rks_maps[1])
-  for k in 2:dim(X)+1
-    push!(coho, rks_modules[k] - rks_maps[k] - rks_maps[k-1])
-  end
-  return rks_modules[1:dim(X) + 1], rks_maps, coho
-  #return coho
-  #return rks
+  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X)))
+  alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
+  @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
+  rks_maps = push!(rank.(our_maps), alternating_sum)
+  return [nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]]
 end
 
 @doc raw"""
@@ -149,12 +129,11 @@ function _toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Length
-  cech_length = n_maximal_cones(X)
-  #cech_length = dim(X)
+  cech_length = dim(X)
 
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
-  cech_complex_maps = Vector{Any}(undef, cech_length+1)
+  cech_complex_maps = Vector{QQMatrix}(undef, cech_length)
   cech_complexes = Vector{FreeMod}(undef, cech_length+1)
   comb_dict = Dict(); d_k = 0
   for k in 0:cech_length
@@ -212,10 +191,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
 
   end
 
-  # Append one final map to zero. Why is this needed?
-  cech_complexes[cech_length+1] = FreeMod(QQ, 0)
-  cech_complex_maps[cech_length+1] = matrix(QQ, zeros(QQ, rank(cech_complexes[cech_length+1]), 0))
-
   # Return the result
-  return cech_complexes, cech_complex_maps, cech_complex_points
+  #return cech_complexes, cech_complex_maps, cech_complex_points
+  return cech_complex_maps
+
 end
