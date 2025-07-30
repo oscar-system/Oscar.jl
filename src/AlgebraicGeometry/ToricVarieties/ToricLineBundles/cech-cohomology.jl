@@ -134,7 +134,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
 
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
-  cech_complex_maps = Vector{Any}(undef, cech_length)
+  #cech_complex_maps = Vector{Any}(undef, cech_length)
+  cech_complex_maps = Vector{Any}(undef, dim(X))
   cech_complexes = Vector{FreeMod}(undef, cech_length+1)
   comb_dict = Dict(); d_k = 0
 
@@ -214,7 +215,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
     push!(cech_complex_points, polyhedron_dict)
   end
   cech_complexes[cech_length+1] = FreeMod(QQ, 0)
-  cech_complex_maps[cech_length] = matrix(QQ, zeros(QQ, rank(cech_complexes[cech_length+1]), 0))
+  #cech_complex_maps[cech_length] = matrix(QQ, zeros(QQ, rank(cech_complexes[cech_length+1]), 0))
 
   #return cech_complexes, cech_complex_maps, cech_complex_points
   return cech_complexes, cech_complex_maps
