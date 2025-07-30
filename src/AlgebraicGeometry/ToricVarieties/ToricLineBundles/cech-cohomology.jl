@@ -5,64 +5,28 @@ export all_cohomologies_via_cech
 
 Compute line bundle cohomology via Cech cohomology.
 
+Executing all_cohomologies_via_cech(l3) with l3 as below will likely not terminate.
+More performance is needed. But how? Below is the result from cohomCalg for comparison.
+
 # Examples
 ```jldoctest
-julia> X = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> l1 = toric_line_bundle(X, [1])
+julia> l1 = toric_line_bundle(projective_space(NormalToricVariety, 2), [1])
 Toric line bundle on a normal toric variety
 
-julia> all_cohomologies_via_cech(l1)
-5-element Vector{ZZRingElem}:
+julia> cech_cohomologies(l1)
+2-element Vector{ZZRingElem}:
  3
  0
  0
 
-julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal toric variety
-
-julia> l2 = toric_line_bundle(dP3, [-3,-2,-2,-2])
+julia> l2 = toric_line_bundle(del_pezzo_surface(NormalToricVariety, 3), [-3,-2,-2,-2])
 Toric line bundle on a normal toric variety
 
-julia> l2 = toric_line_bundle(dP3, [3,3,3,3])
-Toric line bundle on a normal toric variety
-
-julia> all_cohomologies_via_cech(l2)
-```
-"""
-function all_cohomologies_via_cech(tl::ToricLineBundle)
-  our_maps = transpose.(matrix.(_toric_cech_complex(tl)))
-  X = toric_variety(tl)
-  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
-  alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
-  @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
-  rks_maps = push!(rank.(our_maps), alternating_sum)
-  return [nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]]
-end
-
-@doc raw"""
-    _toric_cech_complex(tl::ToricLineBundle)
-
-Construct the toric Cech complex.
-
-# Examples
-```jldoctest
-julia> X = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> l1 = toric_line_bundle(X, [1])
-Toric line bundle on a normal toric variety
-
-julia> cech_cohomologies(l1);
-
-julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal toric variety
-
-julia> l2 = toric_line_bundle(dP3, [-3,-2,-2,-2])
-Toric line bundle on a normal toric variety
-
-julia> cech_cohomologies(l2);
+julia> cech_cohomologies(l2)
+2-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
 
 julia> v = dP3 * dP3
 Normal toric variety
@@ -79,6 +43,16 @@ julia> all_cohomologies(l3)
  0
 ```
 """
+function all_cohomologies_via_cech(tl::ToricLineBundle)
+  our_maps = transpose.(matrix.(_toric_cech_complex(tl)))
+  X = toric_variety(tl)
+  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
+  alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
+  @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
+  rks_maps = push!(rank.(our_maps), alternating_sum)
+  return [nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]]
+end
+
 function _toric_cech_complex(tl::ToricLineBundle)
   # Extract essential information
   X = toric_variety(tl)
