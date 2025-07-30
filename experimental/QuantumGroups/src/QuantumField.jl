@@ -54,7 +54,7 @@ julia> QF, q = quantum_field();
 julia> q_binomial(4, 2, q)
 (q^8 + q^6 + 2*q^4 + q^2 + 1)//q^4
 
-julia> q_binomial(4, 4, q^2)
+julia> q_binomial(4, 2, q^2)
 (q^16 + q^12 + 2*q^8 + q^4 + 1)//q^8
 ```
 """
