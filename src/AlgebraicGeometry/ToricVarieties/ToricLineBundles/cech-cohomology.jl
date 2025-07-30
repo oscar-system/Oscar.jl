@@ -1,4 +1,31 @@
-export _toric_cech_complex, all_cohomologies_via_cech
+export _toric_cech_complex, all_cohomologies_via_cech, tester
+
+
+@doc raw"""
+    tester(tl::ToricLineBundle)
+
+Compare line bundle cohomology from Cech cohomology with cohomCalg result.
+
+# Examples
+```jldoctest
+julia> X = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> [tester(toric_line_bundle(X, [1])) for k in -10:10]
+
+julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> l2 = toric_line_bundle(dP3, [3,3,3,3])
+Toric line bundle on a normal toric variety
+
+
+```
+"""
+function tester(tl::ToricLineBundle)
+  return all_cohomologies_via_cech(tl) == all_cohomologies(tl)
+end
+
 
 @doc raw"""
     all_cohomologies_via_cech(tl::ToricLineBundle)
@@ -56,8 +83,8 @@ function all_cohomologies_via_cech(tl::ToricLineBundle)
   for k in 2:dim(X)+1
     push!(coho, rks_modules[k] - rks_maps[k] - rks_maps[k-1])
   end
-  #return rks_modules[1:dim(X) + 1], rks_maps, coho
-  return coho
+  return rks_modules[1:dim(X) + 1], rks_maps, coho
+  #return coho
   #return rks
 end
 
