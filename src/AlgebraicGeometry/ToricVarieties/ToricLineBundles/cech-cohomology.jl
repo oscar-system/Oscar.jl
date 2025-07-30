@@ -129,7 +129,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Now iterate over the Cech complex
-  cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
+  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, dim(X) + 1)
   cech_complex_maps = Vector{QQMatrix}(undef, dim(X))
   comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
   d_k = 0
@@ -183,7 +183,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
       cech_complex_maps[k] = d_k
     end
     
-    push!(cech_complex_points, polyhedron_dict)
+    cech_complex_points[k+1] = polyhedron_dict
     previous_number_of_generators = sum(length.(values(polyhedron_dict)))
 
   end
