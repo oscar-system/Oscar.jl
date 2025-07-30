@@ -56,14 +56,6 @@ function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   return krull_dim(A) <= 0
 end
 
-struct InfiniteDimensionError <: Exception
-end
-
-function Base.showerror(io::IO, err::InfiniteDimensionError)
-  println(io, "Infinite-dimensional vector space")
-  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
-end
-
 @doc raw"""
     vector_space_dim(A::MPolyQuoRing)
 
@@ -101,7 +93,7 @@ function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
     error("vector_space_dim requires a coefficient ring that is a field")
   end
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError(check_available = true))
   I = modulus(A)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
