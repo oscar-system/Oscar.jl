@@ -117,13 +117,13 @@ function _toric_cech_complex(tl::ToricLineBundle)
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
   H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
 
-  # Compute the maximal chambers
+  # Classify the lattice points that contribute
   pff = Polymake.fan.PolyhedralComplex(POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES)
-  bounded_max_polys = filter(is_bounded, maximal_polyhedra(polyhedral_complex(pff)))
+  max_polys = maximal_polyhedra(polyhedral_complex(pff))
+  chamber_signs = matrix(ZZ, H.CHAMBER_SIGNATURES)
+  sign_of_chamber = Dict(chamber_signs[i,:] => interior_lattice_points(p) for (i, p) in enumerate(max_polys) if is_bounded(p))
+  list_of_boundary_lattice_points = unique(vcat([boundary_lattice_points(p) for p in values(filter(is_bounded, max_polys))]...))
 
-  # Find all lattice points in bounded_max_polys, excluding duplicates
-  list_of_contributing_lattice_points = unique(vcat([lattice_points(p) for p in bounded_max_polys]...))
-  
   # Prepare information, which we use to iterate over the Cech complex and identify the relevant lattice points
   RI = ray_indices(maximal_cones(X))
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
@@ -142,10 +142,16 @@ function _toric_cech_complex(tl::ToricLineBundle)
     for i in 1:length(combs)
       list_of_lattice_points = PointVector{ZZRingElem}[]
       generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
-      for pt in list_of_contributing_lattice_points
+
+      for pt in list_of_boundary_lattice_points
         signs = matrix(QQ, rays(X)) * pt + a_plane
         all(x -> x >= 0, signs[generating_ray_indices, :]) && push!(list_of_lattice_points, pt)
       end
+
+      for (signs, pts) in sign_of_chamber
+        all(x -> x > 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
+      end
+
       polyhedron_dict[combs[i]] = list_of_lattice_points
     end
 
