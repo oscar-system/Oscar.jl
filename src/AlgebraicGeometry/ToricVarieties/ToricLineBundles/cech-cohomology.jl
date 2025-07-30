@@ -1,4 +1,4 @@
-export cech_cohomologies
+export _toric_cech_complex
 
 @doc raw"""
     structure_sheaf(v::NormalToricVarietyType)
@@ -38,7 +38,7 @@ julia> all_cohomologies(l3)
  0
 ```
 """
-function cech_cohomologies(tl::ToricLineBundle)
+function _toric_cech_complex(tl::ToricLineBundle)
 
   # Extract essential information
   X = toric_variety(tl)
