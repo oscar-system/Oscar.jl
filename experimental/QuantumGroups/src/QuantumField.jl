@@ -8,10 +8,10 @@ Return the q-integer $[n]_q$.
 julia> QF, q = quantum_field();
 
 julia> q_integer(3, q)
-(q^6 + q^4 + q^2 + 1)//q^3
+(q^4 + q^2 + 1)//q^2
 
-julia> q_integer(2, q^2)
-(q^4 + 1)//q^2
+julia> q_integer(3, q^2)
+(q^8 + q^4 + 1)//q^4
 ```
 """
 function q_integer(n::Int, q::QuantumFieldElem)
@@ -28,10 +28,10 @@ Return the q-factorial $[n]_q!$.
 julia> QF, q = quantum_field();
 
 julia> q_factorial(3, q)
-(q^6 + q^4 + q^2 + 1)//q^3
+(q^6 + 2*q^4 + 2*q^2 + 1)//q^3
 
-julia> q_integer(2, q^2)
-(q^4 + 1)//q^2
+julia> q_factorial(3, q^2)
+(q^12 + 2*q^8 + 2*q^4 + 1)//q^6
 ```
 """
 function q_factorial(n::Int, q::QuantumFieldElem)
@@ -54,8 +54,8 @@ julia> QF, q = quantum_field();
 julia> q_binomial(4, 2, q)
 (q^8 + q^6 + 2*q^4 + q^2 + 1)//q^4
 
-julia> q_binomial(5, 3, q^2)
-(q^24 + q^20 + 2*q^16 + 2*q^12 + 2*q^8 + q^4 + 1)//q^12
+julia> q_binomial(4, 4, q^2)
+(q^16 + q^12 + 2*q^8 + q^4 + 1)//q^8
 ```
 """
 function q_binomial(n::Int, k::Int, q::QuantumFieldElem)
