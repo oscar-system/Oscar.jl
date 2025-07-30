@@ -128,15 +128,13 @@ function _toric_cech_complex(tl::ToricLineBundle)
   RI = ray_indices(maximal_cones(X))
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
-  # Length
-  cech_length = dim(X)
-
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
-  cech_complex_maps = Vector{QQMatrix}(undef, cech_length)
-  cech_complexes = Vector{FreeMod}(undef, cech_length+1)
-  comb_dict = Dict(); d_k = 0
-  for k in 0:cech_length
+  cech_complex_maps = Vector{QQMatrix}(undef, dim(X))
+  comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
+  d_k = 0
+  previous_number_of_generators = 0
+  for k in 0:dim(X)
 
     # Find the contributing lattice points
     polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
@@ -151,9 +149,6 @@ function _toric_cech_complex(tl::ToricLineBundle)
       polyhedron_dict[combs[i]] = list_of_lattice_points
     end
 
-    # Create the modules in the Cech complex
-    cech_complexes[k+1] = FreeMod(QQ, sum(length.(values(polyhedron_dict))))
-
     # Initialize comb_dict before using it
     offset = 0
     for i in 1:length(combs)
@@ -166,8 +161,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
     
     # Compute Cech differential maps
     if k > 0
-      n_rows = rank(cech_complexes[k])
-      n_cols = rank(cech_complexes[k+1])
+      n_rows = previous_number_of_generators
+      n_cols = sum(length.(values(polyhedron_dict)))
       d_k = zero_matrix(QQ, n_rows, n_cols)    
       col_idx = 1
       for comb in combs
@@ -187,12 +182,13 @@ function _toric_cech_complex(tl::ToricLineBundle)
       end
       cech_complex_maps[k] = d_k
     end
+    
     push!(cech_complex_points, polyhedron_dict)
+    previous_number_of_generators = sum(length.(values(polyhedron_dict)))
 
   end
 
   # Return the result
-  #return cech_complexes, cech_complex_maps, cech_complex_points
   return cech_complex_maps
 
 end
