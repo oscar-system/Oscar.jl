@@ -147,6 +147,12 @@ generating_sections(::AbstractFTheoryModel)
 torsion_sections(::AbstractFTheoryModel)
 ```
 
+You can also add new instances of these two with the following functionality.
+```@docs
+add_generating_section!(m::AbstractFTheoryModel, addition::Vector{String})
+add_torsion_section!(m::AbstractFTheoryModel, addition::Vector{String})
+```
+
 ---
 
 ## [Gauge Group](@id gauge_group_data)

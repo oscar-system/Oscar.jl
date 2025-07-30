@@ -12,6 +12,7 @@ include("AbstractFTheoryModels/not_yet_computed_attributes.jl")
 include("AbstractFTheoryModels/computed_attributes.jl")
 include("AbstractFTheoryModels/qsm_attributes.jl")
 include("AbstractFTheoryModels/properties.jl")
+include("AbstractFTheoryModels/adders.jl")
 include("AbstractFTheoryModels/methods.jl")
 
 include("WeierstrassModels/constructors.jl")
