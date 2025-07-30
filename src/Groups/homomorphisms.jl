@@ -1453,25 +1453,18 @@ end
 
 function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
   io = pretty(io)
-  if hasproperty(A, :is_known_to_be_full) && A.is_known_to_be_full
-    println(io, "Automorphism group of", Indent())
-  else
-    println(io, "Group of automorphisms of", Indent())
-  end
+  str = A.is_known_to_be_full ? "Automorphism group" : "Group of automorphisms"
+  println(io, "$str of", Indent())
   print(io, Lowercase(), A.G, Dedent())
 end
 
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
-  if hasproperty(A, :is_known_to_be_full) && A.is_known_to_be_full
-    str = "Automorphism group"
-  else
-    str = "Group of automorphisms"
-  end
+  str = A.is_known_to_be_full ? "Automorphism group" : "Group of automorphisms"
   if is_terse(io)
     print(io, str)
   else
     io = pretty(io)
-    print(io, str, " of ", Lowercase(), A.G)
+    print(io, "$str of ", Lowercase(), A.G)
   end
 end
 
