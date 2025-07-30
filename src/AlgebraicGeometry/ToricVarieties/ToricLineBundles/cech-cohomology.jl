@@ -144,7 +144,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
     combs = collect(combinations(n_maximal_cones(X), k+1))
     for i in 1:length(combs)
       if k == dim(X)
-        list_of_lattice_points = vcat(unique(values(cech_complex_points[k]))...)
+        list_of_lattice_points = unique(vcat(values(cech_complex_points[k])...))
       else
         list_of_lattice_points = PointVector{ZZRingElem}[]
         generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
@@ -178,7 +178,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
     end
     cech_complexes[k+1] = FreeMod(QQ, sum(length.(values(polyhedron_dict))))
 
-     # Initialize comb_dict before using it
+    # Initialize comb_dict before using it
     offset = 0
     for i in 1:length(combs)
       this_comb = combs[i]
