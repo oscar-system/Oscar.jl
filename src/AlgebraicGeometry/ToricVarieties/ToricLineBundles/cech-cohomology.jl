@@ -1,31 +1,4 @@
-export _toric_cech_complex, all_cohomologies_via_cech, tester
-
-
-@doc raw"""
-    tester(tl::ToricLineBundle)
-
-Compare line bundle cohomology from Cech cohomology with cohomCalg result.
-
-# Examples
-```jldoctest
-julia> X = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> [tester(toric_line_bundle(X, [1])) for k in -10:10]
-
-julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal toric variety
-
-julia> l2 = toric_line_bundle(dP3, [3,3,3,3])
-Toric line bundle on a normal toric variety
-
-
-```
-"""
-function tester(tl::ToricLineBundle)
-  return all_cohomologies_via_cech(tl) == all_cohomologies(tl)
-end
-
+export all_cohomologies_via_cech
 
 @doc raw"""
     all_cohomologies_via_cech(tl::ToricLineBundle)
@@ -59,9 +32,9 @@ julia> all_cohomologies_via_cech(l2)
 ```
 """
 function all_cohomologies_via_cech(tl::ToricLineBundle)
-  our_maps = _toric_cech_complex(tl)
+  our_maps = transpose.(matrix.(_toric_cech_complex(tl)))
   X = toric_variety(tl)
-  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X)))
+  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
   alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
   @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
   rks_maps = push!(rank.(our_maps), alternating_sum)
@@ -107,7 +80,6 @@ julia> all_cohomologies(l3)
 ```
 """
 function _toric_cech_complex(tl::ToricLineBundle)
-
   # Extract essential information
   X = toric_variety(tl)
   @req is_complete(X) "Toric variety must be complete!"
@@ -123,6 +95,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
   chamber_signs = matrix(ZZ, H.CHAMBER_SIGNATURES)
   sign_of_chamber = Dict(chamber_signs[i,:] => interior_lattice_points(p) for (i, p) in enumerate(max_polys) if is_bounded(p))
   list_of_boundary_lattice_points = unique(vcat([boundary_lattice_points(p) for p in values(filter(is_bounded, max_polys))]...))
+  sign_of_boundary_pt = Dict(pt => matrix(QQ, rays(X)) * pt + a_plane for pt in list_of_boundary_lattice_points)
 
   # Prepare information, which we use to iterate over the Cech complex and identify the relevant lattice points
   RI = ray_indices(maximal_cones(X))
@@ -130,7 +103,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
 
   # Now iterate over the Cech complex
   cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, dim(X) + 1)
-  cech_complex_maps = Vector{QQMatrix}(undef, dim(X))
+  #cech_complex_maps = Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}(undef, dim(X))
+  cech_complex_maps = Vector{Any}(undef, dim(X))
   comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
   d_k = 0
   previous_number_of_generators = 0
@@ -142,16 +116,12 @@ function _toric_cech_complex(tl::ToricLineBundle)
     for i in 1:length(combs)
       list_of_lattice_points = PointVector{ZZRingElem}[]
       generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
-
-      for pt in list_of_boundary_lattice_points
-        signs = matrix(QQ, rays(X)) * pt + a_plane
+      for (pt, signs) in sign_of_boundary_pt
         all(x -> x >= 0, signs[generating_ray_indices, :]) && push!(list_of_lattice_points, pt)
       end
-
       for (signs, pts) in sign_of_chamber
         all(x -> x > 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
       end
-
       polyhedron_dict[combs[i]] = list_of_lattice_points
     end
 
@@ -167,34 +137,33 @@ function _toric_cech_complex(tl::ToricLineBundle)
     
     # Compute Cech differential maps
     if k > 0
-      n_rows = previous_number_of_generators
-      n_cols = sum(length.(values(polyhedron_dict)))
-      d_k = zero_matrix(QQ, n_rows, n_cols)    
+      our_sparse_matrix = sparse_matrix(ZZ, 0, previous_number_of_generators)
       col_idx = 1
       for comb in combs
         pts = polyhedron_dict[comb]
         sub_combs = collect(combinations(comb, k))  # returns lex-sorted k-subsets
         for pt in pts
+          position_vector = Vector{Int}()
+          value_vector = Vector{ZZRingElem}()
           for j in 1:length(sub_combs)
             sub_comb = sub_combs[j]
             if haskey(comb_dict, sub_comb) && haskey(comb_dict[sub_comb], pt)
               row_idx = comb_dict[sub_comb][pt]
               sign = (-1)^(j + 1)  # Čech sign convention (1-based indexing)
-              d_k[row_idx, col_idx] = sign
+              push!(position_vector, row_idx)
+              push!(value_vector, sign)
             end
           end
+          push!(our_sparse_matrix, sparse_row(ZZ, position_vector, value_vector))
           col_idx += 1
         end
       end
-      cech_complex_maps[k] = d_k
+      cech_complex_maps[k] = our_sparse_matrix
     end
-    
     cech_complex_points[k+1] = polyhedron_dict
     previous_number_of_generators = sum(length.(values(polyhedron_dict)))
 
   end
 
-  # Return the result
   return cech_complex_maps
-
 end

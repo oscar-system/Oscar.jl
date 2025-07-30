@@ -270,6 +270,7 @@ export all_atlas_group_infos
 export all_blocks
 export all_character_table_names
 export all_cohomologies
+export all_cohomologies_via_cech
 export all_groups_with_class_number
 export all_neighbors
 export all_perfect_groups
