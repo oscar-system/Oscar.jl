@@ -525,6 +525,7 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  is_known_to_be_full::Bool
 
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
