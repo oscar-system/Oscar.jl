@@ -273,8 +273,8 @@ function _slow_toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Length
-  #cech_length = n_maximal_cones(X)
-  cech_length = dim(X)
+  cech_length = n_maximal_cones(X)
+  #cech_length = dim(X)
 
   # Now iterate over the Cech complex
   cech_complex_points = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}[]
