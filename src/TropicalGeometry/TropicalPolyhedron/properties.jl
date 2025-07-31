@@ -44,7 +44,7 @@ function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::
 
   return point_vector(
     T,
-    T.(P.pm_tpolytope.VERTICES[i,:])
+    T.(P.pm_tpolytope.VERTICES[i,:]::AbstractVector)
   )
 end
 
@@ -85,7 +85,7 @@ julia> pseudovertices(P)
 """
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
-  n = count(!iszero, CT)
+  n = count(!iszero, eachrow(CT))
   TT = tropical_semiring(convention(P))
 
   return SubObjectIterator{as}(
@@ -104,7 +104,7 @@ n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |>
 function n_pseudovertices(P::TropicalPolyhedron) 
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
 
-  return count(!iszero, CT)
+  return count(!iszero, eachrow(CT))
 end
 
 function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{TropicalPolyhedron,TropicalPointConfiguration}, i::Int) where {M<:MinOrMax}
@@ -182,7 +182,7 @@ end
 maximal_covectors(P::TropicalPointConfiguration) = maximal_covectors(IncidenceMatrix, P)
 
 function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPointConfiguration, i::Int)
-  return P.pm_tpolytope.MAXIMAL_COVECTORS[i]
+  return P.pm_tpolytope.MAXIMAL_COVECTORS[i]::IncidenceMatrix
 end
 
 @doc raw"""
@@ -215,7 +215,7 @@ end
 maximal_covectors(P::TropicalPolyhedron) = maximal_covectors(IncidenceMatrix, P)
 
 function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPolyhedron, i::Int)
-  return P.pm_tpolytope.POLYTOPE_MAXIMAL_COVECTORS[i]
+  return P.pm_tpolytope.POLYTOPE_MAXIMAL_COVECTORS[i]::IncidenceMatrix
 end
 
 @doc raw"""
