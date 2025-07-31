@@ -37,7 +37,7 @@ vertices(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = vertices(PointVector{Tr
 
 Returns the number of vertices of `P`.
 """
-n_vertices(P::TropicalPolyhedron) = size(pm_object(P).VERTICES, 1)
+n_vertices(P::TropicalPolyhedron) = size(pm_object(P).VERTICES::AbstractMatrix, 1)
 
 function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPolyhedron, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
@@ -84,7 +84,7 @@ julia> pseudovertices(P)
 ```
 """
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
-  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
   n = count(!iszero, CT)
   TT = tropical_semiring(convention(P))
 
@@ -102,7 +102,7 @@ pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) wh
 
 n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> size |> first
 function n_pseudovertices(P::TropicalPolyhedron) 
-  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
 
   return count(!iszero, CT)
 end
@@ -122,7 +122,7 @@ function points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {
   return SubObjectIterator{as}(P, _points, n)
 end
 points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = points(PointVector{TropicalSemiringElem{M}}, P)
-n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS |> size |> first
+n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::AbstractMatrix |> size |> first
 
 function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointConfiguration, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
@@ -134,7 +134,7 @@ function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointC
 end
 
 dim(P::TropicalPolyhedron) = covector_decomposition(P) |> dim
-ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PROJECTIVE_AMBIENT_DIM
+ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PROJECTIVE_AMBIENT_DIM::Int
 
 @doc raw"""
     maximal_covectors([as::Type{T} = PointVector,] P::TropicalPointConfiguration)
@@ -243,7 +243,7 @@ julia> CD |> maximal_polyhedra
 ```
 """
 function covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
-  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
+  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
 end
 
 @doc raw"""
@@ -269,15 +269,15 @@ julia> CD |> maximal_polyhedra
 """
 function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   if !isnothing(dehomogenize_by)
-    return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
+    return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
   else
-   pv = pm_object(P).PSEUDOVERTICES
-   cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS
-   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
+   pv = pm_object(P).PSEUDOVERTICES::AbstractMatrix
+   cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS::IncidenceMatrix
+   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
    ind = findall(1:size(ct, 1)) do i
      all(!iszero, ct[i,:])
    end
-   return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind]) |> polyhedral_complex
+   return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind])::Polymake.BigObject |> polyhedral_complex
   end
 end
 
@@ -287,7 +287,7 @@ end
 Checks whether `P` is bounded in the tropical projective torus.
 """
 function is_bounded(P::TropicalPolyhedron)
-  return all(!iszero, pm_object(P).VERTICES)
+  return all(!iszero, pm_object(P).VERTICES::AbstractMatrix)
 end
 
 function Base.show(io::IO, P::TropicalPolyhedron{M}) where {M<:MinOrMax}
