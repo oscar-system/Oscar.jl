@@ -525,16 +525,17 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  is_known_to_be_full::Bool
 
-  function AutomorphismGroup{T}(G::GapObj, H::T) where T
+  function AutomorphismGroup{T}(G::GapObj, H::T, full::Bool = false) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
-    z = new{T}(G, H)
+    z = new{T}(G, H, full)
     return z
   end
 end
 
-function AutomorphismGroup(G::GapObj, H::T) where T
-  return AutomorphismGroup{T}(G, H)
+function AutomorphismGroup(G::GapObj, H::T, full::Bool = false) where T
+  return AutomorphismGroup{T}(G, H, full)
 end
 
 (aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
