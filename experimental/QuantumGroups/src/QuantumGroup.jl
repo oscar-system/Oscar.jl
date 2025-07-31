@@ -465,7 +465,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    monomial(F::Vector{QuantumGroupElem}, m::Vector{Tuple{Int,Int}}) -> QuantumGroupElem
+    monomial(U::QuantumGroup, i::Vector{Int}, n::Vector{Int}) -> QuantumGroupElem
     
 For a vector `F` of generators of a quantum group `U` return the monomial
 for the word `i` with divided powers `n`.
