@@ -18,7 +18,7 @@ negative_chevalley_gens(::QuantumGroup)
 
 # Monomials
 ```@docs
-monomial(::QuantumGroup, ::Vector{Int} ::Vector{Int})
+monomial(::QuantumGroup, ::Vector{Int}, ::Vector{Int})
 ```
 
 # Canonical basis
