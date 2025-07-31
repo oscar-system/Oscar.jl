@@ -85,10 +85,7 @@ julia> pseudovertices(P)
 """
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
-  ind = findall(1:size(CT, 1)) do i
-    all(!iszero, CT[i,:])
-  end
-  n = length(ind)
+  n = count(!iszero, CT)
   TT = tropical_semiring(convention(P))
 
   return SubObjectIterator{as}(
@@ -106,10 +103,8 @@ pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) wh
 n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> size |> first
 function n_pseudovertices(P::TropicalPolyhedron) 
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS
-  ind = findall(1:size(CT, 1)) do i
-    all(!iszero, CT[i,:])
-  end
-  return length(ind)
+
+  return count(!iszero, CT)
 end
 
 function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{TropicalPolyhedron,TropicalPointConfiguration}, i::Int) where {M<:MinOrMax}
@@ -273,7 +268,6 @@ julia> CD |> maximal_polyhedra
 ```
 """
 function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
-  # The following is sufficient for Polymake v4.14 and above
   if !isnothing(dehomogenize_by)
     return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1) |> polyhedral_complex
   else
