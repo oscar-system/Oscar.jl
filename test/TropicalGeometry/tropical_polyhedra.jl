@@ -170,7 +170,7 @@ end
 
   ## Making a pseudovertices an input point of the above point configuration
   pts1_b = QQ[0 -1 0; 0 -4 -1; 0 -3 0]*__sign
-  C1_b = tropical_point_configuration(min, pts1_b)
+  C1_b = tropical_point_configuration(minOrMax, pts1_b)
   @test issetequal(points(C1_b), eachrow(TT.(pts1_b)))
 
   cov1_b = maximal_covectors(C1_b)
