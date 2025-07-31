@@ -1446,9 +1446,7 @@ GAPGroupHomomorphism{PermGroup, PermGroup}
 """
 function automorphism_group(G::GAPGroup)
   AutGAP = GAPWrap.AutomorphismGroup(GapObj(G))
-  aut = AutomorphismGroup(AutGAP, G)
-  aut.is_known_to_be_full = true
-  return aut
+  return AutomorphismGroup(AutGAP, G, true)
 end
 
 function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}

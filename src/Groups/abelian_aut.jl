@@ -32,8 +32,7 @@ Automorphism group of
 function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
-  aut = AutomorphismGroup(AutGAP, G)
-  aut.is_known_to_be_full = true
+  aut = AutomorphismGroup(AutGAP, G, true)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
