@@ -57,7 +57,6 @@ oo = minOrMax == min ? inf : -inf
   P2 = tropical_convex_hull(pts2)
   @test ambient_dim(P2) == 2
   @test dim(P2) == 2
-  # the following are unbroken with polymake v4.14
   @test issetequal(vertices(P2), eachrow(pts2)) 
   @test n_vertices(P2) == 3 
   @test is_bounded(P2) == false 
@@ -84,7 +83,6 @@ oo = minOrMax == min ? inf : -inf
   P3 = tropical_convex_hull(pts3)
   @test ambient_dim(P3) == 2
   @test dim(P3) == 2
-  # the following are unbroken with polymake v4.14
   @test issetequal(vertices(P3), eachrow(pts3)) 
   @test n_vertices(P3) == 3 
   @test issetequal(pseudovertices(P3), [TT.(__sign*[0,1,4]),TT.(__sign*[0,1,3])]) 
