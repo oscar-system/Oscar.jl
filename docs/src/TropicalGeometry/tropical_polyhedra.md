@@ -21,7 +21,7 @@ For more details see
 - We offer two types with slightly different semantics, `TropicalPolyhedron` and `TropicalPointConfiguration`.
   - The `TropicalPointConfiguration` type represents the information of the covector decomposition of the tropical projective torus
     induced by $V$.
-  - A `TropicalPolyhedron` refers to the actual tropical convex hull of the point set $V$ which carries a induced covector decomposition,
+  - A `TropicalPolyhedron` refers to the actual tropical convex hull of the point set $V$ which carries an induced covector decomposition,
     which is a polyhedral subcomplex of the covector decomposition for the corresponding `TropicalPointConfiguration`.
 - Currently, OSCAR supports
   - point sets $V$ with entirely finite coordinates
