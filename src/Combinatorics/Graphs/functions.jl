@@ -1569,8 +1569,11 @@ label: label
 julia> G.label[1, 2]
 1
 
-julia> G.label[edges(G)[2]]
-1
+julia> edge = collect(edges(G))[2]
+Edge(2, 3)
+
+julia> G.label[edge]
+4
 
 julia> K = graph_from_labeled_edges(Dict((1, 2) => "blue", (2, 3) => "green"),
                                     Dict(1 => "red", 2 => "red", 3 => "yellow"); name=:color)
