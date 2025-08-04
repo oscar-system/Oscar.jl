@@ -1555,7 +1555,7 @@ end
 
 Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
 The default labeling on the graph is `label` but any `Symbol` can be passed using the `name` keyword argument.
-The labeling can be accessed as a property of the graph, the name of the property is exactly the name passed as the label.
+The labeling can be accessed as a property of the graph, the property is exactly the name passed to the `name` keyword argument.
 See [`label!`](@ref) to add additional labels to the graph.
 
 # Examples
