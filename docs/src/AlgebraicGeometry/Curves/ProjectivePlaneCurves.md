@@ -1,6 +1,9 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
+
 # Projective Plane Curves
 ```@docs
 ProjectivePlaneCurve

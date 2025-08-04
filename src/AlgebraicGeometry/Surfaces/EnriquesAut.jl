@@ -668,7 +668,7 @@ julia> length(isotropic_rays(D))
 ```
 
 The ``\mathrm{Aut}(Y)``-orbits of the rational curves split as ``2+2+2+2+4``.
-```jldoctest EnriquesAut
+```jldoctest EnriquesAut; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> [length(i) for i in orbits(rational_curvesY)]
 5-element Vector{Int64}:
  2

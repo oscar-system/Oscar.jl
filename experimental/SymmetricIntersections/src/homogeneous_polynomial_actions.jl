@@ -205,7 +205,7 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j::Union{MapFrom
   elseif check
     V = domain(j)
     @req base_ring(V) === F "Incompatible map j"
-    @req dim(V) == binomial(dimension_representation(prep)+d-1, d) "Incompatible map j"
+    @req vector_space_dim(V) == binomial(dimension_representation(prep)+d-1, d) "Incompatible map j"
     S = codomain(j)
     @req base_ring(S) === F "Incompatible map j"
     @req ngens(S) === dimension_representation(prep) "Incompatible map j"

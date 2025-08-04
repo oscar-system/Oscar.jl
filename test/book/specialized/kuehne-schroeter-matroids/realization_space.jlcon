@@ -125,4 +125,4 @@ One realization is given by
   [0   0   0   1   2   3   6   3   2]
 in the rational field
 
-julia> results = collection = db = 0; # allow connection cleanup
+julia> Polymake.Polydb.Mongoc.destroy!(db.mdb.client); results = collection = db = 0; # allow connection cleanup

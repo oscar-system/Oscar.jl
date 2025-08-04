@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -96,6 +97,8 @@ GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
+character_table_wreath_symmetric
+character_table_complex_reflection_group
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
@@ -176,6 +179,7 @@ natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
+permutation_character(G::GAPGroup, H::GAPGroup)
 trivial_character(G::GAPGroup)
 regular_character(G::GAPGroup)
 ```

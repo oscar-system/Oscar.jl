@@ -4,13 +4,9 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
-using Distributed: RemoteChannel, Future, remotecall
 
 if VERSION < v"1.11.0-DEV.1562"
   using Compat: allequal, allunique
-end
-if VERSION < v"1.8.0-DEV.1494"
-  export allequal
 end
 
 # our packages
@@ -50,6 +46,7 @@ import Base:
   one,
   parent,
   print,
+  put!,
   reduce,
   show,
   sum,
@@ -98,10 +95,14 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_equal_as_morphism,
   is_known,
+  is_local,
+  is_noetherian,
   is_terse,
   is_trivial,
   is_unicode_allowed,
+  krull_dim,
   Lowercase,
   LowercaseOff,
   map,
@@ -129,6 +130,7 @@ import AbstractAlgebra:
   symbols,
   terse,
   total_degree,
+  vector_space_dim,
   with_unicode
 
 import GAP:
@@ -179,12 +181,14 @@ import Nemo:
 # By default we import everything exported by Hecke, and then also re-export
 # it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
+    Symbol("@perm_str"), # see https://github.com/oscar-system/Oscar.jl/issues/4963
     :change_uniformizer,
     :coefficients,
     :exponent_vectors,
     :leading_coefficient,
     :leading_monomial,
     :leading_term,
+    :map_from_func,
     :monomials,
     :narrow_class_group,
     :normalise,

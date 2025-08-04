@@ -54,12 +54,6 @@ cases = [
         @test loaded == m1 * m2
         @test grading_group(parent(loaded)) == grading_group(M)
       end
-
-      GM, _ = grade(M, A)
-      test_save_load_roundtrip(path, GM) do loaded
-        @test loaded == GM
-        @test forget_grading(loaded) == forget_grading(GM)
-      end
     end
 
     for case in cases
@@ -112,8 +106,8 @@ cases = [
             end
 
             # need a cleaner way to setup type params in general
-            params = Dict(Oscar.params(Oscar.type_params(gb))...)
-            params[:ordering_type] = Oscar.type(params[:ordering_type])
+            params = Dict(Oscar.Serialization.params(Oscar.type_params(gb))...)
+            params[:ordering_type] = Oscar.Serialization.type(params[:ordering_type])
             test_save_load_roundtrip(path, gb; params=params) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
               @test ordering(gb) == ordering(loaded_gb)
@@ -206,6 +200,39 @@ cases = [
             @test p == loaded
           end
         end
+      end
+    end
+  end
+end
+
+@testset "localizations and quotients" begin
+  mktempdir() do path
+    R, (x, y, z) = GF(103)[:x, :y, :z]
+    for U in [powers_of_element(x), 
+              complement_of_point_ideal(R, GF(103).([1, 2, 3])),
+              complement_of_prime_ideal(ideal(R, x))
+             ]
+      L, _ = localization(R, U)
+      Q, _ = quo(L, ideal(L, y))
+      Qz = Q(z)
+      # Test MPolyQuoLocRings and their elements
+      test_save_load_roundtrip(path, Qz; params=Q) do loaded
+        @test Qz == loaded
+      end
+      # Test ideals in these rings. 
+      J = ideal(Q, z)
+      test_save_load_roundtrip(path, J; params=Q) do loaded
+        @test J == loaded
+      end
+      # Test MPolyLocalizedRingHom
+      phi = hom(L, L, gens(L))
+      test_save_load_roundtrip(path, phi) do loaded
+        @test phi == loaded
+      end   
+      # Test MPolyQuoLocalizedRingHom
+      phi = hom(Q, Q, gens(Q))
+      test_save_load_roundtrip(path, phi) do loaded
+        @test phi == loaded
       end
     end
   end

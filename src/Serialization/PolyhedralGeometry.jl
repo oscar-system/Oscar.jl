@@ -143,7 +143,7 @@ function load_object(s::DeserializerState{LPSerializer},
 end
 
 ##############################################################################
-@register_serialization_type MixedIntegerLinearProgram uses_params
+@register_serialization_type MixedIntegerLinearProgram
 
 function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQFieldElem})
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE

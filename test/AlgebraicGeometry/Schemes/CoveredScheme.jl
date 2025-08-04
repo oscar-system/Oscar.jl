@@ -186,6 +186,14 @@
     @test is_integral(Z2cov)
   end
 
+  @testset "irreducible components" begin 
+    P1 = projective_space(QQ,1)
+    (s0,s1) = homogeneous_coordinates(P1)
+    X = subscheme(P1,ideal(s0*s1))
+    Xcov = covered_scheme(X)
+    @test length(irreducible_components(Xcov))==2
+  end 
+  
   @testset "conversion of morphisms" begin
     P = projective_space(QQ, 2)
     SP = homogeneous_coordinate_ring(P)

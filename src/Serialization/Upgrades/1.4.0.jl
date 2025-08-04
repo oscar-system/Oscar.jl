@@ -25,7 +25,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           upgraded_dict[:_type] = Dict(
             :name => dict[:_type],
-            :params => dict[:data][:base_ring]
+            :params => dict[:data][:base_ring] isa String ? dict[:data][:base_ring] : upgrade_1_4_0(s, dict[:data][:base_ring])
           )
           upgraded_dict[:data] = Dict(
             :symbols => dict[:data][:symbols],
@@ -186,13 +186,29 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:data] = []
       elseif type_name == "FqField"
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => dict[:_type]
+        )
+
         if dict[:data] isa Dict
-          upgraded_dict[:_type] = Dict(
-            :name => dict[:_type],
-            :params => dict[:data][:def_pol][:_type][:params]
-          )
+          upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
           upgraded_dict[:data] = dict[:data][:def_pol][:data]
         end
+      elseif type_name in ["fpField", "Nemo.fpField"]
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => "fpField"
+            )
+        upgraded_dict[:data] = dict[:data]
+      elseif type_name in ["FpField", "Nemo.FpField"]
+        upgraded_dict[:_type] = Dict(
+          :name => "FiniteField",
+          :_instance => "FpField"
+            )
+        upgraded_dict[:data] = dict[:data]
+      elseif type_name in ["FpFieldElem", "fpFieldElem"]
+        upgraded_dict[:_type][:params] = upgrade_1_4_0(s, dict[:_type][:params])
       elseif type_name == "Dict"
         if haskey(dict[:_type][:params], :value_type)
           if haskey(dict[:_type][:params], :value_params)
@@ -256,6 +272,16 @@ push!(upgrade_scripts_set, UpgradeScript(
               :_type => subtype,
               :data => entry
             )))
+          end
+          if allequal(x -> x[:_type], upgraded_entries)
+            if !isempty(upgraded_entries)
+              upgraded_dict[:_type][:params] = upgraded_entries[1][:_type]
+            end
+          else
+            upgraded_dict[:_type][:name] = "Tuple"
+            upgraded_dict[:_type][:params] = [
+              x[:_type] for x in upgraded_entries
+            ]
           end
           upgraded_dict[:data] = [e[:data] for e in upgraded_entries]
         end
@@ -500,59 +526,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           :ordering => ord_data[:data],
           :modulus => dict[:data][:modulus][:data]
         )
-      elseif type_name in [
-        "AbsPowerSeriesRingElem", "PolyRingElem", "MPolyRingElem", "MPolyDecRingElem",
-        "AbsPowerSeriesRingElem", "RelPowerSeriesRingElem",
-        "DualRootSpaceElem",
-        "RootSystem",
-        "UniversalPolyRingElem",
-        "FinGenAbGroup", "AbstractAlgebra.Generic.LaurentMPolyWrap",
-        "MPolyIdeal", "MatElem", "String", "Base.Int", "Bool", "Graph{Undirected}",
-        "LaurentMPolyIdeal", "LaurentSeriesFieldElem",
-        "Graph{Directed}", "Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}",
-        "Float64", "Float16", "Float32",
-        "FpFieldElem",
-        "fpFieldElem",
-        "Hecke.QuadSpace",
-        "LaurentSeriesRingElem",
-        "PcGroupElem", "PermGroup", "PermGroupElem",
-        "FreeAssociativeAlgebraIdeal",
-        "FreeAssociativeAlgebraElem",
-        "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
-        "BigInt", "Int128", "Int16", "Int32", "Int8",
-        "MPolyAnyMap",
-        "FPGroupElem",
-        "QQField", "QQFieldElem",
-        "QQBarField",
-        "RootSpaceElem",
-        "SubFPGroupElem",
-        "SubPcGroupElem",
-        "Matroid",
-        "SMat",
-        "SimplicialComplex",
-        "Symbol",
-        "TropicalSemiringElem",
-        "ToricDivisor",
-        "FqFieldElem",
-        "ZZModRingElem",
-        "Nemo.ZZModRing",
-        "zzModRingElem",
-        "Nemo.zzModRing",
-        "ZZRing",
-        "ZZRingElem",
-        "WeightLatticeElem",
-        "WeylGroupElem",
-        "ToricDivisorClass",
-        "AbstractLieAlgebraElem",
-        "DirectSumLieAlgebraElem",
-        "LieAlgebraModuleElem",
-        "LinearLieAlgebraElem"
-        ]
-        # do nothing
-        
-      else
-        #println(json(dict, 2))
-        error("$type_name doesn't have upgrade")
       end
     elseif haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_1_4_0(s, dict[:data])
@@ -565,7 +538,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:_refs] = upgraded_refs
     end
-    #println(json(upgraded_dict, 2))
     return upgraded_dict
   end
 ))

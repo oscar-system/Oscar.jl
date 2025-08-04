@@ -10,7 +10,7 @@ This method constructs a global Tate model over a given toric base
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
+julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false)
 Global Tate model over a concrete base
 ```
 """
@@ -25,7 +25,7 @@ The only difference is that the Tate sections ``a_i`` can be specified with non-
 
 # Examples
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> a1 = generic_section(anticanonical_bundle(chosen_base));
@@ -87,17 +87,56 @@ function global_tate_model(base::NormalToricVariety,
 end
 
 
-################################################
-# 2: Constructors with scheme as base
-################################################
+@doc raw"""
+    global_tate_model_over_projective_space(d::Int)
 
-# Yet to come...
-# This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
-# -> Types to be generalized then.
+Construct a global Tate model over the ``d``-dimensional projective space,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients.
+
+# Examples
+```jldoctest
+julia> global_tate_model_over_projective_space(3)
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_space(NormalToricVariety, d); completeness_check = false)
+
+
+@doc raw"""
+    global_tate_model_over_hirzebruch_surface(r::Int)
+
+Construct a global Tate model over the Hirzebruch surface ``F_r``,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients.
+
+# Examples
+```jldoctest
+julia> global_tate_model_over_hirzebruch_surface(1)
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+
+
+@doc raw"""
+    global_tate_model_over_del_pezzo_surface(b::Int)
+
+Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients.
+
+# Examples
+```jldoctest
+julia> global_tate_model_over_del_pezzo_surface(3)
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 ################################################
-# 3: Constructors without specified base
+# 2: Constructors with unspecified base
 ################################################
 
 @doc raw"""
@@ -194,12 +233,13 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 end
 
 
-
 ################################################
-# 4: Display
+# 3: Display
 ################################################
 
-function Base.show(io::IO, t::GlobalTateModel)
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
+  io = pretty(io)
   properties_string = String[]
   if is_partially_resolved(t)
     push!(properties_string, "Partially resolved global Tate model over a")
@@ -211,17 +251,22 @@ function Base.show(io::IO, t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(t)
+  if has_attribute(t, :model_description)
     push!(properties_string, "-- " * model_description(t))
-    if has_model_parameters(t)
+    if has_attribute(t, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(t)
+  if has_attribute(t, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
-  if has_arxiv_model_equation_number(t)
+  if has_attribute(t, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
+end
+
+# Terse and one line printing
+function Base.show(io::IO, t::GlobalTateModel)
+  print(io, "Global Tate model")
 end

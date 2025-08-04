@@ -132,7 +132,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where S
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::Ring) where S
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::NCRing) where S
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -170,7 +170,7 @@ function load_type_params(s::DeserializerState, T::Type{Tuple})
       U = decode_type(s)
       load_type_params(s, U)
     end
-    return collect(zip(tuple_params...))
+    return Tuple([x[1] for x in tuple_params]), Tuple(x[2] for x in tuple_params)
   end
   return T{subtype...}, params
 end
@@ -257,7 +257,7 @@ function save_object(s::SerializerState, obj::NamedTuple)
 end
 
 function load_object(s::DeserializerState, T::Type{<: NamedTuple}, params::Tuple)
-  return T(load_object(s, Tuple{fieldtypes(T)...}, params))
+  return T(load_object(s, Tuple{Base.fieldtypes(T)...}, params))
 end
 
 ################################################################################
@@ -542,7 +542,7 @@ function save_object(s::SerializerState, obj::SRow)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:SRow}, params::Ring)
+function load_object(s::DeserializerState, ::Type{<:SRow}, params::NCRing)
   pos = Int[]
   entry_type = elem_type(params)
   values = entry_type[]

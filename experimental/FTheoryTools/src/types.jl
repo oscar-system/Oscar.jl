@@ -3,10 +3,10 @@
 ################################################
 
 @attributes mutable struct FamilyOfSpaces
-  coordinate_ring::MPolyRing
+  coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}
   grading::Matrix{Int64}
   dim::Int
-  FamilyOfSpaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) = new(coordinate_ring, grading, dim)
+  FamilyOfSpaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, grading::Matrix{Int64}, dim::Int) = new(coordinate_ring, grading, dim)
 end
 const FTheorySpace = Union{AbsCoveredScheme, FamilyOfSpaces}
 
@@ -174,5 +174,21 @@ end
   model::AbstractFTheoryModel
   mat_int::QQMatrix
   mat_rat::QQMatrix
-  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix) = new(model, mat_int, mat_rat)
+  offset::Vector{QQFieldElem}
+  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}) = new(model, mat_int, mat_rat, offset)
 end
+
+
+
+################################################
+# 5: The julia types for section attributes
+################################################
+
+const LineBundleSectionType = Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
+const ZeroSectionType = LineBundleSectionType
+const GeneratingSectionsType = Vector{LineBundleSectionType}
+const TorsionSectionsType = Vector{LineBundleSectionType}
+const ResolutionZeroSectionsType = Vector{Vector{LineBundleSectionType}}
+const WeightedResolutionZeroSectionsType = Vector{Vector{LineBundleSectionType}}
+const ResolutionGeneratingSectionsType = Vector{Vector{Vector{LineBundleSectionType}}}
+const WeightedResolutionGeneratingSectionsType = Vector{Vector{Vector{LineBundleSectionType}}}

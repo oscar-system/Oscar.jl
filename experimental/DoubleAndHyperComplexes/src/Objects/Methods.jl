@@ -2,10 +2,10 @@
 @doc raw"""
     total_complex(D::AbsDoubleComplexOfMorphisms)
 
-Construct the total complex of the double complex `D`. 
+Construct the total complex of the double complex `D`.
 
 Note that `D` needs to be reasonably bounded for this to work so that the strands
-``⨁ ᵢ₊ⱼ₌ₖ Dᵢⱼ`` are finite for every `k`. Moreover, the generic code uses the internal 
+``⨁ ᵢ₊ⱼ₌ₖ Dᵢⱼ`` are finite for every `k`. Moreover, the generic code uses the internal
 function `_direct_sum`. See the docstring of that function to learn more.
 """
 function total_complex(D::AbsDoubleComplexOfMorphisms)
@@ -87,7 +87,7 @@ is_complete(C::ComplexOfMorphisms) = C.complete
 ### cached homology
 
 function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
-  if !isdefined(c, :kernel_cache) 
+  if !isdefined(c, :kernel_cache)
     c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
   if haskey(c.kernel_cache, (i, p))
@@ -112,7 +112,7 @@ function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType
   prev = I + (direction(c, p) == :chain ? 1 : -1)*[k==p ? 1 : 0 for k in 1:dim(c)]
   Prev = Tuple(prev)
 
-  if !isdefined(c, :boundary_cache) 
+  if !isdefined(c, :boundary_cache)
     c.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
   if haskey(c.boundary_cache, (i, p))
@@ -120,7 +120,7 @@ function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType
     return domain(inc), inc
   end
 
-  if !can_compute_map(c, p, Prev) 
+  if !can_compute_map(c, p, Prev)
     !can_compute_index(c, Prev) || error("map can not be computed")
     Im, inc = sub(c[i], elem_type(c[i])[])
     @assert codomain(inc) === c[i]
@@ -135,7 +135,7 @@ function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType
 end
 
 function homology(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
-  if !isdefined(c, :homology_cache) 
+  if !isdefined(c, :homology_cache)
     c.homology_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
   if haskey(c.homology_cache, (i, p))
@@ -150,7 +150,7 @@ end
 
 #function Base.show(io::IO, ::MIME"text/plain", c::AbsHyperComplex)
 function Base.show(io::IO, c::AbsHyperComplex)
-  if dim(c) == 1 
+  if dim(c) == 1
     return _print_standard_complex(io, c)
   end
   print(io, "Hyper complex of dimension $(dim(c))")
@@ -201,13 +201,13 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
     while !can_compute_index(c, lb)
       lb = lb+1
     end
-    str = "$(c[lb])" 
+    str = "$(c[lb])"
     for i in lb+1:ub
       !can_compute_index(c, i) && break
       if direction(c, 1) == :chain
-        str = str * " <-- " 
+        str = str * " <-- "
       else
-        str = str * " --> " 
+        str = str * " --> "
       end
       str = str * "$(c[i])"
     end
@@ -242,7 +242,7 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
     println(io, str)
     return
   end
-  
+
   if has_upper_bound(c, 1)
     ub = upper_bound(c, 1)
     while !can_compute_index(c, ub)
@@ -273,24 +273,48 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
 
   # If no bounds are known, we do not know where to start printing, so we give up.
   print(io, "Hyper complex of dimension $(dim(c)) with no known bounds")
-  return 
+  return
 end
- 
+
 function Base.show(io::IO, c::ZeroDimensionalComplex)
   print(io, "Zero-dimensional complex given by $(c[()])")
 end
 
 function Base.show(io::IO, c::SimpleFreeResolution)
-  has_upper_bound(c) && return _free_show(io, c)
-  return _print_standard_complex(io, c)
+  cfac = chain_factory(c)
+  print_length = length(cfac.map_cache)
+  i = findfirst(phi->is_zero(domain(phi)), cfac.map_cache)
+  if !isnothing(i)
+    print_length = i
+  end
+  return _free_show(io, c; length=print_length)
 end
 
-function _free_show(io::IO, C::AbsHyperComplex)
+function is_known(::typeof(getindex), c::AbsHyperComplex, i::Tuple)
+  return is_known(getindex, underlying_complex(c), i)
+end
+
+function is_known(::typeof(getindex), c::HyperComplex, i::Tuple)
+  return haskey(c.chains, i)
+end
+
+function _free_show(io::IO, C::AbsHyperComplex; length::Union{Int, Nothing}=nothing)
   # copied and adapted from src/Modules/UngradedModules/FreeResolutions.jl
   name_mod = String[]
   rank_mod = Int[]
 
-  rng = upper_bound(C, 1):-1:lower_bound(C, 1)
+  print_bound = 0
+  if !isnothing(length)
+    print_bound = length
+  elseif has_upper_bound(C, 1)
+    print_bound = upper_bound(C, 1)
+  else
+    while is_known(getindex, C, (print_bound+1,))
+      print_bound += 1
+    end
+  end
+
+  rng = print_bound:-1:lower_bound(C, 1)
   arr = ("<--", "--")
 
   R = Nemo.base_ring(C[first(rng)])
@@ -298,7 +322,7 @@ function _free_show(io::IO, C::AbsHyperComplex)
   if isnothing(R_name)
     R_name = "($R)"
   end
- 
+
   for i=reverse(rng)
     M = C[i]
     M_name = AbstractAlgebra.get_name(M)
@@ -318,36 +342,36 @@ function _free_show(io::IO, C::AbsHyperComplex)
 
   pos = 0
   pos_mod = Int[]
-  
-  for i=1:length(name_mod)
+
+  for i=1:Oscar.length(name_mod)
     print(io, name_mod[i])
     push!(pos_mod, pos)
-    pos += length(name_mod[i])
-    if i < length(name_mod)
+    pos += Oscar.length(name_mod[i])
+    if i < Oscar.length(name_mod)
       print(io, " ", arr[1], arr[2], " ")
-      pos += length(arr[1]) + length(arr[2]) + 2
+      pos += Oscar.length(arr[1]) + Oscar.length(arr[2]) + 2
     end
   end
 
   print(io, "\n")
   len = 0
-  for i=1:length(name_mod)
+  for i=1:Oscar.length(name_mod)
     if i>1
       print(io, " "^(pos_mod[i] - pos_mod[i-1]-len))
     end
     print(io, reverse(rng)[i])
-    len = length("$(reverse(rng)[i])")
+    len = Oscar.length("$(reverse(rng)[i])")
   end
 end
 
 ### Koszul contraction
-# Given a free `R`-module `F`, a morphism φ: F → R, and an element `v` in ⋀ ᵖ F, 
+# Given a free `R`-module `F`, a morphism φ: F → R, and an element `v` in ⋀ ᵖ F,
 # compute the contraction φ(v) ∈ ⋀ ᵖ⁻¹ F.
 # Note: For this internal method φ is only represented as a dense (column) vector.
-# Warning: If the user provides their own parent, they need to make sure that things 
+# Warning: If the user provides their own parent, they need to make sure that things
 #          are compatible. As this is an internal function, no sanity checks are done.
 function _contract(
-    v::FreeModElem{T}, phi::Vector{T}; 
+    v::FreeModElem{T}, phi::Vector{T};
     parent::FreeMod{T}=begin
       success, F0, p = _is_exterior_power(Oscar.parent(v))
       @req success "parent is not an exterior power"
@@ -359,15 +383,13 @@ function _contract(
   @assert length(phi) == ngens(F0) "lengths are incompatible"
   result = zero(parent)
   n = ngens(F0)
-  for (i, ind) in enumerate(OrderedMultiIndexSet(p, n))
+  for (i, ind) in enumerate(combinations(n, p))
     is_zero(v[i]) && continue
     for j in 1:p
-      I = deleteat!(copy(indices(ind)), j)
-      new_ind = OrderedMultiIndex(I, n)
-      result = result + (-1)^j * v[i] * phi[ind[j]] * parent[linear_index(new_ind)]
+      I = deleteat!(copy(data(ind)), j)
+      new_ind = Combination(I)
+      result = result + (-1)^j * v[i] * phi[ind[j]] * parent[Oscar.linear_index(new_ind, n)]
     end
   end
   return result
 end
-
-

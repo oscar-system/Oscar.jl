@@ -21,8 +21,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes:
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -38,35 +40,35 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, Int[], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
@@ -76,12 +78,15 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
-  gens = chosen_g4_flux_basis(model(fgs), check = check)
+  shift = offset(fgs)
+  gens = chosen_g4_flux_gens(model(fgs), check = check)
   c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
   c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
-  flux = c1 + c2
+  c3 = sum(shift[k] * gens[k] for k in 1:length(gens))
+  flux = c1 + c2 + c3
   set_attribute!(flux, :int_combination, int_combination)
   set_attribute!(flux, :rat_combination, rat_combination)
+  set_attribute!(flux, :offset, shift)
   set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
     if is_well_quantized(fgs)
@@ -106,21 +111,21 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m), check = check)
-    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r)))
+    return g4_flux(m, cohomology_class(ambient_space(m), zero(r), quick = true), check = check)
   end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
 
   m_int = matrix(ZZ, [int_coeffs])
   if length(int_coeffs) == 0
-    m_int = zero_matrix(ZZ, 1, ncols(matrix_integral(fgs)))
+    m_int = zero_matrix(ZZ, ncols(matrix_integral(fgs)), 1)
   end
   if length(int_coeffs) > 0
     @req length(int_coeffs) == ncols(matrix_integral(fgs)) "Number of specified integers must match the number of integral combinations in G4-flux family"
   end
   m_rat = matrix(QQ, [rat_coeffs])
   if length(rat_coeffs) == 0
-    m_rat = zero_matrix(QQ, 1, ncols(matrix_rational(fgs)))
+    m_rat = zero_matrix(QQ, ncols(matrix_rational(fgs)), 1)
   end
   if length(rat_coeffs) > 0
     @req length(rat_coeffs) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of rational combinations in G4-flux family"
@@ -159,8 +164,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 
 julia> mat_rat[2,1] = 1;
 
-julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes:
+julia> shift = [zero(QQ) for k in 1:37];
+
+julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -170,7 +177,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -196,7 +203,7 @@ end
 @doc raw"""
     random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
-Create a random $G_4$-flux on a given F-theory model.
+Create a random ``G_4``-flux on a given F-theory model.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -208,7 +215,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)

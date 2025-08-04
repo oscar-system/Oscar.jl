@@ -4,8 +4,6 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar.AbstractAlgebra: combinations
-import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
@@ -17,12 +15,11 @@ import ..AbstractAlgebra: polynomial
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -45,24 +42,29 @@ export dual
 export dual_basis
 export euler_number
 export euler_pairing
+export extend_inclusion
 export fixed_points
+export gromov_witten_invariant
 export graph
 export hom
-export hyperplane_class
 export identity_map
+export instanton_number
+export intersection_matrix
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
+export polarization
 ### export r_polynomial
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
@@ -112,12 +114,11 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -140,25 +141,29 @@ export dual
 export dual_basis
 export euler_number
 export euler_pairing
+export extend_inclusion
 export fixed_points
 export graph
+export gromov_witten_invariant
 export hom
-export hyperplane_class
-export intersection_matrix
 export identity_map
+export instanton_number
+export intersection_matrix
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
+export polarization
 ### export r_polynomial
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
@@ -189,5 +194,3 @@ export TnBundle
 export TnBundleChern
 export TnRep
 export TnVariety
-
-

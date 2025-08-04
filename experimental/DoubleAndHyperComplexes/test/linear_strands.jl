@@ -109,23 +109,24 @@ end
   res, aug = free_resolution(Oscar.SimpleFreeResolution, A)
 
   minres = simplify(res)
+  bound = findfirst(i -> is_zero(minres[i]), 0:12)
 
   res0, inc0 = Oscar.linear_strand(minres, 0)
-  betti_table(res0)
+  betti_table(res0; upper_bound=bound)
   quo0, pr0 = cokernel(inc0)
 
   res1, inc1 = Oscar.linear_strand(quo0, 1) 
-  betti_table(res1)
+  betti_table(res1; upper_bound=bound)
   quo1, pr1 = cokernel(inc1)
 
   res2, inc2 = Oscar.linear_strand(quo1, 2)
-  betti_table(res2)
+  betti_table(res2; upper_bound=bound)
   quo2, pr2 = cokernel(inc2)
 
   res3, inc3 = Oscar.linear_strand(quo2, 3)
-  betti_table(res3)
+  betti_table(res3; upper_bound=bound)
   quo3, pr3 = cokernel(inc3)
 
-  betti_table(quo3)
+  betti_table(quo3; upper_bound=bound)
 end
 
