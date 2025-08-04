@@ -49,7 +49,7 @@ especially in higher codimension or for non-toric singularities.
 - [Hypersurface Models](@ref hypersurface_models).
 
 All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
-shared functionality is documented at [Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
+shared functionality is documented at [Common Model Ops](@ref common_model_ops).
 
 Fibrations can be defined over various base spaces:
 
@@ -90,6 +90,10 @@ Current literature models include:
 - [Cvetič, Klevers, Piragua, Taylor 2015](@cite CKPT15),
 - [Taylor, Wang 2015](@cite TW15),
 - [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
+
+The models of [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19) receive special support within `FTheoryTools`,
+including structured access to the full dataset of standard models constructed therein. For more information, see:
+[The Quadrillion F-Theory Standard Models (QSMs)](@ref qsm_models).
 
 More information: [Literature Models](@ref literature_models)
 

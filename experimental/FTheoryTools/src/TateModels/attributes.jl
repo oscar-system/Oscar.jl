@@ -166,28 +166,6 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(t::GlobalTateModel)
-
-Return the Calabi–Yau hypersurface that defines the global Tate model
-as a closed subvariety of its toric ambient space.
-
-# Examples
-```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
-Global Tate model over a concrete base
-
-julia> calabi_yau_hypersurface(t)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req base_space(t) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(t) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
-end
-
-
-@doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
 Return the Weierstrass model which is equivalent to the given global Tate model.
@@ -320,11 +298,12 @@ end
 
 Return the singular loci of the Weierstrass model equivalent to the given Tate model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
-refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
+refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for more details.
 
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random source can be set with the optional argument `rng`.
 
 Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
 [KMSS11](@cite). In this case, the Tate sections are factored as follows:
@@ -360,16 +339,15 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base
 
-julia> length(singular_loci(t))
-2
+julia> using Random;
 
-julia> sort([k[2:3] for k in singular_loci(t)])
+julia> sort([k[2:3] for k in singular_loci(t; rng = Random.Xoshiro(1234))])
 2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
  ((0, 0, 1), "I_1")
  ((1, 2, 3), "III")
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel; rng::AbstractRNG = Random.default_rng())
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
-  return singular_loci(weierstrass_model(t))
+  return singular_loci(weierstrass_model(t); rng)
 end
