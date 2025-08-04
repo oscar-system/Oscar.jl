@@ -26,7 +26,8 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
   jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
-  ranking::Any 
+  ranking::Any #Alyways of type DifferenceRanking{T}
+  permutation::Vector{Int}
 
   function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
     @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
@@ -57,7 +58,8 @@ end
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
   p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferencePolyRing{T}
-  #leader::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
+  initial::Any #Always of type DifferencePolyRingElem{T}
+  permutation::Vector{Int}
 
   DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr)
 
@@ -71,6 +73,12 @@ mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(mpre, dpr)
   end
 
+end
+
+function Base.deepcopy_internal(dpre::DifferencePolyRingElem{T}, dict::IdDict) where {T}
+    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
+    pp = deepcopy_internal(__poly(dpre), dict)
+    return DifferencePolyRingElem{T}(parent(dpre), pp)
 end
 
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
@@ -183,16 +191,13 @@ one(dpr::DifferencePolyRing) = dpr(1)
 
 #######################################
 #
-#  Basic action polynomial functionality 
+#  Basic polynomial functionality 
 #
 #######################################
 
-@doc raw"""
-    is_monomial(p::ActionPolyRingElem)
-
-Return `true` if `p` is a monomial, `false` otherwise.
-"""
 is_monomial(apre::ActionPolyRingElem) = is_monomial(__poly(apre))
+
+is_univariate(apre::ActionPolyRingElem) = is_univariate(__poly(apre))
 
 @doc raw"""
     total_degree(p::ActionPolyRingElem) -> Int
@@ -210,7 +215,7 @@ multiindex `jet`. If this jet variable is valid but still untracked, return $0$.
 function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
   upr = __upr(apr)
-  @req __is_valid_jet(apr, i, jet) "invalid jet variable"
+  @req __is_valid_jet(apr, i, jet) "Invalid jet variable"
   jtv = __jtv(apr)
   if haskey(jtv, (i,jet))
     idx = findfirst(var -> var == __poly(jtv[(i,jet)]), gens(upr))
@@ -218,6 +223,22 @@ function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   end
   return 0
 end
+
+degree(apre::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = degree(apre, jet_idx...)
+
+@doc raw"""
+    degree(p::ActionPolyRingElem, i::Int)
+
+Return the degree of the polynomial `p` in the, among the currently tracked variables, 'i'-th largest one.
+"""
+degree(apre::ActionPolyRingElem, i::Int) = degree(apre, __vtj(parent(apre))[gen(parent(apre), i)])
+
+@doc raw"""
+    degrees(p::ActionPolyRingElem)
+
+Return an array of the degrees of the polynomial `p` in terms of each variable. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
+"""
+degrees(apre::ActionPolyRingElem) = map(i -> degree(apre, i), 1:ngens(parent(apre)))
 
 @doc raw"""
     trailing_coefficient(p::ActionPolyRingElem)
@@ -236,12 +257,11 @@ is_constant(apre::ActionPolyRingElem) = is_constant(__poly(apre))
 @doc raw"""
     vars(p::ActionPolyRingElem)
 
-Return the variables actually occuring in `p`.
+Return the variables actually occuring in `p`. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
 """
-vars(apre::ActionPolyRingElem) = parent(apre).(vars(__poly(apre)))
+vars(apre::ActionPolyRingElem) = sort(parent(apre).(vars(__poly(apre))); rev = true)
 
-#combine_like_terms!
-#sort_terms!
+is_gen(apre::ActionPolyRingElem) = is_gen(__poly(apre))
 
 @doc raw"""
     gen(apr::ActionPolyRing, i::Int, midx::Vector{Int})
@@ -259,8 +279,17 @@ function gen(apr::ActionPolyRing, i::Int, jet::Vector)
   jtv[(i, jet)]
 end
 
+gen(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
+
 @doc raw"""
-    gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) -> Vector{ActionPolyRingElem}
+    gen(apr::ActionPolyRing, i::Int)
+
+Return the, among the currently tracked variables of `apr`, 'i'-th largest one.
+"""
+gen(apr::ActionPolyRing, i::Int) = gens(apr)[i]
+
+@doc raw"""
+    gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
 
 Return the jet variables of the action polynomial ring `apr` specified by the entries of `jet_idxs` as
 a vector and track all new variables.
@@ -273,13 +302,12 @@ function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
 end
 
 @doc raw"""
-    gens(apr::ActionPolyRing) -> Vector{ActionPolyRingElem}
+    gens(apr::ActionPolyRing)
 
-Return the currently tracked variables of the action polynomial ring `apr` as a vector.
+Return the currently tracked variables of the action polynomial ring `apr` as a vector. The variables are sorted with respect to the ranking of `apr`, leading with the largest variable.
 """
 function gens(apr::ActionPolyRing)
-  #return collect(values(__jtv(apr)); ordering = ...) Sort this later
-  return collect(values(__jtv(apr)))
+  return sort(collect(values(__jtv(apr))); rev = true)
 end
 
 @doc raw"""
@@ -288,6 +316,19 @@ end
 Return the number of generators of the action polynomial ring `apr`.
 """
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
+
+@doc raw"""
+    getindex(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+
+Alias for `gen(apr, i, midx)`.
+"""
+getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
+
+#######################################
+#
+#  Action polynomial functionality 
+#
+#######################################
 
 @doc raw"""
     diff_action(p::ActionPolyRingElem, i::Int) -> ActionPolyRingElem
@@ -368,11 +409,21 @@ function diff_action(apre::ActionPolyRingElem{T}, d::Vector{Int}) where {T}
 end
 
 @doc raw"""
-    getindex(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+    leader(p::ActionPolyRingElem)
 
-Alias for `gen(apr, i, midx)`.
+Return the leader of the polynomial `p`, that is the largest variable with respect to the ranking of `parent(p)`.
 """
-getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
+leader(apre::ActionPolyRingElem) = max(vars(apre)...)
+
+#######################################
+#
+#  Misc 
+#
+#######################################
+
+characteristic(apr::ActionPolyRing) = characteristic(__upr(apr))
+
+is_univariate(apr::ActionPolyRing) = false
 
 #######################################
 #
@@ -390,6 +441,14 @@ __jtv(dpr::DifferencePolyRing) = dpr.jet_to_var
 __vtj(dpr::DifferencePolyRing) = dpr.var_to_jet
 
 __jtu_idx(dpr::DifferencePolyRing) = dpr.jet_to_upoly_idx
+
+#Setters for internals
+function __set_perm_for_sort!(dpr::DifferencePolyRing)
+  to_sort = dpr.(gens(__upr(dpr)))
+  dpr.permutation = sortperm(to_sort; rev = true)
+end
+
+__perm_for_sort(dpr::DifferencePolyRing) = dpr.permutation
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
 __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:nelementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)

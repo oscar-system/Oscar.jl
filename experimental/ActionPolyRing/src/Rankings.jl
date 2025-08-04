@@ -4,13 +4,8 @@
 # - A decision on which of the two has priority, e.g. position-over-term (pot)
 #   or term-over-position (top). Here, the position of the jet variable corresponding
 #   to (i, [a_1, ..., a_n]) is the first coordinate, i.e. i. More generally, this decision means
-#   choosing a partition of the set {1, ...,m}, pot and top being the choices of the two trivial
+#   choosing an ordered partition of the set {1, ...,m}, pot and top being the choices of the two trivial
 #   partitions.
-#   
-#   We represent a ranking by a Riquier matrix M. Then two variables are compared as follows:
-#   We embed (i, [a_1, ..., a_n]) -> [a_1, ..., a_n, e_i]^T where e_i is the i-th unit row.
-#   Then multiply the columns from the right to M and compare the entries lexicographically.
-
 
 export Ranking,
        DifferenceRanking,
@@ -46,14 +41,41 @@ end
 #
 #######################################
 
-function ranking(dpr::DifferencePolyRing)
-  if !isdefined(dpr, :ranking)
-    set_ranking!(dpr) #Default ranking
-    return dpr.ranking
-  end
-  return dpr.ranking
-end
+@doc raw"""
+    ranking(dpr::DifferencePolyRing) -> DifferenceRanking
 
+Return the ranking of the jet variables of the difference polynomial ring `dpr`
+"""
+ranking(dpr::DifferencePolyRing) = dpr.ranking
+  
+@doc raw"""
+    set_ranking!(dpr::DifferencePolyRing;
+                 partition_name::Symbol = :default,
+                 index_ordering_name::Symbol = :default,
+                 partition::Vector{Vector{Int}} = Vector{Int}[],
+                 index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)) 
+                 -> DifferenceRanking
+
+This method configures the ranking of the difference polynomial ring `dpr`, using an ordered partition of the elementary symbols and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
+
+# Keyword Arguments
+- `partition_name`: Determines the partition of the elementary symbols of `dpr`. Supported values are:
+  - `:top`: groups all variables into a single block,
+  - `:pot`: separates each variable into its own block,
+  - `:default`: uses `:top` unless a custom partition is specified.
+
+- `index_ordering_name`: Specifies the ordering on the multiindices. Supported values are:
+  - `:lex`: lexicographic ordering,
+  - `:deglex`: degree lexicographic ordering,
+  - `:invlex`: inverse lexicographic ordering,
+  - `:deginvlex`: degree inverse lexicographic ordering,
+  - `:degrevlex`: degree reverse lexicographic ordering,
+  - `:default`: uses `:lex` unless a custom matrix is specified.
+
+- `partition`: A custom partition of the elementary symbols, represented as a vector of characteristic vectors. The elementary symbols corresponding to the first characteristic vectors are considered largest and so on.
+
+- `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `ndiffs(dpr)`.
+"""
 function set_ranking!(dpr::DifferencePolyRing;
     partition_name::Symbol = :default,
     index_ordering_name::Symbol = :default,
@@ -65,7 +87,7 @@ function set_ranking!(dpr::DifferencePolyRing;
   @req partition_name in [:top, :pot, :default] "Invalid name of partition"
   if partition_name == :default
     if is_empty(partition)
-      partition == [fill(1, m)] #Use :top by default
+      partition = [fill(1, m)] #Use :top by default
     else
       # Otherwise the input is used. Check its validity:
       @req __is_valid_partition(partition, m) "Not a partition of the number of elementary symbols"
@@ -89,7 +111,7 @@ function set_ranking!(dpr::DifferencePolyRing;
 
   n = ndiffs(dpr)
   @req index_ordering_name in [:default, :lex, :deglex, :invlex, :deginvlex, :degrevlex] "Invalid name of index ordering"
-  R, _ = polynomial_ring(QQ, n) # We use a dummy polynomial ring to extract coefficient matrices of monomial orderings
+  R, _ = polynomial_ring(QQ, n) # We use a dummy polynomial ring to extract canonical matrices of monomial orderings
   if index_ordering_name == :default
     if is_empty(index_ordering_matrix)
       index_ordering_matrix = canonical_matrix(lex(R)) #Use :lex by default
@@ -113,7 +135,6 @@ function set_ranking!(dpr::DifferencePolyRing;
       end
     #end
   end
-
   ran = DifferenceRanking{elem_type(base_ring(dpr))}(dpr, partition, index_ordering_matrix)
   dpr.ranking = ran
   return ran
@@ -127,13 +148,29 @@ end
 
 base_ring(ran::DifferenceRanking) = ran.ring
 
+@doc raw"""
+    partition(r::DifferenceRanking) -> Vector{Vector{Int}}
+
+Return the partition of the elementary symbols defined by the ranking `r`
+of the difference polynomial ring `dpr`, where `r = ranking(dpr)`.
+"""
 partition(ran::DifferenceRanking) = ran.partition
 
+@doc raw"""
+    index_ordering_matrix(r::DifferenceRanking) -> ZZMatrix
+
+Return the matrix inducing the monomial ordering of the multiindices defined
+by the ranking `r` of the difference polynomial ring `dpr`, where `r = ranking(dpr)`.
+"""
 index_ordering_matrix(ran::DifferenceRanking) = ran.index_ordering_matrix
 
 function riquier_matrix(ran::DifferenceRanking)
-  if !is_defined(ran, :riquier_matrix)
-    #compute it
+  if !isdefined(ran, :riquier_matrix)
+    par = partition(ran)
+    dpr = base_ring(ran)
+    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, nelementary_symbols(dpr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
+    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(dpr))])
+    ran.riquier_matrix = vcat(upper_part, lower_part)
   end
   return ran.riquier_matrix
 end
@@ -171,5 +208,30 @@ end
 #
 #######################################
 
-__is_valid_partition(par::Vector{Vector{Int}}, m::Int) = sum(par) == fill(1, m) && all(par_elt -> all(j -> par_elt[j] == 0 || par_elt[j] == 1, 1:m), par)
+__is_valid_partition(par::Vector{Vector{Int}}, m::Int) = all(par_elt -> !is_zero(par_elt), par) && sum(par) == fill(1, m) && all(par_elt -> all(j -> par_elt[j] == 0 || par_elt[j] == 1, 1:m), par)
+
+function __in_block_tie_breaking_matrix(partition::Vector{Vector{Int}})
+    m = length(partition[1])
+    max_ones = maximum(count(isone, vec) for vec in partition)
+    result = zero_matrix(ZZ, max_ones - 1, m)
+
+    for vec in partition
+        pos = 1
+        ones_seen = 0
+        total_ones = count(isone, vec)
+
+        for j in 1:m
+            if isone(vec[j])
+                ones_seen += 1
+                if ones_seen == total_ones
+                    break
+                end
+                result[pos, j] = ZZ(1)
+                pos += 1
+            end
+        end
+    end
+
+    return result
+end
 
