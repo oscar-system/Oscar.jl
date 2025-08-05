@@ -33,3 +33,26 @@ function Base.show(io::IO, apre::ActionPolyRingElem)
   io = pretty(io)
   show(io, __poly(apre))
 end
+
+### Rankings ###
+function Base.show(io::IO, ::MIME"text/plain", ran::DifferenceRanking)
+  io = pretty(io)
+  print(io, "Ranking of $(base_ring(ran))\n")
+  print(io, "with elementary symbols partitioned by\n")
+  print(io, Indent())
+  print(io, partition(ran))
+  print(io, Dedent())
+  print(io, "\nand ordering of the indices defined by\n")
+  print(io, Indent())
+  show(io, "text/plain", index_ordering_matrix(ran))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, ran::DifferenceRanking)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Ranking of difference polynomial ring")
+  end
+  print(terse(io), "Ranking of difference polynomial ring")
+end
+
