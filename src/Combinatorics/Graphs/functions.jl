@@ -984,6 +984,22 @@ true
 """
 is_connected(g::Graph{Undirected}) = Polymake.call_function(:graph, :is_connected, pm_object(g))::Bool
 
+@doc raw"""
+    connected_components(g::Graph{Undirected})
+
+Return the connected components of an undirected graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Undirected}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> connected_components(g)
+1-element Vector{Vector{Int64}}:
+ [1, 2]
+```
+"""
 function connected_components(g::Graph{Undirected})
     im = Polymake.call_function(:graph, :connected_components, pm_object(g))::IncidenceMatrix
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
