@@ -56,7 +56,7 @@ function weierstrass_model(base::NormalToricVariety,
 
   gens_base_names = symbols(cox_ring(base))
   if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   if completeness_check
@@ -156,8 +156,6 @@ julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
 julia> w = weierstrass_model(auxiliary_base_ring, [4 6 1 0], 3, f, g)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Weierstrass model over a not fully specified base
 ```
 """
@@ -168,11 +166,11 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # Inform about the assume Kbar grading
-  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 1 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Compute Weierstrass polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)

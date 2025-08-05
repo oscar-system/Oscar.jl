@@ -335,8 +335,6 @@ julia> a6 = a62 * w^2;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base
 
 julia> using Random;
