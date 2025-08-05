@@ -570,8 +570,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> g4_basis = chosen_g4_flux_gens(t);

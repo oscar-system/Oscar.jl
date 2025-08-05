@@ -33,8 +33,6 @@ Return the parametrization of the hypersurface equation by the model sections.
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)

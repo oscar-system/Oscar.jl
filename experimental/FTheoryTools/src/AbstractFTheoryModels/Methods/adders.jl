@@ -13,8 +13,6 @@ See [Metadata Attributes](@ref meta_data_attributes) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_associated_literature_model!(m, "1408_4808-1")
@@ -43,8 +41,6 @@ See [Metadata Attributes](@ref meta_data_attributes) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_birational_literature_model!(m, "1408_4808-14-WSF")
@@ -73,8 +69,6 @@ See [Metadata Attributes](@ref meta_data_attributes) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_journal_report_number!(m, "UPR-1264-T")
@@ -103,8 +97,6 @@ See [Metadata Attributes](@ref meta_data_attributes) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_paper_author!(m, "Denis Klevers")
@@ -132,8 +124,6 @@ See [Metadata Attributes](@ref meta_data_attributes) for more details.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_paper_buzzword!(m, "Mordell-Weil")
@@ -175,8 +165,6 @@ See [Mordell–Weil Group](@ref mordell_weil_group_data) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> add_generating_section!(m, ["0","0","1"])
@@ -209,8 +197,6 @@ See [Mordell–Weil Group](@ref mordell_weil_group_data) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> add_torsion_section!(m, ["1", "s5", "-s2", "1", "1", "1", "1", "0"])
@@ -251,8 +237,6 @@ See [Registering And Extracting Known Resolution Sequences](@ref working_with_re
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> add_resolution!(m, [["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"])
@@ -291,8 +275,6 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> centers = [(["x", "y", "w"], [1, 1, 1]), (["x", "y", "w"], [1, 2, 1]), (["x", "y", "w"], [2, 2, 1]), (["x", "y", "w"], [2, 3, 1]), (["x", "y"], [1, 1])];
@@ -334,8 +316,6 @@ See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> add_resolution_zero_section!(m, [["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]])
@@ -368,8 +348,6 @@ See [Resolution Metadata Functions](@ref resolution_meta_data) for more details.
 # Examples
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> add_resolution_generating_section!(m, [[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "a43"]]])
@@ -411,8 +389,6 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> add_weighted_resolution_zero_section!(m, [["1", "1", "0"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1", "x1"], ["1", "1"]])
@@ -454,8 +430,6 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> addition = [[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["1980*x1^10", "0", "0"]]];

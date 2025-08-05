@@ -8,8 +8,6 @@ Currently, this functionality is limited to Tate and Weierstrass models.
 # Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", completeness_check = false)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> B3 = projective_space(NormalToricVariety, 3)

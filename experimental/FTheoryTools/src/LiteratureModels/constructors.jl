@@ -34,8 +34,6 @@ over an unspecified base:
 # Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> coordinate_ring(ambient_space(t))
@@ -61,8 +59,6 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 
@@ -77,8 +73,6 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
 julia> using Random;
@@ -100,8 +94,6 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
 julia> using Random;
@@ -117,8 +109,6 @@ hypersurface model. This works as follows:
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
@@ -136,8 +126,6 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation_parametrization(h2)
@@ -231,7 +219,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
 
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
-    @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
+    @vprint :FTheoryModelPrinter 1 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   else
     model = _construct_literature_model_over_arbitrary_base(model_dict)

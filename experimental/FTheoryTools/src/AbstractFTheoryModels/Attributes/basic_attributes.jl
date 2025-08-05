@@ -63,8 +63,6 @@ All models have a model_index and these will not change in the future.
 # Examples
 ```jldoctest
 julia> t = literature_model(31)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10 based on arXiv paper 1408.4808 Eq. (3.130)
 
 julia> model_index(t)
