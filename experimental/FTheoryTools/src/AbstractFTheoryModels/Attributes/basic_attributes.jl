@@ -5,13 +5,10 @@ Return the base space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> w = weierstrass_model_over_projective_space(2);
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> base_space(m)
-Family of spaces of dimension d = 3
+julia> dim(base_space(w))
+2
 ```
 """
 function base_space(m::AbstractFTheoryModel)
@@ -27,13 +24,10 @@ Return the ambient space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> w = weierstrass_model_over_projective_space(2);
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> ambient_space(m)
-Family of spaces of dimension d = 5
+julia> dim(ambient_space(w))
+4
 ```
 """
 function ambient_space(m::AbstractFTheoryModel)
@@ -49,19 +43,10 @@ Return the fiber ambient space of an F-theory model.
 
 # Examples
 ```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
+julia> w = weierstrass_model_over_projective_space(2);
 
-julia> w = torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, prime divisor on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> fiber_ambient_space(t)
-Normal toric variety
+julia> dim(fiber_ambient_space(w))
+2
 ```
 """
 function fiber_ambient_space(m::AbstractFTheoryModel)
@@ -87,9 +72,54 @@ julia> model_index(t)
 ```
 """
 function model_index(m::AbstractFTheoryModel)
-  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  directory = joinpath(dirname(dirname(@__DIR__)), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   return parse(Int, model_indices["model" * literature_identifier(m) * ".json"])
+end
+
+
+@doc raw"""
+    calabi_yau_hypersurface(m::AbstractFTheoryModel)
+
+Return the Calabi–Yau hypersurface that defines the hypersurface model
+as a closed subvariety of its toric ambient space.
+
+# Examples
+```jldoctest
+julia> w =  weierstrass_model_over_projective_space(3)
+Weierstrass model over a concrete base
+
+julia> calabi_yau_hypersurface(w)
+Closed subvariety of a normal toric variety
+
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
+
+julia> calabi_yau_hypersurface(t)
+Closed subvariety of a normal toric variety
+
+julia> b = projective_space(NormalToricVariety, 2);
+
+julia> kb = anticanonical_divisor_class(b);
+
+julia> fiber_ambient = weighted_projective_space(NormalToricVariety, [2, 3, 1]);
+
+julia> set_coordinate_names(fiber_ambient, ["x", "y", "z"]);
+
+julia> p = "x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z";
+
+julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
+Hypersurface model over a concrete base
+
+julia> calabi_yau_hypersurface(h)
+Closed subvariety of a normal toric variety
+```
+"""
+@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(m::AbstractFTheoryModel)
+  @req (m isa HypersurfaceModel || m isa WeierstrassModel || m isa GlobalTateModel) "Calabi-Yau hypersurface currently not supported for this model"
+  @req base_space(m) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  is_base_space_fully_specified(m) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  return closed_subvariety_of_toric_variety(ambient_space(m), [hypersurface_equation(m)])
 end
 
 

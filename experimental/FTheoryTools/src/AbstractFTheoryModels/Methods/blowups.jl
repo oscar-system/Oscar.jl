@@ -1,7 +1,191 @@
-##########################################
-### (1) Blow_up of F-theory models
-##########################################
+##################################################################
+# 1: Blowups (old helper function, to be used for family of bases)
+##################################################################
 
+function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
+  # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
+  
+  R = base_ring(id)
+  center_size = ngens(center)
+  
+  # Various sanity checks
+  @req (!is_zero(center)) "The blowup center must be non-empty"
+  
+  # @req is_subset(id, center) "The ideal of the blowup center must contain the ideal to be blown up"
+  @req base_ring(irr) == R "The given irrelevant ideal must share the base ring of the ideal to be blown up"
+  @req base_ring(sri) == R "The given Stanley–Reisner ideal must share the base ring of the ideal to be blown up"
+  @req ngens(base_ring(lin)) == ngens(R) "The base ring of ideal of linear relations must have the same number of generators as the base ring of the ideal to be blown up"
+  
+  # Make sure the ideal of linear relations has the same base ring as the others
+  lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
+  
+  # Create new base ring for the blown up ideal and a map between the rings
+  S, S_gens = polynomial_ring(QQ, [Symbol("e_", index); [Symbol("b_", index, "_", i) for i in 1:center_size]; symbols(R)], cached = false)
+  (_e, new_coords...) = S_gens[1:center_size + 1]
+  ring_map = hom(R, S, S_gens[center_size + 2:end])
+  
+  # Compute the total transform
+  center_gens_S = map(ring_map, gens(center))
+  total_transform = ideal(map(ring_map, gens(id))) + ideal([new_coords[i] * _e - center_gens_S[i] for i in 1:center_size])
+  
+  # Compute the exceptional locus and strict transform, checking for crepancy
+  # Could alternatively replace _e with center_gens_S in the exceptional locus here, then take the
+  # primary decomposition and remove parts whose saturation by the irrelevant ideal is the whole ring
+  exceptional_ideal = total_transform + ideal([_e])
+  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
+  crepant = (exceptional_factor == center_size - 1)
+  
+  # Compute the new irrelevant ideal, SRI, and ideal of linear relations
+  # These may need to be changed after reintroducing e
+  new_irr = ideal(map(ring_map, gens(irr))) * ideal(new_coords)
+  new_sri = ideal(map(ring_map, gens(sri))) + ideal([prod(new_coords)])
+  new_lin = ideal(map(ring_map, gens(lin))) + ideal([g - new_coords[end] for g in new_coords[1:end - 1]])
+  
+  return total_transform, strict_transform, exceptional_ideal, crepant, new_irr, new_sri, new_lin, S, S_gens, ring_map
+end
+_blowup_global(id::T, center::T, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global(ideal(map(g -> lift(g), gens(id))), ideal(map(g -> lift(g), gens(center))), ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
+
+
+function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
+  # @warn "The function _blowup_global_sequence is experimental; absence of bugs and proper results are not guaranteed"
+  
+  (cur_strict_transform, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = (id, irr, sri, lin, base_ring(id), gens(base_ring((id))), index)
+  crepant = true
+  ring_map = hom(cur_S, cur_S, cur_S_gens) # Identity map
+  
+  exceptionals = MPolyIdeal{<:MPolyRingElem}[]
+  for center in centers
+    @req all(ind -> 1 <= ind <= length(cur_S_gens), center) "The given indices for the center generators are out of bounds"
+    
+    (_, cur_strict_transform, cur_ex, cur_crep, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_ring_map) = _blowup_global(cur_strict_transform, ideal(map(ind -> cur_S_gens[ind], center)), cur_irr, cur_sri, cur_lin, index = cur_index)
+    
+    map!(cur_ring_map, exceptionals, exceptionals)
+    push!(exceptionals, cur_ex)
+    
+    crepant = crepant && cur_crep
+    
+    ring_map = compose(ring_map, cur_ring_map)
+    
+    cur_index += 1
+  end
+  
+  return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
+end
+_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> lift(g), gens(id))), centers, ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
+
+
+
+###########################################################################
+# 2: Convenience functions for blowups
+# 2: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
+# 2: They are not in use (as of Feb 1, 2025 and PR 4523)
+# 2: Gauge in the future if they are truly needed!
+###########################################################################
+
+@doc raw"""
+    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
+
+Blow up the toric variety along a toric ideal sheaf.
+
+!!! warning
+    This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
+    Sometimes, the type of the domain will be a toric variety (meaning that `domain(f) isa NormalToricVariety` is true) if the algorithm can successfully detect this.
+    In the future, the detection algorithm may be improved so that this is successful more often.
+
+!!! warning
+    This is an internal method. It is NOT exported.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> x1, x2, x3, x4 = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> II = ideal_sheaf(P3, ideal([x1*x2]))
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_1_1*x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (x_1_3)
+  4: Ideal (x_1_4*x_2_4)
+
+julia> f = Oscar._martins_desired_blowup(P3, II);
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(v, I)
+  if !isnothing(coords)
+    return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name) # Apply toric method
+  else
+    return blow_up(I) # Reroute to scheme theory
+  end
+end
+
+
+@doc raw"""
+    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+
+Blow up the toric variety by subdividing the cone in the list
+of *all* cones of the fan of `v` which corresponds to the
+provided ideal `I`. Note that this cone need not be maximal.
+
+By default, we pick "e" as the name of the homogeneous coordinate for
+the exceptional prime divisor. As third optional argument one can supply
+a custom variable name.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> I = ideal([x2,x3])
+Ideal generated by
+  x2
+  x3
+
+julia> bP3 = domain(Oscar._martins_desired_blowup(P3, I))
+Normal toric variety
+
+julia> cox_ring(bP3)
+Multivariate polynomial ring in 5 variables over QQ graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [0 1]
+  x4 -> [1 0]
+  e -> [1 -1]
+
+julia> I2 = ideal([x2 * x3])
+Ideal generated by
+  x2*x3
+
+julia> b2P3 = Oscar._martins_desired_blowup(P3, I2);
+
+julia> codomain(b2P3) == P3
+true
+```
+"""
+function _martins_desired_blowup(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
+  return _martins_desired_blowup(v, ideal_sheaf(v, I))
+end
+
+
+##################################################################
+# 3: Currently used blowup functionality
+##################################################################
 
 @doc raw"""
     blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -248,437 +432,6 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   return model
 end
 
-
-
-##########################################
-### (2) Tuning
-##########################################
-
-# FIXME: The below tune function is not consistent with our other "tune" functions (it does not correspond mathematically to a tuning)
-# and produces an undesired form for explicit_model_sections. To be improved at a later date.
-
-# @doc raw"""
-#     tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
-
-# Tune an F-theory model by replacing the hypersurface equation by a custom (polynomial)
-# equation. The latter can be any type of polynomial: a Tate polynomial, a Weierstrass
-# polynomial or a general polynomial. We do not conduct checks to tell which type the
-# provided polynomial is. Consequently, this tuning will always return a hypersurface model.
-
-# Note that there is less functionality for hypersurface models than for Weierstrass or Tate
-# models. For instance, `singular_loci` can (currently) not be computed for hypersurface models.
-
-# # Examples
-# ```jldoctest
-# julia> B3 = projective_space(NormalToricVariety, 3)
-# Normal toric variety
-
-# julia> w = torusinvariant_prime_divisors(B3)[1]
-# Torus-invariant, prime divisor on a normal toric variety
-
-# julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-# Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-# Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-# julia> x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t)))
-# 7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
-#  x1
-#  x2
-#  x3
-#  x4
-#  x
-#  y
-#  z
-
-# julia> new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
-# -x4^4*x*y*z + x^3 - y^2
-
-# julia> tuned_t = tune(t, new_tate_polynomial)
-# Hypersurface model over a concrete base
-
-# julia> hypersurface_equation(tuned_t) == new_tate_polynomial
-# true
-
-# julia> base_space(tuned_t) == base_space(t)
-# true
-# ```
-# """
-# function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
-#   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
-#   @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
-#   @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
-#   equation = hypersurface_equation(m)
-#   @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
-#   @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
-#   p == equation && return m
-#   explicit_model_sections = Dict{String, MPolyRingElem}()
-#   gens_S = gens(parent(p))
-#   for k in 1:length(gens_S)
-#     explicit_model_sections[string(gens_S[k])] = gens_S[k]
-#   end
-#   tuned_model = HypersurfaceModel(explicit_model_sections, p, p, base_space(m), ambient_space(m), fiber_ambient_space(m))
-#   set_attribute!(tuned_model, :partially_resolved, false)
-#   return tuned_model
-# end
-
-
-
-@doc raw"""
-    put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
-
-Put an F-theory model defined over a family of spaces over a concrete base.
-
-Currently, this functionality is limited to Tate and Weierstrass models.
-
-# Examples
-```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", completeness_check = false)
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> w_bundle = toric_line_bundle(torusinvariant_prime_divisors(B3)[1])
-Toric line bundle on a normal toric variety
-
-julia> kbar = anticanonical_bundle(B3)
-Toric line bundle on a normal toric variety
-
-julia> w = generic_section(w_bundle);
-
-julia> a21 = generic_section(kbar^2 * w_bundle^(-1));
-
-julia> a32 = generic_section(kbar^3 * w_bundle^(-2));
-
-julia> a43 = generic_section(kbar^4 * w_bundle^(-3));
-
-julia> t2 = put_over_concrete_base(t, Dict("base" => B3, "w" => w, "a21" => a21, "a32" => a32, "a43" => a43), completeness_check = false)
-Global Tate model over a concrete base
-```
-"""
-function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
-  # Conduct elementary entry checks
-  @req base_space(m) isa FamilyOfSpaces "The model must be defined over a family of spaces"
-  @req haskey(concrete_data, "base") "The base space must be specified"
-  @req (concrete_data["base"] isa NormalToricVariety) "Currently, models over families of spaces can only be put over toric bases"
-  @req ((m isa WeierstrassModel) || (m isa GlobalTateModel)) "Currently, only Tate or Weierstrass models can be put on a concrete base"
-  
-  # Work out the Weierstrass/Tate sections
-  new_model_secs = Dict{String, MPolyRingElem}()
-  if is_empty(model_section_parametrization(m))
-    
-    # No parametrization, so simply take generic sections
-    
-    # Pick generic values
-    if m isa WeierstrassModel
-      new_model_secs["f"] = generic_section(anticanonical_bundle(concrete_data["base"])^4)
-      new_model_secs["g"] = generic_section(anticanonical_bundle(concrete_data["base"])^6)
-    else
-      new_model_secs["a1"] = generic_section(anticanonical_bundle(concrete_data["base"]))
-      new_model_secs["a2"] = generic_section(anticanonical_bundle(concrete_data["base"])^2)
-      new_model_secs["a3"] = generic_section(anticanonical_bundle(concrete_data["base"])^3)
-      new_model_secs["a4"] = generic_section(anticanonical_bundle(concrete_data["base"])^4)
-      new_model_secs["a6"] = generic_section(anticanonical_bundle(concrete_data["base"])^6)
-    end
-    
-  else
-
-    # Parametrization for Weierstrass/Tate sections found
-
-    # Have all parametrizing sections been provided by the user?
-    polys = collect(values(model_section_parametrization(m)))
-    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
-    all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
-    for k in 1:nrows(all_appearing_exponents)
-      if any(!is_zero, all_appearing_exponents[k,:])
-        gen_name = string(symbols(parent(polys[1]))[k])
-        @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
-        @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
-        new_model_secs[gen_name] = concrete_data[gen_name]
-      end
-    end
-
-    # Create ring map to evaluate Weierstrass/Tate sections
-    parametrization = model_section_parametrization(m)
-    domain = parent(collect(values(parametrization))[1])
-    codomain = cox_ring(concrete_data["base"])
-    images = [haskey(new_model_secs, string(k)) ? new_model_secs[string(k)] : zero(codomain) for k in gens(domain)]
-    mapper = hom(domain, codomain, images)
-
-    # Compute defining sections
-    if m isa WeierstrassModel
-
-      if haskey(parametrization, "f")
-        new_sec = mapper(parametrization["f"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^4)) "Degree mismatch"
-        end
-        new_model_secs["f"] = new_sec
-      else
-        new_model_secs["f"] = generic_section(anticanonical_bundle(concrete_data["base"])^4)
-      end
-
-      if haskey(parametrization, "g")
-        new_sec = mapper(parametrization["g"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
-        end
-        new_model_secs["g"] = new_sec
-      else
-        new_model_secs["g"] = generic_section(anticanonical_bundle(concrete_data["base"])^6)
-      end
-
-    else
-
-      if haskey(parametrization, "a1")
-        new_sec = mapper(parametrization["a1"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"]))) "Degree mismatch"
-        end
-        new_model_secs["a1"] = new_sec
-      else
-        new_model_secs["a1"] = generic_section(anticanonical_bundle(concrete_data["base"]))
-      end
-
-      if haskey(parametrization, "a2")
-        new_sec = mapper(parametrization["a2"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^2)) "Degree mismatch"
-        end
-        new_model_secs["a2"] = new_sec
-      else
-        new_model_secs["a2"] = generic_section(anticanonical_bundle(concrete_data["base"])^2)
-      end
-
-      if haskey(parametrization, "a3")
-        new_sec = mapper(parametrization["a3"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^3)) "Degree mismatch"
-        end
-        new_model_secs["a3"] = new_sec
-      else
-        new_model_secs["a3"] = generic_section(anticanonical_bundle(concrete_data["base"])^3)
-      end
-
-      if haskey(parametrization, "a4")
-        new_sec = mapper(parametrization["a4"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^4)) "Degree mismatch"
-        end
-        new_model_secs["a4"] = new_sec
-      else
-        new_model_secs["a4"] = generic_section(anticanonical_bundle(concrete_data["base"])^4)
-      end
-
-      if haskey(parametrization, "a6")
-        new_sec = mapper(parametrization["a6"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
-        end
-        new_model_secs["a6"] = new_sec
-      else
-        new_model_secs["a6"] = generic_section(anticanonical_bundle(concrete_data["base"])^6)
-      end
-
-    end
-  
-  end
-
-  # Compute the new model
-  if m isa WeierstrassModel
-    return weierstrass_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
-  else
-    return global_tate_model(concrete_data["base"], new_model_secs, model_section_parametrization(m); completeness_check)
-  end
-end
-
-
-
-##########################################
-### (3) Meta data adders
-##########################################
-
-@doc raw"""
-    add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of associated literature models for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_associated_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :associated_literature_models, String[])
-  !(addition in values) && set_attribute!(m, :associated_literature_models => vcat(values, [addition]))
-end
-
-
-@doc raw"""
-    add_journal_report_number(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of journal report numbers for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_journal_report_number(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :journal_report_numbers, String[])
-  !(addition in values) && set_attribute!(m, :journal_report_numbers => vcat(values, [addition]))
-end
-
-
-@doc raw"""
-    add_model_parameter(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of model parameters for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_model_parameter(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :model_parameters, String[])
-  !(addition in values) && set_attribute!(m, :model_parameters => vcat(values, [addition]))
-end
-
-
-@doc raw"""
-    add_paper_author(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of paper authors for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_paper_author(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :paper_authors, String[])
-  !(addition in values) && set_attribute!(m, :paper_authors => vcat(values, [addition]))
-end
-
-
-@doc raw"""
-    add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of paper buzzwords for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :paper_buzzwords, String[])
-  !(addition in values) && set_attribute!(m, :paper_buzzwords => vcat(values, [addition]))
-end
-
-
-@doc raw"""
-    add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
-
-Add a new entry to the list of birational models for the F-theory model.
-If the entry is already present, nothing is changed.
-
-See [Literature Models](@ref literature_models) for more details.
-"""
-function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = get_attribute(m, :birational_literature_models, String[])
-  !(addition in values) && set_attribute!(m, :birational_literature_models => vcat(values, [addition]))
-end
-
-
-
-##########################################
-### (4) Specialized model data adders
-##########################################
-
-function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :generating_sections, GeneratingSectionsType())
-  !(new_entry in values) && set_attribute!(m, :generating_sections => vcat(values, [transformed]))
-end
-
-@doc raw"""
-    add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
-
-Add a known resolution for a model.
-
-# Examples
-```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> add_resolution(m, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
-
-julia> length(resolutions(m))
-2
-```
-"""
-function add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
-  @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
-  resolution = (centers, exceptionals)
-  known_resolutions = get_attribute(m, :resolutions, Tuple{Vector{Vector{String}}, Vector{String}}[])
-  !(resolution in known_resolutions) && set_attribute!(m, :resolutions => vcat(known_resolutions, [resolution]))
-end
-
-function add_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :resolution_generating_sections, ResolutionGeneratingSectionsType())
-  !(addition in values) && set_attribute!(m, :resolution_generating_sections => vcat(values, [transformed]))
-end
-
-function add_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :resolution_zero_sections, ResolutionZeroSectionsType())
-  !(addition in values) && set_attribute!(m, :resolution_zero_sections => vcat(values, [transformed]))
-end
-
-function add_torsion_section(m::AbstractFTheoryModel, addition::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :torsion_sections, TorsionSectionsType())
-  !(addition in values) && set_attribute!(m, :torsion_sections => vcat(values, [transformed]))
-end
-
-function add_weighted_resolution(m::AbstractFTheoryModel, addition::Vector{Vector})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :weighted_resolutions, WeightedResolutionGeneratingSectionsType())
-  !(addition in values) && set_attribute!(m, :weighted_resolutions => vcat(values, [transformed]))
-end
-
-function add_weighted_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType())
-  !(addition in values) && set_attribute!(m, :weighted_resolution_generating_sections => vcat(values, [transformed]))
-end
-
-function add_weighted_resolution_zero_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
-  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  transformed = deepmap(s -> f(eval_poly(s, R)), addition)
-  values = get_attribute(m, :weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType())
-  !(addition in values) && set_attribute!(m, :weighted_resolution_zero_sections => vcat(values, [transformed]))
-end
-
-
-
-
-
-
-##########################################
-### (5) Specialized model methods
-##########################################
 
 @doc raw"""
     resolve(m::AbstractFTheoryModel, index::Int)

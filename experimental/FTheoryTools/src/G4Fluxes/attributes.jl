@@ -19,9 +19,6 @@ G4-flux candidate
   - Non-abelian gauge group: unbroken
   - Tadpole cancellation check: not computed
 
-julia> model(g4_candidate)
-Hypersurface model over a concrete base
-
 julia> model(g4_candidate) == qsm_model
 true
 ```
@@ -38,8 +35,6 @@ Return the ambient space cohomology class which defines the ``G_4``-flux candida
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
-
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
 
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
@@ -81,42 +76,6 @@ G4-flux candidate
 
 julia> d3_tadpole_constraint(g4, check = false)
 12
-
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
-Hypersurface model over a concrete base
-
-julia> gfs = special_flux_family(qsm_model, check = false)
-Family of G4 fluxes:
-  - Elementary quantization checks: satisfied
-  - Transversality checks: satisfied
-  - Non-abelian gauge group: breaking pattern not analyzed
-
-julia> g4_2 = random_flux_instance(gfs, check = false)
-G4-flux candidate
-  - Elementary quantization checks: satisfied
-  - Transversality checks: satisfied
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not computed
-
-julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
-
-julia> int_comb = integral_coefficients(g4_2);
-
-julia> rat_comb = rational_coefficients(g4_2);
-
-julia> g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
-G4-flux candidate
-  - Elementary quantization checks: satisfied
-  - Transversality checks: satisfied
-  - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not computed
-
-julia> d3_tadpole_constraint(gfs, check = false);
-
-julia> dv3 = d3_tadpole_constraint(g4_3, check = false);
-
-julia> dv2 == dv3
-true
 ```
 """
 @attr QQFieldElem function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)

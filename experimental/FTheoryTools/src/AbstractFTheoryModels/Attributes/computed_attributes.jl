@@ -137,9 +137,6 @@ Hypersurface model over a concrete base
 
 julia> h = euler_characteristic(qsm_model; check = false)
 378
-
-julia> h = euler_characteristic(qsm_model; check = false)
-378
 ```
 """
 @attr Int function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)

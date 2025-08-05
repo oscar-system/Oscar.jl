@@ -81,7 +81,9 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 
@@ -102,7 +104,9 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 
