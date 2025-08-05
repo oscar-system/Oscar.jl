@@ -1550,11 +1550,11 @@ function label!(G::Graph{T},
 end
 
 @doc raw"""
-    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; name::Symbol=:label, n_vertices::Int=-1)
-    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; name::Symbol=:label, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1)
+    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
-Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
-The default labeling on the graph is `label` but any `Symbol` can be passed using the `name` keyword argument.
+Create a graph with a labeling on the edges and optionally vertices.  The graph is constructed from the edges and an optional number of vertices, see [`graph_from_edges`](@ref).
+The default name of the labeling on the graph is `label` but any `Symbol` can be passed using the `name` keyword argument.
 The labeling can be accessed as a property of the graph, the property is exactly the name passed to the `name` keyword argument.
 See [`label!`](@ref) to add additional labels to the graph.
 
