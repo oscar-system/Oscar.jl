@@ -8,10 +8,16 @@
   graph::Graph{T}
   labelings::L
   varnames::Vector{VarName}
-  function GaussianGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
+  function GaussianGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: {Undirected, Directed}
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
+  end
+
+  function GaussianGraphicalModel(G::MixedGraph, var_names::Vector{VarName})
+    #TODO figure out how to deal with labelings on MixedGraphs
+    # for now just use Nothing
+    return new{Mixed, Nothing}(G, nothing, var_names)
   end
 end
 
