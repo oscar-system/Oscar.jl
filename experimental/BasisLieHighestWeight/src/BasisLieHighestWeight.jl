@@ -51,6 +51,7 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_demazure
 
 end
 
@@ -69,3 +70,4 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_demazure
