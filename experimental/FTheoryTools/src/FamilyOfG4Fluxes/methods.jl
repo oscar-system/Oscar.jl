@@ -24,7 +24,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -40,35 +40,35 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, Int[], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 
 julia> flux_instance(fgs, [3], [5//2], check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
@@ -79,7 +79,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
   shift = offset(fgs)
-  gens = chosen_g4_flux_basis(model(fgs), check = check)
+  gens = chosen_g4_flux_gens(model(fgs), check = check)
   c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
   c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
   c3 = sum(shift[k] * gens[k] for k in 1:length(gens))
@@ -111,7 +111,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m), check = check)
-    return G4Flux(m, CohomologyClass(ambient_space(m), zero(r)))
+    return g4_flux(m, cohomology_class(ambient_space(m), zero(r), quick = true), check = check)
   end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
@@ -167,7 +167,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -177,7 +177,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -203,7 +203,7 @@ end
 @doc raw"""
     random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
 
-Create a random $G_4$-flux on a given F-theory model.
+Create a random ``G_4``-flux on a given F-theory model.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -215,7 +215,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
-  - Tadpole cancellation check: not executed
+  - Tadpole cancellation check: not computed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)

@@ -17,7 +17,7 @@ import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
 import ..Oscar: pretty, Lowercase
 
 import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
-  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
+  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_perfect, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
 """
@@ -45,6 +45,7 @@ base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
 base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
+is_perfect(::AlgClosure) = true
 
 struct AlgClosureElem{T} <: FieldElem
   # T <: FinField

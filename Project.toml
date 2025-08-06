@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["The OSCAR Team <oscar@oscar-system.org>"]
-version = "1.4.0-DEV"
+version = "1.5.0-DEV"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -27,24 +27,20 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
-[extras]
-GAP_lib_jll = "c863536a-3901-11e9-33e7-d5cd0df7b904"
-
 [compat]
-AbstractAlgebra = "0.44.11"
-AlgebraicSolving = "0.8.0"
+AbstractAlgebra = "0.46.0"
+AlgebraicSolving = "0.9.0"
 Compat = "4.13.0"
 Distributed = "1.6"
-GAP = "0.13.1"
-GAP_lib_jll = "~400.1400.4" # remove again once GAP.jl requires this version
-Hecke = "0.35.17"
+GAP = "0.14.1"
+Hecke = "0.37.2"
 JSON = "^0.20, ^0.21"
 JSON3 = "1.13.2"
 LazyArtifacts = "1.6"
 Markdown = "1.6"
-Nemo = "0.49.1"
+Nemo = "0.51.0"
 Pkg = "1.6"
-Polymake = "0.11.28"
+Polymake = "0.13.0"
 ProgressMeter = "1.10.2"
 Random = "1.6"
 RandomExtensions = "0.4.3"
@@ -53,5 +49,5 @@ Singular = "0.25.0"
 TOPCOM_jll = "0.17.8"
 UUIDs = "1.6"
 cohomCalg_jll = "0.32.0"
-julia = "1.6"
+julia = "1.10"
 lib4ti2_jll = "1.6.10"

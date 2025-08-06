@@ -6,7 +6,7 @@
 
 # Warning: The object is not saved to the new format, that is left to the user
 
-"""
+@doc raw"""
     UpgradeScript(version::VersionNumber, script::Function)
 
 Any upgrade scripts should be created using the `UpgradeScript`

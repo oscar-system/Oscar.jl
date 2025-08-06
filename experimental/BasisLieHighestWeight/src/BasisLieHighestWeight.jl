@@ -9,9 +9,13 @@ using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
 
 using AbstractAlgebra.PrettyPrinting
 
+import Oscar: base_lie_algebra
+import Oscar: character
 import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
+import Oscar: root_system
+import Oscar: vector_space_dim
 
 import Base: length
 
@@ -26,6 +30,7 @@ import Base: length
 # - the list of Minkowski gens contains too many elements, only include those that give us something new
 
 include("LieAlgebras.jl")
+include("ModuleData.jl")
 include("BirationalSequence.jl")
 include("MonomialBasis.jl")
 include("NewMonomial.jl")

@@ -77,7 +77,7 @@ Return the generators of the multivariate polynomial ring inside the GaussianRin
 
 ## Examples
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]

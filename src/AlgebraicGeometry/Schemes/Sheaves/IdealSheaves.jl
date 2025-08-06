@@ -562,6 +562,7 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
+  iszero(f) && return ideal(base_ring(I),[base_ring(I)(1)]) 
   return _iterative_saturation(I, typeof(f)[u for (u, _) in factor(f)])
 end
 
@@ -728,7 +729,7 @@ Return whether ``I`` is prime.
 We say that a sheaf of ideals is prime if its support is irreducible and
 ``I`` is locally prime. (Note that the empty set is not irreducible.)
 """
-@attr Any function is_prime(I::AbsIdealSheaf)
+@attr Bool function is_prime(I::AbsIdealSheaf)
   is_locally_prime(I) || return false
   # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
@@ -773,23 +774,6 @@ function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I
 end
 
 is_equidimensional(I::PrimeIdealSheafFromChart) = true
-
-@attr Bool function is_equidimensional(I::MPolyIdeal)
-  decomp = equidimensional_decomposition_weak(I)
-  return isone(length(decomp))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
-  is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
-  return is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
-  return is_equidimensional(pre_image_ideal(I))
-end
 
 @doc raw"""
     _minimal_power_such_that(

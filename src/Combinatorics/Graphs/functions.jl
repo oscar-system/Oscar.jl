@@ -536,6 +536,8 @@ Return the degree of the vertex `v` in the graph `g`. If `v` is
 missing, return the list of degrees of all vertices. If the graph is
 directed, only neighbors reachable via outgoing edges are counted.
 
+See also [`indegree`](@ref) and [`outdegree`](@ref) for directed graphs.
+
 # Examples
 ```jldoctest
 julia> g = vertex_edge_graph(icosahedron());
@@ -545,7 +547,66 @@ julia> degree(g, 1)
 ```
 """
 degree(g::Graph, v::Int64) = length(neighbors(g, v))
+
+@doc raw"""
+    indegree(g::Graph{Directed} [, v::Int64])
+
+Return the indegree of the vertex `v` in the directed graph `g`. If `v` is
+missing, return the list of indegrees of all vertices.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g, 1, 3);
+
+julia> add_edge!(g, 3, 4);
+
+julia> indegree(g, 1)
+0
+
+julia> indegree(g)
+5-element Vector{Int64}:
+ 0
+ 0
+ 1
+ 1
+ 0
+```
+"""
+indegree(g::Graph{Directed}, v::Int64) = length(inneighbors(g, v))
+
+@doc raw"""
+    outdegree(g::Graph{Directed} [, v::Int64])
+
+Return the outdegree of the vertex `v` in the directed graph `g`. If `v` is
+missing, return the list of outdegrees of all vertices.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g, 1, 3);
+
+julia> add_edge!(g, 3, 4);
+
+julia> outdegree(g, 1)
+1
+
+julia> outdegree(g)
+5-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 0
+ 0
+```
+"""
+outdegree(g::Graph{Directed}, v::Int64) = length(outneighbors(g, v))
+
 degree(g::Graph) = [ length(neighbors(g, v)) for v in 1:n_vertices(g) ]
+indegree(g::Graph{Directed}) = [ length(inneighbors(g, v)) for v in 1:n_vertices(g) ]
+outdegree(g::Graph{Directed}) = [ length(outneighbors(g, v)) for v in 1:n_vertices(g) ]
 
 
 @doc raw"""
@@ -651,11 +712,11 @@ julia> add_edge!(g, 3, 4);
 
 julia> incidence_matrix(g)
 5×2 IncidenceMatrix
-[1]
-[]
-[1, 2]
-[2]
-[]
+ [1]
+ []
+ [1, 2]
+ [2]
+ []
 ```
 """
 function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -923,6 +984,22 @@ true
 """
 is_connected(g::Graph{Undirected}) = Polymake.call_function(:graph, :is_connected, pm_object(g))::Bool
 
+@doc raw"""
+    connected_components(g::Graph{Undirected})
+
+Return the connected components of an undirected graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Undirected}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> connected_components(g)
+1-element Vector{Vector{Int64}}:
+ [1, 2]
+```
+"""
 function connected_components(g::Graph{Undirected})
     im = Polymake.call_function(:graph, :connected_components, pm_object(g))::IncidenceMatrix
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
@@ -1489,28 +1566,43 @@ function label!(G::Graph{T},
 end
 
 @doc raw"""
-    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
-    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1)
+    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
-Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
+Create a graph with a labeling on the edges and optionally vertices.  The graph is constructed from the edges and an optional number of vertices, see [`graph_from_edges`](@ref).
+The default name of the labeling on the graph is `label` but any `Symbol` can be passed using the `name` keyword argument.
+The labeling can be accessed as a property of the graph, the property is exactly the name passed to the `name` keyword argument.
+See [`label!`](@ref) to add additional labels to the graph.
 
 # Examples
 ```jldoctest
-julia> graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
+julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
 Directed graph with 3 nodes and the following labeling(s):
 label: label
 (1, 2) -> 1
 (2, 3) -> 4
 
-julia> graph_from_labeled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
-Undirected graph with 3 nodes and the following labeling(s):
-label: label
-(2, 1) -> 1
-(3, 2) -> 4
-1 -> 0
-2 -> 3
-3 -> 0
+julia> G.label[1, 2]
+1
 
+julia> edge = collect(edges(G))[2]
+Edge(2, 3)
+
+julia> G.label[edge]
+4
+
+julia> K = graph_from_labeled_edges(Dict((1, 2) => "blue", (2, 3) => "green"),
+                                    Dict(1 => "red", 2 => "red", 3 => "yellow"); name=:color)
+Undirected graph with 3 nodes and the following labeling(s):
+label: color
+(2, 1) -> blue
+(3, 2) -> green
+1 -> red
+2 -> red
+3 -> yellow
+
+julia> K.color[1]
+"red"
 ```
 """
 function graph_from_labeled_edges(::Type{T},
@@ -1550,10 +1642,9 @@ true
 
 julia> adjacency_matrix(G)
 3×3 IncidenceMatrix
-[2, 3]
-[]
-[]
-
+ [2, 3]
+ []
+ []
 
 julia> matrix(ZZ, adjacency_matrix(G))
 [0   1   1]
@@ -1569,11 +1660,10 @@ Undirected graph with 4 nodes and the following edges:
 
 julia> adjacency_matrix(G)
 4×4 IncidenceMatrix
-[2, 3]
-[1, 4]
-[1, 4]
-[2, 3]
-
+ [2, 3]
+ [1, 4]
+ [1, 4]
+ [2, 3]
 
 julia> matrix(ZZ, adjacency_matrix(G))
 [0   1   1   0]
@@ -1627,4 +1717,30 @@ true
 """
 function is_bipartite(g::Graph{Undirected})
   return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
+end
+
+@doc raw"""
+    maximal_cliques(g::Graph{Undirected})
+
+Returns the maximal cliques of a graph `g` as a `Set{Set{Int}}`.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 2)(4, 3)
+
+julia> typeof(maximal_cliques(g))
+Set{Set{Int64}}
+
+julia> sort.(collect.(maximal_cliques(g)))
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [2, 3, 4]
+```
+"""
+function maximal_cliques(g::Graph{Undirected})
+  Set{Set{Int}}(Polymake.to_one_based_indexing.(
+    Polymake.call_function(:graph,:max_cliques,g.pm_graph)
+  ))
 end

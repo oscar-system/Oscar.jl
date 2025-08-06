@@ -1,3 +1,4 @@
+
 module Orderings
 
 using Oscar
@@ -17,7 +18,8 @@ export deginvlex
 export invlex
 export is_elimination_ordering
 export is_global
-export is_local
+export is_global_block
+export is_local_block
 export is_mixed
 export is_total
 export _is_weighted
@@ -1459,22 +1461,24 @@ function _cmp_var(M, j::Int)
 end
 
 @doc raw"""
-    is_global(ord::MonomialOrdering)
+    is_global_block(ord::MonomialOrdering)
 
-Return `true` if `ord` is global, `false` otherwise.
+Given a monomial ordering on the monoid of monomials in a block (that is, subset) of variables of a multivariate polynomial ring,
+return `true` if `ord` is a global monomial ordering on this monoid, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> o = matrix_ordering(R, [1 1; 0 -1])
-matrix_ordering([x, y], [1 1; 0 -1])
+julia> o = lex([x,y])
+lex([x, y])
 
-julia> is_global(o)
+julia> is_global_block(o)
 true
+
 ```
 """
-function is_global(ord::MonomialOrdering)
+function is_global_block(ord::MonomialOrdering)
   M = matrix(ord)
   for i in _support_indices(ord.o)
     if _cmp_var(M, i) <= 0
@@ -1485,22 +1489,48 @@ function is_global(ord::MonomialOrdering)
 end
 
 @doc raw"""
-    is_local(ord::MonomialOrdering)
+    is_global(ord::MonomialOrdering)
 
-Return `true` if `ord` is local, `false` otherwise.
+Given a monomial ordering on the monoid of monomials in the variables of a multivariate polynomial ring,
+return `true` if `ord` is global, and `false` otherwise.
 
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
-julia> o = matrix_ordering(R, [-1 -1; 0 -1])
-matrix_ordering([x, y], [-1 -1; 0 -1])
+julia> o = matrix_ordering(R, [1 1; 0 -1])
+matrix_ordering([x, y], [1 1; 0 -1])
 
-julia> is_local(o)
+julia> is_global(o)
 true
+
 ```
 """
-function is_local(ord::MonomialOrdering)
+function is_global(ord::MonomialOrdering)
+  !is_total(ord) && error("The monomial ordering must be defined on all variables.")
+  return is_global_block(ord);
+end
+
+@doc raw"""
+    is_local_block(ord::MonomialOrdering)
+
+Given a monomial ordering on the monoid of monomials in a block (that is, subset) of variables of a multivariate polynomial ring,
+return `true` if `ord` is a local monomial ordering on this monoid, and `false` otherwise.
+
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> o = neglex([x,y])
+neglex([x, y])
+
+julia> is_local_block(o)
+true
+
+```
+"""
+function is_local_block(ord::MonomialOrdering)
   M = matrix(ord)
   for i in _support_indices(ord.o)
     if _cmp_var(M, i) >= 0
@@ -1511,9 +1541,33 @@ function is_local(ord::MonomialOrdering)
 end
 
 @doc raw"""
+    is_local(ord::MonomialOrdering)
+
+Given a monomial ordering on the monoid of monomials in the variables of a multivariate polynomial ring,
+return `true` if `ord` is local, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+
+julia> o = matrix_ordering(R, [-1 -1; 0 -1])
+matrix_ordering([x, y], [-1 -1; 0 -1])
+
+julia> is_local(o)
+true
+
+```
+"""
+function Oscar.is_local(ord::MonomialOrdering)
+  !is_total(ord) && error("The monomial ordering must be defined on all variables.")
+  return is_local_block(ord)
+end
+
+@doc raw"""
     is_mixed(ord::MonomialOrdering)
 
-Return `true` if `ord` is mixed, `false` otherwise.
+Given a monomial ordering on the monoid of monomials in the variables of a multivariate polynomial ring,
+return `true` if `ord` is mixed, and `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -1547,7 +1601,13 @@ end
 @doc raw"""
     is_total(ord::MonomialOrdering)
 
-Return `true` if `ord` is total ordering, `false` otherwise.
+Return `true` if `ord` is a total ordering, `false` otherwise.
+
+!!! note
+    For the convenient construction of block orderings on the monoid of monomials in the variables of a given multivariate polynomial ring,
+    we allow to construct orderings on the monomials in blocks (that is, subsets) of variables, viewing these orderings as partial
+    orderings on the monomials in all variables. This function just checks whether `ord` is a monomial ordering on the monoid of *all*
+    variables of the given polynomial ring.
 """
 function is_total(ord::MonomialOrdering)
   if !ord.is_total_is_known
@@ -1626,12 +1686,13 @@ end
 @doc raw"""
     is_elimination_ordering(ord::MonomialOrdering, V::Vector{<:MPolyRingElem})
 
-Given a vector `V` of polynomials which are variables, return `true` if `ord` is an elimination ordering for the variables in `V`.
+Given a vector `V` whose entries form a subset of variables of a give multivariate polynomial ring, 
+return `true` if `ord` is an elimination ordering for the variables in `V`.
 Return `false`, otherwise.
 
     is_elimination_ordering(ord::MonomialOrdering, V:Vector{Int})
     
-Given a vector `V` of indices which specify variables, return `true` if `ord` is an elimination ordering for the specified variables.
+Given a vector `V` of indices which specify variables as above, return `true` if `ord` is an elimination ordering for the specified variables.
 Return `false`, otherwise.
 
 # Examples

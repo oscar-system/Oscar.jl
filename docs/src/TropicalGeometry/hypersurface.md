@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 # Tropical hypersurfaces
@@ -77,11 +78,11 @@ From these relations, we can draw the hypersurface. However, one should be caref
 ```jldoctest exampleHypersurface
 julia> IncidenceMatrix(maxPol)
 5×5 IncidenceMatrix
-[1, 4]
-[1, 5]
-[3, 4]
-[4, 5]
-[2, 5]
+ [1, 4]
+ [1, 5]
+ [3, 4]
+ [4, 5]
+ [2, 5]
 ```
 This is made clearer if we ask for the vertices of each of the maximal polyhedra (the bounded edges have a vertex at each end, while the unbounded only have one vertex).
 ```jldoctest exampleHypersurface

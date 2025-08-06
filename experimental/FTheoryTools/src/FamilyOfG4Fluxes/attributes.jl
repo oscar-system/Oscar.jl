@@ -5,8 +5,9 @@
 @doc raw"""
     model(gf::FamilyOfG4Fluxes)
 
-Return the F-theory model for which this family of $G_4$-flux candidates is defined.
+Return the F-theory model for which this family of ``G_4``-flux candidates is defined.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -22,7 +23,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -37,10 +38,10 @@ model(gf::FamilyOfG4Fluxes) = gf.model
 @doc raw"""
     matrix_integral(gf::FamilyOfG4Fluxes)
 
-Return the matrix whose columns specify those combinations of ambient space G4-flux
-candidates, of which integral linear combinations are contained in this family
-of G4-fluxes.
+Return the matrix whose columns specify those combinations of ambient space ``G_4``-flux
+candidates, of which integral linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -56,7 +57,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -71,10 +72,10 @@ matrix_integral(gf::FamilyOfG4Fluxes) = gf.mat_int
 @doc raw"""
     matrix_rational(gf::FamilyOfG4Fluxes)
 
-Return the matrix whose columns specify those combinations of ambient space G4-flux
-candidates, of which rational linear combinations are contained in this family
-of G4-fluxes.
+Return the matrix whose columns specify those combinations of ambient space ``G_4``-flux
+candidates, of which rational linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -90,7 +91,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -106,8 +107,9 @@ matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
     offset(gf::FamilyOfG4Fluxes)
 
 Return the vector whose entries specify the offset by which fluxes in this family
-of G4-fluxes are shifted.
+of ``G_4``-fluxes are shifted away from the origin.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -123,7 +125,7 @@ julia> mat_rat[2,1] = 1;
 julia> shift = [zero(QQ) for k in 1:37];
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
@@ -142,26 +144,32 @@ offset(gf::FamilyOfG4Fluxes) = gf.offset
 @doc raw"""
     d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Return the d3-tapdole constraint of a family of G4-fluxes. Recall that for a given $G_4$-flux, this constraint
-is $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4) \stackrel{!}{\geq} 0$.
+Return the D3-tadpole constraint polynomial for a family of ``G_4``-fluxes.
 
-Note that the family of fluxes is specified by linear combination of cohomology classes, some with rational
-and some with integral coefficients. In terms of these coefficients the d3-tadpole constraint is the demand
-that a quadratic polynomial in the coefficients evaluates to a non-negative number. This method returns said
-polynomial in the cofficients. In order to evaluate the D3-tadpole for a particular $G_4$-flux, one has to
-evaluate this polynomial for the numeric coefficient values that correspond to the given $G_4$-flux.
+Recall that for a given flux ``G_4``, the D3-tadpole constraint requires
 
-We use symbols $a_i$ to indicate integral coefficients and $r_i$ to indicate rational coefficients.
+$- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4)$
 
+to be a non-negative integer.
+
+The family of fluxes is given as a linear combination of cohomology classes with 
+integral (denoted by ``a_i``) and rational (denoted by ``r_i``) coefficients. This
+method returns the quadratic polynomial in these coefficients that encodes the
+``D3``-tadpole constraint. To evaluate the constraint for a specific flux, substitute
+the numerical coefficient values into this polynomial.
+
+The optional keyword argument `check` enables or disables internal consistency checks.
+
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
 julia> fgs = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes:
+Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> d3_tadpole_constraint(fgs);
 ```
@@ -214,8 +222,8 @@ julia> d3_tadpole_constraint(fgs);
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = basis_of_h22_hypersurface(m, check = check)
-  basis_indices = basis_of_h22_hypersurface_indices(m, check = check)
+  basis = gens_of_h22_hypersurface(m, check = check)
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
   C = MPolyBuildCtx(amb_ring)

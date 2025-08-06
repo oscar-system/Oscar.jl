@@ -8,13 +8,27 @@
   @test n_rays(ambient_space(t)) == 104
   @test n_rays(ambient_space(fully_resolved_big_model)) == 313
   @test typeof(get_attribute(fully_resolved_big_model, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
-  @test length(chosen_g4_flux_basis(fully_resolved_big_model)) == 629
+  @test length(chosen_g4_flux_gens(fully_resolved_big_model)) == 629
   @test is_well_quantized(g1) == true
   @test breaks_non_abelian_gauge_group(g2) == false
   @test size(matrix_integral(f1)) == (629, 224)
   @test size(matrix_rational(f1)) == (629, 127)
   @test size(matrix_integral(f2)) == (629, 1)
   @test size(matrix_rational(f2)) == (629, 127)
+  @test has_attribute(fully_resolved_big_model, :exceptional_classes)
+  @test has_attribute(fully_resolved_big_model, :exceptional_divisor_indices)
+  @test (104 in exceptional_divisor_indices(fully_resolved_big_model)) == false
+  @test 105 in exceptional_divisor_indices(fully_resolved_big_model)
+  @test length(exceptional_divisor_indices(fully_resolved_big_model)) == 206
+  @test length(fully_resolved_big_model.__attrs) == 48
+  @test length(fully_resolved_big_model.__attrs[:inter_dict]) == 14154797
+  @test maximum(values(fully_resolved_big_model.__attrs[:inter_dict])) == 407568
+  @test fully_resolved_big_model.__attrs[:inter_dict][(103,103,103,103)] == 407568
+  @test fully_resolved_big_model.__attrs[:inter_dict][(104,104,104,104)] == -6654
+  @test length(fully_resolved_big_model.__attrs[:s_inter_dict]) == 66
+  @test paper_buzzwords(t) == [ "Tate", "Most flux vacua"]
+  @test paper_buzzwords(fully_resolved_big_model) == [ "Tate", "Most flux vacua"]
+  @test paper_authors(fully_resolved_big_model) == ["Washington Taylor", "Yi-Nan Wang"]
 end
 
 @testset "Advanced intersection theory and QSM-fluxes" begin
@@ -29,7 +43,7 @@ end
       @test obj1 == obj2
     end
     qsm_g4_flux = qsm_flux(qsm_model)
-    h22_basis = basis_of_h22_hypersurface_indices(qsm_model, check = false)
+    h22_basis = gens_of_h22_hypersurface_indices(qsm_model, check = false)
     flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
     ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
     flux_poly = Oscar.eval_poly(flux_poly_str, ring)
@@ -54,5 +68,19 @@ end
     @test is_integer(solution[1])
     reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end,:])
     @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
+    coho_R = cohomology_ring(ambient_space(qsm_model), check = false)
+    gs = [gg.f for gg in gens(coho_R)]
+    known_intersections = qsm_model.__attrs[:inter_dict]
+    kbar_poly = polynomial(cohomology_class(anticanonical_bundle(ambient_space(qsm_model)))).f
+    non_zero_entries = collect(filter(x -> x[2] != 0, known_intersections))
+    sampled_dict = Dict()
+    while length(sampled_dict) < min(100, length(non_zero_entries))
+      i = rand(1:length(non_zero_entries))
+      sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
+    end
+    for (k,v) in sampled_dict
+      desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly), true)
+      @test v == integrate(desired_class, check = false)
+    end
   end
 end

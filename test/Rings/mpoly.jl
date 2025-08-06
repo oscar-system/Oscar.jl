@@ -91,6 +91,11 @@ end
   @test saturation(I) == saturation(I, J)
   @test saturation_with_index(I) == (ideal(R, [x]), 2)
   @test saturation_with_index(I) == saturation_with_index(I, J)
+  # issue 4840
+  I = ideal(R, [x^5*y])
+  J = ideal(R, [x^2])
+  @test saturation(I, J) == ideal(R, [y])
+  @test saturation_with_index(I, J) == (ideal(R, [y]), 3)
 
   @test I != J
   RR, (xx, yy) = grade(R, [1, 1])
@@ -591,7 +596,7 @@ end
   ambient_dimension = 4
   I = flag_pluecker_ideal(dimension_vector, ambient_dimension)
   R = base_ring(I)
-  @test dim(R) == 6
+  @test krull_dim(R) == 6
   x = gens(R)
   f1 = -x[1]*x[5]+x[2]*x[4]-x[3]*x[6] 
   @test [f1] == gens(I)
@@ -673,3 +678,20 @@ end
   @test dim(R) == 2
 end
 
+@testset "principally generated ideals" begin
+  R, (x, y) = QQ[:x, :y]
+  I1 = ideal(R, [x])
+  I2 = ideal(R, [x, x^2])
+  I3 = ideal(R, [x, y])
+  @test Oscar.is_known(is_principal, I1) # obvious to check
+  @test !Oscar.is_known(is_principal, I2) # not obvious to check, needs GB
+  g = principal_generator(I2) # computes a `small_generating_set`
+  @test Oscar.is_known(is_principal, I2) # result is cached
+  @test Oscar.is_principal(I2)
+  @test !Oscar.is_known(is_principal, I3) # not obvious to check
+  @test !Oscar.is_principal(I3) # check can be done
+  @test Oscar.is_known(is_principal, I3) # result is cached
+end
+
+  
+  

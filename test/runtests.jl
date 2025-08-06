@@ -22,6 +22,8 @@ if numprocs >= 2
   println("Adding worker processes")
   addprocs(numprocs)
 end
+# keep custom worker pool to avoid issues from extra processes in parallel tests
+worker_pool = WorkerPool(workers())
 
 if haskey(ENV, "JULIA_PKGEVAL") ||
   get(ENV, "CI", "") == "true" ||
@@ -42,13 +44,11 @@ end
 # to make sure we seed the main process we run this again
 Oscar.randseed!(seed)
 
-if VERSION >= v"1.8.0"
-  # Enable GC logging to help track down certain GC related issues.
-  # Note that several test files need to temporarily disable and then
-  # re-enable this. If we need to disable this globally, those files
-  # need to be adjusted as well.
-  @everywhere  GC.enable_logging(true)
-end
+# Enable GC logging to help track down certain GC related issues.
+# Note that several test files need to temporarily disable and then
+# re-enable this. If we need to disable this globally, those files
+# need to be adjusted as well.
+@everywhere GC.enable_logging(true)
 
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest
@@ -113,7 +113,7 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
                                "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
-                               "experimental/QuadFormAndIsom/test/runtests.jl",
+                               "test/NumberTheory/QuadFormAndIsom.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
@@ -155,9 +155,6 @@ stats = Dict{String,NamedTuple}()
 # it is in the ignore list for the other tests
 # try running it first for now
 if test_subset == :long || test_subset == :default
-  println("Starting tests for Serialization/IPC.jl")
-  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
-
   if "Parallel" in Oscar.exppkgs
     path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
     println("Starting tests for $path")
@@ -174,7 +171,7 @@ end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-merge!(stats, reduce(merge, pmap(testlist) do x
+merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
                               Oscar.test_module(x; new=false, timed=true, tempproject=false)
                             end))

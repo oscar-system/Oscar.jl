@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -92,7 +93,7 @@ and let Oscar compute a pc presentation for it.
 
 ```jldoctest
 julia> g = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> iso = isomorphism(PcGroup, g);
 
@@ -121,6 +122,10 @@ Pc group of order 24
 ```@docs
 letters(g::Union{PcGroupElem, SubPcGroupElem})
 syllables(g::Union{PcGroupElem, SubPcGroupElem})
+depth(g::Union{PcGroupElem,SubPcGroupElem})
+relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
 map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 ```
 
@@ -128,6 +133,7 @@ map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Ve
 
 ```@docs
 relators(G::PcGroup)
+hirsch_length(G::PcGroup)
 ```
 
 The function
@@ -146,6 +152,7 @@ but `PcGroup` is the default type in all cases except `abelian_group`.)
 ```@docs
 abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
 elementary_abelian_group
+extraspecial_group
 cyclic_group
 dihedral_group
 quaternion_group

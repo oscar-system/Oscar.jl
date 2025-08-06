@@ -139,8 +139,7 @@
 
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
     I = ideal(R,[x^2+x*y+y,x+y^2])
-    standard_basis(I, ordering=lex(R), complete_reduction=true)
-    G = Oscar.groebner_assure(I, true, true)
+    G = standard_basis(I, ordering=lex(R), complete_reduction=true)
     @test G.ord == lex(R)
 end
 
@@ -228,14 +227,14 @@ end
                 x4^4 + 35851649*x4^3 + 232885084*x2*x4 + 251179133*x3*x4 + 231479137*x4^2 + 191484965*x2 + 85955250*x3 + 167408122*x4]
   @test elements(H) == G
   @test isdefined(I, :gb)
-  @test I.gb[degrevlex(gens(base_ring(I)))].O == G
+  @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I)))]) == G
   H = groebner_basis_f4(I, eliminate=2);
   G = [x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
   @test elements(H) == G
-  @test I.gb[degrevlex(gens(base_ring(I))[3:end])].O == G
+  @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I))[3:end])]) == G
 end
 
 @testset "fglm" begin
@@ -303,7 +302,7 @@ end
   I = ideal(R, x)
   # A priori we expect nothing to be known
   @test !Oscar.is_known(is_one, I)
-  @test !Oscar.is_known(dim, I)
+  @test !Oscar.is_known(krull_dim, I)
   @test !Oscar.is_known(groebner_basis, I)
   # ...except things which are really easy to check.
   @test Oscar.is_known(is_zero, I)
