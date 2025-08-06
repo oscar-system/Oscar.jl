@@ -1,8 +1,9 @@
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
-Returns the Tate section ``a_1``.
+Return the Tate section ``a_1``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -17,8 +18,9 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 @doc raw"""
     tate_section_a2(t::GlobalTateModel)
 
-Returns the Tate section ``a_2``.
+Return the Tate section ``a_2``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -33,8 +35,9 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 @doc raw"""
     tate_section_a3(t::GlobalTateModel)
 
-Returns the Tate section ``a_3``.
+Return the Tate section ``a_3``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -49,8 +52,9 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 @doc raw"""
     tate_section_a4(t::GlobalTateModel)
 
-Returns the Tate section ``a_4``.
+Return the Tate section ``a_4``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -65,8 +69,9 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 @doc raw"""
     tate_section_a6(t::GlobalTateModel)
 
-Returns the Tate section ``a_6``.
+Return the Tate section ``a_6``.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -81,10 +86,11 @@ tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
 
-Returns the Tate polynomial of the model.
+Return the Tate polynomial of the model.
 
 Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -119,12 +125,13 @@ hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 @doc raw"""
     tate_ideal_sheaf(t::GlobalTateModel)
 
-Returns the Tate ideal sheaf of the global Tate model.
+Return the Tate ideal sheaf of the global Tate model.
 
 This method is relevant when the global Tate model cannot be represented by a single
 global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -159,31 +166,11 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(t::GlobalTateModel)
-
-Returns the Calabi–Yau hypersurface that defines the global Tate model
-as a closed subvariety of its toric ambient space.
-
-```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
-Global Tate model over a concrete base
-
-julia> calabi_yau_hypersurface(t)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req base_space(t) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(t) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
-end
-
-
-@doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
-Returns the Weierstrass model which is equivalent to the given global Tate model.
+Return the Weierstrass model which is equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -289,8 +276,9 @@ end
 @doc raw"""
     discriminant(t::GlobalTateModel)
 
-Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
 julia> t = global_tate_model_over_projective_space(2)
 Global Tate model over a concrete base
@@ -308,13 +296,14 @@ end
 @doc raw"""
     singular_loci(t::GlobalTateModel)
 
-Returns the singular loci of the Weierstrass model equivalent to the given Tate model,
+Return the singular loci of the Weierstrass model equivalent to the given Tate model,
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
-refined Tate fiber type. See [singular_loci(w::WeierstrassModel)](@ref) for more details.
+refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for more details.
 
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random source can be set with the optional argument `rng`.
 
 Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
 [KMSS11](@cite). In this case, the Tate sections are factored as follows:
@@ -327,6 +316,7 @@ Hence, there is a Kodaira type ``III`` singularity over the divisor ``{w = 0}``.
 the discriminant ``\Delta`` vanishes to order 3 on ``{w = 0}``, while the Weierstrass
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
 
+# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
@@ -345,20 +335,17 @@ julia> a6 = a62 * w^2;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base
 
-julia> length(singular_loci(t))
-2
+julia> using Random;
 
-julia> sort([k[2:3] for k in singular_loci(t)])
+julia> sort([k[2:3] for k in singular_loci(t; rng = Random.Xoshiro(1234))])
 2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
  ((0, 0, 1), "I_1")
  ((1, 2, 3), "III")
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel; rng::AbstractRNG = Random.default_rng())
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
-  return singular_loci(weierstrass_model(t))
+  return singular_loci(weierstrass_model(t); rng)
 end
