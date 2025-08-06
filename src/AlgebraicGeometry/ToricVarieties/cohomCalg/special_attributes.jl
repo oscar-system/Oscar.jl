@@ -71,9 +71,10 @@ end
     all_cohomologies(l::ToricLineBundle)
 
 Compute the dimension of all sheaf cohomologies of the 
-toric line bundle `l` by use of the cohomCalg algorithm 
+toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
-[Jow11](@cite) and [BJRR12](@cite)).
+[Jow11](@cite) and [BJRR12](@cite)). It is also possible to specify algorithm = "chambers"
+in which case the chamber counting algorithm will be used by calling `all_cohomologies_via_cech`.
 
 # Examples
 ```jldoctest
@@ -87,7 +88,8 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
  0
 ```
 """
-@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle)
+@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
+  if algorithm == "cohomCalg"
     # check if we can apply cohomCalg
     v = toric_variety(l)
     if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
@@ -190,6 +192,9 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
     
     # return result
     return result
+  elseif algorithm == "chambers"
+    return all_cohomologies_via_cech(l)
+  end
 end
 
 
