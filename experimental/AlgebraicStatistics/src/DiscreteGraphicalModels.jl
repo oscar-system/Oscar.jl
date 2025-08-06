@@ -80,7 +80,22 @@ function graphical_model(G::Graph{Undirected}, S::MarkovRing, t_var_name::String
 end
 
 
-#TODO method for printing output of a discrete undirected graphical model
+function Base.show(io::IO, M::GraphicalModel{Graph{Undirected}, MarkovRing})
+  G = M.graph
+  E = [(src(e), dst(e)) for e in edges(G)]
+  S = ring(M)
+  states = map(i -> length(state_space(S, i)), random_variables(S))
+
+  if length(E) == 0
+    print(io, "Discrete graphical model on the empty undirected graph")
+    print(io, " and states: ", string(states))
+  end
+
+  if length(E) > 0
+    print(io, "Discrete graphical model on an undirected graph with edges:", "\n", string(E)[2:end-1])
+    print(io, " and states: ", string(states))
+  end
+end
 
 
 @doc raw"""
@@ -183,6 +198,23 @@ function parental_state_space(G::Graph{Directed}, i::Integer, S::MarkovRing)
   par_rvs = random_variables(S)[par]
   
   return collect(state_space(S, par_rvs))
+end
+
+
+function Base.show(io::IO, M::GraphicalModel{Graph{Directed}, MarkovRing})
+  G = M.graph
+  E = [(src(e), dst(e)) for e in edges(G)]
+  S = ring(M)
+  states = map(i -> length(state_space(S, i)), random_variables(S))
+
+  if length(E) == 0
+    print(io, "Discrete graphical model on the empty directed graph")
+  end
+
+  if length(E) > 0
+    print(io, "Discrete graphical model on a directed graph with edges:", "\n", string(E)[2:end-1])
+    print(io, " and states: ", string(states))
+  end
 end
 
 

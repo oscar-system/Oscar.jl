@@ -62,6 +62,7 @@ function param_gens(M::GraphicalModel)
 end
 
 include("GaussianGraphicalModels.jl")
+include("DiscreteGraphicalModels.jl")
 
 @doc raw"""
     vanishing_ideal(M::GraphicalModel)
