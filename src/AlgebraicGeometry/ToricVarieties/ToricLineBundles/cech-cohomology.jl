@@ -1,12 +1,7 @@
-export all_cohomologies_via_cech
-
 @doc raw"""
     all_cohomologies_via_cech(tl::ToricLineBundle)
 
-Compute line bundle cohomology via Cech cohomology.
-
-Executing all_cohomologies_via_cech(l3) with l3 as below will likely not terminate.
-More performance is needed. But how? Below is the result from cohomCalg for comparison.
+Compute line bundle cohomology via Cech cohomology using chamber counting [CLS11](@cite).
 
 # Examples
 ```jldoctest
@@ -26,20 +21,6 @@ julia> cech_cohomologies(l2)
 2-element Vector{ZZRingElem}:
  0
  2
- 0
-
-julia> v = dP3 * dP3
-Normal toric variety
-
-julia> l3 = toric_line_bundle(v, [-i for i in 1:8])
-Toric line bundle on a normal toric variety
-
-julia> all_cohomologies(l3)
-5-element Vector{ZZRingElem}:
- 0
- 0
- 196
- 119
  0
 ```
 """
