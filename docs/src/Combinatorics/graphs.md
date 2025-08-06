@@ -54,16 +54,32 @@ label!
 ```
 
 ## Auxiliary functions
+
+### Degrees
+```@docs
+degree(g::Graph, v::Int)
+indegree(g::Graph{Directed}, v::Int)
+outdegree(g::Graph{Directed}, v::Int)
+```
+
+### Connectivity
+```@docs
+is_connected(g::Graph{Undirected})
+connected_components(g::Graph{Undirected})
+connectivity(g::Graph{Undirected})
+is_weakly_connected(g::Graph{Directed})
+is_strongly_connected(g::Graph{Directed})
+weakly_connected_components(g::Graph{Directed})
+diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+```
+
+### Others
 ```@docs
 adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-connectivity(g::Graph{Undirected})
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
-degree(g::Graph, v::Int)
-indegree(g::Graph{Directed}, v::Int)
-outdegree(g::Graph{Directed}, v::Int)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
