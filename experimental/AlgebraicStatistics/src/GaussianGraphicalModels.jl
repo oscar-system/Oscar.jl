@@ -71,11 +71,12 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   end
 end
 
+#TODO do the gens returned here need to be a dict? we'll need to be consisted across all models
 @attr MPolyRing function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
   varnames = ["$(GM.varnames[1])[$(i), $(j)]" for (i, j) in varindices]
-  polynomial_ring(QQ, varnames; cached=false)[1]
+  polynomial_ring(QQ, varnames; cached=false)
 end
 
 @doc raw"""
@@ -119,20 +120,12 @@ end
 @attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
   varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[3])[$(v)]" for v in vertices(G)])
-  polynomial_ring(QQ, varnames; cached=cached)[1]
-end
+  R, (e_vars, v_vars) = polynomial_ring(QQ, varnames; cached=cached)
+  gens_dict = merge(Dict(e => e_vars[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => v_vars[v] for v in 1:n_vertices(G)))
 
-function parameter_ring_gens(GM::GaussianGraphicalModel{Directed, T}) where T
-  G = graph(GM)
-  R = parameter_ring(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(GM.varnames[3])[$(v)]" for v in vertices(G)])
-  edge_vars, vertex_vars = AbstractAlgebra.reshape_to_varnames(gens(R), varnames)
-  
-  merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-        Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  return R, gens_dict
 end
-
 
 @doc raw"""
     directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
@@ -154,9 +147,9 @@ julia> directed_edges_matrix(GM)
 """
 function directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
   G = graph(M)
-  gens_dict = parameter_ring_gens(M)
+  R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
-  lambda = zero_matrix(parameter_ring(M), n, n)
+  lambda = zero_matrix(R, n, n)
   for e in edges(G)
     lambda[src(e), dst(e)] = gens_dict[e]
   end
@@ -183,8 +176,8 @@ julia> error_covariance_matrix(M)
 """
 function error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
   G = graph(M)
-  gens_dict = parameter_ring_gens(M)
-  W = diagonal_matrix(parameter_ring(M), [gens_dict[i] for i in 1:n_vertices(G)])
+  R, gens_dict = parameter_ring(M)
+  W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
 end
 
 @doc raw"""
@@ -215,8 +208,8 @@ defined by
 ```
 """
 function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
-  S = model_ring(M)
-  R = parameter_ring(M)
+  S = model_ring(M)[1]
+  R = parameter_ring(M)[1]
   G = graph(M)
   lambda = directed_edges_matrix(M)
   Id = identity_matrix(R, n_vertices(G))
@@ -233,18 +226,10 @@ end
 @attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
   varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[2])[$(v), $(v)]" for v in vertices(G)])
-  polynomial_ring(QQ, varnames; cached=cached)[1]
-end
-
-function parameter_ring_gens(GM::GaussianGraphicalModel{Undirected, T}) where T
-  G = graph(GM)
-  R = parameter_ring(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(GM.varnames[2])[$(v), $(v)]" for v in vertices(G)])
-  edge_vars, vertex_vars = AbstractAlgebra.reshape_to_varnames(gens(R), varnames)
-  
-  merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-        Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  R, (e_vars, v_vars) = polynomial_ring(QQ, varnames; cached=cached)
+  gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  return R, gens_dict
 end
 
 @doc raw"""
@@ -306,8 +291,8 @@ defined by
 """
 function parametrization(M::GaussianGraphicalModel{Undirected, T}) where T
   G = graph(M)
-  S = model_ring(M)
-  R = parameter_ring(M)
+  S = model_ring(M)[1]
+  R = parameter_ring(M)[1]
   K = concentration_matrix(M)
   Rloc, iota = localization(R, powers_of_element(det(K)))
   adj = adjugate(K)
@@ -357,6 +342,8 @@ function gaussian_ring(F::Field, n::Int; s_var_name::VarName="s", cached=false)
   S, s = polynomial_ring(F, varnames; cached=cached)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
+
+  #TODO this should probably also return a pair
   GaussianRing(S, cov_matrix)
 end
 
