@@ -51,7 +51,7 @@ and a parameter ring whose variables `t[C](i_1, i_2, ..., i_#C)` correspond to p
 ## Examples
 
 ``` jldoctest 
-julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), markov_ring(2,2,2))
+julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2))
 discrete graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
 ```
@@ -110,7 +110,7 @@ p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
 p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
 p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 """
-function parameterization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
+function parametrization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
 
   G = graph(M)
   cliques = maximal_cliques(G)
@@ -147,13 +147,97 @@ of the node i given its parents.
 ## Examples
 
 ``` jldoctest 
-julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), markov_ring(2,2,2))
+julia> M = graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3, 4]]), markov_ring("1" => 1:2, "2" => 1:2, "3" => 1:2, "4" => 1:2))
 discrete graphical model on a directed graph with edges:
-(1, 2), (2, 3)
+(1, 3), (2, 3), (3, 4)
 ```
 """
 function graphical_model(G::Graph{Directed}, S::MarkovRing, q_var_name::String="q")
 
+    rvs = random_variables(S)
 
+    R, q = polynomial_ring(QQ, vcat([q_var_name*string([i, j])*string(par_state) for i in vertices(G) for j in state_space(S, rvs[i]) for par_state in parental_state_space(G, i, S)], ["h"]))
+
+    param_dict = Dict([[(i, j), Dict()] for i in vertices(G) for j in state_space(S, rvs[i])])
+
+    t = 1
+
+    for i in vertices(G)
+      for j in state_space(S, rvs[i])
+        for par_state in parental_state_space(G, i, S)
+          
+          param_dict[i, j][Tuple(par_state)] = q[t]
+          t += 1
+        end
+      end
+    end
+
+    return GraphicalModel(G, S, R, param_dict)
 end
 
+
+# returns the joint states of the parents vertex i in a directed graph G
+function parental_state_space(G::Graph{Directed}, i::Integer, S::MarkovRing)
+
+  par = inneighbors(G, i)
+  par_rvs = random_variables(S)[par]
+  
+  return collect(state_space(S, par_rvs))
+end
+
+
+@doc raw"""
+  parameterization(M::GraphicalModel{Graph{Directed}, MarkovRing})
+
+Creates the polynomial map which parameterizes the vanishing ideal of the directed discrete graphical model `M`.   
+The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$
+where every joint probability is given by the product of conditional densities of each node given its parents. 
+## Examples
+
+``` jldoctest
+julia> M = graphical_model(graph_from_edges(Directed, [[1,3], [2,3]]), markov_ring("1" => 1:2, "2" => 1:2, "3" => 1:2))
+discrete graphical model on an directed graph with edges:
+(1, 3), (2, 3)
+
+julia> parameterization(M)
+Ring homomorphism
+from multivariate polynomial ring in 8 variables over QQ
+to multivariate polynomial ring in 8 variables over QQ
+defined by
+p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
+p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
+p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
+p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
+p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
+p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
+p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
+p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+"""
+function parametrization(M::GraphicalModel{Graph{Directed}, MarkovRing})
+
+  G = graph(M)
+  V = vertices(G)
+  S = ring(M)
+  rvs = random_variables(S)
+  R = param_ring(M)
+  q = param_gens(M)
+
+  images = []
+
+  for ind in state_space(S)
+
+      push!(images, prod(map(i-> q[i, ind[i]][Tuple(ind[inneighbors(G, i)])], V)))
+  end
+
+  lin_constraints  = []
+
+  for i in V
+    for par_state in parental_state_space(G, i, S)
+
+      push!(lin_constraints, last(gens(R)) - sum(map(j -> q[i, j][Tuple(par_state)] , state_space(S, rvs[i]))))
+    end
+  end
+  I = ideal(lin_constraints)
+
+  return hom(ring(S), R, map(f -> reduce(f, gens(I)), images))
+end
