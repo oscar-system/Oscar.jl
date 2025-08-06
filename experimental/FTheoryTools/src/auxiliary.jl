@@ -34,7 +34,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   
   # Compute divisor group and the class group of a_space
   a_space_divisor_group = free_abelian_group(nrows(a_rays))
-  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group(fiber_amb_space)))
+  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group_with_map(fiber_amb_space)[1]))
   
   # Compute grading of Cox ring of a_space
   a_space_grading = zero_matrix(ZZ, torsion_free_rank(a_space_divisor_group), torsion_free_rank(a_space_class_group))
@@ -47,7 +47,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   # Set important attributes of a_space and return it
   a_space_grading = hom(a_space_divisor_group, a_space_class_group, a_space_grading)
   set_attribute!(a_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, a_space_grading)
-  set_attribute!(a_space, :class_group, a_space_class_group)
+  set_attribute!(a_space, :class_group, codomain(a_space_grading))
   set_attribute!(a_space, :torusinvariant_weil_divisor_group, a_space_divisor_group)
   return a_space
 end
