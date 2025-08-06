@@ -5,6 +5,8 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
     return G.pm_graph
 end
 
+directed_component(G::MixedGraph) = G.directed_component
+undirected_component(G::MixedGraph) = G.undirected_component
 
 ################################################################################
 ################################################################################
@@ -32,6 +34,10 @@ julia> n_edges(g)
 """
 function graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
   return Graph{T}(nverts)
+end
+
+function graph(::Type{Mixed}, nverts::Int64)
+  return MixedGraph(nverts)
 end
 
 @doc raw"""
@@ -95,6 +101,33 @@ julia> add_edge!(g, 1, 2)
 true
 
 julia> add_edge!(g, 1, 2)
+false
+
+julia> n_edges(g)
+1
+```
+"""
+function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+  _has_node(g, source) && _has_node(g, target) || return false
+  old_nedges = n_edges(g)
+  Polymake._add_edge(pm_object(g), source-1, target-1)
+  return n_edges(g) == old_nedges + 1
+end
+
+@doc raw"""
+    add_directed_edge!(g::MixedGraph, s::Int64, t::Int64)
+
+Add edge `(s,t)` to the dirceted component of the graph `g`.
+Return `true` if a new edge `(s,t)` was added, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> g = graph(Mixed, 2);
+
+julia> add_directed_edge!(g, 1, 2)
+true
+
+julia> add_directed_edge!(g, 1, 2)
 false
 
 julia> n_edges(g)
@@ -412,6 +445,7 @@ end
 
 @doc raw"""
     n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    n_edges(g::MixedGraph)
 
 Return the number of edges of a graph.
 
@@ -428,6 +462,11 @@ julia> n_edges(g)
 """
 function n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
+end
+
+function n_edges(g::MixedGraph)
+  return sum(Polymake.ne(.pm_object.([directed_component(g),
+                                      undirected_component(g)])))
 end
 
 @doc raw"""
@@ -453,6 +492,31 @@ function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
+#TODO add examples
+@doc raw"""
+    directed_edges(g::MixedGraph)
+
+Return an iterator over the directed edges of the graph `g`.
+
+# Examples
+"""
+function directed_edges(g::MixedGraph{T})
+  dir_g = directed_component(g)
+  return EdgeIterator(Polymake.edgeiterator(pm_object(dir_g)), n_edges(dir_g))
+end
+
+#TODO add examples
+@doc raw"""
+    undirected_edges(g::MixedGraph)
+
+Return an iterator over the undirected edges of the graph `g`.
+
+# Examples
+"""
+function undirected_edges(g::MixedGraph) 
+  undir_g = undirected_component(g)
+  return EdgeIterator(Polymake.edgeiterator(pm_object(undir_g)), n_edges(undir_g))
+end
 
 @doc raw"""
     has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
@@ -478,10 +542,30 @@ function has_edge(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
     return has_edge(g, e.source, e.target)
 end
 
+@doc raw"""
+    has_directed_edge(g::MixedGraph, source::Int64, target::Int64)
+
+Check for an edge in a graph.
+
+# Examples
+"""
+has_directed_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(directed_component(g), source, target)
+has_directed_edge(g::MixedGraph, e::Edge) = has_edge(directed_component(g), e)
+
+@doc raw"""
+    has_undirected_edge(g::MixedGraph, source::Int64, target::Int64)
+
+Check for an edge in a graph.
+
+# Examples
+"""
+has_undirected_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(undirected_component(g), source, target)
+has_undirected_edge(g::MixedGraph, e::Edge) = has_edge(undirected_component(g), e)
+
 
 @doc raw"""
     has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-
+    has_vertex(g::MixedGraph, v::Int64)
 Check for a vertex in a graph.
 
 # Examples
@@ -499,10 +583,12 @@ false
 ```
 """
 function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    return Polymake._has_vertex(pmg, v-1)
+  pmg = pm_object(g)
+  return Polymake._has_vertex(pmg, v-1)
 end
 
+#each component has same vertices so it is enough to check one
+has_vertex(g::MixedGraph, v::Int) = has_vertex(directed_component(g), v) 
 
 @doc raw"""
     neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
