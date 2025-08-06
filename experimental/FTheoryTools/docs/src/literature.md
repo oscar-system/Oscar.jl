@@ -186,12 +186,12 @@ a6 = 0
 The tunable sections in this model are `w`, `a10`, `a21`, `a32` and `a43`. The only defining class is `W`. Therefore, the
 divisor classes of the tunable sections in the basis (``\overline{K}_B``, `W`) are given by the matrix:
 
-$$
+```math
 \begin{bmatrix}
 0 & 1 & 2 & 3 & 4 \\
 1 & 0 & -1 & -2 & -3
 \end{bmatrix}
-$$
+```
 
 Each column in this matrix corresponds to one of the tunable sections, listed in the same order as above.
 

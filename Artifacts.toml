@@ -30,12 +30,3 @@ lazy = true
     # gzip -9 -n -c perf33.grp > extraperfect/perf33.grp.gz
     # gtar --mtime="$(git log -1 --pretty=%cI)" --owner=0 --group=0 --numeric-owner -cvf extraperfect.tar extraperfect
     # gzip -n -c extraperfect.tar > extraperfect.tar.gz
-
-# to be used in the serialization upgrade tests from version 1.3 to 1.4
-[version-1-3-0-files]
-git-tree-sha1 = "231c660234d515a682a698764042cd9dae90361b"
-lazy = true
-
-     [[version-1-3-0-files.download]]
-     sha256 = "cd475445c983883d84a4ac29910d75f8b681ca1a99eb8f18f8164d2caa8704c3"
-     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/version_1_3_0_files.tar.gz"

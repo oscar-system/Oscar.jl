@@ -109,6 +109,13 @@ julia> x(6)
 6
 ```
 
+## Moved points of permutations and permutation groups
+```@docs
+smallest_moved_point
+largest_moved_point
+moved_points
+number_of_moved_points
+```
 
 ## Cycle structures
 
