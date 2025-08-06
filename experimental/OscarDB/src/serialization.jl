@@ -5,15 +5,15 @@ function save_object(s::SerializerState, LG::LeechPair)
   save_data_dict(s) do
     save_object(s, Oscar.number(LG), :id)
     save_object(s, Oscar.rank_invariant_lattice(LG), :rank)
-    save_object(s, Oscar.order_group(LG), :order)
+    save_object(s, Oscar.group_order(LG), :order)
     save_object(s, Oscar.alpha(LG), :alpha)
-    save_object(s, Oscar.index_image_in_Oq_coinvariant(LG), :icoinvbar)
-    save_object(s, Oscar.index_image_in_Oq_invariant(LG), :iinvbar)
-    save_object(s, Oscar.index_normaliser_modulo_group(LG), :ind)
+    save_object(s, Oscar.index_image_discriminant_representation_coinvariant(LG), :icoinvbar)
+    save_object(s, Oscar.index_image_discriminant_representation_invariant(LG), :iinvbar)
+    save_object(s, Oscar.index_normalizer_modulo_group(LG), :ind)
     save_object(s, Oscar.class_number_invariant_lattice(LG), :hinv)
     save_object(s, Oscar.number_of_niemeier_embeddings(LG), :N)
     # want to avoid using type key here to avoid confusion with file format
-    save_object(s, LG.type, :leech_pair_type) 
+    save_object(s, Oscar.case_type(LG), :leech_pair_type) 
   end
 end
 
