@@ -11,15 +11,17 @@
     difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables.
+these elementary variables.This methods allows for all the keywords of the `set_ranking!` method, as well as the keywords `cached` and `internal_ordering` from the MPoly Interface. See there for further information.
 """
 function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
     partition_name::Symbol = :default,
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
+    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
+    cached::Bool = true,
+    internal_ordering::Symbol = :lex
   )
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs, cached, internal_ordering)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
@@ -33,15 +35,18 @@ end
     difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
-these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided.
+these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
+method, as well as the keywords `cached` and `internal_ordering` from the MPoly Interface. See there for further information.
 """
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
     partition_name::Symbol = :default,
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
+    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
+    cached::Bool = true,
+    internal_ordering::Symbol = :lex
   )
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs, cached, internal_ordering)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
@@ -56,25 +61,79 @@ end
 ##### Elements #####
 
 ### Difference ###
-
 (dpr::DifferencePolyRing)() = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr)
 
 (dpr::DifferencePolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr, upre)
 
-(dpr::DifferencePolyRing)(a::R) where {R <: RingElement} = dpr(dpr.upoly_ring(a))
+function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
+  @req parent(a) === dpr "Wrong parent"
+  return a
+end
+
+(dpr::DifferencePolyRing)(a::T) where {T<:RingElement} = dpr(dpr.upoly_ring(a))
 
 ### Differential ###
 
 #######################################
 #
-#  Basic field access 
+#  Basic ring functionality 
+#
+#######################################
+
+elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
+
+parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
+
+base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
+
+is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
+
+is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
+
+function Base.deepcopy_internal(dpre::DifferencePolyRingElem{T}, dict::IdDict) where {T}
+    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
+    pp = deepcopy_internal(data(dpre), dict)
+    return DifferencePolyRingElem{T}(parent(dpre), pp)
+end
+
+zero(dpr::DifferencePolyRing) = dpr(0)
+
+one(dpr::DifferencePolyRing) = dpr(1)
+
+is_square(apre::ActionPolyRingElem) = is_square(data(apre))
+
+Base.sqrt(apre::ActionPolyRingElem; check::Bool = true) = parent(apre)(sqrt(data(apre); check = check))
+
+is_irreducible(apre::ActionPolyRingElem) = is_irreducible(data(apre))
+
+is_unit(apre::ActionPolyRingElem) = is_unit(data(apre))
+
+characteristic(apr::ActionPolyRing) = characteristic(__upr(apr))
+
+### Factorization ###
+function __wrap_factorization_apr(f::Fac{<:UniversalPolyRingElem}, apr::ActionPolyRing)
+   res = Fac{elem_type(apr)}()
+   res.unit = apr(f.unit)
+   for (fact, expo) in f
+      AbstractAlgebra.mulpow!(res, apr(fact), expo)
+   end
+   return res
+end
+
+factor_squarefree(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor_squarefree(data(apr)), parent(apr))
+
+factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), parent(apr))
+
+#######################################
+#
+#  Field access 
 #
 #######################################
 
 ##### Algebras #####
 
 ### Difference ###
-base_ring(dpr::DifferencePolyRing) = base_ring(dpr.upoly_ring)
+base_ring(dpr::DifferencePolyRing) = base_ring(__upr(dpr))
 
 ndiffs(dpr::DifferencePolyRing) = dpr.ndiffs
 
@@ -88,30 +147,24 @@ parent(dpre::DifferencePolyRingElem) = dpre.parent
 
 #######################################
 #
-#  Basic ring functionality 
-#
-#######################################
-
-zero(dpr::DifferencePolyRing) = dpr(0)
-
-one(dpr::DifferencePolyRing) = dpr(1)
-
-#######################################
-#
 #  Basic polynomial functionality 
 #
 #######################################
 
-is_monomial(apre::ActionPolyRingElem) = is_monomial(__poly(apre))
+is_monomial(apre::ActionPolyRingElem) = is_monomial(data(apre))
 
-is_univariate(apre::ActionPolyRingElem) = is_univariate(__poly(apre))
+is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
+
+is_univariate(apr::ActionPolyRing) = false
+
+length(apre::ActionPolyRingElem) = length(data(apre))
 
 @doc raw"""
     total_degree(p::ActionPolyRingElem) -> Int
 
 Return the total degree of `p`.
 """
-total_degree(apre::ActionPolyRingElem) = total_degree(__poly(apre))
+total_degree(apre::ActionPolyRingElem) = total_degree(data(apre))
 
 @doc raw"""
     degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) -> Int
@@ -125,8 +178,8 @@ function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   @req __is_valid_jet(apr, i, jet) "Invalid jet variable"
   jtv = __jtv(apr)
   if haskey(jtv, (i,jet))
-    idx = findfirst(var -> var == __poly(jtv[(i,jet)]), gens(upr))
-    return degree(__poly(apre), gen(upr, idx))
+    idx = findfirst(var -> var == data(jtv[(i,jet)]), gens(upr))
+    return degree(data(apre), gen(upr, idx))
   end
   return 0
 end
@@ -147,28 +200,30 @@ Return an array of the degrees of the polynomial `p` in terms of each variable. 
 """
 degrees(apre::ActionPolyRingElem) = map(i -> degree(apre, i), 1:ngens(parent(apre)))
 
+#=
 @doc raw"""
     trailing_coefficient(p::ActionPolyRingElem)
 
 Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last nonzero term, or zero if the polynomial is zero.
 """
-trailing_coefficient(apre::ActionPolyRingElem) = parent(apre)(trailing_coefficient(__poly(apre)))
+trailing_coefficient(apre::ActionPolyRingElem) = parent(apre)(trailing_coefficient(data(apre)))
+=#
 
 @doc raw"""
     is_constant(p::ActionPolyRingElem)
 
 Return `true` if `p` is a degree zero polynomial or the zero polynomial, i.e. a constant polynomial. 
 """
-is_constant(apre::ActionPolyRingElem) = is_constant(__poly(apre))
+is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 
 @doc raw"""
     vars(p::ActionPolyRingElem)
 
 Return the variables actually occuring in `p`. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
 """
-vars(apre::ActionPolyRingElem) = sort(parent(apre).(vars(__poly(apre))); rev = true)
+vars(apre::ActionPolyRingElem) = sort(parent(apre).(vars(data(apre))); rev = true)
 
-is_gen(apre::ActionPolyRingElem) = is_gen(__poly(apre))
+is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
 
 @doc raw"""
     gen(apr::ActionPolyRing, i::Int, midx::Vector{Int})
@@ -217,12 +272,9 @@ function gens(apr::ActionPolyRing)
   return sort(collect(values(__jtv(apr))); rev = true)
 end
 
-@doc raw"""
-    number_of_generators(apr::ActionPolyRing)
-
-Return the number of generators of the action polynomial ring `apr`.
-"""
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
+
+number_of_variables(apr::ActionPolyRing) = number_of_variables(__upr(apr))
 
 @doc raw"""
     getindex(apr::ActionPolyRing, i::Int, midx::Vector{Int})
@@ -230,6 +282,8 @@ number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
 Alias for `gen(apr, i, midx)`.
 """
 getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
+
+internal_ordering(apr::ActionPolyRing) = internal_ordering(__upr(apr))
 
 #######################################
 #
@@ -253,7 +307,7 @@ function diff_action(apre::ActionPolyRingElem{T}, i::Int) where {T}
     return apre
   end
 
-  upre = __poly(apre)
+  upre = data(apre)
   upr = __upr(apr)
 
   # Precompute mapping from existing variable -> shifted variable position
@@ -268,7 +322,7 @@ function diff_action(apre::ActionPolyRingElem{T}, i::Int) where {T}
     end
 
     shifted_var_elem = __jtv(apr)[(jet_idx[1], new_jet_idx)]
-    shifted_var = __poly(shifted_var_elem)
+    shifted_var = data(shifted_var_elem)
     shifted_var_pos = findfirst(==(shifted_var), gens(upr))
     upoly_var_to_shifted_pos[var] = shifted_var_pos
   end
@@ -328,9 +382,6 @@ leader(apre::ActionPolyRingElem) = max(vars(apre)...)
 #
 #######################################
 
-characteristic(apr::ActionPolyRing) = characteristic(__upr(apr))
-
-is_univariate(apr::ActionPolyRing) = false
 
 #######################################
 #
@@ -339,7 +390,7 @@ is_univariate(apr::ActionPolyRing) = false
 #######################################
 
 #Getters for internals
-__poly(dpre::DifferencePolyRingElem) = dpre.p
+data(dpre::DifferencePolyRingElem) = dpre.p
 
 __upr(dpr::DifferencePolyRing) = dpr.upoly_ring
 
@@ -461,7 +512,7 @@ function set_ranking!(dpr::DifferencePolyRing;
 
   n = ndiffs(dpr)
   @req index_ordering_name in [:default, :lex, :deglex, :invlex, :deginvlex, :degrevlex] "Invalid name of index ordering"
-  R, _ = polynomial_ring(QQ, n) # We use a dummy polynomial ring to extract canonical matrices of monomial orderings
+  R, _ = polynomial_ring(QQ, n; cached = false) # We use a dummy polynomial ring to extract canonical matrices of monomial orderings
   if index_ordering_name == :default
     if is_empty(index_ordering_matrix)
       index_ordering_matrix = canonical_matrix(lex(R)) #Use :lex by default

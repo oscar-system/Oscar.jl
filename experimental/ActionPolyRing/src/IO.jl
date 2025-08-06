@@ -31,7 +31,7 @@ end
 
 function Base.show(io::IO, apre::ActionPolyRingElem)
   io = pretty(io)
-  show(io, __poly(apre))
+  show(io, data(apre))
 end
 
 ### Rankings ###

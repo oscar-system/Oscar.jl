@@ -21,11 +21,11 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type DifferenceRanking{T}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
+  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, cached::Bool, internal_ordering::Symbol) where {T}
     @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
     elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
-    upoly_ring = universal_polynomial_ring(R; cached = false)
+    upoly_ring = universal_polynomial_ring(R; cached = cached, internal_ordering = internal_ordering)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
@@ -34,9 +34,9 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     return new{T}(upoly_ring, elementary_symbols, ndiffs, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
  
-  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
+  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, cached::Bool, internal_ordering::Symbol) where {T}
     @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
-    upoly_ring = universal_polynomial_ring(R; cached = false)
+    upoly_ring = universal_polynomial_ring(R; cached = cached, internal_ordering = internal_ordering)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
@@ -66,22 +66,6 @@ mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
   end
 
 end
-
-function Base.deepcopy_internal(dpre::DifferencePolyRingElem{T}, dict::IdDict) where {T}
-    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
-    pp = deepcopy_internal(__poly(dpre), dict)
-    return DifferencePolyRingElem{T}(parent(dpre), pp)
-end
-
-elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
-
-parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
-
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
-
-is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
-
-is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
 
 #######################################
 #
