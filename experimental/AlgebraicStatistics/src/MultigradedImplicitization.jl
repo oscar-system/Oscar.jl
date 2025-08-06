@@ -114,28 +114,32 @@ function component_of_kernel(deg::FinGenAbGroupElem,
   return mon_basis * K
 end
 
-function compute_component(mon_basis, phi::MPolyAnyMap,jac::MatElem)
 
-  # if the basis only has 1 element, then there are no generators by assumption
-  length(mon_basis) < 2 && return MPolyDecRingElem[]
-
-  # find the indices of all variables involved in this component
-  supp = component_support(mon_basis)
-  
-  # check if the corresponding submatrix drops rank
-  # if it does not, then this component cannot contain any generator of the kernel
-  if rank(jac[:, supp]) == length(supp)
-    print("skipped component")
-    print("\n")
-    return MPolyDecRingElem[]
-  end
+function compute_component(mon_basis, phi::MPolyAnyMap)
 
   image_polys = [phi(m) for m in mon_basis]
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
   coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
   (r, K) = nullspace(coeffs)
-  print("computed component")
   return mon_basis * K
+end
+
+
+function filter_component(deg, mon_basis, jac::MatElem)
+
+  # if the basis only has 1 element, then there are no generators by assumption
+  length(mon_basis) < 2 && return [true, deg]
+
+  # find the indices of all variables involved in this component
+  supp = component_support(mon_basis)
+
+  # check if the corresponding submatrix drops rank
+  # if it does not, then this component cannot contain any generator of the kernel
+  if rank(jac[:, supp]) == length(supp)
+    return [true, deg]
+  end
+
+  return [false, deg]
 end
 
 
@@ -179,22 +183,32 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
       prev_gens = reduce(vcat, values(gens_dict))
     end
 
-    if !isempty(all_degs)
+    # first filter out all easy cases
+    # this could be improved to do some load-balancing
+    if isnothing(wp)
+        filter_results = pmap(filter_component, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)]; distributed=false)
+    else
+        filter_results = pmap(filter_component, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)])
+    end
+
+    remain_degs = [result[2] for result in filter_results if !result[1]]
+
+    # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
+    # this could also be improved to do some load-balancing
+    if !isempty(remain_degs)
       if isnothing(wp)
-        results = pmap(compute_component, values(mon_bases),
-                       [graded_phi for _ in all_degs],
-                       [jac for _ in all_degs];
+        results = pmap(compute_component, map(deg -> mon_bases[deg], remain_degs),
+                       [graded_phi for _ in remain_degs];
                        distributed=false)
       else
-        results = pmap(compute_component, wp, values(mon_bases),
-                       [graded_phi for _ in all_degs],
-                       [jac for _ in all_degs])
+        results = pmap(compute_component, wp, map(deg -> mon_bases[deg], remain_degs),
+                       [graded_phi for _ in remain_degs])
       end
     else
       results =[]
     end
 
-    merge!(gens_dict, Dict(zip(all_degs, results)))
+    merge!(gens_dict, Dict(zip(remain_degs, results)))
   end
 
   return gens_dict
