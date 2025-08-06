@@ -98,10 +98,11 @@ Oscar.Serialization.reverse_type_map
 
 The `TypeParams` type is used internally, and is a struct for the julia type and the parameters needed to serialize an object. 
 The parameters needed to serialize OSCAR types are not necessarily the same as the parameters of the type itself.
-For example, take `p` with julia type `MPolyRingElem{QQField}`, this julia type is parametrized by the type of its coefficients, however
+For example, consider a Julia object `p` with Julia type `MPolyRingElem{QQField}`.
+This julia type is parametrized by the type of its coefficients, however
 the parameter needed for serializing is its parent, that is `parent(p)`. The specific parameters needed vary depending on the type,
 for more details about how `TypeParams` are used during (de)serialization see the [developer documentation](@ref dev_serialization).
-Since it can be useful for users to create them when overriding parameters on load we include a small section here.
+Since it can be useful for users to create them when overriding parameters on load we include some documentation of using the `type_params` function below.
 
 ```@docs
 type_params
