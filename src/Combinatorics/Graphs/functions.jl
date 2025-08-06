@@ -1550,28 +1550,43 @@ function label!(G::Graph{T},
 end
 
 @doc raw"""
-    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1)
-    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing}, Dict{Int, S}=nothing; n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
+    graph_from_labeled_edges(edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1)
+    graph_from_labeled_edges(::Type{T}, edge_labels::Dict{NTuple{Int}, S}, vertex_labels::Union{Nothing, Dict{Int, S}}=nothing; name::Symbol=:label, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}, S, U}
 
-Create a graph from an edge labeling and an optional vertex labeling. There is an optional input for the number of vertices, see [`graph_from_edges`](@ref).
+Create a graph with a labeling on the edges and optionally vertices.  The graph is constructed from the edges and an optional number of vertices, see [`graph_from_edges`](@ref).
+The default name of the labeling on the graph is `label` but any `Symbol` can be passed using the `name` keyword argument.
+The labeling can be accessed as a property of the graph, the property is exactly the name passed to the `name` keyword argument.
+See [`label!`](@ref) to add additional labels to the graph.
 
 # Examples
 ```jldoctest
-julia> graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
+julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4))
 Directed graph with 3 nodes and the following labeling(s):
 label: label
 (1, 2) -> 1
 (2, 3) -> 4
 
-julia> graph_from_labeled_edges(Dict((1, 2) => 1, (2, 3) => 4), Dict(2 => 3))
-Undirected graph with 3 nodes and the following labeling(s):
-label: label
-(2, 1) -> 1
-(3, 2) -> 4
-1 -> 0
-2 -> 3
-3 -> 0
+julia> G.label[1, 2]
+1
 
+julia> edge = collect(edges(G))[2]
+Edge(2, 3)
+
+julia> G.label[edge]
+4
+
+julia> K = graph_from_labeled_edges(Dict((1, 2) => "blue", (2, 3) => "green"),
+                                    Dict(1 => "red", 2 => "red", 3 => "yellow"); name=:color)
+Undirected graph with 3 nodes and the following labeling(s):
+label: color
+(2, 1) -> blue
+(3, 2) -> green
+1 -> red
+2 -> red
+3 -> yellow
+
+julia> K.color[1]
+"red"
 ```
 """
 function graph_from_labeled_edges(::Type{T},
