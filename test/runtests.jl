@@ -78,7 +78,7 @@ testlist = Oscar._gather_tests("test")
 
 for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
-  if isdir(path) && exp != "Parallel"
+  if isdir(path) && exp != "Parallel" && exp != "OscarDB"
     append!(testlist, Oscar._gather_tests(path))
   end
 end
