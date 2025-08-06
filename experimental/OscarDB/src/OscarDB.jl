@@ -16,7 +16,11 @@ import Oscar:
   n_vertices
 
 # for ca certificates
-using NetworkOptions, Mongoc, URIs
+using NetworkOptions, URIs
+
+import Mongoc
+import Mongoc: find, find_one
+
 
 const OSCAR_DB = "oscar"
 const OSCAR_DEV_DB = "oscar-dev"
@@ -51,7 +55,7 @@ struct Cursor
   mcursor::Mongoc.Cursor{Mongoc.Collection}
 end
 
-"""
+@doc raw"""
     get_db()
 
 Connect to the `OscarDB` and return `Database` instance.
@@ -97,7 +101,7 @@ function Base.length(c::Collection, d::Dict=Dict())
   return Base.length(c.mcol, Mongoc.BSON(d))
 end
 
-"""
+@doc raw"""
     find(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
 
 Search a collection `c` for documents matching the criteria given by `d`.
@@ -109,7 +113,7 @@ function Mongoc.find(c::Collection, d::Dict=Dict();
   return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
 end
 
-"""
+@doc raw"""
     find_one(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
 
 Return one document from a collection `c` matching the criteria given by `d`.
