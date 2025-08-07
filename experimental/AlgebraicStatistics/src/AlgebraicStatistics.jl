@@ -14,10 +14,10 @@ include("LoadModels.jl")
 export GraphicalModel
 export model_ring
 export parameter_ring
-export parameter_ring_gens
 export parametrization
 export graph
 export vanishing_ideal
+export varnames
 
 #export models
 export cavender_farris_neyman_model

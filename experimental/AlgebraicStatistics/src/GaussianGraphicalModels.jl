@@ -1,5 +1,5 @@
-
-const GenDictType = Dict{T, MPolyRingElem} where T <: Union{Edge, Int}
+# this Any here makes me uncomfortable
+const GenDictType = Dict{Any, QQMPolyRingElem}
 ###################################################################################
 #
 #       (Un)Directed Gaussian Graphical Models
@@ -55,12 +55,12 @@ julia> typeof(GM)
 GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
-function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName=:s, l_varname::VarName=:l, w_varname::VarName=:w)
-  GaussianGraphicalModel(G, Dict(:s => s_varname, :l => l_varname, :w => w_varname))
+function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+  GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :l => l_varname, :w => w_varname))
 end
 
-function gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName=:s, k_varname::VarName=:k)
-  GaussianGraphicalModel(G, Dict(:s => s_varname, :k => k_varname))
+function gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", k_varname::VarName="k")
+  GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :k => k_varname))
 end
 
 varnames(GM::GaussianGraphicalModel) = GM.varnames
@@ -77,12 +77,15 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
 end
 
 #TODO do the gens returned here need to be a dict? we'll need to be consisted across all models
-@attr MPolyRing function model_ring(GM::GaussianGraphicalModel; cached=false)
+@attr Tuple{
+  MPolyRing,
+  Vector{QQMPolyRingElem}
+} function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
-  varnames = ["$(GM.varnames[:s])[$(i), $(j)]" for (i, j) in varindices]
+  gen_names = ["$(GM.varnames[:s])[$(i), $(j)]" for (i, j) in varindices]
   # we'll need to align on the return value of the gens, it might need to be Dict
-  return polynomial_ring(QQ, varnames; cached=false)
+  return polynomial_ring(QQ, gen_names; cached=false)
 end
 
 @doc raw"""
@@ -123,10 +126,14 @@ end
 #
 ###################################################################################
 
-@attr Tuple{MPolyRing, GenDictType} function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
+@attr Tuple{
+  MPolyRing,
+  GenDictType
+} function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
-  varnames = (["$(GM.varnames[:l])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[:w])[$(v)]" for v in vertices(G)])
-  R, (e_gens, v_gens) = polynomial_ring(QQ, varnames; cached=cached)
+  gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
+              ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)])
+  R, (e_gens, v_gens) = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
   return R, gens_dict
@@ -230,9 +237,9 @@ end
 ###################################################################################
 @attr Tuple{MPolyRing, GenDictType} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
-  varnames = (["$(GM.varnames[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(GM.varnames[:k])[$(v), $(v)]" for v in vertices(G)])
-  R, (e_gens, v_gens) = polynomial_ring(QQ, varnames; cached=cached)[1]
+  gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
+              ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
+  R, (e_gens, v_gens) = polynomial_ring(QQ, gen_names; cached=cached)[1]
   gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
   return R, gens_dict
@@ -259,8 +266,8 @@ julia> concentration_matrix(M)
 """
 function concentration_matrix(M::GaussianGraphicalModel{Undirected, T}) where T
   G = graph(M)
-  k = parameter_ring_gens(M)
-  K = diagonal_matrix(parameter_ring(M), [k[i] for i in 1:n_vertices(G)])
+  R, k = parameter_ring(M)
+  K = diagonal_matrix(R, [k[i] for i in 1:n_vertices(G)])
 
   for e in edges(G)
     K[dst(e), src(e)] = k[e]
@@ -344,8 +351,8 @@ s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 """
 function gaussian_ring(F::Field, n::Int; s_var_name::VarName=:s, cached=false)
   varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
-  varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
-  S, s = polynomial_ring(F, varnames; cached=cached)
+  gen_names = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
+  S, s = polynomial_ring(F, gen_names; cached=cached)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
 
