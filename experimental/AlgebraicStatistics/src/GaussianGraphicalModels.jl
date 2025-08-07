@@ -1,3 +1,5 @@
+
+const GenDictType = Dict{T, MPolyRingElem} where T <: Union{Edge, Int}
 ###################################################################################
 #
 #       (Un)Directed Gaussian Graphical Models
@@ -7,8 +9,9 @@
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
   graph::Graph{T}
   labelings::L
-  varnames::Vector{VarName}
-  function GaussianGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
+  varnames::Dict{Symbol,VarName}
+  function GaussianGraphicalModel(G::Graph{T},
+                                  var_names::Dict{Symbol, VarName}) where T <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
@@ -16,8 +19,8 @@
 end
 
 @doc raw"""
-    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
-    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", k_varname::VarName="k")
+    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName=:s, l_varname::VarName=:ll, w_varname::VarName=:w)
+    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName=:s, k_varname::VarName=:k)
 Given a graph `G` construct a gaussian graphical model for `G`. Optionally one can set the letter used for the variable of the covariance matrix by setting `s_varname`. 
 
 ## Examples
@@ -46,13 +49,15 @@ julia> typeof(GM)
 GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
-function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
-  GaussianGraphicalModel(G, VarName[s_varname, l_varname, w_varname])
+function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName=:s, l_varname::VarName=:l, w_varname::VarName=:w)
+  GaussianGraphicalModel(G, Dict(:s => s_varname, :l => l_varname, :w => w_varname))
 end
 
-function gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", k_varname::VarName="k")
-  GaussianGraphicalModel(G, VarName[s_varname, k_varname])
+function gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName=:s, k_varname::VarName=:k)
+  GaussianGraphicalModel(G, Dict(:s => s_varname, :k => k_varname))
 end
+
+varnames(GM::GaussianGraphicalModel) = GM.varnames
 
 function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
@@ -68,8 +73,9 @@ end
 @attr MPolyRing function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
-  varnames = ["$(GM.varnames[1])[$(i), $(j)]" for (i, j) in varindices]
-  polynomial_ring(QQ, varnames; cached=false)[1]
+  varnames = ["$(GM.varnames[:s])[$(i), $(j)]" for (i, j) in varindices]
+  # we'll need to align on the return value of the gens, it might need to be Dict
+  return polynomial_ring(QQ, varnames; cached=false)
 end
 
 @doc raw"""
@@ -110,23 +116,14 @@ end
 #
 ###################################################################################
 
-@attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
+@attr Tuple{MPolyRing, GenDictType} function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[3])[$(v)]" for v in vertices(G)])
-  polynomial_ring(QQ, varnames; cached=cached)[1]
+  varnames = (["$(GM.varnames[:l])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[:w])[$(v)]" for v in vertices(G)])
+  R, (e_gens, v_gens) = polynomial_ring(QQ, varnames; cached=cached)
+  gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  return R, gens_dict
 end
-
-function parameter_ring_gens(GM::GaussianGraphicalModel{Directed, T}) where T
-  G = graph(GM)
-  R = parameter_ring(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(GM.varnames[3])[$(v)]" for v in vertices(G)])
-  edge_vars, vertex_vars = AbstractAlgebra.reshape_to_varnames(gens(R), varnames)
-  
-  merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-        Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
-end
-
 
 @doc raw"""
     directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
@@ -209,8 +206,8 @@ defined by
 ```
 """
 function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
-  S = model_ring(M)
-  R = parameter_ring(M)
+  S = model_ring(M)[1]
+  R = parameter_ring(M)[1]
   G = graph(M)
   lambda = directed_edges_matrix(M)
   Id = identity_matrix(R, n_vertices(G))
@@ -224,21 +221,14 @@ end
 #       Undirected parametrization
 #
 ###################################################################################
-@attr MPolyRing function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
+@attr Tuple{MPolyRing, GenDictType} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)], ["$(GM.varnames[2])[$(v), $(v)]" for v in vertices(G)])
-  polynomial_ring(QQ, varnames; cached=cached)[1]
-end
-
-function parameter_ring_gens(GM::GaussianGraphicalModel{Undirected, T}) where T
-  G = graph(GM)
-  R = parameter_ring(GM)
-  varnames = (["$(GM.varnames[2])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(GM.varnames[2])[$(v), $(v)]" for v in vertices(G)])
-  edge_vars, vertex_vars = AbstractAlgebra.reshape_to_varnames(gens(R), varnames)
-  
-  merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-        Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  varnames = (["$(GM.varnames[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
+              ["$(GM.varnames[:k])[$(v), $(v)]" for v in vertices(G)])
+  R, (e_gens, v_gens) = polynomial_ring(QQ, varnames; cached=cached)[1]
+  gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  return R, gens_dict
 end
 
 @doc raw"""
@@ -321,8 +311,8 @@ struct GaussianRing
 end
 
 @doc raw"""
-    gaussian_ring(F::Field, n::Int; s_var_name::VarName="s", cached=false)
-    gaussian_ring(n::Int; s_var_name::VarName="s", cached=false)
+    gaussian_ring(F::Field, n::Int; s_var_name::VarName=:s, cached=false)
+    gaussian_ring(n::Int; s_var_name::VarName=:s, cached=false)
     gaussian_ring(GM::GaussianGraphicalmodel)
 
 A polynomial ring whose variables correspond to the entries of a covariance matrix of `n` Gaussian random variables.
@@ -345,7 +335,7 @@ s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 ```
 """
-function gaussian_ring(F::Field, n::Int; s_var_name::VarName="s", cached=false)
+function gaussian_ring(F::Field, n::Int; s_var_name::VarName=:s, cached=false)
   varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
   varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
   S, s = polynomial_ring(F, varnames; cached=cached)
@@ -354,7 +344,7 @@ function gaussian_ring(F::Field, n::Int; s_var_name::VarName="s", cached=false)
   GaussianRing(S, cov_matrix)
 end
 
-gaussian_ring(n::Int; s_var_name::VarName="s", cached=false) = gaussian_ring(QQ, n; s_var_name=s_var_name, cached=cached)
+gaussian_ring(n::Int; s_var_name::VarName=:s, cached=false) = gaussian_ring(QQ, n; s_var_name=s_var_name, cached=cached)
 
 gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM), covariance_matrix(GM))
 
