@@ -357,7 +357,7 @@ end
         total = ZZ(0)
         for (U, stab) in res
           total = total + index(G, stab)
-          @test_skip length(orbit(stab, U)) == 1
+          @test length(orbit(stab, U)) == 1
         end
         num = ZZ(1)
         for i in 0:(k-1)
