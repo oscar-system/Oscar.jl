@@ -2,7 +2,7 @@ import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
 function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return G.pm_graph
+  return G.pm_graph
 end
 
 directed_component(G::MixedGraph) = G.directed_component
@@ -175,6 +175,14 @@ function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, 
   return n_edges(g) == old_nedges - 1
 end
 
+function rem_directed_edge!(mg::MixedGraph, s::Int64, t::Int64)
+  g = directed_component(mg)
+  has_edge(g, s, t) || return false
+  old_nedges = n_edges(g)
+  Polymake._rem_edge(pm_object(g), s-1, t-1)
+  return n_edges(g) == old_nedges - 1
+end
+
 
 @doc raw"""
     add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -203,6 +211,9 @@ function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return n_vertices(g) - 1 == old_nvertices
 end
 
+function add_vertex!(mg::MixedGraph)
+  return add_vertex!(directed_component(mg)) && add_vertex!(undirected_component(mg))
+end
 
 @doc raw"""
     rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -235,6 +246,10 @@ function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
   return n_vertices(g) + 1 == old_nvertices
 end
 
+function rem_vertex!(mg::MixedGraph, v::Int64)
+  return rem_vertex!(directed_component(mg), v) && rem_vertex!(undirected_component(mg), v)
+end
+
 @doc raw"""
     rem_vertices!(g::Graph{T}, a::AbstractArray{Int64}) where {T <: Union{Directed, Undirected}}
 
@@ -265,6 +280,12 @@ function rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{
   return n_vertices(g) < old_nvertices
 end
 
+function rem_vertices!(mg::MixedGraph, a::AbstractVector)
+  return rem_vertices!(directed_component(mg), a) && rem_vertices!(undirected_component(mg), a)
+end
+
+  
+
 @doc raw"""
     add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 
@@ -288,6 +309,10 @@ function add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undire
   return count(_->add_vertex!(g), 1:n)
 end
 
+function add_vertices!(mg::MixedGraph, n::Int64)
+  return (add_vertices!(directed_component(mg), n) +
+    add_vertices!(undirected_component(mg), n)) // 2
+end
 
 ################################################################################
 ################################################################################
@@ -424,6 +449,11 @@ function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
 end
 
+function n_vertices(g::MixedGraph)
+  return n_vertices(directed_component(g))
+end
+
+
 @doc raw"""
     vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
@@ -441,7 +471,11 @@ julia> vertices(g)
 ```
 """
 function vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return 1:n_vertices(g)
+  return 1:n_vertices(g)
+end
+
+function vertices(g::MixedGraph)
+  return 1:n_vertices(g)
 end
 
 @doc raw"""

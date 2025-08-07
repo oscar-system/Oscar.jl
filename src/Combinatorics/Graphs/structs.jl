@@ -24,8 +24,8 @@ end
 struct Mixed end
 
 @attributes mutable struct MixedGraph
-  directed_component::Polymake.Graph{Directed}
-  undirected_component::Polymake.Graph{Undirected}
+  directed_component::Graph{Directed}
+  undirected_component::Graph{Undirected}
 
   function MixedGraph(nverts::Int)
     return new(Graph{Directed}(nverts), Graph{Undirected}(nverts))
