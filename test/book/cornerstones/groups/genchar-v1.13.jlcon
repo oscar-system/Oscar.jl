@@ -1,0 +1,66 @@
+julia> T = generic_character_table("SL3.n1")
+Generic character table SL3.n1
+  of order q^8 - q^6 - q^5 + q^3
+  with 8 irreducible character types
+  with 8 class types
+  with parameters (a, b, m, n)
+
+julia> T[4,4]
+(q + 1)*exp(2π𝑖((a*n)//(q - 1))) + exp(2π𝑖((-2*a*n)//(q - 1)))
+
+julia> h = T[2] * T[2];
+
+julia> scalar_product(T[4], h)
+0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
+
+julia> for i in 1:8 println("<$i, h> = ", scalar_product(T[i], h)) end
+<1, h> = 1
+<2, h> = 2
+<3, h> = 2
+<4, h> = 0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
+<5, h> = 0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
+<6, h> = 0
+With exceptions:
+  2*m1 - n1 ∈ (q - 1)ℤ
+  m1 - 2*n1 ∈ (q - 1)ℤ
+  m1 + n1 ∈ (q - 1)ℤ
+  m1 ∈ (q - 1)ℤ
+  m1 - n1 ∈ (q - 1)ℤ
+  n1 ∈ (q - 1)ℤ
+<7, h> = 0
+With exceptions:
+  n1 ∈ (q - 1)ℤ
+<8, h> = 0
+With exceptions:
+  q*n1 ∈ (q^2 + q + 1)ℤ
+  q*n1 + n1 ∈ (q^2 + q + 1)ℤ
+  n1 ∈ (q^2 + q + 1)ℤ
+
+julia> degree(linear_combination([1,2,2],[T[1],T[2],T[3]]))
+2*q^3 + 2*q^2 + 2*q + 1
+
+julia> degree(h)
+q^4 + 2*q^3 + q^2
+
+julia> parameters(T[4])
+n ∈ {1,…, q - 1} except n ∈ (q - 1)ℤ
+
+julia> T2 = set_congruence(T; remainder=0, modulus=2);
+
+julia> (q, (a, b, m, n)) = parameters(T2);
+
+julia> x = parameter(T2, "x");  # create an additional "free" variable
+
+julia> s = specialize(T2[6], m, -n + (q-1)*x);  # force m = -n (mod q-1)
+
+julia> scalar_product(s, T2(h))
+1
+With exceptions:
+  3*n1 ∈ (q - 1)ℤ
+  2*n1 ∈ (q - 1)ℤ

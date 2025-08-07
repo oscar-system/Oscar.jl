@@ -51,7 +51,7 @@ abstract type AbsCoveredVariety{BaseField<:Field} <: AbsCoveredScheme{BaseField}
 
 A curve in affine space.
 
-An affine curve is an affine algebraic set of dimension one.
+An affine curve is an affine algebraic set of pure dimension one.
 """
 abstract type AbsAffineCurve{BaseField<:Field, RingType<:Ring} <: AbsAffineAlgebraicSet{BaseField, RingType} end
 
@@ -67,7 +67,7 @@ abstract type AbsProjectiveCurve{BaseField<:Field, RingType<:Ring} <: AbsProject
 
 A curve represented in terms of a covering.
 
-A curve is a reduced scheme of dimension 1 of finite type over a field.
+A curve is a reduced scheme of pure dimension 1 of finite type over a field.
 """
 abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 
@@ -83,7 +83,7 @@ abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 
 A surface in affine space.
 
-An affine surface is an affine variety of dimension two.
+An affine surface is an affine variety of pure dimension two.
 """
 abstract type AbsAffineSurface{BaseField<:Field, RingType<:Ring} <: AbsAffineVariety{BaseField, RingType} end
 
@@ -97,7 +97,7 @@ abstract type AbsProjectiveSurface{BaseField<:Field, RingType<:Ring} <: AbsProje
 @doc raw"""
     AbsCoveredSurface
 
-A geometrically integral scheme of dimension 2 of finite type over a field
+A geometrically integral scheme of pure dimension 2 of finite type over a field
 represented in terms of a covering.
 """
 abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField} end

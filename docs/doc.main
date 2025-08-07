@@ -84,16 +84,6 @@
         "AbstractAlgebra/direct_sum.md",
         "AbstractAlgebra/module_homomorphism.md",
      ],
-     "Quadratic and Hermitian forms" => [
-        "Hecke/manual/quad_forms/introduction.md",
-        "Hecke/manual/quad_forms/basics.md",
-        "Hecke/manual/quad_forms/lattices.md",
-        "Hecke/manual/quad_forms/genusherm.md",
-        "Hecke/manual/quad_forms/integer_lattices.md",
-        "Hecke/manual/quad_forms/Zgenera.md",
-        "Hecke/manual/quad_forms/discriminant_group.md",
-        "NumberTheory/vinberg.md",
-     ],
      "AbstractAlgebra/matrix_implementation.md",
   ],
 
@@ -117,6 +107,23 @@
         "Hecke/manual/elliptic_curves/basics.md",
         "Hecke/manual/elliptic_curves/finite_fields.md"
      ],
+     "Quadratic and Hermitian forms" => [
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md",
+        "NumberTheory/vinberg.md",
+     ],
+     "Quadratic forms and isometries" => [
+      "NumberTheory/QuadFormAndIsom/introduction.md",
+      "NumberTheory/QuadFormAndIsom/spacewithisom.md",
+      "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/enumeration.md",
+      "NumberTheory/QuadFormAndIsom/primembed.md"
+    ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],
@@ -149,7 +156,8 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/module_data.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
@@ -288,6 +296,7 @@
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
+    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Straight Line Programs" => [

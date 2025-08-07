@@ -41,6 +41,10 @@ if Sys.iswindows()
   windows_error()
 end
 
+if VERSION < v"1.10.0-"
+  error("the required julia version is at least 1.10.0")
+end
+
 function _print_banner(;is_dev = Oscar.is_dev)
   # lets assemble a version string for the banner
   version_string = string(VERSION_NUMBER)
@@ -169,7 +173,7 @@ function __init__()
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
-  if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+  if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
       Pkg.is_manifest_current() :
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
@@ -252,6 +256,7 @@ include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
 
 include("Combinatorics/Graphs/structs.jl")

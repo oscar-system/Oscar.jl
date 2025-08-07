@@ -1,4 +1,26 @@
-import Base:fieldnames, fieldtypes
+module Serialization
+
+using ..Oscar
+using UUIDs
+
+using ..Oscar: _grading,
+  FreeAssociativeAlgebraIdeal,
+  IdealGens,
+  LaurentMPolyIdeal,
+  MPolyAnyMap,
+  MPolyLocalizedRingHom,
+  MPolyQuoLocalizedRingHom,
+  NormalToricVarietyType,
+  Orderings,
+  PhylogeneticTree,
+  pm_object,
+  PolyhedralObject,
+  scalar_types,
+  VERSION_NUMBER
+
+using ..Oscar: is_terse, Lowercase, pretty, terse
+
+using Distributed: RemoteChannel
 
 # This type should not be exported and should be before serializers
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
@@ -7,7 +29,7 @@ const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
 include("serializers.jl")
 
 const type_key = :_type
-const refs_key = :_refs
+
 ################################################################################
 # Meta Data
 
@@ -17,10 +39,12 @@ const refs_key = :_refs
   description::Union{String, Nothing} = nothing
 end
 
+# FIXME: this function is exported but undocumented
 function metadata(;args...)
   return MetaData(;args...)
 end
 
+# FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
@@ -55,8 +79,8 @@ function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
     return oscar_serialization_version[]
   end
-  if is_dev
-    commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
+  if Oscar.is_dev
+    commit_hash = get(Oscar._get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
@@ -468,7 +492,7 @@ function register_attr_list(@nospecialize(T::Type),
                             attrs::Union{Vector{Symbol}, Nothing})
   if !isnothing(attrs)
     serialize_with_id(T) || error("Only types that are stored as references can store attributes")
-    Oscar.type_attr_map[encode_type(T)] = attrs
+    type_attr_map[encode_type(T)] = attrs
   end
 end
 
@@ -485,8 +509,8 @@ serialize_with_id(obj::Any) = false
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any)
   return esc(
     quote
-      Oscar.register_serialization_type($ex, $str)
-      Oscar.encode_type(::Type{<:$ex}) = $str
+      Oscar.Serialization.register_serialization_type($ex, $str)
+      Oscar.Serialization.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
       # The ids are only necessary for parent types, checking for element type equality
@@ -500,21 +524,21 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
-      Oscar.serialize_with_id(obj::T) where T <: $ex = $uses_id
-      Oscar.serialize_with_id(T::Type{<:$ex}) = $uses_id
+      Oscar.Serialization.serialize_with_id(obj::T) where T <: $ex = $uses_id
+      Oscar.Serialization.serialize_with_id(T::Type{<:$ex}) = $uses_id
 
       # add list of possible attributes to save for a given type to a global dict
-      Oscar.register_attr_list($ex, $attrs)
+      Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
-        function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
-          Oscar.serialize_type(s, T)
-          Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
+        function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
+          Oscar.Serialization.serialize_type(s, T)
+          Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
 
         end
-        function Oscar.deserialize(s::Oscar.AbstractSerializer, T::Type{<:$ex})
-          Oscar.load(s.io; serializer=Oscar.IPCSerializer())
+        function Oscar.Serialization.deserialize(s::Oscar.Serialization.AbstractSerializer, T::Type{<:$ex})
+          Oscar.Serialization.load(s.io; serializer=Oscar.Serialization.IPCSerializer())
         end
       end
     end)
@@ -566,47 +590,6 @@ macro register_serialization_type(ex::Any, args...)
 end
 
 ################################################################################
-# Utility macro
-"""
-    Oscar.@import_all_serialization_functions
-
-This macro imports all serialization related functions that one may need for implementing
-serialization for custom types from Oscar into the current module.
-One can instead import the functions individually if needed but this macro is provided
-for convenience.
-"""
-macro import_all_serialization_functions()
-  return quote
-    import Oscar:
-      load_attrs,
-      load_object,
-      save_attrs,
-      save_object,
-      type_params
-
-    using Oscar:
-      @register_serialization_type,
-      DeserializerState,
-      SerializerState,
-      TypeParams,
-      encode_type,
-      haskey,
-      load_array_node,
-      load_node,
-      load_ref,
-      save_as_ref,
-      save_data_array,
-      save_data_basic,
-      save_data_dict,
-      save_data_json,
-      serialize_with_id,
-      set_key,
-      with_attrs
-  end
-end
-
-
-################################################################################
 # Include serialization implementations for various types
 
 include("basic_types.jl")
@@ -647,7 +630,7 @@ See [`load`](@ref).
 
 ```jldoctest
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
-Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
+Oscar.Serialization.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
 julia> save("/tmp/fourtitwo.mrdi", 42; metadata=meta);
 
@@ -864,3 +847,36 @@ function load(filename::String; params::Any = nothing,
     return load(file; params=params, type=type, serializer=serializer)
   end
 end
+
+export @register_serialization_type
+export DeserializerState
+export encode_type
+export load
+export load_array_node
+export load_attrs
+export load_node
+export load_object
+export load_ref
+export save
+export save_as_ref
+export save_attrs
+export save_data_array
+export save_data_basic
+export save_data_dict
+export save_data_json
+export save_object
+export SerializerState
+export serialize_with_id
+export set_key
+export TypeParams
+export type_params
+export with_attrs
+
+end # module Serialization
+
+using Oscar.Serialization
+import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: reset_global_serializer_state
+
+# FIXME: the following functions are exported by us but undocumented
+import Oscar.Serialization: metadata, read_metadata

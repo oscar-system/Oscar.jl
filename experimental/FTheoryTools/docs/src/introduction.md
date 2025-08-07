@@ -4,94 +4,161 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Welcome to FTheoryTools
+# Welcome to `FTheoryTools`
 
-## Goal
+## Overview
 
-We aim to automate numerous recurring and, at least in part, tedious computations in F-Theory model building, as
-detailed extensively in [Wei18](@cite). The primary focus of our software is on (complex) elliptic fibrations with
-singularities. Those singularities hold significant importance. In essence, the absence of these singularities
-implies that the geometry encodes trivial or uninteresting physics. Therefore, the smooth case is typically not explored.
+`FTheoryTools` is a computational toolkit within the [OSCAR computer algebra system](https://www.oscar-system.org/),
+designed to assist researchers in working with F-theory models. It focuses on automating and simplifying
+calculations involving **singular elliptic fibrations**—key geometric objects in F-theory phenomenology.
 
-A substantial amount of information about the physics is encoded in the geometry of this singular fibration. To some
-extent it is clear what geometric quantities are to be considered, to some extent this is an open question. Regardless,
-computing quantities of interest, such as intersection theory and Chern classes, on singular spaces is challenging. However,
-it is possible to link the physics encoded by the singular geometry to the physics encoded by related smooth geometries.
-Consequently, almost all F-Theory studies begin by computing a smooting-out, i.e. a resolution, of the singular geometry in
-question.
+While the module is tailored for string theorists, it is equally accessible to mathematicians interested
+in the rich geometry of singular fibrations, even if they are not familiar with F-theory itself.
 
-In order to easily link the physics on the singular geometry to the physics of one of its resolution, the resolution in question
-must be crepant, i.e. must preserve the Calabi-Yau condition. However, this restriction to crepant resolutions introduces additional challenges:
-1. A crepant resolution cannot resolve all singularities, meaning certain singularities may persist. This is an area of interest in recent F-Theory investigations.
-2. The existence of a crepant resolution is not guaranteed.
-3. Exploring whether different resolutions provide insights into different aspects of the singular geometry poses further questions. However, just as it is unclear whether a single crepant resolution is known, there is currently no way to confirm that all crepant resolutions have been identified.
+This page is meant for *end users* of OSCAR, including students and researchers in mathematics and the natural
+sciences. No background in string theory or theoretical physics is assumed beyond what is needed to understand the
+geometry of elliptic fibrations. We encourage interested readers to consult the exposition in
+[Weigand 2018](@cite Wei18) for more background information.
 
-*FTheoryTools* may not (yet) answer these profound and fundamental questions. Instead, the goal of this suite of computer tools is to streamline and simplify the crepant singularity resolution process as much as possible, as well as the subsequent extraction of geometric
-features of the resolved space.
+## Why Use `FTheoryTools`?
 
-With *FTheoryTools*, you can create elliptic fibrations using one of the following models:
-* Weierstrass model,
-* Global Tate model,
-* Hypersurface model.
-In each case, the base space can be a family of spaces (as used in the literature when an explicit base is not specified) or a toric space. We anticipate an extension to schemes as bases. The dimension of those bases is not limited to $1$, $2$, or $3$, but of course includes those cases important to the physics.
+F-theory encodes physical data into the structure of singular elliptic fibrations. In these models:
 
-We also offer a database of models frequently studied in the literature. For those models we use the term 'literature_models.' In essence, you should be able to create a model described in a paper at the click of a button. We anticipate that this feature will greatly simplify future research in F-Theory.
+- The **type and location** of singularities relate directly to gauge groups and matter content.
+- **Smooth** fibrations typically yield trivial physics and are therefore less interesting for physical applications.
 
+To analyze the geometry effectively, model builders look for a **crepant resolution** of the singular space—one that
+preserves the Calabi-Yau condition and retains physical meaning. These resolutions are challenging to compute,
+especially in higher codimension or for non-toric singularities.
 
-## Status
+`FTheoryTools` aims to:
 
-We anticipate the following workflow:
+- Automate and streamline the crepant resolution process,
+- Make computations more reproducible,
+- Extract physically relevant features from the resolved space,
+- Offer a modular and extensible framework for researchers in both physics and mathematics.
 
-### User Input:
-- Create your desired F-Theory model by using one of the methods described above.
-- Choose a resolved phase/crepant resolution.
-- Select generating sections for $\operatorname{U}(1)$ symmetries.
+## Key Features
 
-### Output:
-- (Crepantly) resolved geometry.
-- Singular loci in suitable codimension (e.g., $1$, $2$, and $3$ if the base space has dimension $3$).
-- Fiber diagrams of the resolved fiber over the originally singular loci, including intersections of $\operatorname{U}(1)$-sections.
-- Gauge group.
-- Topological data (e.g., Euler number).
+### Constructing Elliptic Fibrations
 
-Currently, our primary focus is on the Elephant in the room, that is the crepant resolution. While already functional for numerous setups, especially literature models, it is far from complete. At this point, the largest functionality exists for toric cases, with ongoing work to extend those toric resolution techniques to families of spaces and schemes.
+`FTheoryTools` supports construction of elliptic fibrations via:
 
-We are also actively expanding our database of supported literature models. At this point, amongst others, our database includes models from the following papers:
-- The Tate Form on Steroids: Resolution and Higher Codimension Fibers [LS13](@cite),
-- F-Theory on all Toric Hypersurface Fibrations and its Higgs Branches [KM-POPR15](@cite),
-- Quadrillion F-Theory Compactifications with the Exact Chiral Spectrum of the Standard Model [CHLLT19](@cite).
+- [Weierstrass Models](@ref weierstrass_models),
+- [Global Tate Models](@ref global_tate_models),
+- [Hypersurface Models](@ref hypersurface_models).
 
-Consequently, we are already covering infinite families of models (e.g., with $SU(k)$ gauge group, where $k \geq 1$).
-Still, the total number of papers in our database is at this point limited to about $6$. This is to be extended a lot.
+All of these represent singular elliptic fibrations, so many operations and properties are shared across them. This
+shared functionality is documented at [Common Model Ops](@ref common_model_ops).
 
+Fibrations can be defined over various base spaces:
 
-## Tutorial
+- Families of abstract bases,
+- Toric varieties (best supported),
+- (Planned) General schemes and varieties.
 
-We encourage you to take a look at the tutorials on FTheoryTools, which can be found
-[here](https://www.oscar-system.org/tutorials/FTheoryTools/).
+Physically relevant cases often have base dimension 1, 2, or 3, but `FTheoryTools` is not limited to these.
 
+### General Blowups (Beyond Toric)
 
-## Possible future extensions
+`FTheoryTools` enables blowups on arbitrary loci—not just toric centers. This allows users to work with a wider class of
+singularities, including those without a known toric resolution.
 
-Future extensions include, but are not necessarily limited to, the following:
-* Specify a $G_4$-flux and work out the chiral spectra,
-* Specify a gauge potential and work out (candidates for) the line bundles whose cohomologies encode the vector-like spectra,
-* Other singularity types (non-minimal, terminal, etc.,)
-* Base blowups for singularity resolution.
+### Literature Models
 
+`FTheoryTools` includes a curated database of well-known F-theory models from the literature. These models are stored
+using the **MaRDI file format**, a JSON-based format aligned with FAIR data principles:
 
-## Contact
+- **Findability**
+- **Accessibility**
+- **Interoperability**
+- **Reusability**
 
-Please direct questions about this part of OSCAR to the following people:
-* [Martin Bies](https://martinbies.github.io/),
-* [Mikelis Emils Mikelsons](https://github.com/emikelsons),
-* [Andrew Turner](https://apturner.net/).
+Learn more about the format:
 
-You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
-Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+- [MaRDI project website](https://www.mardi4nfdi.de/about/mission)
+- [MaRDI file specification on Zenodo](https://zenodo.org/records/12723387)
+- [Design paper](https://link.springer.com/chapter/10.1007/978-3-031-64529-7_25)
+- [Serialization docs in OSCAR](https://docs.oscar-system.org/stable/General/serialization/)
 
+Current literature models include:
+
+- [Krause, Mayrhofer, Weigand 2011](@cite KMW12),
+- [Morrison, Park 2012](@cite MP12),
+- [Lawrie, Schafer-Nameki 2013](@cite LS13),
+- [Klevers, Mayorga, Damian, Oehlmann, Piragua, Reuter 2015](@cite KM-POPR15),
+- [Cvetič, Klevers, Piragua, Taylor 2015](@cite CKPT15),
+- [Taylor, Wang 2015](@cite TW15),
+- [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19).
+
+The models of [Cvetič, Halverson, Ling, Liu, Tian 2019](@cite CHLLT19) receive special support within `FTheoryTools`,
+including structured access to the full dataset of standard models constructed therein. For more information, see:
+[The Quadrillion F-Theory Standard Models (QSMs)](@ref qsm_models).
+
+More information: [Literature Models](@ref literature_models)
+
+### ``G_4``-Flux Enumeration
+
+FTheoryTools supports the enumeration of vertical ``G_4``-fluxes—important for understanding chiral spectra in F-theory.
+
+#### Example: [Taylor, Wang 2015](@cite TW15)
+
+- 101 toric rays
+- 198 maximal cones
+- Defining equation with 355,785 monomials
+- 206 toric blowups + 3 smoothness blowups
+
+The computed flux space: ``\mathbb{Z}^{224} \times \mathbb{Q}^{127}``.
+
+Details are available in [BMT25](@cite BMT25). See also: [G4-Fluxes](@ref g4_fluxes).
+
+## Tutorials
+
+Explore example-driven tutorials at: [https://www.oscar-system.org/tutorials/FTheoryTools/](https://www.oscar-system.org/tutorials/FTheoryTools/)
+
+These walk through:
+
+- Building models
+- Performing blowups
+- Extracting physical/geometric information
+
+## Getting Started
+
+1. **Install OSCAR**: [Installation instructions](https://www.oscar-system.org/install/)
+2. **Update regularly**: Stay current with new features via the [upgrade guide](https://www.oscar-system.org/upgrade/)
+
+## Project Status
+
+FTheoryTools is an **experimental** module. Most features are well-tested for **toric** models, with active development
+underway for:
+
+- Support for general base families and schemes
+- Line bundle cohomology for vector-like spectra
+- Support for terminal/non-minimal singularities
+- Base blowup automation
+
+## Contact & Community
+
+For questions, suggestions, or collaboration:
+
+- [Martin Bies](https://martinbies.github.io/)
+- [Miķelis E. Miķelsons](https://github.com/emikelsons)
+- [Andrew P. Turner](https://apturner.net/)
+
+Community platforms:
+
+- [OSCAR Slack](https://www.oscar-system.org/community/#Slack)
+- [GitHub Issue Tracker](https://www.oscar-system.org/community/#Reporting-Issues)
 
 ## Acknowledgements
 
-We appreciate insightful discussions with [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic) and 
-[Mohab Safey El Din](https://www.lip6.fr/actualite/personnes-fiche.php?ident=P816#). Martin Bies and Mikelis Mikelsons appreciate support by the TU-Nachwuchsring. The work of Andrew Turner is supported by DOE (HEP) Award DE-SC001352.
+We thank [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic) and
+[Mohab Safey El Din](https://www.lip6.fr/actualite/personnes-fiche.php?ident=P816#) for valuable discussions.
+
+The authors are thankful for the support offered by the
+[**TU-Nachwuchsring**](https://rptu.de/en/tu-nachwuchsring-network-for-young-scientists-support/home-page). This work is
+supported by the [**SFB-TRR 195 Symbolic Tools in Mathematics and their Application**](https://www.computeralgebra.de/sfb/)
+of the [**German Research Foundation** (DFG)](https://www.dfg.de/en). Martin Bies acknowledges financial support from the
+**Forschungsinitiative des Landes Rheinland-Pfalz** through the project
+[**SymbTools -- Symbolic Tools in Mathematics and their Application**](https://fingolfin.github.io/SymbTools/). Andrew P.
+Turner acknowledges funding from **DOE (HEP) Award DE-SC0013528** and NSF grant **PHY-2014086**.

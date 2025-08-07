@@ -8,7 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 A subquotient  is a submodule of a quotient of a free module. In this section, the expression
 *subquotient* refers to a subquotient over a ring of type `MPolyRing`, `MPolyQuoRing`,
-`MPolyLocRing`, or `MPolyQuoLocRing`. That is, given a ring $R$ of one of these
+`MPolyLocRing`, `MPolyQuoLocRing`, `ZZRing`, or  `Field`. That is, given a ring $R$ of one of these
 types, a subquotient $M$ over $R$ is a module of type
 
 $M = (\text{im } a + \text{im } b)/\text{im } b,$
@@ -353,10 +353,6 @@ sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 
 ```@docs
 intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
-```
-
-```@docs
-annihilator(N::SubquoModule{T}) where T
 ```
 
 ```@docs

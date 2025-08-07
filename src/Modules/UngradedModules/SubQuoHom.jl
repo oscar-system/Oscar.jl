@@ -757,7 +757,7 @@ function kernel(h::SubQuoHom)
   @assert domain(inc_K) === K
   @assert codomain(inc_K) === F
   v = gens(D)
-  imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
+  imgs = filter!(!iszero, elem_type(D)[sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)])
   k = sub_object(D, imgs)
   return k, hom(k, D, imgs, check=false)
 end

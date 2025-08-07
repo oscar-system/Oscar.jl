@@ -34,3 +34,13 @@ function base_change(phi::Any, f::SchemeMor;
   )
   error("base_change not implemented for input of type $(typeof(f))")
 end
+
+@doc raw"""
+    irreducible_components(X::Scheme)
+    
+Return the irreducible components of ``X`` with their reduced structure. 
+
+Note that the irreducible components are defined over the base ring of ``X``.
+An irreducible component may split into several irreducible components after a base change, e.g. a field extension. 
+"""
+irreducible_components(X::Scheme) = error("Not implemented")

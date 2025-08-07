@@ -7,8 +7,8 @@
 Given an ideal `I` in a multivariate polynomial ring this function assures that a
 Gröbner basis w.r.t. the given monomial ordering is attached to `I` in `I.gb`.
 It *currently* also ensures that the basis is defined on the Singular side in
-`I.gb.S`, but this should not be relied upon: use `singular_assure(I.gb)` before
-accessing `I.gb.S`.
+`I.gb.S`, but this should not be relied upon: use `singular_generators(I.gb)`
+instead of accessing `I.gb.S` directly.
 
 # Examples
 ```jldoctest

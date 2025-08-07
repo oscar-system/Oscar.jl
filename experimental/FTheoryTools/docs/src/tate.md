@@ -4,32 +4,55 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Global Tate models
+# [Global Tate Models](@id global_tate_models)
 
-## Introduction
+Global Tate models provide a powerful framework to systematically engineer elliptic fibrations
+with prescribed fiber singularities. They are widely used in F-theory model building because
+they make it easier to realize certain gauge symmetries and matter spectra geometrically. Their
+structure is governed by Tate’s algorithm, which relates the vanishing orders of specific polynomial
+coefficients to fiber singularities—classified via the refined Tate table.
 
-A global Tate model describes a particular form of an elliptic fibration.
-We focus on an elliptic fibration over a base ``B``. Consider
-the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
-``x, y, z``. In addition, consider
-* ``a_1 \in H^0( B_3, \overline{K}_{B} )``,
-* ``a_2 \in H^0( B_3, \overline{K}_{B}^{\otimes 2} )``,
-* ``a_3 \in H^0( B_3, \overline{K}_{B}^{\otimes 3} )``,
-* ``a_4 \in H^0( B_3, \overline{K}_{B}^{\otimes 4} )``,
-* ``a_6 \in H^0( B_3, \overline{K}_{B}^{\otimes 6} )``.
-Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B`` such that
-* ``x`` transforms as a section of ``2 \overline{K}_{B}``,
-* ``y`` transforms as a section of ``3 \overline{K}_{B}``,
-* ``z`` transforms as a section of ``0 \overline{K}_{B} = \mathcal{O}_{B}``.
-In this 5-fold ambient space, a global Tate model is the hypersurface defined
-by the vanishing of the Tate polynomial
-``P_T = x^3 - y^2 - x y z a_1 + x^2 z^2 a_2 - y z^3 a_3 + x z^4 a_4 + z^6 a_6``.
+---
 
-Crucially, for non-trivial F-theory settings, the elliptic fibration in question must
-be singular. In fact, by construction, one usually engineers certain singularities.
-For this, vanishing orders of the sections ``a_i`` above need to specified. The
-following table---often referred to as the Tate table and taken from
-[Wei10](@cite)---summarizes the singularities introduced by certain vanishing orders:
+## What Is a Global Tate Model?
+
+A global Tate model describes a particular form of an elliptic fibration. We focus on an elliptic
+fibration over a base ``B``. Consider the weighted projective space ``\mathbb{P}^{2,3,1}`` with
+coordinates ``x, y, z``. In addition, consider the Tate sections
+
+- ``a_1 \in H^0(B, \overline{K}_{B})``,
+- ``a_2 \in H^0(B, \overline{K}_{B}^{\otimes 2})``,
+- ``a_3 \in H^0(B, \overline{K}_{B}^{\otimes 3})``,
+- ``a_4 \in H^0(B, \overline{K}_{B}^{\otimes 4})``,
+- ``a_6 \in H^0(B, \overline{K}_{B}^{\otimes 6})``.
+
+Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B`` such that:
+
+- ``x`` transforms as a section of ``2\overline{K}_{B}``,
+- ``y`` transforms as a section of ``3\overline{K}_{B}``,
+- ``z`` transforms as a section of ``\mathcal{O}_B``.
+
+In this 5-fold ambient space, a global Tate model is the hypersurface defined by the vanishing of
+the Tate polynomial:
+
+$P_T = x^3 - y^2 - x y z a_1 + x^2 z^2 a_2 - y z^3 a_3 + x z^4 a_4 + z^6 a_6\,.$
+
+In a sufficiently small open neighborhood ``U \subset B`` of a point ``p \in B``, the polynomial
+locally takes the form:
+
+$y^2 + a_1(q) x y z + a_3(q) y z^3 = x^3 + a_2(q) x^2 z^2 + a_4(q) x z^4 + a_6(q) z^6\,,$
+
+where the ``a_i(q)`` are the values of the Tate sections at a local coordinate ``q \in U``. This
+formulation is known as a **Tate model**. One may define the elliptic fibration globally by specifying
+a single Tate polynomial as above. Such constructions, known as **global Tate models**, are strictly less
+general than [Weierstrass Models](@ref weierstrass_models) but have proven especially useful for model
+building in F-theory: Engineering the desired fiber singularities—crucial for F-theory model building—is
+often simpler for global Tate models than for [Weierstrass Models](@ref weierstrass_models).
+
+Much like the Kodaira classification, in a global Tate model the singularities of the elliptic fiber are
+characterized by the vanishing orders of the Tate sections ``a_i``, although no additional monodromy needs
+to be taken into account (with a few notable exceptions). The complete classification is summarized in the
+following table—commonly referred to as the **Tate table**—which is taken from [Wei10](@cite):
 
 | sing. type | ``\mathrm{ord}(\Delta)`` | singularity | group ``G`` | ``a_1`` | ``a_2`` | ``a_3`` | ``a_4`` | ``a_6`` |
 | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- |
@@ -62,101 +85,102 @@ following table---often referred to as the Tate table and taken from
 | non-min. | ``12`` |  |  | ``1`` | ``2`` | ``3`` | ``4`` | ``6`` |
 
 
+---
 
-## Constructors
+## Constructing Global Tate Models
 
-We aim to provide support for global Tate models over the following bases:
-* a toric variety,
-* a toric scheme,
-* a (covered) scheme.
-Often, one also wishes to obtain information about a global Tate model without
-explicitly specifying the base space. Also for this application, we provide support.
-Finally, we provide support for some standard constructions.
+Global Tate models are most robustly supported over **toric base spaces**. While there are plans to extend
+support to toric schemes, covered schemes, and unspecified base families, these directions remain experimental
+and are reserved for future development. This section briefly outlines constructing global Tate models over
+arbitrary bases, but primarily focuses on working with a **concrete toric base**.
 
-Before we detail these constructors, we must comment on the constructors over toric base
-spaces. Namely, in order to construct a global Tate model as a hypersurface in an ambient
-space, we first wish to construct the ambient space in question. For a toric base, one way to
-achieve this is to first focus on the Cox ring of the toric ambient space. This ring must be
-graded such that the Tate polynomial is homogeneous and cuts out a Calabi-Yau
-hypersurface. Given this grading, one can perform a triangulation task. Typically, this
-combinatorial task is very demanding, consumes a lot of computational power and takes a
-long time to complete. Even more, it will yield a large, often huge, number of candidate
-ambient spaces of which the typical user will only pick one. For instance, a common and
-often appropriate choice is a toric ambient space which contains the toric base space in a
-manifest way.
+### Unspecified Base Spaces
 
-To circumvent this very demanding computation, our toric constructors operate in the
-opposite direction. That is, they begin by extracting the rays and maximal cones of the chosen
-toric base space. Subsequently, those rays and cones are extended to form one of the many
-toric ambient spaces. This proves hugely superior in performance than going through the
-triangulation task of enumerating all possible toric ambient spaces. One downside of this strategy
-is that the so-constructed ambient space need not be smooth.
+As with [Weierstrass Models](@ref weierstrass_models), constructing a global Tate model begins with building
+a suitable **ambient space**. When the base is not fully specified, the ambient space can be treated symbolically.
+This symbolic flexibility is particularly useful when **engineering singular fibers** via specified vanishing orders
+or factorizations of the Tate sections ``a_i``. This method is foundational to F-theory model building.
 
-### A toric variety as base space
+To support such workflows, the Tate sections ``a_i`` are defined as indeterminates of a multivariate polynomial
+ring. The indeterminates are interpreted as sections of line bundles on an **auxiliary base space**. This allows
+engineering desired vanishing profiles and exploring families of models over a space of base geometries. A typical
+use case involves factoring the Tate sections ``a_i`` to control the singularity type over a specific divisor. For
+instance, to realize an ``I_5`` fiber over the divisor ``\{w = 0\}`` in the unspecified base space, one might set:
 
-We require that the provided toric base space is complete. This is a technical limitation as of now.
-The functionality of OSCAR only allows us to compute a section basis (or a finite subset thereof)
-for complete toric varieties. In the future, this could be extended.
+- ``a_1 = a_{10} \times w^0``,
+- ``a_2 = a_{21} \times w^1``,
+- ``a_3 = a_{32} \times w^2``,
+- ``a_4 = a_{43} \times w^3``,
+- ``a_6 = a_{65} \times w^5``.
 
-However, completeness is an expensive check. Therefore, we provide an optional argument which
- one can use to disable this check if desired. To this end, one passes the optional argument
- `completeness_check = false` as last argument to the constructor. The following examples
- demonstrate this:
+This formalism underlies many symbolic constructions in F-theory model building. The mathematical interpretation of
+symbolic bases is subtle and under active development. Users can construct such models with the following constructor:
+
+```@docs
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
+```
+
+To check whether a global Tate model has been constructed over a concrete base space or over a symbolic family, use
+`is_base_space_fully_specified`. This returns `true` if the base is fully specified, and `false` otherwise.
+
+### Concrete Toric Base Spaces
+
+Full support exists for constructing global Tate models over **concrete, complete toric base varieties**. Completeness
+is a technical assumption: it ensures that the set of global sections of a line bundle forms a finite-dimensional vector
+space, enabling OSCAR to handle these sets efficiently. In the future, this restriction may be relaxed. For now,
+completeness checks—though sometimes slow—are performed in many methods involving global Tate models. To skip them and
+improve performance, use the optional keyword:
+
+```julia
+completeness_check = false
+```
+
+We proceed under the assumption that the base space is a fixed, complete toric variety.
+
+In this setting, constructing a suitable ambient space becomes significantly more efficient. First, we focus on toric
+ambient spaces. Second, rather than enumerating large numbers of ambient spaces from polytope triangulations—a
+resource-intensive process—we adopt a **performance-optimized** approach. Starting from the rays and maximal cones of
+the toric base, we **extend** them to construct a compatible polyhedral fan defining the toric ambient space. This
+avoids triangulation entirely and yields a single suitable ambient toric variety. The resulting space may not be smooth
+and may differ from those commonly used in the F-theory literature, but it is guaranteed to be compatible with the
+elliptic fibration structure.
+
+Users can construct global Tate models over such concrete toric bases with the following constructors:
+
 ```@docs
 global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
 global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
+For convenience—ideal for quick experiments and educational use—we also support constructors for global Tate models
+over commonly used base spaces:
 
-### A (covered) scheme as base space
-
-This functionality does not yet exist.
-
-### Base space not specified
-
-This method constructs a global Tate model over a base space, where
-this base space is not (fully) specified. Consequently, we simply assume
-that a base space exists such that the Tate sections ``a_i`` as introduced
-above do exist.
-
-For many practical applications, one wishes to assume a further factorization
-of the Tate sections ``a_i``. This has the advantage that one can engineer
-singularity loci or even the singularity type over a specific locus. This is
-the backbone of many F-theory constructions. For example, we could consider
-the factorization:
-* ``a_1 = a_{10} w^0``,
-* ``a_2 = a_{21} w^1``,
-* ``a_3 = a_{32} w^2``,
-* ``a_4 = a_{43} w^3``,
-* ``a_6 = a_{65} w^5``,
-In this case, it is useful to consider the polynomial ring with indeterminates
-``a_{10}``, ``a_{21}``, ``a_{32}``, ``a_{43}``, ``a_{65}`` and ``w``.
-In theory, one can consider these indeterminates as local coordinate of an
-auxiliary base space. Indeed, for our computer implementation the polynomial
-ring with these indeterminates serves as coordinate ring for the family of base
-spaces. We support the following constructor:
-```@docs
-global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
-```
-
-
-### Standard constructions
-
-We provide convenient constructions of global Tate models over
-standard base spaces. Currently, we support the following:
 ```@docs
 global_tate_model_over_projective_space(d::Int)
 global_tate_model_over_hirzebruch_surface(r::Int)
 global_tate_model_over_del_pezzo_surface(b::Int)
 ```
 
+### Famous Global Tate Models
 
-## Attributes
+Several global Tate models have gained popularity in the F-theory community. These models are often
+associated with specific publications and may be informally referred to by author names or recognizable
+keywords. For these established constructions, we provide support through the specialized `literature_model`
+interface, which is discussed on the page [Literature Models](@ref literature_models).
 
-### Basic attributes
+---
 
-For all global Tate models -- irrespective over whether the base is toric or not -- we support
-the following attributes:
+## Attributes of Global Tate Models
+
+Global Tate models are one way to represent an elliptic fibration as a hypersurface in an ambient space. While
+different representations may vary in implementation details, they share a common structure in broad strokes. As
+such, many attributes and properties are shared across model representations. These shared components—such as
+`base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
+[Common Model Ops](@ref common_model_ops).
+
+Below, we list the attributes that are **specific to global Tate models** and do not generally apply to other
+representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref hypersurface_models)):
+
 ```@docs
 tate_section_a1(t::GlobalTateModel)
 tate_section_a2(t::GlobalTateModel)
@@ -164,60 +188,31 @@ tate_section_a3(t::GlobalTateModel)
 tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
+hypersurface_equation(t::GlobalTateModel)
 tate_ideal_sheaf(t::GlobalTateModel)
-```
-The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
-fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
-tell if the model has been constructed over a concrete space (in which case the function returns
-`true`) or a family of spaces (returning `false`).
-
-
-### Advanced attributes
-
-The following attributes are currently only supported in a toric setting:
-```@docs
-calabi_yau_hypersurface(t::GlobalTateModel)
 weierstrass_model(t::GlobalTateModel)
 ```
-Note that for applications in F-theory, *singular* elliptic fibrations are key
-(cf. [Wei18](@cite) and references therein). Consequently the discriminant
-locus as well as the singular loci of the fibration in question are of ample
-importance:
+
+---
+
+## Singularities in Global Tate Models
+
+Let us emphasize again that in F-theory, *singular* elliptic fibrations are of central importance (cf. [Wei18](@cite)
+and references therein): singularities signal non-trivial physics.
+
+A key step in analyzing an elliptic fibration is identifying its singular fibers—those whose structure degenerates
+over certain loci in the base. The **discriminant locus** is the subset of the base space over which the fibers degenerate:
+
 ```@docs
 discriminant(t::GlobalTateModel)
+```
+
+More informative than the discriminant itself is its **decomposition** into irreducible components. Each component
+corresponds to a locus where the fiber exhibits a distinct singularity structure. These can be classified using:
+
+```@docs
 singular_loci(t::GlobalTateModel)
 ```
 
-## Methods
-
-### Blowup
-
-We can blow up a global Tate model with the `blow_up` function. The resulting model
-will thereafter be partially resolved. No checks are currently implemented to test
-if a model is completely resolved. However, `is_partially_resolved` will return `true`
-if a blowup has been applied to the model in question.
-
-
-### Tuning
-
-Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
-larger gauge group. We support the following functionality:
-```@docs
-tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-```
-See also the `tune` function described in [Functionality for all F-theory models](@ref).
-
-
-### Fiber study
-
-In F-theory, it is standard to not work with the singular space directly.
-Rather, one resolves its singularities in order to obtain a smooth space
-instead. Subsequently, one performs computations on this smooth space.
-
-In order to perform such a resolution, one wishes to analyze the fibration
-in detail. The following method aims at giving a first window into this analysis
-by working out the fiber components and their intersection pattern over a
-particular locus of the base.
-```@docs
-analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
-```
+We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
+structure and how to resolve them—in [Resolving F-Theory Models](@ref resolving_f_theory_models).
