@@ -1,37 +1,12 @@
-@doc raw"""
-    all_cohomologies_via_cech(tl::ToricLineBundle)
-
-Compute line bundle cohomology via Cech cohomology using chamber counting [CLS11](@cite).
-
-# Examples
-```jldoctest
-julia> l1 = toric_line_bundle(projective_space(NormalToricVariety, 2), [1])
-Toric line bundle on a normal toric variety
-
-julia> cech_cohomologies(l1)
-2-element Vector{ZZRingElem}:
- 3
- 0
- 0
-
-julia> l2 = toric_line_bundle(del_pezzo_surface(NormalToricVariety, 3), [-3,-2,-2,-2])
-Toric line bundle on a normal toric variety
-
-julia> cech_cohomologies(l2)
-2-element Vector{ZZRingElem}:
- 0
- 2
- 0
-```
-"""
-function all_cohomologies_via_cech(tl::ToricLineBundle)
+#The following function is called, when algorithm="chambers" is specified for all_cohomologies
+function _all_cohomologies_via_cech(tl::ToricLineBundle)
   our_maps = transpose.(matrix.(_toric_cech_complex(tl)))
   X = toric_variety(tl)
   alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
   alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
   @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
   rks_maps = push!(rank.(our_maps), alternating_sum)
-  return [nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]]
+  return ZZRingElem.([nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]])
 end
 
 function _toric_cech_complex(tl::ToricLineBundle)
