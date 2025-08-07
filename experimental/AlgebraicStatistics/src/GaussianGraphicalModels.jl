@@ -108,8 +108,8 @@ julia> covariance_matrix(GM)
 ```
 """
 function covariance_matrix(GM::GaussianGraphicalModel)
-  S = model_ring(GM)
-  cov_mat = upper_triangular_matrix(gens(S))
+  _, s = model_ring(GM)
+  cov_mat = upper_triangular_matrix(s)
   n = n_vertices(graph(GM))
   # turn upper triangular matrix into a symmetric one
   for i in 1:n
@@ -133,9 +133,9 @@ end
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
               ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)])
-  R, (e_gens, v_gens) = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-                    Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
+  gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => v_gens[v] for v in 1:n_vertices(G)))
   return R, gens_dict
 end
 
@@ -220,8 +220,8 @@ defined by
 ```
 """
 function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
-  S = model_ring(M)[1]
-  R = parameter_ring(M)[1]
+  S, _ = model_ring(M)
+  R, _ = parameter_ring(M)
   G = graph(M)
   lambda = directed_edges_matrix(M)
   Id = identity_matrix(R, n_vertices(G))
