@@ -16,6 +16,12 @@ const GenDictType = Dict{T, MPolyRingElem} where T <: Union{Edge, Int}
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
   end
+
+  function GaussianGraphicalModel(G::MixedGraph, var_names::Vector{VarName})
+    #TODO figure out how to deal with labelings on MixedGraphs
+    # for now just use Nothing
+    return new{Mixed, Nothing}(G, nothing, var_names)
+  end
 end
 
 @doc raw"""
@@ -70,6 +76,7 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   end
 end
 
+#TODO do the gens returned here need to be a dict? we'll need to be consisted across all models
 @attr MPolyRing function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
@@ -145,9 +152,9 @@ julia> directed_edges_matrix(GM)
 """
 function directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
   G = graph(M)
-  gens_dict = parameter_ring_gens(M)
+  R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
-  lambda = zero_matrix(parameter_ring(M), n, n)
+  lambda = zero_matrix(R, n, n)
   for e in edges(G)
     lambda[src(e), dst(e)] = gens_dict[e]
   end
@@ -174,8 +181,8 @@ julia> error_covariance_matrix(M)
 """
 function error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
   G = graph(M)
-  gens_dict = parameter_ring_gens(M)
-  W = diagonal_matrix(parameter_ring(M), [gens_dict[i] for i in 1:n_vertices(G)])
+  R, gens_dict = parameter_ring(M)
+  W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
 end
 
 @doc raw"""
@@ -290,8 +297,8 @@ defined by
 """
 function parametrization(M::GaussianGraphicalModel{Undirected, T}) where T
   G = graph(M)
-  S = model_ring(M)
-  R = parameter_ring(M)
+  S = model_ring(M)[1]
+  R = parameter_ring(M)[1]
   K = concentration_matrix(M)
   Rloc, iota = localization(R, powers_of_element(det(K)))
   adj = adjugate(K)
@@ -341,6 +348,8 @@ function gaussian_ring(F::Field, n::Int; s_var_name::VarName=:s, cached=false)
   S, s = polynomial_ring(F, varnames; cached=cached)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
+
+  #TODO this should probably also return a pair
   GaussianRing(S, cov_matrix)
 end
 

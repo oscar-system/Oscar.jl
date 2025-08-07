@@ -30,7 +30,7 @@ end
 #       Generic Graphical Models
 #
 ###################################################################################
-const GraphTypes = Union{Directed, Undirected} # TODO add Mixed
+const GraphTypes = Union{Directed, Undirected, Mixed}
 
 abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 
@@ -43,7 +43,6 @@ Returns a polynomial ring where the indeterminants correspond to the defining pa
 ```
 """
 model_ring(M::T) where T <: GraphicalModel = error("Please implement the method model_ring for $T")
-model_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method model_ring_gens for $T")
 
 @doc raw"""
     parameter_ring(GM::GraphicalModel)
@@ -51,7 +50,6 @@ model_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the me
 Returns a polynomial ring where the indeterminants parametrize the variety of possible defining parameter values for the model.
 """
 parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring for $T")
-parameter_ring_gens(M::T) where T <: GraphicalModel = error("Please implement the method parameter_ring_gens for $T")
 
 @doc raw"""
     parametrization(GM::GraphicalModel)
