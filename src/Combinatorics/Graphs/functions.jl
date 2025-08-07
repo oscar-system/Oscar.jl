@@ -122,7 +122,7 @@ Return `true` if a new edge `(s,t)` was added, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> g = graph(Mixed, 2);
+julia> g = mixed_graph(2);
 
 julia> add_directed_edge!(g, 1, 2)
 true
@@ -134,7 +134,8 @@ julia> n_edges(g)
 1
 ```
 """
-function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+function add_directed_edge!(mg::MixedGraph, source::Int64, target::Int64)
+  g = directed_component(mg)
   _has_node(g, source) && _has_node(g, target) || return false
   old_nedges = n_edges(g)
   Polymake._add_edge(pm_object(g), source-1, target-1)
@@ -465,7 +466,7 @@ function n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 function n_edges(g::MixedGraph)
-  return sum(Polymake.ne(.pm_object.([directed_component(g),
+  return sum(Polymake.ne.(pm_object.([directed_component(g),
                                       undirected_component(g)])))
 end
 
@@ -500,7 +501,7 @@ Return an iterator over the directed edges of the graph `g`.
 
 # Examples
 """
-function directed_edges(g::MixedGraph{T})
+function directed_edges(g::MixedGraph)
   dir_g = directed_component(g)
   return EdgeIterator(Polymake.edgeiterator(pm_object(dir_g)), n_edges(dir_g))
 end
@@ -1606,7 +1607,7 @@ function mixed_graph_from_edges(directed_edges::Vector{S},
                                 undirected_edges::Vector{T},
                                 n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
   return mixed_graph_from_edges([Edge(e[1], e[2]) for e in directed_edges],
-                                [Edge(e[1], e[2]) for e in undirected_edges]
+                                [Edge(e[1], e[2]) for e in undirected_edges],
                                 n_vertices)
 end
 
