@@ -377,7 +377,7 @@ end
 Elements ``a//b`` of localizations ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of type 
 `MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}`.
 """
-mutable struct MPolyQuoLocRingElem{
+struct MPolyQuoLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,

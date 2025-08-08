@@ -8,7 +8,7 @@
 struct TropicalSemiring{minOrMax<:Union{typeof(min),typeof(max)}} <: Field
 end
 
-mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
+struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
     parent::TropicalSemiring{minOrMax}
     isinf::Bool        # distinguishes between ±∞ and other tropical numbers
     data::QQFieldElem
