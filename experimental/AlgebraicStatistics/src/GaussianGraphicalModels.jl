@@ -132,7 +132,7 @@ end
 } function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)])
+               ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)])
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
@@ -227,7 +227,9 @@ function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
   Id = identity_matrix(R, n_vertices(G))
   W = error_covariance_matrix(M)
   Sigma = transpose(inv(Id - lambda)) * W * inv(Id - lambda)
-  hom(S, R, reduce(vcat, [[Sigma[i,j] for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
+
+  gens_map = reduce(vcat, [[Sigma[i,j] for j in i:n_vertices(G)] for i in 1:n_vertices(G)])
+  return hom(S, R, gens_map)
 end
 
 ###################################################################################
@@ -239,9 +241,9 @@ end
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
-  R, (e_gens, v_gens) = polynomial_ring(QQ, gen_names; cached=cached)[1]
-  gens_dict = merge(Dict(e => edge_vars[i] for (i, e) in enumerate(edges(G))),
-                    Dict(v => vertex_vars[v] for v in 1:n_vertices(G)))
+  R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
+  gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
+                    Dict(v => v_gens[v] for v in 1:n_vertices(G)))
   return R, gens_dict
 end
 
@@ -304,8 +306,8 @@ defined by
 """
 function parametrization(M::GaussianGraphicalModel{Undirected, T}) where T
   G = graph(M)
-  S = model_ring(M)[1]
-  R = parameter_ring(M)[1]
+  S, _ = model_ring(M)
+  R, _ = parameter_ring(M)
   K = concentration_matrix(M)
   Rloc, iota = localization(R, powers_of_element(det(K)))
   adj = adjugate(K)
