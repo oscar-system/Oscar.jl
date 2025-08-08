@@ -659,6 +659,7 @@ function _oscar_group(G::GapObj)
         ring = codomain(iso)
         matgrp = matrix_group(ring, deg)
         matgrp.ring_iso = inv(iso)
+        set_attribute!(ring, :iso_oscar_gap, matgrp.ring_iso)
         matgrp.X = G
         return matgrp
       elseif pair[2] == AutomorphismGroup
