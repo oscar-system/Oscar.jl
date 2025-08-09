@@ -1,5 +1,3 @@
-# this Any here makes me uncomfortable
-const GenDictType = Dict{Any, QQMPolyRingElem}
 ###################################################################################
 #
 #       (Un)Directed Gaussian Graphical Models
@@ -11,16 +9,16 @@ const GenDictType = Dict{Any, QQMPolyRingElem}
   labelings::L
   varnames::Dict{Symbol,VarName}
   function GaussianGraphicalModel(G::Graph{T},
-                                  var_names::Dict{Symbol, VarName}) where T <: GraphTypes
+                                  varnames::Dict{Symbol, VarName}) where T <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
+    return new{T, typeof(graph_maps)}(G, graph_maps, varnames)
   end
 
-  function GaussianGraphicalModel(G::MixedGraph, var_names::Vector{VarName})
+  function GaussianGraphicalModel(G::MixedGraph, varnames::Vector{VarName})
     #TODO figure out how to deal with labelings on MixedGraphs
     # for now just use Nothing
-    return new{Mixed, Nothing}(G, nothing, var_names)
+    return new{Mixed, Nothing}(G, nothing, varnames)
   end
 end
 
@@ -128,7 +126,7 @@ end
 
 @attr Tuple{
   MPolyRing,
-  GenDictType
+  GenDict
 } function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
@@ -237,7 +235,7 @@ end
 #       Undirected parametrization
 #
 ###################################################################################
-@attr Tuple{MPolyRing, GenDictType} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
+@attr Tuple{MPolyRing, GenDict} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])

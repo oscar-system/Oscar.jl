@@ -31,6 +31,7 @@ end
 #
 ###################################################################################
 const GraphTypes = Union{Directed, Undirected, Mixed}
+const GenDict = Dict{S, T} where {S, T <: MPolyRingElem}
 
 abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 
