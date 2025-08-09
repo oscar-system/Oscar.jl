@@ -29,9 +29,8 @@ export affine_phylogenetic_model!
 
 #export phylogenetic models attributes
 export phylogenetic_model
-export number_states
+export n_states
 export transition_matrices
-export probability_ring
 export root_distribution
 export fourier_parameters
 export fourier_ring

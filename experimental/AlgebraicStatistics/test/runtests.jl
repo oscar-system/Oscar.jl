@@ -69,23 +69,22 @@ end
     @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
     @test model isa PhylogeneticModel
     #number of states
-    @test Oscar.number_states(model) == 4
+    @test n_states(model) == 4
     #root distribution
-    model.root_distribution == [1//4,1//4,1//4,1//4]
+    @test root_distribution(model) == [1//4,1//4,1//4,1//4]
     #transition matrices
     # tr_mat = Oscar.transition_matrices(model)
     # for i in 1:4, j in 1:4
     #   @test tr_mat[Edge(4, 2)][1, i == j ? 1 : 2] == tr_mat[Edge(4, 2)][i, j] #
     # end
     # generators of the polynomial ring
-    @test length(gens(parameter_ring(model))) == 2(length(collect(edges(graph(model))))) 
-    @test_skip @test length(gens(model_ring(model))) == 2(length(collect(edges(graph(model))))) 
+    @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
+    @test_skip @test ngens(model_ring(model)[1]) == (n_edges(tree))
      # fourier parameters
     fp = model.trans_mat_signature
     for i in 1:3
       @test fp[4, i] == fp[4, i] == fp[4, i]
     end
-
   end
 
   @test_skip @testset "kimura2_model" begin

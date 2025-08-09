@@ -4,17 +4,20 @@
 
 @attributes mutable struct PhylogeneticModel{L} <: GraphicalModel{Directed, L}
   # do need to for T to be directed here?
+  base_field::Field
   graph::Graph{Directed}
   labelings::L
   trans_mat_signature::Matrix{<: VarName}
+  model_parameter_name::VarName
   n_states::Int
   root_distribution::Vector
   
-  function PhylogeneticModel(G::Graph{Directed},
+  function PhylogeneticModel(F::Field,
+                             G::Graph{Directed},
                              trans_mat_signature::Matrix{<: VarName},
                              n_states::Union{Nothing, Int} = nothing,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             )
+                             varname::VarName="p")
     if isnothing(n_states)
       n_states = 4
     end
@@ -23,31 +26,65 @@
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps)}(G, graph_maps, trans_mat_signature,
-                                   n_states, root_distribution)
+    return new{typeof(graph_maps)}(F, G,
+                                   graph_maps,
+                                   trans_mat_signature,
+                                   varname,
+                                   n_states,
+                                   root_distribution)
+  end
+
+  function PhylogeneticModel(G::Graph{Directed},
+                             trans_mat_signature::Matrix{<: VarName},
+                             n_states::Union{Nothing, Int} = nothing,
+                             root_distribution::Union{Nothing, Vector} = nothing,
+                             varname::VarName="p")
+    return PhylogeneticModel(QQ, G, trans_mat_signature, n_states, root_distribution, varname)
   end
 end
 
-# these should be attrs
-# need to check number_of and whether it automatically creates an alias?
 n_states(M::PhylogeneticModel) = M.n_states
-var_names(M::PhylogeneticModel) = unique(M.trans_mat_signature)
 trans_matrix(M::PhylogeneticModel) = M.trans_mat_signature
+base_field(M::PhylogeneticModel) = M.base_field
+varname(M::PhylogeneticModel) = M.model_parameter_name
 
-@attr MPolyRing function parameter_ring(M::PhylogeneticModel; cached=false)
-  edge_gens = [x => 1:n_edges(graph(M)) for x in var_names(M)]
-  R, _ = polynomial_ring(QQ,  edge_gens...; cached=cached)
-  return R
+@attr Tuple{MPolyRing, GenDict} function parameter_ring(M::PhylogeneticModel; cached=false)
+  vars = unique(trans_matrix(M))
+  edge_gens = [x => 1:n_edges(graph(M)) for x in vars]
+  R, x... = polynomial_ring(base_field(M), edge_gens...; cached=cached)
+
+  R, Dict{Tuple{VarName, Int}, MPolyRingElem}(
+    (vars[i], j) => x[i][j] for i in 1:length(vars), j in 1:n_edges(graph(M))
+  )
 end
 
-@attr MPolyRing function parameter_ring_gens(M::PhylogeneticModel;)
-  vn = var_names(M)
-  edge_gens = [x => 1:n_edges(graph(M)) for x in vn]
-  R = parameter_ring(M)
-  shaped_gens = AbstractAlgebra.reshape_to_varnames(gens(R), edge_gens...)
-  return Dict{Tuple{VarName, Int}, MPolyRingElem}(
-    (vn[i], j) => shaped_gens[i][j] for i in 1:length(vn), j in 1:n_edges(graph(M))
-  )
+@attr Tuple{
+  MPolyRing,
+  Array
+} function model_ring(PM::PhylogeneticModel; cached=false)
+  leave_nodes = leaves(graph(PM))
+  leaves_indices = collect(Iterators.product(
+    [tuple(1:n_states(PM)...) for _ in leave_nodes]...))
+
+  return polynomial_ring(base_field(PM),
+                         ["$(varname(PM))[$(join(x, ", "))]" for x in leaves_indices];
+                         cached=cached)
+end
+
+function parametrization(PM::PhylogeneticModel)
+  g =  graph(PM)
+  int_nodes = interior_nodes(g)
+  lvs_nodes = leaves(g)
+  n_states = n_states(pm)
+
+  _, e_gens = parameter_ring(PM)
+  tr_mat = trans_matrix(pm)
+  r = root(g)
+  monomial = root_dist[states[r]]
+
+  for e in edges(g)
+    
+  end
 end
 
 # prob_ring::MPolyRing{QQFieldElem}

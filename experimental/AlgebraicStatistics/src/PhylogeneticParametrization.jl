@@ -94,7 +94,9 @@ function probability_map(pm::PhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(
+    Tuple(leaves_states) => probability_parametrization(pm, leaves_states)
+    for leaves_states in leaves_indices)
   return probability_coordinates
 end
 
