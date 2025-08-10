@@ -141,6 +141,49 @@
     I = ideal(R,[x^2+x*y+y,x+y^2])
     G = standard_basis(I, ordering=lex(R), complete_reduction=true)
     @test G.ord == lex(R)
+
+    using Random: GLOBAL_RNG
+    function random_polynomial(ring, vars; max_degree=3, max_terms=5, rng=GLOBAL_RNG)
+      monoms = Set{Vector{Int}}()
+      while length(monoms) < max_terms
+          exps = rand(rng, 0:max_degree, length(vars))
+          sum(exps) ≤ max_degree && push!(monoms, exps)
+      end
+      poly = zero(ring)
+      for exp in monoms
+        term = prod(vars[i]^exp[i] for i in eachindex(vars))
+        poly += term
+      end
+      return poly
+    end
+    for (field, nvars) in [(GF(2), 2), (GF(3), 3), (QQ, 2), (QQ, 3)]
+      R, vars = polynomial_ring(field, ["x$i" for i in 1:nvars])
+        orderings = [
+          lex(R), 
+          degrevlex(R),
+          deglex(R),
+          wdeglex(gens(R), ones(Int, nvars))
+      ]
+      for trial in 1:20
+        n_polys = rand(2:4)
+        polys = [random_polynomial(R, vars) for _ in 1:n_polys]
+        for ord in orderings
+          K = ideal(R, polys)
+          @test all(p -> normal_form(p, K) == 0, polys)
+          G = groebner_basis(K, ordering=ord, complete_reduction=true)
+          basis_polys = gens(G)
+          L = ideal(R, basis_polys)
+          @test all(normal_form.(polys, Ref(L)) .== 0)
+          @test all(normal_form.(basis_polys, Ref(K)) .== 0)
+          @test K == L
+          if field == QQ
+            G_mod = groebner_basis(K, ordering=ord, algorithm=:modular)
+            @test all(normal_form.(gens(G_mod), Ref(K)) .== 0)
+            @test all(normal_form.(polys, Ref(ideal(R, gens(G_mod)))) .== 0)
+          end
+        end
+      end
+    end
 end
 
 @testset "normal form graded" begin
