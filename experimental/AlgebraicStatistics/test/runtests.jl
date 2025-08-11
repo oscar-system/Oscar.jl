@@ -4,6 +4,8 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
 } where S <: Oscar.GraphMap;
 # 
 
+include("setup_tests.jl")
+
 @testset "GaussianGraphicalModels" begin
   G = graph_from_edges(Directed, [[1,2],[2,3]])
   M1 = gaussian_graphical_model(G)
@@ -13,6 +15,11 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
     [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
   )
 
+  mktempdir() do path
+    test_save_load_roundtrip(path, M1) do loaded
+      
+    end
+  end
   label!(G,
          Dict((1, 2) => "pink", (2, 3) => "pink"),
          Dict(i => "green" for i in 1:3);

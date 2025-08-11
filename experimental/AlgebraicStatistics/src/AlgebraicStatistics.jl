@@ -10,6 +10,8 @@ include("PhylogeneticParametrization.jl")
 include("PhylogeneticInvariants.jl")
 include("LoadModels.jl")
 
+include("./serialization.jl")
+
 # export Abstract Graphical Model
 export GraphicalModel
 export model_ring

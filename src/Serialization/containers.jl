@@ -294,6 +294,14 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
   )
 end
 
+#function type_params(obj::Dict{Union{Int, Edge}, T}) where T
+#  TypeParams(
+#    Dict, 
+#    :key_params => nothing,
+#    :value_params => first(value_params)
+#  )
+#end
+
 function save_type_params(
   s::SerializerState,
   tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
