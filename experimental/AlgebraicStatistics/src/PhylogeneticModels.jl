@@ -54,7 +54,7 @@ varname(PM::PhylogeneticModel) = PM.model_parameter_name
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(edges(graph(PM)))
+    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))
   )
 end
 

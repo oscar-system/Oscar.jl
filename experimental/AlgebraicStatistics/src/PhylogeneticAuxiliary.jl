@@ -109,6 +109,10 @@ function leaves(graph::Graph)
   return findall(==(1), degrees)
 end
 
+function n_leaves(graph::Graph)
+  length(leaves(graph))
+end
+
 function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
   lvs = leaves(gr)
   outn = outneighbors(gr, v)
