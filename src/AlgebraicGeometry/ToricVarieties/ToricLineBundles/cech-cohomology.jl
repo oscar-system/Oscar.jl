@@ -19,12 +19,15 @@ function _toric_cech_complex(tl::ToricLineBundle)
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
   H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
 
-  # Classify the lattice points that contribute
+  # Classify the regions and their lattice points that contribute
   pff = Polymake.fan.PolyhedralComplex(POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES)
   max_polys = maximal_polyhedra(polyhedral_complex(pff))
+  other_polys = vcat([polyhedra_of_dim(polyhedral_complex(pff), i) for i in 0:dim(polyhedral_complex(pff))-1]...)
   chamber_signs = matrix(ZZ, H.CHAMBER_SIGNATURES)
   sign_of_chamber = Dict(chamber_signs[i,:] => interior_lattice_points(p) for (i, p) in enumerate(max_polys) if is_bounded(p))
-  list_of_boundary_lattice_points = unique(vcat([boundary_lattice_points(p) for p in values(filter(is_bounded, max_polys))]...))
+  list_of_boundary_lattice_points = vcat([boundary_lattice_points(p) for p in values(filter(is_bounded, max_polys))]...)
+  append!(list_of_boundary_lattice_points, vcat([lattice_points(p) for p in other_polys if is_bounded(p)]...))
+  list_of_boundary_lattice_points = unique(list_of_boundary_lattice_points)
   sign_of_boundary_pt = Dict(pt => matrix(QQ, rays(X)) * pt + a_plane for pt in list_of_boundary_lattice_points)
 
   # Prepare information, which we use to iterate over the Cech complex and identify the relevant lattice points
@@ -94,6 +97,5 @@ function _toric_cech_complex(tl::ToricLineBundle)
     previous_number_of_generators = sum(length.(values(polyhedron_dict)))
 
   end
-
   return cech_complex_maps
 end
