@@ -7,14 +7,14 @@
   base_field::Field
   graph::Graph{Directed}
   labelings::L
-  trans_mat_signature::Matrix{<: VarName}
+  trans_mat_structure::Matrix{<: VarName}
   model_parameter_name::VarName
   n_states::Int
   root_distribution::Vector
   
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
-                             trans_mat_signature::Matrix{<: VarName},
+                             trans_mat_structure::Matrix{<: VarName},
                              n_states::Union{Nothing, Int} = nothing,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
@@ -28,33 +28,33 @@
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{typeof(graph_maps)}(F, G,
                                    graph_maps,
-                                   trans_mat_signature,
+                                   trans_mat_structure,
                                    varname,
                                    n_states,
                                    root_distribution)
   end
 
   function PhylogeneticModel(G::Graph{Directed},
-                             trans_mat_signature::Matrix{<: VarName},
+                             trans_mat_structure::Matrix{<: VarName},
                              n_states::Union{Nothing, Int} = nothing,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
-    return PhylogeneticModel(QQ, G, trans_mat_signature, n_states, root_distribution, varname)
+    return PhylogeneticModel(QQ, G, trans_mat_structure, n_states, root_distribution, varname)
   end
 end
 
-n_states(M::PhylogeneticModel) = M.n_states
-trans_matrix(M::PhylogeneticModel) = M.trans_mat_signature
-base_field(M::PhylogeneticModel) = M.base_field
-varname(M::PhylogeneticModel) = M.model_parameter_name
+n_states(PM::PhylogeneticModel) = PM.n_states
+trans_matrix(PM::PhylogeneticModel) = PM.trans_mat_structure
+base_field(PM::PhylogeneticModel) = PM.base_field
+varname(PM::PhylogeneticModel) = PM.model_parameter_name
 
 @attr Tuple{MPolyRing, GenDict} function parameter_ring(M::PhylogeneticModel; cached=false)
-  vars = unique(trans_matrix(M))
-  edge_gens = [x => 1:n_edges(graph(M)) for x in vars]
-  R, x... = polynomial_ring(base_field(M), edge_gens...; cached=cached)
+  vars = unique(trans_matrix(PM))
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
+  R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Int}, MPolyRingElem}(
-    (vars[i], j) => x[i][j] for i in 1:length(vars), j in 1:n_edges(graph(M))
+    (vars[i], j) => x[i][j] for i in 1:length(vars), j in 1:n_edges(graph(PM))
   )
 end
 
@@ -105,7 +105,7 @@ function Base.show(io::IO, pm::PhylogeneticModel)
   print(io, " and transition matrices of the form \n ")
 
   # printing this matrix can probably be improved
-  print(io, "$(pm.trans_mat_signature)")
+  print(io, "$(pm.trans_mat_structure)")
 end
 
 struct GroupBasedPhylogeneticModel
