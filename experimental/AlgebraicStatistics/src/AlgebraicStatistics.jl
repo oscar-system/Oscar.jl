@@ -63,3 +63,12 @@ export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 export gaussian_ring, GaussianRing
 
+# Conditional independence
+export CIStmt
+export ci_stmt
+export @CI_str
+export ci_statements
+export make_elementary
+export ci_ideal
+export ci_polynomial
+export ci_structure

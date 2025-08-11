@@ -4,8 +4,6 @@
 #
 ###################################################################################
 
-export ci_ideal, ci_polynomial, ci_structure
-
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
   graph::Graph{T}
   labelings::L
@@ -448,7 +446,7 @@ s[1, 2]*s[3, 3] - s[1, 3]*s[2, 3]
 ```
 """
 function ci_polynomial(A::Generic.MatSpaceElem, stmt::CIStmt)
-  @assert is_elementary(stmt)
+  @req is_elementary(stmt) "only elementary CI statements give polynomials - for non-elementary statements use ci_ideal"
   det(A[vcat(stmt.I, stmt.K), vcat(stmt.J, stmt.K)])
 end
 
@@ -467,6 +465,7 @@ methods:
 The optional argument `strategy` can be used to give preference to one of the above methods using the values `:parametrization` or `:ideal`, respectively.
 """
 function ci_structure(GR::GaussianRing; strategy::Symbol)
+  # TODO: Get rid of hasmethod probing.
   if strategy == :parametrization || hasmethod(parametrization, Tuple{typeof(GR)})
     A = parametrization(GR)
     return [stmt for stmt in ci_statements(GR) if ci_polynomial(A, stmt) == 0]
