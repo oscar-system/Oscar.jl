@@ -3,7 +3,12 @@ import Oscar.Polymake:
   Directed, Undirected,
   EdgeMap, NodeMap
 
-@attributes mutable struct Graph{T <: Union{Directed, Undirected}}
+struct Mixed end
+
+const GraphTypes = Union{Directed, Undirected, Mixed}
+abstract type AbstractGraph{T <: GraphTypes} end
+
+@attributes mutable struct Graph{T <: Union{Directed, Undirected}} <: AbstractGraph{T}
   pm_graph::Polymake.Graph{T}
   
   function Graph{T}(nverts::Int) where T  <: Union{Directed, Undirected}
@@ -20,10 +25,7 @@ struct GraphMap{T, S <: Union{Nothing, EdgeMap}, U <: Union{Nothing, NodeMap}}
   vertex_map::U
 end
 
-# here so we can pass Mixed to the graph constructor
-struct Mixed end
-
-@attributes mutable struct MixedGraph
+@attributes mutable struct MixedGraph <: AbstractGraph{Mixed}
   directed_component::Graph{Directed}
   undirected_component::Graph{Undirected}
 
