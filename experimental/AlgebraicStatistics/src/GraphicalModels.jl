@@ -37,6 +37,7 @@ abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} e
 
 graph(M::GraphicalModel) = M.graph
 
+
 @doc raw"""
     model_ring(GM::GraphicalModel)
 
@@ -58,6 +59,8 @@ parameter_ring(M::T) where T <: GraphicalModel = error("Please implement the met
 Returns a map from the model ring to the parameter ring.
 """
 parametrization(M::T) where T <: GraphicalModel = error("Please implement the method parametrization for $T")
+
+
 
 #TODO update docs with an example?
 @doc raw"""
