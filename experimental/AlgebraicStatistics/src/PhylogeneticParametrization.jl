@@ -5,7 +5,7 @@
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
   par_gens = parameter_ring_gens(pm)
-  tr_mat = trans_matrix(pm)
+  tr_mat = transition_matrix(pm)
   root_dist = root_distribution(pm)
 
   r = root(gr)
@@ -228,6 +228,7 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
   polys = unique(collect(values(parametrization)))
   polys = polys[findall(!is_zero, polys)]
 
+  # dict poly => indices
   equivalent_keys = []
   for value in polys
       eqv_class = sort([key for key in keys(parametrization) if parametrization[key] == value])

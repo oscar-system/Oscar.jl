@@ -81,16 +81,17 @@ function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}
   return poly
 end 
 
-function parametrization(PM::PhylogeneticModel)
-  gr = graph(PM)
 
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
 
-  lvs_indices = leaves_indices(PM::PhylogeneticModel)
+### OTHER AUXILIARY FUNCTIONS ###
+# -------------------------------
 
-  probabilities = [Oscar.leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, probabilities))
+# I would like to get rid of this! Is there a better way?
+function index(x::QQMPolyRingElem)
 
+    m = match(r"\[(.*)\]", string(x))
+    idx = split(m.captures[1], ',')
+
+    [parse(Int, n) for n in idx if !isempty(n)]
 end
 

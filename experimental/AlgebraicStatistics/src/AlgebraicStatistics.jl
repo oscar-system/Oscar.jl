@@ -6,9 +6,9 @@ include("DiscreteGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
 include("PhylogeneticModels-functions.jl")
-include("PhylogeneticAuxiliary.jl")
-include("PhylogeneticParametrization.jl")
-include("PhylogeneticInvariants.jl")
+# include("PhylogeneticAuxiliary.jl")
+# include("PhylogeneticParametrization.jl")
+# include("PhylogeneticInvariants.jl")
 include("LoadModels.jl")
 
 # export Abstract Graphical Model
@@ -31,10 +31,9 @@ export affine_phylogenetic_model!
 #export phylogenetic models attributes
 export phylogenetic_model
 export n_states
-export transition_matrices
+export transition_matrix
 export root_distribution
-export fourier_parameters
-export fourier_ring
+export entry_transition_matrix
 export group_of_model
 
 #export probability and fourier map

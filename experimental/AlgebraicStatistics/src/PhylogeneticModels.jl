@@ -72,18 +72,59 @@ function entry_transition_matrix(PM::PhylogeneticModel, e::Edge, i::Int, j::Int)
   parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
-# @attr function parametrization(PM::PhylogeneticModel)
-#   gr = graph(PM)
+@attr MPolyAnyMap function parametrization(PM::PhylogeneticModel)
+  gr = graph(PM)
 
-#   R, _ = model_ring(PM)
-#   S, _ = parameter_ring(PM)
+  R, _ = model_ring(PM)
+  S, _ = parameter_ring(PM)
 
-#   lvs_indices = leaves_indices(PM::PhylogeneticModel)
+  lvs_indices = leaves_indices(PM::PhylogeneticModel)
 
-#   probabilities = [Oscar.leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
-#   hom(R, S, reduce(vcat, probabilities))
+  probabilities = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, probabilities))
 
-# end
+end
+
+@attr Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}} function equivalent_classes(PM::PhylogeneticModel)
+  _, ps = model_ring(PM)
+  param = parametrization(PM);
+  
+  polys = unique(param.img_gens)
+  polys = polys[findall(!is_zero, polys)]
+
+  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{QQMPolyRingElem}}()
+  equivalent_classes = Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}}()
+  for poly in polys
+      eqv_class = sort([p for p in ps if param(p) == poly], rev = true)
+      # equivalent_classes[Tuple(index(eqv_class[1]))] = eqv_class
+      equivalent_classes[eqv_class[1]] = eqv_class
+  end
+
+  return equivalent_classes
+end
+
+@attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::PhylogeneticModel; cached=false)
+    eq_calasses = Oscar.equivalent_classes(PM)
+    keys_eq_classes = collect(keys(eq_calasses))
+
+    return polynomial_ring(base_field(PM),
+                         [Symbol(k) for k in keys_eq_classes];
+                         cached=cached)
+end
+
+@attr MPolyAnyMap function reduced_parametrization(PM::PhylogeneticModel)
+
+    _, p = model_ring(PM)
+    S, _ = parameter_ring(PM)
+    param = parametrization(PM)
+
+    redR, _ = reduced_model_ring(PM)
+    gens_redR = gens(redR)
+    keys_eq_classes = index.(gens_redR)
+    
+    probabilities = [param(p[k...]) for k in keys_eq_classes]
+    hom(redR, S, reduce(vcat, probabilities))
+end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
@@ -100,6 +141,8 @@ function Base.show(io::IO, pm::PhylogeneticModel)
   # printing this matrix can probably be improved
   print(io, "$(pm.trans_mat_structure)")
 end
+
+
 
 struct GroupBasedPhylogeneticModel
   phylo_model::PhylogeneticModel
