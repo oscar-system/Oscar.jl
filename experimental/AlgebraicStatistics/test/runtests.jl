@@ -79,7 +79,7 @@ end
     # end
     # generators of the polynomial ring
     @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
-    @test ngens(model_ring(model)[1]) == n_states(model)^(length(Oscar.leaves(tree)))
+    @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
     # fourier parameters -- check!
     # fp = model.trans_mat_structure
     # for i in 1:3
