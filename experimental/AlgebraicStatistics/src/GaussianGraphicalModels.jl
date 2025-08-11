@@ -5,7 +5,7 @@
 ###################################################################################
 
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
-  graph::Graph{T}
+  graph::AbstractGraph{T}
   labelings::L
   varnames::Dict{Symbol,VarName}
   function GaussianGraphicalModel(G::Graph{T},

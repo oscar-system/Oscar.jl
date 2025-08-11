@@ -83,8 +83,8 @@ function discrete_graphical_model(G::Graph{Undirected}, S::MarkovRing, t_var_nam
 end
 
 
-function Base.show(io::IO, M::GraphicalModel{Graph{Undirected}, MarkovRing})
-  G = M.graph
+function Base.show(io::IO, M::DiscreteGraphicalModel{Undirected, L}) where L
+  G = graph(M)
   E = [(src(e), dst(e)) for e in edges(G)]
   S = ring(M)
   states = map(i -> length(state_space(S, i)), random_variables(S))
@@ -129,24 +129,22 @@ p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
 p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 """
 
-function parametrization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
-
-
-  G = graph(M)
-  cliques = maximal_cliques(G)
-  S = ring(M)
-  R = param_ring(M)
-  t = param_gens(M)
- 
-  images = []
-
-  for ind in state_space(S)
-
-      push!(images, prod(map(C -> t[Tuple(C)][Tuple(ind[C])], cliques)))
-  end
-
-  hom(ring(S), R, images)
-end
+# function parametrization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
+#   G = graph(M)
+#   cliques = maximal_cliques(G)
+#   S = ring(M)
+#   R = param_ring(M)
+#   t = param_gens(M)
+#  
+#   images = []
+# 
+#   for ind in state_space(S)
+# 
+#       push!(images, prod(map(C -> t[Tuple(C)][Tuple(ind[C])], cliques)))
+#   end
+# 
+#   hom(ring(S), R, images)
+# end
 
 
 ###################################################################################
@@ -207,7 +205,7 @@ function parental_state_space(G::Graph{Directed}, i::Integer, S::MarkovRing)
 end
 
 
-function Base.show(io::IO, M::GraphicalModel{Graph{Directed}, MarkovRing})
+function Base.show(io::IO, M::DiscreteGraphicalModel{Directed, L}) where L
   G = M.graph
   E = [(src(e), dst(e)) for e in edges(G)]
   S = ring(M)
@@ -251,31 +249,31 @@ p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
 p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
 p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 """
-function parametrization(M::GraphicalModel{Graph{Directed}, MarkovRing})
-
-  G = graph(M)
-  V = vertices(G)
-  S = ring(M)
-  rvs = random_variables(S)
-  R = param_ring(M)
-  q = param_gens(M)
-
-  images = []
-
-  for ind in state_space(S)
-
-      push!(images, prod(map(i-> q[i, ind[i]][Tuple(ind[inneighbors(G, i)])], V)))
-  end
-
-  lin_constraints  = []
-
-  for i in V
-    for par_state in parental_state_space(G, i, S)
-
-      push!(lin_constraints, last(gens(R)) - sum(map(j -> q[i, j][Tuple(par_state)] , state_space(S, rvs[i]))))
-    end
-  end
-  I = ideal(lin_constraints)
-
-  return hom(ring(S), R, map(f -> reduce(f, gens(I)), images))
-end
+# function parametrization(M::GraphicalModel{Graph{Directed}, MarkovRing})
+# 
+#   G = graph(M)
+#   V = vertices(G)
+#   S = ring(M)
+#   rvs = random_variables(S)
+#   R = param_ring(M)
+#   q = param_gens(M)
+# 
+#   images = []
+# 
+#   for ind in state_space(S)
+# 
+#       push!(images, prod(map(i-> q[i, ind[i]][Tuple(ind[inneighbors(G, i)])], V)))
+#   end
+# 
+#   lin_constraints  = []
+# 
+#   for i in V
+#     for par_state in parental_state_space(G, i, S)
+# 
+#       push!(lin_constraints, last(gens(R)) - sum(map(j -> q[i, j][Tuple(par_state)] , state_space(S, rvs[i]))))
+#     end
+#   end
+#   I = ideal(lin_constraints)
+# 
+#   return hom(ring(S), R, map(f -> reduce(f, gens(I)), images))
+# end
