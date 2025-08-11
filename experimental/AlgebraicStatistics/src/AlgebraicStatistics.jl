@@ -63,6 +63,11 @@ export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 export gaussian_ring, GaussianRing
 
+# Discrete graphical models
+export state_space
+export marginal
+export markov_ring, tensor_ring, MarkovRing
+
 # Conditional independence
 export CIStmt
 export ci_stmt
@@ -72,3 +77,4 @@ export make_elementary
 export ci_ideal
 export ci_polynomial
 export ci_structure
+export random_variables
