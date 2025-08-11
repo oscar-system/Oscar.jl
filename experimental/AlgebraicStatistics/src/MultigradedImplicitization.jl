@@ -1,14 +1,11 @@
-# Some generic helper functions which I could not find in Julia or OSCAR
-# Determine the pivots by computing the RREF and then looking for the first nonzero entry of each row
 function pivots(M::MatElem)
-  (r, R) = rref(M)
-  pivots = []
+  rref!(M)
+  pivots = Vector{Int}[]
 
-  for i in 1:nrows(R)
-    for j in 1:ncols(R)
-
-      if R[i,j] != 0
-        append!(pivots, [[i,j]])
+  for i in 1:nrows(M)
+    for j in 1:ncols(M)
+      if !iszero(M[i,j])
+        push!(pivots, [i,j])
         break
       end
     end
