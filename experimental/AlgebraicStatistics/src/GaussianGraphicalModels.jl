@@ -15,7 +15,7 @@
     return new{T, typeof(graph_maps)}(G, graph_maps, varnames)
   end
 
-  function GaussianGraphicalModel(G::MixedGraph, varnames::Vector{VarName})
+  function GaussianGraphicalModel(G::MixedGraph, varnames::Dict{Symbol, VarName})
     #TODO figure out how to deal with labelings on MixedGraphs
     # for now just use Nothing
     return new{Mixed, Nothing}(G, nothing, varnames)
@@ -53,7 +53,7 @@ julia> typeof(GM)
 GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
-function gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+function gaussian_graphical_model(G::AbstractGraph{T}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w") where T <: Union{Directed, Mixed}
   GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :l => l_varname, :w => w_varname))
 end
 
