@@ -79,12 +79,12 @@ end
     # end
     # generators of the polynomial ring
     @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
-    @test_skip @test ngens(model_ring(model)[1]) == (n_edges(tree))
-     # fourier parameters
-    fp = model.trans_mat_signature
-    for i in 1:3
-      @test fp[4, i] == fp[4, i] == fp[4, i]
-    end
+    @test ngens(model_ring(model)[1]) == n_states(model)^(length(Oscar.leaves(tree)))
+    # fourier parameters -- check!
+    # fp = model.trans_mat_structure
+    # for i in 1:3
+    #   @test fp[4, i] == fp[4, i] == fp[4, i]
+    # end
   end
 
   @test_skip @testset "kimura2_model" begin

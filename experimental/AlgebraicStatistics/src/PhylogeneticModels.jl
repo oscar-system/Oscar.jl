@@ -48,13 +48,13 @@ trans_matrix(PM::PhylogeneticModel) = PM.trans_mat_structure
 base_field(PM::PhylogeneticModel) = PM.base_field
 varname(PM::PhylogeneticModel) = PM.model_parameter_name
 
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(M::PhylogeneticModel; cached=false)
+@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::PhylogeneticModel; cached=false)
   vars = unique(trans_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
-  R, Dict{Tuple{VarName, Int}, MPolyRingElem}(
-    (vars[i], j) => x[i][j] for i in 1:length(vars), j in 1:n_edges(graph(PM))
+  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(edges(graph(PM)))
   )
 end
 
