@@ -78,7 +78,7 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -144,7 +144,7 @@ jobs:
           - 'pre'
           - 'nightly'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -195,7 +195,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2
       - name: "Set up Julia"
@@ -234,7 +234,7 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
