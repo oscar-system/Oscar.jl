@@ -12,7 +12,7 @@ function type_params(obj::GraphGenDict)
   end
   
   value_params = type_params.(collect(values(obj)))
-  @req Oscar.params_all_equal(value_params) "Not all params of values in $obj are the same"
+  @req Oscar.Serialization.params_all_equal(value_params) "Not all params of values in $obj are the same"
   
   return TypeParams(
     GraphGenDict,
@@ -27,6 +27,8 @@ function save_object(s::SerializerState, e::Edge)
   end
 end
 
+load_object(s::DeserializerState, ::Type{Edge}) = Edge(load_object(s, Vector{Int})...)
+
 function save_object(s::SerializerState, d::GraphGenDict)
   save_data_array(s) do
     for (k, v) in d
@@ -35,11 +37,32 @@ function save_object(s::SerializerState, d::GraphGenDict)
   end
 end
 
+function load_object(s::DeserializerState, ::Type{GraphGenDict}, R::Ring)
+  graph_gen_dict = Dict{Union{Int, Edge}, MPolyRingElem}()
+  load_array_node(s) do (_, (k, v))
+    if k isa Oscar.Serialization.JSON3.Array
+      key = load_object(s, Edge, 1)
+    else
+      key = load_object(s, Int, 1)
+    end
+    graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
+  end
+  return graph_gen_dict
+end
+
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
 
+function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
+  TypeParams(S, graph(GM))
+end
 
-function save_object(s::SerializerState, M::GraphicalModel{T, L}) where {T, L}
+function save_object(s::SerializerState, M::GraphicalModel)
   save_data_dict(s) do
-    save_object(s, graph(M), :graph)
+    # needs an empty dict here
+    # this requires a known issue with current general serialization
   end
 end
+
+load_object(s::DeserializerState,
+            ::Type{GaussianGraphicalModel},
+            g::AbstractGraph) = gaussian_graphical_model(g)

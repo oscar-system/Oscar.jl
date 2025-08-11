@@ -871,6 +871,7 @@ export set_key
 export TypeParams
 export type_params
 export with_attrs
+export params_all_equal
 
 end # module Serialization
 
