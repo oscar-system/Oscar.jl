@@ -4,6 +4,8 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
 } where S <: Oscar.GraphMap;
 # 
 
+include("setup_tests.jl")
+
 @testset "GaussianGraphicalModels" begin
   DG = graph_from_edges(Directed, [[1,2],[2,3]])
   @testset "Directed" begin
@@ -14,16 +16,21 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
       [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
     )
 
-    label!(DG,
-           Dict((1, 2) => "pink", (2, 3) => "pink"),
-           Dict(i => "green" for i in 1:3);
-           name=:color)
-    M2 = gaussian_graphical_model(DG)
-    cov_mat = covariance_matrix(M2)
-    V2 = vanishing_ideal(M2)
-    @test V2 == ideal(
-      [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
-    )
+  mktempdir() do path
+    test_save_load_roundtrip(path, M1) do loaded
+      
+    end
+  end
+  label!(G,
+         Dict((1, 2) => "pink", (2, 3) => "pink"),
+         Dict(i => "green" for i in 1:3);
+         name=:color)
+  M2 = gaussian_graphical_model(G)
+  cov_mat = covariance_matrix(M2)
+  V2 = vanishing_ideal(M2)
+  @test V2 == ideal(
+    [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
+  )
 
   end
 
