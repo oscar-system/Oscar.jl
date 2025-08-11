@@ -8,6 +8,7 @@
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
+    @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -16,6 +17,7 @@
     return r
   end
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
+    @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -135,7 +137,7 @@ of `R`, and return the new ring, together with the vector of variables.
 As above, where the grading is the standard $\mathbb Z$-grading on `R`.
 
 # Examples
-```jldoctest
+```jldoctest grade-ex
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -156,8 +158,15 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1]
-
 ```
+
+Grading an already graded polynomial ring is not supported.
+```jldoctest grade-ex
+julia> grade(S)
+ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
+```
+To produce a new ring with different grading, you need to first
+call `forget_grading` and then `grade` the result.
 """
 function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
@@ -1191,7 +1200,7 @@ end
 Given an element `f` of a graded multivariate ring, return the homogeneous components of `f`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
@@ -1370,6 +1379,7 @@ base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+is_gen(a::MPolyDecRingElem) = is_gen(forget_grading(a))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
@@ -1430,7 +1440,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
   @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   D = W.D
   is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
+  h = hom(free_abelian_group(ngens(W)), D, W.d)
   fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
   B = elem_type(W)[]
@@ -2566,12 +2576,11 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # make sure to not recompute a GB from scratch on the singular
     # side if we have one
     G = first(values(I.gb))
-    G.gens.S.isGB = true
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
     return filter(!iszero, (R).(gens(sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
-    ring = I.gens.Ox
+    ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
     return filter(!iszero, (R).(gens(sing_min)))

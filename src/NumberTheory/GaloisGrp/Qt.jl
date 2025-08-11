@@ -380,7 +380,7 @@ function Hecke.subfields(FF::Generic.FunctionField{QQFieldElem})
     while true
       b = map(map_coefficients(Fq, A), r)
       bs = Hecke.MPolyFact.block_system(b)
-      if length(bs) == degree(k) && all(x->length(x) == length(bs[1]), bs)
+      if length(bs) == degree(k) && allequal(length, bs)
         break
       end
       @vprint :Subfields 2 "need tschirni\n"

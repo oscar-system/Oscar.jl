@@ -71,7 +71,7 @@ default `show` with unicode
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2       .       .
  3  1  .       1       1
@@ -90,7 +90,7 @@ default `show` without unicode
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2        .        .
   3  1  .        1        1
@@ -109,7 +109,7 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -135,7 +135,7 @@ in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2  .  .
  3  1  .  1  1
@@ -155,7 +155,7 @@ A̅ = ζ₃
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2  .  .
   3  1  .  1  1
@@ -176,7 +176,7 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -600,7 +600,7 @@ show indicators in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -619,7 +619,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -644,7 +644,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -663,7 +663,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -688,7 +688,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
        end
-2-modular Brauer table of Alt(4)
+2-modular Brauer table of alternating group of degree 4
 
     2  2       .       .
     3  1       1       1
@@ -706,7 +706,7 @@ julia> Oscar.with_unicode() do
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-2-modular Brauer table of Alt(4)
+2-modular Brauer table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
@@ -782,9 +782,6 @@ end
   @test modtbl === rem(ordtbl, 2)
   @test modtbl === ordtbl % 2
 
-  @test block_distribution(ordtbl, 2) == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
-  @test block_distribution(ordtbl, 2) == block_distribution(ordtbl, ZZ(2))
-  @test_throws ArgumentError block_distribution(modtbl, 2)
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
@@ -812,6 +809,23 @@ end
   @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
   @test trivial_character(ordtbl)[1] == 1
   @test trivial_character(modtbl)[1] == 1
+  @test [power_map(ordtbl, 3, i) for i in 1:5] == [1, 2, 1, 5, 4]
+end
+
+@testset "p-blocks" begin
+  tbl = character_table("A5")
+  p = 2
+  bl = block_distribution(tbl, p)
+  @test bl == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
+  @test bl == block_distribution(tbl, ZZ(p))
+  @test_throws ArgumentError block_distribution(mod(tbl, p), p)
+
+  G = alternating_group(5)
+  tbl = character_table(G)
+  bl = block_distribution(tbl, p)
+  defects = bl[:defect]
+  @test [order(defect_group(tbl, p, b)[1]) for b in 1:length(defects)] ==
+        [p^d for d in defects]
 end
 
 @testset "characters" begin
@@ -835,6 +849,7 @@ end
   re = regular_character(g)
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
+  @test re == permutation_character(g, trivial_subgroup(g)[1])
   @test coordinates(re) == degree.(t)
   lin = @inferred linear_characters(g)
   @test length(lin) == 2
@@ -860,7 +875,7 @@ end
   @test all(is_irreducible, t)
   @test sort!([order(kernel(chi)[1]) for chi in t]) == [1, 1, 4, 12, 24]
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
-  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+  @test allunique(t)
 
   @test all(chi -> chi * chi == tensor_product(chi, chi), t)
 
@@ -929,6 +944,10 @@ end
   @test ! (x in h)
   psi = chi^x
   @test all(y -> mod(order(y), p) == 0 || chi(x*y*x^-1) == psi(y), collect(h))
+
+  t = character_table("A5")
+  chi = t[4]
+  @test values(central_character(chi)) == [1, 0, 5, -3, -3]
 end
 
 @testset "Galois conjugacy of characters" begin
@@ -939,16 +958,21 @@ end
 
   t = character_table("A5")
   sums = [galois_orbit_sum(x) for x in t]
-  degrees = [degree(character_field(x)[1]) for x in t]
+  rep = galois_representative_and_multiplicity(sums[2])
+  @test_throws ArgumentError galois_representative_and_multiplicity(0*t[1])
+  @test rep[1] == t[2] && rep[3] == 1
+  degrees = [degree_of_character_field(x) for x in t]
+  @test degrees == [degree(character_field(x)[1]) for x in t]
   @test degrees == [1, 2, 2, 1, 1]
   @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
   m = mod(t, 2)
   sums = [galois_orbit_sum(x) for x in m]
-  degrees = [degree(character_field(x)[1]) for x in m]
+  degrees = [degree_of_character_field(x) for x in m]
+  @test degrees == [degree(character_field(x)[1]) for x in m]
   @test degrees == [1, 2, 2, 1]
   @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
-  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  @test all(x -> degree_of_character_field(x) == 1, sums)
 
   # irreducibles not all rational but all are defined over the prime field
   m = character_table("L3(2)", 2)
@@ -1052,11 +1076,27 @@ end
   @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
 end
 
+@testset "character tables of factor groups" begin
+  g = symmetric_group(4)
+  gtbl = character_table(g)
+  n = class_positions_of_pcore(gtbl, 2)
+  ftbl, fus = quo(gtbl, n)
+  f = group(ftbl)
+  @test conjugacy_classes(f) == conjugacy_classes(ftbl)
+  @test fus == known_class_fusion(gtbl, ftbl)[2]
+  @test all(x -> restrict(x, gtbl) in gtbl, ftbl)
+end
+
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
-  @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
+  degrees = [degree_of_character_field(chi) for chi in tbl]
+  @test degrees == [degree(character_field(chi)[1]) for chi in tbl]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test character_field(tbl[2])[1] === character_field(tbl[3])[1] # caching
   @test characteristic(character_field(tbl[1])[1]) == 0
-  @test degree(character_field(collect(tbl))[1]) == 2
+  deg = degree_of_character_field(collect(tbl))
+  @test deg == degree(character_field(collect(tbl))[1])
+  @test deg == 2
 
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
@@ -1109,11 +1149,14 @@ end
 @testset "character fields of Brauer characters" begin
   ordtbl = character_table("A5")
   modtbl = mod(ordtbl, 2)
+  @test character_field(modtbl[2])[1] === character_field(modtbl[3])[1] # caching
   @test [order_field_of_definition(chi) for chi in modtbl] == [2, 4, 4, 2]
   @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
   @test order_field_of_definition(Int, modtbl[1]) isa Int
   @test_throws ArgumentError order_field_of_definition(ordtbl[1])
-  @test degree(character_field(collect(modtbl))[1]) == 2
+  deg = degree_of_character_field(collect(modtbl))
+  @test deg == degree(character_field(collect(modtbl))[1])
+  @test deg == 2
 end
 
 @testset "Schur index" begin
@@ -1127,20 +1170,7 @@ end
   t = character_table(g);
   trivial_character(s)^t;  # side-effect: stores a class fusion
   @test length(names_of_fusion_sources(t)) > 0
-  if hasproperty(GAP.Globals, :SchurIndexByCharacter)
-    # We can compute the values.
-    @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
-  else
-    # We can fail.
-    for chi in t
-      try
-        schur_index(chi)
-      catch(e)
-        msg = sprint(showerror, e)
-        @test msg == "cannot determine the Schur index with the currently used criteria"
-      end
-    end
-  end
+  @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
 
   # For a character table without group, we can fail.
   t = character_table("S6")
@@ -1149,7 +1179,7 @@ end
       schur_index(chi)
     catch(e)
       msg = sprint(showerror, e)
-      @test msg == "cannot determine the Schur index with the currently used criteria"
+      @test msg == "ArgumentError: cannot determine the Schur index with the currently used criteria"
     end
   end
 
@@ -1183,6 +1213,11 @@ end
     @test length(character_parameters(t)) == length(t)
     @test length(class_parameters(t)) == length(t)
   end
+
+  t = character_table_complex_reflection_group(4, 1, 3)
+  @test length(character_parameters(t)) == length(t)
+  @test length(class_parameters(t)) == length(t)
+  @test get_attribute(t, :type) == (4, 1, 3)
 end
 
 @testset "symmetrizations" begin

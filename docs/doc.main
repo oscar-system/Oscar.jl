@@ -4,6 +4,7 @@
   "General" => [
      "General/architecture.md",
      "General/other.md",
+     "General/printing.md",
      "General/faq.md",
      "General/serialization.md",
      "General/complex.md",
@@ -72,7 +73,7 @@
      "LinearAlgebra/intro.md",
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_spaces.md",
-     "AbstractAlgebra/matrix_implementation.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
      "Modules" => [
@@ -83,16 +84,7 @@
         "AbstractAlgebra/direct_sum.md",
         "AbstractAlgebra/module_homomorphism.md",
      ],
-     "Quadratic and Hermitian forms" => [
-        "Hecke/manual/quad_forms/introduction.md",
-        "Hecke/manual/quad_forms/basics.md",
-        "Hecke/manual/quad_forms/lattices.md",
-        "Hecke/manual/quad_forms/genusherm.md",
-        "Hecke/manual/quad_forms/integer_lattices.md",
-        "Hecke/manual/quad_forms/Zgenera.md",
-        "Hecke/manual/quad_forms/discriminant_group.md",
-        "NumberTheory/vinberg.md",
-     ],
+     "AbstractAlgebra/matrix_implementation.md",
   ],
 
   "Number Theory" => [
@@ -115,6 +107,23 @@
         "Hecke/manual/elliptic_curves/basics.md",
         "Hecke/manual/elliptic_curves/finite_fields.md"
      ],
+     "Quadratic and Hermitian forms" => [
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md",
+        "NumberTheory/vinberg.md",
+     ],
+     "Quadratic forms and isometries" => [
+      "NumberTheory/QuadFormAndIsom/introduction.md",
+      "NumberTheory/QuadFormAndIsom/spacewithisom.md",
+      "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/enumeration.md",
+      "NumberTheory/QuadFormAndIsom/primembed.md"
+    ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],
@@ -147,7 +156,8 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/module_data.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
@@ -251,6 +261,7 @@
      "TropicalGeometry/linear_space.md",
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
+     "TropicalGeometry/positive_variety.md",
   ],
 
   "Noncommutative Algebra" => [
@@ -274,15 +285,18 @@
 
   "Combinatorics" => [
     "Combinatorics/graphs.md",
+    "Combinatorics/posets.md",
     "Combinatorics/matroids.md",
     "Combinatorics/simplicialcomplexes.md",
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
+    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Straight Line Programs" => [
@@ -304,6 +318,7 @@
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

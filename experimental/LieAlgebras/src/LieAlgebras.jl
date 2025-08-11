@@ -6,6 +6,7 @@ using Oscar:
   _root_system_type_string,
   _vec,
   GAPWrap,
+  GSetByElements,
   IntegerUnion,
   MapHeader,
   set_root_system_type!
@@ -20,12 +21,11 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
-  FPGroup,
-  PermGroup,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
   action,
+  action_homomorphism,
   basis_matrix,
   basis,
   canonical_injection,
@@ -35,6 +35,7 @@ import ..Oscar:
   cartan_matrix,
   center,
   centralizer,
+  change_base_ring,
   character,
   characteristic,
   check_parent,
@@ -50,9 +51,9 @@ import ..Oscar:
   elem_type,
   expressify,
   exterior_power,
-  fp_group,
   gen,
   gens,
+  gset_by_type,
   hom,
   hom_direct_sum,
   hom_tensor,
@@ -60,6 +61,7 @@ import ..Oscar:
   identity_map,
   image,
   induced_map_on_exterior_power,
+  inner_direct_product,
   inv,
   is_abelian,
   is_isomorphism,
@@ -73,22 +75,22 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  natural_gset,
   normalizer,
   number_of_generators,
   ngens,
   parent_type,
-  permutation_group,
   rank,
   root_system,
+  structure_constant_table,
   sub,
   symbols,
   symmetric_power,
   tensor_product,
+  vector_space_dim,
   zero_map,
   ⊕,
   ⊗
-
-Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 

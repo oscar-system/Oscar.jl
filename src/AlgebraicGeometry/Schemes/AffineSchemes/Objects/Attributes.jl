@@ -445,7 +445,7 @@ end
 
 @attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  return vector_space_dimension(OO(X))
+  return vector_space_dim(OO(X))
 end
 
 @doc raw"""
@@ -557,7 +557,7 @@ end
 end
 
 ## to make reduced_scheme agnostic for quotient ring
-@attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
+@attr Tuple{T,ClosedEmbedding} function reduced_scheme(X::T) where {T<:AbsAffineScheme{<:Field, <:MPAnyNonQuoRing}}
   return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 

@@ -1,11 +1,23 @@
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
+include("GaussianGraphicalModels.jl")
+include("DiscreteGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
 include("PhylogeneticParametrization.jl")
 include("PhylogeneticInvariants.jl")
+include("LoadModels.jl")
+
+# export Abstract Graphical Model
+export GraphicalModel
+export model_ring
+export parameter_ring
+export parametrization
+export graph
+export vanishing_ideal
+export varnames
 
 #export models
 export cavender_farris_neyman_model
@@ -17,10 +29,8 @@ export affine_phylogenetic_model!
 
 #export phylogenetic models attributes
 export phylogenetic_model
-export graph
-export number_states
+export n_states
 export transition_matrices
-export probability_ring
 export root_distribution
 export fourier_parameters
 export fourier_ring
@@ -41,3 +51,15 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+
+# export functions to load objects (currently only graphs of phylogenetic models)
+export load_phylogenetic_model
+
+# Gaussian Graphical Model Exports
+export GaussianGraphicalModel
+export covariance_matrix
+export gaussian_graphical_model
+export directed_edges_matrix, error_covariance_matrix
+export concentration_matrix
+export gaussian_ring, GaussianRing
+

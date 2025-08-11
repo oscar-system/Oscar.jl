@@ -1,7 +1,3 @@
-if VERSION < v"1.11.0-DEV.1562"
-  import Compat: allequal
-end
-
 @testset "Examples.Permutations" begin
   p = @perm (1,2)(3,4)(5,6)
   @test p == cperm([1,2],[3,4],[5,6])
@@ -117,12 +113,10 @@ end
   @testset "@perm <...> vector" begin
     let n = 7
       S = symmetric_group(n)
-      @static if VERSION >= v"1.7"
-        # the following tests need the improved `@macroexpand` from Julia 1.7
-        @test_throws ArgumentError @macroexpand @perm []
-        @test_throws ArgumentError @macroexpand @perm n []
-        @test_throws ArgumentError @macroexpand @perm S []
-      end
+
+      @test_throws ArgumentError @macroexpand @perm []
+      @test_throws ArgumentError @macroexpand @perm n []
+      @test_throws ArgumentError @macroexpand @perm S []
     end
 
     @testset "@perm vector" begin
@@ -271,15 +265,12 @@ end
   end
 
 
-  @static if VERSION >= v"1.7"
-    # the following tests need the improved `@macroexpand` from Julia 1.7
-    @test_throws MethodError @macroexpand @perm "bla"
-    @test_throws ErrorException @macroexpand @perm 1 + 1
-    @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
-    @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
-    @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
-    @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
-  end
+  @test_throws MethodError @macroexpand @perm "bla"
+  @test_throws ErrorException @macroexpand @perm 1 + 1
+  @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
+  @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
+  @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
+  @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
 end
 
 @testset "permutation_group" begin

@@ -1,5 +1,4 @@
 @testset "Graphs" begin
-
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
@@ -25,11 +24,20 @@
         @test n_vertices(g) == 7
         @test vertices(g) == 1:7
 
+        @test degree(g) == zeros(Int,7)
+        @test degree(g,2) == 0
+
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
         add_edge!(g, 2, 3)
         add_edge!(g, 3, 1)
         @test signed_incidence_matrix(g) == Matrix([-1 0 1; 1 -1 0; 0 1 -1; 0 0 0])
+
+        @test indegree(g) == [1,1,1,0]
+        @test outdegree(g) == [1,1,1,0]
+
+        @test indegree(g, 1) == 1
+        @test outdegree(g, 1) == 1
 
         e = Edge(1,2)
         @test 1 in e
@@ -158,7 +166,7 @@
         @test !add_edge!(g,1,2)
     end
 
-    @testset "grap_from_edges" begin
+    @testset "graph_from_edges" begin
         x1 = [[5,6],[7,8],[11,12]]
         G1 = graph_from_edges(x1)
 
@@ -180,9 +188,33 @@
 
         GG2 = graph_from_edges(Undirected, ee, 13)
         @test is_isomorphic(G2, GG2)
-
     end
 
+      @testset "graph_from_labeled_edges" begin
+        G1 = graph_from_edges([[1, 2], [3, 4]])
+        vertex_labels = Dict(1 => 2, 3 => 4)
+        label!(G1, nothing, vertex_labels; name=:color)
+        @test_throws ArgumentError G1.color[1, 2]
+        @test G1.color[1] == 2
+        
+        edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
+        G2 = graph_from_labeled_edges(edge_labels)
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
+        @test_throws ArgumentError G2.label[6, 7]
+        @test_throws ArgumentError G2.label[6]
+
+        vertex_labels = Dict(9 => 10)
+        @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
+
+        G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
+        @test_throws ArgumentError G3.label[10]
+        @test_throws ArgumentError G3.label[6, 5]
+        @test G3.label[7, 8] == 3
+        @test G3.label[9] == 10
+        @test G3.label[1] == 0
+        @test labelings(G3) == [:label]
+    end
+  
     @testset "adjacency_matrix laplacian_matrix" begin
       G0 = Graph{Directed}(3)
       add_edge!(G0,1,2)
@@ -203,5 +235,10 @@
 
       G1 = graph_from_edges([[1,2],[2,3],[3,4]])
       @test is_bipartite(G1) == true
+    end
+
+    @testset "maximal_cliques" begin
+      G = complete_bipartite_graph(2, 2)
+      @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
     end
 end

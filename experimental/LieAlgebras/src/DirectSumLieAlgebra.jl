@@ -13,7 +13,7 @@ parent(x::DirectSumLieAlgebraElem) = x.parent
 
 coefficient_ring(L::DirectSumLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::DirectSumLieAlgebra) = L.dim
+vector_space_dim(L::DirectSumLieAlgebra) = L.dim
 
 ###############################################################################
 #

@@ -4,7 +4,7 @@
 #   elem_type(::Type{MyLieAlgebra{C}}) = MyLieAlgebraElem{C}
 #   parent(x::MyLieAlgebraElem{C}) -> MyLieAlgebra{C}
 #   coefficient_ring(L::MyLieAlgebra{C}) -> parent_type(C)
-#   dim(L::MyLieAlgebra) -> Int
+#   vector_space_dim(L::MyLieAlgebra) -> Int
 #   symbols(L::MyLieAlgebra) -> Vector{Symbol}
 #   bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C}) -> MyLieAlgebraElem{C}
 #   Base.show(io::IO, x::MyLieAlgebra)
@@ -32,7 +32,8 @@ gen(L::LieAlgebra, i::Int) = basis(L, i)
 
 Return the dimension of the Lie algebra `L`.
 """
-dim(_::LieAlgebra) = error("Should be implemented by subtypes.")
+dim(L::LieAlgebra) = vector_space_dim(L)
+vector_space_dim(_::LieAlgebra) = error("Should be implemented by subtypes.")
 
 @doc raw"""
     basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
@@ -77,7 +78,7 @@ end
 Check whether the Lie algebra element `x` is zero.
 """
 function iszero(x::LieAlgebraElem)
-  return iszero(coefficients(x))
+  return iszero(_matrix(x))
 end
 
 @inline function _matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -259,13 +260,13 @@ end
 
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return coefficients(x1) == coefficients(x2)
+  return _matrix(x1) == _matrix(x2)
 end
 
 function Base.hash(x::LieAlgebraElem, h::UInt)
   b = 0x6724cbedbd860982 % UInt
   h = hash(parent(x), h)
-  h = hash(coefficients(x), h)
+  h = hash(_matrix(x), h)
   return xor(h, b)
 end
 
@@ -471,7 +472,7 @@ function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L))
   tmp = zero(mat)
-  for (c, g) in zip(coefficients(x), adjoint_matrices(L))
+  for (c, g) in zip(_matrix(x), adjoint_matrices(L))
     mat = addmul!(mat, g, c, tmp)
   end
   return mat
@@ -604,10 +605,9 @@ function _root_system_and_chevalley_basis(
 ) where {C<:FieldElem}
   @req base_lie_algebra(H) === L "Incompatible Lie algebras."
   # we just assume that H is indeed a Cartan subalgebra
-
   @req is_invertible(killing_matrix(L)) "The Killing form is degenerate"
 
-  F = coefficient_ring(L)
+  R = coefficient_ring(L)
 
   # compute the common eigenspaces of the adjoint action of H.
   # B is a list of subspaces of L that gets refined in each iteration.
@@ -645,7 +645,7 @@ function _root_system_and_chevalley_basis(
 
   # compute an R-basis of the root space, s.t. the corresponding co-roots are a basis of H
   roots_basis = empty(roots)
-  basis_mat_H = zero_matrix(F, 0, dim(L))
+  basis_mat_H = zero_matrix(R, 0, dim(L))
   for root in roots
     nrows(basis_mat_H) == dim(H) && break
     x_j = only(basis(root_spaces[root]))
@@ -719,31 +719,177 @@ function _root_system_and_chevalley_basis(
   )
   type, ordering = cartan_type_with_ordering(cm; check=false)
   permute!(roots_simple, ordering)
-  R = root_system(type)
+  rs = root_system(type)
 
-  # compute a Chevalley basis of L
+  # compute conrete root vectors of L
   root_vectors = [
     begin
       concrete_root = sum(
-        c .* root_simple for
+        Int(c) .* root_simple for
         (c, root_simple) in zip(coefficients(abstract_root), roots_simple)
       )
       @assert concrete_root in roots
       root_vector = only(basis(root_spaces[concrete_root]))
-    end for abstract_root in Oscar.roots(R)
+    end for abstract_root in Oscar.roots(rs)
   ]
-  xs = root_vectors[1:n_positive_roots(R)]
-  ys = Vector{elem_type(L)}([
+
+  # scale the root vectors to get canonical generators, i.e.
+  # 1. [h_i,h_j] = 0            2. [x_i,y_j] = delta_ij * h_i
+  # 3. [h_i,x_j] = a_ij * x_j   4. [h_i,y_j] = -a_ij * y_j
+  canonical_gens_xs = root_vectors[1:n_simple_roots(rs)]
+  canonical_gens_ys = Vector{elem_type(L)}([
     begin
-      x = xs[i]
-      y = root_vectors[n_positive_roots(R) + i]
+      x = canonical_gens_xs[i]
+      y = root_vectors[n_positive_roots(rs) + i]
       y *= 2//only(solve(_matrix(x), _matrix(bracket(bracket(x, y), x)); side=:left))
       y
-    end for i in 1:n_positive_roots(R)
+    end for i in 1:n_simple_roots(rs)
   ])
-  hs = elem_type(L)[xs[i] * ys[i] for i in 1:n_simple_roots(R)]
+  canonical_gens_hs = elem_type(L)[
+    canonical_gens_xs[i] * canonical_gens_ys[i] for i in 1:n_simple_roots(rs)
+  ]
 
-  return R, (xs, ys, hs)
+  # Construct an automorphism `f` of `L` with `f(L_alpha) = L_-alpha`, and `f(h) = -h` for `h` in `H`.
+  # This is already defined by mapping `canonical_gens_xs` to `canonical_gens_ys` and vice versa.
+  # To save computation time, we only compute f on L_alpha for alpha a positive root
+  domain_basis = copy(canonical_gens_xs)
+  codomain_basis = copy(canonical_gens_ys)
+  for (i, alpha) in enumerate(positive_roots(rs))
+    i <= n_simple_roots(rs) && continue # already set above
+    j, k = 0, 0
+    found = false
+    for outer j in 1:rank(rs)
+      (fl, k) = is_positive_root_with_index(alpha - simple_root(rs, j))
+      if fl
+        found = true
+        break
+      end
+    end
+    @assert found
+    push!(domain_basis, canonical_gens_xs[j] * domain_basis[k])
+    push!(codomain_basis, canonical_gens_ys[j] * codomain_basis[k])
+  end
+
+  # For each positive root vector `x` we set `y = -f(x)`.
+  # We compute a scalar `coeff` such that `h = 2/coeff * [x,y]`.
+  # We need to multiply `x` and `y` by `sqrt(2/coeff)` to get elements of a Chevally basis.
+  pos_root_vectors = elem_type(L)[]
+  neg_root_vectors = elem_type(L)[]
+  scaled_cartan_elems = elem_type(L)[]
+  coeffs = C[]
+  for i in 1:n_positive_roots(rs)
+    x = root_vectors[i]
+    y = -only(solve(_matrix(domain_basis[i]), _matrix(x); side=:left)) * codomain_basis[i] # y = -f(x)
+    h = bracket(x, y)
+    coeff = only(solve(_matrix(x), _matrix(bracket(h, x)); side=:left))
+    if i <= n_simple_roots(rs)
+      push!(scaled_cartan_elems, (2//coeff) * h)
+    end
+    push!(coeffs, 2//coeff)
+    push!(pos_root_vectors, x)
+    push!(neg_root_vectors, y)
+  end
+
+  # In general, `coeffs` may not be squares in the coefficient field.
+  # Construct a field extension `F` where they are.
+  if all(is_square, coeffs)
+    F = R
+    coeffs_F_sqrt = sqrt.(coeffs)
+  else
+    F, coeffs_F_sqrt = _field_ext_with_sqrts(R, coeffs)
+  end
+
+  # Construct a Lie algebra `L_F` over `F` with the same structure constants as `L`,
+  # and construct the Chevalley basis of `L_F`. 
+  L_F = change_base_ring(F, L)
+  L_F_chev_basis_mat = reduce(vcat,
+    [
+      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F_sqrt, pos_root_vectors))...,
+      (coeff .* _matrix(rv) for (coeff, rv) in zip(coeffs_F_sqrt, neg_root_vectors))...,
+      (F.(_matrix(h)) for h in scaled_cartan_elems)...,
+    ]; init=zero_matrix(F, 0, dim(L_F)))
+  # The structure constants of `L_F` w.r.t. the Chevalley basis lie in `R`,
+  # so we can construct the Lie algebra `K` over `R` with the these structure constants.
+  # The basis elements of `K` form a Chevalley basis.
+  K = lie_algebra(
+    R, map(e -> change_base_ring(R, e), _structure_constant_table(L_F, L_F_chev_basis_mat))
+  )
+
+  # Construct an isomorphism f from K to L.
+  # To save computation time, we only compute f on L_alpha for alpha a root.
+  domain_basis_xs = [basis(K, i) for i in 1:n_simple_roots(rs)]
+  domain_basis_ys = [basis(K, n_positive_roots(rs) + i) for i in 1:n_simple_roots(rs)]
+  codomain_basis_xs = copy(canonical_gens_xs)
+  codomain_basis_ys = copy(canonical_gens_ys)
+  for (i, alpha) in enumerate(positive_roots(rs))
+    i <= n_simple_roots(rs) && continue # already set above
+    j, k = 0, 0
+    found = false
+    for outer j in 1:rank(rs)
+      (fl, k) = is_positive_root_with_index(alpha - simple_root(rs, j))
+      if fl
+        found = true
+        break
+      end
+    end
+    @assert found
+    push!(domain_basis_xs, domain_basis_xs[j] * domain_basis_xs[k])
+    push!(domain_basis_ys, domain_basis_ys[j] * domain_basis_ys[k])
+    push!(codomain_basis_xs, codomain_basis_xs[j] * codomain_basis_xs[k])
+    push!(codomain_basis_ys, codomain_basis_ys[j] * codomain_basis_ys[k])
+  end
+
+  # The image of the Chevalley basis of K under f is a Chevalley basis of L.
+  xs = [
+    only(solve(_matrix(domain_basis_xs[i]), _matrix(basis(K, i)); side=:left)) *
+    codomain_basis_xs[i] for i in 1:n_positive_roots(rs)
+  ]
+  ys = [
+    only(
+      solve(
+        _matrix(domain_basis_ys[i]), _matrix(basis(K, n_positive_roots(rs) + i)); side=:left
+      ),
+    ) * codomain_basis_ys[i] for i in 1:n_positive_roots(rs)
+  ]
+
+  return rs, (xs, ys, scaled_cartan_elems)
+end
+
+# TODO: clean the following up, once we have a unified interface for field extensions
+function _field_ext_with_sqrts(F::QQField, elems::Vector{QQFieldElem})
+  i = findfirst(!is_square, elems)
+  if isnothing(i)
+    return F, sqrt.(elems)
+  end
+  Fx, x = polynomial_ring(F; cached=false)
+  F, _ = number_field(x^2 - elems[i]; cached=false)
+  return _field_ext_with_sqrts(F, [F(c) for c in elems])
+end
+
+function _field_ext_with_sqrts(F::NumField, elems::Vector{<:NumFieldElem})
+  @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
+  elems_F = elems
+  i = findfirst(!is_square, elems_F)
+  while !isnothing(i)
+    Fx, x = polynomial_ring(F; cached=false)
+    F, _ = number_field(x^2 - elems_F[i]; cached=false)
+    elems_F = [F(c) for c in elems_F]
+    i = findfirst(!is_square, elems_F)
+  end
+  return F, sqrt.(elems_F)
+end
+
+function _field_ext_with_sqrts(F::FqField, elems::Vector{<:FqFieldElem})
+  @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
+  elems_F = elems
+  i = findfirst(!is_square, elems_F)
+  while !isnothing(i)
+    Fx, x = polynomial_ring(F; cached=false)
+    F, _ = finite_field(x^2 - elems_F[i]; cached=false)
+    elems_F = [F(c) for c in elems_F]
+    i = findfirst(!is_square, elems_F)
+  end
+  return F, sqrt.(elems_F)
 end
 
 function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}
@@ -823,23 +969,85 @@ end
 
 ###############################################################################
 #
+#   Structure constant table
+#
+###############################################################################
+
+function structure_constant_table(L::LieAlgebra; copy::Bool=true)
+  # copy gets ignored as the generic implementation creates a new table anyway
+
+  R = coefficient_ring(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
+
+  basis = Oscar.basis(L)
+
+  for i in 1:dim(L)
+    struct_consts[i, i] = sparse_row(R)
+  end
+  for i in 1:dim(L), j in (i + 1):dim(L)
+    struct_consts[i, j] = sparse_row(_matrix(bracket(basis[i], basis[j])))
+    struct_consts[j, i] = -struct_consts[i, j]
+  end
+
+  return struct_consts
+end
+
+function structure_constant_table(
+  L::LieAlgebra{C}, basis::Vector{<:LieAlgebraElem{C}}
+) where {C}
+  @req all(b -> parent(b) === L, basis) "Incompatible Lie algebras"
+  basis_mat = reduce(
+    vcat, _matrix.(basis); init=zero_matrix(coefficient_ring(L), 0, dim(L))
+  )
+  return _structure_constant_table(L, basis_mat)
+end
+
+function _structure_constant_table(L::LieAlgebra{C}, basis_mat::MatElem{C}) where {C}
+  @req is_invertible(basis_mat) "input is not a basis"
+  basis_mat_ctx = solve_init(basis_mat)
+
+  R = coefficient_ring(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
+  sc_standard_basis = structure_constant_table(L; copy=false)
+
+  for i in 1:dim(L)
+    struct_consts[i, i] = sparse_row(R)
+  end
+  for i in 1:dim(L), j in (i + 1):dim(L)
+    # lookup entry in `basis_mat * sc_standard_basis * transpose(basis_mat)`
+    entry = zero_matrix(R, 1, dim(L))
+    for k in 1:dim(L), l in 1:dim(L)
+      coeff = basis_mat[i, k] * basis_mat[j, l]
+      if !is_zero(coeff)
+        entry = addmul!(entry, coeff, dense_row(sc_standard_basis[k, l], dim(L)))
+      end
+    end
+    struct_consts[i, j] = sparse_row(solve(basis_mat_ctx, entry; side=:left))
+    struct_consts[j, i] = -struct_consts[i, j]
+  end
+
+  return struct_consts
+end
+
+###############################################################################
+#
 #   Universal enveloping algebra
 #
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex) -> PBWAlgRing, Map
 
 Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
 together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
-function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
+function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
   n = dim(L)
   b = basis(L)
 
   to_R(x::LieAlgebraElem) =
-    sum(c * g for (c, g) in zip(coefficients(x), gensR); init=zero(R))
+    sum(c * g for (c, g) in zip(_matrix(x), gensR); init=zero(R))
 
   rel = strictly_upper_triangular_matrix([
     to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
@@ -848,7 +1056,7 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
 
   L_to_U = MapFromFunc(
     L, U, function (x::LieAlgebraElem)
-      sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
+      sum(c * g for (c, g) in zip(_matrix(x), gensU); init=zero(U))
     end
   )
   return U, L_to_U

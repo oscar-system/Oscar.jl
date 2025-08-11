@@ -222,7 +222,42 @@ function preimage(F::MPolyAnyMap, I::Ideal)
 end
 
 function preimage(
-    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
+  return _preimage_via_singular(f, I)
+end
+
+function preimage(
+    f::MPolyAnyMap{S, S, Nothing}, 
+    I::MPolyIdeal
+  ) where {S <: MPolyRing{<:RingElem}}
+  # If the map is the inclusion of a subring in a subset of 
+  # variables, use the `eliminate` command instead.
+  _assert_has_maps_variables_to_variables!(f)
+  success, ind = _maps_variables_to_variables(f)
+  if success
+    img_gens = elem_type(domain(f))[] # for the projection map
+    elim_ind = Int[]
+    for (i, x) in enumerate(gens(codomain(f)))
+      k = findfirst(==(i), ind)
+      if isnothing(k)
+        push!(img_gens, zero(domain(f)))
+        push!(elim_ind, i)
+      else
+        push!(img_gens, gen(domain(f), k::Int))
+      end
+    end
+    J = eliminate(I, elim_ind)
+    pr = hom(codomain(f), domain(f), img_gens)
+    return pr(J)
+  end
+  return _preimage_via_singular(f, I)
+end
+
+function _preimage_via_singular(
+    f::MPolyAnyMap{<:MPolyRing{T}, CT, Nothing}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
   ) where {T <: RingElem,
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
@@ -247,6 +282,11 @@ function preimage(
   g = compose(help_map, f)
   K = preimage(g, I)
   return ideal(domain(f), help_map.(gens(K)))
+end
+
+@attr Any function kernel(f::MPolyAnyMap{<:Union{MPolyRing, MPolyQuoRing}, <:Generic.LaurentMPolyWrapRing, <:Any, <:Any})
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
 end
 
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .

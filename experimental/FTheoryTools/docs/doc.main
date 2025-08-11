@@ -1,11 +1,14 @@
 [
    "F-Theory Tools" => [
       "introduction.md",
-      "generalities.md",
       "weierstrass.md",
       "tate.md",
       "hypersurface.md",
       "literature.md",
-      "g4.md"
+      "qsm_models.md",
+      "generalities.md",      
+      "resolving_singularities.md",
+      "g4.md",
+      "family_of_spaces.md"
    ],
 ]

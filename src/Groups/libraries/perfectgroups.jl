@@ -115,6 +115,7 @@ julia> gens(ans)
 
 julia> perfect_group(60, 2)
 ERROR: ArgumentError: there are only 1 perfect groups of order 60
+[...]
 ```
 """
 function perfect_group(::Type{T}, n::IntegerUnion, k::IntegerUnion) where T <: GAPGroup

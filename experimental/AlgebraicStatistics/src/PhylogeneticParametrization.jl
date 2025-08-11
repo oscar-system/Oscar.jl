@@ -4,15 +4,23 @@
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
-  tr_mat = transition_matrices(pm)
+  par_gens = parameter_ring_gens(pm)
+  tr_mat = trans_matrix(pm)
   root_dist = root_distribution(pm)
 
   r = root(gr)
   monomial = root_dist[states[r]]
-  for edge in edges(gr)
-    stateParent = states[src(edge)]
-    stateChild = states[dst(edge)]
-    monomial = monomial * tr_mat[edge][stateParent, stateChild]
+  
+  for (i, edge) in enumerate(edges(gr))
+    state_parent = states[src(edge)]
+    state_child = states[dst(edge)]
+    # get the symbolfrom the transition matrix signature
+    sym = tr_mat[state_parent, state_child]
+    # we can try and avoid this here if this becomes a bottle neck
+    # it's related to the comment below about using a polynomial context
+    # i.e., this is just the adding of exponents which are integer vectors
+    # which would be much faster than polynomial multiplication
+    monomial = monomial * par_gens[(sym, i)]
   end
 
   return monomial
@@ -54,7 +62,7 @@ Create a parametrization for a `PhylogeneticModel` of type `Dictionary`.
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm)
@@ -86,7 +94,9 @@ function probability_map(pm::PhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(
+    Tuple(leaves_states) => probability_parametrization(pm, leaves_states)
+    for leaves_states in leaves_indices)
   return probability_coordinates
 end
 
@@ -131,7 +141,7 @@ Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> q = fourier_map(pm)
@@ -178,7 +188,7 @@ end
 Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries and return equivalence classes of states which are attached the same probabilities.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm);
@@ -254,7 +264,7 @@ end
 Take the output of the function `compute_equivalent_classes` for `PhylogeneticModel` and multiply by a factor to obtain probabilities as specified on the original small trees database.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm);

@@ -10,9 +10,24 @@ function _isomorphic_gap_group(A::FinGenAbGroup; T=SubPcGroup)
 end
 
 @doc raw"""
-    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup} 
+    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup}
 
 Return the automorphism group of `G`.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([2, 3, 4, 4, 4]);
+
+julia> automorphism_group(A)
+Automorphism group of
+  finitely generated abelian group with 5 generators and 5 relations
+
+julia> S, _ = snf(A);
+
+julia> automorphism_group(S)
+Automorphism group of
+  Z/2 x (Z/4)^2 x Z/12
+```
 """
 function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
@@ -21,7 +36,6 @@ function automorphism_group(G::FinGenAbGroup)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
-
 
 function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   aut = parent(f)
@@ -36,7 +50,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
   return to_oscar(imgap)::typeof(x)
 end
- 
+
 (f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
@@ -54,9 +68,49 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
 end
 
 @doc raw"""
-    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom 
+    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom
+    hom(f::AutomorphismGroupElem{TorQuadModule}) -> TorQuadModuleMap
 
-Return the element `f` of type `FinGenAbGroupHom`.
+Return the underlying homomorphism of ``f``.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([2, 3, 4]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> hom(f)
+Map
+  from finitely generated abelian group with 3 generators and 3 relations
+  to finitely generated abelian group with 3 generators and 3 relations
+
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with 3 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with matrix representation
+  [2   0]
+  [0   1]
+
+julia> hom(f)
+Map
+  from finite quadratic module: Z/3 x Z/9 -> Q/2Z
+  to finite quadratic module: Z/3 x Z/9 -> Q/2Z
+```
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
@@ -64,8 +118,7 @@ function hom(f::AutGrpAbTorElem)
   return hom(A, A, imgs)
 end
 
-
-function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::Bool=true)
+function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap}; check::Bool=true)
   !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -74,7 +127,7 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::B
   function img_gap(x)
     a = to_oscar(group_element(Agap,x))
     b = to_gap(f(a))
-    return b.X 
+    return b.X
   end
   gene = GAPWrap.GeneratorsOfGroup(AA)
   img = GAP.Obj([img_gap(a) for a in gene])
@@ -82,7 +135,6 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::B
   !check || fgap in aut.X || error("Map does not define an element of the group")
   return aut(fgap)
 end
-
 
 function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
   !check || defines_automorphism(domain(aut),M) || error("Matrix does not define an automorphism of the abelian group.")
@@ -104,6 +156,26 @@ end
     matrix(f::AutomorphismGroupElem{FinGenAbGroup}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([3, 9, 12]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   7]
+
+julia> matrix(f)
+[1   0   0]
+[0   1   0]
+[0   0   7]
+```
 """
 matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 
@@ -111,9 +183,10 @@ matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 @doc raw"""
     defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) -> Bool
 
-If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
-""" 
-defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
+If `M` defines an endomorphism of `G`, return `true` if `M` defines an
+automorphism of `G`, else `false`.
+"""
+defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G, G, M))
 
 ################################################################################
 #
@@ -136,9 +209,8 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   function toT(x)
     return T(AstoA(x))
   end
-  T_to_As = Hecke.map_from_func(toAs, T, As)
-  As_to_T = Hecke.map_from_func(toT, As, T)
-  to_oscar = compose(to_oscar, As_to_T)
+  T_to_As = MapFromFunc(T, As, toAs, toT)
+  to_oscar = compose(to_oscar, inv(T_to_As))
   to_gap = compose(T_to_As, to_gap)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   ambient = AutomorphismGroup(AutGAP, T)
@@ -155,18 +227,47 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   return aut
 end
 
-function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
-  T = domain(aut)
+function Base.show(io::IO, ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
   io = pretty(io)
-  n = ngens(aut)
-  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T, " with ", ItemQuantity(n, "generator"))
+  println(io, "Group of isometries of", Indent())
+  println(io, Lowercase(), OT.G)
+  print(io, Dedent(), "with ", ItemQuantity(ngens(OT), "generator"))
 end
-
+                                                                                                                                                                                        
+function Base.show(io::IO, OT::AutomorphismGroup{TorQuadModule})
+  if is_terse(io)
+    print(io, "Group of isometries")
+  else
+    io = pretty(io)
+    print(io, "Group of isometries of ", Lowercase(), OT.G)
+  end
+end 
 
 @doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
 
 Return a matrix inducing `f`.
+
+# Examples
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//12 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with 4 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with matrix representation
+  [1    0]
+  [0   19]
+
+julia> matrix(f)
+[1    0]
+[0   19]
+```
 """
 matrix(f::AutomorphismGroupElem{TorQuadModule}) = matrix(hom(f))
 
@@ -196,14 +297,18 @@ function defines_automorphism(G::TorQuadModule, M::ZZMatrix)
   return true
 end
 
-function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{TorQuadModule})
   D = domain(parent(f))
   io = pretty(io)
-  println(IOContext(io, :compact => true), "Isometry of ", Lowercase(), D, " defined by")
-  print(io, Indent(), matrix(f), Dedent())
+  println(io, "Isometry of")
+  println(IOContext(io, :compact => true), Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
 end
 
-function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, f::AutomorphismGroupElem{TorQuadModule})
   print(io, matrix(f))
 end
 
@@ -212,6 +317,27 @@ end
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
 Return the full orthogonal group of this torsion quadratic module.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//4 1//2; 1//2 3//4]))
+Finite quadratic module
+  over integer ring
+Abelian group: (Z/4)^2
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[1//4   1//2]
+[1//2   3//4]
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: (Z/4)^2 -> Q/2Z
+with 2 generators
+
+julia> order(OT)
+4
+```
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
   if is_trivial(abelian_group(T))
@@ -264,7 +390,7 @@ function embedding_orthogonal_group(i::TorQuadModuleMap)
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
     imgf = data.(union(i.(f.(gens(A))), j.(gens(B))))
-    fab = hom(gene, imgf)
+    fab = hom(abelian_group(D), abelian_group(D), gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)
   end
@@ -435,7 +561,9 @@ Gram matrix quadratic form:
 [4//15]
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -477,7 +605,9 @@ of the codomain of `i`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -485,7 +615,7 @@ Map
   to finite quadratic module: Z/15 -> Q/2Z
 
 julia> S, _ = stabilizer(OT, T3inT)
-(Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators, Hom: group of isometries of finite quadratic module with 2 generators -> group of isometries of finite quadratic module with 2 generators)
+(Group of isometries of finite quadratic module: Z/15 -> Q/2Z, Hom: group of isometries -> group of isometries)
 
 julia> order(S)
 4

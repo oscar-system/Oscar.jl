@@ -3,13 +3,13 @@
 export CIStmt, ci_stmt, @CI_str, ci_statements, make_elementary
 
 struct CIStmt
-  I::Vector{<:VarName}
-  J::Vector{<:VarName}
-  K::Vector{<:VarName}
+  I::Vector{Int}
+  J::Vector{Int}
+  K::Vector{Int}
 end
 
 @doc raw"""
-    ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
+    ci_stmt(I::Vector{Int}, J::Vector{Int}, K::Vector{Int}; symmetric=true, disjoint=true)
 
 A conditional independence statement asserting that `I` is independent
 of `J` given `K`. These parameters are lists of names of random variables.
@@ -21,7 +21,7 @@ their `I` and `J` components. The constructor then reorders the arguments
 to make the `I` field lexicographically smaller than the `J` to ensure
 that comparisons and hashing respect the symmetry.
 
-If `semigraphoid` is set to `true`, the constructor also removes elements
+If `disjoint` is set to `true`, the constructor also removes elements
 in the intersection of `I` and `K` from `I` (and symmetrically removes the
 intersection of `J` and `K` from `J`).
 
@@ -31,25 +31,27 @@ to ensure consistent comparison and hashing.
 ## Examples
 
 ```jldoctest
-julia> ci_stmt(["A"], ["B"], ["X"])
-[A _||_ B | X]
+julia> ci_stmt([1], [2], [3,4])
+[1 _||_ 2 | {3, 4}]
 
-julia> ci_stmt(["1"], ["2", "3"], ["4", "5"])
+julia> ci_stmt([1], [2, 3], [4, 5])
 [1 _||_ {2, 3} | {4, 5}]
 ```
 """
-function ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
+function ci_stmt(I::Vector{Int}, J::Vector{Int}, K::Vector{Int}; symmetric=true, disjoint=true)
   if length(intersect(I, J)) > 0
-    error("Functional dependence statements are not yet implemented")
+    error("I and J may not overlap")
   end
+  I = sort(unique(I))
+  J = sort(unique(J))
   if symmetric && I > J
     I, J = J, I
   end
-  if semigraphoid
+  if disjoint
     I = setdiff(I, K)
     J = setdiff(J, K)
   end
-  CIStmt(sort(unique(I)), sort(unique(J)), sort(unique(K)))
+  CIStmt(sort(I), sort(J), sort(unique(K)))
 end
 
 @doc raw"""
@@ -72,15 +74,15 @@ Base.hash(stmt::CIStmt, h::UInt) =
     CI"I...,J...|K..."
 
 A literal syntax for denoting CI statements is provided for cases in which
-all variable names consist of a single character. If `I` and `J` only consist
-of a single element, then even the comma may be omitted. Once the three sets
-are extracted, `ci_stmt` is called.
+all variables consist of a single digit. If `I` and `J` only consist of a
+single element, then even the comma may be omitted. Once the three sets
+are extracted, `ci_stmt` is called with default values for its options.
 
 ## Examples
 
 ```jldoctest
-julia> CI"AB|X"
-[A _||_ B | X]
+julia> CI"12|3"
+[1 _||_ 2 | 3]
 
 julia> CI"1,23|5424"
 [1 _||_ 3 | {2, 4, 5}]
@@ -88,16 +90,16 @@ julia> CI"1,23|5424"
 """
 macro CI_str(str)
   # General syntax "12,34|567"
-  m = match(r"^(.+),(.+)[|](.*)$", str)
+  m = match(r"^(\d+),(\d+)[|](\d*)$", str)
   # Short syntax for elementary statements "12|345"
   if m == nothing
-    m = match(r"^(.)(.)[|](.*)$", str)
+    m = match(r"^(\d)(\d)[|](\d*)$", str)
   end
   # Give up
   if m == nothing
     throw(ArgumentError(str * " is not a CI statement"))
   end
-  parse_arg(s) = unique([string(c) for c in s])
+  parse_arg(s) = unique([parse(Int, c) for c in s])
   I, J, K = map(s -> parse_arg(s), m)
   return ci_stmt(I, J, K)
 end
@@ -112,11 +114,11 @@ function Base.show(io::IO, stmt::CIStmt)
 end
 
 @doc raw"""
-    ci_statements(random_variables::Vector{<:VarName})
+    ci_statements(random_variables::Vector{Int})
 
 Return a list of all elementary CI statements over a given set of
-variable names. A `CIStmt(I, J, K)` is elementary if both `I` and
-`J` have only one element.
+variables. A `CIStmt(I, J, K)` is elementary if both `I` and `J`
+have only one element.
 
 As a consequence of the semigraphoid properties, these statements
 are enough to describe the entire CI structure of a probability
@@ -125,42 +127,49 @@ distribution.
 ## Examples
 
 ```jldoctest
-julia> ci_statements(["A", "B", "X", "Y"])
+julia> ci_statements([1, 2, 3, 4])
 24-element Vector{CIStmt}:
- [A _||_ Y | {}]
- [A _||_ Y | B]
- [A _||_ Y | X]
- [A _||_ Y | {B, X}]
- [B _||_ Y | {}]
- [B _||_ Y | A]
- [B _||_ Y | X]
- [B _||_ Y | {A, X}]
- [X _||_ Y | {}]
- [X _||_ Y | A]
- ⋮
- [A _||_ X | {B, Y}]
- [B _||_ X | {}]
- [B _||_ X | A]
- [B _||_ X | Y]
- [B _||_ X | {A, Y}]
- [A _||_ B | {}]
- [A _||_ B | X]
- [A _||_ B | Y]
- [A _||_ B | {X, Y}]
+ [1 _||_ 2 | {}]
+ [1 _||_ 2 | 3]
+ [1 _||_ 2 | 4]
+ [1 _||_ 2 | {3, 4}]
+ [1 _||_ 3 | {}]
+ [1 _||_ 3 | 2]
+ [1 _||_ 3 | 4]
+ [1 _||_ 3 | {2, 4}]
+ [1 _||_ 4 | {}]
+ [1 _||_ 4 | 2]
+ [1 _||_ 4 | 3]
+ [1 _||_ 4 | {2, 3}]
+ [2 _||_ 3 | {}]
+ [2 _||_ 3 | 1]
+ [2 _||_ 3 | 4]
+ [2 _||_ 3 | {1, 4}]
+ [2 _||_ 4 | {}]
+ [2 _||_ 4 | 1]
+ [2 _||_ 4 | 3]
+ [2 _||_ 4 | {1, 3}]
+ [3 _||_ 4 | {}]
+ [3 _||_ 4 | 1]
+ [3 _||_ 4 | 2]
+ [3 _||_ 4 | {1, 2}]
 ```
 """
-function ci_statements(random_variables::Vector{<:VarName})
-  N = collect(1:length(random_variables))
+function ci_statements(random_variables::Vector{Int})
+  n = length(random_variables)
+  N = collect(1:n)
   stmts = Vector{CIStmt}()
-  for ij in subsets(N, 2)
-    M = setdiff(N, ij)
-    for l in 0:length(M)
-      for L in subsets(M, l)
-        push!(stmts, CIStmt(
-          [random_variables[ij[1]]],
-          [random_variables[ij[2]]],
-           random_variables[L]
-        ))
+  for i in 1:n
+    for j in (i+1):n
+      M = setdiff(N, [i,j])
+      for l in 0:length(M)
+        for L in sort(subsets(M, l))
+          push!(stmts, CIStmt(
+            [random_variables[i]],
+            [random_variables[j]],
+             random_variables[L]
+          ))
+        end
       end
     end
   end
@@ -227,3 +236,21 @@ function make_elementary(stmt::CIStmt; semigaussoid=false)
   end
   return elts
 end
+
+@doc raw"""
+    is_elementary(stmt::CIStmt)
+
+Check if `stmt` is an elementary CI statement, i.e., its `I` and `J`
+components are both 1-element sets.
+
+## Examples
+
+```jldoctest
+julia> is_elementary(CI"12,34|56")
+false
+
+julia> is_elementary(CI"12|3456")
+true
+```
+"""
+is_elementary(stmt::CIStmt) = length(stmt.I) == 1 && length(stmt.J) == 1

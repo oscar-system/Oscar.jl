@@ -24,21 +24,47 @@ Permutation group of degree 11 and order 7920
 
 julia> atlas_group("M")  # Monster group M
 ERROR: ArgumentError: the group atlas does not provide a representation for M
+[...]
 ```
 """
 function atlas_group(name::String)
-  G = GAP.Globals.AtlasGroup(GapObj(name))
-  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
+  GAPname = GapObj(name)::GapObj
+  G = GAP.Globals.AtlasGroup(GAPname)::GapObj
+  if G === GAP.Globals.fail
+    # Check whether the table of contents provides a representation.
+    l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GAPname)::GapObj
+    if length(l) != 0
+      error("cannot access the group atlas, perhaps the download failed")
+    else
+      throw(ArgumentError("the group atlas does not provide a representation for $name"))
+    end
+  end
   return _oscar_group(G)
 end
 
 function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
+  GAPname = GapObj(name)::GapObj
   if T === PermGroup
-    G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj
+    G = GAP.Globals.AtlasGroup(GAPname, GAP.Globals.IsPermGroup, true)::GapObj
   else
-    G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
+    G = GAP.Globals.AtlasGroup(GAPname, GAP.Globals.IsMatrixGroup, true)::GapObj
   end
-  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
+
+  if G === GAP.Globals.fail
+    # Check whether the table of contents provides a representation.
+    l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GAPname)::GapObj
+    permtype = GapObj("perm")::GapObj
+    if T === PermGroup
+      l = filter(x -> x.type == permtype, Vector{GapObj}(l))
+    else
+      l = filter(x -> x.type != permtype, Vector{GapObj}(l))
+    end
+    if length(l) != 0
+      error("cannot access the group atlas, perhaps the download failed")
+    else
+      throw(ArgumentError("the group atlas does not provide a representation of type $T for $name"))
+    end
+  end
   return _oscar_group(G)
 end
 
@@ -64,14 +90,17 @@ Permutation group of degree 5 and order 60
 function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
-  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GapObj}(l))
-  @req (pos !== nothing) "no Atlas group for $info"
-  G = GAP.Globals.AtlasGroup(l[pos])
-  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"
+  repname = info[:repname]
+  pos = findfirst(r -> String(r.repname) == repname, Vector{GapObj}(l))
+  @req (pos !== nothing) "no Atlas group for $repname"
+  G = GAP.Globals.AtlasGroup(l[pos])::GapObj
+  # The table of contents knows about the requested representation.
+  # If the result is `fail` then this is likely due to a download problem.
+  @req (G !== GAP.Globals.fail) "cannot access the representation $repname from the group atlas, perhaps the download failed"
 
   if haskey(info, :base_ring_iso)
     # make sure that the given ring is used
-    deg = GAP.Globals.DimensionOfMatrixGroup(G)
+    deg = GAP.Globals.DimensionOfMatrixGroup(G)::GAP.Obj
     iso = info[:base_ring_iso]
     ring = domain(iso)
     matgrp = matrix_group(ring, deg)
@@ -127,13 +156,20 @@ Permutation group of degree 11 and order 720
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  @req GAP.Globals.HasAtlasRepInfoRecord(GapObj(G)) "$G was not constructed with atlas_group"
-  info = GAP.Globals.AtlasRepInfoRecord(GapObj(G))
+  @req GAP.Globals.HasAtlasRepInfoRecord(GapObj(G))::Bool "$G was not constructed with atlas_group"
+  info = GAP.Globals.AtlasRepInfoRecord(GapObj(G))::GapObj
   @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
-  H = GAP.Globals.AtlasSubgroup(GapObj(G), nr)
+  H = GAP.Globals.AtlasSubgroup(GapObj(G), nr)::GapObj
   if H === GAP.Globals.fail
+    # Check whether the table of contents provides the SLP in question.
+    slp = GAP.Globals.AtlasProgramInfo(info.groupname, GapObj("maxes"), nr)::GapObj
     name = string(info.groupname)
-    error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")
+    if slp === GAP.Globals.fail
+      error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")
+    else
+      # This is likely due to a download problem.
+      error("cannot access the slp for the restriction to the $nr-th class of maximal subgroups of $name")
+    end
   end
   return _as_subgroup(G, H)
 end
@@ -309,4 +345,149 @@ function atlas_program(name, paras...)
   else
     error("not yet ...")
   end
+end
+
+
+###################################################################
+# Show overviews of available information.
+###################################################################
+
+"""
+    show_atlas_info()
+    show_atlas_info(groupnames::Vector{String})
+    show_atlas_info(groupname::String)
+
+Print information concerning the group atlas about the groups
+given by the arguments.
+
+If the only argument is a vector `groupnames` of strings then
+print one line about each Atlas group whose name is in `groupnames`,
+showing the available information.
+
+If there are no arguments then the same happens as if the vector of all
+names of Atlas groups were entered as `groupnames`.
+
+If the only argument is a string `groupname`, the name of an Atlas group `G`,
+then print an overview of available representations and straight line
+programs for `G`.
+
+The overview for several groups is shown as a table with the following
+columns.
+
+- `group`:
+  the name of `G`
+
+- `#`:
+  the number of faithful representations stored for `G`
+
+- `maxes`:
+  the number of available straight line programs for computing
+  generators of maximal subgroups of `G`,
+
+- `cl`:
+  a `+` sign if at least one program for computing representatives of
+  conjugacy classes of elements of `G` is stored,
+
+- `cyc`:
+  a `+` sign if at least one program for computing representatives of
+  classes of maximally cyclic subgroups of `G` is stored,
+
+- `out`:
+  descriptions of outer automorphisms of `G` for which at least one
+  program is stored,
+
+- `fnd`:
+  a `+` sign if at least one program is available for finding standard
+  generators,
+
+- `chk`:
+  a `+` sign if at least one program is available for checking whether a
+  set of generators is a set of standard generators, and
+
+- `prs`:
+  a `+` sign if at least one program is available that encodes a
+  presentation.
+
+The overview for a single group is shown in the form of two lists,
+one for available representations, one for available straight line programs.
+
+Each available representation is described by either `G <= Sym(nid)` or
+`G <= GL(nid,descr)`, where the former means a permutation representation
+of degree `n` and the latter means a matrix ring of dimension `n` over a
+base ring described by `descr`; if `descr` is an integer then this means
+a finite field with this cardinality.
+In both cases, `id` is a (perhaps empty) identifier that distinguishes
+different representations with the same `n`.
+If known then information about transitivity, rank, point stabillizers of
+permutation representations and about the character of matrix representations
+is shown as well.
+
+Below the representations, the programs available for `groupname` are listed.
+"""
+show_atlas_info() = show_atlas_info("all")
+
+function show_atlas_info(groupnames::Vector{String})
+  # Set a GAP user preference according to Oscar's unicode setting.
+  AtlasRep = GapObj("AtlasRep")
+  DisplayFunction = GapObj("DisplayFunction")
+  if !is_unicode_allowed()
+    oldDisplayFunction = GAP.Globals.UserPreference(AtlasRep, DisplayFunction)::GAP.Obj
+    GAP.Globals.SetUserPreference(AtlasRep, DisplayFunction, GapObj("Print"));
+  end
+
+  # Remove the marker of non-core data.
+  AtlasRepMarkNonCoreData = GapObj("AtlasRepMarkNonCoreData")
+  oldmarker = GAP.Globals.UserPreference(AtlasRep, AtlasRepMarkNonCoreData)::GAP.Obj
+  GAP.Globals.SetUserPreference(AtlasRep, AtlasRepMarkNonCoreData, GapObj(""))
+
+  # Show the info
+  info = GAP.Globals.AGR.StringAtlasInfoOverview(GapObj(groupnames, true),
+             GapObj([]))::GapObj # unconditional
+  for line in info
+    println(String(line));
+  end
+
+  # Reset the changed values.
+  if !is_unicode_allowed()
+    GAP.Globals.SetUserPreference(AtlasRep, DisplayFunction, oldDisplayFunction)
+  end
+  GAP.Globals.SetUserPreference(AtlasRep, AtlasRepMarkNonCoreData, oldmarker)
+
+  return
+end
+
+function show_atlas_info(groupname::String)
+  # Set a GAP user preference according to Oscar's unicode setting.
+  AtlasRep = GapObj("AtlasRep")
+  DisplayFunction = GapObj("DisplayFunction")
+  if !is_unicode_allowed()
+    oldvalue = GAP.Globals.UserPreference(AtlasRep, DisplayFunction)::GAP.Obj
+    GAP.Globals.SetUserPreference(AtlasRep, DisplayFunction, GapObj("Print"));
+  end
+
+  # Remove the marker of non-core data.
+  AtlasRepMarkNonCoreData = GapObj("AtlasRepMarkNonCoreData")
+  oldmarker = GAP.Globals.UserPreference(AtlasRep, AtlasRepMarkNonCoreData)::GAP.Obj
+  GAP.Globals.SetUserPreference(AtlasRep, AtlasRepMarkNonCoreData, GapObj(""))
+
+  # Show the info
+  if groupname == "all"
+    # one-line overview of all supported groups
+    info = GAP.Globals.AGR.StringAtlasInfoOverview(GapObj(groupnames, true),
+               GapObj([]))::GapObj # unconditional
+  else
+    # detailed overview for one group
+    info = GAP.Globals.AGR.StringAtlasInfoGroup(GapObj([groupname], true))::GapObj
+  end
+  for line in info
+    println(String(line));
+  end
+
+  # Reset the changed values.
+  if !is_unicode_allowed()
+    GAP.Globals.SetUserPreference(AtlasRep, DisplayFunction, oldvalue)
+  end
+  GAP.Globals.SetUserPreference(AtlasRep, AtlasRepMarkNonCoreData, oldmarker)
+
+  return
 end

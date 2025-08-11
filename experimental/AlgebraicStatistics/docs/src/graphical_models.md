@@ -1,21 +1,26 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Graphical Models
+# Extending Graphical Model
 
-The OSCAR type for graphical models is of parametrized form `GraphicalModel{G, T}` where `T` represents the type of ring in which the vanishing ideal of the model belongs and `G` represents the associated graph. This parametrized typing allows the user to easily build upon the existing functionality to work with newer variations on graphical models such as those with colours or hidden variables. 
+Graphical models are a parametrized abstract type `GraphicalModel{T, L}` where `T` is the type of graph (currently `Directed` or `Undirected`) and `L` is the type of labelings of the graph, this is either a `NamedTuple` type or `Nothing`. Being an abstract type there is no constructor for a graphical model. All graphical models are subtypes of `GraphicalModel`, and they inherit their type parameters from the graph that is passed to the constructor. See the section corresponding to the graphical model type you would like to work with. 
 
-Many basic functions are defined for all graphical models `M` such as
-
-- `graph(M)` refers to the associated graph
-- `ring(M)` to the multivariate polynomial ring where the model resides
-- `param_ring` to the multivariate polynomial ring where the parameters reside
-- `param_gens` to the parameters of the model which are ring variables stored typically stored in a hash table for convenient indexing
-
-This part of OSCAR also includes some basic graph functionality such as finding the vertices of a graph or its set of maximal cliques. Lastly, while many methods for graphical models depend heavily on whether or not they are discrete/Gaussian or directed/undirected some functionality is independent of this and thus implemented simultaneously for all graphical models. For example, the vanishing ideal of the model:
+## Attributes
 
 ```@docs
-vanishing_ideal(M::GraphicalModel)
+model_ring
+parameter_ring
+parametrization
 ```
+
+## Vanishing ideal
+
+```@docs
+vanishing_ideal
+```
+# Extending functionality
+
+add in depth description of how to extend existing graphical models functionality.

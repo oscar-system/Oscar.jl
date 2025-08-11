@@ -65,6 +65,14 @@
     push!(vars, x)
     @test f(x) == x
   end
+
+  let
+    R, (xx, yy) = QQ[:xx, :yy]
+    S, (x, y, z) = QQ[:x, :y, :z]
+    f = hom(R, S, [x, y])
+    @test preimage(f, ideal(S, [x, y, z])) == ideal(R, [xx, yy])
+    @test preimage(f, ideal(S, [z])) == ideal(R, [zero(R)])
+  end
 end
 
 @testset "cross-type kernels" begin
@@ -74,4 +82,15 @@ end
   Q, _ = quo(S, ideal(S, zero(S)))
   phi = hom(Q, A, gens(A))
   @test iszero(kernel(phi))
+end
+
+@testset "Laurent codomain" begin
+  R, = polynomial_ring(QQ, 4)
+  S, (x1, x2) = laurent_polynomial_ring(QQ, 2)
+  f = hom(R, S, [x1, x2, x1^-2*x2^5, x1^-1*x2^3])
+  K = kernel(f)
+  @test all(is_zero, f.(gens(K)))
+  Q, = quo(R, K)
+  g = hom(Q, S, [x1, x2, x1^-2*x2^5, x1^-1*x2^3])
+  @test is_zero(kernel(g))
 end

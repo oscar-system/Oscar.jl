@@ -12,7 +12,7 @@ parent(x::AbstractLieAlgebraElem) = x.parent
 
 coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::AbstractLieAlgebra) = L.dim
+vector_space_dim(L::AbstractLieAlgebra) = L.dim
 
 _struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
   L.struct_consts::Matrix{sparse_row_type(C)}
@@ -132,6 +132,21 @@ function set_root_system_and_chevalley_basis!(
 ) where {C<:FieldElem}
   L.root_system = R
   L.chevalley_basis = chev
+end
+
+###############################################################################
+#
+#   Structure constant table and change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::AbstractLieAlgebra)
+  struct_consts = map(e -> change_base_ring(R, e), structure_constant_table(L; copy=false))
+  return lie_algebra(R, struct_consts, symbols(L); check=false)
+end
+
+function structure_constant_table(L::AbstractLieAlgebra; copy::Bool=true)
+  return copy ? deepcopy(_struct_consts(L)) : _struct_consts(L)
 end
 
 ###############################################################################
@@ -344,11 +359,11 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     elseif ((fl, k) = is_root_with_index(beta_i_plus_beta_j); fl)
       # complicated case
       if i <= npos
-        struct_consts[i, j] = sparse_row(R, [k], [N[i, j]])
+        struct_consts[i, j] = sparse_row(R, [(k, N[i, j])])
       elseif j <= npos
-        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j + npos]])
+        struct_consts[i, j] = sparse_row(R, [(k, -N[i - npos, j + npos])])
       else
-        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j - npos]])
+        struct_consts[i, j] = sparse_row(R, [(k, -N[i - npos, j - npos])])
       end
     else
       # [e_βi, e_βj] = 0

@@ -24,7 +24,7 @@ and discoverable from elements in `W`.
 Return a `Vector{SimplicialCompplex}` ordered lexicographically.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
 Abstract simplicial complex of dimension 1 on 4 vertices
 
@@ -131,7 +131,7 @@ See [D-VJL24](@cite) for background.
 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
 
@@ -210,21 +210,25 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
   map_function = map
   if parallel
     # setup parallel parameters
-    channels = Oscar.params_channels(Union{PermGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
+    # this should be updated to use the parallel framework at some point?
+    channels = [RemoteChannel(()->Channel{Any}(32), i) for i in workers()]
     # setup parents needed to be sent to each process
-    Oscar.put_params(channels, codomain(phi))
+    map(channel -> put_type_params(channel, codomain(phi)), channels)
     map_function = pmap
   end
-  try 
+  try
+    # here to so that this isn't applied on the worker
+    # since we cannot serialize Gap maps 
+    PG = phi.(W)
     if show_progress
       edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                            @showprogress map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Ks -> multi_edges(F, PG, Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
     else
       edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                            map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Ks -> multi_edges(F, PG, Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
     end
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
@@ -262,7 +266,7 @@ There is an edge from `s` to `t`  in `CG` whenever there is an edge from `i` to 
 See [D-VJL24](@cite) for background.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
 

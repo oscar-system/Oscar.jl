@@ -35,16 +35,7 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # get the prefix `Experimental/PACKAGE_NAME`.
 #
 # Example:
-# 1. cat experimental/PlaneCurve/docs/doc.main:
-# [
-#    "plane_curves.md",
-# ]
-# after `add_prefix_to_experimental_docs` becomes
-# [
-#    "Experimental/PlaneCurve/plane_curves.md",
-# ]
-#
-# 2. cat experimental/FTheoryTools/docs/doc.main 
+# cat experimental/FTheoryTools/docs/doc.main 
 # [
 #    "F-Theory Tools" => [
 #       "introduction.md",
@@ -177,7 +168,7 @@ function doit(
     DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive=true)
 
     if doctest !== false
-      Documenter.doctest(Oscar, fix = doctest === :fix)
+      Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters())
     end
 
     makedocs(;
@@ -187,6 +178,7 @@ function doit(
         size_threshold=409600,
         size_threshold_warn=204800,
         size_threshold_ignore=["manualindex.md"],
+        canonical="https://docs.oscar-system.org/stable/",
       ),
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],

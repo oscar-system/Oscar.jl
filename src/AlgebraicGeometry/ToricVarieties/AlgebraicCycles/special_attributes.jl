@@ -102,7 +102,7 @@ ring to monomials in the Cox ring. This dictionary involves
 a choice, i.e. is not unique.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_gens_of_chow_ring_to_cox_ring(p2)

@@ -408,12 +408,21 @@ end
 """
     invariant_bilinear_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`.
+Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_bilinear_form(Sp(4, 2))
+[0   0   0   1]
+[0   0   1   0]
+[0   1   0   0]
+[1   0   0   0]
+```
 """
 function invariant_bilinear_form(G::MatrixGroup)
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
@@ -424,13 +433,23 @@ end
 """
     invariant_sesquilinear_form(G::MatrixGroup)
 
-Return an invariant sesquilinear (non bilinear) form for the group `G`.
+Return the Gram matrix of an invariant sesquilinear (non bilinear) form for `G`.
+
 An exception is thrown if the module induced by the action of `G`
-is not absolutely irreducible or if the group is defined over a finite field
+is not absolutely irreducible or if `G` is defined over a finite field
 of odd degree over the prime field.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_sesquilinear_form(GU(4, 2))
+[0   0   0   1]
+[0   0   1   0]
+[0   1   0   0]
+[1   0   0   0]
+```
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
@@ -442,12 +461,21 @@ end
 """
     invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant quadratic form for the group `G`.
+Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> invariant_quadratic_form(GO(1, 4, 2))
+[0   1   0   0]
+[0   0   0   0]
+[0   0   0   1]
+[0   0   0   0]
+```
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
@@ -523,6 +551,15 @@ is a finite field, return
 - `0` if `n` is odd and `G` preserves a nonzero quadratic form,
 - `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
 - `-1` if `n` is even and `G` preserves a nonzero quadratic form of `-` type.
+
+# Examples
+```jldoctest
+julia> orthogonal_sign(GO(1, 4, 2))
+1
+
+julia> orthogonal_sign(GO(-1, 4, 2))
+-1
+```
 """
 function orthogonal_sign(G::MatrixGroup)
     R = base_ring(G)
@@ -590,7 +627,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
       V = vector_space(F,n)
       U,e = complement(V,W)
       A = zero_matrix(F,n,n)
-      r = dim(U)
+      r = vector_space_dim(U)
       for i in 1:r, j in 1:n
          A[i,j]=e(gen(U,i))[j]
       end

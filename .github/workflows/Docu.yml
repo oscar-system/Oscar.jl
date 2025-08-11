@@ -6,7 +6,15 @@ on:
       - master
       - 'release-*'
     tags: '*'
+    paths-ignore:
+      - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
+    paths-ignore:
+      - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   workflow_dispatch:
 
 concurrency:
@@ -25,6 +33,7 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'
+      - uses: julia-actions/cache@v2
       - name: Build package
         uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
@@ -32,5 +41,5 @@ jobs:
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY_OUTOFTREE }} # For authentication with SSH deploy key
         run: julia --project=docs/ --color=yes docs/make.jl

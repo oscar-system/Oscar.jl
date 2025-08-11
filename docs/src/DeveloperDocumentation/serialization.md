@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # [Serialization](@id dev_serialization)
 This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
@@ -12,7 +18,7 @@ Which means we use a JSON extension to serialize data.
 ## How it works
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
-```
+```julia-repl
 julia> save("/tmp/fourtitwo.mrdi", 42);
 
 julia> load("/tmp/fourtitwo.mrdi")
@@ -20,7 +26,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 
 ```
 The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
-```
+```json
 {
   "_ns": {
     "Oscar": [
@@ -59,7 +65,7 @@ The nested structure of the coefficient will depend on the description of the fi
 extension.
 
 
-```
+```json
 {
   "_ns": {
     "Oscar": [
@@ -109,20 +115,32 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_object`, `load_object`
-3. `save_type_params`, `load_type_params`
+2. `save_type_params`, `load_type_params`
+3. `save_object`, `load_object`
+
 
 #### `save_type_object` / `load_type_object`
 
-For the most part these functions should not be touched, they are high level
+These functions should not be touched, they are high level
 functions and are used to (de)serialize the object with its
 type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
-The usage of these functions can be used inside `save_object` / `load_object`
-and `save_type_params` / `load_type_params`. However using `save_typed_object` inside
-a `save_object` implementation will lead to a verbose format and should at some
-point be moved to `save_type_params`. Their implementation can be found in the
-`main.jl` file.
+
+
+#### `save_type_params` / `load_type_params`
+
+The serialization mechanism stores data in the format of a tree, with the
+exception that some nodes may point to a shared reference. The "data branch"
+is anything that is a child node of a data node, whereas the "type branch" is
+any information that is stored in a node that is a child of a type node.
+
+These functions should also not be touched, however they expect an implementation
+of `type_params` whenever saving a type `T`. By default `type_params` will return
+`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+`T` gathering the necessary parameters for serializing `obj`.
+In most cases these parameters are the parameters of the `obj` that uses references.
+For example if `obj` is of type `RingElem` than it is expected that `type_params`
+should contain at least 
 
 #### `save_object` / `load_object`
 
@@ -138,7 +156,7 @@ should be called with a key that can be passed as the second parameter.
 ##### Examples
 
 ###### Example 1
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_array(s) do
     save_object(s, obj.1)
@@ -152,7 +170,7 @@ end
 ```
 
 This will result in a data format that looks like this.
-```
+```json
 [
   obj.1,
   obj.2,
@@ -165,7 +183,7 @@ This will result in a data format that looks like this.
 
 With the corresponding loading function similar to this.
 
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
     if entry isa JSON3.Object
@@ -185,7 +203,7 @@ end
 ```
 
 ##### Example 2
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key1)
@@ -198,7 +216,7 @@ end
 ```
 This will result in a data format that looks like this.
 
-```
+```json
 {
   "key1": obj.1,
   "key2":[
@@ -212,7 +230,7 @@ This will result in a data format that looks like this.
 ```
 
 The corresponding loading function would look something like this.
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
    obj1 = load_object(s, Obj1Type, params[1], :key1)
 
@@ -228,21 +246,21 @@ function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
 ```
 
 This is ok
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1)
 end
 ```
 
 While this will throw an error
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1, :key)
 end
 ```
 
 If you insist on having a key you should use a `save_data_dict`.
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key)
@@ -265,56 +283,37 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
-#### `save_type_params` / `load_type_params`
-
-The serialization mechanism stores data in the format of a tree, with the
-exception that some nodes may point to a shared reference. The "data branch"
-is anything that is a child node of a data node, whereas the "type branch" is
-any information that is stored in a node that is a child of a type node.
-Avoiding type information inside the data branch will lead to a more
-efficient serialization format. When the `uses_params` is set when
-registering the type with [`@register_serialization_type`](@ref)
-(de)serialization will use `save_type_params` / `load_type_params`
-to format the type information.
-In general we expect that implementing a `save_type_params` and
-`load_type_params` should not always be necessary. Many types
-will serialize their types in a similar fashion for example serialization
-of a `FieldElem` will use the `save_type_params` / `load_type_params` from
-`RingElem` since in both cases the only parameter needed for such types
-is their parent.
-
-### Import helper
-
-When implementing the serialization of a new type in a module that is not
-`Oscar` (e.g. in a submodule of `Oscar`) it is necessary to import the
-a lot of helper functions (see the examples above).
-To ease this process, the `@import_all_serialization_functions` macro can be used.
-```@docs
-Oscar.@import_all_serialization_functions
-```
-
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
 `serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writing to a file. Currently
-the only other serializer is the `IPCSerializer` which at the moment is
-quite similar to the `JSONSerializer` except that it does not store the refs of
-any types that are registered with the `uses_id` flag. When using the `IPCSerializer`
-it is left up to the user to guarantee that any refs required by a process are sent
-prior.
+default serializer `JSONSerializer` is used for writing to a file.
+
+When passing `serialize_refs = false` to the `JSONSerializer` it will not
+store the refs of any types that are registered with the `uses_id` flag.
+When using this flag it is left up to the user to guarantee that any refs
+mentioned in the file are loaded prior to loading the file.
+This is useful for cases where the user wants to store multiple objects that
+refer to the same object, but does not want to store the refs in each file.
+Instead, one can now store the refs in a separate file, and store the objects
+themselves without the refs.
+
+There is also the `IPCSerializer` which at the moment is
+equal to the `JSONSerializer(serialize_refs = false)`. However, this serializer
+may be changed in the future to support binary representations of some types
+for faster inter-process communication (IPC).
 
 ### Upgrades
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
 The mechanics of upgrading are found in the `main.jl` file where the
-[`Oscar.upgrade`](@ref) function provides the core functionality. Upgrading
+[`Oscar.Serialization.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
 to be loaded is older than the current Oscar version.
 
 ```@docs
-Oscar.upgrade
-Oscar.upgrade_data
+Oscar.Serialization.upgrade
+Oscar.Serialization.upgrade_data
 ```
 
 #### Upgrade Scripts
@@ -324,7 +323,7 @@ they upgrade to. For example a script that upgrades to Oscar version 0.13.0
 should be named `0.13.0.jl`.
 
 ```@docs
-Oscar.UpgradeScript
+Oscar.Serialization.UpgradeScript
 ```
 
 ## Challenges

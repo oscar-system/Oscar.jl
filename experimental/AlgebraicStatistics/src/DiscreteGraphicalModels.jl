@@ -1,3 +1,19 @@
+@attributes mutable struct DiscreteGraphicalModel{T, L} <: GraphicalModel{T, L}
+  graph::Graph{T}
+  labelings::L
+  varnames::Vector{VarName}
+  function DiscreteGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
+  end
+end
+
+function discrete_graphical_model(G::Graph{Undirected}; t_var_name::VarName="t")
+  
+end
+
+
 ###################################################################################
 #
 #       Undirected Discrete Graphical Models
@@ -6,19 +22,13 @@
 
 
 function bron_kerbosch(G::Graph{Undirected}, R, P, X)
-
   cliques = []
-
   if length(P) == 0 && length(X) == 0
-      
       push!(cliques, R)
   end
-
   Q = P
   Y = X
-
   for v in Q
-
       new_R = vcat(R, [v])
       new_Q = [p for p in Q if p in neighbors(G, v)]
       new_Y = [p for p in Y if p in neighbors(G, v)]
@@ -28,27 +38,19 @@ function bron_kerbosch(G::Graph{Undirected}, R, P, X)
       Q = filter(i -> i != v, P)
       Y = vcat(X, v)
   end
-
   return cliques
 end
 
-function maximal_cliques(G::Graph{Undirected})
-
-  max_cliques = bron_kerbosch(G, Vector{Int}[], vertices(G), Vector{Int}[]);
-
-  map(C -> Vector{Int64}(C), unique(sort.(max_cliques)))
-end
-
-
 
 @doc raw"""
-  graphical_model(G::Graph{Undirected}, S::MarkovRing, k_var_name::String="k")
+   discrete_graphical_model(G::Graph{Undirected}; k_var_name::String="k")
 
 A parametric statistical model associated to an undirected graph.
 It contains an undirected graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives, 
 and a parameter ring whose variables `t[C](i_1, i_2, ..., i_#C)` correspond to potential functions of each clique. 
 
-## Examples
+# TODO refactor
+
 
 ``` jldoctest 
 julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2))
@@ -56,7 +58,8 @@ discrete graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Undirected}, S::MarkovRing, t_var_name::String="t")
+#TODO can this be made into one function for Directed and undirected?
+function discrete_graphical_model(G::Graph{Undirected}, S::MarkovRing, t_var_name::String="t")
 
   cliques = maximal_cliques(G)
   rvs = random_variables(S)
@@ -99,7 +102,7 @@ end
 
 
 @doc raw"""
-  parameterization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
+  parameterization(M::GraphicalModel{Undirected, MarkovRing})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the undirected discrete graphical model `M`.   
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$
@@ -125,7 +128,9 @@ p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
 p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
 p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 """
+
 function parametrization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
+
 
   G = graph(M)
   cliques = maximal_cliques(G)
@@ -152,7 +157,7 @@ end
 
 
 @doc raw"""
-  graphical_model(G::Graph{Directed}, S::MarkovRing, q_var_name::String="q")
+   discrete_graphical_model(G::Graph{Directed}, q_var_name::String="q")
 
 A parametric statistical model associated to a directed acyclic graph.
 It contains a directed acylic graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives, 
@@ -161,13 +166,14 @@ of the node i given its parents.
 
 ## Examples
 
+
 ``` jldoctest 
 julia> M = graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3, 4]]), markov_ring("1" => 1:2, "2" => 1:2, "3" => 1:2, "4" => 1:2))
 discrete graphical model on a directed graph with edges:
 (1, 3), (2, 3), (3, 4)
 ```
 """
-function graphical_model(G::Graph{Directed}, S::MarkovRing, q_var_name::String="q")
+function discrete_graphical_model(G::Graph{Directed}, q_var_name::String="q")
 
     rvs = random_variables(S)
 

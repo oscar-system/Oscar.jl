@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #############################################################################
 # Usage:
-#     ./release_notes.py VERSION
+#     ./release_notes.py [VERSION]
 #
 # For example
 #     ./release_notes.py 4.13.1
@@ -15,13 +15,18 @@ import json
 import os
 import subprocess
 import sys
-import textwrap
 from datetime import datetime
 from typing import Any, Dict, List
 
 
+ownpath = os.path.abspath(sys.argv[0])
+dirpath = os.path.dirname(ownpath)
+repopath = os.path.dirname(os.path.dirname(os.path.dirname(ownpath)))
+newfile = f"{dirpath}/new.md"
+finalfile = f"{repopath}/CHANGELOG.md"
+
 def usage(name: str) -> None:
-    print(f"Usage: `{name} NEWVERSION`")
+    print(f"Usage: `{name} [NEWVERSION]`")
     sys.exit(1)
 
 
@@ -80,33 +85,37 @@ def warning(s):
 # See also <https://github.com/gap-system/gap/issues/4257>.
 prioritylist = [
     ["release notes: highlight", "Highlights"],
-    ["enhancement", "New features or extended functionality"],
-    ["experimental", "Only changes experimental parts of OSCAR"],
-    ["optimization", "Performance improvements or improved testing"],
-    ["package: AbstractAlgebra", "Changes related to the package AbstractAlgebra"],
-    ["package: AlgebraicSolving", "Changes related to the package AlgebraicSolving"],
-    ["package: GAP", "Changes related to the package GAP"],
-    ["package: Hecke", "Changes related to the package Hecke"],
-    ["package: Nemo", "Changes related to the package Nemo"],
-    ["package: Polymake", "Changes related to the package Polymake"],
-    ["package: Singular", "Changes related to the package Singular"],
-    ["renaming", "Items being renamed ?"],
-    ["serialization", "Changes related to serializing data in the MRDI file format ?"],
-    ["topic: algebraic geometry", "Changes related to Algebraic Geometry"],
-    ["topic: combinatorics", "Changes related to Combinatorics"],
-    ["topic: FTheoryTools","Changes related to F-Theory Tools"],
-    ["topic: groups","Changes related to Groups"],
-    ["topic: LieTheory","Changes related to Lie Theory"],
-    ["topic: number theory","Changes related to Number Theory"],
-    ["topic: polyhedral geometry","Changes related to Polyhedral Geometry"],
-    ["topic: rings","Changes related to Rings"],
-    ["topic: schemes","Changes related to Schemes"],
-    ["topic: toric schemes","Changes related to Toric Schemes"],
-    ["topic: toric varieties","Changes related to Toric Varieties"],
-    ["topic: tropical geometry","Changes related to Tropical Geometry"],
-    ["bug: crash", "Fixed bugs that could lead to crashes"],
-    ["bug", "Other fixed bugs"],
-    ["documentation", "Improvements or additions to documentation"],
+
+    ["renaming", "Renamings"],
+
+    ["topic: algebraic geometry",   "Algebraic Geometry"],
+    ["topic: combinatorics",        "Combinatorics"],
+    ["topic: commutative algebra",  "Commutative Algebra"],
+    ["topic: FTheoryTools",         "F-Theory Tools"],
+    ["topic: groups",               "Groups"],
+    ["topic: lie theory",           "Lie Theory"],
+    ["topic: number theory",        "Number Theory"],
+    ["topic: polyhedral geometry",  "Polyhedral Geometry"],
+    ["topic: toric geometry",       "Toric Geometry"],
+    ["topic: tropical geometry",    "Tropical Geometry"],
+
+    ["serialization",               "Changes related to serializing data in the MRDI file format"],
+
+    ["enhancement",                 "New features or extended functionality"],
+    ["experimental",                "Only changes experimental parts of OSCAR"],
+    ["optimization",                "Performance improvements or improved testing"],
+    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
+    ["bug",                         "Other fixed bugs"],
+    ["documentation",               "Improvements or additions to documentation"],
+
+    ["package: AbstractAlgebra",    "Changes related to the package AbstractAlgebra"],
+    ["package: AlgebraicSolving",   "Changes related to the package AlgebraicSolving"],
+    ["package: GAP",                "Changes related to the package GAP"],
+    ["package: Hecke",              "Changes related to the package Hecke"],
+    ["package: Nemo",               "Changes related to the package Nemo"],
+    ["package: Polymake",           "Changes related to the package Polymake"],
+    ["package: Singular",           "Changes related to the package Singular"],
+
 ]
 
 
@@ -117,7 +126,7 @@ def get_tag_date(tag: str) -> str:
                 "gh",
                 "release",
                 "view",
-                tag,
+                f"{tag}",
                 "--json=createdAt"
             ],
             shell=False,
@@ -148,15 +157,16 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    return json.loads(res.stdout.strip())
+    jsonList = json.loads(res.stdout.strip())
+    jsonList = sorted(jsonList, key=lambda d: d['number']) # sort by ascending PR number
+    return jsonList
 
 
 def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    rstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}"
-    return textwrap.fill(rstring, 100)+'\n'
+    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
@@ -172,8 +182,6 @@ def changes_overview(
     release_url = f"https://github.com/oscar-system/Oscar.jl/releases/tag/v{new_version}"
 
     # Could also introduce some consistency checks here for wrong combinations of labels
-    newfile = './new.md'
-    finalfile = '../../CHANGELOG.md'
     notice("Writing release notes into file " + newfile)
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
@@ -223,42 +231,38 @@ which we think might affect some users directly.
             relnotes_file.write("\n")
 
         # Report PRs that have to be updated before inclusion into release notes.
-        relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
-        relnotes_file.write(
-            "If there are any PRs listed below, check their title and labels.\n"
-        )
-        relnotes_file.write(
-            'When done, change their label to "release notes: use title".\n\n'
-        )
-
-        for pr in prs:
-            if has_label(pr, "release notes: to be added"):
+        prs_to_be_added = [pr for pr in prs if has_label(pr, "release notes: to be added")]
+        if len(prs_to_be_added) > 0:
+            relnotes_file.write("### **TODO** release notes: to be added" + "\n\n")
+            relnotes_file.write(
+                "If there are any PRs listed below, check their title and labels.\n"
+            )
+            relnotes_file.write(
+                'When done, change their label to "release notes: use title".\n\n'
+            )
+            for pr in prs_to_be_added:
                 relnotes_file.write(pr_to_md(pr))
+            relnotes_file.write("\n")
 
+        # remove PRs already handled earlier
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
-
-        relnotes_file.write("\n")
+        prs = [pr for pr in prs if not has_label(pr, "release notes: added")]
+        prs = [pr for pr in prs if not has_label(pr, "release notes: use title")]
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
-        relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
-        relnotes_file.write(
-            "If there are any PRs listed below, either apply the same steps\n"
-        )
-        relnotes_file.write(
-            'as above, or change their label to "release notes: not needed".\n\n'
-        )
-
-        for pr in prs:
-            # we need to use both old "release notes: added" label and
-            # the newly introduced in "release notes: use title" label
-            # since both label may appear in GAP 4.12.0 changes overview
-            if not (
-                has_label(pr, "release notes: added")
-                or has_label(pr, "release notes: use title")
-            ):
+        if len(prs) > 0:
+            relnotes_file.write("### **TODO** Uncategorized PR" + "\n\n")
+            relnotes_file.write(
+                "If there are any PRs listed below, either apply the same steps\n"
+            )
+            relnotes_file.write(
+                'as above, or change their label to "release notes: not needed".\n\n'
+            )
+            for pr in prs:
                 relnotes_file.write(pr_to_md(pr))
+            relnotes_file.write('\n')
+
         # now read back the rest of changelog.md into newfile
-        relnotes_file.write('\n')
         with open(finalfile, 'r') as oldchangelog:
             oldchangelog.seek(262)
             for line in oldchangelog.readlines():
@@ -269,26 +273,46 @@ which we think might affect some users directly.
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
+    extra = ""
+    release_type = 0 # 0 by default, 1 for point release, 2 for patch release
     if major != 1:
         error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
         # "major" OSCAR release which changes just the minor version
+        release_type = 1
         previous_minor = minor - 1
         basetag = f"v{major}.{minor}dev"
         # *exclude* PRs backported to previous stable-1.X branch
-        extra = f'-label:"backport-to-{major}.{previous_minor}-DONE"'
+        extra = f'-label:"backport {major}.{previous_minor}.x done"'
     else:
         # "minor" OSCAR release which changes just the patchlevel
+        release_type = 2
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
-        extra = f'label:"backport-to-{major}.{minor}-DONE"'
-        extra = ''
+        extra = f'label:"backport {major}.{minor}.x done"'
 
+    if release_type == 2:
+        startdate = get_tag_date(basetag)
+    else:
+        # Find the timestamp of the last shared commit
+        shared_commit = subprocess.run([
+            "git",
+            "merge-base",
+            basetag,
+            "master"
+        ], shell=False, capture_output=True).stdout.decode().strip()
+        timestamp = subprocess.run([
+            "git",
+            "show",
+            "-s",
+            "--format=\"%cI\"",
+            shared_commit
+        ], shell=False, capture_output=True).stdout.decode().strip().replace('"', '')
+        # date is first 10 characters of timestamp
+        startdate = timestamp[0:10]
     print("Base tag is", basetag)
-
-    startdate = get_tag_date(basetag)
-    print("Base tag was created ", startdate)
+    print("Last common commit at ", startdate)
 
     print("Downloading filtered PR list")
     prs = get_pr_list(startdate, extra)
@@ -296,7 +320,7 @@ def main(new_version: str) -> None:
 
     # reset changelog file to state tracked in git
     
-    subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
+    subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
     changes_overview(prs, startdate, new_version)
 

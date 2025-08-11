@@ -17,7 +17,7 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
     @req domain(mp) === M1.M && codomain(mp) === M2.M "map need to map 1st module into 2nd"
     #not every hom is a G-Hom...that is what check is supposed to do - eventually
     #see 2.
-    if check #only works if mp is a morphism so that "*" and "==" are doing
+    if check && isa(M1.G, Group) #only works if mp is a morphism so that "*" and "==" are doing
       #s.th. useful
       @assert all(g->action(M1, g)*mp == mp*action(M2, g), gens(M1.G))
     end
@@ -26,11 +26,11 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
   end
 end
 
-function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: AbstractAlgebra.Group
+function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: Union{Nothing, Group}
   return GModuleHom(M1, M2, mp; check)
 end
 
-function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: AbstractAlgebra.Group
+function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: Union{Nothing, Group}
   return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check)
 end
 
@@ -38,7 +38,7 @@ domain(M::GModuleHom) = M.GM1
 codomain(M::GModuleHom) = M.GM2
 parent(M::GModuleHom) = Hecke.MapParent(domain(M), codomain(M), "homomorphisms")
 
-mutable struct GModuleElem{T}
+struct GModuleElem{T}
   parent::GModule
   data::T
 end

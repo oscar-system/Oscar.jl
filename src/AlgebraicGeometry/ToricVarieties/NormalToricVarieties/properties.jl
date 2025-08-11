@@ -194,4 +194,12 @@ julia> is_fano(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_fano(v::NormalToricVarietyType) = pm_object(v).FANO
+@attr Bool function is_fano(v::NormalToricVarietyType)
+  # [CLS11] Fano implies projective, thus non-projective implies non-Fano. But
+  # non-complete implies non-projective.
+  if !is_complete(v)
+    return false
+  else
+    return is_ample(anticanonical_divisor(v))
+  end
+end

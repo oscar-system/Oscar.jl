@@ -2,27 +2,110 @@
 #### PHYLOGENETIC DATA STRUCTURES ####
 ######################################
 
-struct PhylogeneticModel
+@attributes mutable struct PhylogeneticModel{L} <: GraphicalModel{Directed, L}
+  # do need to for T to be directed here?
+  base_field::Field
   graph::Graph{Directed}
+  labelings::L
+  trans_mat_signature::Matrix{<: VarName}
+  model_parameter_name::VarName
   n_states::Int
-  prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any} #this need to become more precise
-  trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
+  root_distribution::Vector
+  
+  function PhylogeneticModel(F::Field,
+                             G::Graph{Directed},
+                             trans_mat_signature::Matrix{<: VarName},
+                             n_states::Union{Nothing, Int} = nothing,
+                             root_distribution::Union{Nothing, Vector} = nothing,
+                             varname::VarName="p")
+    if isnothing(n_states)
+      n_states = 4
+    end
+    if isnothing(root_distribution)
+      root_distribution = repeat([1//n_states], outer = n_states)
+    end
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{typeof(graph_maps)}(F, G,
+                                   graph_maps,
+                                   trans_mat_signature,
+                                   varname,
+                                   n_states,
+                                   root_distribution)
+  end
+
+  function PhylogeneticModel(G::Graph{Directed},
+                             trans_mat_signature::Matrix{<: VarName},
+                             n_states::Union{Nothing, Int} = nothing,
+                             root_distribution::Union{Nothing, Vector} = nothing,
+                             varname::VarName="p")
+    return PhylogeneticModel(QQ, G, trans_mat_signature, n_states, root_distribution, varname)
+  end
 end
+
+n_states(M::PhylogeneticModel) = M.n_states
+trans_matrix(M::PhylogeneticModel) = M.trans_mat_signature
+base_field(M::PhylogeneticModel) = M.base_field
+varname(M::PhylogeneticModel) = M.model_parameter_name
+
+@attr Tuple{MPolyRing, GenDict} function parameter_ring(M::PhylogeneticModel; cached=false)
+  vars = unique(trans_matrix(M))
+  edge_gens = [x => 1:n_edges(graph(M)) for x in vars]
+  R, x... = polynomial_ring(base_field(M), edge_gens...; cached=cached)
+
+  R, Dict{Tuple{VarName, Int}, MPolyRingElem}(
+    (vars[i], j) => x[i][j] for i in 1:length(vars), j in 1:n_edges(graph(M))
+  )
+end
+
+@attr Tuple{
+  MPolyRing,
+  Array
+} function model_ring(PM::PhylogeneticModel; cached=false)
+  leave_nodes = leaves(graph(PM))
+  leaves_indices = collect(Iterators.product(
+    [tuple(1:n_states(PM)...) for _ in leave_nodes]...))
+
+  return polynomial_ring(base_field(PM),
+                         ["$(varname(PM))[$(join(x, ", "))]" for x in leaves_indices];
+                         cached=cached)
+end
+
+function parametrization(PM::PhylogeneticModel)
+  g =  graph(PM)
+  int_nodes = interior_nodes(g)
+  lvs_nodes = leaves(g)
+  n_states = n_states(pm)
+
+  _, e_gens = parameter_ring(PM)
+  tr_mat = trans_matrix(pm)
+  r = root(g)
+  monomial = root_dist[states[r]]
+
+  for e in edges(g)
+    
+  end
+end
+
+# prob_ring::MPolyRing{QQFieldElem}
+# root_distr::Vector{Any} #this need to become more precise
+# trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
+
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
-  ns = number_states(pm)
+  ns = n_states(pm)
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
-  root_dist = join(Oscar.root_distribution(pm), ", " )
-  M = collect(values(transition_matrices(pm)))[1]
-  
-  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)] \n")
-  print(io, " and transition matrix associated to edge i of the form \n ")
-  idx = string(split(string(M[1,1]), "[")[2][1])
-  print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
-  print(io, ". ")
+  #root_dist = join(Oscar.root_distribution(pm), ", " )
+  #M = collect(values(transition_matrices(pm)))[1]
+
+  # commenting out root distribution for now
+  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges") # \n with distribution at the root [$(root_dist)] \n")
+  print(io, " and transition matrices of the form \n ")
+
+  # printing this matrix can probably be improved
+  print(io, "$(pm.trans_mat_signature)")
 end
 
 struct GroupBasedPhylogeneticModel
@@ -162,8 +245,8 @@ julia> root_distribution(pm)
  1//4
 ```
 """
-root_distribution(pm::PhylogeneticModel) = pm.root_distr
-root_distribution(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.root_distr
+root_distribution(pm::PhylogeneticModel) = pm.root_distribution
+root_distribution(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.root_distribution
 
 @doc raw"""
     fourier_parameters(pm::GroupBasedPhylogeneticModel)
@@ -279,29 +362,17 @@ Group-based phylogenetic model on a tree with 3 leaves and 3 edges
  and the Fourier parameters are [x[i, 1] x[i, 2] x[i, 2] x[i, 2]].
 ```
 """
-function jukes_cantor_model(graph::Graph{Directed})
-  ns = 4
-  ne = n_edges(graph)
-  R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
-  
-  root_distr = repeat([1//ns], outer = ns)
-  edgs = sort_edges(graph)
-  matrices = Dict{Edge, MatElem}(e => matrix(R, [
-    a b b b
-    b a b b
-    b b a b
-    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs))
-
-  S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
-  fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
-  
-  #group = [[0,0], [0,1], [1,0], [1,1]]
-  G = collect(abelian_group(2,2))
-  group = [G[1],G[3],G[2],G[4]]
-
-  pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
-  return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
+function jukes_cantor_model(G::Graph{Directed})
+  PhylogeneticModel(G, [:a :b :b :b;
+                        :b :a :b :b;
+                        :b :b :a :b;
+                        :b :b :b :a]
+                    )
+  #G = collect(abelian_group(2,2))
+  #group = [G[1],G[3],G[2],G[4]]
+  #
+  #pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
+  #return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
 end
 
 @doc raw"""
@@ -391,6 +462,7 @@ end
 ##############################
 #### GENERAL MARKOV MODEL ####
 ##############################
+
 @doc raw"""
     general_markov_model(graph::Graph{Directed})
 

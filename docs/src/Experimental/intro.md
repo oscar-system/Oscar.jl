@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Adding new projects to experimental
 
 ## Purpose
@@ -27,11 +33,11 @@ at project folders, i.e. `experimental/PROJECT_NAME`, that have subfolders
 experimental/PROJECT_NAME/
 ├── README.md
 ├── docs
-│   ├── doc.main
-│   └── src
-│       └── DOCUMENTATION.md
+│   ├── doc.main
+│   └── src
+│       └── DOCUMENTATION.md
 ├── src
-│   └── PROJECT_NAME.jl
+│   └── PROJECT_NAME.jl
 └── test
     └── *.jl
 ```

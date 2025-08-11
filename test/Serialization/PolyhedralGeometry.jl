@@ -74,6 +74,7 @@ using Oscar: _integer_variables
       f_vector(d_hedron)
       lattice_points(d_hedron)
 
+      # this type needs to be any since the values have different type_params
       dict_ps = Dict{String, Any}(
         "unprecise" => polyhedron(
           Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
@@ -131,7 +132,7 @@ using Oscar: _integer_variables
         @test feasible_region(LP) == feasible_region(loaded)
       end
 
-      serializer=Oscar.LPSerializer(joinpath(path, "original"))
+      serializer=Oscar.Serialization.LPSerializer(joinpath(path, "original"))
       test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)

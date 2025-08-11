@@ -114,20 +114,15 @@ end
 
 function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
   @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
-  ctr = 0
   singular_generators(I.gb[ordering])
-  SR = I.gb[ordering].gens.Sx
-  SG = I.gb[ordering].gens.S
+  SR = I.gb[ordering].gensBiPolyArray.Sx
+  SG = I.gb[ordering].gensBiPolyArray.S
 
   #= test if I is included in <G> =#
   for f in I.gens
     if Singular.reduce(SR(f), SG) != 0
-      break
+      return false
     end
-    ctr += 1
-  end
-  if ctr != ngens(I)
-    return false
   end
 
   #= test if G is a standard basis of <G> w.r.t. ordering =#

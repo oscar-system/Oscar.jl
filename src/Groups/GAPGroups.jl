@@ -412,7 +412,25 @@ Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, x::GAPGroupElem)
+  print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+end
+
+function Base.show(io::IO, x::FPGroupElem)
+  s = String(GAPWrap.StringViewObj(GapObj(x)))
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    screenwidth -= 3 # leave some space for indentation
+    if length(s) > screenwidth
+      if is_unicode_allowed()
+        s = s[1:screenwidth-1] * "…"
+      else
+        s = s[1:screenwidth-3] * "..."
+      end
+    end
+  end
+  print(io, s)
+end
 
 # Printing GAP groups
 function Base.show(io::IO, G::GAPGroup)
@@ -461,20 +479,24 @@ function Base.show(io::IO, G::PermGroup)
   io = pretty(io)
   if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    if is_terse(io)
+      print(io, LowercaseOff(), "Sym(", degree(G), ")")
+    else
+      print(io, "Symmetric group of degree ", degree(G))
+    end
   elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
      number_of_moved_points(G) == degree(G)
-    print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    if is_terse(io)
+      print(io, LowercaseOff(), "Alt(", degree(G), ")")
+    else
+      print(io, "Alternating group of degree ", degree(G))
+    end
   else
     print(io, "Permutation group")
     if !is_terse(io)
       print(io, " of degree ", degree(G))
       if has_order(G)
-        if is_finite(G)
-          print(io, " and order ", order(G))
-        else
-          print(io, " and infinite order")
-        end
+        print(io, " and order ", order(G))
       elseif GAP.Globals.HasStabChainMutable(GapObj(G))
         # HACK: to show order in a few more cases where it is trivial to get
         # but really, GAP should be using this anyway?
@@ -794,7 +816,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> representative(C)
 (1,2)
@@ -814,7 +836,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 
 julia> acting_group(C) === G
 true
@@ -836,7 +858,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 Conjugacy class of
   (1,2) in
-  Sym(4)
+  symmetric group of degree 4
 ```
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
@@ -954,7 +976,7 @@ if `order` is positive, the classes of subgroups of this order.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -1189,7 +1211,7 @@ use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
@@ -1219,7 +1241,7 @@ otherwise, return `false, one(G)`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt(4)
+Alternating group of degree 4
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
@@ -1799,9 +1821,11 @@ julia> prime_of_pgroup(UInt16, quaternion_group(8))
 
 julia> prime_of_pgroup(symmetric_group(1))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 julia> prime_of_pgroup(symmetric_group(3))
 ERROR: ArgumentError: only supported for non-trivial p-groups
+[...]
 
 ```
 """
@@ -1828,33 +1852,52 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
   set__prime_of_pgroup(G, GAP.Obj(p))
 end
 
-# TODO/FIXME: the rank method below is disabled because it conflicts
-# with semantics of  the `rank` method for FinGenAbGroup. We'll have
-# to resolve this first; afterwards we can uncomment this code,
-# and possibly rename it to whatever we agreed on (if it is different from `rank`)
-#"""
-#    rank(G::GAPGroup)
-#
-#Return the rank of the group `G`, i.e., the minimal size of a generating set.
-#
-## Examples
-#```jldoctest
-#julia> rank(symmetric_group(5))
-#2
-#
-#julia> rank(free_group(5))
-#5
-#```
-#`"""
-#function rank(G::GAPGroup)
-#  is_trivial(G) && return 0
-#  is_cyclic(G) && return 1
-#  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
-#    return GAP.Globals.Rank(GapObj(G))::Int
-#  end
-#  has_is_finite(G) && is_finite(G) && return length(minimal_size_generating_set(G))
-#  error("not yet supported")
-#end
+"""
+    rank(G::GAPGroup)
+
+Return the rank of the group `G`, i.e., the minimal size of a generating set.
+
+See also [`torsion_free_rank`](@ref).
+
+# Examples
+```jldoctest
+julia> rank(symmetric_group(5))
+2
+
+julia> rank(free_group(5))
+5
+
+julia> G = pc_group(abelian_group(5,0))
+Pc group of infinite order
+
+julia> rank(G)
+2
+
+julia> torsion_free_rank(G)
+1
+```
+`"""
+function rank(G::GAPGroup)
+  is_trivial(G) && return 0
+  is_cyclic(G) && return 1
+  if GAPWrap.IsFreeGroup(GapObj(G))
+    return GAP.Globals.RankOfFreeGroup(GapObj(G))
+  end
+  if has_is_finite(G) && is_finite(G) && is_pgroup(G)
+    return GAP.Globals.RankPGroup(GapObj(G))
+  end
+
+  if (has_is_finite(G) && is_finite(G)) || (has_is_abelian(G) && is_abelian(G))
+    return length(minimal_size_generating_set(G))
+  end
+  error("not yet supported")
+end
+
+function torsion_free_rank(G::GAPGroup)
+  is_trivial(G) && return 0
+  is_cyclic(G) && return 1
+  return count(is_zero, abelian_invariants(G))
+end
 
 """
     is_finitely_generated(G::GAPGroup)
@@ -2046,7 +2089,7 @@ Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
 
 See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref),
-[`map_word(::WeylGroupElem, ::Vector)](@ref).
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2130,7 +2173,7 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
 See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
-[`map_word(::WeylGroupElem, ::Vector)](@ref).
+[`map_word(::WeylGroupElem, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2152,7 +2195,7 @@ function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimg
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  l = _exponent_vector(g)
+  l = exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2245,6 +2288,8 @@ end
 Return the syllables of `g` as a list of pairs `gen => exp` where
 `gen` is the index of a generator and `exp` is an exponent.
 
+See also [`letters(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
+
 # Examples
 ```jldoctest
 julia> F = @free_group(:F1, :F2);
@@ -2270,17 +2315,6 @@ function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
 end
 
-function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
-  gX = GapObj(g)
-  G = parent(g)
-  GX = GapObj(G)
-  if GAPWrap.IsPcGroup(GX)
-    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
-  end
-end
-
 function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
   v = zeros(ZZRingElem, ngens(parent(g)))
   for (i, e) in syllables(g)
@@ -2290,11 +2324,13 @@ function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
 end
 
 @doc raw"""
-    letters(g::FPGroupElem)
+    letters(g::Union{FPGroupElem, SubFPGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
 a group generator. Inverses of the generators are represented by negative
 numbers.
+
+See also [`syllables(::Union{FPGroupElem, SubFPGroupElem})`](@ref).
 
 # Examples
 ```jldoctest
@@ -2328,7 +2364,7 @@ julia> letters(epi(F1^5*F2^-3))
  -2
 ```
 """
-function letters(g::FPGroupElem)
+function letters(g::Union{FPGroupElem, SubFPGroupElem})
   w = GAPWrap.UnderlyingElement(GapObj(g))
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
 end
@@ -2353,6 +2389,7 @@ julia> length(one(F))
 
 julia> length(one(quo(F, [F1])[1]))
 ERROR: ArgumentError: the element does not lie in a free group
+[...]
 ```
 """
 function length(g::Union{FPGroupElem, SubFPGroupElem})
@@ -2395,7 +2432,7 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    end
 
    famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
-   if GAP.Globals.IsFreeGroup(GapObj(G))
+   if GAPWrap.IsFreeGroup(GapObj(G))
      w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
    else
      # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
@@ -2406,6 +2443,42 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    end
 
    return FPGroupElem(G, w)
+end
+
+"""
+    (G::FPGroup)(letters::AbstractVector{<:Integer})
+
+Return the element `x` of the full finitely presented group `G`
+that is described by `letters` as a list of integers, each entry corresponding to
+a group generator. Inverses of the generators are represented by negative
+numbers, see [`letters`](@ref).
+
+# Examples
+```jldoctest
+julia> G = free_group(2); lett = [1, 1, 1, -2];
+
+julia> x = G(lett)
+f1^3*f2^-1
+
+julia> letters(x) == lett
+true
+```
+"""
+function (G::FPGroup)(letters::AbstractVector{<:IntegerUnion})
+  n = ngens(G)
+  @req all(l -> 0 < abs(l) <= n, letters) "invalid generator index"
+
+  famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
+  if GAPWrap.IsFreeGroup(GapObj(G))
+    w = GAPWrap.AssocWordByLetterRep(famG, GapObj(letters, true))
+  else
+    F = GAP.getbangproperty(famG, :freeGroup)
+    famF = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+    w1 = GAPWrap.AssocWordByLetterRep(famF, GapObj(letters, true))
+    w = GAPWrap.ElementOfFpGroup(famG, w1)
+  end
+
+  return FPGroupElem(G, w)
 end
 
 function describe(G::FinGenAbGroup)
