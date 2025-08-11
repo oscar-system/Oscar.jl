@@ -61,6 +61,10 @@ function gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", 
   GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :k => k_varname))
 end
 
+function gaussian_graphical_model(G::MixedGraph; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+  GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :l => l_varname, :w => w_varname))
+end
+
 varnames(GM::GaussianGraphicalModel) = GM.varnames
 
 function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
@@ -126,7 +130,7 @@ end
 
 @attr Tuple{
   MPolyRing,
-  GenDict
+  GraphGenDict
 } function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
@@ -134,6 +138,23 @@ end
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
+  return R, gens_dict
+end
+
+@attr Tuple{
+  MPolyRing,
+  GenDict
+} function parameter_ring(GM::GaussianGraphicalModel{Mixed, T}; cached=false) where T
+  G = graph(GM)
+  D = directed_component(G)
+  U = undirected_component(G)
+  gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(D)],
+               ["$(varnames(GM)[:w])[$(v), $(v)]" for v in vertices(G)], 
+               ["$(varnames(GM)[:w])[$(src(e)), $(dst(e))]" for e in edges(U)])
+  R, d_gens, v_gens, u_gens = polynomial_ring(QQ, gen_names; cached=cached)
+  gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(D))),
+                    Dict((v, v) => v_gens[v] for v in 1:n_vertices(G)),
+                    Dict(e => d_gens[i] for (i, e) in enumerate(edges(U))))
   return R, gens_dict
 end
 
@@ -190,6 +211,38 @@ function error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
   W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
 end
 
+
+@doc raw"""
+    error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+
+Create the covariance matrix $ \Omega $ of the independent error terms in a directed Gaussian graphical model `M`
+
+## Examples
+
+```jldoctest
+julia> M = gaussian_graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]))
+Gaussian Graphical Model on a Directed graph with 3 nodes and 2 edges
+
+julia> error_covariance_matrix(M)
+[w[1]      0      0]
+[   0   w[2]      0]
+[   0      0   w[3]]
+
+```
+"""
+function error_covariance_matrix(M::GaussianGraphicalModel{Mixed, L}) where L
+  G = undirected_component(graph(M))
+  R, gens_dict = parameter_ring(M)
+  W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
+
+  for e in edges(G)
+    W[dst(e), src(e)] = W[e]
+    W[src(e), dst(e)] = W[e]
+  end
+
+  return W
+end
+
 @doc raw"""
     parametrization(M::GaussianGraphicalModel{Directed, L}) where L
 
@@ -217,7 +270,7 @@ defined by
 
 ```
 """
-function parametrization(M::GaussianGraphicalModel{Directed, L}) where L
+function parametrization(M::GaussianGraphicalModel{T, L}) where T  <: Union{Directed, Mixed} where L
   S, _ = model_ring(M)
   R, _ = parameter_ring(M)
   G = graph(M)
@@ -235,14 +288,17 @@ end
 #       Undirected parametrization
 #
 ###################################################################################
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
+@attr Tuple{
+  MPolyRing,
+  GraphGenDict
+} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
-  return R, gens_dict
+  return R, Dict{Union{Int, Edge}, MPolyRingElem}(gens_dict)
 end
 
 @doc raw"""

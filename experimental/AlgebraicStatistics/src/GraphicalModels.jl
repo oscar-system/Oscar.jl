@@ -1,4 +1,4 @@
-import Base.show
+import Base: show, getindex
 
 ###################################################################################
 #
@@ -30,8 +30,6 @@ end
 #       Generic Graphical Models
 #
 ###################################################################################
-
-const GenDict = Dict{S, T} where {S, T <: MPolyRingElem}
 
 abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
 

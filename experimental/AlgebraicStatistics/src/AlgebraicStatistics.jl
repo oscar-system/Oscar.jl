@@ -1,3 +1,13 @@
+################################################################################
+# important dict type, leaving here for now
+const GraphGenDict = Dict{Union{Int, Edge}, T} where T <: MPolyRingElem
+
+function Base.getindex(D::GraphGenDict, i::Int, j::Int)
+  return D[Edge(i, j)]
+end
+
+################################################################################
+
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
@@ -78,3 +88,4 @@ export ci_ideal
 export ci_polynomial
 export ci_structure
 export random_variables
+
