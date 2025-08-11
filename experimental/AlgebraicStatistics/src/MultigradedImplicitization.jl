@@ -173,8 +173,7 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
       end
     end
 
-    print("computed monomial bases")
-    print("\n")
+    println("computed monomial bases")
 
     # find the previous generators 
     if isempty(gens_dict)
@@ -188,7 +187,7 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
     if isnothing(wp)
         filter_results = pmap(filter_component, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)]; distributed=false)
     else
-        filter_results = pmap(filter_component, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)])
+        filter_results = pmap(filter_component, wp, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)])
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]

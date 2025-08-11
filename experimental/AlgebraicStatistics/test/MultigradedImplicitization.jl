@@ -1,3 +1,5 @@
+using Distributed
+
 @testset "MultigradedImplicitization" begin
   R, (x11, x12, x21, x22, y11, y12, y21, y22) = QQ["x11", "x12", "x21", "x22", "y11", "y12", "y21", "y22"]
 
@@ -21,8 +23,6 @@ end
 
 
 @testset "K3P" begin
-  using Distributed, DataStructures
-
   G = abelian_group(2, 2)
   elG = collect(G)
   T = graph_from_edges(Directed, [[6, 5], [5, 1], [5, 2], [6, 3], [6, 4]])
