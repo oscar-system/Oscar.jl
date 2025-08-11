@@ -1,7 +1,5 @@
 # -*- Conditional independence statements -*-
 
-export CIStmt, ci_stmt, @CI_str, ci_statements, make_elementary
-
 struct CIStmt
   I::Vector{Int}
   J::Vector{Int}

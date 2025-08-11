@@ -142,6 +142,33 @@ function add_directed_edge!(mg::MixedGraph, source::Int64, target::Int64)
   return n_edges(g) == old_nedges + 1
 end
 
+@doc raw"""
+    add_undirected_edge!(g::MixedGraph, s::Int64, t::Int64)
+
+Add edge `(s,t)` to the dirceted component of the graph `g`.
+Return `true` if a new edge `(s,t)` was added, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> g = mixed_graph(2);
+
+julia> add_undirected_edge!(g, 1, 2)
+true
+
+julia> add_undirected_edge!(g, 1, 2)
+false
+
+julia> n_edges(g)
+1
+```
+"""
+function add_undirected_edge!(mg::MixedGraph, source::Int64, target::Int64)
+  g = undirected_component(mg)
+  _has_node(g, source) && _has_node(g, target) || return false
+  old_nedges = n_edges(g)
+  Polymake._add_edge(pm_object(g), source-1, target-1)
+  return n_edges(g) == old_nedges + 1
+end
 
 @doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -1609,17 +1636,10 @@ function graph_from_edges(edges::Vector{T},
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
-function graph_from_edges(::Type{Mixed},
-                          directed_edges::Vector{T},
-                          undirected_edges::Vector{S}; n_vertices=-1) where {T, S <: Union{Vector{Int}, NTuple{2, Int}}}
-
-end
-
 # since return type will be different adjust the name
-function mixed_graph_from_edges(::Type{Mixed},
-                          directed_edges::Vector{Edge},
-                          undirected_edges::Vector{Edge},
-                          n_vertices::Int=-1)
+function mixed_graph_from_edges(directed_edges::Vector{Edge},
+                                undirected_edges::Vector{Edge},
+                                n_vertices::Int=-1)
   n_needed = maximum(vcat(reduce(append!,[[src(e),dst(e)] for e in directed_edges]; init=[0]),
                           reduce(append!,[[src(e),dst(e)] for e in undirected_edges]; init=[0])))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
