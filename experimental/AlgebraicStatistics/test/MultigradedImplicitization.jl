@@ -28,14 +28,12 @@ end
   T = graph_from_edges(Directed, [[6, 5], [5, 1], [5, 2], [6, 3], [6, 4]])
   M = kimura3_model(T)
 
-
   inds = [g for g in collect(Iterators.product([elG for _ in 1:4]...)) if sum(g) == elG[1]]
   S, p = polynomial_ring(QQ, "q" => inds)
   q = Dict()
   for i in 1:length(p)
     q[inds[i]] = p[i]
   end
-
 
   param_inds = [(i, g) for i in 1:8 for g in elG]
   R, b = polynomial_ring(QQ, "a" => param_inds)
@@ -54,7 +52,5 @@ end
   end
 
   phi = hom(S, R, images);
-
-  owp = oscar_worker_pool(8)
-  components_of_kernel(2, phi, wp = owp)
+  components_of_kernel(2, phi)
 end

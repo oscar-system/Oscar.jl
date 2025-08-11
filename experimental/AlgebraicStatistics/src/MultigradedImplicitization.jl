@@ -36,40 +36,39 @@ end
 function max_grading(phi::MPolyAnyMap)
   codom = codomain(phi)
   dom = domain(phi)
-  elim_ring, z = polynomial_ring(QQ, vcat([string(i) for i in symbols(codom)], [string(i) for i in symbols(dom)]))
+  elim_ring, z = polynomial_ring(QQ, vcat(symbols(codom), symbols(dom)))
   lift_codom = hom(codom, elim_ring, gens(elim_ring)[1:ngens(codom)])
-  lift_dom = hom(dom, elim_ring, gens(elim_ring)[ngens(codom) + 1:ngens(elim_ring)])
+  lift_dom = hom(dom, elim_ring, z[ngens(codom) + 1:ngens(elim_ring)])
 
   return homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
 end
 
 # compute the (transpose) of the jacobian
-function jacobian(phi)
+function jacobian(phi::MPolyAnyMap)
   return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
 
 # compute the jacobian and evalauate it at the point pt
-function jacobian_at_point(phi, pt)
+function jacobian_at_point(phi::MPolyAnyMap, pt::fpFieldElem)
   return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
 end
 
 # compute the jacobian at a random point with parameters sampled from a finite field
-function jacobian_at_rand_point(phi::MPolyAnyMap; char::Int=32003)
-  K = GF(char) #TODO: implement rand for fpField so we can replace GF
+function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
+  K = fpField(char)
   
   # remake codomain over finite field
   R = codomain(phi)
-  fq_R = polynomial_ring(K, string.(gens(R)))[1]
+  fq_R, fq_R_gens = polynomial_ring(K, ngens(R))
 
   # randomly sample parameter values in the finite field
-  pt = [rand(K) for _ in 1:ngens(fq_R)]
+  pt = rand(K, ngens(fq_R))
 
-  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in gens(fq_R)])
+  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in fq_R_gens])
 end
 
-
 # find the indices of the variable support of all monomials in mon_basis
-function component_support(mon_basis)
+function component_support(mon_basis::Vector{<: MPolyDecRingElem})
   supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
 end
 
@@ -115,8 +114,7 @@ function component_of_kernel(deg::FinGenAbGroupElem,
 end
 
 
-function compute_component(mon_basis, phi::MPolyAnyMap)
-
+function compute_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
   image_polys = [phi(m) for m in mon_basis]
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
   coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
@@ -124,9 +122,7 @@ function compute_component(mon_basis, phi::MPolyAnyMap)
   return mon_basis * K
 end
 
-
-function filter_component(deg, mon_basis, jac::MatElem)
-
+function filter_component(deg::FinGenAbGroupElem, mon_basis::Vector{<: MPolyDecRingElem}, jac::MatElem)
   # if the basis only has 1 element, then there are no generators by assumption
   length(mon_basis) < 2 && return [true, deg]
 
@@ -173,8 +169,6 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
       end
     end
 
-    println("computed monomial bases")
-
     # find the previous generators 
     if isempty(gens_dict)
       prev_gens = MPolyDecRingElem[]
@@ -185,9 +179,15 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
     # first filter out all easy cases
     # this could be improved to do some load-balancing
     if isnothing(wp)
-        filter_results = pmap(filter_component, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)]; distributed=false)
+      filter_results = pmap(filter_component,
+                            [deg for deg in keys(mon_bases)],
+                            [mon_bases[deg] for deg in keys(mon_bases)],
+                            [jac for _ in keys(mon_bases)]; distributed=false)
     else
-        filter_results = pmap(filter_component, wp, [deg for deg in keys(mon_bases)], [mon_bases[deg] for deg in keys(mon_bases)], [jac for _ in keys(mon_bases)])
+      filter_results = pmap(filter_component, wp,
+                            [deg for deg in keys(mon_bases)],
+                            [mon_bases[deg] for deg in keys(mon_bases)],
+                            [jac for _ in keys(mon_bases)])
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]
