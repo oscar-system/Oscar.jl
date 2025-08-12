@@ -4,12 +4,21 @@
     @test n_vertices(g) == 5
     @test n_edges(g) == 0
     @test vertices(g) == 1:5
+
     add_directed_edge!(g, 1, 2)
     @test n_edges(g) == 1
     @test has_directed_edge(g, 1, 2)
     rem_directed_edge!(g, 1, 2)
     @test n_edges(g) == 0
     @test !has_directed_edge(g, 1, 2)
+
+    add_undirected_edge!(g, 1, 2)
+    @test n_edges(g) == 1
+    @test has_undirected_edge(g, 1, 2)
+    rem_undirected_edge!(g, 1, 2)
+    @test n_edges(g) == 0
+    @test !has_undirected_edge(g, 1, 2)
+
     @test add_vertex!(g)
     @test n_vertices(g) == 6
     @test has_vertex(g, 6)
