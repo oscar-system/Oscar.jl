@@ -270,16 +270,17 @@ end
 
 ## -------------------- ##
 
-
-@attr Dict{MPolyRingElem, Vector{MPolyRingElem}} function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
+@attr EquivDict function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
+  
   _, ps = model_ring(PM)
   param = parametrization(PM);
   
   polys = unique(param.img_gens)
   polys = polys[findall(!is_zero, polys)]
 
-  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{QQMPolyRingElem}}()
-  equivalent_classes = Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}}()
+  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
+  equivalent_classes = Dict{MPolyRingElem, Vector{MPolyRingElem}}()
   for poly in polys
       eqv_class = sort([p for p in ps if param(p) == poly], rev = true)
       # equivalent_classes[Tuple(index(eqv_class[1]))] = eqv_class
@@ -313,16 +314,113 @@ end
 
 ## -------------------- ##
 
-@attr MatElem{MPolyRingElem} function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+#@attr Matrix{QQMPolyRingElem} 
+function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+  _, p = Oscar.model_ring(phylogenetic_model(PM))
+  _, q = Oscar.model_ring(PM)
+
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+
+  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
+  q_classes = Oscar.equivalent_classes(PM)
+
+  np = length(p_classes)
+  nq = length(q_classes)
+  
+  ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+  # keys_p_classes = collect(keys(p_classes))
+  # sort!(keys_p_classes, rev = true)
+  # keys_q_classes = collect(keys(q_classes))
+  # sort!(keys_q_classes, rev = true)
+
+  keys_p_classes = gens(Rp_red)
+  keys_q_classes = gens(Rq_red)
+
+  
+  H = Rp_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+  
+  M = Rp_red.(Int.(zeros(nq, np)))
+  for i in 1:nq
+    q_key_index = index(keys_q_classes[i])
+    current_fourier_class = q_classes[q[q_key_index...]]
+    for j in 1:np
+      p_key_index = index(keys_p_classes[j])
+      current_prob_class = p_classes[p[p_key_index...]]
+      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
+      M[i,j] = Rp_red.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+    end
+  end
+  
+  return M
+end
+
+#@attr MPolyAnyMap 
+function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+  
+  M = reduced_fourier_transform(PM)
+  hom(Rq_red, Rp_red, M*gens(Rp_red))
 
 end
 
-@attr MatElem{MPolyRingElem} function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+#@attr MatElem{MPolyRingElem} 
+
+function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+    _, p = Oscar.model_ring(phylogenetic_model(PM))
+    _, q = Oscar.model_ring(PM)
+
+    Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+    Rq_red, _ = Oscar.reduced_model_ring(PM)
+
+    p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
+    q_classes = Oscar.equivalent_classes(PM)
+
+    np = length(p_classes)
+    nq = length(q_classes)
+    
+    ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+    # keys_p_classes = collect(keys(p_classes))
+    # sort!(keys_p_classes, rev = true)
+    # keys_q_classes = collect(keys(q_classes))
+    # sort!(keys_q_classes, rev = true)
+
+    keys_p_classes = gens(Rp_red)
+    keys_q_classes = gens(Rq_red)
+
+    
+    H = Rp_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+    Hinv = 1//n_states(PM) * H
+
+    M = Rp_red.(Int.(zeros(np, nq)))
+    for i in 1:np
+      p_key_index = index(keys_p_classes[i])
+      current_prob_class = p_classes[p[p_key_index...]]
+
+      for j in 1:nq
+        q_key_index = index(keys_q_classes[j])
+        current_fourier_class = q_classes[q[q_key_index...]]
+        
+        current_entries_in_M = [prod([Hinv[x,y] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
+
+        M[i,j] = Rp_red.(sum(current_entries_in_M))
+        
+      end
+    end
+    M
+
+    return M
 end
 
-@attr MPolyAnyMap function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
-end
-@attr MPolyAnyMap function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+#@attr MPolyAnyMap 
+function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+  
+  M = inverse_reduced_fourier_transform(PM)
+  hom(Rq_red, Rp_red, M*gens(Rp_red))
+
 end
 
 
