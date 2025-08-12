@@ -163,11 +163,11 @@ end
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
                                        trans_mat_structure::Matrix{<: VarName},
+                                       fourier_param_structure::Vector{<: VarName},
                                        n_states::Union{Nothing, Int} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
+                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        varname_phylo_model::VarName="p",
-                                       fourier_param_structure::Vector{<: VarName},
-                                       group::Vector{FinGenAbGroupElem},
                                        varname_group_based::VarName="q")
     if isnothing(group)
       group = collect(abelian_group(2,2))
@@ -183,29 +183,62 @@ end
                                    group)
   end
 
+  # F, G,
+  # trans_mat_structure, fourier_param_structure,
+  # n_states, root_distribution, group,
+  # varname_phylo_model, varname_group_based
+
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
                                        trans_mat_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        n_states::Union{Nothing, Int} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
+                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        varname_phylo_model::VarName="p",
-                                       group::Vector{FinGenAbGroupElem},
                                        varname_group_based::VarName="q")
-    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, n_states, root_distribution, varname_phylo_model,
-                                       fourier_param_structure, group, varname_group_based)
+    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
+                                       n_states, root_distribution, group, 
+                                       varname_phylo_model, varname_group_based)
   end
 
-  #Is this necessary? Or it's the same as the struct constructor?
-  function GroupBasedPhylogeneticModel(PM::PhylogeneticModel,
+  # ????
+  function GroupBasedPhylogeneticModel(G::Graph{Directed},
+                                       trans_mat_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Vector{FinGenAbGroupElem},
+                                       n_states::Union{Nothing, Int} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       varname_phylo_model::VarName="p",
                                        varname_group_based::VarName="q")
-    return GroupBasedPhylogeneticModel(base_field(PM), graph(PM), transition_matrix(PM),
-                                       n_states(PM), root_distribution(PM), varname(PM),
-                                       fourier_param_structure, group, varname_group_based)
+    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
+                                       n_states, root_distribution, group, 
+                                       varname_phylo_model, varname_group_based)
   end
 
+
+  # can I do smth like this?
+  # function GroupBasedPhylogeneticModel(G::Graph{Directed},
+  #                                      trans_mat_structure::Matrix{<: VarName},
+  #                                      fourier_param_structure::Vector{<: VarName},
+  #                                      group::Vector{FinGenAbGroupElem} = nothing,
+  #                                      varname_group_based::VarName="q")
+  #   return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, nothing, nothing, "p",
+  #                                      fourier_param_structure, group, varname_group_based)
+  # end
+
+  #Is this necessary? Or it's the same as the struct constructor?
+  # function GroupBasedPhylogeneticModel(PM::PhylogeneticModel,
+  #                                      fourier_param_structure::Vector{<: VarName},
+  #                                      group::Vector{FinGenAbGroupElem},
+  #                                      varname_group_based::VarName="q")
+  #   return GroupBasedPhylogeneticModel(base_field(PM), graph(PM), transition_matrix(PM),
+  #                                      n_states(PM), root_distribution(PM), varname(PM),
+  #                                      fourier_param_structure, group, varname_group_based)
+  # end
+
 end
+
+graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph
 
 n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
 transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_mat_structure
@@ -219,57 +252,54 @@ fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
 varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
 
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+# @attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
  
-end
+# end
 
-@attr Tuple{MPolyRing, Array} function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+# @attr Tuple{MPolyRing, Array} function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   
-end
+# end
 
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, e::Edge, i::Int)
+# function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, e::Edge, i::Int)
 
-end
+# end
 
-@attr MPolyAnyMap function parametrization(PM::GroupBasedPhylogeneticModel)
+# @attr MPolyAnyMap function parametrization(PM::GroupBasedPhylogeneticModel)
 
-end
+# end
 
-@attr Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}} function equivalent_classes(PM::GroupBasedPhylogeneticModel)
+# @attr Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}} function equivalent_classes(PM::GroupBasedPhylogeneticModel)
            
-end
+# end
 
-@attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+# @attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
 
-end
+# end
 
-@attr MPolyAnyMap function reduced_parametrization(PM::GroupBasedPhylogeneticModel)
+# @attr MPolyAnyMap function reduced_parametrization(PM::GroupBasedPhylogeneticModel)
 
-end
-
-
-
-
+# end
 
 
 function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
-  gr = graph(pm)
-  nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
-  root_dist = join(Oscar.root_distribution(pm), ", ")
-  c_edg = 2
-  p_edg = inneighbors(gr, c_edg)[1]
-  findall(x-> x==2, dst.(edges(gr)))
-  M = transition_matrix(pm)[Edge(p_edg, c_edg)]
-  idx = string(split(string(M[1,1]), "[")[2][1])
+  print(io, "Group-based phy")
+  # gr = graph(pm)
+  # nl = length(leaves(gr))
+  # ne = length(collect(edges(gr)))
+  # root_dist = join(Oscar.root_distribution(pm), ", ")
+  # c_edg = 2
+  # p_edg = inneighbors(gr, c_edg)[1]
+  # findall(x-> x==2, dst.(edges(gr)))
+  # M = transition_matrix(pm)[Edge(p_edg, c_edg)]
+  # idx = string(split(string(M[1,1]), "[")[2][1])
 
-  print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)]. \n")
-  print(io, " The transition matrix associated to edge i is of the form \n ")
-  print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
-  print(io, ", \n and the Fourier parameters are ")
-  fp = transpose(fourier_parameters(pm)[Edge(p_edg, c_edg)])
-  fp = replace(string(fp), "QQMPolyRingElem" => "")
-  print(io, replace(replace(replace(string(fp), "["*idx => "[i"), ";" => ";\n "), "]]" => "]]."))
+  # print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)]. \n")
+  # print(io, " The transition matrix associated to edge i is of the form \n ")
+  # print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
+  # print(io, ", \n and the Fourier parameters are ")
+  # fp = transpose(fourier_parameters(pm)[Edge(p_edg, c_edg)])
+  # fp = replace(string(fp), "QQMPolyRingElem" => "")
+  # print(io, replace(replace(replace(string(fp), "["*idx => "[i"), ";" => ";\n "), "]]" => "]]."))
 end
 
 
@@ -285,7 +315,8 @@ function jukes_cantor_model(G::Graph{Directed})
        :b :a :b :b;
        :b :b :a :b;
        :b :b :b :a]
-  x = [:x[1], :x[2], :x[2], :x[2]]
+  # x = [Symbol("x[1]"), Symbol("x[2]"), Symbol("x[2]"), Symbol("x[2]")]
+  x = [:x1, :x2, :x2, :x2]
   
   #PhylogeneticModel(G, M)
   GroupBasedPhylogeneticModel(G, M, x)
