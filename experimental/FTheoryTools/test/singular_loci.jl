@@ -7,7 +7,7 @@ our_rng = Random.Xoshiro(1234)
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3_weier = weierstrass_model(foah1_B3)
+foah1_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
 foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
