@@ -92,18 +92,17 @@ end
     #root distribution
     @test root_distribution(model) == [1//4,1//4,1//4,1//4]
     #transition matrices
-    # tr_mat = Oscar.transition_matrices(model)
-    # for i in 1:4, j in 1:4
-    #   @test tr_mat[Edge(4, 2)][1, i == j ? 1 : 2] == tr_mat[Edge(4, 2)][i, j] #
-    # end
+    for i in 1:4, j in 1:4
+      @test entry_transition_matrix(model, Edge(4, 2), 1, i == j ? 1 : 2) == entry_transition_matrix(model, Edge(4, 2), i, j)
+    end
     # generators of the polynomial ring
     @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
-    @test_skip @test ngens(model_ring(model)[1]) == (n_edges(tree))
-     # fourier parameters
-    fp = model.trans_mat_signature
-    for i in 1:3
-      @test fp[4, i] == fp[4, i] == fp[4, i]
-    end
+    @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
+    # fourier parameters -- check!
+    # fp = model.trans_mat_structure
+    # for i in 1:3
+    #   @test fp[4, i] == fp[4, i] == fp[4, i]
+    # end
   end
 
   @test_skip @testset "kimura2_model" begin

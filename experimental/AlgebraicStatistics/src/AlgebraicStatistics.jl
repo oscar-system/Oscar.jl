@@ -15,9 +15,10 @@ include("GaussianGraphicalModels.jl")
 include("DiscreteGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
-include("PhylogeneticAuxiliary.jl")
-include("PhylogeneticParametrization.jl")
-include("PhylogeneticInvariants.jl")
+include("PhylogeneticModels-functions.jl")
+# include("PhylogeneticAuxiliary.jl")
+# include("PhylogeneticParametrization.jl")
+# include("PhylogeneticInvariants.jl")
 include("LoadModels.jl")
 
 include("./serialization.jl")
@@ -42,10 +43,9 @@ export affine_phylogenetic_model!
 #export phylogenetic models attributes
 export phylogenetic_model
 export n_states
-export transition_matrices
+export transition_matrix
 export root_distribution
-export fourier_parameters
-export fourier_ring
+export entry_transition_matrix
 export group_of_model
 
 #export probability and fourier map
@@ -63,6 +63,9 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+
+#export auxiliary functions
+export n_leaves
 
 # export functions to load objects (currently only graphs of phylogenetic models)
 export load_phylogenetic_model
