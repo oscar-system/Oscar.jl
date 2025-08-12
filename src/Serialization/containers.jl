@@ -169,6 +169,19 @@ function load_object(s::DeserializerState, T::Type{<:Array{S}}) where S
   end
 end
 
+function load_object(s::DeserializerState, T::Type{<:Array{S}}, params::NCRing) where S
+  load_node(s) do entries
+    if isempty(entries)
+      return T(undef, 0, 0, 0)
+    end
+    len = length(entries)
+    m = reduce(vcat, [
+      permutedims(load_object(s, Matrix{S}, params, i)) for i in 1:len
+        ])
+    return T(m)
+  end
+end
+
 
 ################################################################################
 # Saving and loading Tuple

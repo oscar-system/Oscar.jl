@@ -104,12 +104,12 @@ end
     
     mktempdir() do path
       test_save_load_roundtrip(path, model) do loaded
-        @test reduced_model_ring(model) == red_model_ring(loaded)
+        @test red_model_ring == reduced_model_ring(loaded)[1]
       end
     end
 
-    
-    # fourier parameters -- check!
+    # fourier parameters -- TODO!
+
     # fp = model.trans_mat_structure
     # for i in 1:3
     #   @test fp[4, i] == fp[4, i] == fp[4, i]

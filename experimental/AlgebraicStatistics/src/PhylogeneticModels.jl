@@ -23,7 +23,7 @@
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
     if isnothing(n_states)
-      n_states = 4
+      n_states = size(trans_mat_structure)[1]
     end
     if isnothing(root_distribution)
       root_distribution = repeat([1//n_states], outer = n_states)
@@ -290,8 +290,8 @@ end
   polys = unique(param.img_gens)
   polys = polys[findall(!is_zero, polys)]
 
-  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{QQMPolyRingElem}}()
-  equivalent_classes = Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}}()
+  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
+  equivalent_classes = Dict{MPolyRingElem, Vector{MPolyRingElem}}()
   for poly in polys
       eqv_class = sort([p for p in ps if param(p) == poly], rev = true)
       # equivalent_classes[Tuple(index(eqv_class[1]))] = eqv_class
@@ -313,7 +313,7 @@ end
                         cached=cached)
 end
 
-@attr MPolyAnyMap function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
   _, p = model_ring(PM)
   S, _ = parameter_ring(PM)
   param = parametrization(PM)
@@ -328,16 +328,108 @@ end
 
 ## -------------------- ##
 
-@attr MatElem{MPolyRingElem} function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+  _, p = Oscar.model_ring(phylogenetic_model(PM))
+  _, q = Oscar.model_ring(PM)
+
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+
+  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
+  q_classes = Oscar.equivalent_classes(PM)
+
+  np = length(p_classes)
+  nq = length(q_classes)
+  
+  ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+  # keys_p_classes = collect(keys(p_classes))
+  # sort!(keys_p_classes, rev = true)
+  # keys_q_classes = collect(keys(q_classes))
+  # sort!(keys_q_classes, rev = true)
+
+  keys_p_classes = gens(Rp_red)
+  keys_q_classes = gens(Rq_red)
+
+  
+  H = Rp_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+  
+  M = Rp_red.(Int.(zeros(nq, np)))
+  for i in 1:nq
+    q_key_index = index(keys_q_classes[i])
+    current_fourier_class = q_classes[q[q_key_index...]]
+    for j in 1:np
+      p_key_index = index(keys_p_classes[j])
+      current_prob_class = p_classes[p[p_key_index...]]
+      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
+      M[i,j] = Rp_red.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+    end
+  end
+  
+  return M
+end
+
+function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+  
+  M = reduced_fourier_transform(PM)
+  hom(Rq_red, Rp_red, M*gens(Rp_red))
 
 end
 
-@attr MatElem{MPolyRingElem} function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
+    _, p = Oscar.model_ring(phylogenetic_model(PM))
+    _, q = Oscar.model_ring(PM)
+
+    Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+    Rq_red, _ = Oscar.reduced_model_ring(PM)
+
+    p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
+    q_classes = Oscar.equivalent_classes(PM)
+
+    np = length(p_classes)
+    nq = length(q_classes)
+    
+    ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+    # keys_p_classes = collect(keys(p_classes))
+    # sort!(keys_p_classes, rev = true)
+    # keys_q_classes = collect(keys(q_classes))
+    # sort!(keys_q_classes, rev = true)
+
+    keys_p_classes = gens(Rp_red)
+    keys_q_classes = gens(Rq_red)
+
+    
+    H = Rq_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+    Hinv = 1//n_states(PM) * H
+
+    M = Rq_red.(Int.(zeros(np, nq)))
+    for i in 1:np
+      p_key_index = index(keys_p_classes[i])
+      current_prob_class = p_classes[p[p_key_index...]]
+
+      for j in 1:nq
+        q_key_index = index(keys_q_classes[j])
+        current_fourier_class = q_classes[q[q_key_index...]]
+        
+        current_entries_in_M = [prod([Hinv[x,y] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
+
+        M[i,j] = Rq_red.(sum(current_entries_in_M))
+        
+      end
+    end
+    M
+
+    return M
 end
 
-@attr MPolyAnyMap function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
-end
-@attr MPolyAnyMap function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
+  Rq_red, _ = Oscar.reduced_model_ring(PM)
+  
+  M = inverse_reduced_fourier_transform(PM)
+  hom(Rp_red, Rq_red, M*gens(Rq_red))
+
 end
 
 
@@ -345,6 +437,17 @@ end
 #### GROUP-BASED MODELS ####
 ############################
 
+function cavender_farris_neyman_model(G::Graph{Directed})
+  M = [:a :b;
+       :b :a]
+  x = [:x, :y] 
+
+  group = collect(abelian_group(2))
+  group = [group[1],group[2]]
+  
+  #PhylogeneticModel(G, M)
+  GroupBasedPhylogeneticModel(G, M, x, group) 
+end
 
 function jukes_cantor_model(G::Graph{Directed})
   M = [:a :b :b :b;
@@ -356,11 +459,35 @@ function jukes_cantor_model(G::Graph{Directed})
   x = [:x, :y, :y, :y] 
   
   #PhylogeneticModel(G, M)
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(G, M, x) 
+end
+
+function kimura2_model(G::Graph{Directed})
+  M = [:a :b :c :b;
+       :b :a :b :c;
+       :c :b :a :b;
+       :b :c :b :a]
+  x = [:x, :y, :z, :z] 
   
-  #G = collect(abelian_group(2,2))
-  #group = [G[1],G[3],G[2],G[4]]
-  #
-  #pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
-  #return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
+  GroupBasedPhylogeneticModel(G, M, x)
+end
+
+function kimura3_model(G::Graph{Directed})
+  M = [:a :b :c :d;
+       :b :a :d :c;
+       :c :d :a :b;
+       :d :c :b :a]
+  x = [:x, :y, :z, :t] 
+  
+  GroupBasedPhylogeneticModel(G, M, x)
+end
+
+function general_markov_model(G::Graph{Directed})
+
+  M = [:m11 :m12 :m13 :m14;
+       :m21 :m22 :m23 :m24;
+       :m31 :m32 :m33 :m34;
+       :m41 :m42 :m43 :m44]
+  
+  PhylogeneticModel(G, M)
 end
