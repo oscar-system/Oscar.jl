@@ -2,8 +2,12 @@
 #### PHYLOGENETIC DATA STRUCTURES ####
 ######################################
 
+# -------------------- #
+## Phylogenetic Model ##
+# -------------------- #
+
 @attributes mutable struct PhylogeneticModel{L} <: GraphicalModel{Directed, L}
-  # do need to for T to be directed here?
+  # do need to for T to be directed here? YES!
   base_field::Field
   graph::Graph{Directed}
   labelings::L
@@ -144,16 +148,109 @@ end
 
 
 
-struct GroupBasedPhylogeneticModel
-  phylo_model::PhylogeneticModel
-  fourier_ring::MPolyRing{QQFieldElem}
-  fourier_params::Dict{Edge, Vector{QQMPolyRingElem}}
+
+# -------------------------------- #
+## Group-based Phylogenetic Model ##
+# -------------------------------- #
+
+@attributes mutable struct GroupBasedPhylogeneticModel{L} <: GraphicalModel{Directed, L}
+  # do need to for T to be directed here? YES!
+  phylo_model::PhylogeneticModel 
+  fourier_param_structure::Vector{<: VarName}
+  model_parameter_name::VarName
   group::Vector{FinGenAbGroupElem}
+  
+  function GroupBasedPhylogeneticModel(F::Field, 
+                                       G::Graph{Directed},
+                                       trans_mat_structure::Matrix{<: VarName},
+                                       n_states::Union{Nothing, Int} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       varname_phylo_model::VarName="p",
+                                       fourier_param_structure::Vector{<: VarName},
+                                       group::Vector{FinGenAbGroupElem},
+                                       varname_group_based::VarName="q")
+    if isnothing(group)
+      group = collect(abelian_group(2,2))
+      group = [group[1],group[3],group[2],group[4]]
+    end
+
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_mat_structure, n_states, 
+                                                     root_distribution, varname_phylo_model),
+                                   fourier_param_structure,
+                                   varname_group_based,
+                                   group)
+  end
+
+  function GroupBasedPhylogeneticModel(G::Graph{Directed},
+                                       trans_mat_structure::Matrix{<: VarName},
+                                       fourier_param_structure::Vector{<: VarName},
+                                       n_states::Union{Nothing, Int} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       varname_phylo_model::VarName="p",
+                                       group::Vector{FinGenAbGroupElem},
+                                       varname_group_based::VarName="q")
+    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, n_states, root_distribution, varname_phylo_model,
+                                       fourier_param_structure, group, varname_group_based)
+  end
+
+  #Is this necessary? Or it's the same as the struct constructor?
+  function GroupBasedPhylogeneticModel(PM::PhylogeneticModel,
+                                       fourier_param_structure::Vector{<: VarName},
+                                       group::Vector{FinGenAbGroupElem},
+                                       varname_group_based::VarName="q")
+    return GroupBasedPhylogeneticModel(base_field(PM), graph(PM), transition_matrix(PM),
+                                       n_states(PM), root_distribution(PM), varname(PM),
+                                       fourier_param_structure, group, varname_group_based)
+  end
+
 end
 
-# prob_ring::MPolyRing{QQFieldElem}
-# root_distr::Vector{Any} #this need to become more precise
-# trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
+n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
+transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_mat_structure
+base_field(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.base_field
+root_distribution(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.root_distribution
+varname_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name
+
+phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
+group(PM::GroupBasedPhylogeneticModel) = PM.group
+fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
+varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
+
+
+@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+ 
+end
+
+@attr Tuple{MPolyRing, Array} function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+  
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, e::Edge, i::Int)
+
+end
+
+@attr MPolyAnyMap function parametrization(PM::GroupBasedPhylogeneticModel)
+
+end
+
+@attr Dict{QQMPolyRingElem, Vector{QQMPolyRingElem}} function equivalent_classes(PM::GroupBasedPhylogeneticModel)
+           
+end
+
+@attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+
+end
+
+@attr MPolyAnyMap function reduced_parametrization(PM::GroupBasedPhylogeneticModel)
+
+end
+
+
+
+
+
 
 function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   gr = graph(pm)
@@ -176,17 +273,23 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
 end
 
 
+
+
 ############################
 #### GROUP-BASED MODELS ####
 ############################
 
 
 function jukes_cantor_model(G::Graph{Directed})
-  PhylogeneticModel(G, [:a :b :b :b;
-                        :b :a :b :b;
-                        :b :b :a :b;
-                        :b :b :b :a]
-                    )
+  M = [:a :b :b :b;
+       :b :a :b :b;
+       :b :b :a :b;
+       :b :b :b :a]
+  x = [:x[1], :x[2], :x[2], :x[2]]
+  
+  #PhylogeneticModel(G, M)
+  GroupBasedPhylogeneticModel(G, M, x)
+  
   #G = collect(abelian_group(2,2))
   #group = [G[1],G[3],G[2],G[4]]
   #
