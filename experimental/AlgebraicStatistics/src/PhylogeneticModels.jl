@@ -79,7 +79,7 @@ function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, e::Edge)
   parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int,)
+function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
 end
@@ -235,7 +235,7 @@ end
                          cached=cached)
 end
 
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge,)
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)
   parameter_ring(PM)[2][x[i], e]
 end
