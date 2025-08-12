@@ -1758,12 +1758,11 @@ ignore any negative integers and throw an error when the input is less than the 
 # Examples
 ```jldoctest
 julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
-Undirected graph with 5 nodes and the following edges:
-(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
-
-julia> G = graph_from_edges(Directed, [[1,3]], 4)
-Directed graph with 4 nodes and the following edges:
-(1, 3)
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
 ```
 """
 function mixed_graph_from_edges(directed_edges::Vector{S},
