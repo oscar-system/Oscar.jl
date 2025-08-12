@@ -684,6 +684,8 @@ end
 #
 ###############################################################################
 
+symbols(apr::ActionPolyRing) = symbols(__upr(apr))[__perm_for_sort(apr)]
+
 canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 
 ###############################################################################

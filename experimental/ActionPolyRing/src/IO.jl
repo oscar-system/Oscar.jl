@@ -54,10 +54,41 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
   end
 end
 
-### generic ###
-function Base.show(io::IO, apre::ActionPolyRingElem)
-  io = pretty(io)
-  show(io, data(apre))
+###############################################################################
+#
+# Expressify
+#
+###############################################################################
+
+@enable_all_show_via_expressify ActionPolyRingElem
+
+function _expressify_monomial!(prod::Expr, x, e)
+    @inbounds for i in 1:length(e)
+        if e[i] > 1
+            push!(prod.args, Expr(:call, :^, x[i], e[i]))  # deepcopy not needed for immutables
+        elseif e[i] == 1
+            push!(prod.args, x[i])
+        end
+    end
+end
+
+function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = nothing)
+    sum = Expr(:call, :+)
+
+    for (c, e) in zip(coefficients(a), exponents(a))
+        if all(zero(eltype(e)) == ei for ei in e)  # constant term
+            push!(sum.args, expressify(c, context = context))
+        else
+            prod = Expr(:call, :*)
+            if !(isone(c))
+                push!(prod.args, expressify(c, context = context))
+            end
+            _expressify_monomial!(prod, x, e)
+            push!(sum.args, prod)
+        end
+    end
+
+    return sum
 end
 
 ###############################################################################
