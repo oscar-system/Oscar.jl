@@ -52,7 +52,7 @@ export inverse_specialized_fourier_transform
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
 
-#export auxiliary functions
+#export auxiliary graph functions
 export n_leaves
 
 # export functions to load objects (currently only graphs of phylogenetic models)

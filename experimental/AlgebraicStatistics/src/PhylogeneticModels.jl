@@ -23,7 +23,7 @@
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
     if isnothing(n_states)
-      n_states = 4
+      n_states = size(trans_mat_structure)[1]
     end
     if isnothing(root_distribution)
       root_distribution = repeat([1//n_states], outer = n_states)
@@ -224,7 +224,10 @@ varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? A
   )
 end
 
-@attr Tuple{MPolyRing, Array} function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  Array
+  } function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM) # ? Antony
 
   return polynomial_ring(base_field(PM),
@@ -290,7 +293,10 @@ const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
   return equivalent_classes
 end
 
-@attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  Array
+  } function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   eq_calasses = Oscar.equivalent_classes(PM)
   keys_eq_classes = sort(collect(keys(eq_calasses)), rev = true)
 
@@ -299,7 +305,7 @@ end
                         cached=cached)
 end
 
-@attr MPolyAnyMap function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
   _, p = model_ring(PM)
   S, _ = parameter_ring(PM)
   param = parametrization(PM)
@@ -314,7 +320,6 @@ end
 
 ## -------------------- ##
 
-#@attr Matrix{QQMPolyRingElem} 
 function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
   _, p = Oscar.model_ring(phylogenetic_model(PM))
   _, q = Oscar.model_ring(PM)
@@ -355,7 +360,6 @@ function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
   return M
 end
 
-#@attr MPolyAnyMap 
 function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
   Rq_red, _ = Oscar.reduced_model_ring(PM)
@@ -364,8 +368,6 @@ function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
   hom(Rq_red, Rp_red, M*gens(Rp_red))
 
 end
-
-#@attr MatElem{MPolyRingElem} 
 
 function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
     _, p = Oscar.model_ring(phylogenetic_model(PM))
@@ -390,10 +392,10 @@ function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
     keys_q_classes = gens(Rq_red)
 
     
-    H = Rp_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+    H = Rq_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
     Hinv = 1//n_states(PM) * H
 
-    M = Rp_red.(Int.(zeros(np, nq)))
+    M = Rq_red.(Int.(zeros(np, nq)))
     for i in 1:np
       p_key_index = index(keys_p_classes[i])
       current_prob_class = p_classes[p[p_key_index...]]
@@ -404,7 +406,7 @@ function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
         
         current_entries_in_M = [prod([Hinv[x,y] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
 
-        M[i,j] = Rp_red.(sum(current_entries_in_M))
+        M[i,j] = Rq_red.(sum(current_entries_in_M))
         
       end
     end
@@ -413,13 +415,12 @@ function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
     return M
 end
 
-#@attr MPolyAnyMap 
 function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
   Rq_red, _ = Oscar.reduced_model_ring(PM)
   
   M = inverse_reduced_fourier_transform(PM)
-  hom(Rq_red, Rp_red, M*gens(Rp_red))
+  hom(Rp_red, Rq_red, M*gens(Rq_red))
 
 end
 
@@ -428,6 +429,17 @@ end
 #### GROUP-BASED MODELS ####
 ############################
 
+function cavender_farris_neyman_model(G::Graph{Directed})
+  M = [:a :b;
+       :b :a]
+  x = [:x, :y] 
+
+  group = collect(abelian_group(2))
+  group = [group[1],group[2]]
+  
+  #PhylogeneticModel(G, M)
+  GroupBasedPhylogeneticModel(G, M, x, group) 
+end
 
 function jukes_cantor_model(G::Graph{Directed})
   M = [:a :b :b :b;
@@ -439,11 +451,35 @@ function jukes_cantor_model(G::Graph{Directed})
   x = [:x, :y, :y, :y] 
   
   #PhylogeneticModel(G, M)
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(G, M, x) 
+end
+
+function kimura2_model(G::Graph{Directed})
+  M = [:a :b :c :b;
+       :b :a :b :c;
+       :c :b :a :b;
+       :b :c :b :a]
+  x = [:x, :y, :z, :z] 
   
-  #G = collect(abelian_group(2,2))
-  #group = [G[1],G[3],G[2],G[4]]
-  #
-  #pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
-  #return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
+  GroupBasedPhylogeneticModel(G, M, x)
+end
+
+function kimura3_model(G::Graph{Directed})
+  M = [:a :b :c :d;
+       :b :a :d :c;
+       :c :d :a :b;
+       :d :c :b :a]
+  x = [:x, :y, :z, :t] 
+  
+  GroupBasedPhylogeneticModel(G, M, x)
+end
+
+function general_markov_model(G::Graph{Directed})
+
+  M = [:m11 :m12 :m13 :m14;
+       :m21 :m22 :m23 :m24;
+       :m31 :m32 :m33 :m34;
+       :m41 :m42 :m43 :m44]
+  
+  PhylogeneticModel(G, M)
 end
