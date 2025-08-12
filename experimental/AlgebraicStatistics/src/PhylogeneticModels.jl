@@ -49,7 +49,10 @@ base_field(PM::PhylogeneticModel) = PM.base_field
 varname(PM::PhylogeneticModel) = PM.model_parameter_name
 root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::PhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing,
+  GraphTransDict
+} function parameter_ring(PM::PhylogeneticModel; cached=false)
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)

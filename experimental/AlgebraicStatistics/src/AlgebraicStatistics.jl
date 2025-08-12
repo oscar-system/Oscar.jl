@@ -6,6 +6,12 @@ function Base.getindex(D::GraphGenDict, i::Int, j::Int)
   return D[Edge(i, j)]
 end
 
+const GraphTransDict = Dict{Tuple{VarName, Edge}, T} where T <: MPolyRingElem
+
+function Base.getindex(D::GraphTransDict, s::Varname, i::Int, j::Int)
+  return D[(s, Edge(i, j))]
+end
+
 ################################################################################
 
 include("CI.jl")
