@@ -84,7 +84,7 @@ end
   end
 
   @testset "Jukes Cantor" begin
-    model = jukes_cantor_model(tree)
+    model = phylogenetic_model(jukes_cantor_model(tree))
     @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
     @test model isa PhylogeneticModel
     #number of states
@@ -98,6 +98,17 @@ end
     # generators of the polynomial ring
     @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
     @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
+
+    red_model_ring, _ = reduced_model_ring(model)
+    @test ngens(red_model_ring) == 5
+    
+    mktempdir() do path
+      test_save_load_roundtrip(path, model) do loaded
+        @test reduced_model_ring(model) == red_model_ring(loaded)
+      end
+    end
+
+    
     # fourier parameters -- check!
     # fp = model.trans_mat_structure
     # for i in 1:3

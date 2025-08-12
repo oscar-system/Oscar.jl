@@ -1,4 +1,4 @@
-const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
+const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}, Array{T}}
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
 function params_all_equal(params::MatVecType{<:TypeParams})
@@ -144,6 +144,31 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::NCRing)
     return T(m)
   end
 end
+
+@register_serialization_type Array
+
+function save_object(s::SerializerState, arr::Array)
+  _, _, k = size(arr)
+  save_data_array(s) do
+    for t in 1:k
+      save_object(s, arr[:, :, k])
+    end
+  end
+end
+
+function load_object(s::DeserializerState, T::Type{<:Array{S}}) where S
+  load_node(s) do entries
+    if isempty(entries)
+      return T(undef, 0, 0, 0)
+    end
+    len = length(entries)
+    m = reduce(vcat, [
+      permutedims(load_object(s, Matrix{S}, i)) for i in 1:len
+        ])
+    return T(m)
+  end
+end
+
 
 ################################################################################
 # Saving and loading Tuple

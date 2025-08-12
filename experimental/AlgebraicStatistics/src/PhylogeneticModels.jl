@@ -66,7 +66,10 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
   )
 end
 
-@attr Tuple{MPolyRing, Array} function model_ring(PM::PhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  Array{T}
+} where T <: MPolyRingElem function model_ring(PM::PhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM)
 
   return polynomial_ring(base_field(PM),
@@ -230,7 +233,10 @@ varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? A
   )
 end
 
-@attr Tuple{MPolyRing, Array} function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  Array{T}
+} where T <: MPolyRingElem function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM) # ? Antony
 
   return polynomial_ring(base_field(PM),
@@ -277,7 +283,7 @@ end
 ## -------------------- ##
 
 
-@attr Dict{MPolyRingElem, Vector{MPolyRingElem}} function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+@attr Dict{T, Vector{T}} where T <: MPolyRingElem function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
   _, ps = model_ring(PM)
   param = parametrization(PM);
   
@@ -295,7 +301,10 @@ end
   return equivalent_classes
 end
 
-@attr Tuple{MPolyRing, Array} function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  Array{T}
+} where T <: MPolyRingElem function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   eq_calasses = Oscar.equivalent_classes(PM)
   keys_eq_classes = sort(collect(keys(eq_calasses)), rev = true)
 

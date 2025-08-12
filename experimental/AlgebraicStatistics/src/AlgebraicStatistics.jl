@@ -69,6 +69,7 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+export reduced_model_ring
 
 #export auxiliary functions
 export n_leaves

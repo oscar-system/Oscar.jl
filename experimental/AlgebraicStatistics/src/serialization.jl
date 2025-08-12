@@ -2,8 +2,9 @@ import Oscar.Serialization: save_object, load_object,
   type_params
 
 @register_serialization_type GraphGenDict 
+@register_serialization_type GraphTransDict
 
-function type_params(obj::GraphGenDict)
+function type_params(obj::T) where T <: Union{GraphGenDict, GraphTransDict}
   if isempty(obj)
     return TypeParams(
       GraphGenDict,
@@ -53,6 +54,8 @@ end
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
 
 function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
+  # this should only be the graph type not the whole graph
+  # need to make adjustments to TypeParams functionality
   TypeParams(S, graph(GM))
 end
 
@@ -63,6 +66,14 @@ function save_object(s::SerializerState, M::GraphicalModel)
   end
 end
 
+@register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
+                                                        :model_ring,
+                                                        :reduced_parameter_ring,
+                                                        :reduced_model_ring]
+
 load_object(s::DeserializerState,
             ::Type{GaussianGraphicalModel},
             g::AbstractGraph) = gaussian_graphical_model(g)
+
+load_object(s::DeserializerState, ::Type{PhylogeneticModel}, g::AbstractGraph)
+
