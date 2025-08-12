@@ -14,10 +14,10 @@ A *graph* consists of two sets of data:
 - a finite set $V := \{1,\ldots,n\}$ of *vertices*; and
 - a finite set $E \subseteq V\times V$ of *edges*.
 
-There are two types of graphs, *directed* and *undirected*. For a *directed
+There are three types of graphs, *directed*, *undirected* and *mixed*. For a *directed
 graph* the elements of $E$ are considered to be ordered pairs, for an
 *undirected graph* the elements of $E$ are unordered pairs or rather sets with
-two elements.
+two elements, a *mixed graph* has a *directed component* and an *undirected*
 
 The interface is modeled alongside the
 [Graphs.jl](https://juliagraphs.org/Graphs.jl/dev/) interface to
@@ -35,6 +35,7 @@ allow for easier integration elsewhere.
 
 ```@docs
 graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
+mixed_graph(nverts::Int64)
 dual_graph(p::Polyhedron)
 vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
@@ -45,8 +46,10 @@ graph_from_labeled_edges
 ### Modifying graphs
 ```@docs
 add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
-add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+add_directed_edge!(g::MixedGraph, source::Int64, target::Int64)
+add_undirected_edge!(g::MixedGraph, source::Int64, target::Int64)
+add_vertices!
+add_vertex!
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}

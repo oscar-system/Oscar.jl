@@ -1549,6 +1549,7 @@ export relative_order
 export relators
 export rem_directed_edge!
 export rem_edge!
+export rem_undirected_edge!
 export rem_vertex!
 export rem_vertices!
 export renest
