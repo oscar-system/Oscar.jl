@@ -8,7 +8,7 @@ end
 
 const GraphTransDict = Dict{Tuple{VarName, Edge}, T} where T <: MPolyRingElem
 
-function Base.getindex(D::GraphTransDict, s::Varname, i::Int, j::Int)
+function Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int)
   return D[(s, Edge(i, j))]
 end
 

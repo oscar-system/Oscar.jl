@@ -217,7 +217,10 @@ fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
 varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
 
 
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing,
+  GraphTransDict
+} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   vars = unique(fourier_parameters(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
