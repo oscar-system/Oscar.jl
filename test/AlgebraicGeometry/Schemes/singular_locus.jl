@@ -96,4 +96,9 @@ end
   @test numerator(derivative(gen(I2, 2),2)) == -1
 end
 
+@testset "Issue 5089" begin
+  R,(x,y) = polynomial_ring(GF(3),2)
+  I = ideal(x^3+y^3)
+  @test is_smooth(spec(I))
+end
 
