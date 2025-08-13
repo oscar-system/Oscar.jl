@@ -162,3 +162,8 @@ Please follow the additional guidelines below, that are not checked by bibtool:
 - If a DOI is available for your reference, please add it as a `doi` field to the BibTeX entry. In this case, please refrain from adding an additional `url` field.
 - If your reference has no DOI or the paper is not open-access, but is available as an arXiv preprint, you can add the arXiv link as a `eprint` field (even additionally to a `doi` field). For other preprint servers (e.g. HAL), please refer to the [DocumenterCitations.jl docs](https://juliadocs.org/DocumenterCitations.jl/stable/syntax/#Preprint-support).
 - Documents available only as an arXiv preprint should be added as `@Misc` entries with the arXiv-ID in the `eprint` field, e.g., `archiveprefix = {arXiv}` and `eprint = {2008.12651}`.
+
+## Documentation preview
+
+For pull requests coming from a branch of the main Oscar repository, a preview of the documentation can be found under
+https://docs.oscar-system.org/previews/PRX/ where "X" is the PR number.
