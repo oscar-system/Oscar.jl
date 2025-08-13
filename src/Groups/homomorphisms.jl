@@ -1140,68 +1140,61 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
    end::MapFromFunc{S, T}
 end
 
-const change_group_type_doc =
-"""
-    FPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    SubFPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    sub_fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    PcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    SubPcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    sub_pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    PermGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    permutation_group(G::T) where T <: Union{Group, FinGenAbGroup}
+function change_group_type_doc(typeCamelCase::String, func_snake_case::String, example_group_show::String)
+  """
+      $(typeCamelCase)(G::T) where T <: Union{Group, FinGenAbGroup}
+      $(func_snake_case)(G::T) where T <: Union{Group, FinGenAbGroup}
 
-Return a group of the requested type that is isomorphic to `G`.
-An exception is thrown if no such group exists.
-A `MethodError` is thrown if this particular pair of types is not implemented (yet).
+  Return a group of the type `$(typeCamelCase)` that is isomorphic to `G`.
+  An exception is thrown if no such group exists.
+  A `MethodError` is thrown if this particular pair of types is not implemented (yet).
 
-If one needs the isomorphism then
-[`isomorphism(::Type{T}, G::Group) where T <: Group`](@ref)
-can be used instead.
+  If one needs the isomorphism then
+  [`isomorphism(::Type{T}, G::Group) where T <: Group`](@ref)
+  can be used instead.
 
-# Examples
-```jldoctest
-julia> G = dihedral_group(6)
-Pc group of order 6
+  # Examples
+  ```jldoctest
+  julia> G = dihedral_group(6)
+  Pc group of order 6
 
-julia> iso = isomorphism(PermGroup, G)
-Group homomorphism
-  from pc group of order 6
-  to permutation group of degree 3 and order 6
+  julia> iso = isomorphism($(typeCamelCase), G)
+  Group homomorphism
+    from pc group of order 6
+    to $(lowercasefirst(example_group_show))
 
-julia> permutation_group(G)
-Permutation group of degree 3 and order 6
+  julia> $(func_snake_case)(G)
+  $(example_group_show)
 
-julia> codomain(iso) === ans
-true
-```
-"""
+  julia> codomain(iso) === ans
+  true
+  ```
+  """
+end
 
-@doc change_group_type_doc
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
 FPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
 fp_group(G::Union{Group, FinGenAbGroup}) = FPGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
 SubFPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
 sub_fp_group(G::Union{Group, FinGenAbGroup}) = SubFPGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
 PcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
 pc_group(G::Union{Group, FinGenAbGroup}) = PcGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
 SubPcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
 sub_pc_group(G::Union{Group, FinGenAbGroup}) = SubPcGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("PermGroup", "permutation_group", "Permutation group of degree 3 and order 6")
 PermGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("PermGroup", "permutation_group", "Permutation group of degree 3 and order 6")
 permutation_group(G::Union{Group, FinGenAbGroup}) = PermGroup(G)
 
 # Now for MultTableGroup
