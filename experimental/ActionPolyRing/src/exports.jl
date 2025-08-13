@@ -19,5 +19,7 @@ export ActionPolyRing,
        nelementary_symbols,
        ranking,
        riquier_matrix,
-       set_ranking!
+       set_ranking!,
+       trailing_monomial,
+       trailing_term
 

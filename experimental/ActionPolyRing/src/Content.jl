@@ -382,14 +382,79 @@ end
 
 constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre))
 
-#=
 @doc raw"""
-    trailing_coefficient(p::ActionPolyRingElem)
+    leading_coefficient(p::ActionPolyRingElem{T}) -> T
 
-Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last nonzero term, or zero if the polynomial is zero.
+Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
 """
-trailing_coefficient(apre::ActionPolyRingElem) = parent(apre)(trailing_coefficient(data(apre)))
-=#
+function leading_coefficient(apre::ActionPolyRingElem{T}) where {T}
+  if length(apre) == 0
+    return zero(T)
+  end
+  return coeff(apre, 1) 
+end
+
+@doc raw"""
+    leading_monomial(p::ActionPolyRingElem)
+
+Return the leading monomial of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
+"""
+function leading_monomial(apre::ActionPolyRingElem) 
+  @req length(apre) > 0 "Zero polynomial does not have a leading monomial"
+  return monomial(apre, 1)
+end
+
+@doc raw"""
+    leading_term(p::ActionPolyRingElem)
+
+Return the leading term of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
+"""
+function leading_term(apre::ActionPolyRingElem) 
+  @req length(apre) > 0 "Zero polynomial does not have a leading term"
+  return term(apre, 1)
+end
+
+@doc raw"""
+    trailing_coefficient(p::ActionPolyRingElem{T}) -> T
+
+Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
+"""
+function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
+  len = length(apre)
+  if len == 0
+    return zero(T)
+  end
+  return coeff(apre, len) 
+end
+
+@doc raw"""
+    trailing_monomial(p::ActionPolyRingElem)
+
+Return the trailing monomial of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
+"""
+function trailing_monomial(apre::ActionPolyRingElem) 
+  len = length(apre)
+  @req len > 0 "Zero polynomial does not have a trailing monomial"
+  return monomial(apre, len)
+end
+
+@doc raw"""
+    trailing_term(p::ActionPolyRingElem)
+
+Return the leading term of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
+"""
+function trailing_term(apre::ActionPolyRingElem) 
+  len = length(apre)
+  @req len > 0 "Zero polynomial does not have a trailing term"
+  return term(apre, len)
+end
+
+@doc raw"""
+    tail(p::ActionPolyRingElem)
+
+Return the tail of `p` with respect to the ranking of the action polynomial ring containing it.
+"""
+tail(apre::ActionPolyRingElem) = apre - leading_term(apre)
 
 ###############################################################################
 #
@@ -516,6 +581,18 @@ function diff_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T
     end
   end
   return res
+end
+
+@doc"""
+    initial(p::ActionPolyRingElem)
+
+Return the initial of the polynomial `p`, i.e. the leading coefficient of `p` regarded as a univariate polynomial in its leader.
+"""
+function initial(apre::ActionPolyRingElem)
+  if is_constant(apre)
+    return apre
+  end
+  return divexact(leading_term(apre), leader(apre)^degree(apre, 1); check = true)
 end
 
 @doc raw"""
@@ -677,6 +754,31 @@ function AbstractAlgebra.promote_rule(::Type{DifferentialPolyRingElem{T}}, ::Typ
    AbstractAlgebra.promote_rule(T, V) == T ? DifferentialPolyRingElem{T} : Union{}
 end
 
+###############################################################################
+#
+#   Random generation
+#
+###############################################################################
+
+rand(rng::AbstractRNG, apr::ActionPolyRing, term_range::AbstractUnitRange{Int},
+     exp_bound::AbstractUnitRange{Int}, v...) = apr(rand(rng, __upr(apr), term_range, exp_bound, v...))
+
+rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng(), apr, term_range, exp_bound, v...)
+
+
+###############################################################################
+#
+#   Conformance test element generation
+#
+###############################################################################
+
+function ConformanceTests.generate_element(R::ActionPolyRing{ZZRingElem})
+    return rand(R, 0:4, 0:10, -10:10)
+end
+
+function ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem})
+    return rand(R, 0:4, 0:10, -10:10)
+end
 
 ###############################################################################
 #

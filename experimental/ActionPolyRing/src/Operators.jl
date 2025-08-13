@@ -32,7 +32,7 @@ function Base.:/(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) whe
   return parent(apre1)(data(apre1) / data(apre2))
 end
 
-function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}; check::Bool = true) where {T<:RingElement}
   check_parent(apre1, apre2)
   return parent(apre1)(divexact(data(apre1), data(apre2)))
 end
