@@ -260,9 +260,28 @@ end
                          cached=cached)
 end
 
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge,)
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)
   parameter_ring(PM)[2][x[i], e]
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
+  x = fourier_parameters(PM)
+  parameter_ring(PM)[2][x[i], Edge(u,v)]
+end
+
+# Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, e)
+end
+
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
+end
+
+function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
+  entry_root_distribution(phylogenetic_model(PM), i)
+  
 end
 
 @attr MPolyAnyMap function parametrization(PM::GroupBasedPhylogeneticModel)
@@ -512,3 +531,17 @@ function general_markov_model(G::Graph{Directed})
   PhylogeneticModel(G, M, root_distr)
 end
 
+# TODO:
+# function general_markov_model(G::Graph{Directed}, n_states::Int)
+
+#   M = []
+  
+#   root_distr = []
+  
+#   PhylogeneticModel(G, M, root_distr)
+# end
+
+
+# TODO:
+# function affine_phylogenetic_model!(PM::PhylogeneticModel)
+# function affine_phylogenetic_model!(PM::GroupBasedPhylogeneticModel)

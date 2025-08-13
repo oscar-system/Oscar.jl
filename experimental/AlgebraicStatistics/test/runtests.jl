@@ -50,125 +50,147 @@ end
 @testset "Graphical Models tests" begin
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
 
-  @test_skip @testset "cavender_farris_neyman_model" begin
-    model = cavender_farris_neyman_model(tree)         
-    @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-    @test model isa GroupBasedPhylogeneticModel
-    #number of states
-    @test Oscar.number_states(model) == 2
-    #root distribution
-    @test model.phylo_model.root_distr == [1//2,1//2]
-    #transition matrices
-    tr_mat = Oscar.transition_matrices(model)
-    @test tr_mat[Edge(4, 2)][1,1] == tr_mat[Edge(4, 2)][2,2]
-    @test tr_mat[Edge(4, 2)][1,2] == tr_mat[Edge(4, 2)][2,1]
-    # generators of the polynomial ring
-    @test length(gens(model.phylo_model.prob_ring)) == 2(length(collect(edges(graph(model)))))
-    @test length(gens(model.fourier_ring)) == 2(length(collect(edges(graph(model))))) 
-    # fourier parameters
-    fp = model.fourier_params
-    for i in 1:3
-      @test fp[Edge(4, i)][1] != fp[Edge(4, i)][2]
-    end
-    # group of the model
-    G = group_of_model(model)
-    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
+  @testset "CFN model" begin
+  model = cavender_farris_neyman_model(tree)
+  @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+  @test model isa GroupBasedPhylogeneticModel
+  @test phylogenetic_model(model) isa PhylogeneticModel
 
-    @test vanishing_ideal(QQ, model) == vanishing_ideal(QQ, model; algorithm=:markov)
+  # Model parameters PHYLO MODEL
+  @test n_states(model) == 2
+  @test [entry_root_distribution(model, i) for i in 1:2] == [1//2,1//2]
+  for i in 1:2, j in 1:2
+    @test entry_transition_matrix(
+      model, 1, i == j ? 1 : 2, Edge(4, 2),) == entry_transition_matrix(model, i, j, 4, 2)
   end
 
-  @testset "Jukes Cantor" begin
-    model = jukes_cantor_model(tree)
-    @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-    @test model isa PhylogeneticModel
-    #number of states
-    @test n_states(model) == 4
-    #root distribution
-    @test root_distribution(model) == [1//4,1//4,1//4,1//4]
-    #transition matrices
-    for i in 1:4, j in 1:4
-      @test entry_transition_matrix(model, Edge(4, 2), 1, i == j ? 1 : 2) == entry_transition_matrix(model, Edge(4, 2), i, j)
-    end
-    # generators of the polynomial ring
-    @test ngens(parameter_ring(model)[1]) == 2(n_edges(tree))
-    @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
-    # fourier parameters -- TODO!
-    # fp = model.trans_mat_structure
-    # for i in 1:3
-    #   @test fp[4, i] == fp[4, i] == fp[4, i]
-    # end
+  # Model parameters G-B PHYLO MODEL
+    for e in edges(graph(model))
+    @test allunique([entry_fourier_parameter(model, i, e) for i in 1:2])
+  end
+  G = group(model)
+  @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
+
+  # Polynomial rings
+  @test ngens(parameter_ring(model)[1]) ==  
+        ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
+  @test ngens(model_ring(model)[1]) ==
+        ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+end
+
+@testset "Jukes Cantor" begin
+  model = jukes_cantor_model(tree)
+  @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+  @test model isa GroupBasedPhylogeneticModel
+  @test phylogenetic_model(model) isa PhylogeneticModel
+
+  # Model parameters PHYLO MODEL
+  @test n_states(model) == 4
+  @test [entry_root_distribution(model, i) for i in 1:4] == [1//4,1//4,1//4,1//4]
+  for i in 1:4, j in 1:4
+    @test entry_transition_matrix(
+      model, 1, i == j ? 1 : 2, Edge(4, 2),) == entry_transition_matrix(model, i, j, 4, 2)
   end
 
-  @test_skip @testset "kimura2_model" begin
-    model = kimura2_model(tree)         
-    @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-    @test model isa GroupBasedPhylogeneticModel
-    # number of states
-    @test Oscar.number_states(model) == 4
-    # root distribution
-    @test model.phylo_model.root_distr == [1//4,1//4,1//4,1//4]
-    # transition matrices
-    tr_mat = Oscar.transition_matrices(model)
-    for i in 1:4, j in 1:4
-      @test tr_mat[Edge(4, 2)][1, (i == j ? 1 : (isodd(i+j) ? 2 : 3))] == tr_mat[Edge(4, 2)][i, j]
-    end
-    # generators of the polynomial ring
-    @test length(gens(model.phylo_model.prob_ring)) == 3(length(collect(edges(graph(model)))))
-    @test length(gens(model.fourier_ring)) == 3(length(collect(edges(graph(model))))) 
-    # fourier parameters
-    fp = model.fourier_params
-    for i in 1:3
-      @test fp[Edge(4, i)][3] == fp[Edge(4, i)][4]
-    end
-    # group of the model
-    G = group_of_model(model)
-    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+  # Model parameters G-B PHYLO MODEL
+  for e in edges(graph(model))
+    @test entry_fourier_parameter(model, 2, e) ==  entry_fourier_parameter(model, 3, e) ==
+    entry_fourier_parameter(model, 4, src(e), dst(e))
   end
-    
-  @test_skip @testset "kimura3_model" begin
-    model = kimura3_model(tree)         
-    @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-    # number of states
-    @test Oscar.number_states(model) == 4
-    # root distribution
-    @test model.phylo_model.root_distr == [1//4,1//4,1//4,1//4]
-    # transition matrices
-    tr_mat = Oscar.transition_matrices(model)
-    @test tr_mat[Edge(4, 2)][1,1] == tr_mat[Edge(4, 2)][2,2] == tr_mat[Edge(4, 2)][3,3] == tr_mat[Edge(4, 2)][4,4]
-    @test tr_mat[Edge(4, 2)][2,1] == tr_mat[Edge(4, 2)][1,2] == tr_mat[Edge(4, 2)][4,3] == tr_mat[Edge(4, 2)][3,4]
-    @test tr_mat[Edge(4, 2)][1,3] == tr_mat[Edge(4, 2)][3,1] == tr_mat[Edge(4, 2)][2,4] == tr_mat[Edge(4, 2)][4,2]
-    @test tr_mat[Edge(4, 2)][1,4] == tr_mat[Edge(4, 2)][4,1] == tr_mat[Edge(4, 2)][2,3] == tr_mat[Edge(4, 2)][3,2]
-    # generators of the polynomial ring
-    @test length(gens(model.phylo_model.prob_ring)) == 4(length(collect(edges(graph(model)))))
-    @test length(gens(model.fourier_ring)) == 4(length(collect(edges(graph(model))))) 
-    # fourier parameters
-    fp = model.fourier_params
-    for i in 1:3
-      @test allunique(fp[Edge(4, i)])
-    end
-    # group of the model
-    G = group_of_model(model)
-    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+  G = group(model)
+  @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+
+  # Polynomial rings
+  @test ngens(parameter_ring(model)[1]) ==  
+        ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
+  @test ngens(model_ring(model)[1]) ==
+        ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+end
+
+@testset "Kimura 2" begin
+  model = kimura2_model(tree)
+  @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+  @test model isa GroupBasedPhylogeneticModel
+  @test phylogenetic_model(model) isa PhylogeneticModel
+
+  # Model parameters PHYLO MODEL
+  @test n_states(model) == 4
+  @test [entry_root_distribution(model, i) for i in 1:4] == [1//4,1//4,1//4,1//4]
+  for i in 1:4, j in 1:4
+    @test entry_transition_matrix(
+        model, 1, (i == j ? 1 : (isodd(i+j) ? 2 : 3)), Edge(4, 2)) == 
+        entry_transition_matrix(model, i, j, 4, 2)
   end
 
-  @test_skip @testset "general_markov_model" begin
-    model = general_markov_model(tree)         
-    @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-    @test model isa PhylogeneticModel
-    # number of states
-    @test Oscar.number_states(model) == 4
-    # testing with specified states (n=20)
-    model = general_markov_model(tree; number_states = 20)
-    @test Oscar.number_states(model) == 20
-    model = general_markov_model(tree)
-    # root distribution
-    @test model.root_distr[1] isa QQMPolyRingElem
-    # transition matrices
-    tr_mat = Oscar.transition_matrices(model)
-    @test tr_mat[Edge(4,1)] isa AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}
-    # generators of the polynomial ring
-    @test length(gens(model.prob_ring)) == 148 
+  # Model parameters G-B PHYLO MODEL
+  for e in edges(graph(model))
+    @test entry_fourier_parameter(model, 3, e) ==
+    entry_fourier_parameter(model, 4, src(e), dst(e))
   end
+  G = group(model)
+  @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+
+  # Polynomial rings
+  @test ngens(parameter_ring(model)[1]) ==  
+        ngens(parameter_ring(phylogenetic_model(model))[1]) == 3(n_edges(tree))
+  @test ngens(model_ring(model)[1]) ==
+        ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+end
+
+@testset "Kimura 3" begin
+  model = kimura3_model(tree)
+  @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+  @test model isa GroupBasedPhylogeneticModel
+  @test phylogenetic_model(model) isa PhylogeneticModel
+
+  # Model parameters PHYLO MODEL
+  @test n_states(model) == 4
+  @test [entry_root_distribution(model, i) for i in 1:4] == [1//4,1//4,1//4,1//4]
+  e = Edge(4,2)
+  @test entry_transition_matrix(model, 1, 1, 4, 2) == entry_transition_matrix(model, 2, 2, e) == 
+        entry_transition_matrix(model, 3, 3, e) == entry_transition_matrix(model, 4, 4, e)
+  @test entry_transition_matrix(model, 2, 1, 4, 2) == entry_transition_matrix(model, 1, 2, e) == 
+        entry_transition_matrix(model, 4, 3, e) == entry_transition_matrix(model, 3, 4, e)
+  @test entry_transition_matrix(model, 1, 3, 4, 2) == entry_transition_matrix(model, 3, 1, e) == 
+        entry_transition_matrix(model, 2, 4, e) == entry_transition_matrix(model, 4, 2, e)
+  @test entry_transition_matrix(model, 1, 4, 4, 2) == entry_transition_matrix(model, 4, 1, e) == 
+        entry_transition_matrix(model, 2, 3, e) == entry_transition_matrix(model, 3, 2, e)
+  
+
+  # Model parameters G-B PHYLO MODEL
+  for e in edges(graph(model))
+    @test allunique([entry_fourier_parameter(model, i, e) for i in 1:4])
+  end
+
+  G = group(model)
+  @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+
+  # Polynomial rings
+  @test ngens(parameter_ring(model)[1]) ==  
+        ngens(parameter_ring(phylogenetic_model(model))[1]) == 4(n_edges(tree))
+  @test ngens(model_ring(model)[1]) ==
+        ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+end
+
+@test_skip @testset "general_markov_model" begin
+  model = general_markov_model(tree)         
+  @test is_isomorphic(graph(model), graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+  @test model isa PhylogeneticModel
+
+  # Model parameters PHYLO MODEL
+
+  @test Oscar.n_states(model) == 4
+  @test_skip @test Oscar.n_states(general_markov_model(tree; number_states = 20)) == 20
+  @test model.root_distribution[1] isa Symbol
+  @test typeof(entry_root_distribution(model, 2)) <: MPolyRingElem
+  @test allunique([entry_root_distribution(model, i) for i in 1:4])
+  @test allunique([Oscar.entry_transition_matrix(model, i, j, Edge(4,3)) for i in 1:4 for j in 1:4])
+
+  # Polynomial rings
+  @test ngens(parameter_ring(model)[1]) ==  4 + 16(n_edges(tree))
+  @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
+end
+
 
   @test_skip @testset "affine models" begin 
     model = jukes_cantor_model(tree)
