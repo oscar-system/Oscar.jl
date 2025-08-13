@@ -67,10 +67,9 @@ end
 
 function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int})
   gr = graph(PM)
-  root_dist = root_distribution(PM)
 
   r = root(gr)
-  monomial = root_dist[vertices_states[r]]
+  monomial = entry_root_distribution(PM, vertices_states[r])
   
   for edge in edges(gr)
     state_parent = vertices_states[src(edge)]

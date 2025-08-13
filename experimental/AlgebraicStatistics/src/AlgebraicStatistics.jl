@@ -34,19 +34,17 @@ export n_states
 export transition_matrix
 export root_distribution
 export entry_transition_matrix
-export group_of_model
+export entry_fourier_parameter
 
-#export probability and fourier map
-export probability_map
-export fourier_map
+# export equivalent classes
+export equivalent_classes
+export reduced_model_ring
+export reduced_parametrization
 
-# export functions to calculate equivalent classes
-export compute_equivalent_classes
-export sum_equivalent_classes
-
-# export transformation matrices
-export specialized_fourier_transform
-export inverse_specialized_fourier_transform
+export reduced_fourier_transform
+export reduced_coordinate_change
+export inverse_reduced_fourier_transform
+export reduced_coordinate_change
 
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
@@ -55,8 +53,6 @@ export GroupBasedPhylogeneticModel
 #export auxiliary graph functions
 export n_leaves
 
-# export functions to load objects (currently only graphs of phylogenetic models)
-export load_phylogenetic_model
 
 # Gaussian Graphical Model Exports
 export GaussianGraphicalModel

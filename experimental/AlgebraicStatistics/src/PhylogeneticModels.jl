@@ -6,16 +6,15 @@
 ## Phylogenetic Model ##
 # -------------------- #
 
-@attributes mutable struct PhylogeneticModel{L} <: GraphicalModel{Directed, L}
+@attributes mutable struct PhylogeneticModel{L, T} <: GraphicalModel{Directed, L}
   # do need to for T to be directed here? YES!
   base_field::Field
   graph::Graph{Directed}
   labelings::L
   trans_mat_structure::Matrix{<: VarName}
-  root_distribution::Vector
+  root_distribution::Vector{T}
   n_states::Int
   model_parameter_name::VarName
-
   
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
@@ -27,11 +26,11 @@
       n_states = size(trans_mat_structure)[1]
     end
     if isnothing(root_distribution)
-      root_distribution = repeat([1//n_states], outer = n_states)
+      root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps)}(F, G,
+    return new{typeof(graph_maps), typeof(root_distribution[1])}(F, G,
                                    graph_maps,
                                    trans_mat_structure,
                                    root_distribution,
@@ -44,7 +43,8 @@
                              root_distribution::Union{Nothing, Vector} = nothing,
                              n_states::Union{Nothing, Int} = nothing,
                              varname::VarName="p")
-    return PhylogeneticModel(QQ, G, trans_mat_structure, root_distribution, n_states, varname)
+    return PhylogeneticModel(QQ, G, trans_mat_structure, 
+                             root_distribution, n_states, varname)
   end
 end
 
@@ -54,17 +54,37 @@ base_field(PM::PhylogeneticModel) = PM.base_field
 varname(PM::PhylogeneticModel) = PM.model_parameter_name
 root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::PhylogeneticModel; cached=false)
+@attr Tuple{
+  MPolyRing, 
+  GenDict, 
+  Vector{T}} function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: FieldElem}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))
-  )
+    (vars[i], e) => x[i][j] for i in 1:length(vars), 
+                                (j,e) in enumerate(sort_edges(graph(PM)))
+  ), root_distribution(PM)
 end
 
-@attr Tuple{MPolyRing, Array} function model_ring(PM::PhylogeneticModel; cached=false)
+const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
+@attr EquivTup function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: VarName}
+  vars = unique(transition_matrix(PM))
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
+  R, r, x... = polynomial_ring(base_field(PM), root_distribution(PM), edge_gens...; cached=cached)
+
+  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+    (vars[i], e) => x[i][j] for i in 1:length(vars), 
+                                (j,e) in enumerate(sort_edges(graph(PM)))
+  ), r
+
+end
+
+
+@attr Tuple{
+  MPolyRing, 
+  Array} function model_ring(PM::PhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM)
 
   return polynomial_ring(base_field(PM),
@@ -77,9 +97,13 @@ function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, e::Edge)
   parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int,)
+function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
+end
+
+function entry_root_distribution(PM::PhylogeneticModel, i::Int)
+  parameter_ring(PM)[3][i]
 end
 
 @attr MPolyAnyMap function parametrization(PM::PhylogeneticModel)
@@ -485,9 +509,6 @@ function general_markov_model(G::Graph{Directed})
   
   root_distr = [:π1, :π2, :π3, :π4]
   
-  PhylogeneticModel(G, M)
+  PhylogeneticModel(G, M, root_distr)
 end
 
-function general_markov_model(G::Graph{Directed}, M::Matrix{<: VarName})
-  PhylogeneticModel(G, M)
-end
