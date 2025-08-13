@@ -34,6 +34,7 @@ export n_states
 export transition_matrix
 export root_distribution
 export entry_transition_matrix
+export entry_root_distribution
 export entry_fourier_parameter
 
 # export equivalent classes
