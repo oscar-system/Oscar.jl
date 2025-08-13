@@ -7,14 +7,14 @@
 @doc raw"""
     converter_dict_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
+Return a dictionary that expresses arbitrary elements of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` 
 in terms of the basis computed by `basis_of_h22_ambient`.
 
 This is useful for rewriting cohomology classes in a fixed basis of the toric variety ``X_\Sigma``.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -331,7 +331,7 @@ end
 @doc raw"""
     basis_of_h22_ambient_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns the index pairs of toric cohomology classes whose products span the 
+Return the index pairs of toric cohomology classes whose products span the 
 basis of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` computed by `basis_of_h22_ambient`.
 
 Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and 
@@ -339,7 +339,7 @@ Each entry is a tuple `(a, b)`, indicating that the product of the `a`-th and
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -361,13 +361,13 @@ end
 @doc raw"""
     basis_of_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
+Compute a monomial basis for ``H^{2,2}(X_\Sigma, \mathbb{Q})`` for a complete
 and simplicial toric variety ``X_\Sigma`` by multiplying pairs of cohomology classes
 associated with the rays of ``X_\Sigma``.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -396,18 +396,18 @@ end
 @doc raw"""
     gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
+Return a vector of index pairs ``(a, b)``, indicating that the product of the ``a``-th 
 and ``b``-th toric variables defines a cohomology class on the ambient toric variety 
 ``X_\Sigma`` whose restriction to the hypersurface lies in the subspace 
 ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})`` obtained from restricting
 ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
 
 This symbolic representation can be used to reconstruct cohomology class generators 
-via Cox ring monomials. For the actual cohomology class generators, see ``gens_of_h22_hypersurface``.
+via Cox ring monomials. For the actual cohomology class generators, see `gens_of_h22_hypersurface`.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -469,7 +469,7 @@ end
 @doc raw"""
     gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Computes a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
+Compute a set of cohomology classes in the toric ambient space ``X_\Sigma`` that restrict
 to generators of the subspace ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``, where ``\widehat{Y}_4`` 
 is the (smooth) hypersurface in the ambient toric variety ``X_\Sigma`` associated to the F-theory model
 and ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
@@ -479,8 +479,8 @@ basis (constructed from toric coordinate products) to the hypersurface ``\wideha
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
-    
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
+
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
@@ -502,19 +502,19 @@ end
 @doc raw"""
     converter_dict_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
 
-Returns a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
+Return a dictionary mapping cohomology classes in ``H^{2,2}(X_\Sigma, \mathbb{Q})``
 to linear combinations of generators of ``S \subseteq H^{2,2}(\widehat{Y}_4, \mathbb{Q})``,
 where ``\widehat{Y}_4`` is the (smooth) hypersurface associated to the F-theory model and
 ``S`` the restriction of ``H^{2,2}(X_\Sigma, \mathbb{Q})`` to ``\widehat{Y}_4``.
 
-The generating set of ``S`` is the one returned by ``gens_of_h22_hypersurface``, 
+The generating set of ``S`` is the one returned by `gens_of_h22_hypersurface`,
 and this converter enables expressing any ambient class in terms of these restricted generators.
 
-For the analogous map in the ambient toric variety, see ``converter_dict_h22_ambient``.
+For the analogous map in the ambient toric variety, see `converter_dict_h22_ambient`.
 
 Use `check = false` to skip completeness and simplicity verification.
 
-For mathematical background shared across related methods see [Advanced Methods](@ref).
+For mathematical background shared across related methods see [Advanced Methods](@ref advanced_g4_methods).
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -554,10 +554,10 @@ end
 Given an F-theory model `m` defined as a hypersurface in a simplicial and
 complete toric space ``X_\Sigma``, this method computes a basis of
 ``H^{2,2}(X_\Sigma, \mathbb{Q})`` (using the method `basis_of_h22`) and then
-filters out ``---``based on fairly elementary, sufficent but not necessary checks``---``
-basis elements whose restriction to the hypersurface in question is non-trivial. The
-list of these basis elements ---``cast into G4-flux ambient space candidates``---
-is then returned by this method.
+filters out—based on fairly elementary, sufficent but not necessary checks—basis
+elements whose restriction to the hypersurface in question is non-trivial. The
+list of these basis elements—cast into ``G_4``-flux ambient space candidates—is then
+returned by this method.
 
 Use `check = false` to skip completeness and simplicity verification.
 
@@ -570,8 +570,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> g4_basis = chosen_g4_flux_gens(t);

@@ -31,7 +31,7 @@
   :genus_ci,
   :genus_of_components_of_dual_graph,
   :genus_of_components_of_simplified_dual_graph,
-  :global_gauge_quotients,
+  :global_gauge_group_quotients,
   :h11,
   :h12,
   :h13,

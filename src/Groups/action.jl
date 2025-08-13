@@ -15,7 +15,7 @@ relevant situations.
 One such case is the action of `GAPGroupElem` objects on `GapObj`
 objects, for example wrapped GAP matrices on GAP vectors:
 
-```
+```jldoctest
 julia> g = GL(2,3);
 
 julia> m = g[1]
@@ -500,7 +500,7 @@ end
 
 Return the action function that is obtained by inducing `actfun` along `phi`.
 
-That means, given a groups ``G`` and ``H``, a set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
+That means, given groups ``G`` and ``H``, a set ``\Omega`` with action function ``f: \Omega \times G \to \Omega``
 and a homomorphism ``\phi: H \to G``, construct the action function
 $\Omega \times H \to \Omega, (\omega, h) \mapsto f(\omega, \phi(h))$.
 """

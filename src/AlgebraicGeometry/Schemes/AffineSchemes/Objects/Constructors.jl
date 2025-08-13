@@ -213,12 +213,12 @@ end
 
 function affine_space(kk::BRT, n::Int; variable_name::VarName="x#") where {BRT<:Field}
   R, _ = polynomial_ring(kk, variable_name => 1:n; cached=false)
-  return variety(spec(R), check=false)
+  return variety(spec(R);is_reduced=true, check=false)
 end
 
 function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Field}
   R, _ = polynomial_ring(kk, var_names; cached=false)
-  return variety(spec(R), check=false)
+  return variety(spec(R);is_reduced=true, check=false)
 end
 
 ########################################################
@@ -918,3 +918,27 @@ end
 function union(X::AbsAffineScheme{BRT,<:MPolyRing}, Y::AbsAffineScheme{BRT,<:MPolyQuoRing}) where {BRT}
   return union(Y,X)
 end
+
+
+######################################################################
+# Components
+######################################################################
+
+"""
+See [`minimal_primes`](@ref) for algorithms and keyword arguments.
+"""
+function irreducible_components(X::AffineScheme; kwargs...)
+  I = defining_ideal(X)
+  PP = minimal_primes(I; kwargs...)
+  C = AffineScheme[] 
+  for p in PP
+    Y = subscheme(X, p)
+    set_attribute!(Y, :is_reduced=>true)
+    set_attribute!(Y, :is_integral=>true)
+    push!(C, Y)
+  end
+  return C
+end
+
+
+

@@ -10,6 +10,7 @@ Optional keyword arguments:
 - `check`: if `false`, skips computational checks of completeness and simplicity of the ambient toric variety for improved performance.
 - `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = "special"` activates a faster variant described in [BMT25](@cite BMT25).
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base

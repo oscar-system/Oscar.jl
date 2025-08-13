@@ -100,56 +100,14 @@ end
 
 
 ################################################################
-# 4: A base space for efficient testing
-################################################################
-
-@doc raw"""
-    sample_toric_variety()
-
-This method constructs a 3-dimensional toric variety, which we
-use for efficient testing of the provided functionality.
-"""
-function sample_toric_variety()
-  rays = [-1 -1 -1; -1 -1 0; -1 -1 1; -1 -1 2; -1 -1 3; -1 -1 4;
-          -1 -1 5; -1 0 -1; -1 0 0; -1 0 1; -1 0 2; -1 0 3; -1 0 4;
-          -1 1 -1; -1 1 0; -1 1 1; -1 1 2; -1 1 3; -1 2 -1; -1 2 0;
-          -1 2 1; -1 2 2; -1 3 -1; -1 3 0; -1 3 1; -1 4 -1; -1 4 0;
-          -1 5 -1; 0 -1 -1; 0 -1 0; 0 -1 1; 0 -1 2; 0 0 -1; 0 0 1;
-          0 1 -1; 0 1 0; 0 2 -1; 1 -1 -1]
-  cones = IncidenceMatrix([[36, 37, 38], [35, 37, 38], [34, 36, 38],
-          [33, 35, 38], [32, 34, 38], [31, 32, 38], [30, 31, 38],[29, 33, 38],
-          [29, 30, 38], [27, 28, 37], [26, 28, 37], [26, 27, 28], [25, 36, 37],
-          [25, 27, 37], [24, 26, 27], [24, 25, 27], [23, 26, 37], [23, 24, 26],
-          [22, 34, 36], [22, 25, 36], [21, 24, 25], [21, 22, 25], [20, 23, 24],
-          [20, 21, 24], [19, 35, 37], [19, 23, 37], [19, 20, 23], [18, 32, 34],
-          [18, 22, 34], [17, 21, 22], [17, 18, 22], [16, 20, 21], [16, 17, 21],
-          [15, 19, 20], [15, 16, 20], [14, 33, 35], [14, 19, 35], [14, 15, 19],
-          [13, 18, 32], [12, 17, 18], [12, 13, 18], [11, 16, 17], [11, 12, 17],
-          [10, 15, 16], [10, 11, 16], [9, 14, 15], [9, 10, 15], [8, 29, 33],
-          [8, 14, 33], [8, 9, 14], [7, 13, 32], [6, 12, 13], [6, 7, 32], [6, 7, 13],
-          [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
-          [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
-          [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(cones, rays)
-end
-
-
-################################################################
-# 5: Check if an ideal/subvariety is nontrivial
-################################################################
-
-_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem} = !is_one(id) && !is_one(saturation(id, irr))
-
-
-################################################################
-# 6: Compute singularity Kodaira type and refined Tate type
+# 4: Compute singularity Kodaira type and refined Tate type
 ################################################################
 
 _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
 
 _string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
 
-function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rand_seed::Union{Int64, Nothing} = nothing)
+function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rng::AbstractRNG = Random.default_rng())
   f_ord = ords[1]
   g_ord = ords[2]
   d_ord = ords[3]
@@ -233,12 +191,9 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     # five times and see if we get agreement among all of the results
     num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
-    if rand_seed != nothing
-      Random.seed!(rand_seed)
-    end
     for _ in 1:5
-      coord_inds = randperm(num_gens)[1:end-2]
-      rand_ints = rand(-100:100, num_gens - 2)
+      coord_inds = randperm(rng, num_gens)[1:end-2]
+      rand_ints = rand(rng, -100:100, num_gens - 2)
 
       push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
       push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))
@@ -293,85 +248,8 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 end
 
 
-##################################################################
-# 7: Blowups (old helper function, to be used for family of bases)
-##################################################################
-
-function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
-  # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
-  
-  R = base_ring(id)
-  center_size = ngens(center)
-  
-  # Various sanity checks
-  @req (!is_zero(center)) "The blowup center must be non-empty"
-  
-  # @req is_subset(id, center) "The ideal of the blowup center must contain the ideal to be blown up"
-  @req base_ring(irr) == R "The given irrelevant ideal must share the base ring of the ideal to be blown up"
-  @req base_ring(sri) == R "The given Stanley–Reisner ideal must share the base ring of the ideal to be blown up"
-  @req ngens(base_ring(lin)) == ngens(R) "The base ring of ideal of linear relations must have the same number of generators as the base ring of the ideal to be blown up"
-  
-  # Make sure the ideal of linear relations has the same base ring as the others
-  lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
-  
-  # Create new base ring for the blown up ideal and a map between the rings
-  S, S_gens = polynomial_ring(QQ, [Symbol("e_", index); [Symbol("b_", index, "_", i) for i in 1:center_size]; symbols(R)], cached = false)
-  (_e, new_coords...) = S_gens[1:center_size + 1]
-  ring_map = hom(R, S, S_gens[center_size + 2:end])
-  
-  # Compute the total transform
-  center_gens_S = map(ring_map, gens(center))
-  total_transform = ideal(map(ring_map, gens(id))) + ideal([new_coords[i] * _e - center_gens_S[i] for i in 1:center_size])
-  
-  # Compute the exceptional locus and strict transform, checking for crepancy
-  # Could alternatively replace _e with center_gens_S in the exceptional locus here, then take the
-  # primary decomposition and remove parts whose saturation by the irrelevant ideal is the whole ring
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  crepant = (exceptional_factor == center_size - 1)
-  
-  # Compute the new irrelevant ideal, SRI, and ideal of linear relations
-  # These may need to be changed after reintroducing e
-  new_irr = ideal(map(ring_map, gens(irr))) * ideal(new_coords)
-  new_sri = ideal(map(ring_map, gens(sri))) + ideal([prod(new_coords)])
-  new_lin = ideal(map(ring_map, gens(lin))) + ideal([g - new_coords[end] for g in new_coords[1:end - 1]])
-  
-  return total_transform, strict_transform, exceptional_ideal, crepant, new_irr, new_sri, new_lin, S, S_gens, ring_map
-end
-_blowup_global(id::T, center::T, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global(ideal(map(g -> lift(g), gens(id))), ideal(map(g -> lift(g), gens(center))), ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
-
-
-function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
-  # @warn "The function _blowup_global_sequence is experimental; absence of bugs and proper results are not guaranteed"
-  
-  (cur_strict_transform, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = (id, irr, sri, lin, base_ring(id), gens(base_ring((id))), index)
-  crepant = true
-  ring_map = hom(cur_S, cur_S, cur_S_gens) # Identity map
-  
-  exceptionals = MPolyIdeal{<:MPolyRingElem}[]
-  for center in centers
-    @req all(ind -> 1 <= ind <= length(cur_S_gens), center) "The given indices for the center generators are out of bounds"
-    
-    (_, cur_strict_transform, cur_ex, cur_crep, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_ring_map) = _blowup_global(cur_strict_transform, ideal(map(ind -> cur_S_gens[ind], center)), cur_irr, cur_sri, cur_lin, index = cur_index)
-    
-    map!(cur_ring_map, exceptionals, exceptionals)
-    push!(exceptionals, cur_ex)
-    
-    crepant = crepant && cur_crep
-    
-    ring_map = compose(ring_map, cur_ring_map)
-    
-    cur_index += 1
-  end
-  
-  return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
-end
-_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> lift(g), gens(id))), centers, ideal(map(g -> lift(g), gens(irr))), ideal(map(g -> lift(g), gens(sri))), lin, index = index)
-
-
-
 ###########################################################################
-# 8: Constructing a generic sample for models over not-fully specified spaces
+# 5: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
@@ -402,7 +280,7 @@ end
 
 
 ###########################################################################
-# 9: Evaluating a string to a polynomial
+# 6: Evaluating a string to a polynomial
 ###########################################################################
 
 function _eval_poly(E::Expr, vars)
@@ -457,108 +335,52 @@ eval_poly(n::Number, R) = R(n)
 
 
 ###########################################################################
-# 10: Convenience functions for blowups
-# 10: FOR INTERNAL USE ONLY (as of Feb 1, 2025 and PR 4523)
-# 10: They are not in use (as of Feb 1, 2025 and PR 4523)
-# 10: Gauge in the future if they are truly needed!
+# 7: Apply a function to the innermost nested structure
 ###########################################################################
 
-@doc raw"""
-    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
-
-Blow up the toric variety along a toric ideal sheaf.
-
-!!! warning
-    This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
-    Sometimes, the type of the domain will be a toric variety (meaning that `domain(f) isa NormalToricVariety` is true) if the algorithm can successfully detect this.
-    In the future, the detection algorithm may be improved so that this is successful more often.
-
-!!! warning
-    This is an internal method. It is NOT exported.
-
-# Examples
-```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> x1, x2, x3, x4 = gens(cox_ring(P3))
-4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x1
- x2
- x3
- x4
-
-julia> II = ideal_sheaf(P3, ideal([x1*x2]))
-Sheaf of ideals
-  on normal toric variety
-with restrictions
-  1: Ideal (x_1_1*x_2_1)
-  2: Ideal (x_2_2)
-  3: Ideal (x_1_3)
-  4: Ideal (x_1_4*x_2_4)
-
-julia> f = Oscar._martins_desired_blowup(P3, II);
-```
-"""
-function _martins_desired_blowup(v::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
-  coords = _ideal_sheaf_to_minimal_supercone_coordinates(v, I)
-  if !isnothing(coords)
-    return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name) # Apply toric method
-  else
-    return blow_up(I) # Reroute to scheme theory
-  end
+function deepmap(f, x)
+    if x isa AbstractArray
+        return map(e -> deepmap(f, e), x)
+    else
+        return f(x)
+    end
 end
 
 
-@doc raw"""
-    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
 
-Blow up the toric variety by subdividing the cone in the list
-of *all* cones of the fan of `v` which corresponds to the
-provided ideal `I`. Note that this cone need not be maximal.
+###########################################################################
+# 8: Macro for function generation
+###########################################################################
 
-By default, we pick "e" as the name of the homogeneous coordinate for
-the exceptional prime divisor. As third optional argument one can supply
-a custom variable name.
+macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="", attr_name=nothing)
+  if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
+    error("Expected input like: (function_name, ReturnType)")
+  end
 
-# Examples
-```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
+  fname_expr = arg_expr.args[1]
+  rettype_expr = arg_expr.args[2]
+  fname = fname_expr isa Symbol ? fname_expr : error("function_name is not a symbol")
 
-julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
-4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x1
- x2
- x3
- x4
+  # Determine attribute name symbol: use attr_name if provided, else function name
+  attr_sym = attr_name === nothing ? fname : (attr_name isa Symbol ? attr_name : error("attr_name must be a Symbol if provided"))
+  sym = QuoteNode(attr_sym)  
+  
+  msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 
-julia> I = ideal([x2,x3])
-Ideal generated by
-  x2
-  x3
+  # Conditionally build doc section
+  doc_link_section = isempty(doc_link) ? "" : "\n\n$doc_link"
+  examples_section = isempty(doc_example) ? "" : "\n\n# Examples\n$doc_example"  
+  default_doc = """
+      $(fname)(m::AbstractFTheoryModel)
+  
+  Return `$(fname)` of the F-theory model if known, otherwise throw an error.$doc_link_section$examples_section
+  """
 
-julia> bP3 = domain(Oscar._martins_desired_blowup(P3, I))
-Normal toric variety
-
-julia> cox_ring(bP3)
-Multivariate polynomial ring in 5 variables over QQ graded by
-  x1 -> [1 0]
-  x2 -> [0 1]
-  x3 -> [0 1]
-  x4 -> [1 0]
-  e -> [1 -1]
-
-julia> I2 = ideal([x2 * x3])
-Ideal generated by
-  x2*x3
-
-julia> b2P3 = Oscar._martins_desired_blowup(P3, I2);
-
-julia> codomain(b2P3) == P3
-true
-```
-"""
-function _martins_desired_blowup(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
-  return _martins_desired_blowup(v, ideal_sheaf(v, I))
+  return quote
+    @doc $default_doc
+    function $(esc(fname))(m::AbstractFTheoryModel)
+      @req has_attribute(m, $sym) $msg
+      return get_attribute(m, $sym)::$(esc(rettype_expr))
+    end
+  end
 end

@@ -2654,11 +2654,11 @@ Return `chi[1]`, as an instance of `T`.
 """
 Nemo.degree(chi::GAPGroupClassFunction) = Nemo.degree(QQFieldElem, chi)::QQFieldElem
 
-Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1].data, 0)::QQFieldElem
+Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(chi[1].data, 0)::QQFieldElem
 
-Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::ZZRingElem
+Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(chi[1].data, 0))::ZZRingElem
 
-Nemo.degree(::Type{QQAbFieldElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbFieldElem{AbsSimpleNumFieldElem}
+Nemo.degree(::Type{QQAbFieldElem}, chi::GAPGroupClassFunction) = chi[1]::QQAbFieldElem{AbsSimpleNumFieldElem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(ZZRingElem, chi))::T
 
@@ -2671,7 +2671,7 @@ end
 # access character values by positions
 function Base.getindex(chi::GAPGroupClassFunction, v::AbstractVector{Int})
   vals = GAPWrap.ValuesOfClassFunction(GapObj(chi))
-  return [QQAbFieldElem(x) for x in vals]
+  return [QQAbFieldElem(vals[i]) for i in v]
 end
 
 # access character values by class name
@@ -2850,7 +2850,7 @@ function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, FinGenAbGrou
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
     pi = [findfirst(x -> x^g in c, reps) for c in ccl]
-    return class_function(tbl, values(chi)[pi])
+    return class_function(tbl, chi[pi])
 end
 
 @doc raw"""

@@ -5,7 +5,10 @@
       "tate.md",
       "hypersurface.md",
       "literature.md",
+      "qsm_models.md",
       "generalities.md",      
-      "g4.md"
+      "resolving_singularities.md",
+      "g4.md",
+      "family_of_spaces.md"
    ],
 ]

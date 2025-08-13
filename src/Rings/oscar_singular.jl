@@ -72,6 +72,11 @@ end
 function preimage(f::OscarSingularCoefficientRingMapGeneric, a::Singular.n_unknown)
   parent(a) !== codomain(f) && error("Element not in codomain")
   b = Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
+  if b isa Singular.FieldElemWrapper || b isa Singular.RingElemWrapper
+    # handle immutable ring elements (such as QQAbFieldElem) which are
+    # put in a wrapper on the Singular side
+    return b.data::elem_type(domain(f))
+  end
   return b::elem_type(domain(f))
 end
 

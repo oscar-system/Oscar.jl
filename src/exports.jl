@@ -1099,6 +1099,7 @@ export label!
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
+export largest_moved_point
 export lattice_homomorphism
 export lattice_of_cyclic_flats
 export lattice_of_flats
@@ -1653,6 +1654,7 @@ export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
 export smaller_degree_permutation_representation
+export smallest_moved_point
 export snub_cube
 export snub_dodecahedron
 export socle, has_socle, set_socle

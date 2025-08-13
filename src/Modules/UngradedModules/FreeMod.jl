@@ -147,15 +147,15 @@ function show(io::IO, F::FreeMod)
         print(io, "Graded free module ")
       end
       i = 1
-      while i <= dim(F)
+      while i <= rank(F)
           d = F.d[i]
           j = 1
-          while i+j <= dim(F) && d == F.d[i+j]
+          while i+j <= rank(F) && d == F.d[i+j]
               j += 1
           end
           print(io, base_ring(F), "^$j")
           print(io, "(", -d, ")")
-          if i+j <= dim(F)
+          if i+j <= rank(F)
               print(io, " + ")
           end
           i += j
@@ -184,23 +184,13 @@ end
 @doc raw"""
     rank(F::FreeMod)
     number_of_generators(F::AbstractFreeMod)
-    dim(F::AbstractFreeMod{T}) where T <: FieldElem
     vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem
 
 Return the rank of `F`.
 """
 rank(F::FreeMod) = F.n
-# dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
-dim(F::AbstractFreeMod) = rank(F)  # FIXME: remove this again
-dim(kk::Field) = 0                 # FIXME: remove this again
-dim(R::ZZRing) = 1                 # FIXME: remove this again
 number_of_generators(F::AbstractFreeMod) = rank(F)
 vector_space_dim(F::AbstractFreeMod{T}) where T <: FieldElem = rank(F)
-
-function dim(R::Union{zzModRing, ZZModRing}) # FIXME: remove this again
-  is_trivial(R) && return -inf
-  return 0
-end
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

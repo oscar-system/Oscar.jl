@@ -41,6 +41,10 @@ if Sys.iswindows()
   windows_error()
 end
 
+if VERSION < v"1.10.0-"
+  error("the required julia version is at least 1.10.0")
+end
+
 function _print_banner(;is_dev = Oscar.is_dev)
   # lets assemble a version string for the banner
   version_string = string(VERSION_NUMBER)

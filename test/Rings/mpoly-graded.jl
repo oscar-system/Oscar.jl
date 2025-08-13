@@ -162,7 +162,7 @@ end
                @test degree(H[2](g)) == grp_elem
                @test (H[2].g)(RR(g)) == g
              end
-             @test dim(H[1]) == dim_test #
+             @test vector_space_dim(H[1]) == dim_test #
           end
         end
         #H_quo = homogeneous_component(R_quo, grp_elem)
@@ -258,7 +258,7 @@ end
 
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
-  @test dim(M) == 0
+  @test vector_space_dim(M) == 0
   @test iszero(t)
   @test parent(t) == R
 
@@ -266,7 +266,7 @@ end
   # of the various vector spaces (this used to not work correctly)
   polys = [x, y, (x+y+z)^3, 2*x - 5*y];
   V, VtoPoly = vector_space(QQ, polys)
-  @test dim(V) == 3
+  @test vector_space_dim(V) == 3
   @test all(f -> VtoPoly(preimage(VtoPoly, f)) == f, polys)
   @test_throws ErrorException preimage(VtoPoly, z)
 
@@ -274,7 +274,7 @@ end
   W = vector_space(QQ, length(polys))
   WtoV = hom(W, V, [preimage(VtoPoly, f) for f in polys])
   K, KtoW = kernel(WtoV)
-  @test dim(K) == 1
+  @test vector_space_dim(K) == 1
 end
 
 @testset "Hilbert series" begin

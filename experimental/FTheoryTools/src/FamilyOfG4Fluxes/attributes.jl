@@ -7,6 +7,7 @@
 
 Return the F-theory model for which this family of ``G_4``-flux candidates is defined.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -40,6 +41,7 @@ model(gf::FamilyOfG4Fluxes) = gf.model
 Return the matrix whose columns specify those combinations of ambient space ``G_4``-flux
 candidates, of which integral linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -73,6 +75,7 @@ matrix_integral(gf::FamilyOfG4Fluxes) = gf.mat_int
 Return the matrix whose columns specify those combinations of ambient space ``G_4``-flux
 candidates, of which rational linear combinations are contained in this family of ``G_4``-fluxes.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -106,6 +109,7 @@ matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
 Return the vector whose entries specify the offset by which fluxes in this family
 of ``G_4``-fluxes are shifted away from the origin.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -140,7 +144,7 @@ offset(gf::FamilyOfG4Fluxes) = gf.offset
 @doc raw"""
     d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Returns the D3-tadpole constraint polynomial for a family of ``G_4``-fluxes.
+Return the D3-tadpole constraint polynomial for a family of ``G_4``-fluxes.
 
 Recall that for a given flux ``G_4``, the D3-tadpole constraint requires
 
@@ -149,14 +153,14 @@ $- \frac{1}{2} \cdot G_4^2 + \frac{1}{24} \cdot \chi(\widehat{Y}_4)$
 to be a non-negative integer.
 
 The family of fluxes is given as a linear combination of cohomology classes with 
-integral (denoted by ``a_i``) and rational (denoted by ``r_i``) coefficients. 
-
-This method returns the quadratic polynomial in these coefficients that encodes 
-the ``D3``-tadpole constraint. To evaluate the constraint for a specific flux,
-substitute the numerical coefficient values into this polynomial.
+integral (denoted by ``a_i``) and rational (denoted by ``r_i``) coefficients. This
+method returns the quadratic polynomial in these coefficients that encodes the
+``D3``-tadpole constraint. To evaluate the constraint for a specific flux, substitute
+the numerical coefficient values into this polynomial.
 
 The optional keyword argument `check` enables or disables internal consistency checks.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
