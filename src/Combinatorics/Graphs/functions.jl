@@ -5,7 +5,46 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+@doc raw"""
+    directed_component(G::MixedGraph)
+
+Return the directed graph that is the subgraph of the graph `G`.
+
+# Examples
+```jldoctest
+julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> directed_component(G)
+Directed graph with 5 nodes and the following edges:
+(1, 3)(3, 5)
+```
+"""
 directed_component(G::MixedGraph) = G.directed_component
+
+@doc raw"""
+    undirected_component(G::MixedGraph)
+
+Return the directed graph that is the subgraph of the graph `G`.
+
+# Examples
+```jldoctest
+julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> undirected_component(G)
+Undirected graph with 5 nodes and the following edges:
+(3, 2)(4, 2)(5, 4)
+```
+"""
 undirected_component(G::MixedGraph) = G.undirected_component
 
 ################################################################################
