@@ -20,7 +20,7 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   A::CoeffRingType
   graded_complex::AbsHyperComplex
   pages::Dict{Int, CSSPage}
-  pfctx::Union{PushForwardCtx, ToricCtx}
+  pfctx::Union{PushForwardCtx, ToricCtx, ToricCtxWithParams}
 
 @doc raw"""
     CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
@@ -100,6 +100,14 @@ Module homomorphism
     ctx = ToricCtx(X)
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
+  end
+  
+  function CohomologySpectralSequence(X::NormalToricVariety, transfer::Map, comp::AbsHyperComplex)
+    @assert isone(dim(comp)) "complex must be 1-dimensional"
+    ctx = ToricCtxWithParams(X, transfer)
+    S = graded_ring(ctx)
+    R = coefficient_ring(S)
+    return new{typeof(S), typeof(R)}(S, R, comp, Dict{Int, CSSPage}(), ctx)
   end
 end
 
@@ -744,6 +752,38 @@ function multiplication_map(
   dom_strand_inc = inclusion_map(dom_cplx)[j]
   cod_strand_pr = projection_map(cod_cplx)[j]
   return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
+end
+
+function multiplication_map(
+    ctx::Union{PushForwardCtx, ToricCtxWithParams},
+    p::MPolyDecRingElem,
+    e0::Vector{Int}, d0::FinGenAbGroupElem, 
+    j::Int
+  )
+  d1 = d0 + degree(p; check=false)
+  dom_cplx = ctx[e0, d0]
+  cod_cplx = ctx[e0, d1]
+  dom = dom_cplx[j]
+  cod = cod_cplx[j]
+# dom_cplx_pure = ctx.pure_ctx[e0, d0]
+# cod_cplx = ctx.pure_ctx[e0, d1]
+# dom_pure = dom_cplx_pure[j]
+# cod_pure = cod_cplx_pure[j]
+# dom_strand_inc = inclusion_map(dom_cplx_pure)[j]
+# cod_strand_pr = projection_map(cod_cplx_pure)[j]
+
+  img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
+  S = cox_ring(toric_variety(ctx))
+  for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
+    mon = S([one(QQ)], [e])
+    mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+    for (i, g) in enumerate(gens(domain(mon_mult)))
+      v = mon_mult(g)
+      is_zero(v) && continue
+      img_gens[i] += c*FreeModElem(map_entries(ctx.R, coordinates(v)), cod)
+    end
+  end
+  return hom(dom, cod, img_gens)
 end
 
 function stable_index(css::CohomologySpectralSequence, i::Int, j::Int)
