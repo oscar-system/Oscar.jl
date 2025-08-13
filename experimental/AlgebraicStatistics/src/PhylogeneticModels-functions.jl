@@ -151,6 +151,7 @@ end
 # -------------------------------
 
 # I would like to get rid of this! Is there a better way?
+# used in: reduced_parametrization(), reduced_fourier_transform() and inverse_reduced_fourier_transform()
 function index(x::QQMPolyRingElem)
 
     m = match(r"\[(.*)\]", string(x))

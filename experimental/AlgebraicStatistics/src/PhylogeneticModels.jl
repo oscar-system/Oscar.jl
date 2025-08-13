@@ -1,6 +1,6 @@
-######################################
-#### PHYLOGENETIC DATA STRUCTURES ####
-######################################
+################################################
+#### PHYLOGENETIC DATA STRUCTURES & METHODS ####
+################################################
 
 # -------------------- #
 ## Phylogenetic Model ##
@@ -12,15 +12,16 @@
   graph::Graph{Directed}
   labelings::L
   trans_mat_structure::Matrix{<: VarName}
-  model_parameter_name::VarName
-  n_states::Int
   root_distribution::Vector
+  n_states::Int
+  model_parameter_name::VarName
+
   
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
                              trans_mat_structure::Matrix{<: VarName},
-                             n_states::Union{Nothing, Int} = nothing,
                              root_distribution::Union{Nothing, Vector} = nothing,
+                             n_states::Union{Nothing, Int} = nothing,
                              varname::VarName="p")
     if isnothing(n_states)
       n_states = size(trans_mat_structure)[1]
@@ -33,17 +34,17 @@
     return new{typeof(graph_maps)}(F, G,
                                    graph_maps,
                                    trans_mat_structure,
-                                   varname,
+                                   root_distribution,
                                    n_states,
-                                   root_distribution)
+                                   varname)
   end
 
   function PhylogeneticModel(G::Graph{Directed},
                              trans_mat_structure::Matrix{<: VarName},
-                             n_states::Union{Nothing, Int} = nothing,
                              root_distribution::Union{Nothing, Vector} = nothing,
+                             n_states::Union{Nothing, Int} = nothing,
                              varname::VarName="p")
-    return PhylogeneticModel(QQ, G, trans_mat_structure, n_states, root_distribution, varname)
+    return PhylogeneticModel(QQ, G, trans_mat_structure, root_distribution, n_states, varname)
   end
 end
 
@@ -119,16 +120,16 @@ end
   # do need to for T to be directed here? YES!
   phylo_model::PhylogeneticModel 
   fourier_param_structure::Vector{<: VarName}
-  model_parameter_name::VarName
   group::Vector{FinGenAbGroupElem}
+  model_parameter_name::VarName
   
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
                                        trans_mat_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
-                                       n_states::Union{Nothing, Int} = nothing,
-                                       root_distribution::Union{Nothing, Vector} = nothing,
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       n_states::Union{Nothing, Int} = nothing,
                                        varname_phylo_model::VarName="p",
                                        varname_group_based::VarName="q")
     if isnothing(group)
@@ -138,11 +139,11 @@ end
 
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_mat_structure, n_states, 
-                                                     root_distribution, varname_phylo_model),
+    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_mat_structure, 
+                                                     root_distribution, n_states, 
+                                                     varname_phylo_model),
                                    fourier_param_structure,
-                                   varname_group_based,
-                                   group)
+                                   group, varname_group_based)
   end
 
   # F, G,
@@ -153,29 +154,29 @@ end
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
                                        trans_mat_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
-                                       n_states::Union{Nothing, Int} = nothing,
-                                       root_distribution::Union{Nothing, Vector} = nothing,
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       n_states::Union{Nothing, Int} = nothing,
                                        varname_phylo_model::VarName="p",
                                        varname_group_based::VarName="q")
     return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
-                                       n_states, root_distribution, group, 
+                                       group, root_distribution, n_states, 
                                        varname_phylo_model, varname_group_based)
   end
 
-  # ? Antony
-  function GroupBasedPhylogeneticModel(G::Graph{Directed},
-                                       trans_mat_structure::Matrix{<: VarName},
-                                       fourier_param_structure::Vector{<: VarName},
-                                       group::Vector{FinGenAbGroupElem},
-                                       n_states::Union{Nothing, Int} = nothing,
-                                       root_distribution::Union{Nothing, Vector} = nothing,
-                                       varname_phylo_model::VarName="p",
-                                       varname_group_based::VarName="q")
-    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
-                                       n_states, root_distribution, group, 
-                                       varname_phylo_model, varname_group_based)
-  end
+  # # ? Antony
+  # function GroupBasedPhylogeneticModel(G::Graph{Directed},
+  #                                      trans_mat_structure::Matrix{<: VarName},
+  #                                      fourier_param_structure::Vector{<: VarName},
+  #                                      group::Vector{FinGenAbGroupElem},
+  #                                      root_distribution::Union{Nothing, Vector} = nothing,
+  #                                      n_states::Union{Nothing, Int} = nothing,
+  #                                      varname_phylo_model::VarName="p",
+  #                                      varname_group_based::VarName="q")
+  #   return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
+  #                                      root_distribution, n_states, group, 
+  #                                      varname_phylo_model, varname_group_based)
+  # end
 
 
   # can I do smth like this?
@@ -270,8 +271,8 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   print(io, "$(pm.fourier_param_structure)")
 end
 
-
-## -------------------- ##
+## Equivalent classes ##
+# -------------------- #
 
 const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
 @attr EquivDict function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
@@ -318,7 +319,8 @@ function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogen
   hom(redR, S, reduce(vcat, probabilities))
 end
 
-## -------------------- ##
+## Change of coordinates p ↔ q ##
+# ----------------------------- #
 
 function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
   _, p = Oscar.model_ring(phylogenetic_model(PM))
@@ -425,9 +427,9 @@ function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
 end
 
 
-############################
-#### GROUP-BASED MODELS ####
-############################
+#########################
+#### SPECIFIC MODELS ####
+#########################
 
 function cavender_farris_neyman_model(G::Graph{Directed})
   M = [:a :b;
@@ -481,5 +483,11 @@ function general_markov_model(G::Graph{Directed})
        :m31 :m32 :m33 :m34;
        :m41 :m42 :m43 :m44]
   
+  root_distr = [:π1, :π2, :π3, :π4]
+  
+  PhylogeneticModel(G, M)
+end
+
+function general_markov_model(G::Graph{Directed}, M::Matrix{<: VarName})
   PhylogeneticModel(G, M)
 end
