@@ -766,6 +766,24 @@ end
 ########################################################################
 # A context object for computing the spectral sequence associated 
 # to a the ̌Cech double complex on a toric variety with parameters
+#
+# Let X be a toric variety with (multi-)graded Cox Ring S over ℚ. 
+# For a ℚ-algebra R, say R = ℚ[a₁,…, aₙ], one can form the ring 
+# S' = S ⊗ R (tensor product taken over ℚ). The natural map R → S' 
+# then corresponds to the projection X × Spec R → Spec R. 
+#
+# The `ToricCtxWithParams` is a context object to allow for 
+# computation of cohomology of pullbacks of toric line bundles 
+# ρ* ℒ along the projection ρ : X × Spec R → X and induced 
+# morphisms 
+# 
+#    ϕ : ρ* ℒ → ρ* ℒ'
+#
+# defined on X × Spec R (rather than just X). It is clear that the 
+# cohomology computations for ρ* ℒ should be obtained by base 
+# change from ℒ. The induced maps in cohomology, however, require 
+# coefficients in R. This leads to a quite convoluted caching and 
+# transformation pattern. 
 ########################################################################
 mutable struct ToricCtxWithParams
   pure_ctx::ToricCtx
@@ -861,11 +879,10 @@ end
 function cohomology_model_projection(ctx::ToricCtxWithParams, d::FinGenAbGroupElem, i::Int)
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
-  from_orig = map_from_original_complex(cohomology_model(ctx.pure_ctx, d, i))[i]
+  from_orig = map_from_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
   res, _, _ = change_base_ring(ctx.R, from_orig; domain=c[i], codomain=h[i])
   return res
 end
-
 
 function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int})
   return get!(ctx.inclusions, (alpha, beta)) do

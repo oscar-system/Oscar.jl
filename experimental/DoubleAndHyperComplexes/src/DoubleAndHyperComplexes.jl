@@ -39,6 +39,7 @@ include("Morphisms/strand_morphisms.jl")
 include("Morphisms/SummandProjection.jl")
 include("Morphisms/HomologyPseudoInverse.jl")
 include("base_change_types.jl")
+include("Morphisms/base_change.jl")
 include("base_change.jl")
 
 # Geometric functionality building on the homological algebra in this package.
