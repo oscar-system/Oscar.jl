@@ -61,12 +61,12 @@ Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
   lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
 
 @doc raw"""
-    Base.hash(stmt:;CIStmt, h::UInt)
+    Base.hash(stmt::CIStmt, h::UInt)
 
 Compute the hash of a `CIStmt`.
 """
 Base.hash(stmt::CIStmt, h::UInt) =
-  foldr(hash, stmt.I, stmt.J, stmt.K; init=hash(CIStmt, h))
+  foldr(hash, [stmt.I, stmt.J, stmt.K]; init=hash(CIStmt, h))
 
 @doc raw"""
     CI"I...,J...|K..."
