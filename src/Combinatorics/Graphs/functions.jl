@@ -192,11 +192,7 @@ julia> n_edges(g)
 ```
 """
 function add_directed_edge!(mg::MixedGraph, source::Int64, target::Int64)
-  g = directed_component(mg)
-  _has_node(g, source) && _has_node(g, target) || return false
-  old_nedges = n_edges(g)
-  Polymake._add_edge(pm_object(g), source-1, target-1)
-  return n_edges(g) == old_nedges + 1
+  return add_edge!(directed_component(mg), source, target)
 end
 
 @doc raw"""
