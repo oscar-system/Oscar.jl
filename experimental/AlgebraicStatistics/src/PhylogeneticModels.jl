@@ -339,14 +339,18 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Array
+  GenDict
   } function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
-  eq_calasses = Oscar.equivalent_classes(PM)
+  eq_calasses = equivalent_classes(PM)
   keys_eq_classes = sort(collect(keys(eq_calasses)), rev = true)
 
-  return polynomial_ring(base_field(PM),
-                        [Symbol(k) for k in keys_eq_classes];
-                        cached=cached)
+  R, x = polynomial_ring(base_field(PM),
+                           [Symbol(k) for k in keys_eq_classes];
+                           cached=cached)
+
+  R, Dict{Tuple, MPolyRingElem}(
+     Tuple(index(x[i])) => x[i] for i in 1:length(x))
+  
 end
 
 function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
