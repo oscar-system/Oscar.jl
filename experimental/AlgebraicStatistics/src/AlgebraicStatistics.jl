@@ -17,6 +17,7 @@ end
 
 include("ModelRing.jl")
 include("CI.jl")
+include("MarkovProperties.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
 include("GaussianGraphicalModels.jl")
@@ -103,3 +104,8 @@ export ci_polynomial
 export ci_structure
 export random_variables
 
+# Markov properties
+export pairwise_markov
+export local_markov
+export global_markov
+export are_separated
