@@ -49,7 +49,7 @@ end
     Cursor
 
 Type for representing the results of a query.
-Can be iterated, but the iterator can not be reset. For this cause, one has to query again.
+Can be iterated, but the iterator can not be reset. For that, one has to query again.
 """
 struct Cursor
   mcursor::Mongoc.Cursor{Mongoc.Collection}
