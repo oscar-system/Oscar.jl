@@ -1,18 +1,14 @@
 @attributes mutable struct DiscreteGraphicalModel{T, L} <: GraphicalModel{T, L}
-  graph::Graph{T}
+  graph::AbstractGraph{T}
   labelings::L
-  varnames::Vector{VarName}
-  function DiscreteGraphicalModel(G::Graph{T}, var_names::Vector{VarName}) where T <: GraphTypes
+  states::Vector{Int}
+  varnames::Dict{Symbol,VarName}
+  function DiscreteGraphicalModel(G::Graph{T}, states::Vector{Int}, varnames::Dict{Symbol, VarName}) where T <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(G, graph_maps, var_names)
+    return new{T, typeof(graph_maps)}(G, graph_maps, states, varnames)
   end
 end
-
-function discrete_graphical_model(G::Graph{Undirected}; t_var_name::VarName="t")
-  
-end
-
 
 ###################################################################################
 #
@@ -20,32 +16,10 @@ end
 #
 ###################################################################################
 
-
-function bron_kerbosch(G::Graph{Undirected}, R, P, X)
-  cliques = []
-  if length(P) == 0 && length(X) == 0
-      push!(cliques, R)
-  end
-  Q = P
-  Y = X
-  for v in Q
-      new_R = vcat(R, [v])
-      new_Q = [p for p in Q if p in neighbors(G, v)]
-      new_Y = [p for p in Y if p in neighbors(G, v)]
-
-      append!(cliques, bron_kerbosch(G, new_R, new_Q, new_Y))
-
-      Q = filter(i -> i != v, P)
-      Y = vcat(X, v)
-  end
-  return cliques
-end
-
-
 @doc raw"""
-   discrete_graphical_model(G::Graph{Undirected}; k_var_name::String="k")
+    discrete_graphical_model(G::Graph{Undirected}, states::Vector{Int}; t_var_name::String="t")
 
-A parametric statistical model associated to an undirected graph.
+The parametric statistical model associated to an undirected graph.
 It contains an undirected graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives, 
 and a parameter ring whose variables `t[C](i_1, i_2, ..., i_#C)` correspond to potential functions of each clique. 
 
@@ -53,99 +27,159 @@ and a parameter ring whose variables `t[C](i_1, i_2, ..., i_#C)` correspond to p
 
 
 ``` jldoctest 
-julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2))
-discrete graphical model on an undirected graph with edges:
-(1, 2), (2, 3)
+julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
+Discrete graphical model on an undirected graph with edges
+(2, 1), (3, 2) and states [2, 2, 2]
+
 ```
 """
-#TODO can this be made into one function for Directed and undirected?
-function discrete_graphical_model(G::Graph{Undirected}, S::MarkovRing, t_var_name::String="t")
-
-  cliques = maximal_cliques(G)
-  rvs = random_variables(S)
-
-  R, t = polynomial_ring(QQ, [t_var_name*string(C)*string(i) for C in cliques for i in collect(state_space(S, rvs[C]))])
-
-  param_dict = Dict([(Tuple(C), Dict()) for C in cliques])
-
-  i = 1
-  
-  for C in cliques
-
-      for clique_state in collect(state_space(S, rvs[C]))
-          
-          param_dict[Tuple(C)][Tuple(clique_state)] = t[i]
-          i += 1
-      end
-  end
-
-  GraphicalModel(G, S, R, param_dict)
+function discrete_graphical_model(G::Graph{Undirected}, states::Vector{Int}; t_var_name::String="t", p_var_name::String="p")
+  @req length(states) == n_vertices(G) "need one and only one random variable in MarkovRing for each graph vertex"
+  DiscreteGraphicalModel(G, states, Dict{Symbol, VarName}(:t => t_var_name, :p => p_var_name))
 end
 
+varnames(M::DiscreteGraphicalModel) = M.varnames
+
+states(M::DiscreteGraphicalModel) = M.states
+
+maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(M.graph)
 
 function Base.show(io::IO, M::DiscreteGraphicalModel{Undirected, L}) where L
   G = graph(M)
   E = [(src(e), dst(e)) for e in edges(G)]
-  S = ring(M)
-  states = map(i -> length(state_space(S, i)), random_variables(S))
 
   if length(E) == 0
     print(io, "Discrete graphical model on the empty undirected graph")
-    print(io, " and states: ", string(states))
+    print(io, " and states ", string(M.states))
   end
 
   if length(E) > 0
-    print(io, "Discrete graphical model on an undirected graph with edges:", "\n", string(E)[2:end-1])
-    print(io, " and states: ", string(states))
+    print(io, "Discrete graphical model on an undirected graph with edges", "\n", string(E)[2:end-1])
+    print(io, " and states ", string(M.states))
   end
 end
 
+# TODO: Allow the ground field to be specified!
+# TODO: Should this return MarkovRing instead which manages the MPolyRing
+# together with its generators and any special form they may have.
+@doc raw"""
+  @attr Tuple{MPolyRing, Vector{QQMPolyRingElem}} model_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false)
+
+Return the ring in which the statistical model lives, together with a
+Dict for indexing its generators.
+
+``` jldoctest 
+julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
+Discrete graphical model on an undirected graph with edges
+(2, 1), (3, 2) and states [2, 2, 2]
+
+julia> model_ring(M)[2]
+Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
+  (1, 2, 1) => p[1, 2, 1]
+  (1, 1, 1) => p[1, 1, 1]
+  (2, 2, 1) => p[2, 2, 1]
+  (1, 2, 2) => p[1, 2, 2]
+  (2, 1, 1) => p[2, 1, 1]
+  (1, 1, 2) => p[1, 1, 2]
+  (2, 2, 2) => p[2, 2, 2]
+  (2, 1, 2) => p[2, 1, 2]
+```
+"""
+@attr Tuple{
+  MPolyRing,
+  GenDict
+} function model_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false) where T
+  R = markov_ring(M.states...; cached=cached)
+  return (ring(R), gens(R))
+end
+
+function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
+  return length(C) == 1 ? M.states[C[1]] : Iterators.product([1:M.states[i] for i in C]...)
+end
 
 @doc raw"""
-  parameterization(M::GraphicalModel{Undirected, MarkovRing})
+  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false)
 
-Creates the polynomial map which parameterizes the vanishing ideal of the undirected discrete graphical model `M`.   
-The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$
-where every joint probability is given by a product of the potential functions of the cliques. 
+Return the ring of parameters of the statistical model, together with a
+Dict for indexing its generators.
+
+``` jldoctest 
+julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
+Discrete graphical model on an undirected graph with edges
+(2, 1), (3, 2) and states [2, 2, 2]
+
+julia> parameter_ring(M)[2]
+Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
+  ([2, 3], (1, 2)) => t[2, 3](1, 2)
+  ([2, 1], (1, 2)) => t[2, 1](1, 2)
+  ([2, 3], (1, 1)) => t[2, 3](1, 1)
+  ([2, 1], (1, 1)) => t[2, 1](1, 1)
+  ([2, 3], (2, 2)) => t[2, 3](2, 2)
+  ([2, 1], (2, 2)) => t[2, 1](2, 2)
+  ([2, 3], (2, 1)) => t[2, 3](2, 1)
+  ([2, 1], (2, 1)) => t[2, 1](2, 1)
+```
+"""
+@attr Tuple{
+  MPolyRing,
+  GenDict
+} function parameter_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false) where T
+  cliques = sort(sort.(collect.(maximal_cliques(M.graph))))
+  Xs = [sort(vec(collect(state_space(M, C)))) for C in cliques]
+  params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
+  varnames = sort([M.varnames[:t] * string(C) * string(x) for (C, x) in params])
+  R, t = polynomial_ring(QQ, varnames; cached=cached)
+  gens_dict = Dict((C, x) => t[i] for (i, (C, x)) in enumerate(params))
+  return (R, gens_dict)
+end
+
+@doc raw"""
+  parameterization(M::DiscreteGraphicalModel{Undirected, L})
+
+Creates the polynomial map which parameterizes the vanishing ideal of the
+undirected discrete graphical model `M`. It sends each probability generator
+`p[s]` of the model ring to the product over all generators `t[C](sp)` of
+the parameter ring where `s[C] == sp`, where `C` is a maximal clique of the
+graph and `sp` is a marginal state of the random vector.
+
 ## Examples
 
 ``` jldoctest
-julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), markov_ring(2,2,2))
-discrete graphical model on an undirected graph with edges:
-(1, 2), (2, 3)
+julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
+Discrete graphical model on an undirected graph with edges
+(2, 1), (3, 2) and states [2, 2, 2]
 
-julia> parameterization(M)
+julia> parametrization(M)
 Ring homomorphism
-from multivariate polynomial ring in 8 variables over QQ
-to multivariate polynomial ring in 8 variables over QQ
+  from multivariate polynomial ring in 8 variables over QQ
+  to multivariate polynomial ring in 8 variables over QQ
 defined by
-p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
-p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
-p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
-p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
-p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
-p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
-p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
-p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+  p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
+  p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
+  p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
+  p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
+  p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
+  p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
+  p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
+  p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+```
 """
 
-# function parametrization(M::GraphicalModel{Graph{Undirected}, MarkovRing})
-#   G = graph(M)
-#   cliques = maximal_cliques(G)
-#   S = ring(M)
-#   R = param_ring(M)
-#   t = param_gens(M)
-#  
-#   images = []
-# 
-#   for ind in state_space(S)
-# 
-#       push!(images, prod(map(C -> t[Tuple(C)][Tuple(ind[C])], cliques)))
-#   end
-# 
-#   hom(ring(S), R, images)
-# end
-
+function parametrization(M::DiscreteGraphicalModel{Undirected, L}) where L
+  G = graph(M)
+  S, pd = model_ring(M)
+  R, td = parameter_ring(M)
+  # TODO: At this point it would be nice to have the MarkovRing available
+  # (e.g., returned from model_ring instead of the inner MPolyRing) so that
+  # we could ask what the index s of a given generator "p[s]" is. Right now,
+  # we fall back to computing this index.
+  images = []
+  for p in gens(S)
+    s = findfirst(q -> q == p, pd)
+    push!(images, prod(td[k] for k in keys(td) if k[2] == s[k[1]]))
+  end
+  hom(S, R, images)
+end
 
 ###################################################################################
 #

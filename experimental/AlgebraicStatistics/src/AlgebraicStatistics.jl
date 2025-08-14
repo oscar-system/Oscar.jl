@@ -64,6 +64,9 @@ export concentration_matrix
 export gaussian_ring, GaussianRing
 
 # Discrete graphical models
+export DiscreteGraphicalModel
+export discrete_graphical_model
+export states, varnames, maximal_cliques
 export state_space
 export marginal
 export markov_ring, tensor_ring, MarkovRing
