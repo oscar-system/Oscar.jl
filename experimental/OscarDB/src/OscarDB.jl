@@ -16,10 +16,10 @@ import Oscar:
   n_vertices
 
 # for ca certificates
-using NetworkOptions, URIs
+import NetworkOptions
+import URIs
 
-import Mongoc
-import Mongoc: find, find_one
+import Mongoc: Mongoc, find, find_one
 
 
 const OSCAR_DB = "oscar"
@@ -48,7 +48,7 @@ end
 """
     Cursor
 
-Type containing the results of a query.
+Type for representing the results of a query.
 Can be iterated, but the iterator can not be reset. For this cause, one has to query again.
 """
 struct Cursor
@@ -149,6 +149,7 @@ Currently, only the Oscar DB (indicated by `:OscarDB`) is supported.
 #TODO clean the docs of this function up
 """
     parse_document(bson::Mongoc.BSON)
+
 Create an Oscar object from the data given by `bson`.
 !!!!!Note that examples may need to be fixed!!!!!
 # Examples
