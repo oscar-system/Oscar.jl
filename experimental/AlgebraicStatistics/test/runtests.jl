@@ -187,7 +187,6 @@ end
     @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
   end
 
-
   @test_skip @testset "affine models" begin 
     model = jukes_cantor_model(tree)
     @test Oscar.affine_phylogenetic_model!(model) isa GroupBasedPhylogeneticModel
@@ -207,89 +206,74 @@ end
   # Test parametrizations for a specific tree and model
   model = jukes_cantor_model(tree)
 
-  @test_skip @testset "Probability parametrization" begin
-    p = probability_map(model)
-    @test length(p) == number_states(model)^length(Oscar.leaves(tree))
+  @testset "parametrization PhylogeneticModel" begin
+    pm = phylogenetic_model(model)
+    f = parametrization(pm)
 
-    R, a, b = polynomial_ring(QQ, :a => 1:n_edges(tree), :b => 1:n_edges(tree); cached=false)
-    H = Oscar.hom(probability_ring(model), R, gens(R))
+    @test f.codomain == parameter_ring(pm)[1]
+    @test f.domain == model_ring(pm)[1]
+
+    @test length(f.img_gens) == n_states(model)^n_leaves(tree)
+
+    _, p = model_ring(pm)
 
     # Test some entries of the joint distribution vector
-    @test H(p[1,1,1]) == 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
-    @test H(p[1,2,3]) == 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-    @test H(p[4,4,3]) == 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+    a = gens(parameter_ring(pm)[1])[1:3]
+    b = gens(parameter_ring(pm)[1])[4:6]
+    @test f(p[1,1,1]) == 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
+    @test f(p[1,2,3]) == 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+    @test f(p[4,4,3]) == 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 
     @testset "Equivalent classes probabilities" begin
-      p_eqclasses = compute_equivalent_classes(p)
-      
-      classes = [1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3],
-                1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3],
-                1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3],
-                1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3],
-                1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]]
+      @test length(equivalent_classes(pm)) == 5
+      @test issetequal(collect(keys(equivalent_classes(pm))),
+                        [p[1, 1, 1], p[2, 2, 1], p[3, 2, 1], p[2, 1, 1], p[1, 2, 1]])
+      @test length(equivalent_classes(pm)[p[1, 1, 1]]) == 4
+      @test length(equivalent_classes(pm)[p[2, 2, 1]]) == 12
+      @test length(equivalent_classes(pm)[p[3, 2, 1]]) == 24
+      @test length(equivalent_classes(pm)[p[2, 1, 1]]) == 12
+      @test length(equivalent_classes(pm)[p[1, 2, 1]]) == 12
 
-      # Test that we get the expected number and polynomials in equivalent classes
-      @test length(unique(vcat(H.(collect(values(p_eqclasses.parametrization))), classes))) == length(p_eqclasses.parametrization)
-
-       # Test the keys for a specific class
-      @test setdiff(p_eqclasses.classes[1,1,1], [(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)]) == []    
-    end
-
-    @testset "Sum equivalent classes Fourier" begin
-      p_eqclasses = compute_equivalent_classes(p)
-      sum_p = sum_equivalent_classes(p_eqclasses)
-      @test H(sum_p[1,2,1]) == 3*a[1]*a[3]*b[2] + 3*a[2]*b[1]*b[3] + 6*b[1]*b[2]*b[3]
-      @test H(sum_p[1,1,1]) == a[1]*a[2]*a[3] + 3*b[1]*b[2]*b[3]
-      @test H(sum_p[1,2,2]) == 3*a[1]*b[2]*b[3] + 3*a[2]*a[3]*b[1] + 6*b[1]*b[2]*b[3]
-      @test H(sum_p[1,2,3]) == 6*a[1]*b[2]*b[3] + 6*a[2]*b[1]*b[3] + 6*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
-      @test H(sum_p[1,1,2]) == 3*a[1]*a[2]*b[3] + 3*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
-
+      @test issetequal(equivalent_classes(pm)[p[1, 1, 1]],
+                        [p[1, 1, 1], p[2, 2, 2], p[3, 3, 3], p[4, 4, 4]])
     end
   end
 
-  @test_skip @testset "Fourier parametrization" begin
-    q = fourier_map(model)
-    @test length(q) == number_states(model)^length(Oscar.leaves(tree))
-    
-    S, x = polynomial_ring(QQ, :x => (1:n_edges(tree), 1:2); cached=false)
-    H = Oscar.hom(fourier_ring(model), S, gens(S))
+  @testset "parametrization GroupBasedPhylogeneticModel" begin
 
-    # Test zero entries of the fourier vector
-    zerokeys = [(1,2,1), (3,1,1), (4,4,2), (1,2,3), (3,2,1), (2,1,4), (3,2,3), (2,1,1), 
-            (1,3,2), (1,4,2), (2,1,3), (2,2,4), (4,3,4), (4,4,4), (4,3,1), (3,3,2),
-            (4,1,2), (2,2,3), (4,3,3), (4,4,3), (4,2,2), (1,3,4), (2,3,2), (1,3,1), 
-            (2,4,2), (1,1,2), (1,4,1), (3,3,4), (1,4,3), (3,4,4), (4,1,1), (3,1,2), 
-            (3,4,1), (3,3,3), (4,1,3), (4,2,4), (3,4,3), (4,2,1), (3,2,2), (2,3,1), 
-            (2,4,4), (1,1,4), (2,4,1), (2,3,3), (1,1,3), (1,2,4), (2,2,2), (3,1,4)]
-    sum([q[i] for i in zerokeys]) == 0
+    f = parametrization(model)
+
+    @test f.codomain == parameter_ring(model)[1]
+    @test f.domain == model_ring(model)[1]
+
+    @test length(f.img_gens) == n_states(model)^n_leaves(tree)
+
+    _, q = model_ring(model)
 
     # Test some entries of the joint distribution vector
-    @test H(q[3,2,4]) == x[1, 2]*x[2, 2]*x[3, 2]
-    @test H(q[2,1,2]) == x[2, 1]*x[1, 2]*x[3, 2]
-    @test H(q[1,1,1]) == x[1, 1]*x[2, 1]*x[3, 1]
+    x = gens(parameter_ring(model)[1])[1:3]
+    y = gens(parameter_ring(model)[1])[4:6]
+    @test f(p[3,2,4]) == y[1]*y[2]*y[3]
+    @test f(p[2,1,2]) == x[2]*y[1]*y[3]
+    @test f(p[1,1,1]) == x[1]*x[2]*x[3]
 
-    @testset "Equivalent classes Fourier" begin
-      q_eqclasses = compute_equivalent_classes(q)
 
-      classes = [x[2, 1]*x[1, 2]*x[3, 2], x[3, 1]*x[1, 2]*x[2, 2], 
-                x[1, 1]*x[2, 2]*x[3, 2], x[1, 2]*x[2, 2]*x[3, 2], 
-                x[1, 1]*x[2, 1]*x[3, 1]]
-  
-      # Test that we get the expected number and polynomials in equivalent classes
-      @test length(unique(vcat(H.(collect(values(q_eqclasses.parametrization))), classes))) == length(q_eqclasses.parametrization)
+    @testset "Equivalent classes probabilities" begin
+      @test length(equivalent_classes(model)) == 5
+      @test issetequal(collect(keys(equivalent_classes(model))),
+                       [q[1, 1, 1], q[2, 2, 1], q[2, 1, 2], p[4, 3, 2], p[1, 2, 2]])
+      @test length(equivalent_classes(model)[q[1, 1, 1]]) == 1
+      @test length(equivalent_classes(model)[q[2, 2, 1]]) == 3
+      @test length(equivalent_classes(model)[q[2, 1, 2]]) == 3
+      @test length(equivalent_classes(model)[q[4, 3, 2]]) == 6
+      @test length(equivalent_classes(model)[q[1, 2, 2]]) == 3
 
-      # Test all classes
-      @test H(q_eqclasses.parametrization[1,1,1]) == x[1, 1]*x[2, 1]*x[3, 1]
-      @test H(q_eqclasses.parametrization[1,2,2]) == x[1, 1]*x[2, 2]*x[3, 2]
-      @test H(q_eqclasses.parametrization[2,1,2]) == x[2, 1]*x[1, 2]*x[3, 2]
-      @test H(q_eqclasses.parametrization[2,2,1]) == x[3, 1]*x[1, 2]*x[2, 2]
-      @test H(q_eqclasses.parametrization[2,3,4]) == x[1, 2]*x[2, 2]*x[3, 2]
-
-      # Test that the keys for one class are the expected ones
-      @test setdiff(q_eqclasses.classes[2,3,4],  [(2,3,4),(2,4,3),(3,2,4),(3,4,2),(4,2,3),(4,3,2)]) == []
+      @test issetequal(equivalent_classes(model)[p[2, 2, 1]],
+                       [p[2, 2, 1], p[3, 3, 1], p[4, 4, 1]])
     end
   end
 
+  
   @test_skip @testset "specialized (inverse) fourier transform" begin
     # model = jukes_cantor_model(tree)
 
