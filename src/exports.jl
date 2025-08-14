@@ -551,6 +551,7 @@ export direct_product
 export direct_sum
 export direct_sum_components
 export directed_component
+export directed_edges
 export discriminant_representation
 export disjoint_union
 export div_left
@@ -1789,6 +1790,7 @@ export underlying_presheaf
 export underlying_quotient
 export underlying_word
 export undirected_component
+export undirected_edges
 export uniform_matroid
 export unit
 export unitary_group
