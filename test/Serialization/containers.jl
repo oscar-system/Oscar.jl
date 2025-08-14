@@ -105,6 +105,18 @@
       end
     end
 
+    @testset "Testing (de)serialization of Matrix{$(T)}" for T in 
+      (
+        UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
+        Int, Int128, Int16, Int32, Int64, Int8,
+        Float16, Float32, Float64
+      )
+      original = [T(1) T(2); T(3) T(4)]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
     @testset "Testing (de)serialization of Multidimensional Arrays" begin
       original = [1; 2;; 3; 4;; 5; 6;;;
                   7; 8;; 9; 10;; 11; 12]

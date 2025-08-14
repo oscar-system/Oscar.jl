@@ -173,6 +173,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where S
   end
 end
 
+load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where S = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::U) where {S, U}
   load_node(s) do entries
@@ -187,7 +188,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::U) wher
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::Int) where S
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::U) where {S, U <: Union{Int, Symbol}}
   return load_node(s, key) do _
     load_object(s, T)
   end
