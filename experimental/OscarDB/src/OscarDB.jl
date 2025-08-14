@@ -151,21 +151,6 @@ Currently, only the Oscar DB (indicated by `:OscarDB`) is supported.
     parse_document(bson::Mongoc.BSON)
 
 Create an Oscar object from the data given by `bson`.
-!!!!!Note that examples may need to be fixed!!!!!
-# Examples
-```julia-repl
-julia> db = Oscar.OscarDB.get_db();
-
-julia> collection = Oscar.OscarDB.Collection{Mongoc.BSON}(db["Polytopes.Lattice.SmoothReflexive"])
-Oscar.OscarDB.Collection{Mongoc.BSON}: Polytopes.Lattice.SmoothReflexive
-
-julia> bson = collect(Oscar.OscarDB.find(collection, "DIM"=>3, "N_FACETS"=>5))[1];
-
-julia> bo = Oscar.OscarDB.parse_document(bson);
-
-julia> typeof(bo) 
-Polymake.BigObjectAllocated
-```
 """
 function parse_document(bson::Mongoc.BSON)
   # TODO should accept override p
