@@ -99,6 +99,6 @@ end
 @testset "Issue 5089" begin
   R,(x,y) = polynomial_ring(GF(3),2)
   I = ideal(x^3+y^3)
-  @test is_smooth(spec(I))
+  @test !is_smooth(spec(I))
 end
 
