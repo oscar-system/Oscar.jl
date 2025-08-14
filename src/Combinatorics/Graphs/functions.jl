@@ -438,8 +438,7 @@ function add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undire
 end
 
 function add_vertices!(mg::MixedGraph, n::Int64)
-  return divexact(add_vertices!(_directed_component(mg), n) +
-    add_vertices!(_undirected_component(mg), n), 2)
+  return count(_->add_vertex!(mg), 1:n)
 end
 
 ################################################################################
