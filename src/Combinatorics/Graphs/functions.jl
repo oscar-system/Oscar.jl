@@ -84,7 +84,7 @@ end
 Construct a mixed graph on `nverts` vertices and no edges. 
 
 # Examples
-Make a directed graph with 5 vertices and print the number of nodes and edges.
+Make a graph with a directed component and an undirected component with 5 vertices and print the number of nodes and edges.
 ```jldoctest
 julia> g = mixed_graph(5);
 
