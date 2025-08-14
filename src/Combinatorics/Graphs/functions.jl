@@ -332,7 +332,7 @@ function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 function add_vertex!(mg::MixedGraph)
-  @assert add_vertex!(_directed_component(mg))
+  add_vertex!(_directed_component(mg)) || return false
   vertex_added = add_vertex!(_undirected_component(mg))
 
   if !vertex_added
