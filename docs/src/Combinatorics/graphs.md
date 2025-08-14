@@ -85,6 +85,8 @@ complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+directed_edges(g::MixedGraph)
+undirected_edges(g::MixedGraph)
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
