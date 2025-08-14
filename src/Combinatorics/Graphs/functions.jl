@@ -25,7 +25,7 @@ Directed graph with 5 nodes and the following edges:
 (1, 3)(3, 5)
 ```
 """
-directed_component(G::MixedGraph) = copy(_directed_component(G))
+directed_component(G::MixedGraph) = deepcopy(_directed_component(G))
 
 
 _undirected_component(G::MixedGraph) = G.undirected_component
@@ -48,7 +48,7 @@ Undirected graph with 5 nodes and the following edges:
 (3, 2)(4, 2)(5, 4)
 ```
 """
-undirected_component(G::MixedGraph) = copy(_undirected_component(G))
+undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 
 ################################################################################
 ################################################################################
@@ -646,7 +646,6 @@ function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
-#TODO add examples
 @doc raw"""
     directed_edges(g::MixedGraph)
 
@@ -672,7 +671,6 @@ function directed_edges(g::MixedGraph)
   return EdgeIterator(Polymake.edgeiterator(pm_object(dir_g)), n_edges(dir_g))
 end
 
-#TODO add examples
 @doc raw"""
     undirected_edges(g::MixedGraph)
 
@@ -729,6 +727,20 @@ end
 Check for an edge in a graph.
 
 # Examples
+```jldoctest
+julia> g = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> has_directed_edge(g, 1, 3)
+true
+
+julia> has_directed_edge(g, 3, 2)
+false
+```
 """
 has_directed_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(directed_component(g), source, target)
 has_directed_edge(g::MixedGraph, e::Edge) = has_edge(directed_component(g), e)
@@ -739,6 +751,20 @@ has_directed_edge(g::MixedGraph, e::Edge) = has_edge(directed_component(g), e)
 Check for an edge in a graph.
 
 # Examples
+```jldoctest
+julia> g = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> has_undirected_edge(g, 1, 3)
+false
+
+julia> has_undirected_edge(g, 3, 2)
+true
+```
 """
 has_undirected_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(undirected_component(g), source, target)
 has_undirected_edge(g::MixedGraph, e::Edge) = has_edge(undirected_component(g), e)
