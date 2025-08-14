@@ -112,7 +112,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 
 ## Citing OSCAR
 
-If you have used OSCAR in the preparation of a paper please cite it as described below:
+If you have used OSCAR in the preparation of a paper please cite it as described below, preferably including both citations:
 
     [OSCAR]
         OSCAR -- Open Source Computer Algebra Research system, Version 1.5.0-DEV,
