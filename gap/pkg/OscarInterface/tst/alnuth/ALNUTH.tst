@@ -69,9 +69,9 @@ gap> f := UnivariatePolynomial( Rationals,[ 11/64, 59/16, -7/4, 1 ] );
 x_1^3-7/4*x_1^2+59/16*x_1+11/64
 gap> L := FieldByPolynomial( f );
 <algebraic extension over the Rationals of degree 3>
-gap> FactorsPolynomialAlgExt( L, pol );
-[ x_1^2+(-a^2+3/2*a-21/16)*x_1+!1, 
-  x_1^2+(a^2-3/2*a+53/16)*x_1+(a^2-3/2*a+53/16), x_1^2+x_1+(-a+1/4) ]
+gap> SortedList(FactorsPolynomialAlgExt( L, pol ));
+[ x_1^2+(-a^2+3/2*a-21/16)*x_1+!1, x_1^2+x_1+(-a+1/4), 
+  x_1^2+(a^2-3/2*a+53/16)*x_1+(a^2-3/2*a+53/16) ]
 
 # testing norm.gp and fracidea.gp
 gap> pol := UnivariatePolynomial( Rationals, [ 1, 0, -1, 1 ] );
