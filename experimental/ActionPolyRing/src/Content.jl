@@ -12,6 +12,24 @@
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables.This methods allows for all the keywords of the `set_ranking!` method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+
+# Examples
+
+```jldoctests
+julia> S, variables = difference_polynomial_ring(QQ, 3, 4)
+(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
+
+julia> S
+Difference polynomial ring in 3 elementary symbols u1, u2, u3
+with 4 commuting endomorphisms
+  over Rational field
+
+julia> variables
+3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
+ u1[0,0,0,0]
+ u2[0,0,0,0]
+ u3[0,0,0,0]
+```
 """
 function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
     partition_name::Symbol = :default,
@@ -36,6 +54,24 @@ end
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
 method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+
+# Examples
+
+```jldoctest
+julia> S, variables = difference_polynomial_ring(QQ, [:a, :b, :c], 4)
+(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
+
+julia> S
+Difference polynomial ring in 3 elementary symbols a, b, c
+with 4 commuting endomorphisms
+  over Rational field
+
+julia> variables
+3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
+ a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
+```
 """
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
     partition_name::Symbol = :default,
@@ -60,6 +96,24 @@ end
 
 Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables.This methods allows for all the keywords of the `set_ranking!` method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+
+# Examples
+
+```jldoctests
+julia> S, variables = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
+(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
+
+julia> S
+Differential polynomial ring in 3 elementary symbols a, b, c
+with 4 commuting derivations
+  over Rational field
+
+julia> variables
+3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
+ a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
+```
 """
 function differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
     partition_name::Symbol = :default,
@@ -84,6 +138,24 @@ end
 Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
 method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+
+# Examples
+
+```jldoctests
+julia> S, variables = differential_polynomial_ring(QQ, 3, 4)
+(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
+
+julia> S
+Differential polynomial ring in 3 elementary symbols u1, u2, u3
+with 4 commuting derivations
+  over Rational field
+
+julia> variables
+3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
+ u1[0,0,0,0]
+ u2[0,0,0,0]
+ u3[0,0,0,0]
+```
 """
 function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
     partition_name::Symbol = :default,
@@ -285,7 +357,7 @@ degree(apre::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = degree(apre
 @doc raw"""
     degree(p::ActionPolyRingElem, i::Int)
 
-Return the degree of the polynomial `p` in the, among the currently tracked variables, 'i'-th largest one.
+Return the degree of the polynomial `p` in the, among the currently tracked variables, 'i'-th largest one. The index of the jet variable may also be passed as a tuple.
 """
 degree(apre::ActionPolyRingElem, i::Int) = degree(apre, __vtj(parent(apre))[gen(parent(apre), i)])
 
@@ -316,7 +388,27 @@ is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
     gen(apr::ActionPolyRing, i::Int, midx::Vector{Int})
 
 Return the `i`-th elementary variable with multiindex `midx` in the action polynomial
-`apr`. If this jet variable was untracked, it is tracked afterwards.
+`apr`. If this jet variable was untracked, it is tracked afterwards. The index of the jet variable may also be passed as a tuple.
+
+# Examples
+
+```jldoctests
+julia> gen(dpr, 1, [3,1,0,0])
+[ Info: New variables: a[3,1,0,0]
+a[3,1,0,0]
+
+julia> gen(dpr, (1, [3,2,0,0]))
+[ Info: New variables: a[3,2,0,0]
+a[3,2,0,0]
+
+julia> gens(dpr)
+5-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ b[0,0,0,0]
+ c[0,0,0,0]
+ a[3,2,0,0]
+ a[3,1,0,0]
+ a[0,0,0,0]
+```
 """
 function gen(apr::ActionPolyRing, i::Int, jet::Vector)
   @req __is_valid_jet(apr, i, jet) "invalid jet variable"
@@ -334,6 +426,16 @@ gen(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...
     gen(apr::ActionPolyRing, i::Int)
 
 Return the, among the currently tracked variables of `apr`, 'i'-th largest one.
+
+# Examples
+
+```jldoctests
+julia> dpr = difference_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 2)
+b[0,0,0,0]
+
+julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]]); gen(dpr,2)
+c[0,0,0,0]
+```
 """
 gen(apr::ActionPolyRing, i::Int) = gens(apr)[i]
 
@@ -342,11 +444,28 @@ gen(apr::ActionPolyRing, i::Int) = gens(apr)[i]
 
 Return the jet variables of the action polynomial ring `apr` specified by the entries of `jet_idxs` as
 a vector and track all new variables.
+
+# Examples
+
+```jldoctests
+julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]
+Differential polynomial ring in 3 elementary symbols a, b, c
+with 4 commuting derivations
+  over Integer ring
+
+julia> gens(dpr, [(1, [3,1,0,0]), (1, [3,2,0,0])])
+[ Info: New variables: a[3,1,0,0], a[3,2,0,0]
+2-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
+ a[3,1,0,0]
+ a[3,2,0,0]
+```
 """
 function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   jtv = __jtv(apr)
   new_jet_idxs = filter(jet_idx -> !haskey(jtv, jet_idx), jet_idxs)
-  __add_new_jetvar!(apr, new_jet_idxs)
+  if !is_empty(new_jet_idxs)
+    __add_new_jetvar!(apr, new_jet_idxs)
+  end
   return map(jet_idx -> jtv[jet_idx], jet_idxs)
 end
 
@@ -354,6 +473,33 @@ end
     gens(apr::ActionPolyRing)
 
 Return the currently tracked variables of the action polynomial ring `apr` as a vector. The variables are sorted with respect to the ranking of `apr`, leading with the largest variable.
+
+# Examples
+
+```jldoctests
+julia> dpr = difference_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gens(dpr)
+3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
+
+julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]]); gens(dpr)
+3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ b[0,0,0,0]
+ c[0,0,0,0]
+ a[0,0,0,0]
+
+julia> gens(dpr, [(1, [1,1,1,1]), (2, [1,1,1,1])]);
+[ Info: New variables: a[1,1,1,1], b[1,1,1,1]
+
+julia> gens(dpr)
+5-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ b[1,1,1,1]
+ b[0,0,0,0]
+ c[0,0,0,0]
+ a[1,1,1,1]
+ a[0,0,0,0]
+```
 """
 function gens(apr::ActionPolyRing)
   return sort(collect(values(__jtv(apr))); rev = true)
@@ -369,6 +515,8 @@ number_of_variables(apr::ActionPolyRing) = number_of_variables(__upr(apr))
 Alias for `gen(apr, i, midx)`.
 """
 getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
+
+getindex(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
 
 @doc raw"""
     var_index(x::ActionPolyRingElem)
@@ -956,7 +1104,7 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}; provide_info::B
 @doc raw"""
     ranking(dpr::DifferencePolyRing) -> DifferenceRanking
 
-Return the ranking of the jet variables of the difference polynomial ring `dpr`
+Return the ranking of the jet variables of the difference polynomial ring `dpr`.
 """
 ranking(dpr::DifferencePolyRing) = dpr.ranking
   
@@ -993,6 +1141,40 @@ This method configures the ranking of the action polynomial ring `apr`, using an
 - `partition`: A custom partition of the elementary symbols, represented as a vector of characteristic vectors. The elementary symbols corresponding to the first characteristic vectors are considered largest and so on.
 
 - `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `ndiffs(dpr)`.
+
+# Examples
+
+```jldoctests
+julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4; partition_name=:pot, index_ordering_name = :degrevlex)[1]; ranking(dpr)
+Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+with elementary symbols partitioned by
+  [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+and ordering of the indices defined by
+  [1    1    1    1]
+  [0    0    0   -1]
+  [0    0   -1    0]
+  [0   -1    0    0]
+
+julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]], index_ordering_matrix = identity_matrix(ZZ, 4))
+Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+with elementary symbols partitioned by
+  [[0, 1, 1], [1, 0, 0]]
+and ordering of the indices defined by
+  [1   0   0   0]
+  [0   1   0   0]
+  [0   0   1   0]
+  [0   0   0   1]
+
+julia> set_ranking!(dpr)
+Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+with elementary symbols partitioned by
+  [[1, 1, 1]]
+and ordering of the indices defined by
+  [1   0   0   0]
+  [0   1   0   0]
+  [0   0   1   0]
+  [0   0   0   1]
+```
 """
 function set_ranking!(dpr::DifferencePolyRing;
     partition_name::Symbol = :default,
