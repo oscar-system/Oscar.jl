@@ -109,3 +109,6 @@ export pairwise_markov
 export local_markov
 export global_markov
 export are_separated
+export is_ancestral
+export ancestral_closure
+export moralization
