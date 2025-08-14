@@ -88,6 +88,8 @@ edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 directed_edges(g::MixedGraph)
 undirected_edges(g::MixedGraph)
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+has_directed_edge(g::MixedGraph{T}, source::Int64, target::Int64)
+has_undirected_edge(g::MixedGraph{T}, source::Int64, target::Int64)
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
