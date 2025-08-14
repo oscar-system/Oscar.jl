@@ -110,6 +110,15 @@ src(e::Edge)
 ```@docs
 visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
+#### Visualization using Graphviz
+[Graphviz](https://graphviz.org/) is an open source graph visualization software. To visualize
+graphs using Graphviz, use `backend=:graphviz`. It requires that both Graphviz and a postscript
+viewer are installed. In case Graphviz is installed and OSCAR is unable to find it (e.g., because
+Graphviz was installed after OSCAR), please run
+```
+Polymake.shell_execute("""application("graph")->reconfigure("graphviz.rules");""");
+```
+
 ## Saving and loading
 
 Objects of type `Graph` can be saved to a file and loaded with the methods

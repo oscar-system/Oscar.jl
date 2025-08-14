@@ -1325,12 +1325,20 @@ end
 
 Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 
-The `backend` keyword argument allows the user to pick between a Three.js visualization by default, or passing `:tikz` for a TikZ visualization.
-The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or TikZ code for `:tikz`.
-If the graph `G` has a labeling `:color` (see [`label!`](@ref)) then the visualization will use these colors to color the graph.
+The `backend` keyword argument allows the user to pick between a Three.js visualization by default,
+or passing `:tikz` for a TikZ visualization, or passing `:graphviz` for a
+[Graphviz](https://graphviz.org/) visualization (requires Graphviz, see documentation).
 
-Possible color labelings include RGB values of the form `"255 0 255"` or `"#ff00ff"`, as well as the following named colors as strings: `polymakeorange`, `polymakegreen`,
-`white`, `purple`, `cyan`, `darkolivegreen`, `indianred`, `plum1`, `red`, `lightslategrey`, `yellow`, `orange`, `salmon1`, `azure`, `green`, `gray`, `midnightblue`, `pink`, `magenta`, `blue`, `lavenderblush`, `chocolate1`, `lightgreen`, `black`.
+The`filename` keyword argument will write visualization code to the `filename` location, this will
+be html for `:threejs` backend or TikZ code for `:tikz`.
+
+If the graph `G` has a labeling `:color` (see [`label!`](@ref)) then the visualization will use
+these colors to color the graph.
+Possible color labelings include RGB values of the form `"255 0 255"` or `"#ff00ff"`, as well as the
+following named colors as strings: `polymakeorange`, `polymakegreen`, `white`, `purple`, `cyan`,
+`darkolivegreen`, `indianred`, `plum1`, `red`, `lightslategrey`, `yellow`, `orange`, `salmon1`,
+`azure`, `green`, `gray`, `midnightblue`, `pink`, `magenta`, `blue`, `lavenderblush`, `chocolate1`,
+`lightgreen`, `black`.
 
 """
 function visualize(G::Graph{T};
