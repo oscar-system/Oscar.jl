@@ -1823,18 +1823,34 @@ end
 
 @doc raw"""
     mixed_graph_from_edges(directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
+    mixed_graph_from_edges(directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
 
 Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
 
 # Examples
 ```jldoctest
-julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+julia> g = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
 Mixed graph with 5 nodes and the following
 Directed edges:
 (1, 3)(3, 5)
 Undirected edges:
 (3, 2)(4, 2)(5, 4)
+
+julia> g1 = graph_from_edges(Directed, [[1, 2], [3, 4]])
+Directed graph with 4 nodes and the following edges:
+(1, 2)(3, 4)
+
+julia> g2 = graph_from_edges(Undirected, [[1, 4], [3, 2]])
+Undirected graph with 4 nodes and the following edges:
+(3, 2)(4, 1)
+
+julia> mixed_graph_from_edges(edges(g1), edges(g2))
+Mixed graph with 4 nodes and the following
+Directed edges:
+(1, 2)(3, 4)
+Undirected edges:
+(3, 2)(4, 1)
 ```
 """
 function mixed_graph_from_edges(directed_edges::Vector{S},
@@ -1844,6 +1860,13 @@ function mixed_graph_from_edges(directed_edges::Vector{S},
                                 [Edge(e[1], e[2]) for e in undirected_edges],
                                 n_vertices)
 end
+
+function mixed_graph_from_edges(directed_edges::EdgeIterator,
+                                undirected_edges::EdgeIterator,
+                                n_vertices::Int=-1) 
+  return mixed_graph_from_edges(collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
 
 @doc raw"""
     label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}

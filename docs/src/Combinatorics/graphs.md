@@ -41,6 +41,7 @@ vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
 graph_from_labeled_edges
+mixed_graph_from_edges
 ```
 
 ### Modifying graphs
