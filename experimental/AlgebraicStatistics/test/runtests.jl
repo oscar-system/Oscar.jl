@@ -43,11 +43,8 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
 end
 
 # exported items: experimental/GraphicalModels/src/GraphicalModels.jl
-# TODOs:
-# * how to check e.g. collect(values(compute_equivalent_classes(probability_map(model)))) against something hardcoded? (Marina)
-# * specialized (inverse) fourier transform, two functions still as comments (Christiane)
 
-@testset "Phylogenetic Models tests" begin # Changed from "Graphical Models tests"
+@testset "PhylogeneticModels" begin # Changed from "Graphical Models tests"
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
 
   @testset "CFN model" begin
