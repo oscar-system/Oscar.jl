@@ -375,7 +375,7 @@ function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
 end
 
 function rem_vertex!(mg::MixedGraph, v::Int64)
-  return rem_vertex!(directed_component(mg), v) && rem_vertex!(undirected_component(mg), v)
+  return rem_vertex!(_directed_component(mg), v) && rem_vertex!(_undirected_component(mg), v)
 end
 
 @doc raw"""
@@ -410,7 +410,7 @@ function rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{
 end
 
 function rem_vertices!(mg::MixedGraph, a::AbstractVector)
-  return rem_vertices!(directed_component(mg), a) && rem_vertices!(undirected_component(mg), a)
+  return rem_vertices!(_directed_component(mg), a) && rem_vertices!(_undirected_component(mg), a)
 end
 
 @doc raw"""
@@ -749,8 +749,8 @@ julia> has_directed_edge(g, 3, 2)
 false
 ```
 """
-has_directed_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(directed_component(g), source, target)
-has_directed_edge(g::MixedGraph, e::Edge) = has_edge(directed_component(g), e)
+has_directed_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(_directed_component(g), source, target)
+has_directed_edge(g::MixedGraph, e::Edge) = has_edge(_directed_component(g), e)
 
 @doc raw"""
     has_undirected_edge(g::MixedGraph, source::Int64, target::Int64)
@@ -773,8 +773,8 @@ julia> has_undirected_edge(g, 3, 2)
 true
 ```
 """
-has_undirected_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(undirected_component(g), source, target)
-has_undirected_edge(g::MixedGraph, e::Edge) = has_edge(undirected_component(g), e)
+has_undirected_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(_undirected_component(g), source, target)
+has_undirected_edge(g::MixedGraph, e::Edge) = has_edge(_undirected_component(g), e)
 
 
 @doc raw"""
@@ -802,7 +802,7 @@ function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirecte
 end
 
 #each component has same vertices so it is enough to check one
-has_vertex(g::MixedGraph, v::Int) = has_vertex(directed_component(g), v) 
+has_vertex(g::MixedGraph, v::Int) = has_vertex(_directed_component(g), v) 
 
 @doc raw"""
     neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
