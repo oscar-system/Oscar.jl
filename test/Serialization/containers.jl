@@ -104,7 +104,23 @@
         @test original == loaded
       end
     end
-    
+
+    @testset "Testing (de)serialization of Multidimensional Arrays" begin
+      original = [1; 2;; 3; 4;; 5; 6;;;
+                  7; 8;; 9; 10;; 11; 12]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+
+      Qxy,(x, y) = QQ[:x, :y]
+      original = Array{MPolyRingElem, 4}(
+        reshape(reduce(hcat, [x .* Qxy.(arr), Qxy.(arr)]), 2, 3, 2, 2)
+      )
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
     @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
       (
         (UInt, UInt128), (UInt16, UInt32), (UInt64, UInt8),

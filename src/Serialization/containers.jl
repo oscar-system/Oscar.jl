@@ -1,11 +1,11 @@
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
-function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecTypes{S}, Array{S}}}
+function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecType{S}, Array{S}}}
   all(map(x -> isequal(first(params), x), params))
 end
 
-function type_params(obj::S) where {T, S <:MatVecTypes{T}}
+function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
     return TypeParams(S, TypeParams(T, nothing))
   end
@@ -35,7 +35,7 @@ function has_empty_entries(obj::T) where T <: ContainerTypes
   return false
 end
 
-function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecTypes{T}}
+function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
@@ -61,12 +61,11 @@ function save_type_params(s::SerializerState,
 end
 
 # this function is forced to deal with all array types
-function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecTypes}})
+function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecType}})
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
     if haskey(s, :dims)
       U = load_node(s, :subtype_params) do _
-        println(s.obj)
         return decode_type(s)
       end
        
@@ -216,22 +215,20 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, i) for i in 1:len]
-    front_shape = size(m[1])
-    return T(reshape(reduce(hcat, m), front_shape..., len))
+    return T(reduce((a, b) -> cat(a, b; dims=N), m))
   end
 end
 
 load_object(s::DeserializerState, T::Type{Array{S, N}}, ::Nothing) where {S, N} = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) where {S, N, U}
-    load_node(s) do entries
+  load_node(s) do entries
     if isempty(entries)
       return T(undef, [0 for _ in 1:N]...)
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, params, i) for i in 1:len]
-    front_shape = size(m[1])
-    return T(reshape(reduce(hcat, m), front_shape..., len))
+    return T(reduce((a, b) -> cat(a, b; dims=N), m))
   end
 end
 
