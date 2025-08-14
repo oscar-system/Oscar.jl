@@ -393,7 +393,7 @@ Return the `i`-th elementary variable with multiindex `midx` in the action polyn
 # Examples
 
 ```jldoctests
-julia> gen(dpr, 1, [3,1,0,0])
+julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 1, [3,1,0,0])
 [ Info: New variables: a[3,1,0,0]
 a[3,1,0,0]
 
@@ -402,12 +402,12 @@ julia> gen(dpr, (1, [3,2,0,0]))
 a[3,2,0,0]
 
 julia> gens(dpr)
-5-element Vector{DifferencePolyRingElem{ZZRingElem}}:
- b[0,0,0,0]
- c[0,0,0,0]
+5-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
  a[3,2,0,0]
  a[3,1,0,0]
  a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
 ```
 """
 function gen(apr::ActionPolyRing, i::Int, jet::Vector)
@@ -433,7 +433,7 @@ Return the, among the currently tracked variables of `apr`, 'i'-th largest one.
 julia> dpr = difference_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 2)
 b[0,0,0,0]
 
-julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]]); gen(dpr,2)
+julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]]); gen(dpr, 2)
 c[0,0,0,0]
 ```
 """
@@ -448,16 +448,19 @@ a vector and track all new variables.
 # Examples
 
 ```jldoctests
-julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]
-Differential polynomial ring in 3 elementary symbols a, b, c
-with 4 commuting derivations
-  over Integer ring
-
-julia> gens(dpr, [(1, [3,1,0,0]), (1, [3,2,0,0])])
+julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gens(dpr, [(1, [3,1,0,0]), (1, [3,2,0,0])])
 [ Info: New variables: a[3,1,0,0], a[3,2,0,0]
 2-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
  a[3,1,0,0]
  a[3,2,0,0]
+
+julia> gens(dpr)
+5-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
+ a[3,2,0,0]
+ a[3,1,0,0]
+ a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
 ```
 """
 function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
