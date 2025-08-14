@@ -6,7 +6,7 @@
     LeechPair
 
 Container type for the entries in the Leech pair database, computed by G. Höhn
-and G. Mason `[HM16]`.
+and G. Mason [HM16](@ref).
 See also https://arxiv.org/abs/1505.06420v3 and the ancillary files.
 
 Each `LeechPair` consists of a pair $(L, G)$ where $L$ is a negative definite
