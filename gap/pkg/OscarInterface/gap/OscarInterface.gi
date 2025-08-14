@@ -156,6 +156,37 @@ Perform( Oscar_jl.Serialization._GAP_deserializations,
 
 ############################################################################
 
+# Oscar provides the reduction of a finite matrix group over a number field
+# to one over a finite field,
+# hence these groups can be handled via nice monomorphisms.
+#
+# In the construction of the `GapObj` of a matrix group over a number field,
+# we store the Oscar group in the attribute `JuliaData` and set the flag
+# `MayBeHandledByNiceMonomorphism`.
+# GAP operations that have a special method for groups in the filter
+# `IsHandledByNiceMonomorphism` have also a method for groups in
+# `MayBeHandledByNiceMonomorphism`.
+# The latter method calls `IsHandledByNiceMonomorphism`,
+# and we provide the following method for matrix groups that are in
+# `MayBeHandledByNiceMonomorphism` and that store an Oscar group.
+
+InstallMethod( IsHandledByNiceMonomorphism,
+    [ "IsMatrixGroup and MayBeHandledByNiceMonomorphism and HasJuliaData" ],
+    RankFilter( IsCyclotomicCollCollColl ), # above `IsCyclotomicMatrixGroup`
+    function( G )
+    if Oscar.is_finite( JuliaData( G ) ) then
+      # The `is_finite` call already triggers the computation
+      # of the reduction, without error in the case of an infinite group.
+      # Make sure that the reduction really gets computed.
+      Oscar.isomorphic_group_over_finite_field( JuliaData( G ) );
+      Assert( 0, HasNiceMonomorphism( G ) );
+      return true;
+    fi;
+    return false;
+    end );
+
+############################################################################
+
 # The following can be removed as soon as the CTblLib package provides it
 # (not yet in CTblLib v1.3.9).
 if not IsBound( IsAtlasCharacterTable ) then
