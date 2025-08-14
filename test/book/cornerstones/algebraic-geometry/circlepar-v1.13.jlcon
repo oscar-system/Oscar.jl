@@ -22,4 +22,4 @@ with respect to the ordering
   lex([x, y, t])
 
 julia> factor(Gx[1])
-1 * (y*t^2 + y + t^2 - 1) * (y - 1)
+1 * (y - 1) * (y*t^2 + y + t^2 - 1)

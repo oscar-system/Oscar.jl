@@ -46,8 +46,8 @@ julia> factor(change_coefficient_ring(GF(7), x^2 - 235))
 
 julia> factor(a * OK)
 Dict{AbsSimpleNumFieldOrderIdeal, Int64} with 2 entries:
-  <47, a> => 1
   <5, a>  => 1
+  <47, a> => 1
 
 julia> A, m = class_group(OK);
 
@@ -70,7 +70,7 @@ julia> preimage(m, P)
 Abelian group element [3]
 
 julia> is_principal_with_data(P^2)
-(true, 2)
+(true, -2)
 
 julia> P^2 == 2*OK
 true
