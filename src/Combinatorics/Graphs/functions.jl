@@ -58,7 +58,7 @@ undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 
 @doc raw"""
     graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
-    graoh(::Type{Mixed}, nverts::Int64)
+    graph(::Type{Mixed}, nverts::Int64)
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
 graph should be `Directed`, `Undirected` or `Mixed`.
@@ -222,7 +222,7 @@ true
 julia> n_edges(mg)
 1
 
-julia> rem_edge!(mg, 1, 2)
+julia> rem_edge!(mg, Undirected, 1, 2)
 true
 
 julia> n_edges(mg)
@@ -634,7 +634,7 @@ Undirected edges:
 julia> has_edge(mg, Directed, 1, 3)
 true
 
-julia> has_edge(mg, Undirected 1, 3)
+julia> has_edge(mg, Undirected, 1, 3)
 false
 ```
 """
