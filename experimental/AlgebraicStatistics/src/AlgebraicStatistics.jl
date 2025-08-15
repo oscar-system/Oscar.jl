@@ -14,8 +14,10 @@ include("LoadModels.jl")
 # export Abstract Graphical Model
 export GraphicalModel
 export model_ring
+export full_model_ring
 export parameter_ring
 export parametrization
+export full_parametrization
 export graph
 export vanishing_ideal
 export varnames
@@ -39,13 +41,10 @@ export entry_fourier_parameter
 
 # export equivalent classes
 export equivalent_classes
-export reduced_model_ring
-export reduced_parametrization
-
-export reduced_fourier_transform
-export reduced_coordinate_change
-export inverse_reduced_fourier_transform
-export inverse_reduced_coordinate_change
+export fourier_transform
+export coordinate_change
+export inverse_fourier_transform
+export inverse_coordinate_change
 
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel

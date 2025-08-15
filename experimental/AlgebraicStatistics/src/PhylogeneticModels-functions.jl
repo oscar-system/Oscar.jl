@@ -1,6 +1,9 @@
+###################################################################################
+#
+#       Auxiliary graph functions
+#
+###################################################################################
 
-### GRAPH FUNCTIONS ###
-# ---------------------
 
 function interior_nodes(graph::Graph)
   big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
@@ -51,8 +54,61 @@ function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
   return d
 end
 
-### PARAMETRIZATIONS ###
-# ----------------------
+
+###################################################################################
+#
+#       Auxiliary functions to access parameters
+#
+###################################################################################
+
+
+function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, e::Edge)
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][tr_mat[i,j], e]
+end
+
+function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
+end
+
+# Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, e)
+end
+
+# ?
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
+end
+
+function entry_root_distribution(PM::PhylogeneticModel, i::Int)
+  parameter_ring(PM)[3][i]
+end
+
+#?
+function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
+  entry_root_distribution(phylogenetic_model(PM), i)
+  
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
+  x = fourier_parameters(PM)
+  parameter_ring(PM)[2][x[i], e]
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
+  x = fourier_parameters(PM)
+  parameter_ring(PM)[2][x[i], Edge(u,v)]
+end
+
+
+###################################################################################
+#
+#       Auxiliary functions to compute the parametrizations
+#
+###################################################################################
+
 
 function leaves_indices(PM::PhylogeneticModel)
   leave_nodes = leaves(graph(PM))
@@ -129,8 +185,12 @@ function leaves_fourier(PM::GroupBasedPhylogeneticModel, leaves_states::Dict{Int
 end 
   
 
-### GROUP OPERATIONS ###
-# ----------------------
+###################################################################################
+#
+#       Auxiliary group operation functions
+#
+###################################################################################
+
 
 function group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   G = group(PM)
@@ -146,8 +206,13 @@ function which_group_element(PM::GroupBasedPhylogeneticModel, elem::FinGenAbGrou
   return findall([all(g==elem) for g in G])[1]
 end
 
-### OTHER AUXILIARY FUNCTIONS ###
-# -------------------------------
+
+###################################################################################
+#
+#       Other auxiliary functions ---> hopefully rhis will disapear
+#
+###################################################################################
+
 
 # I would like to get rid of this! Is there a better way?
 # used in: reduced_parametrization(), reduced_fourier_transform() and inverse_reduced_fourier_transform()

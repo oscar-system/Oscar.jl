@@ -2,9 +2,13 @@
 #### PHYLOGENETIC DATA STRUCTURES & METHODS ####
 ################################################
 
-# -------------------- #
-## Phylogenetic Model ##
-# -------------------- #
+
+###################################################################################
+#
+#       Phylogenetic Models
+#
+###################################################################################
+
 
 @attributes mutable struct PhylogeneticModel{L, T} <: GraphicalModel{Directed, L}
   # do need to for T to be directed here? YES!
@@ -57,7 +61,8 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 @attr Tuple{
   MPolyRing, 
   GenDict, 
-  Vector{T}} function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: FieldElem}
+  Vector{T}
+  }function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: FieldElem}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -81,44 +86,6 @@ const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
 
 end
 
-
-@attr Tuple{
-  MPolyRing, 
-  Array} function full_model_ring(PM::PhylogeneticModel; cached=false)
-  leave_indices = leaves_indices(PM)
-
-  return polynomial_ring(base_field(PM),
-                         ["$(varname(PM))[$(join(x, ", "))]" for x in leave_indices];
-                         cached=cached)
-end
-
-function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, e::Edge)
-  tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][tr_mat[i,j], e]
-end
-
-function entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
-  tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
-end
-
-function entry_root_distribution(PM::PhylogeneticModel, i::Int)
-  parameter_ring(PM)[3][i]
-end
-
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel)
-  gr = graph(PM)
-
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  lvs_indices = leaves_indices(PM::PhylogeneticModel)
-
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-
-end
-
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
   ns = n_states(pm)
@@ -136,9 +103,11 @@ function Base.show(io::IO, pm::PhylogeneticModel)
 end
 
 
-# -------------------------------- #
-## Group-based Phylogenetic Model ##
-# -------------------------------- #
+###################################################################################
+#
+#       Group-based phylogenetic models
+#
+###################################################################################
 
 @attributes mutable struct GroupBasedPhylogeneticModel{L} <: GraphicalModel{Directed, L}
   # do need to for T to be directed here? YES!
@@ -170,11 +139,6 @@ end
                                    group, varname_group_based)
   end
 
-  # F, G,
-  # trans_mat_structure, fourier_param_structure,
-  # n_states, root_distribution, group,
-  # varname_phylo_model, varname_group_based
-
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
                                        trans_mat_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
@@ -187,41 +151,6 @@ end
                                        group, root_distribution, n_states, 
                                        varname_phylo_model, varname_group_based)
   end
-
-  # # ? Antony
-  # function GroupBasedPhylogeneticModel(G::Graph{Directed},
-  #                                      trans_mat_structure::Matrix{<: VarName},
-  #                                      fourier_param_structure::Vector{<: VarName},
-  #                                      group::Vector{FinGenAbGroupElem},
-  #                                      root_distribution::Union{Nothing, Vector} = nothing,
-  #                                      n_states::Union{Nothing, Int} = nothing,
-  #                                      varname_phylo_model::VarName="p",
-  #                                      varname_group_based::VarName="q")
-  #   return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
-  #                                      root_distribution, n_states, group, 
-  #                                      varname_phylo_model, varname_group_based)
-  # end
-
-
-  # can I do smth like this?
-  # function GroupBasedPhylogeneticModel(G::Graph{Directed},
-  #                                      trans_mat_structure::Matrix{<: VarName},
-  #                                      fourier_param_structure::Vector{<: VarName},
-  #                                      group::Vector{FinGenAbGroupElem} = nothing,
-  #                                      varname_group_based::VarName="q")
-  #   return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, nothing, nothing, "p",
-  #                                      fourier_param_structure, group, varname_group_based)
-  # end
-
-  #Is this necessary? Or it's the same as the struct constructor?
-  # function GroupBasedPhylogeneticModel(PM::PhylogeneticModel,
-  #                                      fourier_param_structure::Vector{<: VarName},
-  #                                      group::Vector{FinGenAbGroupElem},
-  #                                      varname_group_based::VarName="q")
-  #   return GroupBasedPhylogeneticModel(base_field(PM), graph(PM), transition_matrix(PM),
-  #                                      n_states(PM), root_distribution(PM), varname(PM),
-  #                                      fourier_param_structure, group, varname_group_based)
-  # end
 
 end
 
@@ -237,9 +166,11 @@ phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
 group(PM::GroupBasedPhylogeneticModel) = PM.group
 fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
 varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
+varname(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
-
-@attr Tuple{MPolyRing, GenDict} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+@attr Tuple{MPolyRing, 
+      GenDict
+      } function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   vars = unique(fourier_parameters(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -247,55 +178,6 @@ varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? A
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))
   )
-end
-
-@attr Tuple{
-  MPolyRing, 
-  Array
-  } function full_model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
-  leave_indices = leaves_indices(PM) # ? Antony
-
-  return polynomial_ring(base_field(PM),
-                         ["$(varname_fourier(PM))[$(join(x, ", "))]" for x in leave_indices];
-                         cached=cached)
-end
-
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
-  x = fourier_parameters(PM)
-  parameter_ring(PM)[2][x[i], e]
-end
-
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
-  x = fourier_parameters(PM)
-  parameter_ring(PM)[2][x[i], Edge(u,v)]
-end
-
-# Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
-function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
-  entry_transition_matrix(phylogenetic_model(PM), i, j, e)
-end
-
-function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
-  entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
-end
-
-function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
-  entry_root_distribution(phylogenetic_model(PM), i)
-  
-end
-
-#@attr MPolyAnyMap 
-function full_parametrization(PM::GroupBasedPhylogeneticModel)
-  gr = graph(PM)
-
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  lvs_indices = leaves_indices(PM)
-
-  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-
 end
 
 function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
@@ -315,24 +197,69 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   print(io, "$(pm.fourier_param_structure)")
 end
 
-## Equivalent classes ##
-# -------------------- #
 
-const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
-@attr EquivDict function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
+###################################################################################
+#
+#       Parametrizations
+#
+###################################################################################
+
+@attr Tuple{
+  MPolyRing, 
+  GenDict} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+  l_indices = leaves_indices(PM)
+
+  R, x =  polynomial_ring(base_field(PM),
+                         ["$(varname(PM))[$(join(x, ", "))]" for x in l_indices];
+                         cached=cached)
+
+  # Dict{Tuple, MPolyRingElem} or Dict{Tuple{Vararg{Int64}, MPolyRingElem} ??
+  return R, Dict{Tuple, MPolyRingElem}(i => x[i...] for i in l_indices)
+end
+
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel)
+  gr = graph(PM)
+
+  R, _ = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  lvs_indices = leaves_indices(PM::PhylogeneticModel)
+
+  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
+
+end
+
+function full_parametrization(PM::GroupBasedPhylogeneticModel)
+  gr = graph(PM)
+
+  R, _ = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  lvs_indices = leaves_indices(PM)
+
+  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
+
+end
+
+#const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
+@attr Dict{
+      Tuple{Vararg{Int64}}, 
+      Vector{MPolyRingElem}
+} function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
   
-  _, ps = model_ring(PM)
-  param = parametrization(PM);
+  _, ps = full_model_ring(PM)
+  f = full_parametrization(PM);
   
-  polys = unique(param.img_gens)
+  polys = unique(f.img_gens)
   polys = polys[findall(!is_zero, polys)]
 
-  #equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
-  equivalent_classes = Dict{MPolyRingElem, Vector{MPolyRingElem}}()
+  equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
+  # equivalent_classes = Dict{MPolyRingElem, Vector{MPolyRingElem}}()
   for poly in polys
-      eqv_class = sort([p for p in ps if param(p) == poly], rev = true)
-      # equivalent_classes[Tuple(index(eqv_class[1]))] = eqv_class
-      equivalent_classes[eqv_class[1]] = eqv_class
+      eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
+      equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
   end
 
   return equivalent_classes
@@ -341,63 +268,56 @@ end
 @attr Tuple{
   MPolyRing, 
   GenDict
-  } function reduced_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+  } function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   eq_calasses = equivalent_classes(PM)
-  keys_eq_classes = sort(collect(keys(eq_calasses)), rev = true)
+  ec_indices = sort(collect(keys(eq_calasses)), rev = true)
 
-  R, x = polynomial_ring(base_field(PM),
-                           [Symbol(k) for k in keys_eq_classes];
-                           cached=cached)
+    R, x =  polynomial_ring(base_field(PM),
+                         ["$(varname(PM))[$(join(x, ", "))]" for x in ec_indices];
+                         cached=cached)
 
   R, Dict{Tuple, MPolyRingElem}(
      Tuple(index(x[i])) => x[i] for i in 1:length(x))
   
 end
 
-function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
-  _, p = model_ring(PM)
+function parametrization(PM::PhylogeneticModel)
+  _, p = full_model_ring(PM)
   S, _ = parameter_ring(PM)
-  param = parametrization(PM)
 
-  redR, _ = reduced_model_ring(PM)
-  gens_redR = gens(redR)
-  keys_eq_classes = index.(gens_redR)
-  
-  probabilities = [param(p[k...]) for k in keys_eq_classes]
-  hom(redR, S, reduce(vcat, probabilities))
+  R, x = model_ring(PM)
+  lvs_indices = index.(gens(R))
+
+  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
 end
 
-# function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; reduced::bool = true)
+function parametrization(PM::GroupBasedPhylogeneticModel)
+  _, p = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
 
-#   if !reduced
-#     PM.model_ring = full_model_ring(PM)
-#   else
-#     PM.model_ring = reduced_model_ring(PM)
-#   end
-# end
+  R, x = model_ring(PM)
+  lvs_indices = index.(gens(R))
+
+  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
+end
 
 
-# function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; reduced::bool = true)
 
-#   if !reduced
-#     PM.model_ring = full_model_ring(PM)
-#     return full_parametrization(PM)
+###################################################################################
+#
+#       Fourier - probabilities coordinate change
+#
+###################################################################################
 
-#   else
-#     PM.model_ring = reduced_model_ring(PM)
-#     return reduced_parametrization(PM)
-#   end
-# end
 
-## Change of coordinates p ↔ q ##
-# ----------------------------- #
+function fourier_transform(PM::GroupBasedPhylogeneticModel)
+  _, p = Oscar.full_model_ring(phylogenetic_model(PM))
+  _, q = Oscar.full_model_ring(PM)
 
-function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
-  _, p = Oscar.model_ring(phylogenetic_model(PM))
-  _, q = Oscar.model_ring(PM)
-
-  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
-  Rq_red, _ = Oscar.reduced_model_ring(PM)
+  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
+  Rq, _ = Oscar.model_ring(PM)
 
   p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
   q_classes = Oscar.equivalent_classes(PM)
@@ -411,42 +331,42 @@ function reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
   # keys_q_classes = collect(keys(q_classes))
   # sort!(keys_q_classes, rev = true)
 
-  keys_p_classes = gens(Rp_red)
-  keys_q_classes = gens(Rq_red)
+  keys_p_classes = gens(Rp)
+  keys_q_classes = gens(Rq)
 
   
-  H = Rp_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+  H = Rp.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
   
-  M = Rp_red.(Int.(zeros(nq, np)))
+  M = Rp.(Int.(zeros(nq, np)))
   for i in 1:nq
-    q_key_index = index(keys_q_classes[i])
-    current_fourier_class = q_classes[q[q_key_index...]]
+    q_key_index = Tuple(index(keys_q_classes[i]))
+    current_fourier_class = q_classes[q_key_index]
     for j in 1:np
-      p_key_index = index(keys_p_classes[j])
-      current_prob_class = p_classes[p[p_key_index...]]
+      p_key_index = Tuple(index(keys_p_classes[j]))
+      current_prob_class = p_classes[p_key_index]
       current_entries_in_M = [prod([H[y,x] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
-      M[i,j] = Rp_red.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+      M[i,j] = Rp.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
     end
   end
+  
   
   return M
 end
 
-function reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
-  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
-  Rq_red, _ = Oscar.reduced_model_ring(PM)
+function coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
+  Rq, _ = Oscar.model_ring(PM)
   
-  M = reduced_fourier_transform(PM)
-  hom(Rq_red, Rp_red, M*gens(Rp_red))
-
+  M = fourier_transform(PM)
+  hom(Rq, Rp, M*gens(Rp))
 end
 
-function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
-    _, p = Oscar.model_ring(phylogenetic_model(PM))
-    _, q = Oscar.model_ring(PM)
+function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
+    _, p = Oscar.full_model_ring(phylogenetic_model(PM))
+    _, q = Oscar.full_model_ring(PM)
 
-    Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
-    Rq_red, _ = Oscar.reduced_model_ring(PM)
+    Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
+    Rq, _ = Oscar.model_ring(PM)
 
     p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
     q_classes = Oscar.equivalent_classes(PM)
@@ -460,25 +380,25 @@ function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
     # keys_q_classes = collect(keys(q_classes))
     # sort!(keys_q_classes, rev = true)
 
-    keys_p_classes = gens(Rp_red)
-    keys_q_classes = gens(Rq_red)
+    keys_p_classes = gens(Rp)
+    keys_q_classes = gens(Rq)
 
     
-    H = Rq_red.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+    H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
     Hinv = 1//n_states(PM) * H
 
-    M = Rq_red.(Int.(zeros(np, nq)))
+    M = Rq.(Int.(zeros(np, nq)))
     for i in 1:np
-      p_key_index = index(keys_p_classes[i])
-      current_prob_class = p_classes[p[p_key_index...]]
+      p_key_index = Tuple(index(keys_p_classes[i]))
+      current_prob_class = p_classes[p_key_index]
 
       for j in 1:nq
-        q_key_index = index(keys_q_classes[j])
-        current_fourier_class = q_classes[q[q_key_index...]]
+        q_key_index = Tuple(index(keys_q_classes[j]))
+        current_fourier_class = q_classes[q_key_index]
         
         current_entries_in_M = [prod([Hinv[x,y] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
 
-        M[i,j] = Rq_red.(sum(current_entries_in_M))
+        M[i,j] = Rq.(sum(current_entries_in_M))
         
       end
     end
@@ -487,19 +407,22 @@ function inverse_reduced_fourier_transform(PM::GroupBasedPhylogeneticModel)
     return M
 end
 
-function inverse_reduced_coordinate_change(PM::GroupBasedPhylogeneticModel)
-  Rp_red, _ = Oscar.reduced_model_ring(phylogenetic_model(PM))
-  Rq_red, _ = Oscar.reduced_model_ring(PM)
+function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
+  Rq, _ = Oscar.model_ring(PM)
   
-  M = inverse_reduced_fourier_transform(PM)
-  hom(Rp_red, Rq_red, M*gens(Rq_red))
+  M = inverse_fourier_transform(PM)
+  hom(Rp, Rq, M*gens(Rq))
 
 end
 
 
-#########################
-#### SPECIFIC MODELS ####
-#########################
+###################################################################################
+#
+#       Construction of specific models
+#
+###################################################################################
+
 
 function cavender_farris_neyman_model(G::Graph{Directed})
   M = [:a :b;
@@ -557,16 +480,6 @@ function general_markov_model(G::Graph{Directed})
   
   PhylogeneticModel(G, M, root_distr)
 end
-
-# TODO:
-# function general_markov_model(G::Graph{Directed}, n_states::Int)
-
-#   M = []
-  
-#   root_distr = []
-  
-#   PhylogeneticModel(G, M, root_distr)
-# end
 
 
 # TODO:
