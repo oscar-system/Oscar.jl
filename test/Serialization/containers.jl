@@ -123,10 +123,10 @@
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
-
-      Qxy,(x, y) = QQ[:x, :y]
+      F, a = quadratic_field(5)
+      Fxy, (x, y) = F[:x, :y]
       original = Array{MPolyRingElem, 4}(
-        reshape(reduce(hcat, [x .* Qxy.(original), Qxy.(original)]), 2, 3, 2, 2)
+        reshape(reduce(hcat, [x .* Fxy.(original), a .* Fxy.(original)]), 2, 3, 2, 2)
       )
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded

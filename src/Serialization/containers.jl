@@ -1,5 +1,5 @@
-const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
-const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
+const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}} where T
+const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
 function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecType{S}, Array{S}}}
   all(map(x -> isequal(first(params), x), params))
@@ -11,7 +11,7 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -21,7 +21,7 @@ function type_params(obj::S) where {N, T, S <:Array{T, N}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, :subtype_params => params[1], :dims => N)
 end
 
@@ -40,7 +40,7 @@ function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
 
   # empty entries can inherit params from the rest of the collection
   params = type_params.(filter(!has_empty_entries, obj))
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -95,7 +95,7 @@ end
 # Saving and loading vectors
 @register_serialization_type Vector
 
-# see Array below for load_type_params for general Arrays which include Matrix
+# see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
 
 function save_object(s::SerializerState, x::Vector)
@@ -175,7 +175,7 @@ end
 
 load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where S = load_object(s, T)
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::U) where {S, U}
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where S
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -204,7 +204,7 @@ function save_object(s::SerializerState, arr::Array{T, N}) where {T, N}
   k = arr_size[N]
   save_data_array(s) do
     for t in 1:k
-      save_object(s, arr[[1:arr_size[i] for i in 1:N - 1]..., t])
+      save_object(s, arr[[1:arr_size[i] for i in 1:N-1]..., t])
     end
   end
 end
@@ -631,7 +631,7 @@ function save_object(s::SerializerState, obj::SRow)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:SRow}, params::U) where U
+function load_object(s::DeserializerState, ::Type{<:SRow}, params::NCRing)
   pos = Int[]
   entry_type = elem_type(params)
   values = entry_type[]

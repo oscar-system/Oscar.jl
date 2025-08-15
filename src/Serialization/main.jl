@@ -117,8 +117,7 @@ end
 
 function decode_type(s::String)
   return get(reverse_type_map, s) do
-    unsupported_type = s
-    error("unsupported type '$unsupported_type' for decoding")
+    error("unsupported type '$s' for decoding")
   end
 end
 
