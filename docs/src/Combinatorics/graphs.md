@@ -115,7 +115,7 @@ visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symb
 graphs using Graphviz, use `backend=:graphviz`. It requires that both Graphviz and a postscript
 viewer are installed. In case Graphviz is installed and OSCAR is unable to find it (e.g., because
 Graphviz was installed after OSCAR), please run
-```
+```julia
 Polymake.shell_execute("""application("graph")->reconfigure("graphviz.rules");""");
 ```
 
