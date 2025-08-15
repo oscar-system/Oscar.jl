@@ -1327,7 +1327,7 @@ Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComp
 
 The `backend` keyword argument allows the user to pick between a Three.js visualization by default,
 or passing `:tikz` for a TikZ visualization, or passing `:graphviz` for a
-[Graphviz](https://graphviz.org/) visualization (requires Graphviz, see documentation).
+[Graphviz](https://graphviz.org/) visualization (requires Graphviz, see [Visualization using Graphviz](@ref)).
 
 The`filename` keyword argument will write visualization code to the `filename` location, this will
 be html for `:threejs` backend or TikZ code for `:tikz`.
