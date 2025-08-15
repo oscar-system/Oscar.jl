@@ -20,11 +20,11 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type DifferenceRanking{T}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, internal_ordering::Symbol) where {T}
-    @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
-    @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
+  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
+    @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
+    @req ndiffs >= 1 "The number of endomorphisms must be positive"
     elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
-    upoly_ring = universal_polynomial_ring(R; cached = false, internal_ordering = internal_ordering)
+    upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
@@ -33,9 +33,10 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     return new{T}(upoly_ring, elementary_symbols, ndiffs, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
  
-  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, internal_ordering::Symbol) where {T}
-    @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
-    upoly_ring = universal_polynomial_ring(R; cached = false, internal_ordering = internal_ordering)
+  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
+    @req !is_empty(elementary_symbols) "The number of elementary symbols must be positive"
+    @req ndiffs >= 1 "The number of endomorphisms must be positive"
+    upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
@@ -94,11 +95,11 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type DifferentialRanking{T}
   permutation::Vector{Int}
 
-  function DifferentialPolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int, internal_ordering::Symbol) where {T}
-    @req nelementary_symbols >= 0 "The number of elementary symbols must be nonnegative"
-    @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
+  function DifferentialPolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
+    @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
+    @req ndiffs >= 1 "The number of derivations must be positive"
     elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
-    upoly_ring = universal_polynomial_ring(R; cached = false, internal_ordering = internal_ordering)
+    upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
     var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()
@@ -107,9 +108,10 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
     return new{T}(upoly_ring, elementary_symbols, ndiffs, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
  
-  function DifferentialPolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int, internal_ordering::Symbol) where {T}
-    @req ndiffs >= 0 "The number of endomorphisms must be nonnegative"
-    upoly_ring = universal_polynomial_ring(R; cached = false, internal_ordering = internal_ordering)
+  function DifferentialPolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
+    @req !is_empty(elementary_symbols) "The number of elementary symbols must be positive"
+    @req ndiffs >= 1 "The number of endomorphisms must be nonnegative"
+    upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
     var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()

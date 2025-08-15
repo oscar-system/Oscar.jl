@@ -11,7 +11,7 @@
     difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables.This methods allows for all the keywords of the `set_ranking!` method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+these elementary variables.This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
 
 # Examples
 
@@ -36,16 +36,15 @@ function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::I
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-    internal_ordering::Symbol = :lex
   )
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs, internal_ordering)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
       partition = partition,
       index_ordering_matrix = index_ordering_matrix
     )
-  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols); provide_info = false))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
 end
 
 @doc raw"""
@@ -53,7 +52,7 @@ end
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
-method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+method. See there for further information.
 
 # Examples
 
@@ -78,16 +77,15 @@ function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol},
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-    internal_ordering::Symbol = :lex
   )
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs, internal_ordering)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
       partition = partition,
       index_ordering_matrix = index_ordering_matrix
     )
-  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)); provide_info = false))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
 end
 
 ### Differential ###
@@ -95,7 +93,7 @@ end
     differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
 Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables.This methods allows for all the keywords of the `set_ranking!` method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
 
 # Examples
 
@@ -120,16 +118,15 @@ function differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs:
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-    internal_ordering::Symbol = :lex
   )
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs, internal_ordering)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
       partition = partition,
       index_ordering_matrix = index_ordering_matrix
     )
-  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols); provide_info = false))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
 end
 
 @doc raw"""
@@ -137,7 +134,7 @@ end
 
 Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
 these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
-method, as well as the keyword `internal_ordering` from the MPoly Interface. See there for further information.
+method. See there for further information.
 
 # Examples
 
@@ -162,18 +159,16 @@ function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-    internal_ordering::Symbol = :lex
   )
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs, internal_ordering)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr;
       partition_name = partition_name,
       index_ordering_name = index_ordering_name,
       partition = partition,
       index_ordering_matrix = index_ordering_matrix
     )
-  return (dpr, __add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)); provide_info = false))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
 end
-
 
 ##### Elements #####
 
@@ -200,7 +195,6 @@ function (dpr::DifferentialPolyRing{T})(a::DifferentialPolyRingElem{T}) where {T
 end
 
 (dpr::DifferentialPolyRing)(a::T) where {T<:RingElement} = dpr(dpr.upoly_ring(a))
-
 
 ###############################################################################
 #
@@ -240,10 +234,6 @@ one(dpr::DifferentialPolyRing) = dpr(1)
 
 ### generic ###
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
-
-is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
-
-is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
 
 is_square(apre::ActionPolyRingElem) = is_square(data(apre))
 
@@ -414,10 +404,10 @@ function gen(apr::ActionPolyRing, i::Int, jet::Vector)
   @req __is_valid_jet(apr, i, jet) "invalid jet variable"
   jtv = __jtv(apr)
   if haskey(jtv, (i, jet))
-    return jtv[(i, jet)]
+    return deepcopy(jtv[(i, jet)])
   end
   __add_new_jetvar!(apr, i, jet)
-  jtv[(i, jet)]
+  return deepcopy(jtv[(i, jet)])
 end
 
 gen(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
@@ -505,7 +495,7 @@ julia> gens(dpr)
 ```
 """
 function gens(apr::ActionPolyRing)
-  return sort(collect(values(__jtv(apr))); rev = true)
+  return sort(collect(deepcopy(values(__jtv(apr)))); rev = true)
 end
 
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
@@ -947,8 +937,8 @@ canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 #
 ###############################################################################
 
-# parent(data(data(dpre))) will always equal parent(dpre).upoly_ring.mpoly_ring at the time of its creation, so
-# we need to update this whenever a new variable is created. This is required as well for some methods.
+# The multivariate polynomial ring parent(data(data(dpre))) will always equal what has been parent(dpre).upoly_ring.mpoly_ring at the time of its creation, so
+# we need a way update this, e.g. after adding variables. This is mandatory for some methods to work proper and also just good practise.
 
 function __update_internals!(dpre::DifferencePolyRingElem)
   upr = __upr(parent(dpre))
@@ -1068,18 +1058,12 @@ function __set_perm_for_sort_poly!(dpre::DifferentialPolyRingElem)
   dpre.permutation = sortperm(map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre)))); rev = true)
 end
 
-### generic ###
-internal_ordering(apr::ActionPolyRing) = internal_ordering(__upr(apr))
-
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
 __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:nelementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)
 
-function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}; provide_info::Bool = true)
+function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
   s_vec = map(jet_idx -> string(elementary_symbols(apr)[jet_idx[1]]) * "[" * join(jet_idx[2], ",") * "]", jet_idxs)::Vector{String}
-  if provide_info
-    @info "New variables: " * join(s_vec, ", ")
-  end
   upr = __upr(apr)
   ng = ngens(upr)
   new_vars = apr.(gens(upr, s_vec))
@@ -1096,7 +1080,7 @@ function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vect
   return new_vars
 end
 
-__add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}; provide_info::Bool = true) = __add_new_jetvar!(apr, [(i, jet)]; provide_info = provide_info)
+__add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jetvar!(apr, [(i, jet)])
 
 ###############################################################################
 #
