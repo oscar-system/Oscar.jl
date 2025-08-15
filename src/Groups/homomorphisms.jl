@@ -515,7 +515,7 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from Sym(3)
+  from symmetric group of degree 3
   to pc group of order 6
 ```
 """
@@ -907,7 +907,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.PcpElementByExponentsNC(C, exps))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g)))
+       finv = g -> A2_to_A(A2(exponent_vector(g)))
      else
 #TODO: As soon as https://github.com/gap-packages/polycyclic/issues/88 is fixed,
 #      we can change the code to create a `PcpGroup` in GAP also if the group
@@ -946,7 +946,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
          return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
        end
 
-       finv = g -> A2_to_A(A2(_exponent_vector(g) * M))
+       finv = g -> A2_to_A(A2(exponent_vector(g) * M))
      end
 
      return GroupIsomorphismFromFunc(A, G, f, finv)
@@ -1116,7 +1116,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
           end
         end
         c = elem_type(k)[]
-        for i=1:dim(M)
+        for i=1:vector_space_dim(M)
           push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
         end
         return M(c)
@@ -1140,68 +1140,61 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
    end::MapFromFunc{S, T}
 end
 
-const change_group_type_doc =
-"""
-    FPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    SubFPGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    sub_fp_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    PcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    SubPcGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    sub_pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
-    PermGroup(G::T) where T <: Union{Group, FinGenAbGroup}
-    permutation_group(G::T) where T <: Union{Group, FinGenAbGroup}
+function change_group_type_doc(typeCamelCase::String, func_snake_case::String, example_group_show::String)
+  """
+      $(typeCamelCase)(G::T) where T <: Union{Group, FinGenAbGroup}
+      $(func_snake_case)(G::T) where T <: Union{Group, FinGenAbGroup}
 
-Return a group of the requested type that is isomorphic to `G`.
-An exception is thrown if no such group exists.
-A `MethodError` is thrown if this particular pair of types is not implemented (yet).
+  Return a group of the type `$(typeCamelCase)` that is isomorphic to `G`.
+  An exception is thrown if no such group exists.
+  A `MethodError` is thrown if this particular pair of types is not implemented (yet).
 
-If one needs the isomorphism then
-[`isomorphism(::Type{T}, G::Group) where T <: Group`](@ref)
-can be used instead.
+  If one needs the isomorphism then
+  [`isomorphism(::Type{T}, G::Group) where T <: Group`](@ref)
+  can be used instead.
 
-# Examples
-```jldoctest
-julia> G = dihedral_group(6)
-Pc group of order 6
+  # Examples
+  ```jldoctest
+  julia> G = dihedral_group(6)
+  Pc group of order 6
 
-julia> iso = isomorphism(PermGroup, G)
-Group homomorphism
-  from pc group of order 6
-  to permutation group of degree 3 and order 6
+  julia> iso = isomorphism($(typeCamelCase), G)
+  Group homomorphism
+    from pc group of order 6
+    to $(lowercasefirst(example_group_show))
 
-julia> permutation_group(G)
-Permutation group of degree 3 and order 6
+  julia> $(func_snake_case)(G)
+  $(example_group_show)
 
-julia> codomain(iso) === ans
-true
-```
-"""
+  julia> codomain(iso) === ans
+  true
+  ```
+  """
+end
 
-@doc change_group_type_doc
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
 FPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
 fp_group(G::Union{Group, FinGenAbGroup}) = FPGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
 SubFPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
 sub_fp_group(G::Union{Group, FinGenAbGroup}) = SubFPGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
 PcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
 pc_group(G::Union{Group, FinGenAbGroup}) = PcGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
 SubPcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
 sub_pc_group(G::Union{Group, FinGenAbGroup}) = SubPcGroup(G)
 
-@doc change_group_type_doc
+@doc change_group_type_doc("PermGroup", "permutation_group", "Permutation group of degree 3 and order 6")
 PermGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc
+@doc change_group_type_doc("PermGroup", "permutation_group", "Permutation group of degree 3 and order 6")
 permutation_group(G::Union{Group, FinGenAbGroup}) = PermGroup(G)
 
 # Now for MultTableGroup
@@ -1301,13 +1294,14 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> typeof(S)
 PermGroup
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 3 ] ) )
+Automorphism group of
+  symmetric group of degree 3
 
 julia> typeof(A)
 AutomorphismGroup{PermGroup}
@@ -1318,10 +1312,11 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> x = perm(S,[2,1,4,3])
 (1,2)(3,4)
@@ -1340,10 +1335,11 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> f = A[2]
 Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
@@ -1362,18 +1358,19 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> A(f)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1414,15 +1411,16 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> A = automorphism_group(S)
-Aut( Sym( [ 1 .. 4 ] ) )
+Automorphism group of
+  symmetric group of degree 4
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from Sym(4)
-  to Sym(4)
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1436,8 +1434,19 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup(AutGAP, G)
 end
 
-function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  print(io, "Aut( "* String(GAP.Globals.StringView(GapObj(A.G))) * " )")
+function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
+  io = pretty(io)
+  println(io, "Automorphism group of", Indent())
+  print(io, Lowercase(), A.G, Dedent())
+end
+
+function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
+  if is_terse(io)
+    print(io, "Automorphism group")
+  else
+    io = pretty(io)
+    print(io, "Automorphism group of ", Lowercase(), A.G)
+  end
 end
 
 """

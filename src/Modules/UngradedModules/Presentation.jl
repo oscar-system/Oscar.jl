@@ -658,7 +658,7 @@ function _presentation_minimal(SQ::ModuleFP{T};
   # M_new is a quotient of a free module
   proj_map = hom(F0, SQ_new, gens(SQ_new), check=false)
   F0_to_SQ = compose(proj_map, phi)
-  F0_to_SQ.generators_map_to_generators = true
+  F0_to_SQ.generators_map_to_generators = false
 
   is_sq_graded = is_graded(SQ)
 

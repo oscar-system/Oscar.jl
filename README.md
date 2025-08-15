@@ -11,7 +11,7 @@ Polymake, Antic and Singular.
 
 ## Installation
 
-OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
+OSCAR requires Julia 1.10 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
 ```
@@ -112,7 +112,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 
 ## Citing OSCAR
 
-If you have used OSCAR in the preparation of a paper please cite it as described below:
+If you have used OSCAR in the preparation of a paper please cite it as described below, preferably including both citations:
 
     [OSCAR]
         OSCAR -- Open Source Computer Algebra Research system, Version 1.5.0-DEV,

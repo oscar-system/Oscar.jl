@@ -193,6 +193,9 @@ function inv_action(C::GModule)
   return C.iac
 end
 
+# convert G-module into a matrix group
+Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
+
 function fp_group_with_isomorphism(C::GModule)
   if !isdefined(C, :F)
     iso = isomorphism(FPGroup, group(C), on_gens=true)
@@ -487,7 +490,7 @@ function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) 
 end
 function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
-  d = prod(dim(x) for x = F)
+  d = prod(rank(x) for x = F)
   G = free_module(base_ring(F[1]), d)
   if task == :none
     return G
@@ -547,7 +550,7 @@ export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
-_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = dim(M)
+_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = vector_space_dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1675,9 +1678,17 @@ compute the map
   f : M -> prod N_i : m -> (f_i(m))_i
 """
 function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingElement}, FinGenAbGroupHom}})
-  D = direct_product([codomain(x) for x = a]...; task = :none)
-  return hom(domain(a[1]), D, hcat([matrix(x) for x = a]...))
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_product(codomain.(a)...; task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
+
+function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_sum(codomain.(a); task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
+end
+
 
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
@@ -1716,6 +1727,11 @@ iszero(a) || (@show g, h, k, a ; return false)
   return true
 end
 
+# create a free module with type "compatible" with that of `M`
+_similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
+_similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n)
+_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+
 """
 Compute
   0 -> C -I-> hom(Z[G], C) -q-> B -> 0
@@ -1723,16 +1739,8 @@ To allow "dimension shifting": H^(n+1)(G, C) - H^n(G, q)
 returns (I, q), (hom(Z[G], C), B)
 """
 function dimension_shift(C::GModule)
-  G = C.G
-  if isa(C.M, FinGenAbGroup)
-    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
-    Z = Hecke.zero_obj(zg.M)
-  elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = regular_gmodule(G, base_ring(C))
-    Z = free_module(base_ring(C), 0)
-  else
-    error("unsupported module")
-  end
+  zg, _, _ = regular_gmodule(C)
+  Z = _similar_free_module(zg.M, 0)
   @assert is_consistent(zg)
   H, mH = Oscar.GModuleFromGap.ghom(zg, C)
   @assert is_consistent(H)
@@ -1740,7 +1748,7 @@ function dimension_shift(C::GModule)
   #around 29.8
   #Drew's notes.
   #the augmentation map on the (canonical) generators is 1
-  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
+  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g in 1:ngens(zg.M)])) for c in gens(C.M)])
   @assert is_G_hom(C, H, inj)
   B, q = quo(H, image(inj)[2])
 
@@ -1750,7 +1758,7 @@ function dimension_shift(C::GModule)
   #XXX: we don't have homs for GModules
   #   : sice we also don't have elements
   #   : do we need elements for homs?
-  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i = gens(Z)])
+  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i in 1:ngens(Z)])
   Z2 = hom(q.M, Z, [zero(Z) for x = gens(q.M)])
   return cochain_complex([Z1, inj, mq, Z2])
 end
@@ -2211,7 +2219,7 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
 end
 
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
-  G = GL(dim(F), base_ring(F))
+  G = GL(vector_space_dim(F), base_ring(F))
   set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
                          x->hom(F, F, matrix(x)),

@@ -28,7 +28,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> order(G)
 120
@@ -74,7 +74,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Alt(5)
+Alternating group of degree 5
 
 julia> order(G)
 60

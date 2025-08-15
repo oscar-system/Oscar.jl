@@ -73,19 +73,19 @@ If `G` is a permutation group and `x` is a permutation,
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
 julia> G=symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> x=cperm([1,2,3])
 (1,2,3)
 
 julia> parent(x)
-Sym(3)
+Symmetric group of degree 3
 
 julia> y=G(x)
 (1,2,3)
 
 julia> parent(y)
-Sym(5)
+Symmetric group of degree 5
 ```
 
 If `G` is a permutation group and `x` is a vector of integers,
@@ -95,13 +95,13 @@ an exception is thrown if the element does not embed into `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(6)
-Sym(6)
+Symmetric group of degree 6
 
 julia> x = G([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
@@ -541,8 +541,19 @@ end
 
 const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
 
-function Base.show(io::IO, AGE::AutomorphismGroupElem{FinGenAbGroup}) 
-    print(io, "Automorphism of ", FinGenAbGroup, " with matrix representation ", matrix(AGE))
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{FinGenAbGroup})
+  D = domain(parent(f))
+  io = pretty(io)
+  println(io, "Automorphism of")
+  println(io, Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AutomorphismGroupElem{FinGenAbGroup})
+  print(io, matrix(f))
 end
 
 ################################################################################

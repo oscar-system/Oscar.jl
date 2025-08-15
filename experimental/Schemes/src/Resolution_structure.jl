@@ -1120,7 +1120,7 @@ function is_A1_at_point_curve(IX::AbsIdealSheaf,Ipt::AbsIdealSheaf)
   IptU = saturated_ideal(Ipt(U))
 
   # absolutely irreducible point
-  if vector_space_dimension(quo(R,IptU)[1]) == 1
+  if vector_space_dim(quo(R,IptU)[1]) == 1
     return (check_A1_at_point_curve(IXU,IptU) ? (true,1) : (false,0))
   else
     decomp = absolute_primary_decomposition(IptU)
@@ -1170,7 +1170,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
   F1 = leading_module(Jm_shifted,o)
   F1quo = quo(F_shifted, F1)[1]
 
-  return vector_space_dimension(F1quo) == 1
+  return vector_space_dim(F1quo) == 1
 end
 
 function divisor_intersections_with_X(current_div::Vector{<:EffectiveCartierDivisor}, I_X::AbsIdealSheaf)

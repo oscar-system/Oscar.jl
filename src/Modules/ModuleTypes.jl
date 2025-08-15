@@ -80,7 +80,9 @@ option is set in suitable functions.
 @attributes mutable struct FreeMod{T <: AdmissibleModuleFPRingElem} <: AbstractFreeMod{T}
   R::NCRing
   n::Int
-  S::Vector{Symbol}
+  S::Union{Function, Vector{Symbol}} # The symbols for printing. This is either a 
+                                     # ready-made list, or a function to provide them 
+                                     # in a lazy way. 
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
   default_ordering::ModuleOrdering
 
@@ -105,6 +107,14 @@ option is set in suitable functions.
     r.R = R
     r.S = S
     r.d = nothing
+
+    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    return r
+  end
+  
+  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, symbol_fun::Function) where T <: AdmissibleModuleFPRingElem
+    r = new{elem_type(R)}(R, n, symbol_fun, nothing)
 
     r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
     r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
@@ -215,18 +225,20 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 @attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
+  gens::ModuleGens{T}
   default_ordering::ModuleOrdering
+  any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
+                        # Lookups in the above dictionary is tentatively expensive. 
+                        # So this field stores any gb for cases where the actual 
+                        # ordering does not matter. Then this field here can be used. 
+  any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
   is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
-    r = new{R}()
-    r.F = F
-    r.groebner_basis = Dict()
-    return r
+    return new{R}(F, Dict{ModuleOrdering, ModuleGens{R}}())
   end
 end
 

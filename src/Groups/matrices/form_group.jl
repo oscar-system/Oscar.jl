@@ -627,7 +627,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
       V = vector_space(F,n)
       U,e = complement(V,W)
       A = zero_matrix(F,n,n)
-      r = dim(U)
+      r = vector_space_dim(U)
       for i in 1:r, j in 1:n
          A[i,j]=e(gen(U,i))[j]
       end

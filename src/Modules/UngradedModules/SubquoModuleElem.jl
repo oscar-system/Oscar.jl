@@ -912,7 +912,7 @@ Return the generators of `M`.
 function gens(M::SubquoModule{T}) where T
   R = base_ring(M)
   e = R(1)
-  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
+  return [SubquoModuleElem{T}(sparse_row(R, [(i, e)]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -922,7 +922,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v = sparse_row(R, [i], [R(1)])
+  v = sparse_row(R, [(i, R(1))])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -982,7 +982,7 @@ julia> is_zero(M)
 false
 ```
 """
-function is_zero(M::SubquoModule)
+@attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
@@ -997,7 +997,7 @@ Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
-  @assert dim(parent(a)) == length(b)
+  @assert rank(parent(a)) == length(b)
   s = zero(parent(a))
   for (p,v) in coordinates(a)
     s += v*b[p]

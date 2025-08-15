@@ -312,6 +312,52 @@ end
   M = SubquoModule(M1, M2)
   fr = free_resolution(M, length = 9)
   @test all(iszero, homology(fr)[2:end])
+
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM1 = free_resolution(M, length = 2)
+  FM1[4]
+  @test all(iszero, homology(FM1))
+  FM2 = free_resolution(M, length = 2, algorithm = :mres)
+  FM2[4]
+  @test all(iszero, homology(FM2))
+  FM3 = free_resolution(M, length = 2, algorithm = :nres)
+  FM3[4]
+  @test all(iszero, homology(FM3))
+
+  R, (v, w, x, y, z) = polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  U = complement_of_point_ideal(R, [0, 0, 0, 0, 0]);
+  RL, _ = localization(R, U);
+  I = ideal(RL, [v, w,x, y, z])
+  MI = ideal_as_module(I)
+  FMI = free_resolution_via_kernels(MI)
+  @test is_complete(FMI)
+  @test length(FMI) == 4
+end
+
+@testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
+    F = GF(2)
+    function _rep_mat(n)
+        I = [i for i in 1:n-1 for d in (0,1)]
+        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
+        matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
+    end
+    for n in 2:50
+        d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
+        C = chain_complex([d])
+        H = homology(C)
+        ker_d = kernel(d)[1]
+        @test dim(ker_d) == 0
+        @test H[1] == ker_d
+        coker_d, coker_proj = cokernel(d)
+        @test dim(coker_d) == 1
+        @test H[2][1] == coker_d
+        @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
+    end
 end
 
 @testset "Prune With Map" begin
@@ -1242,7 +1288,7 @@ end
   @test length(FA.C.maps) == 9
 end
 
-@testset "vector_space_dimension and vector_space_basis" begin
+@testset "vector_space_dim and vector_space_basis" begin
   Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
   U=complement_of_point_ideal(R,[0,0,0,0])
@@ -1250,8 +1296,8 @@ end
   Floc = free_module(RL,2)
   v = gens(Floc)
   Mloc, _=quo(Floc,[x*v[1],y*v[1],z*v[1],w^2*(w+1)^3*v[1],v[2]])
-  @test vector_space_dimension(Mloc) == 2
-  @test vector_space_dimension(Mloc,1) == 1
+  @test vector_space_dim(Mloc) == 2
+  @test vector_space_dim(Mloc,1) == 1
   @test length(vector_space_basis(Mloc)) == 2
   @test length(vector_space_basis(Mloc,0)) == 1
 end
@@ -1401,6 +1447,17 @@ end
   @test all(i*conj_S1(x) == conj_S1(-i*x) for x in gens(S1))
   @test conj_S1 == compose(conj_S1, id_S1) # identical ring_map
   @test conj_S1 == compose(id_S1, conj_S1)
+end
+
+@testset "check exactness for mres" begin
+  R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+  Z = R(0)
+  O = R(1)
+  B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+  A = transpose(matrix(B));
+  M = graded_cokernel(A)
+  FM2 = free_resolution(M, algorithm = :mres)
+  @test all(iszero, homology(FM2))
 end
 
 @testset "Modules over ZZ and QQ" begin
@@ -1755,4 +1812,76 @@ end
     L = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
     @test size(L) == 1
   end
+end
+
+@testset "minimization of resolutions" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+
+  @test AbstractAlgebra.is_known(is_local, R)
+  @test !is_local(R)
+
+  A = R[x y z; y-1 z-1 x]
+  I = ideal(R, minors(A, 2))
+  Q, _ = quo(R, I)
+  @test !AbstractAlgebra.is_known(is_local, Q)
+  M = quotient_ring_as_module(Q)
+  res = free_resolution(M)
+  @test_throws ErrorException minimize(res)
+
+  U1 = complement_of_point_ideal(R, [0, 0, 0])
+  L1, _ = localization(R, U1)
+  @test AbstractAlgebra.is_known(is_local, L1)
+  M1, _ = change_base_ring(L1, M)
+  res1 = free_resolution(M1)
+  res1[3]
+  res1min = minimize(res1)
+  @test [ngens(res1min[i]) for i in 0:2] == [1, 2, 1]
+
+  U2 = complement_of_prime_ideal(ideal(R, gens(R)))
+  L2, _ = localization(R, U2)
+  @test AbstractAlgebra.is_known(is_local, L2)
+  M2, _ = change_base_ring(L2, M)
+  res2 = free_resolution(M2)
+  res2min = minimize(res2)
+  @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
+
+  f = x^2 + y^2 + z^2
+  I = ideal(f)
+  Q, _ = quo(R, f)
+  M0, _ = change_base_ring(Q, M)
+
+  res = free_resolution(M0; length=5)
+  @test_throws ErrorException minimize(res)
+
+  L1, _ = localization(Q, U1)
+  @test !AbstractAlgebra.is_known(is_local, L1)
+  M1, _ = change_base_ring(L1, M)
+  res1 = free_resolution(M1; length=5)
+  res1[3]
+  res1min = minimize(res1)
+  @test [ngens(res1min[i]) for i in 0:2] == [1, 2, 1]
+
+  U2 = complement_of_prime_ideal(ideal(R, gens(R)))
+  L2, _ = localization(Q, U2)
+  @test !AbstractAlgebra.is_known(is_local, L2)
+  M2, _ = change_base_ring(L2, M)
+  res2 = free_resolution(M2; length=5)
+  res2min = minimize(res2)
+  @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
+end
+
+@testset "Krull dimension for subquos" begin
+    R, (a, b, c, d) = graded_polynomial_ring(QQ, [:a, :b, :c, :d])
+    I = ideal(R, [a*d - b*c])
+    M = quotient_ring_as_module(I)
+
+    E2 = ext(M, graded_free_module(R, 1), 0 + 2)
+    @test is_zero(E2)
+    @test krull_dim(E2) == -inf
+
+    E3 = ext(M, graded_free_module(R, 1), 1 + 2)
+    @test is_zero(E3)
+    @test krull_dim(E3) == -inf
+
+    @test typeof(E2) == typeof(E3)
 end

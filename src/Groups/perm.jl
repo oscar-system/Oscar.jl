@@ -84,6 +84,63 @@ function (G::PermGroup)(H::PermGroup)
   throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
 end
 
+@doc raw"""
+    smallest_moved_point(x::PermGroupElem) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `x` if
+such an integer exists, and `inf` if `x` is the identity.
+
+    smallest_moved_point(G::PermGroup) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `G` if
+such an integer exists, and `inf` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> smallest_moved_point(s)
+1
+
+julia> smallest_moved_point(gen(s, 1))
+1
+
+julia> smallest_moved_point(one(s))
+infinity
+```
+"""
+function smallest_moved_point(x::Union{PermGroupElem,PermGroup})
+  pt = GAPWrap.SmallestMovedPoint(GapObj(x))
+  pt isa Int && return pt
+  return inf
+end
+
+@doc raw"""
+    largest_moved_point(x::PermGroupElem) -> Int
+
+Return the largest positive integer which is not fixed by `x` if
+such an integer exists, and `0` if `x` is the identity.
+
+    largest_moved_point(G::PermGroup) -> Int
+
+Return the largest positive integer which is not fixed by `G` if
+such an integer exists, and `0` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> largest_moved_point(s)
+3
+
+julia> largest_moved_point(gen(s, 1))
+3
+
+julia> largest_moved_point(one(s))
+0
+```
+"""
+largest_moved_point(x::Union{PermGroupElem,PermGroup}) = GAPWrap.LargestMovedPoint(GapObj(x))
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
@@ -142,7 +199,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -277,7 +334,7 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Sym(3)
+Symmetric group of degree 3
 
 julia> x == y
 true
@@ -817,7 +874,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym(8)
+Symmetric group of degree 8
 
 julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
@@ -853,7 +910,7 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym(14)
+Symmetric group of degree 14
 ```
 """
 macro perm(expr)

@@ -1,0 +1,90 @@
+julia> Qx, x = QQ["x"];
+
+julia> K, a = number_field(x^2 - 235, "a")
+(Number field of degree 2 over QQ, a)
+
+julia> a^2 - 235 # confirm that a is a root of x^2 - 235
+0
+
+julia> b = 2 + 1//3 * a
+1//3*a + 2
+
+julia> coordinates(b)
+2-element Vector{QQFieldElem}:
+ 2
+ 1//3
+
+julia> K(x^3 + x + 2) # map the polynomial x^3 + x + 2 to K
+236*a + 2
+
+julia> degree(K)
+2
+
+julia> trace(a)
+0
+
+julia> norm(a)
+-235
+
+julia> OK = ring_of_integers(K);
+
+julia> basis(OK)
+2-element Vector{AbsSimpleNumFieldOrderElem}:
+ 1
+ a
+
+julia> discriminant(OK)
+940
+
+julia> prime_ideals_over(OK, 7)
+2-element Vector{AbsSimpleNumFieldOrderIdeal}:
+ <7, a + 2>
+ <7, a + 5>
+
+julia> factor(change_coefficient_ring(GF(7), x^2 - 235))
+1 * (x + 2) * (x + 5)
+
+julia> factor(a * OK)
+Dict{AbsSimpleNumFieldOrderIdeal, Int64} with 2 entries:
+  <5, a>  => 1
+  <47, a> => 1
+
+julia> A, m = class_group(OK);
+
+julia> A
+Z/6
+
+julia> m(zero(A)) # apply m to the neutral element of A
+Ideal of maximal order of number field of degree 2 over QQ
+  of norm 1
+  of minimum 1
+with generator 1
+
+julia> P = prime_ideals_over(OK, 2)[1]
+Ideal of maximal order of number field of degree 2 over QQ
+  of norm 2
+  of minimum 2
+with 2-normal generators [2, a + 1]
+
+julia> preimage(m, P)
+Abelian group element [3]
+
+julia> is_principal_with_data(P^2)
+(true, 2)
+
+julia> P^2 == 2*OK
+true
+
+julia> U, mU = unit_group(OK);
+
+julia> U
+Z/2 x Z
+
+julia> mU(U[1]), mU(U[2])
+(-1, 3*a + 46)
+
+julia> preimage(mU, -214841715*a - 3293461126)
+Abelian group element [1, 5]
+
+julia> -214841715*a - 3293461126 == (-1)^1 * (3a + 46)^5
+true

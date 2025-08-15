@@ -7,9 +7,13 @@ on:
       - 'release-*'
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   schedule:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
@@ -40,7 +44,6 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.6'
           - '1.10'
           - '1.11'
           - '1.12-nightly'
@@ -75,7 +78,7 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -94,7 +97,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        # if: runner.os == 'macOS' # commented out as bandaid for #4806
+        if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Use multiple processes for self-hosted macOS runners"
@@ -104,9 +107,6 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
-      - name: "workaround libstdc++ issue for julia 1.6"
-        if: matrix.julia-version == '1.6' && runner.os == 'Linux'
-        run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
@@ -144,7 +144,7 @@ jobs:
           - 'pre'
           - 'nightly'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -195,7 +195,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2
       - name: "Set up Julia"
@@ -234,7 +234,7 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -252,7 +252,7 @@ jobs:
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
-        # if: runner.os == 'macOS' # commented out as bandaid for #4806
+        if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Setup package"

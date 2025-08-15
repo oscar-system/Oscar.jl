@@ -7,9 +7,13 @@ on:
       - 'release-*'
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   workflow_dispatch:
 
 # needed to allow julia-actions/cache to delete old caches that it has created
@@ -37,7 +41,7 @@ jobs:
         group: [ 'short', 'long' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v2
         with:
@@ -70,7 +74,7 @@ jobs:
     timeout-minutes: 150
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v2
         with:
