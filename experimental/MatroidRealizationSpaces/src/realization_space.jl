@@ -410,7 +410,7 @@ function realization_space(
   end
 
   if saturate
-    RS.defining_ideal = stepwise_saturation(def_ideal, ineqs)
+    RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
     if isone(RS.defining_ideal)
       set_attribute!(RS, :is_realizable, :false)
       return RS
