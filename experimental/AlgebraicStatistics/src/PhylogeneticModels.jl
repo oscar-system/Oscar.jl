@@ -20,38 +20,53 @@
   n_states::Int
   model_parameter_name::VarName
 
-  # check that the enries of the root distribution live in the same ring as the entries
-  # of the transition matrix
+
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
-                             trans_mat_structure::Matrix{M},
+                             trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p") where M
-    n_states = size(trans_mat_structure)[1]
+                             varname::VarName="p")
+    n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{M, typeof(graph_maps), typeof(root_distribution[1])}(F, G,
+    return new{typeof(first(trans_matrix_structure)), 
+               typeof(graph_maps), typeof(first(root_distribution))}(F, G,
                                                                     graph_maps,
-                                                                    trans_mat_structure,
+                                                                    trans_matrix_structure,
                                                                     root_distribution,
                                                                     n_states,
                                                                     varname)
   end
 
   function PhylogeneticModel(G::Graph{Directed},
-                             trans_mat_structure::Matrix{M},
+                             trans_matrix_structure::Matrix{M},
+                             root_distribution::Vector{T},
+                             varname::VarName="p") where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+    trans_ring = parent(first(trans_matrix_structure))
+    root_ring = base_ring(trans_ring)
+    F = coefficient_ring(root_ring)
+    
+    if root_ring != parent(first(root_distribution))
+      error("Rings for the root distribution parameters do not match. Expected ring `$(root_ring)` but got `$(parent(first(root_distribution)))`.")
+    end
+
+    PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varname)
+  end
+
+  function PhylogeneticModel(G::Graph{Directed},
+                             trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p") where M
-    return PhylogeneticModel(QQ, G, trans_mat_structure, 
+                             varname::VarName="p")
+    return PhylogeneticModel(QQ, G, trans_matrix_structure, 
                              root_distribution, varname)
   end
 end
 
 n_states(PM::PhylogeneticModel) = PM.n_states
-transition_matrix(PM::PhylogeneticModel) = PM.trans_mat_structure
+transition_matrix(PM::PhylogeneticModel) = PM.trans_matrix_structure
 base_field(PM::PhylogeneticModel) = PM.base_field
 varname(PM::PhylogeneticModel) = PM.model_parameter_name
 root_distribution(PM::PhylogeneticModel) = PM.root_distribution
@@ -60,7 +75,7 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
   MPolyRing, 
   GenDict, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{VarName, L, FieldElem}; cached=false) where L
+} function parameter_ring(PM::PhylogeneticModel{<: VarName, L, T}; cached=false) where {L, T <: FieldElem} 
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -72,7 +87,7 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 end
 
 const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
-@attr EquivTup function parameter_ring(PM::PhylogeneticModel{VarName, L, VarName}; cached=false) where L
+@attr EquivTup function parameter_ring(PM::PhylogeneticModel{<: VarName, L, T}; cached=false) where {L, T <: VarName} 
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM), root_distribution(PM), edge_gens...; cached=cached)
@@ -87,36 +102,46 @@ end
 # add note in docs, I believe it's rationalfunctionfield
 @attr Tuple{
   MPolyRing, 
-  GenDict, 
+  Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{MPolyRingElem, L, FieldElem}; cached=false) where L
-  vars = gens(parent(first(transition_matrix(PM))))
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in symbols(vars)]
+} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
+  trans_ring = parent(first(transition_matrix(PM)))
+  transition_vars = gens(trans_ring)
+
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
   
-  R, Dict{Tuple{MPolyRingElem, Edge}, MPolyRingElem}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), 
-                                (j,e) in enumerate(sort_edges(graph(PM)))
-  ), root_distribution(PM)
+  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+      map = [x[i][j] for i in 1:length(transition_vars)]
+      dict_maps[e] = hom(trans_ring, R, map)
+  end
+
+  R, dict_maps, root_distribution(PM)
 end
 
 @attr Tuple{
   MPolyRing, 
-  GenDict, 
+  Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{MPolyRingElem, L, MPolyRingElem}; cached=false) where L
+} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
-  
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in symbols(transition_vars)]
-  R, rv, x... = polynomial_ring(base_field(PM), symbols(roots_vars), edge_gens..., ; cached=cached)
 
-  # turn this into a Dict{Edge, MPolyAnyMap} homomorphism
-  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-    (transition_vars[i], e) => x[i][j] for i in 1:length(vars), 
-                                (j,e) in enumerate(sort_edges(graph(PM)))
-  ), rv
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+  R, rv, x... = polynomial_ring(base_field(PM), Symbol.(root_vars), edge_gens..., ; cached=cached)
+
+  coef_map = hom(coefficient_ring(trans_ring), R, rv)
+
+  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+      map = [x[i][j] for i in 1:length(transition_vars)]
+      dict_maps[e] = hom(trans_ring, R, coef_map, map)
+  end
+
+  R, dict_maps, rv
+
 end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
@@ -132,7 +157,7 @@ function Base.show(io::IO, pm::PhylogeneticModel)
   print(io, " and transition matrices of the form \n ")
 
   # printing this matrix can probably be improved
-  print(io, "$(pm.trans_mat_structure)")
+  print(io, "$(pm.trans_matrix_structure)")
 end
 
 
@@ -151,11 +176,10 @@ end
   
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
-                                       trans_mat_structure::Matrix{<: VarName},
+                                       trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       n_states::Union{Nothing, Int} = nothing,
                                        varname_phylo_model::VarName="p",
                                        varname_group_based::VarName="q")
     if isnothing(group)
@@ -165,23 +189,22 @@ end
 
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_mat_structure, 
-                                                     root_distribution, n_states, 
+    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_matrix_structure, 
+                                                     root_distribution,
                                                      varname_phylo_model),
                                    fourier_param_structure,
                                    group, varname_group_based)
   end
 
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
-                                       trans_mat_structure::Matrix{<: VarName},
+                                       trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       n_states::Union{Nothing, Int} = nothing,
                                        varname_phylo_model::VarName="p",
                                        varname_group_based::VarName="q")
-    return GroupBasedPhylogeneticModel(QQ, G, trans_mat_structure, fourier_param_structure,
-                                       group, root_distribution, n_states, 
+    return GroupBasedPhylogeneticModel(QQ, G, trans_matrix_structure, fourier_param_structure,
+                                       group, root_distribution, 
                                        varname_phylo_model, varname_group_based)
   end
 
@@ -190,7 +213,7 @@ end
 graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph # ? Antony
 
 n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
-transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_mat_structure
+transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_matrix_structure
 base_field(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.base_field
 root_distribution(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.root_distribution
 varname_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name # ? Antony
@@ -224,7 +247,7 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   
   # printing this matrix can probably be improved
   print(io, " with transition matrices of the form \n ")
-  print(io, "$(pm.phylo_model.trans_mat_structure) \n")
+  print(io, "$(pm.phylo_model.trans_matrix_structure) \n")
 
   print(io, " and fourier parameters of the form \n ")
   print(io, "$(pm.fourier_param_structure)")
