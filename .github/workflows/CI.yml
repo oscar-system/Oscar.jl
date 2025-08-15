@@ -320,6 +320,7 @@ jobs:
     env:
       JULIA_PKG_SERVER: ""
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
+      OSCAR_TEST_SUBSET: "oscar_db"
     steps:
       - uses: actions/checkout@v4
       - name: "Set up Julia"

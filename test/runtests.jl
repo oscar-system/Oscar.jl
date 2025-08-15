@@ -78,7 +78,7 @@ testlist = Oscar._gather_tests("test")
 
 for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
-  if isdir(path) && exp != "Parallel" && exp != "OscarDB"
+  if isdir(path) && exp != "Parallel"
     append!(testlist, Oscar._gather_tests(path))
   end
 end
@@ -121,8 +121,9 @@ test_subsets = Dict(
                               ],
                      :book => [
                                "test/book/test.jl",
-                              ]
-                   )
+                     ],
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+)
 
 test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
 if haskey(ENV, "JULIA_PKGEVAL")
