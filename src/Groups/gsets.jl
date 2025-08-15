@@ -459,59 +459,6 @@ julia> length(orbit(Omega, 1))
 4
 ```
 """
-orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S = _orbit_generic(Omega, omega)
-
-function _orbit_generic(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
-    # In this generic function, we delegate the loop to GAP, but we act
-    # with Julia group elements on Julia objects via Julia functions.
-    G = acting_group(Omega)
-    acts = GapObj(gens(G))
-    gfun = GapObj(action_function(Omega))
-
-    # The following works only because GAP does not check
-    # whether the given (dummy) group 'GapObj(G)' fits to the given generators,
-    # or whether the elements of 'acts' are group elements.
-    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), omega, acts, acts, gfun)::GapObj)
-
-    res = as_gset(acting_group(Omega), action_function(Omega), orb)
-    # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [res])
-    return res
-end
-#T check whether omega lies in Omega?
-
-# special cases where we convert the objects to GAP
-# (the group elements as well as the objects they act on),
-# in order to use better methods on the GAP side:
-# - orbit of a perm. group on integers via `^`
-# - orbit of a perm. group on vectors of integers via `on_tuples`
-# - orbit of a perm. group on sets of integers via `on_sets`
-function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: IntegerUnion
-    (action_function(Omega) == ^) || return _orbit_generic(Omega, omega)
-    return _orbit_special_GAP(Omega, omega)
-end
-
-function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: Vector{<: IntegerUnion}
-    action_function(Omega) == on_tuples || return _orbit_generic(Omega, omega)
-    return _orbit_special_GAP(Omega, omega)
-end
-
-function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: Set{<: IntegerUnion}
-    action_function(Omega) == on_sets || return _orbit_generic(Omega, omega)
-    return _orbit_special_GAP(Omega, omega)
-end
-
-function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
-    G = acting_group(Omega)
-    gfun = gap_action_function(Omega)
-    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), GapObj(omega), gfun)::GapObj)
-
-    res = as_gset(acting_group(Omega), action_function(Omega), orb)
-    # We know that this G-set is transitive.
-    set_attribute!(res, :orbits => [res])
-    return res
-end
-
 function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{Group, FinGenAbGroup}, S}
     return orbit_via_Julia(Omega, omega)
 end
