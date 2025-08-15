@@ -1,3 +1,4 @@
+include("ModelRing.jl")
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")

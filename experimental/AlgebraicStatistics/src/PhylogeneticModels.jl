@@ -262,17 +262,13 @@ end
 end
 
 @attr Tuple{
-  MPolyRing, 
-  GenDict
-  } function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
-  eq_calasses = equivalent_classes(PM)
-  ec_indices = sort(collect(keys(eq_calasses)), rev = true)
+  ModelRing{T, U}, 
+  Dict{T, U}
+} where {T, U} function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+  eq_classes = equivalent_classes(PM)
+  ec_indices = sort(collect(keys(eq_classes)), rev = true)
 
-    # unfinished
-    error("unfinished function")
-  R, Dict{Tuple, MPolyRingElem}(
-     Tuple(index(x[i])) => x[i] for i in 1:length(x))
-  
+  return model_ring(base_field(PM), varname(PM) => ec_indices; cached=cached)
 end
 
 function parametrization(PM::PhylogeneticModel)

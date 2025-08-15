@@ -3,7 +3,6 @@ include("orderings.jl")
 include("mpoly.jl")
 include("mpoly_types.jl")
 include("mpoly-graded.jl")
-include("ModelRing.jl") # ring struct for algebraic statistics
 include("hilbert_zach.jl")
 include("mpoly-ideals.jl")
 include("groebner/groebner.jl")

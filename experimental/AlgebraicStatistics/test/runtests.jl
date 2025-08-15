@@ -197,8 +197,8 @@ end
     R, p = full_model_ring(pm)
     f = full_parametrization(pm)
 
-    @test f.codomain == parameter_ring(pm)[1]
-    @test f.domain == R
+    @test codomain(f) == parameter_ring(pm)[1]
+    @test domain(f) == Oscar._ring(R)
 
     @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
@@ -211,7 +211,7 @@ end
     @test f(p[4,4,3]) == 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 
     @testset "Equivalent classes probabilities" begin
-    eq_classes = equivalent_classes(pm)
+      eq_classes = equivalent_classes(pm)
       @test length(eq_classes) == 5
       @test issetequal(collect(keys(eq_classes)),
                         [(1, 2, 1), (1, 1, 1), (1, 2, 2), (1, 2, 3), (1, 1, 2)])
@@ -231,8 +231,8 @@ end
     R, q = full_model_ring(model)
     f = full_parametrization(model)
 
-    @test f.codomain == parameter_ring(model)[1]
-    @test f.domain == R
+    @test codomain(f) == parameter_ring(model)[1]
+    @test domain(f) == Oscar._ring(R)
 
     @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
