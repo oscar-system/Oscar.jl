@@ -14,13 +14,13 @@ sec_a6 = generic_section(anticanonical_bundle(my_base)^6)
 t = global_tate_model(my_base; completeness_check = false)
 
 @testset "Attributes of global Tate models over concrete base space" begin
-  @test parent(tate_section_a1(t)) == cox_ring(base_space(t))
-  @test parent(tate_section_a2(t)) == cox_ring(base_space(t))
-  @test parent(tate_section_a3(t)) == cox_ring(base_space(t))
-  @test parent(tate_section_a4(t)) == cox_ring(base_space(t))
-  @test parent(tate_section_a6(t)) == cox_ring(base_space(t))
-  @test parent(tate_polynomial(t)) == cox_ring(ambient_space(t))
-  @test parent(discriminant(t)) == cox_ring(base_space(t))
+  @test parent(tate_section_a1(t)) == coordinate_ring(base_space(t))
+  @test parent(tate_section_a2(t)) == coordinate_ring(base_space(t))
+  @test parent(tate_section_a3(t)) == coordinate_ring(base_space(t))
+  @test parent(tate_section_a4(t)) == coordinate_ring(base_space(t))
+  @test parent(tate_section_a6(t)) == coordinate_ring(base_space(t))
+  @test parent(tate_polynomial(t)) == coordinate_ring(ambient_space(t))
+  @test parent(discriminant(t)) == coordinate_ring(base_space(t))
   @test dim(base_space(t)) == 3
   @test dim(ambient_space(t)) == 5
   @test is_base_space_fully_specified(t) == true

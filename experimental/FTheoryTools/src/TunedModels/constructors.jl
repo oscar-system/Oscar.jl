@@ -24,7 +24,7 @@ Torus-invariant, prime divisor on a normal toric variety
 julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(w)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(w)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -41,7 +41,7 @@ Weierstrass model over a concrete base
 julia> explicit_model_sections(tuned_w)["c2"]
 x1^6
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(tuned_w)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -58,7 +58,7 @@ Weierstrass model over a concrete base
 julia> is_zero(explicit_model_sections(tuned_w2)["c2"])
 true
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_w2)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(tuned_w2)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -185,7 +185,7 @@ Torus-invariant, prime divisor on a normal toric variety
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
+julia> x1, x2, x3, x4 = gens(coordinate_ring(base_space(t)))
 4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -203,7 +203,7 @@ Global Tate model over a concrete base
 julia> tate_section_a1(tuned_t) == x1^4
 true
 
-julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t)))
+julia> x1, x2, x3, x4 = gens(coordinate_ring(base_space(tuned_t)))
 4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -221,7 +221,7 @@ Global Tate model over a concrete base
 julia> is_zero(explicit_model_sections(tuned_t2)["a1"])
 true
 
-julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
+julia> x1, x2, x3, x4 = gens(coordinate_ring(base_space(tuned_t2)))
 4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -349,7 +349,7 @@ Torus-invariant, prime divisor on a normal toric variety
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(h)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(h)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -363,7 +363,7 @@ Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
 julia> tuned_h = tune(h, my_choice)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_h)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(tuned_h)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -380,7 +380,7 @@ Hypersurface model over a concrete base
 julia> is_zero(explicit_model_sections(tuned_h2)["c0"])
 true
 
-julia> x1, x2, x3 = gens(cox_ring(base_space(tuned_h2)))
+julia> x1, x2, x3 = gens(coordinate_ring(base_space(tuned_h2)))
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
@@ -421,7 +421,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   parametrized_hypersurface_equation = hypersurface_equation_parametrization(h)
   R = parent(parametrized_hypersurface_equation)
   vars = string.(symbols(R))
-  S = cox_ring(ambient_space(h))
+  S = coordinate_ring(ambient_space(h))
   images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
   map = hom(R, S, images; check=false)
   new_hypersurface_equation = map(parametrized_hypersurface_equation)
