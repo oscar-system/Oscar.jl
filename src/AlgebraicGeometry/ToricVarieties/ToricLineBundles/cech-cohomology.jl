@@ -19,16 +19,22 @@ function _toric_cech_complex(tl::ToricLineBundle)
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
   H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
 
-  # Classify the regions and their lattice points that contribute
+  # Classify the regions obtained from the hyperlane arrangement
   pff = Polymake.fan.PolyhedralComplex(POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES)
   max_polys = maximal_polyhedra(polyhedral_complex(pff))
-  other_polys = vcat([polyhedra_of_dim(polyhedral_complex(pff), i) for i in 0:dim(polyhedral_complex(pff))-1]...)
-  chamber_signs = matrix(ZZ, H.CHAMBER_SIGNATURES)
+  other_polys = filter(is_bounded, vcat([polyhedra_of_dim(polyhedral_complex(pff), i) for i in 0:dim(polyhedral_complex(pff))-1]...))
+  chamber_signs = 2*matrix(ZZ, H.CHAMBER_SIGNATURES).-1
   sign_of_chamber = Dict(chamber_signs[i,:] => interior_lattice_points(p) for (i, p) in enumerate(max_polys) if is_bounded(p))
-  list_of_boundary_lattice_points = vcat([boundary_lattice_points(p) for p in values(filter(is_bounded, max_polys))]...)
-  append!(list_of_boundary_lattice_points, vcat([lattice_points(p) for p in other_polys if is_bounded(p)]...))
-  list_of_boundary_lattice_points = unique(list_of_boundary_lattice_points)
-  sign_of_boundary_pt = Dict(pt => matrix(QQ, rays(X)) * pt + a_plane for pt in list_of_boundary_lattice_points)
+
+  # For the other regions, we don't get their signs for free and have to calculate them
+  for p in other_polys
+    if dim(p) == 0
+      sign_list = ZZ.(sign.(matrix(QQ, rays(X)) * vertices(p)[1] + a_plane)[:,1])
+    else
+      sign_list = ZZ.(sign.(matrix(QQ, rays(X)) * 1//n_vertices(p) * sum(vertices(p)) + a_plane)[:,1])
+    end
+    sign_of_chamber[sign_list] = interior_lattice_points(p)
+  end
 
   # Prepare information, which we use to iterate over the Cech complex and identify the relevant lattice points
   RI = ray_indices(maximal_cones(X))
@@ -36,7 +42,6 @@ function _toric_cech_complex(tl::ToricLineBundle)
 
   # Now iterate over the Cech complex
   cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, dim(X) + 1)
-  #cech_complex_maps = Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}(undef, dim(X))
   cech_complex_maps = Vector{Any}(undef, dim(X))
   comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
   d_k = 0
@@ -49,11 +54,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
     for i in 1:length(combs)
       list_of_lattice_points = PointVector{ZZRingElem}[]
       generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
-      for (pt, signs) in sign_of_boundary_pt
-        all(x -> x >= 0, signs[generating_ray_indices, :]) && push!(list_of_lattice_points, pt)
-      end
       for (signs, pts) in sign_of_chamber
-        all(x -> x > 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
+        all(x -> x >= 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
       end
       polyhedron_dict[combs[i]] = list_of_lattice_points
     end

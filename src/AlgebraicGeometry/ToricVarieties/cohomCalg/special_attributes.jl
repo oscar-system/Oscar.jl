@@ -92,6 +92,15 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
  0
  2
  0
+
+julia> v = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> all_cohomologies(toric_line_bundle(v, [0,-3]); algorithm = "chamber counting, please")
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
 ```
 """
 @attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
