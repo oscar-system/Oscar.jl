@@ -24,10 +24,18 @@ _ring(R::ModelRing) = R.R
 gens(R::ModelRing) = R.index_to_gen
 ngens(R::ModelRing) = ngens(_ring(R))
 
+function Base.getindex(R::ModelRing, r::RingElem)
+  @req r in keys(R.gen_to_index) "$r is not a generator of $R"
+  return R.gen_to_index[r]
+end
+
 function model_ring(R::Ring, varnames; cached=false)
   MR = ModelRing(R, varnames; cached=cached)
   return MR, gens(MR)
 end
 
-hom(R::ModelRing, S::NCRing, images::Vector; check::Bool = true) =  hom(_ring(R), S, images) 
+hom(R::ModelRing, S::NCRing, images::Vector; check::Bool = true) =  hom(_ring(R), S, images)
+hom(R::ModelRing, S::ModelRing, images::Vector; check::Bool = true) = hom(R, _ring(S), images)
+
+(MR::ModelRing)(r) = _ring(MR)(r)
 

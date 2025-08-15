@@ -244,7 +244,6 @@ end
       Tuple{Vararg{Int64}}, 
       Vector{MPolyRingElem}
 } function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
-  
   _, ps = full_model_ring(PM)
   f = full_parametrization(PM);
   
@@ -257,7 +256,6 @@ end
       eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
       equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
   end
-
   return equivalent_classes
 end
 
@@ -287,7 +285,7 @@ function parametrization(PM::GroupBasedPhylogeneticModel)
   S, _ = parameter_ring(PM)
 
   R, x = model_ring(PM)
-  lvs_indices = index.(gens(R))
+  lvs_indices = keys(gens(R))
 
   map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
@@ -303,8 +301,50 @@ end
 
 
 function fourier_transform(PM::GroupBasedPhylogeneticModel)
-  _, p = Oscar.full_model_ring(phylogenetic_model(PM))
-  _, q = Oscar.full_model_ring(PM)
+  FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
+  FRq, q = Oscar.full_model_ring(PM)
+
+  Rp, rp = Oscar.model_ring(phylogenetic_model(PM))
+  Rq, rq = Oscar.model_ring(PM)
+
+  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
+  q_classes = Oscar.equivalent_classes(PM)
+
+  np = length(p_classes)
+  nq = length(q_classes)
+  
+  ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+  # keys_p_classes = collect(keys(p_classes))
+  # sort!(keys_p_classes, rev = true)
+  # keys_q_classes = collect(keys(q_classes))
+  # sort!(keys_q_classes, rev = true)
+  H = Rp.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+  M = Rp.(Int.(zeros(nq, np)))
+  
+  for (i, q_index) in enumerate(sort(collect(keys(gens(Rq))); rev=true))
+    current_fourier_class = q_classes[q_index]
+    for (j, p_index) in enumerate(sort(collect(keys(gens(Rp))); rev=true))
+      current_prob_class = p_classes[p_index]
+      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(FRp[pp], FRq[qq])]) for pp in current_prob_class, qq in current_fourier_class]
+      M[i,j] = Rp.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+    end
+  end
+  
+  
+  return M
+end
+
+function coordinate_change(PM::GroupBasedPhylogeneticModel)
+  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
+  Rq, _ = Oscar.model_ring(PM)
+  
+  M = fourier_transform(PM)
+  hom(Rq, Rp, M * gens(_ring(Rp)))
+end
+
+function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
+  FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
+  FRq, q = Oscar.full_model_ring(PM)
 
   Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
   Rq, _ = Oscar.model_ring(PM)
@@ -320,81 +360,21 @@ function fourier_transform(PM::GroupBasedPhylogeneticModel)
   # sort!(keys_p_classes, rev = true)
   # keys_q_classes = collect(keys(q_classes))
   # sort!(keys_q_classes, rev = true)
+  H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
+  Hinv = 1//n_states(PM) * H
 
-  keys_p_classes = gens(Rp)
-  keys_q_classes = gens(Rq)
-
-  
-  H = Rp.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
-  
-  M = Rp.(Int.(zeros(nq, np)))
-  for i in 1:nq
-    q_key_index = Tuple(index(keys_q_classes[i]))
-    current_fourier_class = q_classes[q_key_index]
-    for j in 1:np
-      p_key_index = Tuple(index(keys_p_classes[j]))
-      current_prob_class = p_classes[p_key_index]
-      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
-      M[i,j] = Rp.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+  M = Rq.(Int.(zeros(np, nq)))
+  for (i, p_index) in enumerate(sort(collect(keys(gens(Rp))); rev=true))
+    current_prob_class = p_classes[p_index]
+    for (j, q_index) in enumerate(sort(collect(keys(gens(Rq))); rev=true))
+      current_fourier_class = q_classes[q_index]
+      current_entries_in_M = [
+        prod([Hinv[x,y] for (x,y) in zip(FRp[pp],FRq[qq])
+                ]) for pp in current_prob_class, qq in current_fourier_class]
+      M[i,j] = Rq.(sum(current_entries_in_M))
     end
   end
-  
-  
   return M
-end
-
-function coordinate_change(PM::GroupBasedPhylogeneticModel)
-  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, _ = Oscar.model_ring(PM)
-  
-  M = fourier_transform(PM)
-  hom(Rq, Rp, M*gens(Rp))
-end
-
-function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
-    _, p = Oscar.full_model_ring(phylogenetic_model(PM))
-    _, q = Oscar.full_model_ring(PM)
-
-    Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
-    Rq, _ = Oscar.model_ring(PM)
-
-    p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
-    q_classes = Oscar.equivalent_classes(PM)
-
-    np = length(p_classes)
-    nq = length(q_classes)
-    
-    ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
-    # keys_p_classes = collect(keys(p_classes))
-    # sort!(keys_p_classes, rev = true)
-    # keys_q_classes = collect(keys(q_classes))
-    # sort!(keys_q_classes, rev = true)
-
-    keys_p_classes = gens(Rp)
-    keys_q_classes = gens(Rq)
-
-    
-    H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
-    Hinv = 1//n_states(PM) * H
-
-    M = Rq.(Int.(zeros(np, nq)))
-    for i in 1:np
-      p_key_index = Tuple(index(keys_p_classes[i]))
-      current_prob_class = p_classes[p_key_index]
-
-      for j in 1:nq
-        q_key_index = Tuple(index(keys_q_classes[j]))
-        current_fourier_class = q_classes[q_key_index]
-        
-        current_entries_in_M = [prod([Hinv[x,y] for (x,y) in zip(index(pp),index(qq))]) for pp in current_prob_class, qq in current_fourier_class]
-
-        M[i,j] = Rq.(sum(current_entries_in_M))
-        
-      end
-    end
-    M
-
-    return M
 end
 
 function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
@@ -402,8 +382,7 @@ function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rq, _ = Oscar.model_ring(PM)
   
   M = inverse_fourier_transform(PM)
-  hom(Rp, Rq, M*gens(Rq))
-
+  hom(Rp, Rq, M*gens(_ring(Rq)))
 end
 
 
