@@ -10,45 +10,43 @@
 ###################################################################################
 
 
-@attributes mutable struct PhylogeneticModel{L, T} <: GraphicalModel{Directed, L}
+@attributes mutable struct PhylogeneticModel{M, L, T} <: GraphicalModel{Directed, L}
   # do need to for T to be directed here? YES!
   base_field::Field
   graph::Graph{Directed}
   labelings::L
-  trans_mat_structure::Matrix{<: VarName}
+  trans_matrix_structure::Matrix{M}
   root_distribution::Vector{T}
   n_states::Int
   model_parameter_name::VarName
-  
+
+  # check that the enries of the root distribution live in the same ring as the entries
+  # of the transition matrix
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
-                             trans_mat_structure::Matrix{<: VarName},
+                             trans_mat_structure::Matrix{M},
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             n_states::Union{Nothing, Int} = nothing,
-                             varname::VarName="p")
-    if isnothing(n_states)
-      n_states = size(trans_mat_structure)[1]
-    end
+                             varname::VarName="p") where M
+    n_states = size(trans_mat_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps), typeof(root_distribution[1])}(F, G,
-                                   graph_maps,
-                                   trans_mat_structure,
-                                   root_distribution,
-                                   n_states,
-                                   varname)
+    return new{M, typeof(graph_maps), typeof(root_distribution[1])}(F, G,
+                                                                    graph_maps,
+                                                                    trans_mat_structure,
+                                                                    root_distribution,
+                                                                    n_states,
+                                                                    varname)
   end
 
   function PhylogeneticModel(G::Graph{Directed},
-                             trans_mat_structure::Matrix{<: VarName},
+                             trans_mat_structure::Matrix{M},
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             n_states::Union{Nothing, Int} = nothing,
-                             varname::VarName="p")
+                             varname::VarName="p") where M
     return PhylogeneticModel(QQ, G, trans_mat_structure, 
-                             root_distribution, n_states, varname)
+                             root_distribution, varname)
   end
 end
 
@@ -62,28 +60,63 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
   MPolyRing, 
   GenDict, 
   Vector{T}
-  }function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{VarName, L, FieldElem}; cached=false) where L
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-                                (j,e) in enumerate(sort_edges(graph(PM)))
-  ), root_distribution(PM)
+      (j,e) in enumerate(sort_edges(graph(PM)))
+      ), root_distribution(PM)
 end
 
 const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
-@attr EquivTup function parameter_ring(PM::PhylogeneticModel{L,T}; cached=false) where {L, T <: VarName}
+@attr EquivTup function parameter_ring(PM::PhylogeneticModel{VarName, L, VarName}; cached=false) where L
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM), root_distribution(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-                                (j,e) in enumerate(sort_edges(graph(PM)))
-  ), r
+      (j,e) in enumerate(sort_edges(graph(PM)))
+      ), r
+end
 
+# add new one where we use MPolyRingElem{T} where  T <: Union{RationalFunctionField, FracField} Look into which is best
+# add note in docs, I believe it's rationalfunctionfield
+@attr Tuple{
+  MPolyRing, 
+  GenDict, 
+  Vector{T}
+} function parameter_ring(PM::PhylogeneticModel{MPolyRingElem, L, FieldElem}; cached=false) where L
+  vars = gens(parent(first(transition_matrix(PM))))
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in symbols(vars)]
+  R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
+  
+  R, Dict{Tuple{MPolyRingElem, Edge}, MPolyRingElem}(
+    (vars[i], e) => x[i][j] for i in 1:length(vars), 
+                                (j,e) in enumerate(sort_edges(graph(PM)))
+  ), root_distribution(PM)
+end
+
+@attr Tuple{
+  MPolyRing, 
+  GenDict, 
+  Vector{T}
+} function parameter_ring(PM::PhylogeneticModel{MPolyRingElem, L, MPolyRingElem}; cached=false) where L
+  trans_ring = parent(first(transition_matrix(PM)))
+  transition_vars = gens(trans_ring)
+  root_vars = gens(coefficient_ring(trans_ring))
+  
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in symbols(transition_vars)]
+  R, rv, x... = polynomial_ring(base_field(PM), symbols(roots_vars), edge_gens..., ; cached=cached)
+
+  # turn this into a Dict{Edge, MPolyAnyMap} homomorphism
+  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+    (transition_vars[i], e) => x[i][j] for i in 1:length(vars), 
+                                (j,e) in enumerate(sort_edges(graph(PM)))
+  ), rv
 end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
