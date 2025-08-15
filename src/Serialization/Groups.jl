@@ -276,6 +276,24 @@ function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenA
   return G(vec(load_object(s, Matrix{ZZRingElem})))
 end
 
+# homomorphisms
+@register_serialization_type FinGenAbGroupHom uses_id
+
+type_params(X::FinGenAbGroupHom) = TypeParams(
+  FinGenAbGroupHom,
+  :domain => domain(X),
+  :codomain => codomain(X)
+)
+
+function save_object(s::SerializerState, h::FinGenAbGroupHom)
+  save_object(s, matrix(h))
+end
+
+function load_object(s::DeserializerState, ::Type{FinGenAbGroupHom}, params::Dict)
+  map_matrix = load_object(s, Matrix{ZZRingElem})
+  return hom(params[:domain], params[:codomain], matrix(ZZ, map_matrix))
+end
+
 ##############################################################################
 # MatrixGroup
 
