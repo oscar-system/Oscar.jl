@@ -261,17 +261,16 @@ end
     end
   end
 
+  R, q = Oscar.model_ring(model)
   @testset "Coordinate change Prob - Fourier" begin
-    R, q = Oscar.model_ring(gb_pm)
-    f = coordinate_change(gb_pm)
-    f1 = inverse_coordinate_change(gb_pm)
-
+    f = coordinate_change(model)
+    f1 = inverse_coordinate_change(model)
     @test f1(f(q[1, 2, 2])) == q[1, 2, 2]
     @test f1(f(q[2, 3, 4])) == q[2, 3, 4]
   end
 
   @testset "vanishing ideal" begin
-    vanishing_ideal(gb_pm) == ideal( -q[2, 3, 4]^2*q[1, 1, 1] + q[2, 2, 1]*q[2, 1, 2]*q[1, 2 , 2])
+    vanishing_ideal(model) == ideal( -q[2, 3, 4]^2*q[1, 1, 1] + q[2, 2, 1]*q[2, 1, 2]*q[1, 2 , 2])
   end
 
   @test_skip @testset "Affine parametrization" begin
