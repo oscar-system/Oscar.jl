@@ -13,14 +13,14 @@ Return a copy of the directed graph that is the subgraph of the graph `G`.
 
 # Examples
 ```jldoctest
-julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
 Mixed graph with 5 nodes and the following
 Directed edges:
 (1, 3)(3, 5)
 Undirected edges:
 (3, 2)(4, 2)(5, 4)
 
-julia> directed_component(G)
+julia> directed_component(mg)
 Directed graph with 5 nodes and the following edges:
 (1, 3)(3, 5)
 ```
@@ -36,14 +36,14 @@ Return a copy of the directed graph that is the subgraph of the graph `G`.
 
 # Examples
 ```jldoctest
-julia> G = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
 Mixed graph with 5 nodes and the following
 Directed edges:
 (1, 3)(3, 5)
 Undirected edges:
 (3, 2)(4, 2)(5, 4)
 
-julia> undirected_component(G)
+julia> undirected_component(mg)
 Undirected graph with 5 nodes and the following edges:
 (3, 2)(4, 2)(5, 4)
 ```
@@ -587,7 +587,7 @@ julia> collect(edges(g))
  Edge(3, 1)
  Edge(3, 2)
 
-julia> mg = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
 Mixed graph with 5 nodes and the following
 Directed edges:
 (1, 3)(3, 5)
@@ -624,7 +624,7 @@ julia> g = vertex_edge_graph(triangle);
 julia> has_edge(g, 1, 2)
 true
 
-julia> mg = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
 Mixed graph with 5 nodes and the following
 Directed edges:
 (1, 3)(3, 5)
@@ -1724,10 +1724,10 @@ function graph_from_edges(::Type{Mixed},
   return g
 end
 
-function mixed_graph_from_edges(::Type{Mixed},
-                                directed_edges::Vector{S},
-                                undirected_edges::Vector{T},
-                                n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::Vector{S},
+                          undirected_edges::Vector{T},
+                          n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
   return graph_from_edges(Mixed,
                           [Edge(e[1], e[2]) for e in directed_edges],
                           [Edge(e[1], e[2]) for e in undirected_edges],
