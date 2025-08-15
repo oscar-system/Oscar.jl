@@ -930,11 +930,24 @@ orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 
 @doc raw"""
-    stable_orthogonal_group(L::ZZLat; kwargs...) -> MatrixGroup
+    stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ with finite isometry group, return the
 subgroup $O^\#(L)$ of the isometry group of $L$ consisting of isometries
 acting trivially on the discriminant group of $L$.
+
+# Examples
+```jldoctest
+julia> A5 = root_lattice(:A, 5);
+
+julia> H, _ = stable_orthogonal_group(A5);
+
+julia> order(H)
+720
+```
 """
 function stable_orthogonal_group(
     L::ZZLat;

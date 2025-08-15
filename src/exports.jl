@@ -1038,6 +1038,7 @@ export is_solvable, has_is_solvable, set_is_solvable
 export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
+export is_stable_isometry
 export is_standard
 export is_standard_basis
 export is_standard_graded
@@ -1686,7 +1687,9 @@ export src
 export stabilizer_in_orthogonal_group
 export stabilizer_sublattice_in_orthogonal_group
 export stable_intersection
+export stable_orthogonal_group
 export stable_set_polytope
+export stable_subgroup
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix

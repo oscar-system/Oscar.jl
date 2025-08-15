@@ -781,7 +781,7 @@ function integer_lattice_with_isometry(
     @req ok "Isometry does not preserve the lattice"
   else
     f_ambient = representation_in_ambient_coordinates(L, f; check)
-    Vf = quadratic_space_with_isometry(V, f_ambient; check)
+    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
   end
 
   n = multiplicative_order(f)
@@ -1565,6 +1565,32 @@ function discriminant_representation(
 end
 
 @doc raw"""
+    is_stable_isometry(Lf::ZZLatWithIsom) -> Bool
+
+Given an integral $\mathbb{Z}$-lattice with isometry ``(L, f)``, return
+whether the isometry ``f`` acts trivially on the discriminant group of ``L``.
+
+# Examples
+```jldoctest
+julia> A2 = root_lattice(:A, 2);
+
+julia> f = matrix(QQ, 2, 2, [0 -1; 1 1]);
+
+julia> Lf = integer_lattice_with_isometry(A2, f);
+
+julia> is_stable_isometry(Lf)
+false
+```
+"""
+function is_stable_isometry(Lf::ZZLatWithIsom)
+  L = lattice(Lf)
+  f = ambient_isometry(Lf)
+  q = discriminant_group(L)
+  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+  return is_one(matrix(f))
+end
+
+@doc raw"""
     stable_subgroup(
       L::ZZLat,
       G::MatrixGroup;
@@ -1582,6 +1608,19 @@ the ambient space of $L$. Otherwise, they are considered as matrix
 representation of their action on the basis matrix of $L$.
 
 See [`discriminant_representation`](@ref).
+
+# Examples
+```jldoctest
+julia> A4 = root_lattice(:A,4);
+
+julia> OA4 = isometry_group(A4);
+
+julia> H, _ = stable_subgroup(A4, OA4)
+(Matrix group of degree 4 over QQ, Hom: H -> OA4)
+
+julia> index(OA4, H)
+2
+```
 """
 function stable_subgroup(
     L::ZZLat,

@@ -16,7 +16,7 @@ function is_isometry(
     Q::Hecke.QuadSpace,
     f::QQMatrix,
   )
-  !(degree(Q) == nrows(f) == ncols(f)) && return false
+  !(rank(Q) == nrows(f) == ncols(f)) && return false
   return f*gram_matrix(Q)*transpose(f) == gram_matrix(Q)
 end
 
@@ -138,7 +138,7 @@ end
 
 Given ``F`` being either:
   * a matrix with rational entries;
-  * a list of matrices of rational entries;
+  * a list of matrices with rational entries;
   * a matrix group over the rationals,
 representing a collection of isometries of ``L`` in the fixed basis of ``L``,
 return the same collection but represented in the standard basis of the ambient
@@ -197,7 +197,7 @@ function representation_in_ambient_coordinates(
     F::MatrixGroup{QQFieldElem, QQMatrix};
     check::Bool=true,
   )
-  F_ambient_gens = representation_in_ambient_coordinates(L, matrix.gens(F); check)
+  F_ambient_gens = representation_in_ambient_coordinates(L, matrix.(gens(F)); check)
   return matrix_group(F_ambient_gens)
 end
 
@@ -213,7 +213,7 @@ end
 
 Given ``F`` being either:
   * a matrix with rational entries;
-  * a list of matrices of rational entries;
+  * a list of matrices with rational entries;
   * a matrix group over the rationals,
 representing a collection of isometries of ``L`` in the standard basis of the
 ambient space of ``L``, return the same collection but represented in the fixed
@@ -310,7 +310,7 @@ function stabilizer_in_orthogonal_group(
     P = stable_orthogonal_group(K; kwargs...)
   else
     OK = orthogonal_group(K; kwargs...) # These are identity on K^\perp_L
-    P, _ = stabilizer(OK, L, on_lattices) # There come from isometries of L
+    P, _ = stabilizer(OK, L, on_lattices) # These come from isometries of L
   end
   return P
 end
@@ -318,7 +318,7 @@ end
 @doc raw"""
     pointwize_stabilizer_in_orthogonal_group(
       L::ZZLat,
-      B::QQMatrix,
+      S::ZZLat,
       stable::Bool = false;
       check::Bool=true,
       kwargs...,
@@ -469,7 +469,7 @@ Note that the function requires the orthogonal complement of ``S`` in ``L``
 is definite. However ``S`` need not be primitive in ``L``.
 
 If `pointwize` is set to `true`, compute the pointwize stabilizer of ``S`` in
-``O(L)``, i.e. the isometries of ``L`` acting trivially on ``S``. It it is set
+``O(L)``, i.e. the isometries of ``L`` acting trivially on ``S``. If it is set
 to `false`, then the lattice ``S`` must be definite too.
 
 If `check` is set to `true`, the function tests whether ``S`` is a sublattice
@@ -521,4 +521,73 @@ function stabilizer_sublattice_in_orthogonal_group(
   )
   S = lattice(ambient_space(L), B; isbasis=(rank(B)==nrows(B)))
   return stabilizer_in_orthogonal_group(L, S, pointwize; check, kwargs...)
+end
+
+@doc raw"""
+    pulse(
+      L::ZZLat,
+      S::Union{QQMatrix, ZZLat},
+      stable::Bool = false;
+      check::Bool=true,
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a negative definite sublattice ``S`` of an even lattice ``L``, or a
+generating set of vectors given as rows in a matrix with rational entries,
+return the largest subgroup of $O(L)$ which fixes pointwize the orthogonal
+complement ``T`` of ``S`` in ``L``.
+
+The lattice ``S`` need not be primitive in ``L``.
+
+If `stable` is set to `true`, return the largest subgroup of the stable group
+$O^\#(L)$ fixing pointwize ``T``.
+
+If `check` is set to `true`, the function tests whether ``S`` is a sublattice
+of ``L``, and whether ``S`` is definite.
+
+The keyword arguments in `kwargs` are optional arguments for the computation
+of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
+"""
+function pulse(
+    L::ZZLat,
+    S::ZZLat,
+    stable::Bool = false;
+    check::Bool=true,
+    kwargs...,
+  )
+  if check
+    @req is_sublattice(L, S) "Not a sublattice"
+    @req is_definite(S) "The lattice S must be definite"
+  end
+  if !is_primitive(L, S)
+    is_sat = false
+    Ssat = primitive_closure(L, S)
+  else
+    is_sat = true
+    Ssat = S
+  end
+  T = orthogonal_submodule(L, Ssat)
+  if stable
+    P = stable_orthogonal_group(Ssat; kwargs...)
+  else
+    OSsat = isometry_group(Ssat; kwargs...)
+    OT = matrix_group(QQMatrix[identity_matrix(QQ, degree(T))])
+    genP = _stabilizer_in_diagonal_action(L, T, S, OT, OSsat)
+    P = matrix_group(genP)
+  end
+  if !is_sat
+    P, _ = stabilizer(P, S, on_lattices)
+  end
+  return P
+end
+
+function pulse(
+    L::ZZLat,
+    B::QQMatrix,
+    stable::Bool = false;
+    check::Bool=true,
+    kwargs...,
+  )
+  S = lattice(ambient_space(L), B; isbasis=(rank(B)==nrows(B)))
+  return pulse(L, S, stable; check, kwargs...)
 end
