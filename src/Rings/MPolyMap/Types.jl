@@ -1,5 +1,5 @@
 ### Types for maps from polynomial rings
-const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
+const _DomainTypes = Union{MPolyRing, MPolyQuoRing, ModelRing}
 
 @attributes mutable struct MPolyAnyMap{
     D <: _DomainTypes,

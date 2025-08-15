@@ -205,16 +205,12 @@ end
 ###################################################################################
 
 @attr Tuple{
-  MPolyRing, 
-  GenDict} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+  ModelRing{T, U}, 
+  Dict{T, U}
+} where {T, U} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   l_indices = leaves_indices(PM)
 
-  R, x =  polynomial_ring(base_field(PM),
-                         ["$(varname(PM))[$(join(x, ", "))]" for x in l_indices];
-                         cached=cached)
-
-  # Dict{Tuple, MPolyRingElem} or Dict{Tuple{Vararg{Int64}, MPolyRingElem} ??
-  return R, Dict{Tuple, MPolyRingElem}(i => x[i...] for i in l_indices)
+  return model_ring(base_field(PM), varname(PM) => l_indices; cached=cached)
 end
 
 @attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel)
@@ -272,10 +268,8 @@ end
   eq_calasses = equivalent_classes(PM)
   ec_indices = sort(collect(keys(eq_calasses)), rev = true)
 
-    R, x =  polynomial_ring(base_field(PM),
-                         ["$(varname(PM))[$(join(x, ", "))]" for x in ec_indices];
-                         cached=cached)
-
+    # unfinished
+    error("unfinished function")
   R, Dict{Tuple, MPolyRingElem}(
      Tuple(index(x[i])) => x[i] for i in 1:length(x))
   
