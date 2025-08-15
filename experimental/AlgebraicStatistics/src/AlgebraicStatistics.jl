@@ -45,7 +45,7 @@ export reduced_parametrization
 export reduced_fourier_transform
 export reduced_coordinate_change
 export inverse_reduced_fourier_transform
-export reduced_coordinate_change
+export inverse_reduced_coordinate_change
 
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel

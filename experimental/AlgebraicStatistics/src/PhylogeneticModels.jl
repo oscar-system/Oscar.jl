@@ -84,7 +84,7 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Array} function model_ring(PM::PhylogeneticModel; cached=false)
+  Array} function full_model_ring(PM::PhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM)
 
   return polynomial_ring(base_field(PM),
@@ -106,7 +106,7 @@ function entry_root_distribution(PM::PhylogeneticModel, i::Int)
   parameter_ring(PM)[3][i]
 end
 
-@attr MPolyAnyMap function parametrization(PM::PhylogeneticModel)
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel)
   gr = graph(PM)
 
   R, _ = model_ring(PM)
@@ -252,7 +252,7 @@ end
 @attr Tuple{
   MPolyRing, 
   Array
-  } function model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+  } function full_model_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   leave_indices = leaves_indices(PM) # ? Antony
 
   return polynomial_ring(base_field(PM),
@@ -284,7 +284,8 @@ function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
   
 end
 
-@attr MPolyAnyMap function parametrization(PM::GroupBasedPhylogeneticModel)
+#@attr MPolyAnyMap 
+function full_parametrization(PM::GroupBasedPhylogeneticModel)
   gr = graph(PM)
 
   R, _ = model_ring(PM)
@@ -365,6 +366,28 @@ function reduced_parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogen
   probabilities = [param(p[k...]) for k in keys_eq_classes]
   hom(redR, S, reduce(vcat, probabilities))
 end
+
+# function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; reduced::bool = true)
+
+#   if !reduced
+#     PM.model_ring = full_model_ring(PM)
+#   else
+#     PM.model_ring = reduced_model_ring(PM)
+#   end
+# end
+
+
+# function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; reduced::bool = true)
+
+#   if !reduced
+#     PM.model_ring = full_model_ring(PM)
+#     return full_parametrization(PM)
+
+#   else
+#     PM.model_ring = reduced_model_ring(PM)
+#     return reduced_parametrization(PM)
+#   end
+# end
 
 ## Change of coordinates p ↔ q ##
 # ----------------------------- #
