@@ -316,6 +316,7 @@
     "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
+    "DeveloperDocumentation/known_properties.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
     "DeveloperDocumentation/changelog.md",
