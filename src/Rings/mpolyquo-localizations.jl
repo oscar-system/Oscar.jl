@@ -377,7 +377,7 @@ end
 Elements ``a//b`` of localizations ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of type 
 `MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}`.
 """
-mutable struct MPolyQuoLocRingElem{
+struct MPolyQuoLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,
@@ -1600,7 +1600,14 @@ function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfEle
   return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
+# The `simplify` routine uses Singular's "elimpart". This does not work 
+# when the coefficient ring is not a field. Hence, unless that is the case, 
+# we refrain from doing anything here. 
 function simplify(L::MPolyQuoRing)
+  return L, identity_map(L), identity_map(L)
+end
+
+function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   J = modulus(L)
   R = base_ring(L)
   is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)

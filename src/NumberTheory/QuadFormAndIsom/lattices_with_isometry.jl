@@ -1489,7 +1489,9 @@ Gram matrix quadratic form:
 [5//6]
 
 julia> qf
-Isometry of finite quadratic module: Z/6 -> Q/2Z defined by
+Isometry of
+  finite quadratic module: Z/6 -> Q/2Z
+with matrix representation
   [1]
 
 julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
@@ -1501,7 +1503,9 @@ julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
 julia> Lf = integer_lattice_with_isometry(L, f);
 
 julia> discriminant_group(Lf)[2]
-Isometry of finite quadratic module: Z/6 -> Q/2Z defined by
+Isometry of
+  finite quadratic module: Z/6 -> Q/2Z
+with matrix representation
   [5]
 ```
 """

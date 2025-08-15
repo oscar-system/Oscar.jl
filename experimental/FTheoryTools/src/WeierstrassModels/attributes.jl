@@ -1,8 +1,9 @@
 @doc raw"""
     weierstrass_section_f(w::WeierstrassModel)
 
-Returns the Weierstrass section ``f`` of the Weierstrass model.
+Return the Weierstrass section ``f`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -16,8 +17,9 @@ weierstrass_section_f(w::WeierstrassModel) = explicit_model_sections(w)["f"]
 @doc raw"""
     weierstrass_section_g(w::WeierstrassModel)
 
-Returns the Weierstrass section ``g`` of the Weierstrass model.
+Return the Weierstrass section ``g`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -31,10 +33,11 @@ weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 @doc raw"""
     weierstrass_polynomial(w::WeierstrassModel)
 
-Returns the Weierstrass polynomial of the model.
+Return the Weierstrass polynomial of the model.
 
 Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -69,12 +72,13 @@ hypersurface_equation(w::WeierstrassModel) = weierstrass_polynomial(w)
 @doc raw"""
     weierstrass_ideal_sheaf(w::WeierstrassModel)
 
-Returns the Weierstrass ideal sheaf of the Weierstrass model.
+Return the Weierstrass ideal sheaf of the Weierstrass model.
 
 This method is relevant when the Weierstrass model cannot be represented by a single
 global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
 locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(2)
 Weierstrass model over a concrete base
@@ -109,31 +113,11 @@ end
 
 
 @doc raw"""
-    calabi_yau_hypersurface(w::WeierstrassModel)
-
-Returns the Calabi–Yau hypersurface that defines the Weierstrass model
-as a closed subvariety of its toric ambient space.
-
-```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
-Weierstrass model over a concrete base
-
-julia> calabi_yau_hypersurface(w)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
-  @req base_space(w) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(w) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
-end
-
-
-@doc raw"""
     discriminant(w::WeierstrassModel)
 
-Returns the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
@@ -150,7 +134,7 @@ end
 @doc raw"""
     singular_loci(w::WeierstrassModel)
 
-Returns the singular loci of the Weierstrass model, along with the order of
+Return the singular loci of the Weierstrass model, along with the order of
 vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
 
 Currently, the method either explicitly or implicitly assumes a toric variety
@@ -172,17 +156,21 @@ Advanced technical details are available in [BMT25](@cite BMT25).
 
 !!! warning
     The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling.
-    While extensively tested and highly reliable, the method’s probabilistic nature may lead to non-deterministic results in rare cases.
+    While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random source can be set with the optional argument `rng`.
 
+# Examples
 ```jldoctest
 julia> w =  weierstrass_model_over_projective_space(3)
 Weierstrass model over a concrete base
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel; rng::AbstractRNG = Random.default_rng())
   @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   B = irrelevant_ideal(base_space(w))
   d_primes = factor(discriminant(w))
@@ -195,7 +183,7 @@ julia> length(singular_loci(w))
     g_order = valuation(g, p)
     ords = (f_order, g_order, d_order)
     I = ideal([p])
-    kodaira_types[i] = (I, ords, _kodaira_type(I, ords, w))
+    kodaira_types[i] = (I, ords, _kodaira_type(I, ords, w; rng))
   end
   sort!(kodaira_types, by = x -> (x[2][2], x[2][3]))
   return kodaira_types
