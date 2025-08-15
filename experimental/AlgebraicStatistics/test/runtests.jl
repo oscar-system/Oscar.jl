@@ -187,35 +187,20 @@ end
     @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
   end
 
-  @test_skip @testset "affine models" begin 
-    model = jukes_cantor_model(tree)
-    @test Oscar.affine_phylogenetic_model!(model) isa GroupBasedPhylogeneticModel
-    #sum of each row of transition matrices should equal one 
-    tr_mat = Oscar.transition_matrices(Oscar.affine_phylogenetic_model!(model))
-    for j in 1:4
-      rowsum = 0
-      for i in 1:4
-          rowsum = rowsum+tr_mat[Edge(4, 2)][j,i]
-      end
-      @test rowsum == 1
-    end
-    #sum of root distribution should equal one
-    @test sum(Oscar.affine_phylogenetic_model!(model).phylo_model.root_distr) == 1
-  end
-
   # Test parametrizations for a specific tree and model
   model = jukes_cantor_model(tree)
 
   @testset "parametrization PhylogeneticModel" begin
     pm = phylogenetic_model(model)
-    f = parametrization(pm)
+
+    R, p = full_model_ring(pm)
+    f = full_parametrization(pm)
 
     @test f.codomain == parameter_ring(pm)[1]
-    @test f.domain == model_ring(pm)[1]
+    @test f.domain == R
 
     @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
-    _, p = model_ring(pm)
 
     # Test some entries of the joint distribution vector
     a = gens(parameter_ring(pm)[1])[1:3]
@@ -225,56 +210,57 @@ end
     @test f(p[4,4,3]) == 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 
     @testset "Equivalent classes probabilities" begin
-      @test length(equivalent_classes(pm)) == 5
-      @test issetequal(collect(keys(equivalent_classes(pm))),
-                        [p[1, 1, 1], p[2, 2, 1], p[3, 2, 1], p[2, 1, 1], p[1, 2, 1]])
-      @test length(equivalent_classes(pm)[p[1, 1, 1]]) == 4
-      @test length(equivalent_classes(pm)[p[2, 2, 1]]) == 12
-      @test length(equivalent_classes(pm)[p[3, 2, 1]]) == 24
-      @test length(equivalent_classes(pm)[p[2, 1, 1]]) == 12
-      @test length(equivalent_classes(pm)[p[1, 2, 1]]) == 12
+    eq_classes = equivalent_classes(pm)
+      @test length(eq_classes) == 5
+      @test issetequal(collect(keys(eq_classes)),
+                        [(1, 2, 1), (1, 1, 1), (1, 2, 2), (1, 2, 3), (1, 1, 2)])
+      @test length(eq_classes[1, 1, 1]) == 4
+      @test length(eq_classes[1, 1, 2]) == 12
+      @test length(eq_classes[1, 2, 3]) == 24
+      @test length(eq_classes[1, 2, 2]) == 12
+      @test length(eq_classes[1, 2, 1]) == 12
 
-      @test issetequal(equivalent_classes(pm)[p[1, 1, 1]],
+      @test issetequal(eq_classes[1, 1, 1],
                         [p[1, 1, 1], p[2, 2, 2], p[3, 3, 3], p[4, 4, 4]])
     end
   end
 
   @testset "parametrization GroupBasedPhylogeneticModel" begin
 
-    f = parametrization(model)
+    R, q = full_model_ring(model)
+    f = full_parametrization(model)
 
     @test f.codomain == parameter_ring(model)[1]
-    @test f.domain == model_ring(model)[1]
+    @test f.domain == R
 
     @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
-    _, q = model_ring(model)
-
+   
     # Test some entries of the joint distribution vector
     x = gens(parameter_ring(model)[1])[1:3]
     y = gens(parameter_ring(model)[1])[4:6]
-    @test f(p[3,2,4]) == y[1]*y[2]*y[3]
-    @test f(p[2,1,2]) == x[2]*y[1]*y[3]
-    @test f(p[1,1,1]) == x[1]*x[2]*x[3]
+    @test f(q[3,2,4]) == y[1]*y[2]*y[3]
+    @test f(q[2,1,2]) == x[2]*y[1]*y[3]
+    @test f(q[1,1,1]) == x[1]*x[2]*x[3]
 
 
-    @testset "Equivalent classes probabilities" begin
-      @test length(equivalent_classes(model)) == 5
-      @test issetequal(collect(keys(equivalent_classes(model))),
-                       [q[1, 1, 1], q[2, 2, 1], q[2, 1, 2], p[4, 3, 2], p[1, 2, 2]])
-      @test length(equivalent_classes(model)[q[1, 1, 1]]) == 1
-      @test length(equivalent_classes(model)[q[2, 2, 1]]) == 3
-      @test length(equivalent_classes(model)[q[2, 1, 2]]) == 3
-      @test length(equivalent_classes(model)[q[4, 3, 2]]) == 6
-      @test length(equivalent_classes(model)[q[1, 2, 2]]) == 3
+    @testset "Equivalent classes fourier" begin
+      eq_classes = equivalent_classes(model)
+      @test length(eq_classes) == 5
+      @test issetequal(collect(keys(eq_classes)),
+                       [(1, 1, 1), (2, 2, 1), (2, 1, 2), (2, 3, 4), (1, 2, 2)])
+      @test length(eq_classes[1, 1, 1]) == 1
+      @test length(eq_classes[2, 2, 1]) == 3
+      @test length(eq_classes[2, 1, 2]) == 3
+      @test length(eq_classes[2, 3, 4]) == 6
+      @test length(eq_classes[1, 2, 2]) == 3
 
-      @test issetequal(equivalent_classes(model)[p[2, 2, 1]],
-                       [p[2, 2, 1], p[3, 3, 1], p[4, 4, 1]])
+      @test issetequal(eq_classes[2, 2, 1],
+                       [q[2, 2, 1], q[3, 3, 1], q[4, 4, 1]])
     end
   end
 
-  
-  @test_skip @testset "specialized (inverse) fourier transform" begin
+  @test_skip @testset "Coordinate change Prob - Fourier" begin
     # model = jukes_cantor_model(tree)
 
     FT = probability_ring(model).([1 1 1 1 1
