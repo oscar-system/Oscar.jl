@@ -17,7 +17,7 @@ A *graph* consists of two sets of data:
 There are three types of graphs, *directed*, *undirected* and *mixed*. For a *directed
 graph* the elements of $E$ are considered to be ordered pairs, for an
 *undirected graph* the elements of $E$ are unordered pairs or rather sets with
-two elements, a *mixed graph* has a *directed component* and an *undirected*
+two elements, a *mixed graph* has a *directed component* and an *undirected component*.
 
 The interface is modeled alongside the
 [Graphs.jl](https://juliagraphs.org/Graphs.jl/dev/) interface to
