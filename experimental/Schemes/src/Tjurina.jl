@@ -470,7 +470,7 @@ julia> determinacy_bound(f, :right)
 11
 
 julia> sharper_determinacy_bound(f, :right)
-6
+7
 ```
 """
 function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
@@ -532,7 +532,7 @@ julia> determinacy_bound(X)
 17
 
 julia> sharper_determinacy_bound(X)
-6
+7
 ```
 """
 function sharper_determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
