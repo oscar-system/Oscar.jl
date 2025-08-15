@@ -81,13 +81,13 @@ all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
-vertices
-edges
+vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge
-has_vertex
+has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
-n_edges
-n_vertices
+n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}

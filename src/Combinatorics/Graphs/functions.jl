@@ -570,6 +570,7 @@ end
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    edges(mg::MixedGraph)
 
 Return an iterator over the edges of the graph `g`.
 
