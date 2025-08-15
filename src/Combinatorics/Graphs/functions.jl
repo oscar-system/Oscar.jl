@@ -150,8 +150,8 @@ false
 julia> n_edges(g)
 1
 
-julia> mg = graph(Mixed, 2)
-Mixed graph with 2 nodes and no edges
+julia> mg = graph(Mixed, 3)
+Mixed graph with 3 nodes and no edges
 
 julia> add_edge!(mg, Directed, 1, 2)
 true
@@ -1652,6 +1652,9 @@ end
 @doc raw"""
     graph_from_edges(edges::Vector{Vector{Int}})
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
+    graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
+    graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+
 
 Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
@@ -1665,6 +1668,28 @@ Undirected graph with 5 nodes and the following edges:
 julia> G = graph_from_edges(Directed, [[1,3]], 4)
 Directed graph with 4 nodes and the following edges:
 (1, 3)
+
+julia> g = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> g1 = graph_from_edges(Directed, [[1, 2], [3, 4]])
+Directed graph with 4 nodes and the following edges:
+(1, 2)(3, 4)
+
+julia> g2 = graph_from_edges(Undirected, [[1, 4], [3, 2]])
+Undirected graph with 4 nodes and the following edges:
+(3, 2)(4, 1)
+
+julia> graph_from_edges(Mixed, edges(g1), edges(g2))
+Mixed graph with 4 nodes and the following
+Directed edges:
+(1, 2)(3, 4)
+Undirected edges:
+(3, 2)(4, 1)
 ```
 """
 function graph_from_edges(::Type{T},
@@ -1679,9 +1704,10 @@ function graph_from_edges(edges::Vector{T},
 end
 
 
-function mixed_graph_from_edges(directed_edges::Vector{Edge},
-                                undirected_edges::Vector{Edge},
-                                n_vertices::Int=-1)
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::Vector{Edge},
+                          undirected_edges::Vector{Edge},
+                          n_vertices::Int=-1)
   n_needed = maximum(vcat(reduce(append!,[[src(e),dst(e)] for e in directed_edges]; init=[0]),
                           reduce(append!,[[src(e),dst(e)] for e in undirected_edges]; init=[0])))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
@@ -1698,50 +1724,21 @@ function mixed_graph_from_edges(directed_edges::Vector{Edge},
   return g
 end
 
-@doc raw"""
-    mixed_graph_from_edges(directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
-    mixed_graph_from_edges(directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
-
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
-
-# Examples
-```jldoctest
-julia> g = mixed_graph_from_edges([[1,3],[3,5]],[[4,5],[2,4],[2,3]])
-Mixed graph with 5 nodes and the following
-Directed edges:
-(1, 3)(3, 5)
-Undirected edges:
-(3, 2)(4, 2)(5, 4)
-
-julia> g1 = graph_from_edges(Directed, [[1, 2], [3, 4]])
-Directed graph with 4 nodes and the following edges:
-(1, 2)(3, 4)
-
-julia> g2 = graph_from_edges(Undirected, [[1, 4], [3, 2]])
-Undirected graph with 4 nodes and the following edges:
-(3, 2)(4, 1)
-
-julia> mixed_graph_from_edges(edges(g1), edges(g2))
-Mixed graph with 4 nodes and the following
-Directed edges:
-(1, 2)(3, 4)
-Undirected edges:
-(3, 2)(4, 1)
-```
-"""
-function mixed_graph_from_edges(directed_edges::Vector{S},
+function mixed_graph_from_edges(::Type{Mixed},
+                                directed_edges::Vector{S},
                                 undirected_edges::Vector{T},
                                 n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
-  return mixed_graph_from_edges([Edge(e[1], e[2]) for e in directed_edges],
-                                [Edge(e[1], e[2]) for e in undirected_edges],
-                                n_vertices)
+  return graph_from_edges(Mixed,
+                          [Edge(e[1], e[2]) for e in directed_edges],
+                          [Edge(e[1], e[2]) for e in undirected_edges],
+                          n_vertices)
 end
 
-function mixed_graph_from_edges(directed_edges::EdgeIterator,
-                                undirected_edges::EdgeIterator,
-                                n_vertices::Int=-1) 
-  return mixed_graph_from_edges(collect(directed_edges), collect(undirected_edges), n_vertices)
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::EdgeIterator,
+                          undirected_edges::EdgeIterator,
+                          n_vertices::Int=-1) 
+  return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
 end
 
 

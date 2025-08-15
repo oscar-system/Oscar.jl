@@ -1217,7 +1217,6 @@ export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supe
 export minimize
 export minkowski_sum
 export minor
-export mixed_graph_from_edges
 export module_syzygies
 export modulus
 export moebius_kantor_matroid
