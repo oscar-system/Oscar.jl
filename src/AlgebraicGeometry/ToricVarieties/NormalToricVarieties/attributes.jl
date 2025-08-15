@@ -648,7 +648,7 @@ julia> character_lattice(p2)
 Z^2
 ```
 """
-@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
 
 
 @doc raw"""
@@ -680,7 +680,12 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
+@attr FinGenAbGroup function torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
+    if has_attribute(v, :map_from_torusinvariant_weil_divisor_group_to_class_group)
+      return domain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
+    end
+    return free_abelian_group(n_rays(v))
+end
 
 
 @doc raw"""
@@ -700,7 +705,7 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
+    return hom(free_abelian_group(ambient_dim(v)), torusinvariant_weil_divisor_group(v), mat)
 end
 
 
@@ -765,6 +770,7 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
     map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
+    map1 = hom(torusinvariant_weil_divisor_group(v), domain(map1), gens(domain(map1)))*map1
     map2 = inv(snf(codomain(map1))[2])
     # we cannot call class_group unless the attribute exists
     # but we need to make sure to have the correct codomain if it does exist
@@ -852,6 +858,9 @@ Map
     
     # return the image of this embedding
     return image(embedding)[2]
+    #im_map = image(embedding)[2]
+    #tiwdg = torusinvariant_weil_divisor_group(v)
+    #return im_map * hom(codomain(im_map), tiwdg, gens(tiwdg))
 end
 
 
