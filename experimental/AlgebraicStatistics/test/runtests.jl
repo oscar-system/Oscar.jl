@@ -260,28 +260,13 @@ end
     end
   end
 
-  @test_skip @testset "Coordinate change Prob - Fourier" begin
-    # model = jukes_cantor_model(tree)
-
-    FT = probability_ring(model).([1 1 1 1 1
-    1 -1//3 -1//3 1 -1//3
-    1 -1//3 1 -1//3 -1//3
-    1 1 -1//3 -1//3 -1//3
-    1 -1//3 -1//3 -1//3 1//3])
-
-    IFT = probability_ring(model).([1//16 3//16 3//16 3//16 3//8
-    3//16 -3//16 -3//16 9//16 -3//8
-    3//16 -3//16 9//16 -3//16 -3//8
-    3//16 9//16 -3//16 -3//16 -3//8
-    3//8 -3//8 -3//8 -3//8 3//4])
-
-    @test specialized_fourier_transform(model) == FT
-    @test inverse_specialized_fourier_transform(model) == IFT
-
-    p_equivclasses = compute_equivalent_classes(probability_map(model))
-    f_equivclasses = compute_equivalent_classes(fourier_map(model))
-    @test specialized_fourier_transform(model, p_equivclasses.classes, f_equivclasses.classes) == FT
-    @test inverse_specialized_fourier_transform(model, p_equivclasses.classes, f_equivclasses.classes) == IFT
+  @testset "Coordinate change Prob - Fourier" begin
+    R, q = Oscar.model_ring(gb_pm)
+    f = coordinate_change(gb_pm)
+    f1 = inverse_coordinate_change(gb_pm)
+    
+    @test f1(f(q[1, 2, 2])) == q[1, 2, 2]
+    @test f1(f(q[2, 3, 4])) == q[2, 3, 4]
   end
 
   @test_skip @testset "Affine parametrization" begin
