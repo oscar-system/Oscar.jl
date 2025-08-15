@@ -1291,6 +1291,7 @@ Return the full automorphism group of `G`. If `f` is an object of type
 return the embedding of `f` in `A`.
 
 Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup{T}`, where `T` is the type of `G`. 
+
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
@@ -1304,6 +1305,13 @@ Automorphism group of
   symmetric group of degree 3
 
 julia> typeof(A)
+AutomorphismGroup{PermGroup}
+
+julia> D = derived_subgroup(A)[1]
+Group of automorphisms of
+  symmetric group of degree 3
+
+julia> typeof(D)
 AutomorphismGroup{PermGroup}
 ```
 
@@ -1430,22 +1438,24 @@ GAPGroupHomomorphism{PermGroup, PermGroup}
 ```
 """
 function automorphism_group(G::GAPGroup)
-  AutGAP = GAP.Globals.AutomorphismGroup(GapObj(G))::GapObj
-  return AutomorphismGroup(AutGAP, G)
+  AutGAP = GAPWrap.AutomorphismGroup(GapObj(G))
+  return AutomorphismGroup(AutGAP, G, true)
 end
 
 function Base.show(io::IO,  ::MIME"text/plain", A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
   io = pretty(io)
-  println(io, "Automorphism group of", Indent())
+  str = A.is_known_to_be_full ? "Automorphism group" : "Group of automorphisms"
+  println(io, "$str of", Indent())
   print(io, Lowercase(), A.G, Dedent())
 end
 
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Union{FinGenAbGroup, GAPGroup}
+  str = A.is_known_to_be_full ? "Automorphism group" : "Group of automorphisms"
   if is_terse(io)
-    print(io, "Automorphism group")
+    print(io, str)
   else
     io = pretty(io)
-    print(io, "Automorphism group of ", Lowercase(), A.G)
+    print(io, "$str of ", Lowercase(), A.G)
   end
 end
 

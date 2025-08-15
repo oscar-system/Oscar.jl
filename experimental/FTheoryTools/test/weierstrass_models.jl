@@ -11,10 +11,10 @@ sec_g = generic_section(anticanonical_bundle(my_base)^6)
 w = weierstrass_model(my_base; completeness_check = false)
 
 @testset "Attributes of Weierstrass models over concrete base spaces" begin
-  @test parent(weierstrass_section_f(w)) == cox_ring(base_space(w))
-  @test parent(weierstrass_section_g(w)) == cox_ring(base_space(w))
-  @test parent(weierstrass_polynomial(w)) == cox_ring(ambient_space(w))
-  @test parent(discriminant(w)) == cox_ring(base_space(w))
+  @test parent(weierstrass_section_f(w)) == coordinate_ring(base_space(w))
+  @test parent(weierstrass_section_g(w)) == coordinate_ring(base_space(w))
+  @test parent(weierstrass_polynomial(w)) == coordinate_ring(ambient_space(w))
+  @test parent(discriminant(w)) == coordinate_ring(base_space(w))
   @test dim(base_space(w)) == 3
   @test dim(ambient_space(w)) == 5
   @test is_smooth(ambient_space(w)) == false
