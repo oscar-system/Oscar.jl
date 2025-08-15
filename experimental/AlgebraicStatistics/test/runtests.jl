@@ -71,8 +71,8 @@ end
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  
           ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
-    @test ngens(model_ring(model)[1]) ==
-          ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+    @test ngens(full_model_ring(model)[1]) ==
+          ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
   end
 
   @testset "Jukes Cantor" begin
@@ -100,8 +100,8 @@ end
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  
           ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
-    @test ngens(model_ring(model)[1]) ==
-          ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+    @test ngens(full_model_ring(model)[1]) ==
+          ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
   end
 
   @testset "Kimura 2" begin
@@ -130,8 +130,8 @@ end
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  
           ngens(parameter_ring(phylogenetic_model(model))[1]) == 3(n_edges(tree))
-    @test ngens(model_ring(model)[1]) ==
-          ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+    @test ngens(full_model_ring(model)[1]) ==
+          ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
   end
 
   @testset "Kimura 3" begin
@@ -165,8 +165,8 @@ end
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  
           ngens(parameter_ring(phylogenetic_model(model))[1]) == 4(n_edges(tree))
-    @test ngens(model_ring(model)[1]) ==
-          ngens(model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+    @test ngens(full_model_ring(model)[1]) ==
+          ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
   end
 
   @testset "general_markov_model" begin
@@ -184,7 +184,7 @@ end
 
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  4 + 16(n_edges(tree))
-    @test ngens(model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
+    @test ngens(full_model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
   end
 
   # Test parametrizations for a specific tree and model
