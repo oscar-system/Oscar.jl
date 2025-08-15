@@ -28,7 +28,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       ("EmbeddedElem", "EmbeddedNumFieldElem"),
     ])
 
-    upgraded_dict = upgrade_types(dict, renamings)
+    upgraded_dict = rename_types(dict, renamings)
     
     if haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_0_15_0(s, dict[:data])
