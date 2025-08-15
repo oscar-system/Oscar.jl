@@ -550,7 +550,6 @@ export direct_product
 export direct_sum
 export direct_sum_components
 export directed_component
-export directed_edges
 export discriminant_representation
 export disjoint_union
 export div_left
@@ -740,8 +739,6 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
-export has_directed_edge
-export has_undirected_edge
 export has_edge
 export has_groups_with_class_number
 export has_nonempty_intersection
@@ -1786,7 +1783,6 @@ export underlying_presheaf
 export underlying_quotient
 export underlying_word
 export undirected_component
-export undirected_edges
 export uniform_matroid
 export unit
 export unitary_group
