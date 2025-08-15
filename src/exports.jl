@@ -133,6 +133,7 @@ export MPolyRingElem
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
+export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleFP
 export ModuleFPElem
@@ -548,6 +549,7 @@ export dim_of_torusfactor
 export direct_product
 export direct_sum
 export direct_sum_components
+export directed_component
 export discriminant_representation
 export disjoint_union
 export div_left
@@ -1779,6 +1781,7 @@ export underlying_gluing
 export underlying_presheaf
 export underlying_quotient
 export underlying_word
+export undirected_component
 export uniform_matroid
 export unit
 export unitary_group
