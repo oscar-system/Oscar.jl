@@ -15,7 +15,7 @@ function random_subset(n::Int64, m::Int64)
   end
   L = collect(1:n)
   if m == n
-    return L 
+    return L
   end
   for j in 1:m
     k = rand(j:n)
