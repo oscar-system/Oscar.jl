@@ -14,8 +14,8 @@ new functionality.
 
 ## Status
 
-- [ ] Conditional independence models
-  - [ ] Gaussian ideals
+- [X] Conditional independence models
+  - [X] Gaussian ideals
   - [X] Discrete ideals
 - [ ] Directed graphical models (Bayesian networks)
   - [ ] Markov properties
@@ -25,7 +25,7 @@ new functionality.
 - [X] Undirected graphical models (Markov networks)
   - [ ] Markov properties
   - [X] Gaussian parametrization
-  - [ ] Discrete parametrization
+  - [X] Discrete parametrization
 - [ ] Phylogenetics
   - [X] Cavender--Farris--Neyman model
   - [X] Jukes--Cantor model
