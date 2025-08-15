@@ -157,14 +157,14 @@ end
   @test PosInf() == sharper_determinacy_bound(L(1), :right)
   @test 1 == sharper_determinacy_bound(L(x))
   @test 1 == sharper_determinacy_bound(L(x), :right) 
-  @test 4 == sharper_determinacy_bound(L(x^3+y^2))
+  @test 6 == sharper_determinacy_bound(L(x^3+y^2))
   @test PosInf() == sharper_determinacy_bound(L(x^3+y^2), :right)  
   @test PosInf() == sharper_determinacy_bound(L(x^2+y^2))
   @test PosInf() == sharper_determinacy_bound(L(x^2+y^2), :right)  
-  @test 7 == sharper_determinacy_bound(L(x^3+x*y^3))
-  @test 7 == sharper_determinacy_bound(L(x^3+x*y^3), :right)
-  @test 6 == sharper_determinacy_bound(L(x^5+x^2*y^2+y^5))
-  @test 8 == sharper_determinacy_bound(L(x^5+x^2*y^2+y^5), :right)
+  @test 9 == sharper_determinacy_bound(L(x^3+x*y^3))
+  @test 9 == sharper_determinacy_bound(L(x^3+x*y^3), :right)
+  @test 8 == sharper_determinacy_bound(L(x^5+x^2*y^2+y^5))
+  @test 10 == sharper_determinacy_bound(L(x^5+x^2*y^2+y^5), :right)
 end
 
 @testset "contact equivalence" begin
