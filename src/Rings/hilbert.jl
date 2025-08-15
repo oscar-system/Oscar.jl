@@ -26,23 +26,6 @@ function random_subset(n::Int64, m::Int64)
   return L
 end
 
-# There must be a better way...!
-# Split a "list" into 2 parts determined by a predicate.
-# Returns 2-tuple: list-of-sat-elems, list-of-unsat-elems
-function filter2(pred::Function, L::Vector)
-  sat = []
-  unsat = []
-  for x in L
-    if pred(x)
-      push!(sat,x)
-    else
-      push!(unsat,x)
-    end
-  end
-  return sat,unsat
-end
-
-
 ##################################################################
 # Code for representing & manipulating PPs (power products, aka. monomials)
 # All this code is "local" to this file, & not exported!
@@ -50,10 +33,10 @@ end
 
 # Each PP is represented as Vector{PP_exponent}
 
-PP_exponent = Int64;  # UInt ???  Strange: Int32 was slower on my machine ?!?
+const PP_exponent = Int64 # FIXME  # UInt ???  Strange: Int32 was slower on my machine ?!?
 
 
-#= mutable =# struct PP
+struct PP
   expv::Vector{PP_exponent}
 end
 
@@ -319,7 +302,7 @@ end
 # Input: non-empty list of PPs
 # Output: list of lists of var indexes, each sublist is a connected component
 function connected_components(L::Vector{PP})
-  ConnCompt::Vector{Vector{Int64}} = []
+  ConnCompt = Vector{Vector{Int64}}()
   nvars = length(L[1])
   IgnoreVar = [ false   for _ in 1:nvars]
   VarAppears = copy(IgnoreVar)
@@ -395,32 +378,32 @@ end
 
 function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
   # t is not a "simple power", all the others are
-  @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)";
-  @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)"
+  @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)"
   ans = HSNum_base_SimplePowers(SimplePPs, T)
-  ReducedSimplePPs::Vector{PP} = []
-  for j in 1:length(SimplePPs)
-    @inbounds e = SimplePPs[j].expv
+  ReducedSimplePPs = PP[]
+  for spp in SimplePPs
+    e = spp.expv
     k = findfirst(>(0), e) # ispositive
     if  t[k] == 0
-      push!(ReducedSimplePPs,SimplePPs[j])
+      push!(ReducedSimplePPs, spp)
       continue
     end   # no need to make a copy
-    tt = copy(SimplePPs[j])
+    tt = copy(spp)
     tt.expv[k] -= t[k] # guaranteed > 0
     push!(ReducedSimplePPs, tt)
   end
   nvars = length(t)
   @inbounds scale = prod([T[k]^t[k]  for k in 1:nvars])
   ans = ans - scale * HSNum_base_SimplePowers(ReducedSimplePPs, T)
-  @vprintln  :hilbert 1  "HSNum_base_case1: returning $(ans)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: returning $(ans)"
   return ans
 end # function
 
 
 ## CC contains at least 2 connected components (each compt repr as Vector{Int64} of the variable indexes in the compt)
 function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
-  @vprintln  :hilbert 1  "Splitting case: CC = $(CC)";
+  @vprintln  :hilbert 1  "Splitting case: CC = $(CC)"
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1])
@@ -450,7 +433,7 @@ end
 
 
 function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
-  @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)";
+  @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)"
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1])
@@ -525,7 +508,7 @@ function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   #??    BSPivot = rev_lex_min(NonSimplePPs) # VERY SLOW on Hilbert-test-rnd6.jl
   BSPivot = rev_lex_max(NonSimplePPs)
   #VERY SLOW?!?    BSPivot = rev_lex_max(vcat(SimplePPs,NonSimplePPs)) # VERY SLOW on Hilbert-test-rnd6.jl
-  @vprintln :hilbert 2 "BSPivot = $(BSPivot)";
+  @vprintln :hilbert 2 "BSPivot = $(BSPivot)"
   NonSPP = filter(!=(BSPivot), NonSimplePPs)
   SPP = SimplePPs#filter((t -> (t != BSPivot)), SimplePPs)
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman)
@@ -755,7 +738,8 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   # Check for "splitting case"
   if length(NonSimplePPs) <= length(NonSimplePPs[1])#=nvars=#
     CC = connected_components(NonSimplePPs)
-  else CC = []
+  else
+    CC = []
   end
   if length(CC) > 1
     @vprintln :hilbert  1 "HSNum_loop:  --> delegate Splitting case"
@@ -832,7 +816,6 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   else  # Use "smart version"
     if !PivotIsSimple   # GENERAL CASE (e.g. if not PivotIsSimple)
       # Clever approach (for non-simple pivots) taken from Bigatti 1997 paper (p.247 just after Prop 1 to end of sect 5)
-      # ???Maybe use filter2 (see start of this file) instead of loop below???
       BM = PP[]
       NotBM = PP[]
       PivotPlus = mult(PivotPP, radical(PivotPP))
@@ -901,21 +884,21 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   # Now put the two pieces together:
   nvars = length(PivotPP)
   scale = prod([T[k]^PivotPP[k]  for k in 1:nvars])
-  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)"
 
   HSNum_sum = HSNum_loop(RecurseSum_SimplePPs, RecurseSum_NonSimplePPs, T, PivotStrategy)
   HSNum_quot = HSNum_loop(RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs, T, PivotStrategy)
-  @vprintln  :hilbert 1 "HSNum_loop:  END OF CALL";
+  @vprintln  :hilbert 1 "HSNum_loop:  END OF CALL"
   return HSNum_sum + scale*HSNum_quot
 end
 
 
 function separate_simple_pps(gens::Vector{PP})
-  SimplePPs::Vector{PP} = []
-  NonSimplePPs::Vector{PP} = []
+  SimplePPs = PP[]
+  NonSimplePPs = PP[]
   for g in gens
     if is_simple_power_pp(g)
       push!(SimplePPs, g)
@@ -932,13 +915,13 @@ end
 #function _hilbert_series_check_weights(W::Vector{Vector{Int}})
 #  # assumes W is rectangular (and at least 1x1)
 #  # Transpose while converting:
-#  ncols = length(W);
-#  nrows = length(W[1]);
-#  A = zero_matrix(ZZ, nrows,ncols);
-#  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
-#  b = zero_matrix(ZZ, nrows,1);
+#  ncols = length(W)
+#  nrows = length(W[1])
+#  A = zero_matrix(ZZ, nrows,ncols)
+#  for i in 1:nrows, j in 1:ncols  A[i,j] = W[j][i]  end
+#  b = zero_matrix(ZZ, nrows,1)
 #  try
-#    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
+#    solve_non_negative(A, b) # any non-zero soln gives rise to infinitely many, which triggers an exception
 #  catch e
 #    if !(e isa ArgumentError && e.msg == "Polyhedron not bounded")
 #      rethrow(e)
@@ -969,8 +952,8 @@ end
 
 function HSNum_abbott_PPs(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol, HSRing::Ring)
   # ASSUME W is "rectangular"
-  @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)";
-  @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)";
+  @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)"
+  @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)"
   HSNum_check_args(PP_gens, W) #throws or does nothing
   # Grading is over ZZ^m
   m = length(W)
@@ -1071,7 +1054,7 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   fac_dict = Dict{elem_type(HSRing), Integer}()
   for i = 1:n
     # adjoin factor ( 1 - prod(t_j^W[i,j]) )
-    new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m]);
+    new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m])
     # ???BUG??? DOES NOT WORK if HSRing is Univariate poly ring over ZZ
     # B = MPolyBuildCtx(HSRing)
     # push_term!(B, 1, W[i])
