@@ -648,7 +648,7 @@ julia> character_lattice(p2)
 Z^2
 ```
 """
-@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
 
 
 @doc raw"""
@@ -680,7 +680,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
+@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 
 
 @doc raw"""
@@ -700,7 +700,7 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
+    return hom(free_abelian_group(ambient_dim(v)), free_abelian_group(n_rays(v)), mat)
 end
 
 
@@ -765,6 +765,9 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
     map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
+    if domain(map1) != torusinvariant_weil_divisor_group(v)
+      map1 = hom(torusinvariant_weil_divisor_group(v), domain(map1), gens(domain(map1)))*map1
+    end
     map2 = inv(snf(codomain(map1))[2])
     # we cannot call class_group unless the attribute exists
     # but we need to make sure to have the correct codomain if it does exist
@@ -851,7 +854,12 @@ Map
     embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_weil_divisor_group(v), map_to_weil_divisors)
     
     # return the image of this embedding
-    return image(embedding)[2]
+    im_map = image(embedding)[2]
+    if codomain(im_map) != torusinvariant_weil_divisor_group(v)
+      tiwdg = torusinvariant_weil_divisor_group(v)
+      im_map = im_map * hom(codomain(im_map), tiwdg, gens(tiwdg))
+    end
+    return im_map
 end
 
 
