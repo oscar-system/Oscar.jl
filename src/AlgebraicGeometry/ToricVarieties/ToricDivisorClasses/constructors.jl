@@ -6,7 +6,7 @@
     toric_variety::NormalToricVarietyType
     class::FinGenAbGroupElem
     function ToricDivisorClass(toric_variety::NormalToricVarietyType, class::FinGenAbGroupElem)
-        @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
+        @req parent(class) === class_group_with_map(toric_variety)[1] "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
 end
@@ -27,7 +27,9 @@ element of the class group of the normal toric variety `v`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 ```
 """
@@ -45,11 +47,13 @@ specify an element of the class group of the normal toric variety `v`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([ZZRingElem(1)]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([ZZRingElem(1)]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([ZZRingElem(c) for c in coeffs]))
+toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group_with_map(v)[1]([ZZRingElem(c) for c in coeffs]))
 
 
 ######################

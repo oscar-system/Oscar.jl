@@ -8,7 +8,9 @@ Return the element of the class group corresponding to the toric divisor class `
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> divisor_class(tdc)
@@ -28,7 +30,9 @@ Return the toric variety on which the toric divisor class `tdc` is defined.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> toric_variety(tdc)
@@ -48,7 +52,9 @@ Construct a toric divisor corresponding to the toric divisor class  `tdc`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> toric_divisor(tdc)

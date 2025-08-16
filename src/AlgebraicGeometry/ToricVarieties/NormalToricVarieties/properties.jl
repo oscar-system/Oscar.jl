@@ -68,11 +68,12 @@ true
     if is_projective(v) == false
         return false
     end
-    if torsion_free_rank(class_group(v)) > 1
+    cl = class_group_with_map(v)[1]
+    if torsion_free_rank(cl) > 1
         return false
     end
-    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for g in gens(class_group(v))
+    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(cl)]
+    for g in gens(cl)
         g = [Int(x) for x in g.coeff if !iszero(x)]
         if length(g) > 1
             return false
