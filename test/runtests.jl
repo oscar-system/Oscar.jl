@@ -96,6 +96,7 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/FTM-1511-03209.jl",
                                "experimental/FTheoryTools/test/long_QSMs.jl",
                                "experimental/FTheoryTools/test/singular_loci.jl",
+                               "experimental/FTheoryTools/test/paper_tests.jl",
                               ],
 
                     :long  => [
