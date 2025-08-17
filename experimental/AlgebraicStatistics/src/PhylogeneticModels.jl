@@ -98,8 +98,7 @@ const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
       ), r
 end
 
-# add new one where we use MPolyRingElem{T} where  T <: Union{RationalFunctionField, FracField} Look into which is best
-# add note in docs, I believe it's rationalfunctionfield
+
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
@@ -143,6 +142,33 @@ end
   R, dict_maps, rv
 
 end
+
+# add new one where we use MPolyRingElem{T} where  T <: Union{RationalFunctionField, FracField} Look into which is best
+# add note in docs, I believe it's rationalfunctionfield
+# @attr Tuple{
+#   MPolyRing, 
+#   Dict{Edge, Oscar.MPolyAnyMap}, 
+#   Vector{T}
+# } function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: Union{AbstractAlgebra.Generic.RationalFunctionFieldElem, FracFieldElem}}
+  
+#   trans_ring = parent(first(transition_matrix(PM)))
+#   transition_vars = gens(trans_ring)
+#   root_vars = gens(coefficient_ring(trans_ring))
+
+#   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+#   R, rv, x... = rational_function_field(base_field(PM), Symbol.(root_vars), edge_gens..., ; cached=cached)
+
+#   coef_map = hom(coefficient_ring(trans_ring), R, rv)
+
+#   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+#   for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+#       map = [x[i][j] for i in 1:length(transition_vars)]
+#       dict_maps[e] = hom(trans_ring, R, coef_map, map)
+#   end
+
+#   R, dict_maps, rv
+
+# end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
@@ -226,7 +252,7 @@ varname(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
 @attr Tuple{MPolyRing, 
       GenDict
-      } function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+} function parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
   vars = unique(fourier_parameters(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -324,7 +350,7 @@ end
 @attr Tuple{
   MPolyRing, 
   GenDict
-  } function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+} function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   eq_calasses = equivalent_classes(PM)
   ec_indices = sort(collect(keys(eq_calasses)), rev = true)
 
