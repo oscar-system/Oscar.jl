@@ -98,7 +98,7 @@ end
 # see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
 
-function save_object(s::SerializerState, x::Vector)
+function save_object(s::SerializerState, x::T) where {S, T <: Union{Vector, AbstractArray{S, 1}}}
   save_data_array(s) do
     for elem in x
       if serialize_with_id(typeof(elem))
@@ -151,60 +151,56 @@ end
 # Saving and loading matrices
 @register_serialization_type Matrix
 
-function save_object(s::SerializerState, mat::Matrix)
-  m, n = size(mat)
+function save_object(s::SerializerState, mat::T) where {S, T <: Union{ Matrix{S}, AbstractArray{S, 2}}}
   save_data_array(s) do
-    for i in 1:m
-      save_object(s, [mat[i, j] for j in 1:n])
+    for r in eachrow(mat)
+      save_object(s, r)
     end
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where S
+function load_object(s::DeserializerState, T::Type{<:U}) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
     end
     len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector{S}, i)) for i in 1:len
-        ])
+    m = stack([
+      load_object(s, Vector{S}, i) for i in 1:len
+        ]; dims=1)
     return T(m)
   end
 end
 
-load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where S = load_object(s, T)
+load_object(s::DeserializerState, T::Type{<:U}, ::Nothing) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}} = load_object(s, T)
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where S
+function load_object(s::DeserializerState, T::Type{<:U}, params) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
     end
     len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector{S}, params, i)) for i in 1:len
-        ])
+    m = stack([
+      load_object(s, Vector{S}, params, i) for i in 1:len
+        ]; dims=1)
     return T(m)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::U) where {S, U <: Union{Int, Symbol}}
+function load_object(s::DeserializerState, T::Type{<:U}, key::V) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}, V <: Union{Int, Symbol}}
   return load_node(s, key) do _
     load_object(s, T)
   end
 end
 
-
 ################################################################################
 # Multidimensional Arrays
 @register_serialization_type Array "MultiDimArray"
 
-function save_object(s::SerializerState, arr::Array{T, N}) where {T, N}
-  arr_size = size(arr)
-  k = arr_size[N]
+function save_object(s::SerializerState, arr::AbstractArray{T, N}) where {T, N}
   save_data_array(s) do
-    for t in 1:k
-      save_object(s, arr[[1:arr_size[i] for i in 1:N-1]..., t])
+    for slice in eachslice(arr; dims=N)
+      save_object(s, slice)
     end
   end
 end
@@ -216,7 +212,7 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, i) for i in 1:len]
-    return T(reduce((a, b) -> cat(a, b; dims=N), m))
+    return stack(m; dims=N)
   end
 end
 
@@ -229,7 +225,7 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) wher
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, params, i) for i in 1:len]
-    return T(reduce((a, b) -> cat(a, b; dims=N), m))
+    return stack(m; dims=N)
   end
 end
 
