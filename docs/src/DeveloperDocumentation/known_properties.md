@@ -5,7 +5,7 @@ DocTestSetup = Oscar.doctestsetup()
 ```
 # Known properties
 
-Many high-level objects in Oscar such as ideals in polynomial rings, algebraic
+Many high-level objects in OSCAR such as ideals in polynomial rings, algebraic
 schemes, etc. have properties which can be computed and possibly be cached.
 For example, `krull_dim(I::MPolyIdeal)` returns the Krull dimension of `I`
 and, if not already present, caches the result in order to avoid a second
@@ -22,7 +22,7 @@ directly. Yet, computation of an ideal's Krull dimension involves a Gröbner
 basis computation which, if not already done, may clog the main process for an
 indefinite amount of time. This risk of blockage only for reasons of algorithm
 selection might be considered too high: The user "only" wants a
-normalization, but Oscar gets stuck on gathering information on which
+normalization, but OSCAR gets stuck on gathering information on which
 implementation to choose from. For the user's convenience, one could then
 write
 ```julia
@@ -42,19 +42,19 @@ Some further remarks:
 
 * The `is_known` methods have to be implemented manually, and do not
   automatically exist for all arguments.
-* The above example does not adhere to the style guide in Oscar for reasons
+* The above example does not adhere to the style guide in OSCAR for reasons
   different than the purpose illustrated here. For instance, the output does not
   depend on the mathematical content of the input alone, but on the status of
   cached objects. This can lead to hard-to-debug code down the road and should,
   in general, be avoided. 
-* Other systems which are already integrated in Oscar have their own caching
+* Other systems which are already integrated in OSCAR have their own caching
   mechanisms; for instance the attributes system in GAP, or the storage of
   attributes in Polymake objects. The function `is_known` is a priori not tied
   to any of these! However, if needed, special methods of `is_known` can be
   implemented which use such internals. 
-* The function `is_known` is not user-facing. It provides an Oscar internal
+* The function `is_known` is not user-facing. It provides an OSCAR internal
   basis to assess known properties so that programmers can extend this
   functionality for their purposes if needed, using one and the same formulation
-  throughout the Oscar system. In particular, we do not require `is_known` to be
+  throughout the OSCAR system. In particular, we do not require `is_known` to be
   supported for any property of any object and the user can not expect this. 
   
