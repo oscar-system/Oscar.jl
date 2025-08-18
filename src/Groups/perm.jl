@@ -161,6 +161,13 @@ julia> length(moved_points(gen(s, 1)))
 ```
 """
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
+"""
+    fixed_points(G::PermGroup)
+
+Return the set of fixed points of the permutation group `G`.
+A fixed point is an integer in `1:degree(G)` that is not moved by any element of `G`.
+"""
+fixed_points(G::PermGroup) = setdiff(1:degree(G), moved_points(G))
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
