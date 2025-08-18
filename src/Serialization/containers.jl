@@ -150,7 +150,7 @@ end
 # Saving and loading matrices
 @register_serialization_type Matrix
 
-function save_object(s::SerializerState, mat::AbstractMatrix{S) where {S}
+function save_object(s::SerializerState, mat::AbstractMatrix{S}) where {S}
   save_data_array(s) do
     for r in eachrow(mat)
       save_object(s, r)
