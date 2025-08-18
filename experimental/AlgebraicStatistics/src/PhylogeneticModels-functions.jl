@@ -1,6 +1,9 @@
+###################################################################################
+#
+#       Auxiliary graph functions
+#
+###################################################################################
 
-### GRAPH FUNCTIONS ###
-# ---------------------
 
 function interior_nodes(graph::Graph)
   big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
@@ -51,8 +54,72 @@ function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
   return d
 end
 
-### PARAMETRIZATIONS ###
-# ----------------------
+
+###################################################################################
+#
+#       Auxiliary functions to access parameters
+#
+###################################################################################
+
+
+function entry_transition_matrix(PM::PhylogeneticModel{<: VarName, L, T}, i::Int, j::Int, e::Edge) where {L, T}
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][tr_mat[i,j], e]
+end
+
+function entry_transition_matrix(PM::PhylogeneticModel{<: VarName, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
+end
+
+function entry_transition_matrix(PM::PhylogeneticModel{<: MPolyRingElem, L, <: T}, i::Int, j::Int, e::Edge) where {L, T}
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][e](tr_mat[i,j])
+end
+
+function entry_transition_matrix(PM::PhylogeneticModel{<: MPolyRingElem, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+  tr_mat = transition_matrix(PM)
+  parameter_ring(PM)[2][Edge(u,v)](tr_mat[i,j])
+end
+
+
+# Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, e)
+end
+
+# ?
+function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
+  entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
+end
+
+function entry_root_distribution(PM::PhylogeneticModel, i::Int)
+  parameter_ring(PM)[3][i]
+end
+
+#?
+function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
+  entry_root_distribution(phylogenetic_model(PM), i)
+  
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
+  x = fourier_parameters(PM)
+  parameter_ring(PM)[2][x[i], e]
+end
+
+function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
+  x = fourier_parameters(PM)
+  parameter_ring(PM)[2][x[i], Edge(u,v)]
+end
+
+
+###################################################################################
+#
+#       Auxiliary functions to compute the parametrizations
+#
+###################################################################################
+
 
 function leaves_indices(PM::PhylogeneticModel)
   leave_nodes = leaves(graph(PM))
@@ -67,10 +134,9 @@ end
 
 function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int})
   gr = graph(PM)
-  root_dist = root_distribution(PM)
 
   r = root(gr)
-  monomial = root_dist[vertices_states[r]]
+  monomial = entry_root_distribution(PM, vertices_states[r])
   
   for edge in edges(gr)
     state_parent = vertices_states[src(edge)]
@@ -130,8 +196,12 @@ function leaves_fourier(PM::GroupBasedPhylogeneticModel, leaves_states::Dict{Int
 end 
   
 
-### GROUP OPERATIONS ###
-# ----------------------
+###################################################################################
+#
+#       Auxiliary group operation functions
+#
+###################################################################################
+
 
 function group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   G = group(PM)
@@ -147,15 +217,4 @@ function which_group_element(PM::GroupBasedPhylogeneticModel, elem::FinGenAbGrou
   return findall([all(g==elem) for g in G])[1]
 end
 
-### OTHER AUXILIARY FUNCTIONS ###
-# -------------------------------
-
-# I would like to get rid of this! Is there a better way?
-function index(x::QQMPolyRingElem)
-
-    m = match(r"\[(.*)\]", string(x))
-    idx = split(m.captures[1], ',')
-
-    [parse(Int, n) for n in idx if !isempty(n)]
-end
 

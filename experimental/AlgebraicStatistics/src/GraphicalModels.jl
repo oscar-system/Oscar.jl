@@ -62,11 +62,38 @@ parametrization(M::T) where T <: GraphicalModel = error("Please implement the me
 
 #TODO update docs with an example?
 @doc raw"""
-    vanishing_ideal(M::GraphicalModel)
+    vanishing_ideal(M::GraphicalModel; algorithm::Symbol = :eliminate)
 
 Compute the vanishing ideal for a graphical model `M`.
 This is done by computing the kernel of the parametrization.
 """
-function vanishing_ideal(M::GraphicalModel)
-  kernel(parametrization(M))
+function vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
+  phi = parametrization(GM)
+  if algorithm == :kernel
+    invariants = kernel(phi)
+  else
+    S = domain(phi)
+    R = codomain(phi)
+    
+    elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat(symbols(R), symbols(S)))
+    inject_R = hom(R, elim_ring, elim_gens[1:ngens(R)])
+    inject_S = hom(S, elim_ring, elim_gens[ngens(R) + 1:ngens(elim_ring)])
+    
+    I = ideal([inject_S(s) - inject_R(phi(s)) for s in gens(S)])
+    
+    if algorithm == :eliminate
+      invariants = eliminate(I, elim_gens[1:ngens(R)])
+    elseif algorithm == :f4
+      invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
+    elseif algorithm == :markov
+      o = lex(elim_ring)
+      groebner_basis(I; ordering=o, algorithm=:markov)
+      invariants = eliminate(I, o, ngens(R))
+    else
+      error("Didn't recognize  algorithm $algorithm")
+    end
+    project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
+    invariants = project_S(invariants)
+  end
+  invariants
 end

@@ -76,6 +76,41 @@ function ring(R::MarkovRing)
 end
 
 @doc raw"""
+    gens(R::MarkovRing)
+
+Return a dictionary for indexing the generators of `R` by their states.
+
+## Examples
+
+```jldoctest
+julia> R = markov_ring(2,2,2,2)
+MarkovRing over Rational field for 4 random variables and states (2, 2, 2, 2)
+
+julia> gens(R)
+Dict{NTuple{4, Int64}, QQMPolyRingElem} with 16 entries:
+  (2, 2, 2, 2) => p[2, 2, 2, 2]
+  (2, 2, 2, 1) => p[2, 2, 2, 1]
+  (1, 2, 1, 2) => p[1, 2, 1, 2]
+  (1, 2, 1, 1) => p[1, 2, 1, 1]
+  (2, 2, 1, 2) => p[2, 2, 1, 2]
+  (2, 2, 1, 1) => p[2, 2, 1, 1]
+  (1, 1, 2, 2) => p[1, 1, 2, 2]
+  (1, 1, 2, 1) => p[1, 1, 2, 1]
+  (2, 1, 2, 2) => p[2, 1, 2, 2]
+  (2, 1, 2, 1) => p[2, 1, 2, 1]
+  (1, 1, 1, 2) => p[1, 1, 1, 2]
+  (1, 1, 1, 1) => p[1, 1, 1, 1]
+  (1, 2, 2, 2) => p[1, 2, 2, 2]
+  (1, 2, 2, 1) => p[1, 2, 2, 1]
+  (2, 1, 1, 2) => p[2, 1, 1, 2]
+  (2, 1, 1, 1) => p[2, 1, 1, 1]
+```
+"""
+function gens(R::MarkovRing)
+  return R.gens
+end
+
+@doc raw"""
     random_variables(R::MarkovRing)
 
 Return the vector of `[1, ..., n]` where `n` is the number of random variables in the MarkovRing

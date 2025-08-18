@@ -14,6 +14,7 @@ end
 
 ################################################################################
 
+include("ModelRing.jl")
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
@@ -32,8 +33,10 @@ include("./serialization.jl")
 # export Abstract Graphical Model
 export GraphicalModel
 export model_ring
+export full_model_ring
 export parameter_ring
 export parametrization
+export full_parametrization
 export graph
 export vanishing_ideal
 export varnames
@@ -52,19 +55,15 @@ export n_states
 export transition_matrix
 export root_distribution
 export entry_transition_matrix
-export group_of_model
+export entry_root_distribution
+export entry_fourier_parameter
 
-#export probability and fourier map
-export probability_map
-export fourier_map
-
-# export functions to calculate equivalent classes
-export compute_equivalent_classes
-export sum_equivalent_classes
-
-# export transformation matrices
-export specialized_fourier_transform
-export inverse_specialized_fourier_transform
+# export equivalent classes
+export equivalent_classes
+export fourier_transform
+export coordinate_change
+export inverse_fourier_transform
+export inverse_coordinate_change
 
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
@@ -74,8 +73,6 @@ export reduced_model_ring
 #export auxiliary graph functions
 export n_leaves
 
-# export functions to load objects (currently only graphs of phylogenetic models)
-export load_phylogenetic_model
 
 # Gaussian Graphical Model Exports
 export GaussianGraphicalModel
@@ -86,6 +83,9 @@ export concentration_matrix
 export gaussian_ring, GaussianRing
 
 # Discrete graphical models
+export DiscreteGraphicalModel
+export discrete_graphical_model
+export states, varnames, maximal_cliques
 export state_space
 export marginal
 export markov_ring, tensor_ring, MarkovRing
