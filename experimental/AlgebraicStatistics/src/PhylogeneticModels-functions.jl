@@ -218,20 +218,3 @@ function which_group_element(PM::GroupBasedPhylogeneticModel, elem::FinGenAbGrou
 end
 
 
-###################################################################################
-#
-#       Other auxiliary functions ---> hopefully rhis will disapear
-#
-###################################################################################
-
-
-# I would like to get rid of this! Is there a better way?
-# used in: reduced_parametrization(), reduced_fourier_transform() and inverse_reduced_fourier_transform()
-function index(x::QQMPolyRingElem)
-
-    m = match(r"\[(.*)\]", string(x))
-    idx = split(m.captures[1], ',')
-
-    [parse(Int, n) for n in idx if !isempty(n)]
-end
-
