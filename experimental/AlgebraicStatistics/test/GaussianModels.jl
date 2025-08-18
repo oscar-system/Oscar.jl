@@ -38,7 +38,13 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
   end
 
   @testset "Mixed" begin
-    MG = mixed_graph_from_edges(collect(edges(DG)), collect(edges(UG)))
+    MG = graph_from_edges(Mixed, collect(edges(DG)), collect(edges(UG)))
     M4 = gaussian_graphical_model(MG)
+    s = covariance_matrix(M4)
+    V4 = vanishing_ideal(M4; algorithm=:kernel)
+
+    @test V4 == ideal(-s[1, 1]*s[1, 2]*s[2, 3] +
+      s[1, 1]*s[1, 3]*s[2, 2] - s[1, 1]*s[2, 3] +
+      s[1, 2]*s[1, 3] - s[1, 2]*s[2, 3] + s[1, 3]*s[2, 2] - s[2, 3])
   end
 end

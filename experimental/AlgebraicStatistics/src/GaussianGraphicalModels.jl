@@ -146,20 +146,18 @@ end
   GraphGenDict
 } function parameter_ring(GM::GaussianGraphicalModel{Mixed, T}; cached=false) where T
   G = graph(GM)
-  D = directed_component(G)
-  U = undirected_component(G)
-  gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(D)],
+  gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G, Directed)],
                ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)], 
-               ["$(varnames(GM)[:w])[$(src(e)), $(dst(e))]" for e in edges(U)])
+               ["$(varnames(GM)[:w])[$(src(e)), $(dst(e))]" for e in edges(G, Undirected)])
   R, d_gens, v_gens, u_gens = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(D))),
+  gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Directed))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)),
-                    Dict(e => d_gens[i] for (i, e) in enumerate(edges(U))))
-  return R, gens_dict
+                    Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Undirected))))
+  return R, Dict{Union{Int, Edge}, MPolyRingElem}(gens_dict)
 end
 
 @doc raw"""
-    directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+    directed_edges_matrix(M::GaussianGraphicalModel{T, L}) where {T <: Union{Directed, Mixed}, L}
 
 Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
 
@@ -176,12 +174,12 @@ julia> directed_edges_matrix(GM)
 
 ```
 """
-function directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+function directed_edges_matrix(M::GaussianGraphicalModel{T}) where {T <: Union{Mixed, Directed}}
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
   lambda = zero_matrix(R, n, n)
-  for e in edges(G)
+  for e in edges(G, Directed)
     lambda[src(e), dst(e)] = gens_dict[e]
   end
   return lambda
@@ -231,13 +229,14 @@ julia> error_covariance_matrix(M)
 ```
 """
 function error_covariance_matrix(M::GaussianGraphicalModel{Mixed, L}) where L
-  G = undirected_component(graph(M))
+  G = graph(M)
   R, gens_dict = parameter_ring(M)
   W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
 
-  for e in edges(G)
-    W[dst(e), src(e)] = W[e]
-    W[src(e), dst(e)] = W[e]
+  for e in edges(G, Undirected)
+    # TODO maybe using an ordering would be better so we only need one pair?
+    W[dst(e), src(e)] = gens_dict[e]
+    W[src(e), dst(e)] = gens_dict[e]
   end
 
   return W
@@ -270,7 +269,7 @@ defined by
 
 ```
 """
-function parametrization(M::GaussianGraphicalModel{T, L}) where T  <: Union{Directed, Mixed} where L
+function parametrization(M::GaussianGraphicalModel{T, L}) where {T  <: Union{Directed, Mixed}, L}
   S, _ = model_ring(M)
   R, _ = parameter_ring(M)
   G = graph(M)
