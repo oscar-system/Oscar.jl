@@ -143,17 +143,17 @@ end
 
 @attr Tuple{
   MPolyRing,
-  GenDict
+  GraphGenDict
 } function parameter_ring(GM::GaussianGraphicalModel{Mixed, T}; cached=false) where T
   G = graph(GM)
   D = directed_component(G)
   U = undirected_component(G)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(D)],
-               ["$(varnames(GM)[:w])[$(v), $(v)]" for v in vertices(G)], 
+               ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)], 
                ["$(varnames(GM)[:w])[$(src(e)), $(dst(e))]" for e in edges(U)])
   R, d_gens, v_gens, u_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(D))),
-                    Dict((v, v) => v_gens[v] for v in 1:n_vertices(G)),
+                    Dict(v => v_gens[v] for v in 1:n_vertices(G)),
                     Dict(e => d_gens[i] for (i, e) in enumerate(edges(U))))
   return R, gens_dict
 end

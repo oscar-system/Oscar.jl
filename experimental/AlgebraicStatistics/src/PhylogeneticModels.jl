@@ -86,11 +86,16 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
       ), root_distribution(PM)
 end
 
-const EquivTup = Tuple{MPolyRing, GenDict, Vector{T}}  where T <: MPolyRingElem
-@attr EquivTup function parameter_ring(PM::PhylogeneticModel{<: VarName, L, T}; cached=false) where {L, T <: VarName} 
+@attr Tuple{
+  MPolyRing,
+  GraphTransDict,
+  Vector{<:MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{<: VarName}; cached=false)
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
-  R, r, x... = polynomial_ring(base_field(PM), root_distribution(PM), edge_gens...; cached=cached)
+  R, r, x... = polynomial_ring(base_field(PM),
+                               root_distribution(PM),
+                               edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
@@ -143,10 +148,10 @@ end
 end
 
 @attr Tuple{
-  MPolyRing, 
+  MPolyRing{T}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{AbstractAlgebra.Generic.RationalFunctionFieldElem}
-} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, <: AbstractAlgebra.Generic.RationalFunctionFieldElem}; cached=false) where L
+  Vector{T}
+} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
