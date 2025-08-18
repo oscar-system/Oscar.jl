@@ -274,8 +274,9 @@ function parametrization(PM::PhylogeneticModel)
   S, _ = parameter_ring(PM)
 
   R, x = model_ring(PM)
-  lvs_indices = index.(gens(R))
-
+  # need to double check the order of the keys here is consitent,
+  # otherwise we need to add a sort
+  lvs_indices = keys(gens(R))
   map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end

@@ -240,37 +240,37 @@
     @test sum(collect(values(p))) == 1
   end
 
-  @test @testset "Transition Matrix Types" begin
+  @testset "Transition Matrix Types" begin
     tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
-    @testset begin "M = VarName - T = FieldElem"
+    @testset "M = VarName - T = FieldElem" begin
       m = jukes_cantor_model(tree)
       parameter_ring(phylogenetic_model(m))
       entry_transition_matrix(m, 1, 3, 4, 1)
+    end
+    @testset  "M = VarName - T = VarName" begin
+      m = general_markov_model(tree)
+      parameter_ring(m)
+      entry_transition_matrix(m, 1, 3, 4, 1)
+    end
 
-      @testset  "M = VarName - T = VarName" begin
-        m = general_markov_model(tree)
-        parameter_ring(m)
-        entry_transition_matrix(m, 1, 3, 4, 1)
-      end
+    @testset "M = MPolyRingElem - T = MPolyRingElem" begin
+      Rp, p = polynomial_ring(QQ, :p => 1:4)
+      RM, (a, b, c, d) = polynomial_ring(Rp, [:a, :b, :c, :d])
+      p = [p[1], p[2], p[3], p[4]]
+      M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
+      PM = PhylogeneticModel(tree, M, p)
+      parameter_ring(PM)
+      entry_transition_matrix(PM, 1, 3, 4, 1)
 
-      @testset "M = MPolyRingElem - T = MPolyRingElem" begin
-        Rp, p = polynomial_ring(QQ, :p => 1:4)
-        RM, (a, b, c, d) = polynomial_ring(Rp, [:a, :b, :c, :d])
-        p = [p[1], p[2], p[3], p[4]]
-        M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
-        PM = PhylogeneticModel(tree, M, p)
-        parameter_ring(PM)
-        entry_transition_matrix(PM, 1, 3, 4, 1)
+    end
 
-      end
-
-      @testset "M = MPolyRingElem - T = FieldElem" begin 
-        RM, (a, b, c, d) = polynomial_ring(QQ, [:a, :b, :c, :d])
-        p = QQ.([5//8, 1//8, 1//8, 1//8])
-        M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
-        PM = PhylogeneticModel(tree, M, p)
-        parameter_ring(PM)
-        entry_transition_matrix(PM, 1, 3, 4, 1)
-      end
+    @testset "M = MPolyRingElem - T = FieldElem" begin 
+      RM, (a, b, c, d) = polynomial_ring(QQ, [:a, :b, :c, :d])
+      p = QQ.([5//8, 1//8, 1//8, 1//8])
+      M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
+      PM = PhylogeneticModel(tree, M, p)
+      parameter_ring(PM)
+      entry_transition_matrix(PM, 1, 3, 4, 1)
+    end
   end
 end
