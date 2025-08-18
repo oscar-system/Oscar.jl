@@ -1,5 +1,4 @@
 @testset "Graphs" begin
-
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
