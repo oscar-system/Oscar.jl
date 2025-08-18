@@ -5,8 +5,50 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
-directed_component(G::MixedGraph) = G.directed_component
-undirected_component(G::MixedGraph) = G.undirected_component
+_directed_component(G::MixedGraph) = G.directed_component
+@doc raw"""
+    directed_component(G::MixedGraph)
+
+Return a copy of the directed graph that is the subgraph of the graph `G`.
+
+# Examples
+```jldoctest
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> directed_component(mg)
+Directed graph with 5 nodes and the following edges:
+(1, 3)(3, 5)
+```
+"""
+directed_component(G::MixedGraph) = deepcopy(_directed_component(G))
+
+
+_undirected_component(G::MixedGraph) = G.undirected_component
+@doc raw"""
+    undirected_component(G::MixedGraph)
+
+Return a copy of the directed graph that is the subgraph of the graph `G`.
+
+# Examples
+```jldoctest
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> undirected_component(mg)
+Undirected graph with 5 nodes and the following edges:
+(3, 2)(4, 2)(5, 4)
+```
+"""
+undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 
 ################################################################################
 ################################################################################
@@ -15,10 +57,10 @@ undirected_component(G::MixedGraph) = G.undirected_component
 ################################################################################
 
 @doc raw"""
-    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
+    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Mixed, Undirected}}
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
-graph should be `Directed` or `Undirected`.
+graph should be `Directed`, `Undirected` or `Mixed`.
 
 # Examples
 Make a directed graph with 5 vertices and print the number of nodes and edges.
@@ -36,7 +78,7 @@ function graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}
   return Graph{T}(nverts)
 end
 
-function mixed_graph(nverts::Int64)
+function graph(::Type{Mixed}, nverts::Int64)
   return MixedGraph(nverts)
 end
 
@@ -89,9 +131,10 @@ _has_node(G::Graph, node::Int64) = 0 < node <= n_vertices(G)
 
 @doc raw"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
+    add_edge!(mg::MixedGraph, ::Type{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 
 Add edge `(s,t)` to the graph `g`.
-Return `true` if a new edge `(s,t)` was added, `false` otherwise.
+Return `true` if a new edge `(s,t)` was added, `false` otherwise. For `MixedGraph` the second input determines which component to apply the operation to.
 
 # Examples
 ```jldoctest
@@ -105,6 +148,24 @@ false
 
 julia> n_edges(g)
 1
+
+julia> mg = graph(Mixed, 3)
+Mixed graph with 3 nodes and no edges
+
+julia> add_edge!(mg, Directed, 1, 2)
+true
+
+julia> add_edge!(mg, Directed, 1, 2)
+false
+
+julia> n_edges(mg)
+1
+
+julia> add_edge!(mg, Undirected, 1, 3)
+true
+
+julia> n_edges(mg)
+2
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
@@ -114,69 +175,18 @@ function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{
   return n_edges(g) == old_nedges + 1
 end
 
-@doc raw"""
-    add_directed_edge!(g::MixedGraph, s::Int64, t::Int64)
-
-Add edge `(s,t)` to the dirceted component of the graph `g`.
-Return `true` if a new edge `(s,t)` was added, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> g = mixed_graph(2);
-
-julia> add_directed_edge!(g, 1, 2)
-true
-
-julia> add_directed_edge!(g, 1, 2)
-false
-
-julia> n_edges(g)
-1
-```
-"""
-function add_directed_edge!(mg::MixedGraph, source::Int64, target::Int64)
-  g = directed_component(mg)
-  _has_node(g, source) && _has_node(g, target) || return false
-  old_nedges = n_edges(g)
-  Polymake._add_edge(pm_object(g), source-1, target-1)
-  return n_edges(g) == old_nedges + 1
-end
-
-@doc raw"""
-    add_undirected_edge!(g::MixedGraph, s::Int64, t::Int64)
-
-Add edge `(s,t)` to the dirceted component of the graph `g`.
-Return `true` if a new edge `(s,t)` was added, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> g = mixed_graph(2);
-
-julia> add_undirected_edge!(g, 1, 2)
-true
-
-julia> add_undirected_edge!(g, 1, 2)
-false
-
-julia> n_edges(g)
-1
-```
-"""
-function add_undirected_edge!(mg::MixedGraph, source::Int64, target::Int64)
-  g = undirected_component(mg)
-  _has_node(g, source) && _has_node(g, target) || return false
-  old_nedges = n_edges(g)
-  Polymake._add_edge(pm_object(g), source-1, target-1)
-  return n_edges(g) == old_nedges + 1
-end
+add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = add_edge!(_directed_component(mg), source, target)
+add_edge!(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64) = add_edge!(_undirected_component(mg), source, target)
 
 @doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
     rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
+    rem_edge!(g::MixedGraph, ::Type{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
+    rem_edge!(g::MixedGraph, ::Type{T}, e::Edge) where {T <: Union{Directed, Undirected}}
 
 Remove edge `(s,t)` from the graph `g`.
 Return `true` if there was an edge from `s` to `t` and it got removed, `false`
-otherwise.
+otherwise. For `MixedGraph` the second input determines which component to apply the operation to.
 
 # Examples
 ```jldoctest
@@ -193,6 +203,29 @@ true
 
 julia> n_edges(g)
 0
+
+julia> mg = graph(Mixed, 2);
+
+julia> add_edge!(mg, Directed, 1, 2)
+true
+
+julia> n_edges(mg)
+1
+
+julia> rem_edge!(mg, Directed, 1, 2)
+true
+
+julia> add_edge!(mg, Undirected, 1, 2)
+true
+
+julia> n_edges(mg)
+1
+
+julia> rem_edge!(mg, Undirected, 1, 2)
+true
+
+julia> n_edges(mg)
+0
 ```
 """
 function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -202,17 +235,12 @@ function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, 
   return n_edges(g) == old_nedges - 1
 end
 
-function rem_directed_edge!(mg::MixedGraph, s::Int64, t::Int64)
-  g = directed_component(mg)
-  has_edge(g, s, t) || return false
-  old_nedges = n_edges(g)
-  Polymake._rem_edge(pm_object(g), s-1, t-1)
-  return n_edges(g) == old_nedges - 1
-end
-
+rem_edge!(mg::MixedGraph, ::Type{Directed}, s::Int64, t::Int64) = rem_edge!(_directed_component(mg), s, t)
+rem_edge!(mg::MixedGraph, ::Type{Undirected}, s::Int64, t::Int64) = rem_edge!(_undirected_component(mg), s, t)
 
 @doc raw"""
     add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    add_vertex!(mg::MixedGraph)
 
 Add a vertex to the graph `g`. Return `true` if there a new vertex was actually
 added.
@@ -239,11 +267,19 @@ function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 function add_vertex!(mg::MixedGraph)
-  return add_vertex!(directed_component(mg)) && add_vertex!(undirected_component(mg))
+  add_vertex!(_directed_component(mg)) || return false
+  vertex_added = add_vertex!(_undirected_component(mg))
+
+  if !vertex_added
+    @assert rem_vertex!(_directed_component(mg))
+    return false
+  end
+  return true
 end
 
 @doc raw"""
     rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+    rem_vertex!(mg::MixedGraph, v::Int64)
 
 Remove the vertex `v` from the graph `g`. Return `true` if node `v` existed and
 was actually removed, `false` otherwise.
@@ -274,11 +310,12 @@ function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
 end
 
 function rem_vertex!(mg::MixedGraph, v::Int64)
-  return rem_vertex!(directed_component(mg), v) && rem_vertex!(undirected_component(mg), v)
+  return rem_vertex!(_directed_component(mg), v) && rem_vertex!(_undirected_component(mg), v)
 end
 
 @doc raw"""
     rem_vertices!(g::Graph{T}, a::AbstractArray{Int64}) where {T <: Union{Directed, Undirected}}
+    rem_vertices!(mg::MixedGraph, a::AbstractVector)
 
 Remove the vertices in `a` from the graph `g`. Return `true` if at least one vertex was removed.
 Please note that this will shift the indices of some of the remaining vertices, but it will preserve the vertex ordering.
@@ -308,13 +345,12 @@ function rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{
 end
 
 function rem_vertices!(mg::MixedGraph, a::AbstractVector)
-  return rem_vertices!(directed_component(mg), a) && rem_vertices!(undirected_component(mg), a)
+  return rem_vertices!(_directed_component(mg), a) && rem_vertices!(_undirected_component(mg), a)
 end
-
-  
 
 @doc raw"""
     add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
+    add_vertices!(mg::MixedGraph, n::Int64)
 
 Add a `n` new vertices to the graph `g`. Return the number of vertices that
 were actually added to the graph `g`.
@@ -337,8 +373,7 @@ function add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undire
 end
 
 function add_vertices!(mg::MixedGraph, n::Int64)
-  return (add_vertices!(directed_component(mg), n) +
-    add_vertices!(undirected_component(mg), n)) // 2
+  return count(_->add_vertex!(mg), 1:n)
 end
 
 ################################################################################
@@ -405,6 +440,8 @@ Base.in(i::Int, a::Edge) = (i==src(a) || i==dst(a))
 
 rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
   rem_edge!(g, src(e), dst(e))
+rem_edge!(mg::MixedGraph, ::Type{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
+  rem_edge!(g, T, src(e), dst(e))
 
 @doc raw"""
     reverse(e::Edge)
@@ -428,7 +465,6 @@ function reverse(e::Edge)
     return Edge(dst(e), src(e))
 end
 
-
 mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
     l::Int64
@@ -449,7 +485,6 @@ function Base.iterate(eitr::EdgeIterator, index = 1)
         return (edge, index+1)
     end
 end
-
 
 ################################################################################
 ################################################################################
@@ -477,12 +512,13 @@ function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 function n_vertices(g::MixedGraph)
-  return n_vertices(directed_component(g))
+  return n_vertices(_directed_component(g))
 end
 
 
 @doc raw"""
     vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    vertices(g::MixedGraph)
 
 Return the vertex indices of a graph.
 
@@ -527,12 +563,13 @@ function n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 function n_edges(g::MixedGraph)
-  return sum(Polymake.ne.(pm_object.([directed_component(g),
-                                      undirected_component(g)])))
+  return sum(Polymake.ne.(pm_object.([_directed_component(g),
+                                      _undirected_component(g)])))
 end
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    edges(mg::MixedGraph)
 
 Return an iterator over the edges of the graph `g`.
 
@@ -548,40 +585,31 @@ julia> collect(edges(g))
  Edge(2, 1)
  Edge(3, 1)
  Edge(3, 2)
+
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> collect(edges(mg, Directed))
+2-element Vector{Edge}:
+ Edge(1, 3)
+ Edge(3, 5)
+
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
-#TODO add examples
-@doc raw"""
-    directed_edges(g::MixedGraph)
-
-Return an iterator over the directed edges of the graph `g`.
-
-# Examples
-"""
-function directed_edges(g::MixedGraph)
-  dir_g = directed_component(g)
-  return EdgeIterator(Polymake.edgeiterator(pm_object(dir_g)), n_edges(dir_g))
-end
-
-#TODO add examples
-@doc raw"""
-    undirected_edges(g::MixedGraph)
-
-Return an iterator over the undirected edges of the graph `g`.
-
-# Examples
-"""
-function undirected_edges(g::MixedGraph) 
-  undir_g = undirected_component(g)
-  return EdgeIterator(Polymake.edgeiterator(pm_object(undir_g)), n_edges(undir_g))
-end
+edges(g::MixedGraph, ::Type{Directed}) = edges(_directed_component(g))
+edges(g::MixedGraph, ::Type{Undirected}) = edges(_undirected_component(g))
 
 @doc raw"""
     has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+    has_edge(g::MixedGraph, ::Type{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 
 Check for an edge in a graph.
 
@@ -594,6 +622,19 @@ julia> g = vertex_edge_graph(triangle);
 
 julia> has_edge(g, 1, 2)
 true
+
+julia> mg = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> has_edge(mg, Directed, 1, 3)
+true
+
+julia> has_edge(mg, Undirected, 1, 3)
+false
 ```
 """
 function has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
@@ -601,29 +642,15 @@ function has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{D
     return Polymake._has_edge(pmg, source-1, target-1)
 end
 function has_edge(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
-    return has_edge(g, e.source, e.target)
+    return has_edge(g, src(e), dst(e))
 end
 
-@doc raw"""
-    has_directed_edge(g::MixedGraph, source::Int64, target::Int64)
+has_edge(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = has_edge(_directed_component(mg), source, target)
+has_edge(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64) = has_edge(_undirected_component(mg), source, target)
 
-Check for an edge in a graph.
-
-# Examples
-"""
-has_directed_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(directed_component(g), source, target)
-has_directed_edge(g::MixedGraph, e::Edge) = has_edge(directed_component(g), e)
-
-@doc raw"""
-    has_undirected_edge(g::MixedGraph, source::Int64, target::Int64)
-
-Check for an edge in a graph.
-
-# Examples
-"""
-has_undirected_edge(g::MixedGraph, source::Int64, target::Int64) = has_edge(undirected_component(g), source, target)
-has_undirected_edge(g::MixedGraph, e::Edge) = has_edge(undirected_component(g), e)
-
+function has_edge(g::MixedGraph, e::Edge)
+    return has_edge(g, T, src(e), dst(e))
+end
 
 @doc raw"""
     has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -650,7 +677,7 @@ function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirecte
 end
 
 #each component has same vertices so it is enough to check one
-has_vertex(g::MixedGraph, v::Int) = has_vertex(directed_component(g), v) 
+has_vertex(g::MixedGraph, v::Int) = has_vertex(_directed_component(g), v) 
 
 @doc raw"""
     neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -982,7 +1009,7 @@ julia> labelings(G)
 
 ```
 """
-function labelings(G::Graph)
+function labelings(G::AbstractGraph)
   attrs = AbstractAlgebra._get_attributes(G)
   isnothing(attrs) && return Symbol[]
   return [k for (k, v ) in attrs if v isa GraphMap]
@@ -1544,8 +1571,9 @@ fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytop
 ################################################################################
 _to_string(::Type{Polymake.Directed}) = "Directed"
 _to_string(::Type{Polymake.Undirected}) = "Undirected"
+_to_string(::Type{Mixed}) = "Mixed"
 
-function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <: GraphTypes}
   if n_edges(G) > 0
     labels = labelings(G)
     if !isempty(labels)
@@ -1567,9 +1595,22 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
         end
       end
     else
-      println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
-      for e in edges(G)
-        print(io, "($(src(e)), $(dst(e)))")
+      if T == Mixed
+        println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following")  # at least one new line is needed
+        println(io, "Directed edges:")
+        for e in edges(G, Directed)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
+        println(io, "")
+        println(io, "Undirected edges:")
+        for e in edges(G, Undirected)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
+      else
+        println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
+        for e in edges(G)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
       end
     end
   else
@@ -1577,7 +1618,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
   end
 end
 
-function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+function Base.show(io::IO, G::AbstractGraph{T})  where {T <: GraphTypes}
   if is_terse(io)
     !isempty(labelings(G)) && print(io, "Labeled ")
     print(io, "$(_to_string(T)) graph")
@@ -1610,6 +1651,9 @@ end
 @doc raw"""
     graph_from_edges(edges::Vector{Vector{Int}})
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
+    graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
+    graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+
 
 Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
@@ -1623,6 +1667,28 @@ Undirected graph with 5 nodes and the following edges:
 julia> G = graph_from_edges(Directed, [[1,3]], 4)
 Directed graph with 4 nodes and the following edges:
 (1, 3)
+
+julia> g = graph_from_edges(Mixed, [[1,3],[3,5]],[[4,5],[2,4],[2,3]])
+Mixed graph with 5 nodes and the following
+Directed edges:
+(1, 3)(3, 5)
+Undirected edges:
+(3, 2)(4, 2)(5, 4)
+
+julia> g1 = graph_from_edges(Directed, [[1, 2], [3, 4]])
+Directed graph with 4 nodes and the following edges:
+(1, 2)(3, 4)
+
+julia> g2 = graph_from_edges(Undirected, [[1, 4], [3, 2]])
+Undirected graph with 4 nodes and the following edges:
+(3, 2)(4, 1)
+
+julia> graph_from_edges(Mixed, edges(g1), edges(g2))
+Mixed graph with 4 nodes and the following
+Directed edges:
+(1, 2)(3, 4)
+Undirected edges:
+(3, 2)(4, 1)
 ```
 """
 function graph_from_edges(::Type{T},
@@ -1636,50 +1702,44 @@ function graph_from_edges(edges::Vector{T},
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
 
-# since return type will be different adjust the name
-function mixed_graph_from_edges(directed_edges::Vector{Edge},
-                                undirected_edges::Vector{Edge},
-                                n_vertices::Int=-1)
+
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::Vector{Edge},
+                          undirected_edges::Vector{Edge},
+                          n_vertices::Int=-1)
   n_needed = maximum(vcat(reduce(append!,[[src(e),dst(e)] for e in directed_edges]; init=[0]),
                           reduce(append!,[[src(e),dst(e)] for e in undirected_edges]; init=[0])))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
   
-  g = mixed_graph(max(n_needed, n_vertices))
+  g = graph(Mixed, max(n_needed, n_vertices))
   for e in directed_edges
-    add_directed_edge!(g, src(e), dst(e))
+    add_edge!(g, Directed, src(e), dst(e))
   end
 
   for e in undirected_edges
-    add_undirected_edge!(g, src(e), dst(e))
+    add_edge!(g, Undirected, src(e), dst(e))
   end
 
   return g
 end
 
-@doc raw"""
-    mixed_graph_from_edges(directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
-
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
-
-# Examples
-```jldoctest
-julia> G = graph_from_edges([[1,3],[3,5],[4,5],[2,4],[2,3]])
-Undirected graph with 5 nodes and the following edges:
-(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
-
-julia> G = graph_from_edges(Directed, [[1,3]], 4)
-Directed graph with 4 nodes and the following edges:
-(1, 3)
-```
-"""
-function mixed_graph_from_edges(directed_edges::Vector{S},
-                                undirected_edges::Vector{T},
-                                n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
-  return mixed_graph_from_edges([Edge(e[1], e[2]) for e in directed_edges],
-                                [Edge(e[1], e[2]) for e in undirected_edges],
-                                n_vertices)
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::Vector{S},
+                          undirected_edges::Vector{T},
+                          n_vertices::Int=-1) where {S, T <: Union{Vector{Int}, NTuple{2, Int}}}
+  return graph_from_edges(Mixed,
+                          [Edge(e[1], e[2]) for e in directed_edges],
+                          [Edge(e[1], e[2]) for e in undirected_edges],
+                          n_vertices)
 end
+
+function graph_from_edges(::Type{Mixed},
+                          directed_edges::EdgeIterator,
+                          undirected_edges::EdgeIterator,
+                          n_vertices::Int=-1) 
+  return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
 
 @doc raw"""
     label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}

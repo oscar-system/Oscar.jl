@@ -30,9 +30,6 @@ Multivariate polynomial ring in 4 variables over QQ graded by
 """
 coordinate_ring(f::FamilyOfSpaces) = f.coordinate_ring
 
-# For convenience, so that this space behaves similar to a toric variety.
-cox_ring(f::FamilyOfSpaces) = f.coordinate_ring
-
 
 @doc raw"""
     weights(f::FamilyOfSpaces)

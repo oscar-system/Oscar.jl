@@ -421,7 +421,7 @@ julia> length(gens_of_h22_hypersurface_indices(qsm_model, check = false))
 @attr Vector{Tuple{Int64, Int64}} function gens_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true)
 
   filtered_h22_basis_indices = deepcopy(basis_of_h22_ambient_indices(m, check = check))
-  gS = gens(cox_ring(ambient_space(m)))
+  gS = gens(coordinate_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
   for a in length(filtered_h22_basis_indices):-1:1
@@ -631,7 +631,7 @@ end
 # toric divisors d1, d2 that we must consider.
 
 @attr Vector{Tuple{Int64, Int64}} function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
-  gS = gens(cox_ring(ambient_space(m)))
+  gS = gens(coordinate_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
 
@@ -688,7 +688,7 @@ end
 # but not necessary, check to tell if a pair of base divisors restricts trivially.
 
 @attr Vector{Tuple{Int64, Int64}} function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
-  gS = gens(cox_ring(ambient_space(m)))
+  gS = gens(coordinate_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
 

@@ -74,7 +74,7 @@ julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y
 julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(b));
+julia> x1, x2, x3 = gens(coordinate_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
@@ -132,7 +132,7 @@ julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y
 julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(b));
+julia> x1, x2, x3 = gens(coordinate_ring(b));
 
 julia> a1 = 13 * x3^3;
 
@@ -142,7 +142,7 @@ julia> a3 = x1^2 * x2^4 * x3^3;
 
 julia> a4 = x1^3 * (x2 + x3)^9;
 
-julia> a6 = zero(cox_ring(b));
+julia> a6 = zero(coordinate_ring(b));
 
 julia> t = global_tate_model(b, [a1, a2, a3, a4, a6])
 Global Tate model over a concrete base
@@ -198,7 +198,7 @@ julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y
 julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(b));
+julia> x1, x2, x3 = gens(coordinate_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
@@ -252,7 +252,7 @@ julia> p = "x^3 + 7*x1*x2^5*x^2*z^2 + x1^3*(x2 + x3)^9*x*z^4 - y^2 - 13*x3^3*x*y
 julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completeness_check=false)
 Hypersurface model over a concrete base
 
-julia> x1, x2, x3 = gens(cox_ring(b));
+julia> x1, x2, x3 = gens(coordinate_ring(b));
 
 julia> weier_f = 1//48*(-(28*x1*x2^5 + 169*x3^6)^2 + 24*(2*x1^3*(x2 + x3)^9 + 13*x1^2*x2^4*x3^6));
 
