@@ -328,7 +328,7 @@ total_degree(apre::ActionPolyRingElem) = total_degree(data(apre))
     degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) -> Int
 
 Return the degree of the polynomial `p` in the `i`-th elementary variable with
-multiindex `jet`. If this jet variable is valid but still untracked, return $0$.
+multiindex `jet`. If this jet variable is valid but still untracked, return $0$. Alternatively, the variable may be passed right away instead of its index.
 """
 function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
@@ -342,12 +342,18 @@ function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   return 0
 end
 
+function degree(apre::ActionPolyRingElem{T}, var::ActionPolyRingElem{T}) where {T}
+  check_parent(apre, var)
+  @req is_gen(var) "Not a variable"
+  return degree(apre, __vtj(parent(apre))[var])
+end
+
 degree(apre::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = degree(apre, jet_idx...)
 
 @doc raw"""
     degree(p::ActionPolyRingElem, i::Int)
 
-Return the degree of the polynomial `p` in the, among the currently tracked variables, 'i'-th largest one. The index of the jet variable may also be passed as a tuple.
+Return the degree of the polynomial `p` in the, among the currently tracked variables, 'i'-th largest one. The index of the jet variable may also be passed as a tuple. Alternatively, the variable may be passed right away instead of its index.
 """
 degree(apre::ActionPolyRingElem, i::Int) = degree(apre, __vtj(parent(apre))[gen(parent(apre), i)])
 
@@ -733,16 +739,21 @@ function initial(apre::ActionPolyRingElem)
   if is_constant(apre)
     return apre
   end
-  return divexact(leading_term(apre), leader(apre)^degree(apre, 1); check = true)
+  return divexact(leading_term(apre), leader(apre)^degree(apre, leader(apre)); check = true)
 end
 
 @doc raw"""
     leader(p::ActionPolyRingElem)
 
-Return the leader of the polynomial `p`, that is the largest variable with respect to the ranking of `parent(p)`.
+Return the leader of the polynomial `p`, that is the largest variable with respect to the ranking of `parent(p)`. If `p` is constant, an error is raised.
 """
-leader(apre::ActionPolyRingElem) = max(vars(apre)...)
-
+function leader(apre::ActionPolyRingElem)
+  @req !is_constant(apre) "A constant polynomial has no leader"
+  if is_univariate(apre)
+    return vars(apre)[1]
+  end
+  return max(vars(apre)...)
+end
 ###############################################################################
 #
 #   Iterators
@@ -865,6 +876,10 @@ function Base.eltype(::Type{DifferencePolyMonomials{T}}) where T <: ActionPolyRi
    return T
 end
 
+function Base.eltype(::Type{DifferencePolyTerms{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
+   return T
+end
+
 function Base.eltype(::Type{DifferentialPolyCoeffs{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
    return S
 end
@@ -874,6 +889,10 @@ function Base.eltype(::Type{DifferentialPolyExponentVectors{T}}) where T <: Acti
 end
 
 function Base.eltype(::Type{DifferentialPolyMonomials{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
+   return T
+end
+
+function Base.eltype(::Type{DifferentialPolyTerms{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
    return T
 end
 
