@@ -57,8 +57,7 @@ undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 ################################################################################
 
 @doc raw"""
-    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
-    graph(::Type{Mixed}, nverts::Int64)
+    graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Mixed, Undirected}}
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
 graph should be `Directed`, `Undirected` or `Mixed`.
