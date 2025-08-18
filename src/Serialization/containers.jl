@@ -98,7 +98,7 @@ end
 # see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
 
-function save_object(s::SerializerState, x::T) where {S, T <: Union{Vector, AbstractArray{S, 1}}}
+function save_object(s::SerializerState, x::Union{Vector{S}, AbstractArray{S, 1}}) where S
   save_data_array(s) do
     for elem in x
       if serialize_with_id(typeof(elem))
@@ -159,7 +159,7 @@ function save_object(s::SerializerState, mat::T) where {S, T <: Union{ Matrix{S}
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:U}) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
+function load_object(s::DeserializerState, T::Type{U}) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -172,7 +172,7 @@ function load_object(s::DeserializerState, T::Type{<:U}) where {S, U <: Union{Ma
   end
 end
 
-load_object(s::DeserializerState, T::Type{<:U}, ::Nothing) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}} = load_object(s, T)
+load_object(s::DeserializerState, T::Type{U}, ::Nothing) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}} = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{<:U}, params) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
   load_node(s) do entries
