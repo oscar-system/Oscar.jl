@@ -12,14 +12,14 @@ and, if not already present, caches the result in order to avoid a second
 computation of this property in the future.
 
 In various settings it is then convenient to assess whether or not a certain
-property is already known, or whether calling it would trigger a non-trivial
+property is already known, or whether querying it would trigger a non-trivial
 computation. As an example, think of a user-facing method to compute the
 normalization of the zero locus of an ideal `I` as above. There are
 specialized routines for curves which are faster than the generic ones for
 affine schemes of arbitrary dimension. Thus if the dimension of `I` was
-already known to be one, one could deflect for such a special routine
+already known to be `1`, one could defer for such a specialized routine
 directly. Yet, computation of an ideal's Krull dimension involves a Gröbner
-basis computation which, if not already done, may clog the main process for an
+basis computation which may block the main process for an
 indefinite amount of time. This risk of blockage only for reasons of algorithm
 selection might be considered too high: The user "only" wants a
 normalization, but OSCAR gets stuck on gathering information on which
