@@ -118,30 +118,21 @@ end
 function lcm(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = max(t1[i], t2[i])
-  end
+  expv = [@inbounds max(t1[i], t2[i]) for i in 1:nvars]
   return PP(expv)
 end
 
 function gcd(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nnvars
-    @inbounds expv[i] = min(t1[i], t2[i])
-  end
+  expv = [@inbounds min(t1[i], t2[i]) for i in 1:nvars]
   return PP(expv)
 end
 
 function gcd3(t1::PP, t2::PP, t3::PP)
   # ASSUMES: length(t1) == length(t2) == length(t3)
   nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = min(t1[i], t2[i], t3[i])
-  end
+  expv = [@inbounds min(t1[i], t2[i], t3[i]) for i in 1:nvars]
   return PP(expv)
 end
 
@@ -150,10 +141,7 @@ end
 function colon(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
   nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = max(0, t1[i]-t2[i])
-  end
+  expv = [@inbounds max(0, t1[i]-t2[i]) for i in 1:nvars]
   return PP(expv)
 end
 
@@ -162,24 +150,14 @@ end
 function saturatePP(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
   nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds if t2[i] == 0
-      @inbounds expv[i] = t1[i]
-    end
-  end
+  expv = [@inbounds t2[i] == 0 ? t1[i] : 0 for i in 1:nvars]
   return PP(expv)
 end
 
 # Computes radical = product of vars which divide t
 function radical(t::PP)
   nvars = length(t)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds if t[i] > 0
-      expv[i] = 1
-    end
-  end
+  expv = [@inbounds t[i] > 0 ? 1 : 0 for i in 1:nvars]
   return PP(expv)
 end
 
@@ -256,12 +234,7 @@ end
 # Is t a multiple of at least one element of L?
 # Add degree truncation???
 function not_mult_of_any(L::Vector{PP}, t::PP)
-  for s in L
-    if is_divisible(t,s)
-      return false
-    end
-  end
-  return true
+  return !any(is_divisible(t,s) for s in L)
 end
 
 
