@@ -21,7 +21,7 @@ already known to be one, one could deflect for such a special routine
 directly. Yet, computation of an ideal's Krull dimension involves a Gröbner
 basis computation which, if not already done, may clog the main process for an
 indefinite amount of time. This risk of blockage only for reasons of algorithm
-selection might be considered too high: The user ``only'' wants a
+selection might be considered too high: The user "only" wants a
 normalization, but Oscar gets stuck on gathering information on which
 implementation to choose from. For the user's convenience, one could then
 write
