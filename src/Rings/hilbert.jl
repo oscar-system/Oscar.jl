@@ -70,11 +70,11 @@ end
 function is_simple_power_pp(t::PP)
   CountNZ = 0
   for i in 1:length(t)
-    @inbounds if (t[i] == 0)  continue  end
-    if (CountNZ > 0)  return false end
+    @inbounds t[i] == 0 && continue
+    CountNZ > 0 && return false
     CountNZ = i
   end
-  if (CountNZ != 0)  return true end # MAYBE RETURN index & exp???
+  CountNZ != 0 && return true # MAYBE RETURN index & exp???
   return false # because t == 1
 end
 
@@ -82,9 +82,7 @@ end
 function is_divisible(t::PP, s::PP)  # is t divisible by s
   nvars = length(t) # assume equal to length(s)
   for i in 1:nvars
-    @inbounds if t[i] < s[i]
-      return false
-    end
+    @inbounds t[i] < s[i] && return false
   end
   return true
 end
@@ -191,12 +189,10 @@ end
 function deg_rev_lex_less(t1::PP, t2::PP)
   d1 = degree(t1)
   d2 = degree(t2)
-  if d1 != d2  return (d1 < d2) end
+  d1 != d2 && return d1 < d2
   nvars = length(t1)
   for i in nvars:-1:1
-    if t1[i] != t2[i]
-      return (t1[i] > t2[i])
-    end
+    t1[i] != t2[i] && return t1[i] > t2[i]
   end
   return false
 end
@@ -206,11 +202,9 @@ end
 function involves(t::PP, IndexList::Vector{Int64})
   # ASSUMES: indexes in IndexList are all in range
   for i in IndexList
-    @inbounds if t[i] != 0
-      return true
-    end
+    @inbounds t[i] != 0 && return true
   end
-  return  false
+  return false
 end
 
 
@@ -280,9 +274,7 @@ end
 
 # NOT SURE THIS IS USEFUL: how many indets are really needed in the list L?
 function true_num_vars(L::Vector{PP})
-  if  isempty(L)
-    return 0
-  end
+  isempty(L) && return 0
   t = radical(L[1])
   for j in 2:length(L)
     t = lcm(t, radical(L[j]))
@@ -328,9 +320,9 @@ function connected_components(L::Vector{PP})
     while DoAnotherIteration
       DoAnotherIteration = false
       for t in L
-        if is_coprime(lcm,t)  continue end
+        is_coprime(lcm,t) && continue
         s = saturatePP(t,lcm)
-        if isone(s)  continue  end
+        isone(s) && continue
         lcm = mult(lcm,s) ### lcm *= s
         DoAnotherIteration = true
       end
@@ -462,9 +454,7 @@ end
 function is_rev_lex_smaller(t1::PP, t2::PP)
   n = length(t1)
   for j in n:-1:1
-    if t1[j] != t2[j]
-      return (t1[j] > t2[j])
-    end
+    t1[j] != t2[j] && return t1[j] > t2[j]
   end
   return false # t1 and t2 were equal (should not happen in this code)
 end
