@@ -245,17 +245,6 @@ function project_indets(t::PP, indexes::Vector{Int})
 end
 
 
-# NOT SURE THIS IS USEFUL: how many indets are really needed in the list L?
-function true_num_vars(L::Vector{PP})
-  isempty(L) && return 0
-  t = radical(L[1])
-  for j in 2:length(L)
-    t = lcm(t, radical(L[j]))
-  end
-  return degree(t)
-end
-
-
 ###################################################################
 # This function is also private/local to this file.
 
@@ -434,7 +423,6 @@ end
 
 function rev_lex_min(L::Vector{PP})
   # assume length(L) > 0
-  if isempty(L)  return L[1]  end
   IndexMin = 1
   for j in 2:length(L)
     if !is_rev_lex_smaller(L[j], L[IndexMin])
@@ -446,7 +434,6 @@ end
 
 function rev_lex_max(L::Vector{PP})
   # assume length(L) > 0
-  if length(L) == 1  return L[1]  end
   IndexMax = 1
   for j in 2:length(L)
     if !is_rev_lex_smaller(L[IndexMax], L[j])
@@ -871,29 +858,6 @@ function separate_simple_pps(gens::Vector{PP})
   end
   return SimplePPs, NonSimplePPs
 end
-
-
-# !!!OBSOLESCENT!!!   2023-08-17 this fn will no be needed after Wolfram's PR is merged
-# Returns nothing; throws if ker(W) contains a non-zero vector >= 0
-#function _hilbert_series_check_weights(W::Vector{Vector{Int}})
-#  # assumes W is rectangular (and at least 1x1)
-#  # Transpose while converting:
-#  ncols = length(W)
-#  nrows = length(W[1])
-#  A = zero_matrix(ZZ, nrows,ncols)
-#  for i in 1:nrows, j in 1:ncols  A[i,j] = W[j][i]  end
-#  b = zero_matrix(ZZ, nrows,1)
-#  try
-#    solve_non_negative(A, b) # any non-zero soln gives rise to infinitely many, which triggers an exception
-#  catch e
-#    if !(e isa ArgumentError && e.msg == "Polyhedron not bounded")
-#      rethrow(e)
-#    end
-#    # solve_non_negative must have thrown because there is a non-zero soln
-#    error("given weights permit infinite dimensional homogeneous spaces")
-#  end
-#  return nothing # otherwise it returns the result of solve_non_negative (Doh!!)
-#end
 
 
 # Check args: either throws or returns nothing.
