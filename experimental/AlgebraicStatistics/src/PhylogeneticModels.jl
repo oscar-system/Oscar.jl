@@ -10,10 +10,10 @@
 ###################################################################################
 
 
-@attributes mutable struct PhylogeneticModel{M, L, T} <: GraphicalModel{Directed, L}
+@attributes mutable struct PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
   base_field::Field
-  graph::Graph{Directed}
+  graph::AbstractGraph{GT}
   labelings::L
   trans_matrix_structure::Matrix{M}
   root_distribution::Vector{T}
