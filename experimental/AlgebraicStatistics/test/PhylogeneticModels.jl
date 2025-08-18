@@ -257,7 +257,10 @@
       Rp, p = polynomial_ring(QQ, :p => 1:4)
       RM, (a, b, c, d) = polynomial_ring(Rp, [:a, :b, :c, :d])
       p = [p[1], p[2], p[3], p[4]]
-      M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
+      M = [a * p[1] c * p[2] b * p[3] b * p[4];
+           c * p[1] a * p[2] b * p[3] b * p[4];
+           b * p[1] b * p[2] a * p[3] d * p[4];
+           b * p[1] b * p[2] d * p[3] a * p[4]]
       PM = PhylogeneticModel(tree, M, p)
       parameter_ring(PM)
       entry_transition_matrix(PM, 1, 3, 4, 1)
@@ -267,10 +270,27 @@
     @testset "M = MPolyRingElem - T = FieldElem" begin 
       RM, (a, b, c, d) = polynomial_ring(QQ, [:a, :b, :c, :d])
       p = QQ.([5//8, 1//8, 1//8, 1//8])
-      M = [a*p[1] c*p[2] b*p[3] b*p[4]; c*p[1] a*p[2] b*p[3] b*p[4]; b*p[1] b*p[2] a*p[3] d*p[4]; b*p[1] b*p[2] d*p[3] a*p[4] ]
+      M = [a * p[1] c * p[2] b * p[3] b * p[4];
+           c * p[1] a * p[2] b * p[3] b * p[4];
+           b * p[1] b * p[2] a * p[3] d * p[4];
+           b * p[1] b * p[2] d * p[3] a * p[4]]
       PM = PhylogeneticModel(tree, M, p)
       parameter_ring(PM)
       entry_transition_matrix(PM, 1, 3, 4, 1)
+    end
+
+    @testset "M = MPolyRingElem - T = RationalFunctionFieldElem" begin
+      Rp, p = rational_function_field(QQ, :p => 1:4)
+      RM, (lambda, mu) = polynomial_ring(Rp, [:lambda, :mu])
+      M = [lambda * p[1]                              lambda * p[2]                              lambda * p[1] + mu * p[1] // (p[1] + p[3]) lambda * p[4];
+           lambda * p[1]                              lambda * p[2]                              lambda * p[3] lambda * p[4] + mu * p[4] // (p[2] + p[4]);
+           lambda * p[1] + mu * p[1] // (p[1] + p[3]) lambda * p[2]                              lambda * p[3]                              lambda * p[4];
+           lambda * p[1]                              lambda * p[2] + mu * p[2] // (p[2] + p[4]) lambda * p[3]                              lambda * p[4]]
+      
+      PM = PhylogeneticModel(tree, M, p)
+      parameter_ring(PM)
+      entry_transition_matrix(PM, 1, 3, 4, 1)
+
     end
   end
 end

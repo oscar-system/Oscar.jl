@@ -79,7 +79,7 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
-
+  
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
       (j,e) in enumerate(sort_edges(graph(PM)))
@@ -145,30 +145,25 @@ end
 
 # add new one where we use MPolyRingElem{T} where  T <: Union{RationalFunctionField, FracField} Look into which is best
 # add note in docs, I believe it's rationalfunctionfield
-# @attr Tuple{
-#   MPolyRing, 
-#   Dict{Edge, Oscar.MPolyAnyMap}, 
-#   Vector{T}
-# } function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: Union{AbstractAlgebra.Generic.RationalFunctionFieldElem, FracFieldElem}}
-  
-#   trans_ring = parent(first(transition_matrix(PM)))
-#   transition_vars = gens(trans_ring)
-#   root_vars = gens(coefficient_ring(trans_ring))
+@attr Tuple{
+  MPolyRing, 
+  Dict{Edge, Oscar.MPolyAnyMap}, 
+  Vector{T}
+} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: Union{AbstractAlgebra.Generic.RationalFunctionFieldElem, FracFieldElem}}
 
-#   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
-#   R, rv, x... = rational_function_field(base_field(PM), Symbol.(root_vars), edge_gens..., ; cached=cached)
-
-#   coef_map = hom(coefficient_ring(trans_ring), R, rv)
-
-#   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-#   for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
-#       map = [x[i][j] for i in 1:length(transition_vars)]
-#       dict_maps[e] = hom(trans_ring, R, coef_map, map)
-#   end
-
-#   R, dict_maps, rv
-
-# end
+  trans_ring = parent(first(transition_matrix(PM)))
+  transition_vars = gens(trans_ring)
+  root_vars = gens(coefficient_ring(trans_ring))
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+  R, x... = polynomial_ring(coefficient_ring(trans_ring), edge_gens..., ; cached=cached)
+  #coef_map = hom(coefficient_ring(trans_ring), R, rv)
+  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+    map = [x[i][j] for i in 1:length(transition_vars)]
+    dict_maps[e] = hom(trans_ring, R, map)
+  end
+  R, dict_maps, root_vars
+end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
@@ -520,7 +515,7 @@ function kimura3_model(G::Graph{Directed})
   
   GroupBasedPhylogeneticModel(G, M, x)
 end
-
+  
 function general_markov_model(G::Graph{Directed})
 
   M = [:m11 :m12 :m13 :m14;
