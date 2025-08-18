@@ -552,5 +552,7 @@ end
   U = complement_of_point_ideal(R, [0, 0])
   L, _ = localization(A, U)
   AA, iso, iso_inv = simplify(L)
+  @test all(x==iso(iso_inv(x)) for x in gens(A))
+  @test all(x==iso_inv(iso(x)) for x in gens(AA))
 end
 
