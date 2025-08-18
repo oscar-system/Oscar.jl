@@ -265,6 +265,8 @@ include("PolyhedralGeometry/PolyhedralGeometry.jl")
 include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
+# PhylogeneticTree struct is defined in Graphs/structs.jl
+include("Combinatorics/Graphs/phylogenetic_tree_functions.jl") 
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
@@ -273,8 +275,6 @@ include("Combinatorics/PartiallyOrderedSet/structs.jl")
 include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
-
-include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms
