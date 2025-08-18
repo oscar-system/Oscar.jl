@@ -148,15 +148,15 @@ end
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: Union{AbstractAlgebra.Generic.RationalFunctionFieldElem, FracFieldElem}}
-
+  Vector{AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, <: AbstractAlgebra.Generic.RationalFunctionFieldElem}; cached=false) where L
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
+
   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
   R, x... = polynomial_ring(coefficient_ring(trans_ring), edge_gens..., ; cached=cached)
-  #coef_map = hom(coefficient_ring(trans_ring), R, rv)
+
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
     map = [x[i][j] for i in 1:length(transition_vars)]
