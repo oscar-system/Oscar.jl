@@ -187,20 +187,20 @@ end
 
 
 function Base.show(io::IO, t::PP)
-  if all(t.expv .== 0)   # isone(PP)  # why doesn't this work ???
+  if !isone(t)
     print(io, "1")
     return
   end
   str = ""
   nvars = length(t)
   for i in 1:nvars
-    if (t[i] != 0)
+    if t[i] != 0
       if (str != "")
-        str = str * "*"
+        str *= "*"
       end
-      str = str * "x[$(i)]"
-      if (t[i] > 1)
-        str = str * "^$(t[i])"
+      str *= "x[$(i)]"
+      if t[i] > 1
+        str *= "^$(t[i])"
       end
     end
   end
