@@ -191,8 +191,7 @@ end
 ###################################################################################
 
 @attributes mutable struct GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
-  # do need to for T to be directed here? YES!
-  phylo_model::PhylogeneticModel{GT, L} 
+  phylo_model::PhylogeneticModel{GT, <: VarName, L, <: RingElem} 
   fourier_param_structure::Vector{<: VarName}
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName

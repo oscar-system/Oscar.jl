@@ -1,5 +1,5 @@
 const ColoredGGM{Directed} = GaussianGraphicalModel{
-  Directed,
+  Graph{Directed},
   @NamedTuple{color::S}
 } where S <: Oscar.GraphMap;
 # 

@@ -144,7 +144,7 @@ end
 @attr Tuple{
   MPolyRing,
   GraphGenDict
-} function parameter_ring(GM::GaussianGraphicalModel{Graph{Mixed}, T}; cached=false) where T
+} function parameter_ring(GM::GaussianGraphicalModel{MixedGraph, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G, Directed)],
                ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)], 
@@ -174,7 +174,7 @@ julia> directed_edges_matrix(GM)
 
 ```
 """
-function directed_edges_matrix(M::GaussianGraphicalModel{Graph{T}}) where {T <: Union{Mixed, Directed}}
+function directed_edges_matrix(M::GaussianGraphicalModel{<:AbstractGraph{T}}) where {T <: Union{Mixed, Directed}}
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
@@ -228,7 +228,7 @@ julia> error_covariance_matrix(M)
 
 ```
 """
-function error_covariance_matrix(M::GaussianGraphicalModel{Graph{Mixed}, L}) where L
+function error_covariance_matrix(M::GaussianGraphicalModel{MixedGraph, L}) where L
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
@@ -269,7 +269,7 @@ defined by
 
 ```
 """
-function parametrization(M::GaussianGraphicalModel{Graph{T}, L}) where {T  <: Union{Directed, Mixed}, L}
+function parametrization(M::GaussianGraphicalModel{<: AbstractGraph{T}, L}) where {T  <: Union{Directed, Mixed}, L}
   S, _ = model_ring(M)
   R, _ = parameter_ring(M)
   G = graph(M)

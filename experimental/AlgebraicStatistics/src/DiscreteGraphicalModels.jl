@@ -44,7 +44,7 @@ states(M::DiscreteGraphicalModel) = M.states
 
 maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(M.graph)
 
-function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where L
+function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
   if is_terse(io)
     print(io, "Discrete Graphical Model on a")

@@ -62,22 +62,22 @@ end
 ###################################################################################
 
 
-function entry_transition_matrix(PM::PhylogeneticModel{<: VarName, L, T}, i::Int, j::Int, e::Edge) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: VarName, L, T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<: VarName, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: VarName, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<: MPolyRingElem, L, <: T}, i::Int, j::Int, e::Edge) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, <: T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][e](tr_mat[i,j])
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<: MPolyRingElem, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][Edge(u,v)](tr_mat[i,j])
 end
