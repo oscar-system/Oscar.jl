@@ -31,7 +31,7 @@ end
 #
 ###################################################################################
 
-abstract type GraphicalModel{T <: GraphTypes, L <: Union{NamedTuple, Nothing}} end
+abstract type GraphicalModel{T <: AbstractGraph, L <: Union{NamedTuple, Nothing}} end
 
 graph(M::GraphicalModel) = M.graph
 

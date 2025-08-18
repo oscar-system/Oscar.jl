@@ -5,20 +5,20 @@
 ###################################################################################
 
 @attributes mutable struct GaussianGraphicalModel{T, L} <: GraphicalModel{T, L}
-  graph::AbstractGraph{T}
+  graph::T
   labelings::L
   varnames::Dict{Symbol,VarName}
-  function GaussianGraphicalModel(G::Graph{T},
-                                  varnames::Dict{Symbol, VarName}) where T <: GraphTypes
+  function GaussianGraphicalModel(G::Graph{S},
+                                  varnames::Dict{Symbol, VarName}) where S <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(G, graph_maps, varnames)
+    return new{Graph{S}, typeof(graph_maps)}(G, graph_maps, varnames)
   end
 
   function GaussianGraphicalModel(G::MixedGraph, varnames::Dict{Symbol, VarName})
     #TODO figure out how to deal with labelings on MixedGraphs
     # for now just use Nothing
-    return new{Mixed, Nothing}(G, nothing, varnames)
+    return new{MixedGraph, Nothing}(G, nothing, varnames)
   end
 end
 
@@ -131,7 +131,7 @@ end
 @attr Tuple{
   MPolyRing,
   GraphGenDict
-} function parameter_ring(GM::GaussianGraphicalModel{Directed, T}; cached=false) where T
+} function parameter_ring(GM::GaussianGraphicalModel{Graph{Directed}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
                ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)])
@@ -144,7 +144,7 @@ end
 @attr Tuple{
   MPolyRing,
   GraphGenDict
-} function parameter_ring(GM::GaussianGraphicalModel{Mixed, T}; cached=false) where T
+} function parameter_ring(GM::GaussianGraphicalModel{Graph{Mixed}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G, Directed)],
                ["$(varnames(GM)[:w])[$(v)]" for v in vertices(G)], 
@@ -157,7 +157,7 @@ end
 end
 
 @doc raw"""
-    directed_edges_matrix(M::GaussianGraphicalModel{T, L}) where {T <: Union{Directed, Mixed}, L}
+    directed_edges_matrix(M::GaussianGraphicalModel{Graph{T}, L}) where {T <: Union{Directed, Mixed}, L}
 
 Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
 
@@ -174,7 +174,7 @@ julia> directed_edges_matrix(GM)
 
 ```
 """
-function directed_edges_matrix(M::GaussianGraphicalModel{T}) where {T <: Union{Mixed, Directed}}
+function directed_edges_matrix(M::GaussianGraphicalModel{Graph{T}}) where {T <: Union{Mixed, Directed}}
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
@@ -186,7 +186,7 @@ function directed_edges_matrix(M::GaussianGraphicalModel{T}) where {T <: Union{M
 end
 
 @doc raw"""
-    error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+    error_covariance_matrix(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
 
 Create the covariance matrix $ \Omega $ of the independent error terms in a directed Gaussian graphical model `M`
 
@@ -203,7 +203,7 @@ julia> error_covariance_matrix(M)
 
 ```
 """
-function error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+function error_covariance_matrix(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
@@ -211,7 +211,7 @@ end
 
 
 @doc raw"""
-    error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+    error_covariance_matrix(M::GaussianGraphicalModel{Graphh{Directed}, L}) where L
 
 Create the covariance matrix $ \Omega $ of the independent error terms in a directed Gaussian graphical model `M`
 
@@ -228,7 +228,7 @@ julia> error_covariance_matrix(M)
 
 ```
 """
-function error_covariance_matrix(M::GaussianGraphicalModel{Mixed, L}) where L
+function error_covariance_matrix(M::GaussianGraphicalModel{Graph{Mixed}, L}) where L
   G = graph(M)
   R, gens_dict = parameter_ring(M)
   W = diagonal_matrix(R, [gens_dict[i] for i in 1:n_vertices(G)])
@@ -243,7 +243,7 @@ function error_covariance_matrix(M::GaussianGraphicalModel{Mixed, L}) where L
 end
 
 @doc raw"""
-    parametrization(M::GaussianGraphicalModel{Directed, L}) where L
+    parametrization(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
 
 Create the polynomial map which parametrizes the vanishing ideal of the directed Gaussian graphical model `M`.
 The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
@@ -269,7 +269,7 @@ defined by
 
 ```
 """
-function parametrization(M::GaussianGraphicalModel{T, L}) where {T  <: Union{Directed, Mixed}, L}
+function parametrization(M::GaussianGraphicalModel{Graph{T}, L}) where {T  <: Union{Directed, Mixed}, L}
   S, _ = model_ring(M)
   R, _ = parameter_ring(M)
   G = graph(M)
@@ -290,7 +290,7 @@ end
 @attr Tuple{
   MPolyRing,
   GraphGenDict
-} function parameter_ring(GM::GaussianGraphicalModel{Undirected, T}; cached=false) where T
+} function parameter_ring(GM::GaussianGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
@@ -301,7 +301,7 @@ end
 end
 
 @doc raw"""
-    concentration_matrix(M::GaussianGraphicalModel{Undirected, T}) where T
+    concentration_matrix(M::GaussianGraphicalModel{Graph{Undirected}, T}) where T
 
 Create the concentration matrix `K` of an undirected Gaussian graphical model which is a symmetric positive definite matrix
 whose nonzero entries correspond to the edges of the associated graph.
@@ -319,7 +319,7 @@ julia> concentration_matrix(M)
 
 ```
 """
-function concentration_matrix(M::GaussianGraphicalModel{Undirected, T}) where T
+function concentration_matrix(M::GaussianGraphicalModel{Graph{Undirected}, T}) where T
   G = graph(M)
   R, k = parameter_ring(M)
   K = diagonal_matrix(R, [k[i] for i in 1:n_vertices(G)])
@@ -332,7 +332,7 @@ function concentration_matrix(M::GaussianGraphicalModel{Undirected, T}) where T
 end
 
 @doc raw"""
-    parametrization(M::GaussianGraphicalModel{Undirected, Nothing})
+    parametrization(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
 
 Create the polynomial map which parametrizes the undirected Gaussian graphical model `M`. Its parameter space is the set of
 $K = $ `concentration_matrix(M)` and the map is matrix inversion $K \mapsto K^{-1}$. The constructed ring map writes out the
@@ -358,7 +358,7 @@ defined by
   s[3, 3] -> (k[2, 1]^2 - k[1, 1]*k[2, 2])/(k[2, 1]^2*k[3, 3] + k[3, 2]^2*k[1, 1] - k[1, 1]*k[2, 2]*k[3, 3])
 ```
 """
-function parametrization(M::GaussianGraphicalModel{Undirected, T}) where T
+function parametrization(M::GaussianGraphicalModel{Graph{Undirected}, T}) where T
   G = graph(M)
   S, _ = model_ring(M)
   R, _ = parameter_ring(M)

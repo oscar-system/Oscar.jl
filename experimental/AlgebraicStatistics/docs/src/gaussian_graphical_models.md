@@ -15,8 +15,8 @@ gaussian_graphical_model
 ## Directed Gaussian Graphical Model 
 The parametrization for a directed Gaussian graphical model on a DAG $G$ is built from the weighted adjacency matrix $\Lambda$ and the covariance matrix $\Omega$ of the error terms. The model is then the set of all covariance matrices $\Sigma = (Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{-1}$. $\Lambda$ and $\Omega$ can be built with the following functions:
 ```@docs
-directed_edges_matrix(M::GaussianGraphicalModel{Directed, L}) where L
-error_covariance_matrix(M::GaussianGraphicalModel{Directed, L}) where L
+directed_edges_matrix
+error_covariance_matrix
 ```
 
 
@@ -26,7 +26,7 @@ As with their directed counterpart, it is very easy to create new subtypes of gr
 
 
 ```@docs
-concentration_matrix(M::GaussianGraphicalModel{Undirected, L}) where L
+concentration_matrix
 ```
 
 
