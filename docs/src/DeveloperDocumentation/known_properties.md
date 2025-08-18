@@ -52,8 +52,10 @@ Some further remarks:
   attributes in Polymake objects. The function `is_known` is a priori not tied
   to any of these! However, if needed, special methods of `is_known` can be
   implemented which use such internals. 
-* The function `is_known` is not user-facing. It provides an OSCAR internal
-  basis to assess known properties so that programmers can extend this
+* The function `is_known` is intentionally not exported and not meant for end users.
+  This is mainly because it is only implement for some properties, and figuring out
+  for which requires some technical skills many ordinary users won't have.
+  Rather, this method is meant as a tool for programmers, who can useand extend this
   functionality for their purposes if needed, using one and the same formulation
   throughout the OSCAR system. In particular, we do not require `is_known` to be
   supported for any property of any object and the user can not expect this. 
