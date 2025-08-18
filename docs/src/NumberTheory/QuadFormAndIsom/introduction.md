@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 This project is a complement to the code about *hermitian lattices* available
 in Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
 methods regarding quadratic forms with their isometries. In particular,
-the integration of this code within Oscar is necessary to benefit from all the
+the integration of this code within OSCAR is necessary to benefit from all the
 performance of GAP with respect to computations with groups and automorphisms
 in general.
 
