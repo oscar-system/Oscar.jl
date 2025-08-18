@@ -13,14 +13,14 @@
 @attributes mutable struct PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
   base_field::Field
-  graph::AbstractGraph{GT}
+  graph::GT
   labelings::L
   trans_matrix_structure::Matrix{M}
   root_distribution::Vector{T}
   n_states::Int
   model_parameter_name::VarName
 
-
+  
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
                              trans_matrix_structure::Matrix,
@@ -32,7 +32,7 @@
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(first(trans_matrix_structure)), 
+    return new{Graph{Directed}, typeof(first(trans_matrix_structure)), 
                typeof(graph_maps), typeof(first(root_distribution))}(F, G,
                                                                     graph_maps,
                                                                     trans_matrix_structure,
@@ -75,7 +75,7 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
   MPolyRing, 
   GraphTransDict,
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<: VarName, L, T}; cached=false) where {L, T <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false) where {L, T <: FieldElem} 
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -90,7 +90,7 @@ end
   MPolyRing,
   GraphTransDict,
   Vector{<:MPolyRingElem}
-} function parameter_ring(PM::PhylogeneticModel{<: VarName}; cached=false)
+} function parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName}; cached=false)
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM),
@@ -107,7 +107,7 @@ end
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
 
@@ -127,7 +127,7 @@ end
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -151,7 +151,7 @@ end
   MPolyRing{T}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -190,9 +190,9 @@ end
 #
 ###################################################################################
 
-@attributes mutable struct GroupBasedPhylogeneticModel{L} <: GraphicalModel{Directed, L}
+@attributes mutable struct GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
-  phylo_model::PhylogeneticModel 
+  phylo_model::PhylogeneticModel{GT, L} 
   fourier_param_structure::Vector{<: VarName}
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
@@ -212,11 +212,11 @@ end
 
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{typeof(graph_maps)}(PhylogeneticModel(F, G, trans_matrix_structure, 
-                                                     root_distribution,
-                                                     varname_phylo_model),
-                                   fourier_param_structure,
-                                   group, varname_group_based)
+    return new{typeof(G), typeof(graph_maps)}(PhylogeneticModel(F, G, trans_matrix_structure, 
+                                                                root_distribution,
+                                                                varname_phylo_model),
+                                              fourier_param_structure,
+                                              group, varname_group_based)
   end
 
   function GroupBasedPhylogeneticModel(G::Graph{Directed},

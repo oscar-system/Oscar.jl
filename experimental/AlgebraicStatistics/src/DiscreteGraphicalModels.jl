@@ -1,12 +1,12 @@
 @attributes mutable struct DiscreteGraphicalModel{T, L} <: GraphicalModel{T, L}
-  graph::AbstractGraph{T}
+  graph::T
   labelings::L
   states::Vector{Int}
   varnames::Dict{Symbol,VarName}
-  function DiscreteGraphicalModel(G::Graph{T}, states::Vector{Int}, varnames::Dict{Symbol, VarName}) where T <: GraphTypes
+  function DiscreteGraphicalModel(G::Graph{S}, states::Vector{Int}, varnames::Dict{Symbol, VarName}) where S <: GraphTypes
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{T, typeof(graph_maps)}(G, graph_maps, states, varnames)
+    return new{Graph{S}, typeof(graph_maps)}(G, graph_maps, states, varnames)
   end
 end
 
@@ -44,26 +44,23 @@ states(M::DiscreteGraphicalModel) = M.states
 
 maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(M.graph)
 
-function Base.show(io::IO, M::DiscreteGraphicalModel{Undirected, L}) where L
-  G = graph(M)
-  E = [(src(e), dst(e)) for e in edges(G)]
-
-  if length(E) == 0
-    print(io, "Discrete graphical model on the empty undirected graph")
-    print(io, " and states ", string(M.states))
+function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where L
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Discrete Graphical Model on a")
+    !(L == Nothing) && print(io, " labelled")
+    print(io, " $T")
+  else
+    print(io, "Discrete Graphical Model on a $(graph(M))")
   end
-
-  if length(E) > 0
-    print(io, "Discrete graphical model on an undirected graph with edges", "\n", string(E)[2:end-1])
-    print(io, " and states ", string(M.states))
-  end
+  print(io, " with states ", string(M.states))
 end
 
 # TODO: Allow the ground field to be specified!
 # TODO: Should this return MarkovRing instead which manages the MPolyRing
 # together with its generators and any special form they may have.
 @doc raw"""
-  @attr Tuple{MPolyRing, Vector{QQMPolyRingElem}} model_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false)
+  @attr Tuple{MPolyRing, Vector{QQMPolyRingElem}} model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
 Return the ring in which the statistical model lives, together with a
 Dict for indexing its generators.
@@ -88,7 +85,7 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
 @attr Tuple{
   MPolyRing,
   GenDict
-} function model_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false) where T
+} function model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   R = markov_ring(M.states...; cached=cached)
   return (ring(R), gens(R))
 end
@@ -98,7 +95,7 @@ function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
 end
 
 @doc raw"""
-  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false)
+  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
@@ -123,7 +120,7 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
 @attr Tuple{
   MPolyRing,
   GenDict
-} function parameter_ring(M::DiscreteGraphicalModel{Undirected, T}; cached=false) where T
+} function parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   cliques = sort(sort.(collect.(maximal_cliques(M.graph))))
   Xs = [sort(vec(collect(state_space(M, C)))) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
@@ -134,7 +131,7 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
 end
 
 @doc raw"""
-  parameterization(M::DiscreteGraphicalModel{Undirected, L})
+  parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the
 undirected discrete graphical model `M`. It sends each probability generator
@@ -165,7 +162,7 @@ defined by
 ```
 """
 
-function parametrization(M::DiscreteGraphicalModel{Undirected, L}) where L
+function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
   G = graph(M)
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
@@ -206,55 +203,34 @@ discrete graphical model on a directed graph with edges:
 ```
 """
 function discrete_graphical_model(G::Graph{Directed}, q_var_name::String="q")
+  rvs = random_variables(S)
+  R, q = polynomial_ring(QQ, vcat([q_var_name * string([i, j]) * string(par_state)
+                                   for i in vertices(G)
+                                     for j in state_space(S, rvs[i])
+                                       for par_state in parental_state_space(G, i, S)], ["h"]))
 
-    rvs = random_variables(S)
-
-    R, q = polynomial_ring(QQ, vcat([q_var_name*string([i, j])*string(par_state) for i in vertices(G) for j in state_space(S, rvs[i]) for par_state in parental_state_space(G, i, S)], ["h"]))
-
-    param_dict = Dict([[(i, j), Dict()] for i in vertices(G) for j in state_space(S, rvs[i])])
-
-    t = 1
-
-    for i in vertices(G)
-      for j in state_space(S, rvs[i])
-        for par_state in parental_state_space(G, i, S)
-          
-          param_dict[i, j][Tuple(par_state)] = q[t]
-          t += 1
-        end
+  param_dict = Dict([[(i, j), Dict()] for i in vertices(G) for j in state_space(S, rvs[i])])
+  t = 1
+  for i in vertices(G)
+    for j in state_space(S, rvs[i])
+      for par_state in parental_state_space(G, i, S)
+        
+        param_dict[i, j][Tuple(par_state)] = q[t]
+        t += 1
       end
     end
+  end
 
-    return GraphicalModel(G, S, R, param_dict)
+  return GraphicalModel(G, S, R, param_dict)
 end
-
 
 # returns the joint states of the parents vertex i in a directed graph G
 function parental_state_space(G::Graph{Directed}, i::Integer, S::MarkovRing)
-
   par = inneighbors(G, i)
   par_rvs = random_variables(S)[par]
   
   return collect(state_space(S, par_rvs))
 end
-
-
-function Base.show(io::IO, M::DiscreteGraphicalModel{Directed, L}) where L
-  G = M.graph
-  E = [(src(e), dst(e)) for e in edges(G)]
-  S = ring(M)
-  states = map(i -> length(state_space(S, i)), random_variables(S))
-
-  if length(E) == 0
-    print(io, "Discrete graphical model on the empty directed graph")
-  end
-
-  if length(E) > 0
-    print(io, "Discrete graphical model on a directed graph with edges:", "\n", string(E)[2:end-1])
-    print(io, " and states: ", string(states))
-  end
-end
-
 
 @doc raw"""
   parameterization(M::GraphicalModel{Graph{Directed}, MarkovRing})
