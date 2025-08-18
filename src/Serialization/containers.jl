@@ -70,9 +70,8 @@ function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecTy
       end
        
       dims = load_object(s, Int, :dims)
-      subtype_without_dims, params =  load_type_params(s, U, :subtype_params)
-      subtype = subtype_without_dims, dims
-      return T{subtype...}, params
+      subtype, params =  load_type_params(s, U, :subtype_params)
+      return T{subtype, dims}, params
     else
       U = decode_type(s)
       subtype, params = load_type_params(s, U)
@@ -98,7 +97,7 @@ end
 # see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
 
-function save_object(s::SerializerState, x::Union{Vector{S}, AbstractArray{S, 1}}) where S
+function save_object(s::SerializerState, x::AbstractVector{S}) where S
   save_data_array(s) do
     for elem in x
       if serialize_with_id(typeof(elem))
@@ -151,7 +150,7 @@ end
 # Saving and loading matrices
 @register_serialization_type Matrix
 
-function save_object(s::SerializerState, mat::T) where {S, T <: Union{ Matrix{S}, AbstractArray{S, 2}}}
+function save_object(s::SerializerState, mat::AbstractMatrix{S) where {S}
   save_data_array(s) do
     for r in eachrow(mat)
       save_object(s, r)
@@ -159,7 +158,7 @@ function save_object(s::SerializerState, mat::T) where {S, T <: Union{ Matrix{S}
   end
 end
 
-function load_object(s::DeserializerState, T::Type{U}) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
+function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -172,9 +171,9 @@ function load_object(s::DeserializerState, T::Type{U}) where {S, U <: Union{Matr
   end
 end
 
-load_object(s::DeserializerState, T::Type{U}, ::Nothing) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}} = load_object(s, T)
+load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, ::Nothing) where {S} = load_object(s, T)
 
-function load_object(s::DeserializerState, T::Type{<:U}, params) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}}
+function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, params) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -187,7 +186,7 @@ function load_object(s::DeserializerState, T::Type{<:U}, params) where {S, U <: 
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:U}, key::V) where {S, U <: Union{Matrix{S}, AbstractArray{S, 2}}, V <: Union{Int, Symbol}}
+function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, key::Union{Int, Symbol}) where {S}
   return load_node(s, key) do _
     load_object(s, T)
   end
