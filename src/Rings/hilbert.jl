@@ -241,7 +241,7 @@ end
 
 # "project" PP onto sub-monoid of PPs gen by indets in indexes
 function project_indets(t::PP, indexes::Vector{Int})
-  return PP([t[k]  for k in indexes])
+  return PP(t.expv[indexes])
 end
 
 
