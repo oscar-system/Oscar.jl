@@ -953,16 +953,9 @@ julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 function HSNum_abbott(PmodI::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol = :auto)
   I = modulus(PmodI)
   P = base_ring(I)
-  nvars = length(gens(P))
-  grading_dim = length(gens(Oscar.parent(degree(gen(P,1))))) # better way???
-  weights = [degree(var)  for var in gens(P)]
-  W = [[0  for _ in 1:nvars]  for _ in 1:grading_dim]
-  for i in 1:nvars
-    expv = [Int64(exp)  for exp in gen_repr(degree(gen(P,i)))]
-    for j in 1:grading_dim
-      W[j][i] = expv[j]
-    end
-  end
+  grading_dim = length(gens(parent(degree(gen(P,1))))) # better way???
+  weights = degree.(gens(P))
+  W = [[Int(d[j]) for d in weights] for j in 1:grading_dim]
   LTs = gens(leading_ideal(I))
   PPs = [PP(degrees(t))  for t in LTs]
   return HSNum_abbott_PPs(PPs, W, pivot_strategy, HSRing)
