@@ -3,7 +3,7 @@ struct ModelRing{T, U}
   index_to_gen::Dict{T, U}
   gen_to_index::Dict{U, T}
 
-  function ModelRing(S::Ring, varnames::Vector{VarName}; cached=cached)
+  function ModelRing(S::Ring, varnames::Vector{<:VarName}; cached=cached)
     R, x =  polynomial_ring(S, varnames; cached=cached)
     index_to_gen = Dict{Int, MPolyRingElem}(i => x[i] for i in 1:ngens(R))
     gen_to_index = Dict{MPolyRingElem, Int}(v => k for (k, v) in index_to_gen)

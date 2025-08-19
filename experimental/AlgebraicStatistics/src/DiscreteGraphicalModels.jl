@@ -10,8 +10,6 @@
   end
 end
 
-
-
 ###################################################################################
 #
 #       Undirected Discrete Graphical Models
@@ -61,7 +59,7 @@ end
 # TODO: Should this return MarkovRing instead which manages the MPolyRing
 # together with its generators and any special form they may have.
 @doc raw"""
-  @attr Tuple{MPolyRing, Vector{QQMPolyRingElem}} model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
+     model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
 Return the ring in which the statistical model lives, together with a
 Dict for indexing its generators.
@@ -84,20 +82,20 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
 ```
 """
 @attr Tuple{
-  MPolyRing,
+  ModelRing,
   GenDict
 } function model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   random_variables = 1:n_states(M)
   state_spaces = [1:s for s in states(M)]
   varindices = collect(Iterators.product(state_spaces...))
-  gen_names = [["$(varnames[:p])[$(join(i, ", "))]" for i in varindices]...]
+  gen_names = [["$(varnames(M)[:p])[$(join(i, ", "))]" for i in varindices]...]
 
   # the base ring should come from the model, leaving as QQ for now
   return model_ring(QQ, gen_names)
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
-  return length(C) == 1 ? M.states[C[1]] : Iterators.product([1:M.states[i] for i in C]...)
+  return length(C) == 1 ? states(M)[C[1]] : Iterators.product([1:states(M)[i] for i in C]...)
 end
 
 @doc raw"""
@@ -127,11 +125,11 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
   MPolyRing,
   GenDict
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
-  cliques = sort(sort.(collect.(maximal_cliques(M.graph))))
+  cliques = sort(sort.(collect.(maximal_cliques(graph(M)))))
   Xs = [sort(vec(collect(state_space(M, C)))) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
-  varnames = sort([M.varnames[:t] * string(C) * string(x) for (C, x) in params])
-  R, t = polynomial_ring(QQ, varnames; cached=cached)
+  gen_names = sort([varnames(M)[:t] * string(C) * string(x) for (C, x) in params])
+  R, t = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = Dict((C, x) => t[i] for (i, (C, x)) in enumerate(params))
   return (R, gens_dict)
 end
