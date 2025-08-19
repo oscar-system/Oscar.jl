@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 Many of the objects in the field of *Polyhedral Geometry* mask a `BigObject`
 from `Polymake.jl`. These big objects have properties which can easily be
 accessed via julia's dot syntax. The return commonly does not adhere to the
-mathematical or the typing conventions of OSCAR many properties encode
+mathematical or the typing conventions of OSCAR; many properties encode
 information about a collection of mathematical objects within a single data
 object.
 
