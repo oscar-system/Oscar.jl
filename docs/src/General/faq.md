@@ -140,7 +140,7 @@ background. Please read our page on [Complex Algorithms](@ref).
 
 **Q: How do I cite OSCAR?**
 
-Please see [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+Please see [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
 
 ---
 ## Windows specific
