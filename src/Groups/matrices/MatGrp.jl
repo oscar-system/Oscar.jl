@@ -156,7 +156,7 @@ change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 function _print_matrix_group_desc(io::IO, G::MatrixGroup)
   io = pretty(io)
   R = base_ring(G)
-  print(io, LowercaseOff(), string(G.descr), "(", degree(G) ,",")
+  print(io, LowercaseOff(), string(G.descr), "(", degree(G) ,", ")
   if G.descr==:GU || G.descr==:SU
     print(io, characteristic(R)^(div(degree(R),2)),")")
   elseif R isa Field && is_finite(R)
