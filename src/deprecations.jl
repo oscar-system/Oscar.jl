@@ -178,3 +178,9 @@ function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Tropi
 end
 
 @deprecate vector_space_dimension vector_space_dim
+
+#@deprecate integrate(c::CohomologyClass; check::Bool = true) integrate(c, completeness_check = check)
+#@deprecate cohomology_ring(v::NormalToricVarietyType; check::Bool = true) cohomology_ring(v, completeness_check = check)
+#@deprecate chern_class(v::NormalToricVariety, k::Int; check::Bool = true) chern_classes(v, k, completeness_check = check)
+#@deprecate chern_classes(v::NormalToricVariety; check::Bool = true) chern_classes(v, completeness_check = check)
+#@deprecate basis_of_h4(v::NormalToricVariety; check::Bool = true) basis_of_h4(v, completeness_check = check)

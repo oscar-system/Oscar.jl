@@ -43,7 +43,7 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   if !has_attribute(m, :chern_classes)
     cs = Dict{Int64, CohomologyClass}()
-    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)), quick = true)
+    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), completeness_check = check)), quick = true)
     diff = degree(leading_term(hypersurface_equation(m))) - sum(coordinate_ring(ambient_space(m)).d)
     cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
     set_attribute!(m, :chern_classes, cs)
@@ -67,10 +67,10 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 
   # Chern class is not known, so compute and return it...
   cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))), quick = true)
-  ck_ambient = chern_class(ambient_space(m), k, check = check)
+  ck_ambient = chern_class(ambient_space(m), k, completeness_check = check)
   ckm1 = chern_class(m, k-1, check = check)
   new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
-  coho_R = cohomology_ring(ambient_space(m), check = check)
+  coho_R = cohomology_ring(ambient_space(m), completeness_check = check)
   cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), quick = true)
   set_attribute!(m, :chern_classes, cs)
   return cs[k]
@@ -145,11 +145,11 @@ julia> h = euler_characteristic(qsm_model; check = false)
   @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
 
   # Trigger potential short-cut computation of cohomology ring
-  cohomology_ring(ambient_space(m); check)
+  cohomology_ring(ambient_space(m), completeness_check = check)
 
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
   # Compute the Euler characteristic
-  return Int(integrate(chern_class(m, 4; check) * cy; check))
+  return Int(integrate(chern_class(m, 4; check) * cy, completeness_check = check))
 end

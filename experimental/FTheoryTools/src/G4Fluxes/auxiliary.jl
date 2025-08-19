@@ -381,7 +381,7 @@ true
 @attr Vector{CohomologyClass} function basis_of_h22_ambient(m::AbstractFTheoryModel; check::Bool = true)
   basis_indices = basis_of_h22_ambient_indices(m, check = false)
   v = ambient_space(m)
-  S = cohomology_ring(v, check = check)
+  S = cohomology_ring(v, completeness_check = check)
   c_ds = [lift(k) for k in gens(S)]
   return [cohomology_class(v, MPolyQuoRingElem(c_ds[mt[1]]*c_ds[mt[2]], S)) for mt in basis_indices]
 end
@@ -493,7 +493,7 @@ julia> length(gens_of_h22_hypersurface(qsm_model, check = false))
 @attr Vector{CohomologyClass} function gens_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true)
   basis_indices = gens_of_h22_hypersurface_indices(m, check = false)
   v = ambient_space(m)
-  S = cohomology_ring(v, check = check)
+  S = cohomology_ring(v, completeness_check = check)
   c_ds = [lift(k) for k in gens(S)]
   return [cohomology_class(v, MPolyQuoRingElem(c_ds[mt[1]]*c_ds[mt[2]], S)) for mt in basis_indices]
 end

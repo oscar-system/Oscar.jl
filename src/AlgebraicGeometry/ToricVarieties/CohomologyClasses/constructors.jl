@@ -6,7 +6,7 @@
     v::NormalToricVarietyType
     p::MPolyQuoRingElem
     function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem, quick::Bool)
-        @req parent(p) == cohomology_ring(v, check = !quick) "The polynomial must reside in the cohomology ring of the toric variety"
+        @req parent(p) == cohomology_ring(v, completeness_check = !quick) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
 end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
+    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = false)
 
 Construct the toric cohomology class
 on the toric variety `v` corresponding
@@ -37,7 +37,7 @@ cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = f
 
 
 @doc raw"""
-    cohomology_class(d::ToricDivisor)
+    cohomology_class(d::ToricDivisor; quick::Bool = false)
 
 Construct the toric cohomology class
 corresponding to the toric divisor `d`.
@@ -61,7 +61,7 @@ function cohomology_class(d::ToricDivisor; quick::Bool = false)
     poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
     return CohomologyClass(toric_variety(d), poly, false)
   end
-  indets = gens(base_ring(cohomology_ring(toric_variety(d), check = false)))
+  indets = gens(base_ring(cohomology_ring(toric_variety(d), completeness_check = false)))
   coeff_ring = coefficient_ring(toric_variety(d))
   poly = cohomology_ring(toric_variety(d))(sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)))
   return CohomologyClass(toric_variety(d), poly, true)
@@ -69,7 +69,7 @@ end
 
 
 @doc raw"""
-    cohomology_class(c::ToricDivisorClass)
+    cohomology_class(c::ToricDivisorClass; quick::Bool = false)
 
 Construct the toric cohomology class
 corresponding to the toric divisor class `c`.
@@ -90,7 +90,7 @@ cohomology_class(c::ToricDivisorClass; quick::Bool = false) = cohomology_class(t
 
 
 @doc raw"""
-    cohomology_class(l::ToricLineBundle)
+    cohomology_class(l::ToricLineBundle; quick::Bool = false)
 
 Construct the toric cohomology class
 corresponding to the toric line bundle `l`.
@@ -141,7 +141,7 @@ Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(t
 
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
     @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
-    ring = cohomology_ring(toric_variety(cc1), check = false)
+    ring = cohomology_ring(toric_variety(cc1), completeness_check = false)
     poly = polynomial(ring, cc1) * polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly, true)
 end

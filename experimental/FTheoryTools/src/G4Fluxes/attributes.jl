@@ -96,8 +96,11 @@ julia> d3_tadpole_constraint(g4, check = false)
       return evaluate(d3_tadpole_constraint(gfs), values_to_evaluate_at)
     end
   end
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
-  numb = QQ(euler_characteristic(m; check = check)//24 - 1//2*integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy); check = check))
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))), quick = check))
+  poly_of_offset_class = polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy
+  class_of_offset = cohomology_class(ambient_space(m), poly_of_offset_class, quick = check)
+  offset = 1//2* QQ(integrate(class_of_offset, completeness_check = check))
+  numb = QQ(euler_characteristic(m; check = check)//24) - offset
   set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
   return numb::QQFieldElem
 end

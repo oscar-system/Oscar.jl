@@ -65,17 +65,17 @@ polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 ## Methods
 
 ```@docs
-integrate(c::CohomologyClass; check::Bool = true)
+integrate(c::CohomologyClass; completeness_check::Bool = true)
 ```
 
 
 ## Special attributes of toric varieties
 
 ```@docs
-cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
+cohomology_ring(v::NormalToricVarietyType; completeness_check::Bool = true)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
-chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
-chern_classes(v::NormalToricVariety; check::Bool = true)
-basis_of_h4(v::NormalToricVariety; check::Bool = true)
+chern_class(v::NormalToricVariety, k::Int; completeness_check::Bool = true)
+chern_classes(v::NormalToricVariety; completeness_check::Bool = true)
+basis_of_h4(v::NormalToricVariety; completeness_check::Bool = true)
 ```
