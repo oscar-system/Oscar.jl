@@ -737,7 +737,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = general_linear_group(2, F)
-GL(2,7)
+GL(2, 7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -773,7 +773,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = special_linear_group(2, F)
-SL(2,7)
+SL(2, 7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -811,7 +811,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = symplectic_group(2, F)
-Sp(2,7)
+Sp(2, 7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -851,7 +851,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = orthogonal_group(1, 2, F)
-GO+(2,7)
+GO+(2, 7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -906,7 +906,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1, 2, F)
-SO+(2,7)
+SO+(2, 7)
 
 julia> gens(H)
 3-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -962,7 +962,7 @@ julia> F = GF(7)
 Prime field of characteristic 7
 
 julia> H = omega_group(1, 2, F)
-Omega+(2,7)
+Omega+(2, 7)
 
 julia> gens(H)
 1-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -1008,7 +1008,7 @@ Return the unitary group of dimension `n` over the field `GF(q^2)`.
 # Examples
 ```jldoctest
 julia> H = unitary_group(2,3)
-GU(2,3)
+GU(2, 3)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
@@ -1034,7 +1034,7 @@ elements.
 # Examples
 ```jldoctest
 julia> H = special_unitary_group(2,3)
-SU(2,3)
+SU(2, 3)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:

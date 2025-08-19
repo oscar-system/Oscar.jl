@@ -1615,7 +1615,7 @@ where `G` is a subgroup of `general_linear_group(F, n)`.
 # Examples
 ```jldoctest
 julia> G = orthogonal_group(1, 4, GF(3))
-GO+(4,3)
+GO+(4, 3)
 
 julia> res = orbit_representatives_and_stabilizers(G, 1);
 
