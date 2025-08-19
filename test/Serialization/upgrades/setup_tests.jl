@@ -1,3 +1,5 @@
+# the purpose of this file is to handle any helper that need to be included before any upgrade test
+
 import Downloads
 import CodecZlib
 import Tar
@@ -17,6 +19,10 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
 end
 
 if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
+  # this function is used to run an upgrade on all types that had serialization tests
+  # the reason for such a large upgrade test was due to the fact that so many types were affected
+  # it's possible upgrades in the future will also want to run such a script however for now
+  # we keep the name related to the the upgrade.
   function test_1_4_0_upgrade(;
     exclude::Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#=String[],
     only::Union{Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#,Nothing}=nothing,
