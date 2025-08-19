@@ -120,7 +120,7 @@ via `GAP.Packages.load`, where the first argument is the local path to the
 package directory (the one that contains the `PackageInfo.g` file).
 This works only if no other version of this package has been loaded already.
 
-If Oscar loads the package in question already on startup
+If OSCAR loads the package in question already on startup
 but you want a different version of this package to be loaded,
 you can force this by storing the desired version in the `pkg` subdirectory
 of the user's root directory (`GAPInfo.UserGapRoot` in GAP).
