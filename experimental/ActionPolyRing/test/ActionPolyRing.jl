@@ -70,7 +70,6 @@ using Test
         @test all(var -> var isa DifferencePolyRingElem, vars1)
         @test all(var -> var isa DifferentialPolyRingElem, vars2)
         @test all(var -> var isa DifferentialPolyRingElem, vars3)
-      
       end
 
       for (dpr, vars) in [(dpr0, vars0), (dpr1, vars1), (dpr2, vars2), (dpr3, vars3)]
@@ -369,6 +368,10 @@ using Test
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
+            
+            @test leader(f) == u1_100
+            @test degree(f, leader(f)) == 1
+            @test initial(f) == leading_term(f)/leader(f)
 
             @test dpr(data(f) + data(g)) == f + g
             @test dpr(-data(f)) == -f
@@ -383,8 +386,8 @@ using Test
 
             #g = (u1_010 - 2) * (u1 - u1_100 + 3)
             @test g == -u1_010*u1_100 + u1_010*u1 + 3*u1_010 + 2*u1_100 - 2*u1 - 6
+            @test length(g) == 6
             @test __perm_for_sort_poly(g) == [3,1,5,4,2,6]
-            @test length(f) == 6
             cg = collect(coefficients(g))
             eg = collect(exponents(g))
             mg = collect(monomials(g))
@@ -395,15 +398,9 @@ using Test
             @test mg == [u1_010*u1_100, u1_010*u1, u1_010, u1_100, u1, dpr(1)]
             @test tg == [-1*u1_010*u1_100, u1_010*u1, 3*u1_010, 2*u1_100, -2*u1, -6*dpr(1)]
             
-            @testset "Action poly stuff" begin
-              @test leader(f) == u1_100
-              @test degree(f, leader(f)) == 1
-              @test initial(f) == leading_term(f)/leader(f)
-
-              @test leader(g) == u1_010
-              @test degree(g, leader(g)) == 1
-              @test initial(g) == leading_term(g)/leader(g)
-            end
+            @test leader(g) == u1_010
+            @test degree(g, leader(g)) == 1
+            @test initial(g) == leading_term(g)/leader(g)
 
           end
         
@@ -562,15 +559,14 @@ using Test
             @test_throws ErrorException divexact(dpr(5), dpr(2))
           end
           
-          #=
           @testset "Non-constant polynomials" begin
-            #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
-            @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            #Recall that u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
+            @test __perm_for_sort_poly(f) == [4,2,6,3,1,5]
             cf = collect(coefficients(f))
             ef = collect(exponents(f))
             mf = collect(monomials(f))
@@ -580,28 +576,32 @@ using Test
             @test typeof(mf) == Vector{typeof(f)}
             @test typeof(tf) == Vector{typeof(f)}
             
-            @test cf == ZZRingElem[2,-1,-2,1,-6,3]
-            @test ef == [[0,1,0,1,0,0,0],[0,1,0,0,0,1,0],[0,0,1,1,0,0,0],[0,0,1,0,0,1,0],[0,0,0,1,0,0,0],[0,0,0,0,0,1,0]]
-            @test mf == [u2_100*u1_100, u3_111*u1_100, u2_100*u1, u3_111*u1, u2_100, u3_111]
-            @test tf == [2*u2_100*u1_100, -u3_111*u1_100, -2*u2_100*u1, u3_111*u1, -6*u2_100, 3*u3_111]
+            @test cf == ZZRingElem[-1,1,3,2,-2,-6]
+            @test ef == [[1,0,0,0,1,0,0],[1,0,0,0,0,0,1],[1,0,0,0,0,0,0],[0,1,0,0,1,0,0],[0,1,0,0,0,0,1],[0,1,0,0,0,0,0]]
+            @test mf == [u3_111*u1_100, u3_111*u1, u3_111, u2_100*u1_100, u2_100*u1, u2_100]
+            @test tf == [-u3_111*u1_100, u3_111*u1, 3*u3_111, 2*u2_100*u1_100, -2*u2_100*u1, -6*u2_100]
             
             @test !is_zero(f)
             @test !is_unit(f)
             @test !is_constant(dpr(f))
             @test !is_univariate(f)
             @test_throws ErrorException inv(f)
-            @test trailing_coefficient(f) == ZZ(3)
-            @test leading_coefficient(f) == ZZ(2)
-            @test leading_term(f) == 2*u2_100*u1_100
+            @test trailing_coefficient(f) == ZZ(-6)
+            @test leading_coefficient(f) == ZZ(-1)
+            @test leading_term(f) == -1*u3_111*u1_100
             @test tail(f) == f - leading_term(f)
-            @test leading_monomial(f) == u2_100*u1_100
-            @test degrees(f) == [0,1,1,1,0,1,0]
+            @test leading_monomial(f) == u3_111*u1_100
+            @test degrees(f) == [1,1,0,0,1,0,1]
             for i in 1:length(nvars(dpr))
               @test degree(f, i) == degrees(f)[i]
             end
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
+            
+            @test leader(f) == u3_111
+            @test degree(f, leader(f)) == 1
+            @test initial(f) == leading_term(f)/leader(f)
 
             @test dpr(data(f) + data(g)) == f + g
             @test dpr(-data(f)) == -f
@@ -616,35 +616,94 @@ using Test
 
             #g = (u1_010 - 2) * (u1 - u1_100 + 3)
             @test g == -u1_010*u1_100 + u1_010*u1 + 3*u1_010 + 2*u1_100 - 2*u1 - 6
-            @test length(f) == 6
+            @test length(g) == 6
+            @test __perm_for_sort_poly(g) == [3,4,1,5,2,6]
             cg = collect(coefficients(g))
             eg = collect(exponents(g))
             mg = collect(monomials(g))
             tg = collect(terms(g))
             
-            @test cg == ZZRingElem[-1,1,3,2,-2,-6]
-            @test eg == [[1,1,0,0,0,0,0],[1,0,1,0,0,0,0],[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,0,0,0,0]]
-            @test mg == [u1_010*u1_100, u1_010*u1, u1_010, u1_100, u1, dpr(1)]
-            @test tg == [-1*u1_010*u1_100, u1_010*u1, 3*u1_010, 2*u1_100, -2*u1, -6*dpr(1)]
+            @test leader(g) == u1_100
+            @test degree(g, leader(g)) == 1
+            @test initial(g) == leading_term(g)/leader(g)
             
-            @testset "Action poly stuff" begin
-              @test leader(f) == u1_100
-              @test degree(f, leader(f)) == 1
-              @test initial(f) == leading_term(f)/leader(f)
+            @test cg == ZZRingElem[-1,2,1,3,-2,-6]
+            @test eg == [[0,0,0,0,1,1,0],[0,0,0,0,1,0,0],[0,0,0,0,0,1,1],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1],[0,0,0,0,0,0,0]]
+            @test mg == [u1_010*u1_100, u1_100, u1_010*u1, u1_010, u1, dpr(1)]
+            @test tg == [-u1_010*u1_100, 2*u1_100, u1_010*u1, 3*u1_010, -2*u1, -6*dpr(1)]
 
-              @test leader(g) == u1_010
-              @test degree(g, leader(g)) == 1
-              @test initial(g) == leading_term(g)/leader(g)
-            end
-
-          end=#
+          end
 
         end #End check change ranking
 
       end #End for loop
-
+      
     end #Construction with keywords
 
+    @testset "Further construction" begin
+      dpr0, vars0 = difference_polynomial_ring(QQ, 3, 3)
+      dpr1, vars1 = difference_polynomial_ring(QQ, [:u1, :u2, :u3], 3)
+      dpr2, vars2 = differential_polynomial_ring(QQ, 3, 3)
+      dpr3, vars3 = differential_polynomial_ring(QQ, [:u1, :u2, :u3], 3)
+      
+      for (dpr, vars) in [(dpr0, vars0), (dpr1, vars1), (dpr2, vars2), (dpr3, vars3)]
+        u1, u2, u3 = vars[1], vars[2], vars[3]
+
+        f = u1*u2
+        g = -3*u1^2*u3 + 4*u2
+        @testset "diff action" begin
+          if dpr isa DifferencePolyRing
+            @test ngens(dpr) == 3
+            @test diff_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
+            @test ngens(dpr) == 5
+            @test diff_action(f, 2) == dpr[1, [0,1,0]] * dpr[2, [0,1,0]]
+            @test ngens(dpr) == 7
+            @test diff_action(f, 3) == dpr[1, [0,0,1]] * dpr[2, [0,0,1]]
+            @test ngens(dpr) == 9
+
+            @test diff_action(g, 1) == -3*dpr[1, [1,0,0]]^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test ngens(dpr) == 10
+            @test diff_action(g, 2) == -3*dpr[1, [0,1,0]]^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test ngens(dpr) == 11
+            @test diff_action(g, 3) == -3*dpr[1, [0,0,1]]^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test ngens(dpr) == 12
+
+            @test diff_action(f, [4,5,6]) == dpr[1, [4,5,6]] * dpr[2, [4,5,6]]
+            @test ngens(dpr) == 14
+            @test diff_action(g, [4,5,6]) == -3*dpr[1, [4,5,6]]^2 * dpr[3, [4,5,6]] + 4*dpr[2, [4,5,6]]
+            @test ngens(dpr) == 15
+          end
+          if dpr isa DifferentialPolyRing
+            @test ngens(dpr) == 3
+            @test diff_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
+            @test ngens(dpr) == 5
+            @test diff_action(f, 2) == dpr[1, [0,1,0]] * u2 + u1 * dpr[2, [0,1,0]]
+            @test ngens(dpr) == 7
+            @test diff_action(f, 3) == dpr[1, [0,0,1]] * u2 + u1 * dpr[2, [0,0,1]]
+            @test ngens(dpr) == 9
+
+            @test diff_action(g, 1) == -6*dpr[1, [1,0,0]] * u1 * u3 - 3*u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test ngens(dpr) == 10
+            @test diff_action(g, 2) == -6*dpr[1, [0,1,0]] * u1 * u3 - 3*u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test ngens(dpr) == 11
+            @test diff_action(g, 3) == -6*dpr[1, [0,0,1]] * u1 * u3 - 3*u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test ngens(dpr) == 12
+
+            @test diff_action(f, [2,0,0]) == dpr[1, [2,0,0]] * u2 + 2*dpr[1, [1,0,0]] * dpr[2, [1,0,0]] + u1 * dpr[2, [2,0,0]]
+            @test ngens(dpr) == 14
+            @test diff_action(f, [0,2,0]) == dpr[1, [0,2,0]] * u2 + 2*dpr[1, [0,1,0]] * dpr[2, [0,1,0]] + u1 * dpr[2, [0,2,0]]
+            @test ngens(dpr) == 16
+            @test diff_action(f, [0,0,2]) == dpr[1, [0,0,2]] * u2 + 2*dpr[1, [0,0,1]] * dpr[2, [0,0,1]] + u1 * dpr[2, [0,0,2]]
+            @test ngens(dpr) == 18
+
+            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,0,1]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]], [1,1,0])
+            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,1,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]], [1,0,1])
+            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [1,0,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]], [0,1,1])
+            @test ngens(dpr) == 29  
+          end
+        end
+      end #End for loop
+    end #End further constructions
   end #Construction and basic field acces
 
 end #All tests

@@ -683,7 +683,7 @@ function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   end
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = filter(new_idx -> !haskey(__jtu_idx(dpr), new_idx), map(idx -> (idx[1], idx[2] + d), dpre_vars_idxs))
-  if !is_empty(__add_new_vars_idx)
+  if !is_empty(add_new_vars_idx)
     __add_new_jetvar!(dpr, add_new_vars_idx)
   end
 
