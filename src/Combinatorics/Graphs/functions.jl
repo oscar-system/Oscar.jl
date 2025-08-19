@@ -1744,3 +1744,37 @@ function maximal_cliques(g::Graph{Undirected})
     Polymake.call_function(:graph,:max_cliques,g.pm_graph)
   ))
 end
+
+@doc raw"""
+     is_acyclic(G::Graph{Directed})
+
+Determines if `G` is acyclic by performing topological sort.
+Uses Kahn's algorithm, starting with minimal elements.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges(Directed, [[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
+Directed graph with 4 nodes and the following edges:
+(1, 2)(1, 3)(2, 3)(2, 4)(3, 4)
+
+julia> is_acylic(g)
+true
+```
+"""
+function is_acylic(G::Graph{Directed})
+  a = adjacency_matrix(G)'
+
+  # dont totally understand why this line works 
+  S = findall(map(isone, .!any(a; dims=2)'[:]))
+  
+  while !is_empty(S)
+    i = pop!(S)
+    for j in findall(a[:, i])
+      a[j, i] = false
+      if !any(a[j, :])
+        push!(S, j)
+      end
+    end
+  end
+  return !any(a) # The graph is acyclic if all edges have been removed
+end
