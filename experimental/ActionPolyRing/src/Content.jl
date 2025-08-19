@@ -390,11 +390,9 @@ Return the `i`-th elementary variable with multiindex `midx` in the action polyn
 
 ```jldoctests
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 1, [3,1,0,0])
-[ Info: New variables: a[3,1,0,0]
 a[3,1,0,0]
 
 julia> gen(dpr, (1, [3,2,0,0]))
-[ Info: New variables: a[3,2,0,0]
 a[3,2,0,0]
 
 julia> gens(dpr)
@@ -445,7 +443,6 @@ a vector and track all new variables.
 
 ```jldoctests
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gens(dpr, [(1, [3,1,0,0]), (1, [3,2,0,0])])
-[ Info: New variables: a[3,1,0,0], a[3,2,0,0]
 2-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
  a[3,1,0,0]
  a[3,2,0,0]
@@ -489,7 +486,6 @@ julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]]); gens(dpr)
  a[0,0,0,0]
 
 julia> gens(dpr, [(1, [1,1,1,1]), (2, [1,1,1,1])]);
-[ Info: New variables: a[1,1,1,1], b[1,1,1,1]
 
 julia> gens(dpr)
 5-element Vector{DifferencePolyRingElem{ZZRingElem}}:
