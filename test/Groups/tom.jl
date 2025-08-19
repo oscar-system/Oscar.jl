@@ -243,7 +243,7 @@ Test the case where a group has a custom name where the first character
 should not be turned into lowercase
 ```jldoctest tables_of_marks.test
 julia> table_of_marks(SL(2,2))
-Table of marks of SL(2,2)
+Table of marks of SL(2, 2)
 
 1: 6      
 2: 3 1    
