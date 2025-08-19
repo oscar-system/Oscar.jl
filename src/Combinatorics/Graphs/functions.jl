@@ -1746,7 +1746,7 @@ function maximal_cliques(g::Graph{Undirected})
 end
 
 @doc raw"""
-     is_acyclic(G::Graph{Directed})
+    is_acyclic(G::Graph{Directed})
 
 Determines if `G` is acyclic by performing topological sort.
 Uses Kahn's algorithm, starting with minimal elements.
@@ -1762,16 +1762,15 @@ true
 ```
 """
 function is_acylic(G::Graph{Directed})
-  a = adjacency_matrix(G)'
+  a = adjacency_matrix(G)
 
-  # dont totally understand why this line works 
-  S = findall(map(isone, .!any(a; dims=2)'[:]))
+  S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))
   
   while !is_empty(S)
     i = pop!(S)
-    for j in findall(a[:, i])
-      a[j, i] = false
-      if !any(a[j, :])
+    for j in findall(a[i, :])
+      a[i, j] = false
+      if !any(a[:, j])
         push!(S, j)
       end
     end
