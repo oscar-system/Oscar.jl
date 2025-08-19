@@ -1,3 +1,7 @@
+struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
+  pm_ptree::Polymake.LibPolymake.BigObjectAllocated
+end
+
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end

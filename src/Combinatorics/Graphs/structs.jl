@@ -34,7 +34,3 @@ end
   end
 end
 
-struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
-  pm_ptree::Polymake.LibPolymake.BigObjectAllocated
-end
-
