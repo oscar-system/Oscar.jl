@@ -40,7 +40,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
 
   # Step 2: Transform using converter dictionary
   converter_dict = converter_dict_h22_hypersurface(m, check = check)
-  b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+  b_ring = base_ring(cohomology_ring(ambient_space(m), completeness_check = check))
   b_ring_gens = gens(b_ring)
   converted_poly = zero(b_ring)
   for (exp_pair, coeff) in original_dict
@@ -61,7 +61,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   flux_coords = [get(new_dict, b, 0) for b in basis_indices]
 
   # Step 5: Build cohomology class
-  coh_ring = cohomology_ring(ambient_space(m), check = check)
+  coh_ring = cohomology_ring(ambient_space(m), completeness_check = check)
   converted_poly = coh_ring(converted_poly)
   converted_class = cohomology_class(ambient_space(m), converted_poly, quick = true)
 

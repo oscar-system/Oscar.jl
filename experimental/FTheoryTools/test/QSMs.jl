@@ -33,7 +33,7 @@ end
 @testset "Advanced intersection theory and QSM-fluxes" begin
   qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
   h22_converter_dict = converter_dict_h22_ambient(qsm_model, check = false)
-  coh_ring = cohomology_ring(ambient_space(qsm_model), check = false)
+  coh_ring = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
   coh_ring_gens = gens(coh_ring)
   for (key, value) in h22_converter_dict
     obj1 = coh_ring_gens[key[1]] * coh_ring_gens[key[2]]
