@@ -1,6 +1,7 @@
 ################################################################################
 # important dict type, leaving here for now
 const GraphGenDict = Dict{Union{Int, Edge}, T} where T <: MPolyRingElem
+const GenDict = Dict{S, T} where {S, T <: MPolyRingElem}
 
 function Base.getindex(D::GraphGenDict, i::Int, j::Int)
   return D[Edge(i, j)]

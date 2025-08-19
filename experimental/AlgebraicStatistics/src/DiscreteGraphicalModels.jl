@@ -10,6 +10,8 @@
   end
 end
 
+
+
 ###################################################################################
 #
 #       Undirected Discrete Graphical Models
@@ -39,10 +41,9 @@ function discrete_graphical_model(G::Graph{Undirected}, states::Vector{Int}; t_v
 end
 
 varnames(M::DiscreteGraphicalModel) = M.varnames
-
 states(M::DiscreteGraphicalModel) = M.states
-
-maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(M.graph)
+n_states(M::DiscreteGraphicalModel) = length(states(M))
+maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(graph(M))
 
 function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
@@ -86,8 +87,13 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
   MPolyRing,
   GenDict
 } function model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
-  R = markov_ring(M.states...; cached=cached)
-  return (ring(R), gens(R))
+  random_variables = 1:n_states(M)
+  state_spaces = [1:s for s in states(M)]
+  varindices = collect(Iterators.product(state_spaces...))
+  gen_names = [["$(varnames[:p])[$(join(i, ", "))]" for i in varindices]...]
+
+  # the base ring should come from the model, leaving as QQ for now
+  return model_ring(QQ, gen_names)
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})

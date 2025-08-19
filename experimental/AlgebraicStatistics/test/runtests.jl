@@ -1,3 +1,4 @@
 include("GaussianModels.jl")
-# exported items: experimental/GraphicalModels/src/GraphicalModels.jl
+include("DiscreteModels.jl")
 include("PhylogeneticModels.jl")
+
