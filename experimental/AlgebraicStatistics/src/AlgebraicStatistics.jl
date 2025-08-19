@@ -46,3 +46,6 @@ export GroupBasedPhylogeneticModel
 
 # Multigradedimplicitization
 export components_of_kernel
+export compute_component
+export jacobian
+export max_grading
