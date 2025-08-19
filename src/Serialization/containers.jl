@@ -158,7 +158,9 @@ function save_object(s::SerializerState, mat::AbstractMatrix{S}) where {S}
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}) where {S}
+# this needs to be Matrix to avoid ambiguities, this is also ok
+# since types on load will be Matrix
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -171,9 +173,9 @@ function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}) where {
   end
 end
 
-load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, ::Nothing) where {S} = load_object(s, T)
+load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where {S} = load_object(s, T)
 
-function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, params) where {S}
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -186,7 +188,7 @@ function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, params)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:AbstractMatrix{S}}, key::Union{Int, Symbol}) where {S}
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::Union{Int, Symbol}) where {S}
   return load_node(s, key) do _
     load_object(s, T)
   end
@@ -198,7 +200,7 @@ end
 
 function save_object(s::SerializerState, arr::AbstractArray{T, N}) where {T, N}
   save_data_array(s) do
-    for slice in eachslice(arr; dims=N)
+    for slice in eachslice(arr; dims=1)
       save_object(s, slice)
     end
   end
@@ -211,7 +213,7 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, i) for i in 1:len]
-    return stack(m; dims=N)
+    return stack(m; dims=1)
   end
 end
 
@@ -224,7 +226,7 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) wher
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, params, i) for i in 1:len]
-    return stack(m; dims=N)
+    return stack(m; dims=1)
   end
 end
 
