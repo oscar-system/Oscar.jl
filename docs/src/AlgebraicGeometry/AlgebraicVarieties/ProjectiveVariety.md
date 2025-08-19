@@ -11,7 +11,7 @@ is an irreducible projective algebraic set. See [Projective Algebraic Sets](@ref
 In practice we work over non-closed fields. To be called a variety
 an algebraic set $V$ must stay irreducible when viewed over the algebraic closure.
 
-In OSCAR projective varieties are [Projective schemes](@ref) and more formally defined as follows.
+In OSCAR, projective varieties are [Projective schemes](@ref) and more formally defined as follows.
 
 ```@docs
 AbsProjectiveVariety

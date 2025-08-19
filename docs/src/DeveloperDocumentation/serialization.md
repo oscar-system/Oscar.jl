@@ -380,7 +380,7 @@ of the OSCAR functions.
 
 External implementations should not be expected to read or write all possible OSCAR types.
 It is perfectly valid for external implementations to throw parse errors when a certain
-file format is unexpected. For example OSCAR will parse a `QQFieldElem` that has data value
+file format is unexpected. For example, OSCAR will parse a `QQFieldElem` that has data value
 "0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
 we should not restrict users when deserializing to formats that may have issues deserializing
 the same format externally.
