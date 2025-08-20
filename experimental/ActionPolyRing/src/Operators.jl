@@ -59,7 +59,7 @@ end
 ###############################################################################
 
 ### Difference ###
-Base.:(==)(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRingElem{T}) where {T<:RingElement} = data(dpre1) == data(dpre2) && parent(dpre1) === parent(dpre2)
+Base.:(==)(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRingElem{T}) where {T<:RingElement} = parent(dpre1) === parent(dpre2) && data(dpre1) == data(dpre2)
 
 function Base.hash(dpre::DifferencePolyRingElem, h::UInt)
   b = 0x475b3fa701aa3148 % UInt
