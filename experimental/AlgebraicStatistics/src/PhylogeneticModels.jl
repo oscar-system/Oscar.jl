@@ -9,7 +9,30 @@
 #
 ###################################################################################
 
+@doc raw"""
+    PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
 
+A data structure representing a general phylogenetic model on a directed tree.
+
+This model defines a probability distribution on the states of the leaves of a phylogenetic tree,
+based on a root distribution and transition matrices on the edges. The model is defined over a
+base field (e.g., `QQ` for rational numbers).
+
+**Type Parameters:**
+* `GT`: The graph type, expected to be `Graph{Directed}` for a phylogenetic tree.
+* `M`: The type of elements in the transition matrix structure, typically a `VarName` (a `Symbol`) or a polynomial ring element (`MPolyRingElem`).
+* `L`: The type of the graph labelings, a `NamedTuple`.
+* `T`: The type of elements in the root distribution vector.
+
+**Fields:**
+* `base_field::Field`: The base field of the model's parameters.
+* `graph::GT`: The underlying directed graph (tree) of the model.
+* `labelings::L`: A named tuple of graph maps for internal use.
+* `trans_matrix_structure::Matrix{M}`: A matrix representing the symbolic structure of the transition matrices for each edge.
+* `root_distribution::Vector{T}`: A vector representing the distribution at the root of the tree.
+* `n_states::Int`: The number of states in the model.
+* `model_parameter_name::VarName`: The symbolic name for the variables of the model ring.
+"""
 @attributes mutable struct PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
   base_field::Field
@@ -20,7 +43,12 @@
   n_states::Int
   model_parameter_name::VarName
 
-  
+  @doc raw"""
+    PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
+
+  Construct a `PhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
+  If `root_distribution` is not provided, a uniform distribution is assumed.
+  """
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
                              trans_matrix_structure::Matrix,
@@ -41,6 +69,11 @@
                                                                     varname)
   end
 
+  @doc raw"""
+    PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varname::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+
+  Construct a `PhylogeneticModel` from a graph `G`, a transition matrix with polynomial entries, and a root distribution. This constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
+  """
   function PhylogeneticModel(G::Graph{Directed},
                              trans_matrix_structure::Matrix{M},
                              root_distribution::Vector{T},
@@ -56,6 +89,11 @@
     PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varname)
   end
 
+  @doc raw"""
+    PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
+
+  Construct a `PhylogeneticModel` using the default rational field (`QQ`).
+  """
   function PhylogeneticModel(G::Graph{Directed},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
@@ -65,12 +103,52 @@
   end
 end
 
+@doc raw"""
+    n_states(PM::PhylogeneticModel)
+
+Return the number of states in the phylogenetic model.
+"""
 n_states(PM::PhylogeneticModel) = PM.n_states
+
+@doc raw"""
+    transition_matrix(PM::PhylogeneticModel)
+
+Return the structure of the transition matrices of the model.
+"""
 transition_matrix(PM::PhylogeneticModel) = PM.trans_matrix_structure
-base_field(PM::PhylogeneticModel) = PM.base_field
-varname(PM::PhylogeneticModel) = PM.model_parameter_name
+
+@doc raw"""
+    root_distribution(PM::PhylogeneticModel)
+
+Return the root distribution vector of the model.
+"""
 root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 
+@doc raw"""
+    base_field(PM::PhylogeneticModel)
+
+Return the base field of the model's rings.
+"""
+base_field(PM::PhylogeneticModel) = PM.base_field
+
+@doc raw"""
+    varname(PM::PhylogeneticModel)
+
+Return the symbolic name for the probability coordinates.
+"""
+varname(PM::PhylogeneticModel) = PM.model_parameter_name
+
+
+@doc raw"""
+    parameter_ring(PM::PhylogeneticModel; cached=false)
+
+Create the polynomial ring for the parameters of the phylogenetic model.
+
+Returns a tuple containing:
+1.  The polynomial ring.
+2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+3.  The root distribution vector.
+"""
 @attr Tuple{
   MPolyRing, 
   GraphTransDict,
@@ -103,6 +181,18 @@ end
       ), r
 end
 
+@doc raw"""
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false)
+
+Create the polynomial ring for the parameters of a phylogenetic model whose transition matrix
+is defined over a polynomial ring.
+
+Returns a tuple containing:
+1.  The polynomial ring.
+2.  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original
+    transition matrix ring to the new parameter ring.
+3.  The root distribution vector.
+"""
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
@@ -167,20 +257,20 @@ end
   R, dict_maps, root_vars
 end
 
-function Base.show(io::IO, pm::PhylogeneticModel)
-  gr = graph(pm)
-  ns = n_states(pm)
+function Base.show(io::IO, PM::PhylogeneticModel)
+  gr = graph(PM)
+
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
-  #root_dist = join(Oscar.root_distribution(pm), ", " )
-  #M = collect(values(transition_matrix(pm)))[1]
+  root_dist = join(root_distribution(PM), ", " )
+ 
+  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
+  print(io, "with root distribution [$(root_dist)] \n")
+  print(io, "and transition matrices of the form \n ")
 
-  # commenting out root distribution for now
-  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges") # \n with distribution at the root [$(root_dist)] \n")
-  print(io, " and transition matrices of the form \n ")
-
-  # printing this matrix can probably be improved
-  print(io, "$(pm.trans_matrix_structure)")
+  M = string(PM.trans_matrix_structure)
+  print(io, replace(M, ";" => ";\n "))
+  print(io, ". ")
 end
 
 
@@ -190,12 +280,35 @@ end
 #
 ###################################################################################
 
+@doc raw"""
+    GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
+
+A data structure representing a group-based phylogenetic model.
+
+This model is a specialization of `PhylogeneticModel` where the transition matrices and
+leaf probabilities can be described by a set of Fourier parameters related to a group structure.
+
+**Type Parameters:**
+* `GT`: The graph type, expected to be `Graph{Directed}`.
+* `L`: The type of the graph labelings.
+
+**Fields:**
+* `phylo_model::PhylogeneticModel`: The underlying standard phylogenetic model.
+* `fourier_param_structure::Vector{<: VarName}`: A vector representing the symbolic structure of the Fourier parameters.
+* `group::Vector{FinGenAbGroupElem}`: The elements of the finite abelian group used for the model.
+* `model_parameter_name::VarName`: The symbolic name for the model's Fourier parameters.
+"""
 @attributes mutable struct GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
   phylo_model::PhylogeneticModel{GT, <: VarName, L, <: RingElem} 
   fourier_param_structure::Vector{<: VarName}
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
   
+  @doc raw"""
+      GroupBasedPhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varname_phylo_model::VarName="p", varname_group_based::VarName="q")
+
+  Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution.
+  """
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
@@ -218,6 +331,11 @@ end
                                               group, varname_group_based)
   end
 
+  @doc raw"""
+      GroupBasedPhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varname_phylo_model::VarName="p", varname_group_based::VarName="q")
+
+  Construct a `GroupBasedPhylogeneticModel` using the default rational field (`QQ`).
+  """
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
@@ -232,22 +350,95 @@ end
 
 end
 
+@doc raw"""
+    graph(PM::GroupBasedPhylogeneticModel)
+
+Return the graph of the underlying phylogenetic model.
+"""
 graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph # ? Antony
 
+@doc raw"""
+    phylogenetic_model(PM::GroupBasedPhylogeneticModel)
+
+Return the underlying `PhylogeneticModel`.
+"""
+phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
+
+
+@doc raw"""
+    n_states(PM::GroupBasedPhylogeneticModel)
+
+Return the number of states of the underlying phylogenetic model.
+"""
 n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
+
+@doc raw"""
+    transition_matrix(PM::GroupBasedPhylogeneticModel)
+
+Return the structure of the transition matrices of the model.
+"""
 transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_matrix_structure
+
+@doc raw"""
+    base_field(PM::GroupBasedPhylogeneticModel)
+
+Return the base field of the underlying phylogenetic model.
+"""
 base_field(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.base_field
+
+@doc raw"""
+    root_distribution(PM::GroupBasedPhylogeneticModel)
+
+Return the root distribution of the underlying phylogenetic model.
+"""
 root_distribution(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.root_distribution
+
+@doc raw"""
+    varname_probabilities(PM::GroupBasedPhylogeneticModel)
+
+Return the symbolic name for the probability coordinates of the underlying phylogenetic model.
+"""
 varname_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name # ? Antony
 
-phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
+
+@doc raw"""
+    group(PM::GroupBasedPhylogeneticModel)
+
+Return the finite abelian group associated with the model.
+"""
 group(PM::GroupBasedPhylogeneticModel) = PM.group
+
+@doc raw"""
+    fourier_parameters(PM::GroupBasedPhylogeneticModel)
+
+Return the symbolic structure of the Fourier parameters.
+"""
 fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
+
+@doc raw"""
+    varname_fourier(PM::GroupBasedPhylogeneticModel)
+
+Return the variable name for the Fourier coordinates.
+"""
 varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
+
+@doc raw"""
+    varname(PM::GroupBasedPhylogeneticModel)
+
+Return the variable name for the Fourier coordinates (alias for `varname_fourier`).
+"""
 varname(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
 
+@doc raw"""
+    parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
 
+Create the polynomial ring for the Fourier parameters of the model.
+
+Returns a tuple containing:
+1.  The polynomial ring.
+2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+"""
 @attr Tuple{
   MPolyRing,
   GraphTransDict
@@ -261,21 +452,25 @@ varname(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
   )
 end
 
-function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
-  gr = graph(pm)
-  ns = n_states(pm)
+function Base.show(io::IO, PM::GroupBasedPhylogeneticModel)
+
+  gr = graph(PM)
+
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
+  root_dist = join(PM.phylo_model.root_distribution, ", " )
+ 
+  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
+  print(io, "with root distribution [$(root_dist)], \n")
+  print(io, "transition matrices of the form \n ")
 
-  # commenting out root distribution for now
-  print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges") # \n with distribution at the root [$(root_dist)] \n")
-  
-  # printing this matrix can probably be improved
-  print(io, " with transition matrices of the form \n ")
-  print(io, "$(pm.phylo_model.trans_matrix_structure) \n")
+  M = string(PM.phylo_model.trans_matrix_structure)
+  print(io, replace(M, ";" => ";\n "))
+  print(io, "\n")
 
-  print(io, " and fourier parameters of the form \n ")
-  print(io, "$(pm.fourier_param_structure)")
+  print(io, "and fourier parameters of the form ")
+  print(io, "$(PM.fourier_param_structure).")
+
 end
 
 
@@ -285,6 +480,13 @@ end
 #
 ###################################################################################
 
+@doc raw"""
+    full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+
+Creates the full model ring for the probability distributions at the leaves (probability coordinates) for a `PhylogeneticModel`.
+Equivalently, creates the full model ring in the Fourier coordinates for a `GroupBasedPhylogeneticModel`.
+This ring has a generator for every possible state configuration at the leaves.
+"""
 @attr Tuple{
   ModelRing{T, U}, 
   Dict{T, U}
@@ -294,6 +496,12 @@ end
   return model_ring(base_field(PM), varname(PM) => l_indices; cached=cached)
 end
 
+@doc raw"""
+    full_parametrization(PM::PhylogeneticModel)
+
+Constructs the parametrization map from the full model ring in _probability_ coordinates (with generators for all leaf probability
+configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
+"""
 @attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel)
   gr = graph(PM)
 
@@ -307,6 +515,12 @@ end
 
 end
 
+@doc raw"""
+    full_parametrization(PM::GroupBasedPhylogeneticModel)
+
+Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
+configurations) to the parameter ring (with generators from the Fourier parameters).
+"""
 function full_parametrization(PM::GroupBasedPhylogeneticModel)
   gr = graph(PM)
 
@@ -320,7 +534,13 @@ function full_parametrization(PM::GroupBasedPhylogeneticModel)
 
 end
 
-#const EquivDict = Dict{T, Vector{T}} where T <: MPolyRingElem
+@doc raw"""
+    equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+
+Calculates the equivalence classes of the model's parametrizations. Equivalent polynomials
+are those that are identical under the chosen parametrization. This is a crucial step for
+dimension reduction in the model's algebraic variety.
+"""
 @attr Dict{
       Tuple{Vararg{Int64}}, 
       Vector{MPolyRingElem}
@@ -332,7 +552,6 @@ end
   polys = polys[findall(!is_zero, polys)]
 
   equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
-  # equivalent_classes = Dict{MPolyRingElem, Vector{MPolyRingElem}}()
   for poly in polys
       eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
       equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
@@ -340,6 +559,12 @@ end
   return equivalent_classes
 end
 
+@doc raw"""
+    model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
+
+Creates a reduced model ring based on the equivalence classes of the parametrizations.
+This ring has a generator for each unique polynomial (i.e., each equivalence class).
+"""
 @attr Tuple{
   ModelRing{T, U}, 
   Dict{T, U}
@@ -350,6 +575,12 @@ end
   return model_ring(base_field(PM), varname(PM) => ec_indices; cached=cached)
 end
 
+@doc raw"""
+    parametrization(PM::PhylogeneticModel)
+
+Constructs the parametrization map from the reduced model ring of probability coordinates (with generators for
+each equivalence class) to the parameter ring.
+"""
 function parametrization(PM::PhylogeneticModel)
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -361,6 +592,11 @@ function parametrization(PM::PhylogeneticModel)
   hom(R, S, reduce(vcat, map))
 end
 
+@doc raw"""
+    parametrization(PM::GroupBasedPhylogeneticModel)
+
+Constructs the parametrization map from the reduced model of Fourier coordinates ring to the Fourier parameter ring.
+"""
 function parametrization(PM::GroupBasedPhylogeneticModel)
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -371,6 +607,11 @@ function parametrization(PM::GroupBasedPhylogeneticModel)
   hom(R, S, reduce(vcat, map))
 end
 
+@doc raw"""
+    affine_parametrization(PM::PhylogeneticModel)
+
+Constructs an affine parametrization of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
+"""
 function affine_parametrization(PM::PhylogeneticModel)
   R, p = model_ring(PM) 
   S, _ = parameter_ring(PM)
@@ -387,6 +628,12 @@ function affine_parametrization(PM::PhylogeneticModel)
 
 end
 
+@doc raw"""
+    affine_parametrization(PM::GroupBasedPhylogeneticModel)
+
+Constructs an affine parametrization of the group-based model by setting the first
+Fourier parameters to 1.
+"""
 function affine_parametrization(PM::GroupBasedPhylogeneticModel)
   R, q = model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -408,7 +655,12 @@ end
 #
 ###################################################################################
 
+@doc raw"""
+    fourier_transform(PM::GroupBasedPhylogeneticModel)
 
+Computes specialized Fourier transform from the matrix that represents the full Fourier transform. 
+This matrix transforms the reduced probability coordinates (corresponding to the equivalent classes) to the reduced Fourier coordinates.
+"""
 function fourier_transform(PM::GroupBasedPhylogeneticModel)
   FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
   FRq, q = Oscar.full_model_ring(PM)
@@ -443,6 +695,11 @@ function fourier_transform(PM::GroupBasedPhylogeneticModel)
   return M
 end
 
+@doc raw"""
+    coordinate_change(PM::GroupBasedPhylogeneticModel)
+
+Constructs the map from probability coordinates to Fourier coordinates. This is a homomorphism between the model rings.
+"""
 function coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
   Rq, _ = Oscar.model_ring(PM)
@@ -451,6 +708,11 @@ function coordinate_change(PM::GroupBasedPhylogeneticModel)
   hom(Rq, Rp, M * gens(_ring(Rp)))
 end
 
+@doc raw"""
+    inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
+
+Computes the matrix that transforms Fourier coordinates back to probability coordinates.
+"""
 function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
   FRq, q = Oscar.full_model_ring(PM)
@@ -486,6 +748,11 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   return M
 end
 
+@doc raw"""
+    inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
+
+Constructs the map from Fourier coordinates to probability coordinates. This is the inverse of `coordinate_change`.
+"""
 function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
   Rq, _ = Oscar.model_ring(PM)
@@ -501,7 +768,12 @@ end
 #
 ###################################################################################
 
+@doc raw"""
+    cavender_farris_neyman_model(G::Graph{Directed})
 
+Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
+a 2-state model with a single transition probability per edge.
+"""
 function cavender_farris_neyman_model(G::Graph{Directed})
   M = [:a :b;
        :b :a]
@@ -514,6 +786,12 @@ function cavender_farris_neyman_model(G::Graph{Directed})
   GroupBasedPhylogeneticModel(G, M, x, group) 
 end
 
+@doc raw"""
+    jukes_cantor_model(G::Graph{Directed})
+
+Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
+a 4-state model where all non-diagonal transition probabilities are equal.
+"""
 function jukes_cantor_model(G::Graph{Directed})
   M = [:a :b :b :b;
        :b :a :b :b;
@@ -527,6 +805,12 @@ function jukes_cantor_model(G::Graph{Directed})
   GroupBasedPhylogeneticModel(G, M, x) 
 end
 
+@doc raw"""
+    kimura2_model(G::Graph{Directed})
+
+Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
+a 4-state model with two non-diagonal transition probabilities.
+"""
 function kimura2_model(G::Graph{Directed})
   M = [:a :b :c :b;
        :b :a :b :c;
@@ -537,6 +821,12 @@ function kimura2_model(G::Graph{Directed})
   GroupBasedPhylogeneticModel(G, M, x)
 end
 
+@doc raw"""
+    kimura3_model(G::Graph{Directed})
+
+Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
+a 4-state model with three non-diagonal different transition probabilities.
+"""
 function kimura3_model(G::Graph{Directed})
   M = [:a :b :c :d;
        :b :a :d :c;
@@ -547,6 +837,12 @@ function kimura3_model(G::Graph{Directed})
   GroupBasedPhylogeneticModel(G, M, x)
 end
   
+@doc raw"""
+    general_markov_model(G::Graph{Directed})
+
+Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
+All transition matrix entries and root distribution entries are treated as independent parameters.
+"""
 function general_markov_model(G::Graph{Directed})
 
   M = [:m11 :m12 :m13 :m14;
@@ -559,7 +855,3 @@ function general_markov_model(G::Graph{Directed})
   PhylogeneticModel(G, M, root_distr)
 end
 
-
-# TODO:
-# function affine_phylogenetic_model!(PM::PhylogeneticModel)
-# function affine_phylogenetic_model!(PM::GroupBasedPhylogeneticModel)
