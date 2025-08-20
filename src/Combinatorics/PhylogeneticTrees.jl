@@ -238,8 +238,14 @@ end
 @doc raw"""
     tropical_median_consensus(arr::Vector{PhylogeneticTree{T}})
 
-Compute the tropical median consensus tree of the phylogenetic trees from
-the vector `arr`.
+Compute the tropical median consensus tree of the equidistant
+phylogenetic trees from the vector `arr`.  The output is then
+equidistant, too.  The method is robust (ie., the consensus tree
+dpends continuosuly on the input), and it is Pareto and co-Pareto on
+rooted triplets.
+
+The algorithm, based on tropical convexity and optimal transport, is
+explained in [CJ24](@cite).
 
 # Examples
 Compute the tropical median consensus of three trees and print one of its

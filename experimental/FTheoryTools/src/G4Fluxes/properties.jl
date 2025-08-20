@@ -27,9 +27,7 @@ If all these integrals evaluate to integers, this method returns `true`; otherwi
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
-
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -122,7 +120,7 @@ G4-flux candidate
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
    
-  n = ngens(cox_ring(base_space(m)))
+  n = ngens(coordinate_ring(base_space(m)))
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
   zero_sec = zero_section_class(m)
 
@@ -239,11 +237,11 @@ G4-flux candidate
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
 
   # Identify the cohomology classes of all base divisors
-  n = ngens(cox_ring(base_space(m)))
+  n = ngens(coordinate_ring(base_space(m)))
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
 
   # Identify the cohomology classes of all exceptional divisors
-  gS = gens(cox_ring(ambient_space(m)))
+  gS = gens(coordinate_ring(ambient_space(m)))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
   c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]

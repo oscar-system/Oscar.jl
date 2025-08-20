@@ -166,6 +166,6 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
   model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, base_space, amb_space)
   model.defining_classes = defining_classes
   model.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  @req cox_ring(ambient_space(model)) == parent(weierstrass_polynomial(model)) "Weierstrass polynomial not in Cox ring of toric ambient space"
+  @req coordinate_ring(ambient_space(model)) == parent(weierstrass_polynomial(model)) "Weierstrass polynomial not in Cox ring of toric ambient space"
   return model
 end

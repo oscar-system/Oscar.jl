@@ -545,3 +545,14 @@ end
   @test dim(underlying_quotient(WW)) == -inf
 end
 
+@testset "simplification of subquotients" begin
+  R,(x,y) = polynomial_ring(GF(3),2)
+  I = ideal(x)
+  A, _ = quo(R, I)
+  U = complement_of_point_ideal(R, [0, 0])
+  L, _ = localization(A, U)
+  AA, iso, iso_inv = simplify(L)
+  @test all(x==iso(iso_inv(x)) for x in gens(AA))
+  @test all(x==iso_inv(iso(x)) for x in gens(L))
+end
+

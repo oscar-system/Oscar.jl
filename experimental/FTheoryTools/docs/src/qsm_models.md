@@ -57,6 +57,10 @@ Kreuzer-Skarke list. The "first" QSM is associated with the 4th polytope, and th
 index `k = 4291`. Between these, 706 other values correspond to QSMs. If a given `k` does not
 correspond to a QSM, the constructor raises an error.
 
+It is worth recalling that this classifcation of base spaces is rooted in the triple intersection
+number of the anticanonical class of the base space. This triple intersection number can be
+accessed with `FTheoryTools`, see [Base Intersection Numbers](@ref base_top_data).
+
 ---
 
 ## [The Underlying Polytope](@id qsm_polytope)
@@ -104,23 +108,6 @@ Provide an estimate of the total number of full, regular, star triangulations of
 ```@docs
 estimated_number_of_triangulations(m::AbstractFTheoryModel)
 ```
-
----
-
-## [Topological Data of a QSM](@id qsm_top_data)
-
-In addition to the polytope data, several topological invariants play a central role in analyzing
-the geometry of a QSM.
-
-The following method returns the triple self-intersection number of the anticanonical class
-``\overline{K}_{B_3}`` of the 3-dimensional base:
-
-```@docs
-kbar3(m::AbstractFTheoryModel)
-```
-
-The Hodge numbers of the elliptically fibered Calabi–Yau 4-fold are also available. For details, see
-[Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
 
 ---
 

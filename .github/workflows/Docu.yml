@@ -8,9 +8,13 @@ on:
     tags: '*'
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   workflow_dispatch:
 
 concurrency:
@@ -25,7 +29,7 @@ jobs:
     #runs-on: self-hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'

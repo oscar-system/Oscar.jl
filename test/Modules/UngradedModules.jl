@@ -339,6 +339,27 @@ end
   @test length(FMI) == 4
 end
 
+@testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
+    F = GF(2)
+    function _rep_mat(n)
+        I = [i for i in 1:n-1 for d in (0,1)]
+        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
+        matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
+    end
+    for n in 2:50
+        d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
+        C = chain_complex([d])
+        H = homology(C)
+        ker_d = kernel(d)[1]
+        @test dim(ker_d) == 0
+        @test H[1] == ker_d
+        coker_d, coker_proj = cokernel(d)
+        @test dim(coker_d) == 1
+        @test H[2][1] == coker_d
+        @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
+    end
+end
+
 @testset "Prune With Map" begin
   Oscar.set_seed!(235)
   # ungraded
@@ -1861,4 +1882,6 @@ end
     E3 = ext(M, graded_free_module(R, 1), 1 + 2)
     @test is_zero(E3)
     @test krull_dim(E3) == -inf
+
+    @test typeof(E2) == typeof(E3)
 end

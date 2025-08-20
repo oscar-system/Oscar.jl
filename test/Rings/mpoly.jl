@@ -693,5 +693,9 @@ end
   @test Oscar.is_known(is_principal, I3) # result is cached
 end
 
-  
-  
+@testset "issue 5175" begin
+  R,(x,y) = polynomial_ring(ZZ,2)
+  I = ideal(R,[y,2*x-1])
+  @test !is_one(radical(I))
+end
+

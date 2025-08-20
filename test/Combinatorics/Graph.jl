@@ -1,5 +1,4 @@
 @testset "Graphs" begin
-
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
@@ -241,5 +240,12 @@
     @testset "maximal_cliques" begin
       G = complete_bipartite_graph(2, 2)
       @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
+    end
+
+    @testset "is_acylic" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
+      @test !is_acylic(G)
+      rem_edge!(G, 3, 1)
+      @test is_acylic(G)
     end
 end

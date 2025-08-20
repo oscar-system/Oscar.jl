@@ -176,7 +176,7 @@ Global Tate models are one way to represent an elliptic fibration as a hypersurf
 different representations may vary in implementation details, they share a common structure in broad strokes. As
 such, many attributes and properties are shared across model representations. These shared components—such as
 `base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
-[Functionality for all F-theory models](@ref functionality_for_all_f_theory_models).
+[Common Model Ops](@ref common_model_ops).
 
 Below, we list the attributes that are **specific to global Tate models** and do not generally apply to other
 representations (such as [Weierstrass Models](@ref weierstrass_models) or [Hypersurface Models](@ref hypersurface_models)):
@@ -191,7 +191,6 @@ tate_polynomial(t::GlobalTateModel)
 hypersurface_equation(t::GlobalTateModel)
 tate_ideal_sheaf(t::GlobalTateModel)
 weierstrass_model(t::GlobalTateModel)
-calabi_yau_hypersurface(t::GlobalTateModel)
 ```
 
 ---
