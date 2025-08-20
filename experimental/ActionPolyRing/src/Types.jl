@@ -43,7 +43,6 @@ end
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
   p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferencePolyRing{T}
-  initial::Any #Always of type DifferencePolyRingElem{T}
   permutation::Vector{Int}
 
   DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr)
@@ -58,22 +57,6 @@ mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(mpre, dpr)
   end
 
-end
-
-struct DifferencePolyCoeffs{T <: RingElem}
-   poly::T
-end
-
-struct DifferencePolyExponentVectors{T <: RingElem}
-   poly::T
-end
-
-struct DifferencePolyTerms{T <: RingElem}
-   poly::T
-end
-
-struct DifferencePolyMonomials{T <: RingElem}
-   poly::T
 end
 
 ### Differential ###
@@ -111,7 +94,6 @@ end
 mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
   p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferentialPolyRing{T}
-  initial::Any #Always of type DifferentialPolyRingElem{T}
   permutation::Vector{Int}
 
   DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr)
@@ -128,20 +110,26 @@ mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
 
 end
 
-struct DifferentialPolyCoeffs{T <: RingElem}
-   poly::T
+###############################################################################
+#
+#  Iterator types 
+#
+###############################################################################
+
+struct ActionPolyCoeffs{T, PolyT<:ActionPolyRingElem{T}}
+   poly::PolyT
 end
 
-struct DifferentialPolyExponentVectors{T <: RingElem}
-   poly::T
+struct ActionPolyExponentVectors{T, PolyT<:ActionPolyRingElem{T}}
+   poly::PolyT
 end
 
-struct DifferentialPolyTerms{T <: RingElem}
-   poly::T
+struct ActionPolyTerms{T, PolyT<:ActionPolyRingElem{T}}
+   poly::PolyT
 end
 
-struct DifferentialPolyMonomials{T <: RingElem}
-   poly::T
+struct ActionPolyMonomials{T, PolyT<:ActionPolyRingElem{T}}
+   poly::PolyT
 end
 
 ###############################################################################

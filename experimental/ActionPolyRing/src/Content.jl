@@ -490,7 +490,7 @@ constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre)
 @doc raw"""
     leading_coefficient(p::ActionPolyRingElem{T}) -> T
 
-Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
+Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term.
 """
 function leading_coefficient(apre::ActionPolyRingElem{T}) where {T}
   if length(apre) == 0
@@ -568,9 +568,9 @@ tail(apre::ActionPolyRingElem) = apre - leading_term(apre)
 ###############################################################################
 
 @doc raw"""
-    diff_action(p::ActionPolyRingElem, i::Int)
+    diff_action(p::DifferencePolyRingElem, i::Int)
 
-Apply the `i`-th diff-action to the polynomial `p`. If `p` is a difference polynomial then this action is multiplicative on the variables. If `p` is a differential polynomial then this action adheres to the Leibniz rule.
+Apply the `i`-th endomorphism to the polynomial `p`.
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   d = fill(0, ndiffs(parent(dpre)))
@@ -578,6 +578,11 @@ function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   return diff_action(dpre, d)
 end
 
+@doc raw"""
+    diff_action(p::DifferentialPolyRingElem, i::Int)
+
+Apply the `i`-th derivation to the polynomial `p`.
+"""
 function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:ndiffs(dpr) "index out of range"
@@ -719,47 +724,23 @@ end
 #
 ###############################################################################
 
-function coefficients(a::DifferencePolyRingElem)
-   return DifferencePolyCoeffs(a)
+function coefficients(a::ActionPolyRingElem{T}) where {T}
+  return ActionPolyCoeffs{T, typeof(a)}(a)
 end
 
-function coefficients(a::DifferentialPolyRingElem)
-   return DifferentialPolyCoeffs(a)
+function exponents(a::ActionPolyRingElem{T}) where {T}
+  return ActionPolyExponentVectors{T, typeof(a)}(a)
 end
 
-function exponents(a::DifferencePolyRingElem)
-   return DifferencePolyExponentVectors(a)
+function monomials(a::ActionPolyRingElem{T}) where {T}
+  return ActionPolyMonomials{T, typeof(a)}(a)
 end
 
-function exponents(a::DifferentialPolyRingElem)
-   return DifferentialPolyExponentVectors(a)
+function terms(a::ActionPolyRingElem{T}) where {T}
+  return ActionPolyTerms{T, typeof(a)}(a)
 end
 
-function monomials(a::DifferencePolyRingElem)
-   return DifferencePolyMonomials(a)
-end
-
-function monomials(a::DifferentialPolyRingElem)
-   return DifferentialPolyMonomials(a)
-end
-
-function terms(a::DifferencePolyRingElem)
-   return DifferencePolyTerms(a)
-end
-
-function terms(a::DifferentialPolyRingElem)
-   return DifferentialPolyTerms(a)
-end
-
-function Base.iterate(x::Union{DifferencePolyCoeffs, DifferentialPolyCoeffs})
-   if length(x.poly) >= 1
-      return coeff(x.poly, 1), 1
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::Union{DifferencePolyCoeffs, DifferentialPolyCoeffs}, state)
+function Base.iterate(x::ActionPolyCoeffs, state=0)
    state += 1
    if length(x.poly) >= state
       return coeff(x.poly, state), state
@@ -768,15 +749,7 @@ function Base.iterate(x::Union{DifferencePolyCoeffs, DifferentialPolyCoeffs}, st
    end
 end
 
-function Base.iterate(x::Union{DifferencePolyExponentVectors, DifferentialPolyExponentVectors})
-   if length(x.poly) >= 1
-      return exponent_vector(x.poly, 1), 1
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::Union{DifferencePolyExponentVectors, DifferentialPolyExponentVectors}, state)
+function Base.iterate(x::ActionPolyExponentVectors, state=0)
    state += 1
    if length(x.poly) >= state
       return exponent_vector(x.poly, state), state
@@ -785,32 +758,7 @@ function Base.iterate(x::Union{DifferencePolyExponentVectors, DifferentialPolyEx
    end
 end
 
-function Base.iterate(x::Union{DifferencePolyTerms, DifferentialPolyTerms})
-   if length(x.poly) >= 1
-      return term(x.poly, 1), 1
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::Union{DifferencePolyTerms, DifferentialPolyTerms}, state)
-   state += 1
-   if length(x.poly) >= state
-      return term(x.poly, state), state
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::Union{DifferencePolyMonomials, DifferentialPolyMonomials})
-   if length(x.poly) >= 1
-      return monomial(x.poly, 1), 1
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::Union{DifferencePolyMonomials, DifferentialPolyMonomials}, state)
+function Base.iterate(x::ActionPolyMonomials, state=0)
    state += 1
    if length(x.poly) >= state
       return monomial(x.poly, state), state
@@ -819,40 +767,33 @@ function Base.iterate(x::Union{DifferencePolyMonomials, DifferentialPolyMonomial
    end
 end
 
-function Base.length(x::Union{DifferencePolyCoeffs, DifferencePolyExponentVectors, DifferencePolyTerms, DifferencePolyMonomials, DifferentialPolyCoeffs, DifferentialPolyExponentVectors, DifferentialPolyTerms, DifferentialPolyMonomials})
+function Base.iterate(x::ActionPolyTerms, state=0)
+   state += 1
+   if length(x.poly) >= state
+      return term(x.poly, state), state
+   else
+      return nothing
+   end
+end
+
+function Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms})
    return length(x.poly)
 end
 
-function Base.eltype(::Type{DifferencePolyCoeffs{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return S
+function Base.eltype(::Type{ActionPolyCoeffs{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
+   return T
 end
 
-function Base.eltype(::Type{DifferencePolyExponentVectors{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
+function Base.eltype(::Type{ActionPolyExponentVectors{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
    return Vector{Int}
 end
 
-function Base.eltype(::Type{DifferencePolyMonomials{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return T
+function Base.eltype(::Type{ActionPolyMonomials{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
+   return PolyT
 end
 
-function Base.eltype(::Type{DifferencePolyTerms{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return T
-end
-
-function Base.eltype(::Type{DifferentialPolyCoeffs{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return S
-end
-
-function Base.eltype(::Type{DifferentialPolyExponentVectors{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return Vector{Int}
-end
-
-function Base.eltype(::Type{DifferentialPolyMonomials{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return T
-end
-
-function Base.eltype(::Type{DifferentialPolyTerms{T}}) where T <: ActionPolyRingElem{S} where S <: RingElement
-   return T
+function Base.eltype(::Type{ActionPolyTerms{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
+   return PolyT
 end
 
 ###############################################################################

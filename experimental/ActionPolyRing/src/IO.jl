@@ -76,9 +76,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
             push!(sum.args, expressify(c, context = context))
         else
             prod = Expr(:call, :*)
-            if !(isone(c))
-                push!(prod.args, expressify(c, context = context))
-            end
+            push!(prod.args, expressify(c, context = context))
             _expressify_monomial!(prod, x, e)
             push!(sum.args, prod)
         end
@@ -94,63 +92,43 @@ end
 ###############################################################################
 
 ### Coefficients ###
-function Base.show(io::IO, ::MIME"text/plain", ci::Union{DifferencePolyCoeffs, DifferentialPolyCoeffs})
-  io = pretty(io)
-  print(io, "coefficients iterator of ")
-  show(io, ci.poly)
-end
-
-function Base.show(io::IO, ci::Union{DifferencePolyCoeffs, DifferentialPolyCoeffs})
+function Base.show(io::IO, ci::ActionPolyCoeffs)
   io = pretty(io)
   if is_terse(io)
-    print(io, "iterator")
+    print(io, "Coefficients iterator")
   end
-  print(terse(io), "coefficients iterator")
+  print(io, "Coefficients iterator of ")
+  print(terse(io), ci.poly)
 end
 
 ### Exponents ###
-function Base.show(io::IO, ::MIME"text/plain", ei::Union{DifferencePolyExponentVectors, DifferentialPolyExponentVectors})
-  io = pretty(io)
-  print(io, "exponents iterator of ")
-  show(io, ei.poly)
-end
-
-function Base.show(io::IO, ei::Union{DifferencePolyExponentVectors, DifferentialPolyExponentVectors})
+function Base.show(io::IO, ei::ActionPolyExponentVectors)
   io = pretty(io)
   if is_terse(io)
-    print(io, "iterator")
+    print(io, "Exponents iterator")
   end
-  print(terse(io), "exponents iterator")
+  print(io, "Exponents iterator of ")
+  print(terse(io), ei.poly)
 end
 
 ### Monomials ###
-function Base.show(io::IO, ::MIME"text/plain", mi::Union{DifferencePolyMonomials, DifferentialPolyMonomials})
-  io = pretty(io)
-  print(io, "monomials iterator of ")
-  show(io, mi.poly)
-end
-
-function Base.show(io::IO, mi::Union{DifferencePolyMonomials, DifferentialPolyMonomials})
+function Base.show(io::IO, mi::ActionPolyMonomials)
   io = pretty(io)
   if is_terse(io)
-    print(io, "iterator")
+    print(io, "Monomials iterator")
   end
-  print(terse(io), "monomials iterator")
+  print(io, "Monomials iterator of ")
+  print(terse(io), mi.poly)
 end
 
 ### Terms ###
-function Base.show(io::IO, ::MIME"text/plain", ti::Union{DifferencePolyTerms, DifferentialPolyTerms})
-  io = pretty(io)
-  print(io, "terms iterator of ")
-  show(io, ti.poly)
-end
-
-function Base.show(io::IO, ti::Union{DifferencePolyTerms, DifferentialPolyTerms})
+function Base.show(io::IO, ti::ActionPolyTerms)
   io = pretty(io)
   if is_terse(io)
-    print(io, "iterator")
+    print(io, "Terms iterator")
   end
-  print(terse(io), "coefficients iterator")
+  print(io, "Terms iterator of ")
+  print(terse(io), ti.poly)
 end
 
 ###############################################################################
