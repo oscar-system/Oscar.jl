@@ -7,7 +7,7 @@
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   io = pretty(io)
-  n = nelementary_symbols(dpr)
+  n = n_elementary_symbols(dpr)
   print(io, "Difference polynomial ring in $n elementary symbols ")
   for i in 1:n-1
     print(io, string(elementary_symbols(dpr)[i]) * ", ")
@@ -24,7 +24,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   if is_terse(io)
     print(io, "Difference polynomial ring")
   else
-    print(terse(io), "Difference polynomial ring in $(nelementary_symbols(dpr)) elementary symbols over ")
+    print(terse(io), "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
     print(terse(io), base_ring(dpr))
   end
 end
@@ -32,7 +32,7 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   io = pretty(io)
-  n = nelementary_symbols(dpr)
+  n = n_elementary_symbols(dpr)
   print(io, "Differential polynomial ring in $n elementary symbols ")
   for i in 1:n-1
     print(io, string(elementary_symbols(dpr)[i]) * ", ")
@@ -49,14 +49,14 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
   if is_terse(io)
     print(io, "Differential polynomial ring")
   else
-    print(terse(io), "Differential polynomial ring in $(nelementary_symbols(dpr)) elementary symbols over ")
+    print(terse(io), "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
     print(terse(io), base_ring(dpr))
   end
 end
 
 ###############################################################################
 #
-# Expressify
+#  Expressify
 #
 ###############################################################################
 

@@ -8,7 +8,7 @@
 
 ### Difference ###
 @doc raw"""
-    difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+    difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
@@ -31,10 +31,10 @@ julia> variables
  u3[0,0,0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
+function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:n_elementary_symbols))))
 end
 
 @doc raw"""
@@ -70,7 +70,7 @@ end
 
 ### Differential ###
 @doc raw"""
-    differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+    differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
 Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
 these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
@@ -93,10 +93,10 @@ julia> variables
  c[0,0,0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
+function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:n_elementary_symbols))))
 end
 
 @doc raw"""
@@ -250,7 +250,7 @@ parent(dpre::DifferentialPolyRingElem) = dpre.parent
 ##### Related stuff #####
 base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
 
-nelementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
+n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
 ###############################################################################
 #
@@ -340,9 +340,9 @@ vars(apre::ActionPolyRingElem) = sort(parent(apre).(vars(data(apre))); rev = tru
 is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
 
 @doc raw"""
-    gen(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+    gen(apr::ActionPolyRing, i::Int, jet::Vector{Int})
 
-Return the `i`-th elementary variable with multiindex `midx` in the action polynomial
+Return the `i`-th elementary variable with multiindex `jet` in the action polynomial
 `apr`. If this jet variable was untracked, it is tracked afterwards. The index of the jet variable may also be passed as a tuple.
 
 # Examples
@@ -464,9 +464,9 @@ number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
 number_of_variables(apr::ActionPolyRing) = number_of_variables(__upr(apr))
 
 @doc raw"""
-    getindex(apr::ActionPolyRing, i::Int, midx::Vector{Int})
+    getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int})
 
-Alias for `gen(apr, i, midx)`.
+Alias for `gen(apr, i, jet)`.
 """
 getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
 
@@ -1033,7 +1033,7 @@ function __set_perm_for_sort_poly!(dpre::DifferentialPolyRingElem)
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
-__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:nelementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)
+__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)
 
 function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
@@ -1145,7 +1145,7 @@ function set_ranking!(dpr::DifferencePolyRing;
   )
   
   __set_are_perms_up_to_date!(dpr, false)
-  m, n = nelementary_symbols(dpr), ndiffs(dpr)
+  m, n = n_elementary_symbols(dpr), ndiffs(dpr)
   dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
 end
 
@@ -1157,7 +1157,7 @@ function set_ranking!(dpr::DifferentialPolyRing;
   )
   
   __set_are_perms_up_to_date!(dpr, false)
-  m, n = nelementary_symbols(dpr), ndiffs(dpr)
+  m, n = n_elementary_symbols(dpr), ndiffs(dpr)
   dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
 end
 
@@ -1255,7 +1255,7 @@ function riquier_matrix(ran::ActionPolyRingRanking)
   if !isdefined(ran, :riquier_matrix)
     par = partition(ran)
     dpr = base_ring(ran)
-    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, nelementary_symbols(dpr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
+    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_elementary_symbols(dpr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
     lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(dpr))])
     ran.riquier_matrix = vcat(upper_part, lower_part)
   end

@@ -13,7 +13,7 @@ export elementary_symbols
 export index_ordering_matrix
 export leader
 export ndiffs
-export nelementary_symbols
+export n_elementary_symbols
 export partition
 export ranking
 export riquier_matrix

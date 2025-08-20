@@ -133,7 +133,7 @@ using Test
           @test all(var -> base_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
           @test ndiffs(dpr) == 3
-          @test nelementary_symbols(dpr) == 3
+          @test n_elementary_symbols(dpr) == 3
           @test all(var -> parent(var) === dpr, vars)
 
           ran = ranking(dpr)
@@ -228,7 +228,7 @@ using Test
             @test all(var -> base_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test ndiffs(dpr) == 3
-            @test nelementary_symbols(dpr) == 3
+            @test n_elementary_symbols(dpr) == 3
 
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
@@ -460,7 +460,7 @@ using Test
             @test all(var -> base_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test ndiffs(dpr) == 3
-            @test nelementary_symbols(dpr) == 3
+            @test n_elementary_symbols(dpr) == 3
           
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing

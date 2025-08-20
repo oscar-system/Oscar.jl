@@ -73,7 +73,7 @@ function Base.isless(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRing
   dpr = parent(dpre1)
   vtj = __vtj(dpr)
   @req haskey(vtj, dpre1) && haskey(vtj, dpre2) "Not jet variables in comparison"
-  m = nelementary_symbols(dpr)
+  m = n_elementary_symbols(dpr)
   ind1, ind2 = vtj[dpre1], vtj[dpre2]
   v1, v2 = vcat([ind1[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind1[2]), vcat([ind2[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind2[2])
   M = riquier_matrix(ranking(dpr))
@@ -95,7 +95,7 @@ function Base.isless(dpre1::DifferentialPolyRingElem{T}, dpre2::DifferentialPoly
   dpr = parent(dpre1)
   vtj = __vtj(dpr)
   @req haskey(vtj, dpre1) && haskey(vtj, dpre2) "Not jet variables in comparison"
-  m = nelementary_symbols(dpr)
+  m = n_elementary_symbols(dpr)
   ind1, ind2 = vtj[dpre1], vtj[dpre2]
   v1, v2 = vcat([ind1[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind1[2]), vcat([ind2[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind2[2])
   M = riquier_matrix(ranking(dpr))

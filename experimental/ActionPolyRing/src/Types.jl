@@ -20,9 +20,9 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type DifferenceRanking{T}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
-    @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
-    elementary_symbols = map(x -> Symbol('u', x), 1:nelementary_symbols)
+  function DifferencePolyRing{T}(R::Ring, n_elementary_symbols::Int, ndiffs::Int) where {T}
+    @req n_elementary_symbols >= 1 "The number of elementary symbols must be positive"
+    elementary_symbols = map(x -> Symbol('u', x), 1:n_elementary_symbols)
     return DifferencePolyRing{T}(R, elementary_symbols, ndiffs)
   end
  
@@ -88,9 +88,9 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type DifferentialRanking{T}
   permutation::Vector{Int}
 
-  function DifferentialPolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
-    @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
-    elementary_symbols = map(x -> Symbol('u', x), 1:nelementary_symbols)
+  function DifferentialPolyRing{T}(R::Ring, n_elementary_symbols::Int, ndiffs::Int) where {T}
+    @req n_elementary_symbols >= 1 "The number of elementary symbols must be positive"
+    elementary_symbols = map(x -> Symbol('u', x), 1:n_elementary_symbols)
     return DifferentialPolyRing{T}(R, elementary_symbols, ndiffs)
   end
  
