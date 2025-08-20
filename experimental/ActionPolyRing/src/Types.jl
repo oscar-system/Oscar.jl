@@ -161,29 +161,14 @@ end
 
 abstract type ActionRanking end
 
-### Difference ###
-mutable struct DifferenceRanking{T} <: ActionRanking where {T}
-  ring::DifferencePolyRing{T}
+mutable struct ActionPolyRingRanking{PolyT} <: ActionRanking where {T, PolyT <: ActionPolyRing{T}}
+  ring::PolyT
   partition::Vector{Vector{Int}}
   index_ordering_matrix::ZZMatrix
   riquier_matrix::ZZMatrix
 
-  function DifferenceRanking{T}(dpr::DifferencePolyRing{T}, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T}  
-    return new{T}(dpr, partition, index_ordering_matrix)
+  function ActionPolyRingRanking{PolyT}(dpr::PolyT, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T, PolyT <: ActionPolyRing{T}}
+    return new{PolyT}(dpr, partition, index_ordering_matrix)
   end
   
 end
-
-### Differential ###
-mutable struct DifferentialRanking{T} <: ActionRanking where {T}
-  ring::DifferentialPolyRing{T}
-  partition::Vector{Vector{Int}}
-  index_ordering_matrix::ZZMatrix
-  riquier_matrix::ZZMatrix
-
-  function DifferentialRanking{T}(dpr::DifferentialPolyRing{T}, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T}  
-    return new{T}(dpr, partition, index_ordering_matrix)
-  end
-  
-end
-

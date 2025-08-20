@@ -1104,14 +1104,14 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jet
 ###############################################################################
 
 @doc raw"""
-    ranking(dpr::DifferencePolyRing) -> DifferenceRanking
+    ranking(dpr::DifferencePolyRing) -> ActionPolyRingRanking
 
 Return the ranking of the jet variables of the difference polynomial ring `dpr`.
 """
 ranking(dpr::DifferencePolyRing) = dpr.ranking
   
 @doc raw"""
-    ranking(dpr::DifferentialPolyRing) -> DifferentialRanking
+    ranking(dpr::DifferentialPolyRing) -> ActionPolyRingRanking
 
 Return the ranking of the jet variables of the differential polynomial ring `dpr`
 """
@@ -1183,11 +1183,11 @@ function set_ranking!(dpr::DifferencePolyRing;
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
-  )::DifferenceRanking{elem_type(base_ring(dpr))}
+  )
   
   __set_are_perms_up_to_date!(dpr, false)
   m, n = nelementary_symbols(dpr), ndiffs(dpr)
-  dpr.ranking = DifferenceRanking{elem_type(base_ring(dpr))}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
+  dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
 end
 
 function set_ranking!(dpr::DifferentialPolyRing;
@@ -1195,11 +1195,11 @@ function set_ranking!(dpr::DifferentialPolyRing;
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
-  )::DifferentialRanking{elem_type(base_ring(dpr))}
+  )
   
   __set_are_perms_up_to_date!(dpr, false)
   m, n = nelementary_symbols(dpr), ndiffs(dpr)
-  dpr.ranking = DifferentialRanking{elem_type(base_ring(dpr))}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
+  dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
 end
 
 function __compute_ranking_params(m::Int, n::Int,
@@ -1269,65 +1269,30 @@ end
 ###############################################################################
 
 ### Difference ###
-base_ring(ran::DifferenceRanking) = ran.ring
+base_ring(ran::ActionPolyRingRanking) = ran.ring
 
 @doc raw"""
-    partition(r::DifferenceRanking) -> Vector{Vector{Int}}
+    partition(r::ActionPolyRingRanking) -> Vector{Vector{Int}}
 
 Return the partition of the elementary symbols defined by the ranking `r`
-of the difference polynomial ring `dpr`, where `r = ranking(dpr)`.
+of the action polynomial ring `apr`, where `r = ranking(apr)`.
 """
-partition(ran::DifferenceRanking) = ran.partition
+partition(ran::ActionPolyRingRanking) = ran.partition
 
 @doc raw"""
-    index_ordering_matrix(r::DifferenceRanking) -> ZZMatrix
+    index_ordering_matrix(r::ActionPolyRingRanking) -> ZZMatrix
 
 Return the matrix inducing the monomial ordering of the multiindices defined
-by the ranking `r` of the difference polynomial ring `dpr`, where `r = ranking(dpr)`.
+by the ranking `r` of the action polynomial ring `apr`, where `r = ranking(apr)`.
 """
-index_ordering_matrix(ran::DifferenceRanking) = ran.index_ordering_matrix
+index_ordering_matrix(ran::ActionPolyRingRanking) = ran.index_ordering_matrix
 
 @doc raw"""
-    riquier_matrix(r::DifferenceRanking) -> ZZMatrix
+    riquier_matrix(r::ActionPolyRingRanking) -> ZZMatrix
 
-Return a Riquier matrix that induces the ranking `r` of the difference polynomial ring `dpr`, where `r = ranking(dpr)`.
+Return a Riquier matrix that induces the ranking `r` of the action polynomial ring `apr`, where `r = ranking(apr)`.
 """
-function riquier_matrix(ran::DifferenceRanking)
-  if !isdefined(ran, :riquier_matrix)
-    par = partition(ran)
-    dpr = base_ring(ran)
-    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, nelementary_symbols(dpr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
-    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(dpr))])
-    ran.riquier_matrix = vcat(upper_part, lower_part)
-  end
-  return ran.riquier_matrix
-end
-
-### Differential ###
-base_ring(ran::DifferentialRanking) = ran.ring
-
-@doc raw"""
-    partition(r::DifferentialRanking) -> Vector{Vector{Int}}
-
-Return the partition of the elementary symbols defined by the ranking `r`
-of the differential polynomial ring `dpr`, where `r = ranking(dpr)`.
-"""
-partition(ran::DifferentialRanking) = ran.partition
-
-@doc raw"""
-    index_ordering_matrix(r::DifferentialRanking) -> ZZMatrix
-
-Return the matrix inducing the monomial ordering of the multiindices defined
-by the ranking `r` of the differential polynomial ring `dpr`, where `r = ranking(dpr)`.
-"""
-index_ordering_matrix(ran::DifferentialRanking) = ran.index_ordering_matrix
-
-@doc raw"""
-    riquier_matrix(r::DifferentialRanking) -> ZZMatrix
-
-Return a Riquier matrix that induces the ranking `r` of the differential polynomial ring `dpr`, where `r = ranking(dpr)`.
-"""
-function riquier_matrix(ran::DifferentialRanking)
+function riquier_matrix(ran::ActionPolyRingRanking)
   if !isdefined(ran, :riquier_matrix)
     par = partition(ran)
     dpr = base_ring(ran)

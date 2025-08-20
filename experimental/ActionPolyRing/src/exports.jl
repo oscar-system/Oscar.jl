@@ -1,12 +1,11 @@
 export ActionPolyRing
 export ActionPolyRingElem
+export ActionPolyRingRanking
 export ActionRanking
 export DifferencePolyRing
 export DifferencePolyRingElem
-export DifferenceRanking
 export DifferentialPolyRing
 export DifferentialPolyRingElem
-export DifferentialRanking
 export diff_action
 export difference_polynomial_ring
 export differential_polynomial_ring

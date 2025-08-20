@@ -138,10 +138,10 @@ using Test
 
           ran = ranking(dpr)
           if dpr isa DifferencePolyRing
-            @test ran isa DifferenceRanking
+            @test ran isa ActionPolyRingRanking{DifferencePolyRing{ZZRingElem}}
           end
           if dpr isa DifferentialPolyRing
-            @test ran isa DifferentialRanking
+            @test ran isa ActionPolyRingRanking{DifferentialPolyRing{ZZRingElem}}
           end
           @test partition(ran) == [[1,0,0], [0,1,0], [0,0,1]]
           @test index_ordering_matrix(ran) == ZZ[0 0 1; 0 1 0; 1 0 0]
@@ -232,10 +232,10 @@ using Test
 
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
-              @test ran isa DifferenceRanking
+              @test ran isa ActionPolyRingRanking{DifferencePolyRing{ZZRingElem}}
             end
             if dpr isa DifferentialPolyRing
-              @test ran isa DifferentialRanking
+              @test ran isa ActionPolyRingRanking{DifferentialPolyRing{ZZRingElem}}
             end
             @test partition(ran) == [[1,0,0], [0,1,0], [0,0,1]]
             @test index_ordering_matrix(ran) == ZZ[0 0 1; 0 1 0; 1 0 0]
@@ -464,10 +464,10 @@ using Test
           
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
-              @test ran isa DifferenceRanking
+              @test ran isa ActionPolyRingRanking{DifferencePolyRing{ZZRingElem}}
             end
             if dpr isa DifferentialPolyRing
-              @test ran isa DifferentialRanking
+              @test ran isa ActionPolyRingRanking{DifferentialPolyRing{ZZRingElem}}
             end
             @test partition(ran) == [[0,1,1], [1,0,0]]
             @test index_ordering_matrix(ran) == ZZ[1 1 1; 0 0 -1; 0 -1 0]
