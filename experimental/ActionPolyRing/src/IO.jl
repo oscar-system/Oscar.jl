@@ -166,7 +166,7 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", ran::DifferenceRanking)
   io = pretty(io)
-  print(io, "Ranking of $(base_ring(ran))\n")
+  print(io, Lowercase(), "Ranking of $(base_ring(ran))\n")
   print(io, "with elementary symbols partitioned by\n")
   print(io, Indent())
   print(io, partition(ran))
@@ -188,7 +188,7 @@ end
 ### Differential ###
 function Base.show(io::IO, ::MIME"text/plain", ran::DifferentialRanking)
   io = pretty(io)
-  print(io, "Ranking of $(base_ring(ran))\n")
+  print(io, Lowercase(), "Ranking of $(base_ring(ran))\n")
   print(io, "with elementary symbols partitioned by\n")
   print(io, Indent())
   print(io, partition(ran))
