@@ -32,10 +32,8 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   io = pretty(io)
   n = n_elementary_symbols(dpr)
   print(io, "Differential polynomial ring in $n elementary symbols ")
-  for i in 1:n-1
-    print(io, string(elementary_symbols(dpr)[i]) * ", ")
-  end
-  print(io, string(elementary_symbols(dpr)[n])*"\n")
+  join(io, elementary_symbols(dpr), ", ")
+  print(io, "\n")
   print(io, "with $(ndiffs(dpr)) commuting derivations\n")
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(dpr))

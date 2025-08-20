@@ -424,6 +424,10 @@ function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   return map(jet_idx -> jtv[jet_idx], jet_idxs)
 end
 
+function gens1(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
+  return [gen(apr, jet) for jet in jet_idxs]
+end
+
 @doc raw"""
     gens(apr::ActionPolyRing)
 
