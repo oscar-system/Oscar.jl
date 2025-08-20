@@ -197,7 +197,7 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   ordering::Symbol=:deglex,
   protocol::Bool=false,
   interreduce::Bool=false,
-  algorithm::Symbol=:f4ncgb
+  algorithm::Symbol=:f4
   )
   gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce)
   return IdealGens(gb)
@@ -207,19 +207,25 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   ordering::Symbol=:deglex,
   protocol::Bool=false,
   interreduce::Bool=false,
-  algorithm::Symbol=:f4ncgb)
+  algorithm::Symbol=:f4)
 
   R = parent(g[1])
   @req all(x -> parent(x) == R, g) "parent mismatch"
   @req deg_bound >= 0 || !protocol "computing with a protocol requires a degree bound"
   @req ordering == :deglex || deg_bound > 0 "only :deglex ordering is supported for no degree bound"
+  @req algorithm in (:f4, :buchberger, :letterplace) "Not a valid algorithm, use :f4ncgb, :buchberger or :letterplace"
 
-  if deg_bound == -1
+  if algorithm == :buchberger
+      @req deg_bound == -1 "The Buchberger algorithm cannot be used with a degree bound"
       gb = AbstractAlgebra.groebner_basis(g)
       interreduce && return interreduce!(gb)
       return gb
   end
+
+  if algorithm == :f4
     
+  end
+
   lpring, _ = _to_lpring(R, deg_bound; ordering=ordering)
   lp_I_gens = lpring.(g)
 
