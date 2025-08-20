@@ -11,7 +11,7 @@
     difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables.This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
+these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
 
 # Examples
 
