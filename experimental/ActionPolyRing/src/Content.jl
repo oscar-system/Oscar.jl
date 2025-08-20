@@ -260,7 +260,10 @@ n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
 
-exponent_vector(apre::ActionPolyRingElem, i::Int) = exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])[__perm_for_sort(parent(apre))]
+function exponent_vector(apre::ActionPolyRingElem, i::Int)
+  __update_internals!(apre)
+  return exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])[__perm_for_sort(parent(apre))]
+end
 
 monomial(apre::ActionPolyRingElem, i::Int) = parent(apre)(monomial(data(apre), __perm_for_sort_poly(apre)[i]))
 
@@ -709,6 +712,7 @@ function leader(apre::ActionPolyRingElem)
   end
   return max(vars(apre)...)
 end
+
 ###############################################################################
 #
 #   Iterators
@@ -723,11 +727,11 @@ function coefficients(a::DifferentialPolyRingElem)
    return DifferentialPolyCoeffs(a)
 end
 
-function AbstractAlgebra.exponent_vectors(a::DifferencePolyRingElem)
+function exponents(a::DifferencePolyRingElem)
    return DifferencePolyExponentVectors(a)
 end
 
-function AbstractAlgebra.exponent_vectors(a::DifferentialPolyRingElem)
+function exponents(a::DifferentialPolyRingElem)
    return DifferentialPolyExponentVectors(a)
 end
 
@@ -981,7 +985,6 @@ end
 
 #If this is called, we assume that are_perms_up_to_date == true
 function __set_perm_for_sort_poly!(dpre::DifferencePolyRingElem)
-  __update_internals!(dpre)
   dpre.permutation = sortperm(map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre)))); rev = true)
 end
 
@@ -1028,7 +1031,6 @@ end
 
 #If this is called, we assume that are_perms_up_to_date == true
 function __set_perm_for_sort_poly!(dpre::DifferentialPolyRingElem)
-  __update_internals!(dpre)
   dpre.permutation = sortperm(map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre)))); rev = true)
 end
 
