@@ -159,10 +159,10 @@ end
 #   choosing an ordered partition of the set {1, ...,m}, pot and top being the choices of the two trivial
 #   partitions
 
-abstract type Ranking end
+abstract type ActionRanking end
 
 ### Difference ###
-mutable struct DifferenceRanking{T} <: Ranking where {T}
+mutable struct DifferenceRanking{T} <: ActionRanking where {T}
   ring::DifferencePolyRing{T}
   partition::Vector{Vector{Int}}
   index_ordering_matrix::ZZMatrix
@@ -175,7 +175,7 @@ mutable struct DifferenceRanking{T} <: Ranking where {T}
 end
 
 ### Differential ###
-mutable struct DifferentialRanking{T} <: Ranking where {T}
+mutable struct DifferentialRanking{T} <: ActionRanking where {T}
   ring::DifferentialPolyRing{T}
   partition::Vector{Vector{Int}}
   index_ordering_matrix::ZZMatrix
