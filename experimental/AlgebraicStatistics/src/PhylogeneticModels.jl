@@ -351,10 +351,9 @@ end
 end
 
 function parametrization(PM::PhylogeneticModel)
-  _, p = full_model_ring(PM)
+  R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
 
-  R, x = model_ring(PM)
   # need to double check the order of the keys here is consitent,
   # otherwise we need to add a sort
   lvs_indices = keys(gens(R))
@@ -363,16 +362,44 @@ function parametrization(PM::PhylogeneticModel)
 end
 
 function parametrization(PM::GroupBasedPhylogeneticModel)
-  _, p = full_model_ring(PM)
+  R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
-
-  R, x = model_ring(PM)
+  
   lvs_indices = keys(gens(R))
 
   map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
+function affine_parametrization(PM::PhylogeneticModel)
+  R, p = model_ring(PM) 
+  S, _ = parameter_ring(PM)
+  f = parametrization(PM)
+  ind = keys(gens(R))
+
+  edgs = collect(edges(graph(PM)))
+  vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
+  vals = unique([(1 - (sum([entry_transition_matrix(PM, i, j, e) for j in 1:n_states(PM)]) - entry_transition_matrix(PM, i, i, e)))  
+          for i in 1:n_states(PM) for e in edgs])
+
+  map = [evaluate(f(p[k...]), vars, vals) for k in ind]
+  hom(R, S, reduce(vcat, map))
+
+end
+
+function affine_parametrization(PM::GroupBasedPhylogeneticModel)
+  R, q = model_ring(PM)
+  S, _ = parameter_ring(PM)
+  f = parametrization(PM)
+  ind = keys(gens(R))
+
+  edgs = collect(edges(graph(PM)))
+  vars = [entry_fourier_parameter(PM, 1, e) for e in edgs]
+  vals = repeat([1], length(edgs))
+
+  map = [evaluate(f(q[k...]), vars, vals) for k in ind]
+  hom(R, S, reduce(vcat, map))
+end
 
 
 ###################################################################################
