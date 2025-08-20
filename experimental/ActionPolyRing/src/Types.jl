@@ -22,15 +22,8 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
 
   function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
     @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
-    @req ndiffs >= 1 "The number of endomorphisms must be positive"
     elementary_symbols = map(x -> Symbol('u', x), 1:nelementary_symbols)
-    upoly_ring = universal_polynomial_ring(R; cached = false)
-    
-    jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
-    var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
-    jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+    return DifferencePolyRing{T}(R, elementary_symbols, ndiffs)
   end
  
   function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
@@ -97,15 +90,8 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
 
   function DifferentialPolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
     @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
-    @req ndiffs >= 1 "The number of derivations must be positive"
-    elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
-    upoly_ring = universal_polynomial_ring(R; cached = false)
-    
-    jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
-    var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()
-    jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
-    return new{T}(upoly_ring, elementary_symbols, ndiffs, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+    elementary_symbols = map(x -> Symbol('u', x), 1:nelementary_symbols)
+    return DifferentialPolyRing{T}(R, elementary_symbols, ndiffs)
   end
  
   function DifferentialPolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) where {T}
