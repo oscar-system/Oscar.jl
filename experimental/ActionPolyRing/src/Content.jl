@@ -424,10 +424,6 @@ function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   return map(jet_idx -> jtv[jet_idx], jet_idxs)
 end
 
-function gens1(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
-  return [gen(apr, jet) for jet in jet_idxs]
-end
-
 @doc raw"""
     gens(apr::ActionPolyRing)
 
@@ -460,7 +456,7 @@ julia> gens(dpr)
 ```
 """
 function gens(apr::ActionPolyRing)
-  return sort(collect(deepcopy(values(__jtv(apr)))); rev = true)
+  return sort(collect(values(deepcopy(__jtv(apr)))); rev = true)
 end
 
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))

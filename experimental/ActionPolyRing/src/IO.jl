@@ -162,7 +162,8 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", ran::ActionPolyRingRanking)
   io = pretty(io)
-  print(io, Lowercase(), "Ranking of $(base_ring(ran))\n")
+  print(io, "Ranking of ", Lowercase(), base_ring(ran))
+  print(io, "\n")
   print(io, "with elementary symbols partitioned by\n")
   print(io, Indent())
   print(io, partition(ran))
