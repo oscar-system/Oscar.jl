@@ -1,3 +1,7 @@
+struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
+  pm_ptree::Polymake.LibPolymake.BigObjectAllocated
+end
+
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
@@ -123,6 +127,10 @@ function adjacency_tree(ptree::PhylogeneticTree)
   return dir_tree
 end
 
+function Base.show(io::IO, m::MIME"text/plain", ptree::PhylogeneticTree{T}) where T
+  print(io, "Phylogenetic tree with $T type coefficients")
+end
+  
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
 end

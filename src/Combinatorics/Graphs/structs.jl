@@ -6,7 +6,7 @@ import Oscar.Polymake:
 
 struct Mixed end
 
-const GraphTypes = Union{Directed, Undirected, Mixed} 
+const GraphTypes = Union{Directed, Undirected, Mixed}
 abstract type AbstractGraph{T <: GraphTypes} end
 
 @attributes mutable struct Graph{T <: Union{Directed, Undirected}} <: AbstractGraph{T}
@@ -34,8 +34,3 @@ end
     return new(Graph{Directed}(nverts), Graph{Undirected}(nverts))
   end
 end
-
-struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
-  pm_ptree::Polymake.LibPolymake.BigObjectAllocated
-end
-
