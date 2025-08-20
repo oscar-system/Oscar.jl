@@ -89,6 +89,72 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
 end
 
 @doc raw"""
+    newick(ptree::PhylogeneticTree)
+
+Return a Newick representation of the phylogenetic tree `ptree`.
+
+# Examples
+Make a phylogenetic tree from a matrix and print a Newick representation of it.
+
+```jldoctest
+julia> mat = [0. 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0]
+4×4 Matrix{Float64}:
+ 0.0  2.0  8.0  6.0
+ 2.0  0.0  8.0  6.0
+ 8.0  8.0  0.0  8.0
+ 6.0  6.0  8.0  0.0
+
+julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
+4-element Vector{String}:
+ "Bonobo"
+ "Chimpanzee"
+ "Gorilla"
+ "Human"
+
+julia> tree_mat = phylogenetic_tree(mat, tax);
+
+julia> newick(tree_mat)
+"Gorilla:4,(Human:3,(Bonobo:1,Chimpanzee:1):2):1;"
+```
+"""
+function newick(ptree::PhylogeneticTree)
+  return convert(String, pm_object(ptree).NEWICK)::String
+end
+
+function _newick(g::Graph, v::Int)
+  lvs = leaves(g)
+  distance = 1
+
+  if v in lvs
+    label = has_attribute(g, :species) ? g.species[v] : "v$v"
+    #TODO read this from graph if it exists
+    return "$label:$distance"
+  else
+    return "(" * join(map(v -> _newick(g, v), outneighbors(g, v)), ",") * "):$distance"
+  end
+end
+
+#TODO add example to the docs
+function newick(g::Graph{Directed})
+  @req is_tree(g) "Graph $g is not a tree"
+  r = root(g)
+  return join(map(v -> _newick(g, v), outneighbors(g, r)), ",") * ";"
+end
+
+#TODO add example to the docs
+function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
+                           G::Graph{Directed};
+                           check=false)
+  @req !check || is_tree(G) "Input must be a tree "
+  pt = phylogenetic_tree(T, newick(G))
+  new_G = adjacency_tree(pt)
+  for data in G.__attrs
+    set_attribute!(new_G, data)
+  end
+  return pt
+end
+
+@doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
 Return the underlying graph of the phylogenetic tree `ptree`.
@@ -129,6 +195,7 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
+
 end
   
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
@@ -206,40 +273,6 @@ function taxa(ptree::PhylogeneticTree)
 end
 
 @doc raw"""
-    newick(ptree::PhylogeneticTree)
-
-Return a Newick representation of the phylogenetic tree `ptree`.
-
-# Examples
-Make a phylogenetic tree from a matrix and print a Newick representation of it.
-
-```jldoctest
-julia> mat = [0. 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0]
-4×4 Matrix{Float64}:
- 0.0  2.0  8.0  6.0
- 2.0  0.0  8.0  6.0
- 8.0  8.0  0.0  8.0
- 6.0  6.0  8.0  0.0
-
-julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
-4-element Vector{String}:
- "Bonobo"
- "Chimpanzee"
- "Gorilla"
- "Human"
-
-julia> tree_mat = phylogenetic_tree(mat, tax);
-
-julia> newick(tree_mat)
-"Gorilla:4,(Human:3,(Bonobo:1,Chimpanzee:1):2):1;"
-```
-"""
-function newick(ptree::PhylogeneticTree)
-  return convert(String, pm_object(ptree).NEWICK)::String
-end
-
-
-@doc raw"""
     tropical_median_consensus(arr::Vector{PhylogeneticTree{T}})
 
 Compute the tropical median consensus tree of the equidistant
@@ -311,3 +344,11 @@ julia> newick(tc)
 function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
   return tropical_median_consensus(collect(trees))
 end
+
+leaves(pt::PhylogeneticTree) = findall(iszero, outdegree(adjacency_tree(pt)))
+interior_nodes(pt::PhylogeneticTree) = findall(>(1), outdegree(adjacency_tree(pt)))
+edges(pt::PhylogeneticTree) = edges(adjacency_tree(pt))
+n_edges(pt::PhylogeneticTree) = n_edges(adjacency_tree(pt))
+is_isomorphic(pt::PhylogeneticTree, g::Graph) = is_isomorphic(adjacency_tree(pt), g)
+is_isomorphic(g::Graph, pt::PhylogeneticTree) = is_isomorphic(pt, g)
+is_isomorphic(pt::PhylogeneticTree, pt::PhylogeneticTree) = is_isomorphic(adjacency_tree(pt), adjacency_tree(pt))

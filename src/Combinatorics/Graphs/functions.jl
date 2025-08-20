@@ -1998,3 +1998,8 @@ function maximal_cliques(g::Graph{Undirected})
     Polymake.call_function(:graph,:max_cliques,g.pm_graph)
   ))
 end
+
+function is_tree(g::Graph)
+  is_weakly_connected(g) || return false
+  return isone(n_vertices(g) - n_edges(g))
+end

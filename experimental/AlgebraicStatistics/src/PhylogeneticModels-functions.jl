@@ -4,26 +4,16 @@
 #
 ###################################################################################
 
+interior_nodes(graph::Graph) = findall(>(1), outdegree(graph))
 
-function interior_nodes(graph::Graph)
-  big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
-  degrees = big_graph.NODE_DEGREES
-  return findall(>(1), degrees)
-end
+leaves(graph::Graph) = findall(iszero, outdegree(graph))
+n_leaves(graph::Graph) = length(leaves(graph))
+n_leaves(pt::PhylogeneticTree) = n_leaves(adjacency_tree(pt))
 
-function leaves(graph::Graph)
-  big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
-  degrees = big_graph.NODE_DEGREES
-  return findall(==(1), degrees)
-end
-
-function n_leaves(graph::Graph)
-  length(leaves(graph))
-end
 
 function root(graph::Graph)
   n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
-  return findall(x -> x == 0, n_parents)[1]
+  return findall(iszero, n_parents)[1]
 end
 
 function sort_edges(graph::Graph)
@@ -32,11 +22,11 @@ function sort_edges(graph::Graph)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
 end
 
-function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
+sort_edges(pt::PhylogeneticTree) = sort_edges(adjacency_tree(pt))
 
+function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
   lvs = leaves(gr)
   outn = outneighbors(gr, v)
-
   if v in lvs
     return [v]
   end
@@ -53,6 +43,8 @@ function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
 
   return d
 end
+
+vertex_descendants(pt::PhylogeneticTree, v::Int, desc::Vector{Any} = []) = vertex_descendants(adjacency_tree(pt), v, desc)
 
 
 ###################################################################################
@@ -208,13 +200,10 @@ function group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   return sum(G[collect(values(states))])
 end
 
-function is_zero_group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
-  return group_sum(PM, states) == zero(parent(group(PM)[1]))
-end
+is_zero_group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int}) =  iszero(group_sum(PM, states))
+
 
 function which_group_element(PM::GroupBasedPhylogeneticModel, elem::FinGenAbGroupElem)
   G = group(PM)
   return findall([all(g==elem) for g in G])[1]
 end
-
-
