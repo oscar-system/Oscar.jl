@@ -31,19 +31,9 @@ julia> variables
  u3[0,0,0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
-    partition_name::Symbol = :default,
-    index_ordering_name::Symbol = :default,
-    partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-  )
+function difference_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; kwargs...)
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
-  set_ranking!(dpr;
-      partition_name = partition_name,
-      index_ordering_name = index_ordering_name,
-      partition = partition,
-      index_ordering_matrix = index_ordering_matrix
-    )
+  set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
 end
 
@@ -72,19 +62,9 @@ julia> variables
  c[0,0,0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
-    partition_name::Symbol = :default,
-    index_ordering_name::Symbol = :default,
-    partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-  )
+function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
-  set_ranking!(dpr;
-      partition_name = partition_name,
-      index_ordering_name = index_ordering_name,
-      partition = partition,
-      index_ordering_matrix = index_ordering_matrix
-    )
+  set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
 end
 
@@ -113,19 +93,9 @@ julia> variables
  c[0,0,0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int;
-    partition_name::Symbol = :default,
-    index_ordering_name::Symbol = :default,
-    partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-  )
+function differential_polynomial_ring(R::Ring, nelementary_symbols::Int, ndiffs::Int; kwargs...)
   dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, nelementary_symbols, ndiffs)
-  set_ranking!(dpr;
-      partition_name = partition_name,
-      index_ordering_name = index_ordering_name,
-      partition = partition,
-      index_ordering_matrix = index_ordering_matrix
-    )
+  set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:nelementary_symbols))))
 end
 
@@ -154,19 +124,9 @@ julia> variables
  u3[0,0,0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int;
-    partition_name::Symbol = :default,
-    index_ordering_name::Symbol = :default,
-    partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0),
-  )
+function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
-  set_ranking!(dpr;
-      partition_name = partition_name,
-      index_ordering_name = index_ordering_name,
-      partition = partition,
-      index_ordering_matrix = index_ordering_matrix
-    )
+  set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
 end
 
