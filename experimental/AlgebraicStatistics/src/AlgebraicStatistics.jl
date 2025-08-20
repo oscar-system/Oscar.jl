@@ -38,6 +38,7 @@ export full_model_ring
 export parameter_ring
 export parametrization
 export full_parametrization
+export affine_parametrization
 export graph
 export vanishing_ideal
 export varnames
@@ -48,7 +49,6 @@ export jukes_cantor_model
 export kimura2_model
 export kimura3_model
 export general_markov_model
-export affine_phylogenetic_model!
 
 #export phylogenetic models attributes
 export phylogenetic_model

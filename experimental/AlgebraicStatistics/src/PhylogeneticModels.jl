@@ -44,7 +44,7 @@ base field (e.g., `QQ` for rational numbers).
   model_parameter_name::VarName
 
   @doc raw"""
-    PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
+      PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
 
   Construct a `PhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
   If `root_distribution` is not provided, a uniform distribution is assumed.
@@ -70,7 +70,7 @@ base field (e.g., `QQ` for rational numbers).
   end
 
   @doc raw"""
-    PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varname::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+      PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varname::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
 
   Construct a `PhylogeneticModel` from a graph `G`, a transition matrix with polynomial entries, and a root distribution. This constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
   """
@@ -90,7 +90,7 @@ base field (e.g., `QQ` for rational numbers).
   end
 
   @doc raw"""
-    PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
+      PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
 
   Construct a `PhylogeneticModel` using the default rational field (`QQ`).
   """
@@ -140,7 +140,7 @@ varname(PM::PhylogeneticModel) = PM.model_parameter_name
 
 
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel; cached=false)
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false)
 
 Create the polynomial ring for the parameters of the phylogenetic model.
 
@@ -269,7 +269,8 @@ function Base.show(io::IO, PM::PhylogeneticModel)
   print(io, "and transition matrices of the form \n ")
 
   M = string(PM.trans_matrix_structure)
-  print(io, replace(M, ";" => ";\n "))
+  M = split(M, "[", limit=2)[2]
+  print(io, "[", replace(M, ";" => ";\n "))
   print(io, ". ")
 end
 
