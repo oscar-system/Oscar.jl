@@ -707,7 +707,7 @@ function leader(apre::ActionPolyRingElem)
   if is_univariate(apre)
     return vars(apre)[1]
   end
-  return max(vars(apre)...)
+  return maximum(vars(apre))
 end
 ###############################################################################
 #
