@@ -23,7 +23,7 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   function DifferencePolyRing{T}(R::Ring, nelementary_symbols::Int, ndiffs::Int) where {T}
     @req nelementary_symbols >= 1 "The number of elementary symbols must be positive"
     @req ndiffs >= 1 "The number of endomorphisms must be positive"
-    elementary_symbols = map(x -> Symbol("u" * string(x)), 1:nelementary_symbols)
+    elementary_symbols = map(x -> Symbol('u', x), 1:nelementary_symbols)
     upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
