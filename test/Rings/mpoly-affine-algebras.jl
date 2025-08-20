@@ -90,7 +90,7 @@ end
 @testset "mpoly_affine_algebra.vector_space_dim" begin
   r, (x, y) = polynomial_ring(QQ, [:x, :y])
   @test !is_finite_dimensional_vector_space(quo(r, ideal(r, [x^2+y^2]))[1])
-  @test_throws AbstractAlgebra.InfiniteDimensionError vector_space_dim(quo(r, ideal(r, [x^2+y^2]))[1])
+  @test_throws AbstractAlgebra.InfiniteDimensionError(check_available = true) vector_space_dim(quo(r, ideal(r, [x^2+y^2]))[1])
   @test vector_space_dim(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
   @test is_finite_dimensional_vector_space(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1])
   @test vector_space_dim(quo(r, ideal(r, [one(r)]))[1]) == 0
