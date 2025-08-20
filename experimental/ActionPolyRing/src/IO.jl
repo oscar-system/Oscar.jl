@@ -15,7 +15,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   print(io, string(elementary_symbols(dpr)[n])*"\n")
   print(io, "with $(ndiffs(dpr)) commuting endomorphisms\n")
   print(io, Indent())
-  print(io, "over $(base_ring(dpr))")
+  print(io, "over ", Lowercase(), base_ring(dpr))
   print(io, Dedent())
 end
 
@@ -40,7 +40,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   print(io, string(elementary_symbols(dpr)[n])*"\n")
   print(io, "with $(ndiffs(dpr)) commuting derivations\n")
   print(io, Indent())
-  print(io, "over $(base_ring(dpr))")
+  print(io, "over ", Lowercase(), base_ring(dpr))
   print(io, Dedent())
 end
 
