@@ -861,6 +861,7 @@ export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
+export is_acylic
 export is_admissible_ordering
 export is_admissible_triple
 export is_affine
