@@ -244,7 +244,7 @@ end
 
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)
-  # this is inefficient and can log up channels
+  # this is inefficient and can clog up channels
   # TODO only send params when necessary
   # and/or figure out how to clear channels
   for a in args
