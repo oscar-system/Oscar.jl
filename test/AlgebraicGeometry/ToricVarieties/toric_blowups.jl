@@ -22,7 +22,7 @@
     @test betti_number(BP2, 3) == 0
     @test betti_number(BP2, 4) == 1
     @test euler_characteristic(BP2) == 4
-    @test torsion_free_rank(picard_group(BP2)) == 2
+    @test torsion_free_rank(picard_group_with_map(BP2)[1]) == 2
   end
 
   amb = load(joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv"))
