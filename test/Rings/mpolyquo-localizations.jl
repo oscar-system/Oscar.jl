@@ -516,7 +516,7 @@ end
   Q1, _ = quo(L, ideal(L, L(x+1)))
   @test isempty(monomial_basis(Q1))
   Q2, _ = quo(L, ideal(L, L(x^2)))  
-  @test_throws InfiniteDimensionError() monomial_basis(Q2)
+  @test_throws AbstractAlgebra.InfiniteDimensionError() monomial_basis(Q2)
   Q3, _ = quo(L, ideal(L, L.([x^2, y^3])))  
   @test monomial_basis(Q3) == L.([x*y^2, y^2, x*y, y, x, 1])
   Q4,_ = quo(L, ideal(L, [x^2-x, y^2-2*y]))   
