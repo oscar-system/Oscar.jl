@@ -1052,9 +1052,6 @@ function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vect
     __vtj(apr)[var] = jetvaridx
     __jtu_idx(apr)[jetvaridx] = ng + k
   end
-  for key in keys(__vtj(apr))
-    __update_internals!(key)
-  end
   return new_vars
 end
 
