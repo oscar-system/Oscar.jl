@@ -142,8 +142,6 @@ function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
   return a
 end
 
-(dpr::DifferencePolyRing)(a::T) where {T<:RingElement} = dpr(dpr.upoly_ring(a))
-
 ### Differential ###
 (dpr::DifferentialPolyRing)() = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr)
 
@@ -154,7 +152,8 @@ function (dpr::DifferentialPolyRing{T})(a::DifferentialPolyRingElem{T}) where {T
   return a
 end
 
-(dpr::DifferentialPolyRing)(a::T) where {T<:RingElement} = dpr(dpr.upoly_ring(a))
+### generic ###
+(apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(__upr(apr)(a))
 
 ###############################################################################
 #
@@ -173,9 +172,9 @@ function Base.deepcopy_internal(dpre::DifferencePolyRingElem{T}, dict::IdDict) w
     return DifferencePolyRingElem{T}(parent(dpre), pp)
 end
 
-zero(dpr::DifferencePolyRing) = dpr(0)
+zero(dpr::DifferencePolyRing) = dpr()
 
-one(dpr::DifferencePolyRing) = dpr(1)
+one(dpr::DifferencePolyRing) = dpr(one(__upr(dpr)))
 
 ### Differential ###
 elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{T}
@@ -188,9 +187,9 @@ function Base.deepcopy_internal(dpre::DifferentialPolyRingElem{T}, dict::IdDict)
     return DifferentialPolyRingElem{T}(parent(dpre), pp)
 end
 
-zero(dpr::DifferentialPolyRing) = dpr(0)
+zero(dpr::DifferentialPolyRing) = dpr()
 
-one(dpr::DifferentialPolyRing) = dpr(1)
+one(dpr::DifferentialPolyRing) = dpr(one(__upr(dpr)))
 
 ### generic ###
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
