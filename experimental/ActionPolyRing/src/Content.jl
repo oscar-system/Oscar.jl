@@ -34,7 +34,7 @@ julia> variables
 function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:n_elementary_symbols))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
 end
 
 @doc raw"""
@@ -65,7 +65,7 @@ julia> variables
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:length(elementary_symbols)])))
 end
 
 ### Differential ###
@@ -96,7 +96,7 @@ julia> variables
 function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
   dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:n_elementary_symbols))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
 end
 
 @doc raw"""
@@ -127,7 +127,7 @@ julia> variables
 function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, map(i -> (i, fill(0, ndiffs)), 1:length(elementary_symbols)))))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:length(elementary_symbols)])))
 end
 
 ##### Elements #####
@@ -332,7 +332,7 @@ degree(apre::ActionPolyRingElem, i::Int) = degree(apre, __vtj(parent(apre))[gen(
 
 Return an array of the degrees of the polynomial `p` in terms of each variable. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
 """
-degrees(apre::ActionPolyRingElem) = map(i -> degree(apre, i), 1:ngens(parent(apre)))
+degrees(apre::ActionPolyRingElem) = [degree(apre, i) for i in 1:ngens(parent(apre))]
 
 @doc raw"""
     is_constant(p::ActionPolyRingElem)
@@ -346,7 +346,7 @@ is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 
 Return the variables actually occuring in `p`. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
 """
-vars(apre::ActionPolyRingElem) = sort(parent(apre).(vars(data(apre))); rev = true)
+vars(apre::ActionPolyRingElem) = sort!(parent(apre).(vars(data(apre))); rev = true)
 
 is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
 
@@ -462,7 +462,7 @@ julia> gens(dpr)
 ```
 """
 function gens(apr::ActionPolyRing)
-  return sort(collect(values(deepcopy(__jtv(apr)))); rev = true)
+  return sort!(collect(values(deepcopy(__jtv(apr)))); rev = true)
 end
 
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
@@ -643,7 +643,7 @@ Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, wh
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
-  @req length(d) == ndiffs(dpr) && all(j -> j >= 0, d) "Invalid vector of multiplicities"
+  @req length(d) == ndiffs(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
   if is_zero(d)
     return dpre
   end
@@ -686,7 +686,7 @@ end
 
 function diff_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
-  @req len == ndiffs(parent(dpre)) && all(j -> j >= 0, d) "Invalid vector of diff multiplicities"
+  @req len == ndiffs(parent(dpre)) && all(>=(0), d) "Invalid vector of diff multiplicities"
   res = dpre
   for i in 1:len
     for j in 1:d[i]
@@ -743,41 +743,12 @@ function terms(a::ActionPolyRingElem{T}) where {T}
   return ActionPolyTerms{T, typeof(a)}(a)
 end
 
-function Base.iterate(x::ActionPolyCoeffs, state=0)
-   state += 1
-   if length(x.poly) >= state
-      return coeff(x.poly, state), state
-   else
-      return nothing
-   end
-end
+__iter_helper(f, poly, state) = state < length(poly) ? (f(poly, state + 1), state + 1) : nothing
 
-function Base.iterate(x::ActionPolyExponentVectors, state=0)
-   state += 1
-   if length(x.poly) >= state
-      return exponent_vector(x.poly, state), state
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::ActionPolyMonomials, state=0)
-   state += 1
-   if length(x.poly) >= state
-      return monomial(x.poly, state), state
-   else
-      return nothing
-   end
-end
-
-function Base.iterate(x::ActionPolyTerms, state=0)
-   state += 1
-   if length(x.poly) >= state
-      return term(x.poly, state), state
-   else
-      return nothing
-   end
-end
+Base.iterate(x::ActionPolyCoeffs, state=0) = __iter_helper(coeff, x.poly, state)
+Base.iterate(x::ActionPolyExponentVectors, state=0) = __iter_helper(exponent_vector, x.poly, state)
+Base.iterate(x::ActionPolyMonomials, state=0) = __iter_helper(monomial, x.poly, state)
+Base.iterate(x::ActionPolyTerms, state=0) = __iter_helper(term, x.poly, state)
 
 function Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms})
    return length(x.poly)
@@ -791,12 +762,8 @@ function Base.eltype(::Type{ActionPolyExponentVectors{T, PolyT}}) where {T, Poly
    return Vector{Int}
 end
 
-function Base.eltype(::Type{ActionPolyMonomials{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
-   return PolyT
-end
-
-function Base.eltype(::Type{ActionPolyTerms{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
-   return PolyT
+function Base.eltype(::Type{<:Union{ActionPolyMonomials{T,PolyT}, ActionPolyTerms{T,PolyT}}}) where {T, PolyT<:ActionPolyRingElem{T}}
+    PolyT
 end
 
 ###############################################################################
@@ -827,7 +794,6 @@ rand(rng::AbstractRNG, apr::ActionPolyRing, term_range::AbstractUnitRange{Int},
      exp_bound::AbstractUnitRange{Int}, v...) = apr(rand(rng, __upr(apr), term_range, exp_bound, v...))
 
 rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng(), apr, term_range, exp_bound, v...)
-
 
 ###############################################################################
 #
@@ -884,22 +850,25 @@ end
 #
 ###############################################################################
 
-### Difference ###
+# =========================================
+# Getters for ring elements and rings
+# =========================================
 
-#Getters for internals
-data(dpre::DifferencePolyRingElem) = dpre.p
+# Element getters
+data(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.p
 
-__upr(dpr::DifferencePolyRing) = dpr.upoly_ring
+# Ring getters
+__upr(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.upoly_ring
+__jtv(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_var
+__vtj(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.var_to_jet
+__jtu_idx(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_upoly_idx
+__are_perms_up_to_date(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.are_perms_up_to_date
 
-__jtv(dpr::DifferencePolyRing) = dpr.jet_to_var
+# =========================================
+# Permutation getters
+# =========================================
 
-__vtj(dpr::DifferencePolyRing) = dpr.var_to_jet
-
-__jtu_idx(dpr::DifferencePolyRing) = dpr.jet_to_upoly_idx
-
-__are_perms_up_to_date(dpr::DifferencePolyRing) = dpr.are_perms_up_to_date
-
-function __perm_for_sort(dpr::DifferencePolyRing)
+function __perm_for_sort(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
   if __are_perms_up_to_date(dpr) && isdefined(dpr, :permutation)
     return dpr.permutation
   end
@@ -907,7 +876,7 @@ function __perm_for_sort(dpr::DifferencePolyRing)
   return dpr.permutation
 end
 
-function __perm_for_sort_poly(dpre::DifferencePolyRingElem)
+function __perm_for_sort_poly(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   dpr = parent(dpre)
   if __are_perms_up_to_date(dpr) && isdefined(dpre, :permutation)
     return dpre.permutation
@@ -917,65 +886,25 @@ function __perm_for_sort_poly(dpre::DifferencePolyRingElem)
   return dpre.permutation
 end
 
-#Setters for internals
-function __set_are_perms_up_to_date!(dpr::DifferencePolyRing, update::Bool)
-  dpr.are_perms_up_to_date = update
+# =========================================
+# Setters for internal state
+# =========================================
+
+function __set_are_perms_up_to_date!(dpr::Union{DifferencePolyRing, DifferentialPolyRing}, update::Bool)
+    dpr.are_perms_up_to_date = update
 end
 
-function __set_perm_for_sort!(dpr::DifferencePolyRing)
-  dpr.permutation = sortperm(dpr.(gens(__upr(dpr))); rev = true)
-  __set_are_perms_up_to_date!(dpr, true)
+function __set_perm_for_sort!(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
+    dpr.permutation = sortperm(dpr.(gens(__upr(dpr))); rev = true)
+    __set_are_perms_up_to_date!(dpr, true)
 end
 
-#If this is called, we assume that are_perms_up_to_date == true
-function __set_perm_for_sort_poly!(dpre::DifferencePolyRingElem)
-  dpre.permutation = sortperm(map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre)))); rev = true)
-end
-
-### Differential ###
-data(dpre::DifferentialPolyRingElem) = dpre.p
-
-__upr(dpr::DifferentialPolyRing) = dpr.upoly_ring
-
-__jtv(dpr::DifferentialPolyRing) = dpr.jet_to_var
-
-__vtj(dpr::DifferentialPolyRing) = dpr.var_to_jet
-
-__jtu_idx(dpr::DifferentialPolyRing) = dpr.jet_to_upoly_idx
-
-__are_perms_up_to_date(dpr::DifferentialPolyRing) = dpr.are_perms_up_to_date
-
-function __perm_for_sort(dpr::DifferentialPolyRing)
-  if __are_perms_up_to_date(dpr) && isdefined(dpr, :permutation)
-    return dpr.permutation
-  end
-  __set_perm_for_sort!(dpr)
-  return dpr.permutation
-end
-
-function __perm_for_sort_poly(dpre::DifferentialPolyRingElem)
-  dpr = parent(dpre)
-  if __are_perms_up_to_date(dpr) && isdefined(dpre, :permutation)
-    return dpre.permutation
-  end
-  __set_perm_for_sort!(dpr)
-  __set_perm_for_sort_poly!(dpre)
-  return dpre.permutation
-end
-
-#Setters for internals
-function __set_are_perms_up_to_date!(dpr::DifferentialPolyRing, update::Bool)
-  dpr.are_perms_up_to_date = update
-end
-
-function __set_perm_for_sort!(dpr::DifferentialPolyRing)
-  dpr.permutation = sortperm(dpr.(gens(__upr(dpr))); rev = true)
-  __set_are_perms_up_to_date!(dpr, true)
-end
-
-#If this is called, we assume that are_perms_up_to_date == true
-function __set_perm_for_sort_poly!(dpre::DifferentialPolyRingElem)
-  dpre.permutation = sortperm(map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre)))); rev = true)
+# Assumes are_perms_up_to_date == true
+function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
+    dpre.permutation = sortperm(
+        map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre))));
+        rev = true
+    )
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
