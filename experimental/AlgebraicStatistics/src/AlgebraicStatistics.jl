@@ -27,7 +27,6 @@ include("PhylogeneticModels-functions.jl")
 # include("PhylogeneticAuxiliary.jl")
 # include("PhylogeneticParametrization.jl")
 # include("PhylogeneticInvariants.jl")
-include("LoadModels.jl")
 
 include("./serialization.jl")
 
