@@ -753,7 +753,7 @@ end
 @testset "create class functions" begin
   g = symmetric_group(3)
   tbl = character_table(g)
-  n = number_conjugacy_classes(tbl)
+  n = number_of_conjugacy_classes(tbl)
   triv = trivial_character(tbl)
   for X in [tbl, g]
     @test triv == Oscar.class_function(X, [1 for i in 1:n])
