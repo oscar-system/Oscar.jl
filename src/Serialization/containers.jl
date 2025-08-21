@@ -628,7 +628,7 @@ function save_object(s::SerializerState, obj::SRow)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:SRow}, params::U) where U
+function load_object(s::DeserializerState, ::Type{<:SRow}, params::NCRing)
   pos = Int[]
   entry_type = elem_type(params)
   values = entry_type[]
