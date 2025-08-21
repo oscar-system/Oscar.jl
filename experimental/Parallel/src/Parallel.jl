@@ -258,6 +258,7 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   return result
 end
 
+# this is here so that setting batchsize still works
 type_params(p::Base.Iterators.Zip) = type_params(first(p))
   
 function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
