@@ -248,7 +248,8 @@ Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}} with 1 entry:
 ```
 """
 function components_of_kernel(d::Int, phi::MPolyAnyMap;
-                              wp::Union{OscarWorkerPool, Nothing}=nothing)
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size=100)
   # Compute a maximal grading on the domain
   A = Oscar.max_grading(phi)[:, ngens(codomain(phi)) + 1:end]
   
@@ -295,7 +296,7 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
       filter_results = pmap(filter_component, wp,
                             [deg for deg in keys(mon_bases)],
                             [mon_bases[deg] for deg in keys(mon_bases)],
-                            [jac for _ in keys(mon_bases)])
+                            [jac for _ in keys(mon_bases)]; batch_size=batch_size)
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]
@@ -309,7 +310,7 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
                        distributed=false)
       else
         results = pmap(compute_component, wp, map(deg -> mon_bases[deg], remain_degs),
-                       [graded_phi for _ in remain_degs])
+                       [graded_phi for _ in remain_degs]; batch_size=batch_size)
       end
     else
       results =[]
