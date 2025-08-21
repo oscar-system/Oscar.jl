@@ -27,7 +27,7 @@ Usually in `polymake`, a collection of points is displayed as a matrix
 of row-vectors. Such a matrix is always created from the input information. When
 writing a new function accepting an object `x` of type
 `AbstractCollection[PointVector]` (note that, with `AbstractCollection` being a
-`Dict`, its entries are accessed using square brackets; the keys are the `Oscar`
+`Dict`, its entries are accessed using square brackets; the keys are the OSCAR
 types of the elements of the collection), the necessary conversion can (and
 should) be called at the beginning. These conversion functions already exist and
 support all of the types stated in [Type compatibility](@ref). In this case the

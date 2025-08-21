@@ -7,7 +7,7 @@
     ps::Vector{Polyhedron{QQFieldElem}}
     cis::Vector{Int}
     function ToricVanishingSet(toric_variety::NormalToricVarietyType, ps::Vector{Polyhedron{QQFieldElem}}, cis::Vector{Int})
-        if !all(p -> ambient_dim(p) == torsion_free_rank(picard_group(toric_variety)), ps)
+        if !all(p -> ambient_dim(p) == torsion_free_rank(picard_group_with_map(toric_variety)[1]), ps)
             throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety"))
         end
         if !all(i -> 0 <= i <= dim(toric_variety), cis)
