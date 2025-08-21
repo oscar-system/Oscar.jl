@@ -5,7 +5,7 @@ function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecTy
   all(map(x -> isequal(first(params), x), params))
 end
 
-function type_params(obj::S) where {T, S <:MatVecTypes{T}}
+function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
     return TypeParams(S, TypeParams(T, nothing))
   end
