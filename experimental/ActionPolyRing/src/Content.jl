@@ -264,9 +264,19 @@ n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
 
+#=
 function exponent_vector(apre::ActionPolyRingElem, i::Int)
   __update_internals!(apre)
   return exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])[__perm_for_sort(parent(apre))]
+end
+=#
+
+function exponent_vector(apre::ActionPolyRingElem, i::Int)
+  v = exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])
+  perm = __perm_for_sort(parent(apre))
+  L = length(perm)
+
+  return (length(v) == L) ? v[perm] : vcat(v, zeros(Int, L - length(v)))[perm]
 end
 
 monomial(apre::ActionPolyRingElem, i::Int) = parent(apre)(monomial(data(apre), __perm_for_sort_poly(apre)[i]))
@@ -825,21 +835,10 @@ canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 #
 ###############################################################################
 
-# The multivariate polynomial ring parent(data(data(dpre))) will always equal what has been parent(dpre).upoly_ring.mpoly_ring at the time of its creation, so
-# we need a way update this, e.g. after adding variables. This is mandatory for some methods to work proper and also just good practise.
-
-function __update_internals!(dpre::DifferencePolyRingElem)
+function __update_internals!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   upr = __upr(parent(dpre))
   p = data(dpre)
-  if upr.mpoly_ring !== parent(data(p))
-    dpre.p = upr(p)
-  end
-end  
-
-function __update_internals!(dpre::DifferentialPolyRingElem)
-  upr = __upr(parent(dpre))
-  p = data(dpre)
-  if upr.mpoly_ring !== parent(data(p))
+  if !is_zero(dpre) && nvars(upr) != length(exponent_vector(p, 1))
     dpre.p = upr(p)
   end
 end  
@@ -906,11 +905,21 @@ end
 
 # Assumes are_perms_up_to_date == true
 function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
-    dpre.permutation = sortperm(
-        map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre))));
-        rev = true
-    )
-    __set_is_perm_up_to_date!(dpre, true)
+  exps = collect(exponents(data(dpre)))
+  n = length(exps)
+  n ≤ 1 && (dpre.permutation = collect(1:n); return __set_is_perm_up_to_date!(dpre, true))
+
+  perm = (parent(dpre).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
+
+  dpre.permutation = sort(1:n; lt = (i, j) -> begin
+    ei, ej = exps[i], exps[j]
+    @inbounds for k in perm
+      vi, vj = ei[k], ej[k]
+      vi != vj && return vi > vj #reverse order
+    end
+    false
+  end)
+  __set_is_perm_up_to_date!(dpre, true)
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
