@@ -37,10 +37,32 @@ function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}; ch
   return parent(apre1)(divexact(data(apre1), data(apre2)))
 end
 
+function divides(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+  check_parent(apre1, apre2)
+  flag, res = divides(data(apre1), data(apre2))
+  return flag, parent(apre1)(res)
+end
+
+function Base.div(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+  check_parent(apre1, apre2) 
+  return parent(apre1)(div(data(apre1), data(apre2)))
+end
+
+function Base.divrem(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+  check_parent(apre1, apre2) 
+  return parent(apre1).(divrem(data(apre1), data(apre2)))
+end
+
 function mod(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
   check_parent(apre1, apre2)
   return parent(apre1)(mod(data(apre1), data(apre2)))
 end
+
+###############################################################################
+#
+#  gcd and lcm 
+#
+###############################################################################
 
 function gcd(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
   check_parent(apre1, apre2) 
@@ -51,6 +73,20 @@ function lcm(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {
    check_parent(apre1, apre2)
    return parent(apre1)(lcm(data(apre1), data(apre2)))
 end
+
+###############################################################################
+#
+#  Remove and valuation 
+#
+###############################################################################
+
+function remove(z::ActionPolyRingElem{T}, p::ActionPolyRingElem{T}) where {T}
+  check_parent(z, p)
+  val, q = remove(data(z), data(p))
+  return val, parent(z)(q)
+end
+
+valuation(z::ActionPolyRingElem{T}, p::ActionPolyRingElem{T}) where {T} = remove(z, p)[1]
 
 ###############################################################################
 #

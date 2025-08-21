@@ -127,7 +127,43 @@ using Test
           @test u1 > u2 > u3
           @test __perm_for_sort(dpr) == [1,2,3]
         end
-
+        
+        @testset "Check other" begin
+          @test !is_univariate(dpr)
+          @test all(var -> is_univariate(var), vars)
+          @test_throws ErrorException to_univariate(u1*u2)
+          @test typeof(to_univariate(u1)) == ZZPolyRingElem
+          R, univ_var = polynomial_ring(ZZ; cached = false)
+          @test to_univariate(R, u1^2 - u1) == univ_var^2 - univ_var
+          @test parent(to_univariate(R, u1^2 - u1)) === R
+          
+          @test all(var -> is_irreducible(var), vars)
+          @test !is_irreducible(u1^2)
+          @test !is_irreducible(u1*u2)
+          @test !is_irreducible(zero(dpr))
+          @test !is_irreducible(one(dpr))
+          
+          @test all(var -> is_monomial(var), vars)
+          @test all(var -> is_term(var), vars)
+          @test all(var -> !is_monomial(3*var), vars)
+          @test all(var -> is_term(3*var), vars)
+          @test all(var -> !is_monomial(3*var+1), vars)
+          @test all(var -> !is_term(3*var+1), vars)
+          
+          f = 2 * (u1 - 1) * (u1 + 1)
+          g = -5*u1^3 * u2^2
+          factf, factg = factor(f), factor(g)
+          factsf, factsg = factor_squarefree(f), factor_squarefree(g)
+          @test unit(factf) == ZZ(1)
+          @test unit(factsf) == ZZ(1)
+          @test Set(factf) == Set([Pair(dpr(2), 1), Pair(u1 - 1, 1), Pair(u1 + 1, 1)])
+          @test Set(factsf) == Set([Pair(dpr(2), 1), Pair(u1^2 - 1, 1)])
+          @test unit(factg) == ZZ(-1)
+          @test unit(factsg) == ZZ(-1)
+          @test Set(factg) == Set([Pair(dpr(5), 1), Pair(u1, 3), Pair(u2, 2)])
+          @test Set(factsg) == Set([Pair(dpr(5), 1), Pair(u1, 3), Pair(u2, 2)])
+        end
+        
         @testset "Check public fields at construction" begin
           @test base_ring(dpr) == ZZ
           @test all(var -> base_ring(var) == ZZ, vars)
@@ -330,6 +366,7 @@ using Test
           @testset "Non-constant polynomials" begin
             #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
             @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             
@@ -365,6 +402,7 @@ using Test
             for i in 1:length(nvars(dpr))
               @test degree(f, i) == degrees(f)[i]
             end
+            @test degree(f, 3, [5,5,5]) == 0 && ngens(dpr) == 7            
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
@@ -421,6 +459,7 @@ using Test
           
           # u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #previously
           @test u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
+          @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [6,7,1]       
           @test gens(dpr) == [u3_111, u2_100, u2, u3, u1_100, u1_010, u1]
           @test all(var -> is_gen(var), gens(dpr))
             
@@ -563,7 +602,18 @@ using Test
             #Recall that u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
-            
+            @test dpr(data(f)) == f
+            @test dpr(data(f)) !== f
+            @test dpr(data(data(f))) == f
+            @test dpr(data(data(f))) !== f
+            @test dpr(f) === f
+
+            @test dpr(data(g)) == g
+            @test dpr(data(g)) !== g
+            @test dpr(data(data(g))) == g
+            @test dpr(data(data(g))) !== g
+            @test dpr(g) === g
+
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
             @test __perm_for_sort_poly(f) == [4,2,6,3,1,5]

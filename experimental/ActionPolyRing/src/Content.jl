@@ -137,6 +137,8 @@ end
 
 (dpr::DifferencePolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr, upre)
 
+(dpr::DifferencePolyRing)(mpre::MPolyRingElem) = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr, mpre)
+
 function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
   @req parent(a) === dpr "Wrong parent"
   return a
@@ -146,6 +148,8 @@ end
 (dpr::DifferentialPolyRing)() = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr)
 
 (dpr::DifferentialPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr, upre)
+
+(dpr::DifferentialPolyRing)(mpre::MPolyRingElem) = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr, mpre)
 
 function (dpr::DifferentialPolyRing{T})(a::DifferentialPolyRingElem{T}) where {T}
   @req parent(a) === dpr "Wrong parent"
@@ -271,11 +275,15 @@ term(apre::ActionPolyRingElem, i::Int) = parent(apre)(term(data(apre), __perm_fo
 
 is_monomial(apre::ActionPolyRingElem) = is_monomial(data(apre))
 
-is_term(apre::ActionPolyRingElem) = is_monomial(data(apre))
+is_term(apre::ActionPolyRingElem) = is_term(data(apre))
 
 is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
 
 is_univariate(apr::ActionPolyRing) = false
+
+to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement} = to_univariate(R, data(p))
+
+to_univariate(p::ActionPolyRingElem) = to_univariate(data(p))
 
 length(apre::ActionPolyRingElem) = length(data(apre))
 
@@ -419,12 +427,7 @@ julia> gens(dpr)
 ```
 """
 function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
-  jtv = __jtv(apr)
-  new_jet_idxs = filter(jet_idx -> !haskey(jtv, jet_idx), jet_idxs)
-  if !is_empty(new_jet_idxs)
-    __add_new_jetvar!(apr, new_jet_idxs)
-  end
-  return map(jet_idx -> jtv[jet_idx], jet_idxs)
+  return [gen(apr, jet_idx) for jet_idx in jet_idxs]
 end
 
 @doc raw"""
@@ -702,7 +705,7 @@ function initial(apre::ActionPolyRingElem)
   if is_constant(apre)
     return apre
   end
-  return divexact(leading_term(apre), leader(apre)^degree(apre, leader(apre)); check = true)
+  return remove(leading_term(apre), leader(apre))[2]
 end
 
 @doc raw"""
@@ -976,7 +979,7 @@ function __set_perm_for_sort_poly!(dpre::DifferentialPolyRingElem)
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
-__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == ndiffs(apr) && all(j -> j >= 0, jet)
+__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == ndiffs(apr) && all(>=(0), jet)
 
 function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
