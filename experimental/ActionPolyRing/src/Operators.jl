@@ -145,184 +145,72 @@ end
 ###############################################################################
 
 ### Difference ###
-function zero!(a::DifferencePolyRingElem{T}) where {T <: RingElement}
+function zero!(a::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
   a.p = zero!(a.p)
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function one!(a::DifferencePolyRingElem{T}) where {T <: RingElement}
+function one!(a::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
   a.p = one!(a.p)
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function neg!(z::DifferencePolyRingElem{T}, a::DifferencePolyRingElem{T}) where {T <: RingElement}
-  if parent(data(z)) == parent(data(a))
-    z.p = neg!(z.p, a.p)
-  else
-    z.p = -a.p
-  end
+function neg!(z::PolyT, a::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  z.p = neg!(z.p, a.p)
+  __set_is_perm_up_to_date!(z, false)
   return z
 end
 
-function fit!(a::DifferencePolyRingElem, n::Int)
+function fit!(a::PolyT, n::Int) where {PolyT <: ActionPolyRingElem}
   fit!(data(a), n)
+  __set_is_perm_up_to_date!(a, false)
 end
 
-function add!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::DifferencePolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = add!(data(a), data(b), data(c))
-  else
-    a.p = data(b + c)
-  end
+function add!(a::PolyT, b::PolyT, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = add!(data(a), data(b), data(c))
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function add!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = add!(data(a), data(b), c)
-  else
-    a.p = data(b + c)
-  end
+function add!(a::PolyT, b::PolyT, c::RingElement) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = add!(data(a), data(b), c)
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-add!(a::DifferencePolyRingElem{T}, b::RingElement, c::DifferencePolyRingElem{T}) where {T <: RingElement} = add!(a, c, b)
+add!(a::PolyT, b::RingElement, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}} = add!(a, c, b)
 
-function sub!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::DifferencePolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = sub!(data(a), data(b), data(c))
-  else
-    a.p = data(b - c)
-  end
+function sub!(a::PolyT, b::PolyT, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = sub!(data(a), data(b), data(c))
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function sub!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = sub!(data(a), data(b), c)
-  else
-    a.p = data(b - c)
-  end
+function sub!(a::PolyT, b::PolyT, c::RingElement) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = sub!(data(a), data(b), c)
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function sub!(a::DifferencePolyRingElem{T}, b::RingElement, c::DifferencePolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(c))
-    a.p = sub!(data(a), b, data(c))
-  else
-    a.p = data(b - c)
-  end
+function sub!(a::PolyT, b::RingElement, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = sub!(data(a), b, data(c))
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function mul!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::DifferencePolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = mul!(data(a), data(b), data(c))
-  else
-    a.p = data(b * c)
-  end
+function mul!(a::PolyT, b::PolyT, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = mul!(data(a), data(b), data(c))
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-function mul!(a::DifferencePolyRingElem{T}, b::DifferencePolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = mul!(data(a), data(b), c)
-  else
-    a.p = data(b * c)
-  end
+function mul!(a::PolyT, b::PolyT, c::RingElement) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}}
+  a.p = mul!(data(a), data(b), c)
+  __set_is_perm_up_to_date!(a, false)
   return a
 end
 
-mul!(a::DifferencePolyRingElem{T}, b::RingElement, c::DifferencePolyRingElem{T}) where {T <: RingElement} = mul!(a, c, b)
-
-### Differential ###
-function zero!(a::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  a.p = zero!(a.p)
-  return a
-end
-
-function one!(a::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  a.p = one!(a.p)
-  return a
-end
-
-function neg!(z::DifferentialPolyRingElem{T}, a::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  if parent(data(z)) == parent(data(a))
-    z.p = neg!(z.p, a.p)
-  else
-    z.p = -a.p
-  end
-  return z
-end
-
-function fit!(a::DifferentialPolyRingElem, n::Int)
-  fit!(data(a), n)
-end
-
-function add!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = add!(data(a), data(b), data(c))
-  else
-    a.p = data(b + c)
-  end
-  return a
-end
-
-function add!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = add!(data(a), data(b), c)
-  else
-    a.p = data(b + c)
-  end
-  return a
-end
-
-add!(a::DifferentialPolyRingElem{T}, b::RingElement, c::DifferentialPolyRingElem{T}) where {T <: RingElement} = add!(a, c, b)
-
-function sub!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = sub!(data(a), data(b), data(c))
-  else
-    a.p = data(b - c)
-  end
-  return a
-end
-
-function sub!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = sub!(data(a), data(b), c)
-  else
-    a.p = data(b - c)
-  end
-  return a
-end
-
-function sub!(a::DifferentialPolyRingElem{T}, b::RingElement, c::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(c))
-    a.p = sub!(data(a), b, data(c))
-  else
-    a.p = data(b - c)
-  end
-  return a
-end
-
-function mul!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::DifferentialPolyRingElem{T}) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b)) == parent(data(c))
-    a.p = mul!(data(a), data(b), data(c))
-  else
-    a.p = data(b * c)
-  end
-  return a
-end
-
-function mul!(a::DifferentialPolyRingElem{T}, b::DifferentialPolyRingElem{T}, c::RingElement) where {T <: RingElement}
-  if parent(data(a)) == parent(data(b))
-    a.p = mul!(data(a), data(b), c)
-  else
-    a.p = data(b * c)
-  end
-  return a
-end
-
-mul!(a::DifferentialPolyRingElem{T}, b::RingElement, c::DifferentialPolyRingElem{T}) where {T <: RingElement} = mul!(a, c, b)
+mul!(a::PolyT, b::RingElement, c::PolyT) where {T <: RingElement, PolyT <: ActionPolyRingElem{T}} = mul!(a, c, b)
 

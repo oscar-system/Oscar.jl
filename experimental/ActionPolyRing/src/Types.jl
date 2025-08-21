@@ -43,19 +43,20 @@ end
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
   p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferencePolyRing{T}
+  is_perm_up_to_date::Bool
   permutation::Vector{Int}
 
-  DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr)
+  DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr, true, Int[])
 
   function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, upre::AbstractAlgebra.Generic.UniversalPolyRingElem{T}) where {T}
     @req dpr.upoly_ring === parent(upre) "The parent does not match"
-    new{T}(upre, dpr)
+    new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
   function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, mpre::MPolyRingElem{T}) where {T}
     upr = dpr.upoly_ring
     @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr)
+    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
   end
 
 end
@@ -95,19 +96,20 @@ end
 mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
   p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
   parent::DifferentialPolyRing{T}
+  is_perm_up_to_date::Bool
   permutation::Vector{Int}
 
-  DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr)
+  DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr, true, Int[])
 
   function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, upre::AbstractAlgebra.Generic.UniversalPolyRingElem{T}) where {T}
     @req dpr.upoly_ring === parent(upre) "The parent does not match"
-    new{T}(upre, dpr)
+    new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
   function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, mpre::MPolyRingElem{T}) where {T}
     upr = dpr.upoly_ring
     @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr)
+    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
   end
 
 end

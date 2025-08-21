@@ -856,6 +856,7 @@ end
 
 # Element getters
 data(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.p
+__is_perm_up_to_date(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.is_perm_up_to_date
 
 # Ring getters
 __upr(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.upoly_ring
@@ -878,7 +879,7 @@ end
 
 function __perm_for_sort_poly(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   dpr = parent(dpre)
-  if __are_perms_up_to_date(dpr) && isdefined(dpre, :permutation)
+  if __are_perms_up_to_date(dpr) && __is_perm_up_to_date(dpre)
     return dpre.permutation
   end
   __set_perm_for_sort!(dpr)
@@ -894,6 +895,10 @@ function __set_are_perms_up_to_date!(dpr::Union{DifferencePolyRing, Differential
     dpr.are_perms_up_to_date = update
 end
 
+function __set_is_perm_up_to_date!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, update::Bool)
+    dpre.is_perm_up_to_date = update
+end
+
 function __set_perm_for_sort!(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
     dpr.permutation = sortperm(dpr.(gens(__upr(dpr))); rev = true)
     __set_are_perms_up_to_date!(dpr, true)
@@ -905,6 +910,7 @@ function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, Different
         map(expo -> expo[parent(dpre).permutation], collect(exponents(data(dpre))));
         rev = true
     )
+    __set_is_perm_up_to_date!(dpre, true)
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
@@ -1076,19 +1082,7 @@ function __compute_ranking_params(m::Int, n::Int,
     end
   else
     @req is_empty(index_ordering_matrix) "Providing both a name and a matrix is not supported. Please just choose one."
-    #if is_empty(index_ordering_matrix)
-      if index_ordering_name == :lex
-        index_ordering_matrix = canonical_matrix(lex(R))
-      elseif index_ordering_name == :deglex
-        index_ordering_matrix = canonical_matrix(deglex(R))
-      elseif index_ordering_name == :invlex
-        index_ordering_matrix = canonical_matrix(invlex(R))
-      elseif index_ordering_name == :deginvlex
-        index_ordering_matrix = canonical_matrix(deginvlex(R))
-      elseif index_ordering_name == :degrevlex
-        index_ordering_matrix = canonical_matrix(degrevlex(R))
-      end
-    #end
+    index_ordering_matrix = canonical_matrix(monomial_ordering(R, index_ordering_name))
   end
   return (partition, index_ordering_matrix)
 end
