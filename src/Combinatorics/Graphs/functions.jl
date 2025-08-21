@@ -1999,7 +1999,41 @@ function maximal_cliques(g::Graph{Undirected})
   ))
 end
 
+
 function is_tree(g::Graph)
   is_weakly_connected(g) || return false
   return isone(n_vertices(g) - n_edges(g))
+end
+  
+@doc raw"""
+    is_acyclic(G::Graph{Directed})
+
+Determines if `G` is acyclic by performing topological sort.
+Uses Kahn's algorithm, starting with minimal elements.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges(Directed, [[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
+Directed graph with 4 nodes and the following edges:
+(1, 2)(1, 3)(2, 3)(2, 4)(3, 4)
+
+julia> is_acylic(g)
+true
+```
+"""
+function is_acylic(G::Graph{Directed})
+  a = adjacency_matrix(G)
+
+  S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))
+  
+  while !is_empty(S)
+    i = pop!(S)
+    for j in findall(a[i, :])
+      a[i, j] = false
+      if !any(a[:, j])
+        push!(S, j)
+      end
+    end
+  end
+  return !any(a) # The graph is acyclic if all edges have been removed
 end

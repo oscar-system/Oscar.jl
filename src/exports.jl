@@ -230,8 +230,6 @@ export acting_subgroup
 export action
 export action_function
 export action_homomorphism
-export add_directed_edge!
-export add_undirected_edge!
 export add_edge!
 export add_gluing!
 export add_vertex!
@@ -391,6 +389,7 @@ export chief_series, has_chief_series, set_chief_series
 export chow_ring
 export circuits
 export class_group
+export class_group_with_map
 export class_lengths
 export class_multiplication_coefficient
 export class_names
@@ -741,8 +740,6 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
-export has_directed_edge
-export has_undirected_edge
 export has_edge
 export has_groups_with_class_number
 export has_nonempty_intersection
@@ -865,6 +862,7 @@ export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
+export is_acylic
 export is_admissible_ordering
 export is_admissible_triple
 export is_affine
@@ -1221,8 +1219,6 @@ export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supe
 export minimize
 export minkowski_sum
 export minor
-export mixed_graph
-export mixed_graph_from_edges
 export module_syzygies
 export modulus
 export moebius_kantor_matroid
@@ -1409,6 +1405,7 @@ export permuted
 export phylogenetic_tree
 export picard_class
 export picard_group
+export picard_group_with_map
 export picard_index
 export pile_polytope
 export pitman_stanley_polytope
@@ -1549,7 +1546,6 @@ export relative_interior_point
 export relative_invariants
 export relative_order
 export relators
-export rem_directed_edge!
 export rem_edge!
 export rem_vertex!
 export rem_vertices!

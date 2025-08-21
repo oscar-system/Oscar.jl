@@ -24,7 +24,7 @@ end
 
 sort_edges(pt::PhylogeneticTree) = sort_edges(adjacency_tree(pt))
 
-function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
+function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
   lvs = leaves(gr)
   outn = outneighbors(gr, v)
   if v in lvs

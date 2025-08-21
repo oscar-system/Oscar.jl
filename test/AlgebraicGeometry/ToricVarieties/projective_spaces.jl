@@ -32,7 +32,7 @@
     @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) == character_lattice(P2)
     @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_weil_divisor_group(P2)
     @test domain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) == torusinvariant_cartier_divisor_group(P2)
-    @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) == picard_group(P2)
+    @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) == picard_group_with_map(P2)[1]
     @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_cartier_divisor_group(P2)
     @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_weil_divisor_group(P2)
     @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(P2)) == matrix(ZZ, [[1], [1], [1]])

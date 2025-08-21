@@ -1656,6 +1656,22 @@ function simplify(R::MPolyRing)
   return Rnew, f, finv
 end
 
+function simplify(L::MPolyQuoLocRing{<:Field, <:FieldElem, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  A = underlying_quotient(L)::MPolyQuoRing
+  AA, iso, iso_inv = simplify(A)
+  a = point_coordinates(inverted_set(L))
+  b = [evaluate(lift(f), a) for f in images_of_generators(iso_inv)]
+  U = complement_of_point_ideal(base_ring(AA), b)
+  LL, _ = localization(AA, U)
+  return LL, 
+  hom(L, LL, 
+      elem_type(LL)[LL(x) for x in images_of_generators(iso)]
+     ),
+  hom(LL, L, 
+      elem_type(L)[L(x) for x in images_of_generators(iso_inv)]
+     )
+end
+
 @doc raw"""
     MPolyQuoLocalizedIdeal{
         LocRingType<:MPolyQuoLocRing, 
