@@ -179,5 +179,17 @@ using Oscar: _integer_variables
         @test n_vertices(cpp) == n_vertices(loaded)
       end
     end
+
+    @testset "PhylogeneticTree" begin
+      phylo_t = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
+      test_save_load_roundtrip(path, phylo_t) do loaded
+        @test taxa(loaded) == ["B", "C", "G", "H"]
+      end
+
+      phylo_t = phylogenetic_tree(QQFieldElem, "((H:3,(C:1,B:1):2):1,G:4);");
+      test_save_load_roundtrip(path, phylo_t) do loaded
+        @test cophenetic_matrix(loaded) == matrix(QQ, [0 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0])
+      end
+    end
   end
 end
