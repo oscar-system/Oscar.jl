@@ -10,7 +10,8 @@
 ###################################################################################
 
 @doc raw"""
-    PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
+    PhylogeneticModel{GT, M, L, T}
+    PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
 
 A data structure representing a general phylogenetic model on a directed tree.
 
@@ -43,17 +44,11 @@ base field (e.g., `QQ` for rational numbers).
   n_states::Int
   model_parameter_name::VarName
 
-  @doc raw"""
-      PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
-
-  Construct a `PhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
-  If `root_distribution` is not provided, a uniform distribution is assumed.
-  """
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p")
+                             varnames::VarName="p")
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
@@ -66,18 +61,13 @@ base field (e.g., `QQ` for rational numbers).
                                                                     trans_matrix_structure,
                                                                     root_distribution,
                                                                     n_states,
-                                                                    varname)
+                                                                    varnames)
   end
 
-  @doc raw"""
-      PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varname::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
-
-  Construct a `PhylogeneticModel` from a graph `G`, a transition matrix with polynomial entries, and a root distribution. This constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
-  """
   function PhylogeneticModel(G::Graph{Directed},
                              trans_matrix_structure::Matrix{M},
                              root_distribution::Vector{T},
-                             varname::VarName="p") where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+                             varnames::VarName="p") where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
     trans_ring = parent(first(trans_matrix_structure))
     root_ring = base_ring(trans_ring)
     F = coefficient_ring(root_ring)
@@ -86,27 +76,60 @@ base field (e.g., `QQ` for rational numbers).
       error("Rings for the root distribution parameters do not match. Expected ring `$(root_ring)` but got `$(parent(first(root_distribution)))`.")
     end
 
-    PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varname)
+    PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
   end
 
-  @doc raw"""
-      PhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varname::VarName="p")
-
-  Construct a `PhylogeneticModel` using the default rational field (`QQ`).
-  """
   function PhylogeneticModel(G::Graph{Directed},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p")
+                             varnames::VarName="p")
     return PhylogeneticModel(QQ, G, trans_matrix_structure, 
-                             root_distribution, varname)
+                             root_distribution, varnames)
   end
 end
+
+@doc raw"""
+      phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
+      phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
+      phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+      
+Construct a `PhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
+If `root_distribution` is not provided, a uniform distribution is assumed. If `F` is not provided, it constructs a `PhylogeneticModel` using the default rational field (`QQ`).
+
+If `trans_matrix_structure` is a `Matrix{<: MPolyRing{<:MPolyRingElem}}` and `root_distribution` is a `Vector{<: MPolyRing}`, then the constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
+"""
+function phylogenetic_model(F::Field, G::Graph{Directed},
+                            trans_matrix_structure::Matrix,
+                            root_distribution::Union{Nothing, Vector} = nothing,
+                            varnames::VarName="p")
+  PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
+end
+
+function phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{M},
+                            root_distribution::Vector{T},
+                            varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+  PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
+end
+
+function phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix,
+                            root_distribution::Union{Nothing, Vector} = nothing,
+                            varnames::VarName="p")
+  return PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
+end
+
 
 @doc raw"""
     n_states(PM::PhylogeneticModel)
 
 Return the number of states in the phylogenetic model.
+
+# Example
+```jldoctest
+julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> n_states(PM)
+4
+```
 """
 n_states(PM::PhylogeneticModel) = PM.n_states
 
@@ -114,6 +137,19 @@ n_states(PM::PhylogeneticModel) = PM.n_states
     transition_matrix(PM::PhylogeneticModel)
 
 Return the structure of the transition matrices of the model.
+
+# Example
+```jldoctest
+julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> transition_matrix(PM)
+4×4 Matrix{Symbol}:
+ :m11  :m12  :m13  :m14
+ :m21  :m22  :m23  :m24
+ :m31  :m32  :m33  :m34
+ :m41  :m42  :m43  :m44
+
+```
 """
 transition_matrix(PM::PhylogeneticModel) = PM.trans_matrix_structure
 
@@ -121,6 +157,18 @@ transition_matrix(PM::PhylogeneticModel) = PM.trans_matrix_structure
     root_distribution(PM::PhylogeneticModel)
 
 Return the root distribution vector of the model.
+
+# Example
+```jldoctest
+julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> root_distribution(PM)
+4-element Vector{Symbol}:
+ :π1
+ :π2
+ :π3
+ :π4
+```
 """
 root_distribution(PM::PhylogeneticModel) = PM.root_distribution
 
@@ -128,25 +176,51 @@ root_distribution(PM::PhylogeneticModel) = PM.root_distribution
     base_field(PM::PhylogeneticModel)
 
 Return the base field of the model's rings.
+
+# Example
+```jldoctest
+julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> base_field(PM)
+Rational field
+```
 """
 base_field(PM::PhylogeneticModel) = PM.base_field
 
 @doc raw"""
-    varname(PM::PhylogeneticModel)
+    varnames(PM::PhylogeneticModel)
 
 Return the symbolic name for the probability coordinates.
+
+# Example
+```jldoctest
+julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> varnames(PM)
+"p"
+```
 """
-varname(PM::PhylogeneticModel) = PM.model_parameter_name
+varnames(PM::PhylogeneticModel) = PM.model_parameter_name
 
 
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false)
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false) where {L, T <: FieldElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName}; cached=false)
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
 
-Create the polynomial ring for the parameters of the phylogenetic model.
+Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, M, L, T}`.
 
-Returns a tuple containing:
+If `M  <: VarName`, returns a tuple containing:
 1.  The polynomial ring.
 2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+3.  The root distribution vector.
+
+If `M  <: MPolyRingElem`, then returns a tuple containing:
+1.  The polynomial ring.
+2.  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original
+    transition matrix ring to the new parameter ring.
 3.  The root distribution vector.
 """
 @attr Tuple{
@@ -181,18 +255,6 @@ end
       ), r
 end
 
-@doc raw"""
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false)
-
-Create the polynomial ring for the parameters of a phylogenetic model whose transition matrix
-is defined over a polynomial ring.
-
-Returns a tuple containing:
-1.  The polynomial ring.
-2.  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original
-    transition matrix ring to the new parameter ring.
-3.  The root distribution vector.
-"""
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
@@ -305,19 +367,14 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
   
-  @doc raw"""
-      GroupBasedPhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varname_phylo_model::VarName="p", varname_group_based::VarName="q")
-
-  Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution.
-  """
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       varname_phylo_model::VarName="p",
-                                       varname_group_based::VarName="q")
+                                       varnames_phylo_model::VarName="p",
+                                       varnames_group_based::VarName="q")
     if isnothing(group)
       group = collect(abelian_group(2,2))
       group = [group[1],group[3],group[2],group[4]]
@@ -327,34 +384,71 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{typeof(G), typeof(graph_maps)}(PhylogeneticModel(F, G, trans_matrix_structure, 
                                                                 root_distribution,
-                                                                varname_phylo_model),
+                                                                varnames_phylo_model),
                                               fourier_param_structure,
-                                              group, varname_group_based)
+                                              group, varnames_group_based)
   end
 
-  @doc raw"""
-      GroupBasedPhylogeneticModel(G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varname_phylo_model::VarName="p", varname_group_based::VarName="q")
-
-  Construct a `GroupBasedPhylogeneticModel` using the default rational field (`QQ`).
-  """
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       varname_phylo_model::VarName="p",
-                                       varname_group_based::VarName="q")
+                                       varnames_phylo_model::VarName="p",
+                                       varnames_group_based::VarName="q")
     return GroupBasedPhylogeneticModel(QQ, G, trans_matrix_structure, fourier_param_structure,
                                        group, root_distribution, 
-                                       varname_phylo_model, varname_group_based)
+                                       varnames_phylo_model, varnames_group_based)
   end
 
+end
+
+@doc raw"""
+    group_based_phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+    group_based_phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+
+
+Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution. If `F` is not provided it constructs a `GroupBasedPhylogeneticModel` using the default rational field (`QQ`).
+"""
+
+function group_based_phylogenetic_model(F::Field, 
+                                      G::Graph{Directed},
+                                      trans_matrix_structure::Matrix{<: VarName},
+                                      fourier_param_structure::Vector{<: VarName},
+                                      group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                      root_distribution::Union{Nothing, Vector} = nothing,
+                                      varnames_phylo_model::VarName="p",
+                                      varnames_group_based::VarName="q")
+   GroupBasedPhylogeneticModel(F, G, trans_matrix_structure, fourier_param_structure, group,
+                               root_distribution, varnames_phylo_model, varnames_group_based)
+end
+
+function group_based_phylogenetic_model(G::Graph{Directed},
+                                      trans_matrix_structure::Matrix{<: VarName},
+                                      fourier_param_structure::Vector{<: VarName},
+                                      group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                      root_distribution::Union{Nothing, Vector} = nothing,
+                                      varnames_phylo_model::VarName="p",
+                                      varnames_group_based::VarName="q")
+  return GroupBasedPhylogeneticModel(G, trans_matrix_structure, fourier_param_structure,
+                                      group, root_distribution, 
+                                      varnames_phylo_model, varnames_group_based)
 end
 
 @doc raw"""
     graph(PM::GroupBasedPhylogeneticModel)
 
 Return the graph of the underlying phylogenetic model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> graph(PM)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+
+```
 """
 graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph # ? Antony
 
@@ -362,6 +456,20 @@ graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph # ? Antony
     phylogenetic_model(PM::GroupBasedPhylogeneticModel)
 
 Return the underlying `PhylogeneticModel`.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> phylogenetic_model(PM)
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [1//4, 1//4, 1//4, 1//4] 
+and transition matrices of the form 
+ [:a :b :b :b;
+  :b :a :b :b;
+  :b :b :a :b;
+  :b :b :b :a]. 
+```
 """
 phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
 
@@ -370,6 +478,14 @@ phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
     n_states(PM::GroupBasedPhylogeneticModel)
 
 Return the number of states of the underlying phylogenetic model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> n_states(PM)
+4
+```
 """
 n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
 
@@ -377,6 +493,18 @@ n_states(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.n_states
     transition_matrix(PM::GroupBasedPhylogeneticModel)
 
 Return the structure of the transition matrices of the model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> transition_matrix(PM)
+4×4 Matrix{Symbol}:
+ :a  :b  :b  :b
+ :b  :a  :b  :b
+ :b  :b  :a  :b
+ :b  :b  :b  :a
+```
 """
 transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_matrix_structure
 
@@ -384,6 +512,14 @@ transition_matrix(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.trans_matrix
     base_field(PM::GroupBasedPhylogeneticModel)
 
 Return the base field of the underlying phylogenetic model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> base_field(PM)
+Rational field
+```
 """
 base_field(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.base_field
 
@@ -391,21 +527,37 @@ base_field(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.base_field
     root_distribution(PM::GroupBasedPhylogeneticModel)
 
 Return the root distribution of the underlying phylogenetic model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> root_distribution(PM)
+4-element Vector{QQFieldElem}:
+ 1//4
+ 1//4
+ 1//4
+ 1//4
+```
 """
 root_distribution(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.root_distribution
-
-@doc raw"""
-    varname_probabilities(PM::GroupBasedPhylogeneticModel)
-
-Return the symbolic name for the probability coordinates of the underlying phylogenetic model.
-"""
-varname_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name # ? Antony
-
 
 @doc raw"""
     group(PM::GroupBasedPhylogeneticModel)
 
 Return the finite abelian group associated with the model.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> group(PM)
+4-element Vector{FinGenAbGroupElem}:
+ [0, 0]
+ [0, 1]
+ [1, 0]
+ [1, 1]
+```
 """
 group(PM::GroupBasedPhylogeneticModel) = PM.group
 
@@ -413,22 +565,39 @@ group(PM::GroupBasedPhylogeneticModel) = PM.group
     fourier_parameters(PM::GroupBasedPhylogeneticModel)
 
 Return the symbolic structure of the Fourier parameters.
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> fourier_parameters(PM)
+4-element Vector{Symbol}:
+ :x
+ :y
+ :y
+ :y
+```
 """
 fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
 
-@doc raw"""
-    varname_fourier(PM::GroupBasedPhylogeneticModel)
+varnames_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name # ? Antony
 
-Return the variable name for the Fourier coordinates.
-"""
-varname_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
+varnames_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
 
 @doc raw"""
-    varname(PM::GroupBasedPhylogeneticModel)
+    varnames(PM::GroupBasedPhylogeneticModel)
 
-Return the variable name for the Fourier coordinates (alias for `varname_fourier`).
+Return the variable name for the Fourier coordinates (alias for `varnames_fourier`).
+
+# Example
+```jldoctest
+julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> varnames(PM)
+"q"
+```
 """
-varname(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
+varnames(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
 
 @doc raw"""
@@ -461,7 +630,7 @@ function Base.show(io::IO, PM::GroupBasedPhylogeneticModel)
   ne = length(collect(edges(gr)))
   root_dist = join(PM.phylo_model.root_distribution, ", " )
  
-  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
+  print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
   print(io, "with root distribution [$(root_dist)], \n")
   print(io, "transition matrices of the form \n ")
 
@@ -494,7 +663,7 @@ This ring has a generator for every possible state configuration at the leaves.
 } where {T, U} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   l_indices = leaves_indices(PM)
 
-  return model_ring(base_field(PM), varname(PM) => l_indices; cached=cached)
+  return model_ring(base_field(PM), varnames(PM) => l_indices; cached=cached)
 end
 
 @doc raw"""
@@ -573,7 +742,7 @@ This ring has a generator for each unique polynomial (i.e., each equivalence cla
   eq_classes = equivalent_classes(PM)
   ec_indices = sort(collect(keys(eq_classes)), rev = true)
 
-  return model_ring(base_field(PM), varname(PM) => ec_indices; cached=cached)
+  return model_ring(base_field(PM), varnames(PM) => ec_indices; cached=cached)
 end
 
 @doc raw"""
@@ -774,6 +943,18 @@ end
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
 a 2-state model with a single transition probability per edge.
+
+Example
+```jldoctest
+julia> cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [1//2, 1//2], 
+transition matrices of the form 
+ [:a :b;
+  :b :a]
+and fourier parameters of the form [:x, :y].
+```
+
 """
 function cavender_farris_neyman_model(G::Graph{Directed})
   M = [:a :b;
@@ -792,6 +973,19 @@ end
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
 a 4-state model where all non-diagonal transition probabilities are equal.
+
+Example
+```jldoctest
+julia> jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [1//4, 1//4, 1//4, 1//4], 
+transition matrices of the form 
+ [:a :b :b :b;
+  :b :a :b :b;
+  :b :b :a :b;
+  :b :b :b :a]
+and fourier parameters of the form [:x, :y, :y, :y].
+```
 """
 function jukes_cantor_model(G::Graph{Directed})
   M = [:a :b :b :b;
@@ -811,6 +1005,19 @@ end
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
 a 4-state model with two non-diagonal transition probabilities.
+
+Example
+```jldoctest
+julia> kimura2_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [1//4, 1//4, 1//4, 1//4], 
+transition matrices of the form 
+ [:a :b :c :b;
+  :b :a :b :c;
+  :c :b :a :b;
+  :b :c :b :a]
+and fourier parameters of the form [:x, :y, :z, :z].
+```
 """
 function kimura2_model(G::Graph{Directed})
   M = [:a :b :c :b;
@@ -827,6 +1034,19 @@ end
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
 a 4-state model with three non-diagonal different transition probabilities.
+
+Example
+```jldoctest
+julia> kimura3_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [1//4, 1//4, 1//4, 1//4], 
+transition matrices of the form 
+ [:a :b :c :d;
+  :b :a :d :c;
+  :c :d :a :b;
+  :d :c :b :a]
+and fourier parameters of the form [:x, :y, :z, :t].
+```
 """
 function kimura3_model(G::Graph{Directed})
   M = [:a :b :c :d;
@@ -843,6 +1063,18 @@ end
 
 Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
+
+Example
+```jldoctest
+julia> general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [π1, π2, π3, π4] 
+and transition matrices of the form 
+ [:m11 :m12 :m13 :m14;
+  :m21 :m22 :m23 :m24;
+  :m31 :m32 :m33 :m34;
+  :m41 :m42 :m43 :m44]. 
+```
 """
 function general_markov_model(G::Graph{Directed})
 
@@ -854,5 +1086,37 @@ function general_markov_model(G::Graph{Directed})
   root_distr = [:π1, :π2, :π3, :π4]
   
   PhylogeneticModel(G, M, root_distr)
+end
+
+@doc raw"""
+    general_markov_model(G::Graph{Directed})
+
+Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
+All transition matrix entries and root distribution entries are treated as independent parameters.
+
+Example
+```jldoctest
+julia> general_time_reversible_model(tree)
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [r[1], r[2], r[3], r[4]] 
+and transition matrices of the form 
+ [r[1]*a r[2]*b r[3]*c r[4]*d;
+  r[1]*b r[2]*a r[3]*e r[4]*f;
+  r[1]*c r[2]*e r[3]*a r[4]*g;
+  r[1]*d r[2]*f r[3]*g r[4]*a]. 
+```
+"""
+function general_time_reversible_model(G::Graph{Directed})
+
+  Rp, r = polynomial_ring(QQ, :r => 1:4);
+  RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);
+
+  M = [a*r[1] b*r[2] c*r[3] d*r[4];
+       b*r[1] a*r[2] e*r[3] f*r[4];
+       c*r[1] e*r[2] a*r[3] g*r[4];
+       d*r[1] f*r[2] g*r[3] a*r[4]
+  ];
+
+  PM = PhylogeneticModel(G, M, r)
 end
 

@@ -49,11 +49,13 @@ export jukes_cantor_model
 export kimura2_model
 export kimura3_model
 export general_markov_model
+export general_time_reversible_model
 
 #export phylogenetic models attributes
 export phylogenetic_model
 export n_states
 export transition_matrix
+export fourier_parameters
 export root_distribution
 export entry_transition_matrix
 export entry_root_distribution
