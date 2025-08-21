@@ -258,9 +258,11 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   return result
 end
 
-function pmap(f::Any, wp::OscarWorkerPool, c)
+type_params(p::Base.Iterators.Zip) = type_params(first(p))
+  
+function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
   put_type_params(wp, c)
-  pmap(f, wp.wp, c)
+  pmap(f, wp.wp, c; kwargs...)
 end
 
 export oscar_worker_pool
