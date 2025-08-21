@@ -32,7 +32,7 @@ function sort_edges(graph::Graph)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
 end
 
-function vertex_descendants(gr::Graph, v::Int, desc::Vector{Any} = [])
+function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
 
   lvs = leaves(gr)
   outn = outneighbors(gr, v)
