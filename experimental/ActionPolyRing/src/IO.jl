@@ -23,7 +23,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
     print(io, "Difference polynomial ring")
   else
     print(terse(io), "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
-    print(terse(io), base_ring(dpr))
+    print(terse(io), Lowercase(), base_ring(dpr))
   end
 end
 
@@ -46,7 +46,7 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
     print(io, "Differential polynomial ring")
   else
     print(terse(io), "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
-    print(terse(io), base_ring(dpr))
+    print(terse(io), Lowercase(), base_ring(dpr))
   end
 end
 
@@ -59,30 +59,30 @@ end
 @enable_all_show_via_expressify ActionPolyRingElem
 
 function _expressify_monomial!(prod::Expr, x, e)
-    @inbounds for i in 1:length(e)
-        if e[i] > 1
-            push!(prod.args, Expr(:call, :^, x[i], e[i]))  # deepcopy not needed for immutables
-        elseif e[i] == 1
-            push!(prod.args, x[i])
-        end
+  @inbounds for i in 1:length(e)
+    if e[i] > 1
+      push!(prod.args, Expr(:call, :^, x[i], e[i]))  # deepcopy not needed for immutables
+    elseif e[i] == 1
+      push!(prod.args, x[i])
     end
+  end
 end
 
 function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = nothing)
-    sum = Expr(:call, :+)
+  sum = Expr(:call, :+)
 
-    for (c, e) in zip(coefficients(a), exponents(a))
-        if all(zero(eltype(e)) == ei for ei in e)  # constant term
-            push!(sum.args, expressify(c, context = context))
-        else
-            prod = Expr(:call, :*)
-            push!(prod.args, expressify(c, context = context))
-            _expressify_monomial!(prod, x, e)
-            push!(sum.args, prod)
-        end
+  for (c, e) in zip(coefficients(a), exponents(a))
+    if all(zero(eltype(e)) == ei for ei in e)  # constant term
+      push!(sum.args, expressify(c, context = context))
+    else
+      prod = Expr(:call, :*)
+      push!(prod.args, expressify(c, context = context))
+      _expressify_monomial!(prod, x, e)
+      push!(sum.args, prod)
     end
+  end
 
-    return sum
+  return sum
 end
 
 ###############################################################################
