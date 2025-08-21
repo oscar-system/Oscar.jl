@@ -1014,6 +1014,9 @@ end
 Return the leading coefficient of `f` with respect to the order `ordering`.
 """
 function leading_coefficient(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  if is_zero(f)
+    return zero(base_ring(f))
+  end
   return coeff(f, index_of_leading_term(f, ordering))
 end
 
