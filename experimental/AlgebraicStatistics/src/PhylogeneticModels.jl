@@ -408,9 +408,9 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     pm = PhylogeneticModel(F, G, trans_matrix_structure, 
                            root_distribution,
-                           varname_phylo_model)
+                           varnames_phylo_model)
     return new{typeof(graph(pm)), typeof(graph_maps)}(
-      pm, fourier_param_structure, group, varname_group_based)
+      pm, fourier_param_structure, group, varnames_group_based)
   end
 
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
