@@ -230,8 +230,6 @@ export acting_subgroup
 export action
 export action_function
 export action_homomorphism
-export add_directed_edge!
-export add_undirected_edge!
 export add_edge!
 export add_gluing!
 export add_vertex!
@@ -742,8 +740,6 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
-export has_directed_edge
-export has_undirected_edge
 export has_edge
 export has_groups_with_class_number
 export has_nonempty_intersection
@@ -1223,8 +1219,6 @@ export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supe
 export minimize
 export minkowski_sum
 export minor
-export mixed_graph
-export mixed_graph_from_edges
 export module_syzygies
 export modulus
 export moebius_kantor_matroid
@@ -1552,7 +1546,6 @@ export relative_interior_point
 export relative_invariants
 export relative_order
 export relators
-export rem_directed_edge!
 export rem_edge!
 export rem_vertex!
 export rem_vertices!
