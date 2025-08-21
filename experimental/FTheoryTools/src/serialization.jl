@@ -157,12 +157,13 @@ function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict)
 end
 
 function _load_common_parts(s::DeserializerState, params::Dict)
-  ring_key, poly_key = first(((rk, pk) for (rk, pk) in (
+  #=ring_key, poly_key = first(((rk, pk) for (rk, pk) in (
     (:hypersurface_equation_ring, :hypersurface_equation),
     (:weierstrass_polynomial_ring, :weierstrass_polynomial),
     (:tate_polynomial_ring, :tate_polynomial),
   ) if haskey(params, rk)))
-  def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
+  def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)=#
+  def_poly = load_object(s, MPolyDecRingElem, params[:hypersurface_equation_ring], :hypersurface_equation)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
   explicit_model_sections = _maybe_load(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, :explicit_model_sections, params)
   model_section_parametrization = _maybe_load(s, Dict{String, MPolyRingElem}, :model_section_parametrization, params)

@@ -71,6 +71,20 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:data][:defining_classes] = upgraded_defining_classes[:data]
         end
 
+        #=
+        if type_name == "WeierstrassModel" && haskey(dict[:data], :weierstrass_polynomial)
+          upgraded_poly = upgrade_1_4_0(s, dict[:data][:weierstrass_polynomial])
+          upgraded_dict[:_type][:params][:hypersurface_equation_ring] = upgraded_poly[:_type]
+          upgraded_dict[:data][:hypersurface_equation] = upgraded_poly[:data]
+        end
+
+        if type_name == "GlobalTateModel" && haskey(dict[:data], :tate_polynomial)
+          upgraded_poly = upgrade_1_4_0(s, dict[:data][:tate_polynomial])
+          upgraded_dict[:_type][:params][:hypersurface_equation_ring] = upgraded_poly[:_type]
+          upgraded_dict[:data][:hypersurface_equation] = upgraded_poly[:data]
+        end
+        =#
+
       elseif type_name == "LieAlgebraModule"
         upgraded_dict[:_type] = Dict(
           :name => dict[:_type],
