@@ -1,7 +1,7 @@
-const ContainerTypes = Union{SRow, Set, Dict, Tuple, NamedTuple, Array}
-const MatVecTypes{S} = Union{Matrix{S}, Vector{S}, SRow{S}} where S
+const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}} where T
+const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
-function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecTypes{S}, Array{S}}}
+function params_all_equal(params::T) where {S <: TypeParams, T <: Union{MatVecType{S}, Array{S}}}
   all(map(x -> isequal(first(params), x), params))
 end
 
@@ -11,7 +11,7 @@ function type_params(obj::S) where {T, S <:MatVecTypes{T}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -21,7 +21,7 @@ function type_params(obj::S) where {N, T, S <:Array{T, N}}
   end
   
   params = type_params.(obj)
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, :subtype_params => params[1], :dims => N)
 end
 
@@ -35,12 +35,12 @@ function has_empty_entries(obj::T) where T <: ContainerTypes
   return false
 end
 
-function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecTypes{T}}
+function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
   params = type_params.(filter(!has_empty_entries, obj))
-  @req params_all_equal(params) "Not all params of Array entries are the same, consider using a Tuple for serialization"
+  @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
@@ -61,19 +61,17 @@ function save_type_params(s::SerializerState,
 end
 
 # this function is forced to deal with all array types
-function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecTypes}})
+function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecType}})
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
     if haskey(s, :dims)
       U = load_node(s, :subtype_params) do _
-        println(s.obj)
         return decode_type(s)
       end
        
       dims = load_object(s, Int, :dims)
-      subtype_without_dims, params =  load_type_params(s, U, :subtype_params)
-      subtype = subtype_without_dims, dims
-      return T{subtype...}, params
+      subtype, params =  load_type_params(s, U, :subtype_params)
+      return T{subtype, dims}, params
     else
       U = decode_type(s)
       subtype, params = load_type_params(s, U)
@@ -96,10 +94,10 @@ end
 # Saving and loading vectors
 @register_serialization_type Vector
 
-# see Array below for load_type_params for general Arrays which include Matrix
+# see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
 
-function save_object(s::SerializerState, x::Vector)
+function save_object(s::SerializerState, x::AbstractVector{S}) where S
   save_data_array(s) do
     for elem in x
       if serialize_with_id(typeof(elem))
@@ -152,59 +150,58 @@ end
 # Saving and loading matrices
 @register_serialization_type Matrix
 
-function save_object(s::SerializerState, mat::Matrix)
-  m, n = size(mat)
+function save_object(s::SerializerState, mat::AbstractMatrix{S}) where {S}
   save_data_array(s) do
-    for i in 1:m
-      save_object(s, [mat[i, j] for j in 1:n])
+    for r in eachrow(mat)
+      save_object(s, r)
     end
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where S
+# this needs to be Matrix to avoid ambiguities, this is also ok
+# since types on load will be Matrix
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
     end
     len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector{S}, i)) for i in 1:len
-        ])
+    m = stack([
+      load_object(s, Vector{S}, i) for i in 1:len
+        ]; dims=1)
     return T(m)
   end
 end
 
+load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where {S} = load_object(s, T)
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::U) where {S, U}
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
     end
     len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector{S}, params, i)) for i in 1:len
-        ])
+    m = stack([
+      load_object(s, Vector{S}, params, i) for i in 1:len
+        ]; dims=1)
     return T(m)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::Int) where S
+function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::Union{Int, Symbol}) where {S}
   return load_node(s, key) do _
     load_object(s, T)
   end
 end
 
-
 ################################################################################
 # Multidimensional Arrays
 @register_serialization_type Array "MultiDimArray"
 
-function save_object(s::SerializerState, arr::Array{T, N}) where {T, N}
-  arr_size = size(arr)
-  k = arr_size[N]
+function save_object(s::SerializerState, arr::AbstractArray{T, N}) where {T, N}
   save_data_array(s) do
-    for t in 1:k
-      save_object(s, arr[[1:arr_size[i] for i in 1:N - 1]..., t])
+    for slice in eachslice(arr; dims=1)
+      save_object(s, slice)
     end
   end
 end
@@ -216,22 +213,20 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, i) for i in 1:len]
-    front_shape = size(m[1])
-    return T(reshape(reduce(hcat, m), front_shape..., len))
+    return stack(m; dims=1)
   end
 end
 
 load_object(s::DeserializerState, T::Type{Array{S, N}}, ::Nothing) where {S, N} = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) where {S, N, U}
-    load_node(s) do entries
+  load_node(s) do entries
     if isempty(entries)
       return T(undef, [0 for _ in 1:N]...)
     end
     len = length(entries)
     m = [load_object(s, Array{S, N - 1}, params, i) for i in 1:len]
-    front_shape = size(m[1])
-    return T(reshape(reduce(hcat, m), front_shape..., len))
+    return stack(m; dims=1)
   end
 end
 

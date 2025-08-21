@@ -9,8 +9,9 @@ DocTestSetup = Oscar.doctestsetup()
 The following section contains details and examples on how to implement
 OSCAR's 2+1 printing modes. 
 
-## The 2 + 1 print modes of Oscar
-Oscar has two user print modes `detailed` and `one line` and one internal
+## The 2 + 1 print modes of OSCAR
+
+OSCAR has two user print modes `detailed` and `one line` and one internal
 print mode `terse`. The latter is for use during recursion,
 e.g. to print the `base_ring(X)` when in `one line` mode.
 It exists to make sure that `one line` stays compact and human readable.

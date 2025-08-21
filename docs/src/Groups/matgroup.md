@@ -12,7 +12,7 @@ A *matrix group* is a group that consists of invertible square matrices
 over a common ring, the *base ring* of the group
 (see [`base_ring(G::MatrixGroup{RE}) where RE <: RingElem`](@ref)).
 
-Matrix groups in Oscar have the type
+Matrix groups in OSCAR have the type
 [`MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`](@ref),
 their elements have the type
 [`MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}`](@ref).
@@ -119,7 +119,7 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 Sesquilinear forms are alternating and symmetric bilinear forms,
 hermitian forms, and quadratic forms.
 
-Sesquilinear forms in Oscar have the type
+Sesquilinear forms in OSCAR have the type
 [`SesquilinearForm{T<:RingElem}`](@ref).
 
 A sesquilinear form can be created
