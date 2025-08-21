@@ -9,7 +9,7 @@
       @test is_smooth(X) == true
       @test !is_fano(X)
       @test !is_complete(X)
-      @test torsion_free_rank(picard_group(X)) == 1
+      @test torsion_free_rank(picard_group_with_map(X)[1]) == 1
       @test dim(X) == 3
       @test (degree(canonical_bundle(X)) == 0) == (a - b == -2)
     end
@@ -23,7 +23,7 @@
         @test is_smooth(X) == true
         @test !is_fano(X)
         @test !is_complete(X)
-        @test torsion_free_rank(picard_group(X)) == torsion_free_rank(picard_group(S))
+        @test torsion_free_rank(picard_group_with_map(X)[1]) == torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
         @test degree(canonical_bundle(X)) == 0
       end
@@ -35,7 +35,7 @@
         X = total_space(canonical_divisor(S))
         @test is_smooth(X) == true
         @test !is_fano(X)
-        @test torsion_free_rank(picard_group(X)) == torsion_free_rank(picard_group(S))
+        @test torsion_free_rank(picard_group_with_map(X)[1]) == torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
         @test degree(canonical_bundle(X)) == 0
       end

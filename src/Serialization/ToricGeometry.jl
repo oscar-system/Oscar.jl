@@ -4,7 +4,6 @@
 
 toric_serialization_list = [
 :cox_ring,
-:class_group,
 :map_from_character_lattice_to_torusinvariant_weil_divisor_group,
 :map_from_torusinvariant_cartier_divisor_group_to_class_group,
 :map_from_torusinvariant_cartier_divisor_group_to_picard_group,
