@@ -92,8 +92,8 @@ end
 
 function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   # Consistency checks
-  gens_base_names = symbols(cox_ring(bs))
-  gens_fiber_names = symbols(cox_ring(fiber_ambient_space))
+  gens_base_names = symbols(coordinate_ring(bs))
+  gens_fiber_names = symbols(coordinate_ring(fiber_ambient_space))
   if !isdisjoint(gens_base_names, gens_fiber_names)
     @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
@@ -106,13 +106,13 @@ function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::
   ambient_space = _ambient_space(bs, fiber_ambient_space, fiber_twist_divisor_classes)
 
   # Construct the model
-  hypersurface_equation = eval_poly(p, cox_ring(ambient_space))
+  hypersurface_equation = eval_poly(p, coordinate_ring(ambient_space))
   @req is_homogeneous(hypersurface_equation) "Given hypersurface equation is not homogeneous"
   ds = [x.coeff for x in keys(homogeneous_components(hypersurface_equation))]
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
-  gens_S = gens(cox_ring(bs))
+  gens_S = gens(coordinate_ring(bs))
 
   # The below code was removed because it is inconsistent with our standard use of explicit_model_sections. In particular,
   # explicit_model_sections should not list base coordinates as being named sections whose value is the base coordinate
@@ -278,7 +278,7 @@ end
 function build_hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix, p::MPolyRingElem)
   
   # Compute simple information
-  gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
+  gens_fiber_names = [string(g) for g in gens(coordinate_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
   set_fiber_vars = Set(gens_fiber_names)
   set_p_vars = Set([string(g) for g in gens(parent(p))])

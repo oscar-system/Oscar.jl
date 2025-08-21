@@ -1600,7 +1600,14 @@ function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfEle
   return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
+# The `simplify` routine uses Singular's "elimpart". This does not work 
+# when the coefficient ring is not a field. Hence, unless that is the case, 
+# we refrain from doing anything here. 
 function simplify(L::MPolyQuoRing)
+  return L, identity_map(L), identity_map(L)
+end
+
+function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   J = modulus(L)
   R = base_ring(L)
   is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
@@ -1647,6 +1654,22 @@ function simplify(R::MPolyRing)
   f = hom(R, Rnew, gens(Rnew), check=false)
   finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
+end
+
+function simplify(L::MPolyQuoLocRing{<:Field, <:FieldElem, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  A = underlying_quotient(L)::MPolyQuoRing
+  AA, iso, iso_inv = simplify(A)
+  a = point_coordinates(inverted_set(L))
+  b = [evaluate(lift(f), a) for f in images_of_generators(iso_inv)]
+  U = complement_of_point_ideal(base_ring(AA), b)
+  LL, _ = localization(AA, U)
+  return LL, 
+  hom(L, LL, 
+      elem_type(LL)[LL(x) for x in images_of_generators(iso)]
+     ),
+  hom(LL, L, 
+      elem_type(L)[L(x) for x in images_of_generators(iso_inv)]
+     )
 end
 
 @doc raw"""

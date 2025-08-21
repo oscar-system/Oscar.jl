@@ -197,8 +197,8 @@ julia> d3_tadpole_constraint(fgs);
   
   # Compute data, that is used by the default/sophisticated intersection product
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
-    S = cox_ring(ambient_space(m))
-    gS = gens(cox_ring(ambient_space(m)))
+    S = coordinate_ring(ambient_space(m))
+    gS = gens(coordinate_ring(ambient_space(m)))
     linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
     scalings = [c.coeff for c in S.d]
     mnf = Oscar._minimal_nonfaces(ambient_space(m))

@@ -128,7 +128,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
   ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
-  S = cox_ring(ambient_space(m))
+  S = coordinate_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
   tds = torusinvariant_prime_divisors(ambient_space(m))
   cds = [cohomology_class(td) for td in tds]
@@ -239,8 +239,8 @@ end
 function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
   
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
-  S = cox_ring(ambient_space(m))
-  gS = gens(cox_ring(ambient_space(m)))
+  S = coordinate_ring(ambient_space(m))
+  gS = gens(coordinate_ring(ambient_space(m)))
   linear_relations = matrix(ZZ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))

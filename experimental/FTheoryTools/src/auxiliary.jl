@@ -8,14 +8,14 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   # Extract information about the toric base
   b_rays = matrix(ZZ, rays(base))
   b_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
-  b_grades = reduce(vcat, [elem.coeff for elem in cox_ring(base).d])
-  b_var_names = symbols(cox_ring(base))
+  b_grades = reduce(vcat, [elem.coeff for elem in coordinate_ring(base).d])
+  b_var_names = symbols(coordinate_ring(base))
   
   # Extract information about the fiber ambient space
   f_rays = matrix(ZZ, rays(fiber_amb_space))
   f_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_amb_space)))
-  f_grades = reduce(vcat, [elem.coeff for elem in cox_ring(fiber_amb_space).d])
-  f_var_names = symbols(cox_ring(fiber_amb_space))
+  f_grades = reduce(vcat, [elem.coeff for elem in coordinate_ring(fiber_amb_space).d])
+  f_var_names = symbols(coordinate_ring(fiber_amb_space))
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
   fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
@@ -269,7 +269,7 @@ function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vecto
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
-  w = Matrix{Int64}(reduce(vcat, [k.coeff for k in cox_ring(fiber_ambient_space).d]))
+  w = Matrix{Int64}(reduce(vcat, [k.coeff for k in coordinate_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
   D_block = hcat([[Int(fiber_twist_divisor_classes[k,l]) for k in 1:nrows(fiber_twist_divisor_classes)] for l in 1:ncols(fiber_twist_divisor_classes)]...)
   ambient_space_grading = [base_grading D_block; z_block w']

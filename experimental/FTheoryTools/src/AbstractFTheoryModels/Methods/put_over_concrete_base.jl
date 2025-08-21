@@ -68,7 +68,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
       if any(!is_zero, all_appearing_exponents[k,:])
         gen_name = string(symbols(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
-        @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
+        @req parent(concrete_data[gen_name]) == coordinate_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
         new_model_secs[gen_name] = concrete_data[gen_name]
       end
     end
@@ -76,7 +76,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     # Create ring map to evaluate Weierstrass/Tate sections
     parametrization = model_section_parametrization(m)
     domain = parent(collect(values(parametrization))[1])
-    codomain = cox_ring(concrete_data["base"])
+    codomain = coordinate_ring(concrete_data["base"])
     images = [haskey(new_model_secs, string(k)) ? new_model_secs[string(k)] : zero(codomain) for k in gens(domain)]
     mapper = hom(domain, codomain, images)
 
