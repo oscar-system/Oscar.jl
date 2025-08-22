@@ -1,3 +1,6 @@
+# hack until update in Polymake.jl
+
+Polymake.convert_to_pm_type(::Type{<:Polymake.Map{S,T}}) where S where T = Polymake.Map{Polymake.convert_to_pm_type(S), Polymake.convert_to_pm_type(T)}
 ################################################
 #### PHYLOGENETIC DATA STRUCTURES & METHODS ####
 ################################################

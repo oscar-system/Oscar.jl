@@ -139,7 +139,9 @@ end
 #TODO add example to the docs
 function newick(g::Graph{Directed})
   @req is_tree(g) "Graph $g is not a tree"
-  r = root(g)
+  # we can find root since tree is directed
+  r = findfirst(iszero,
+                (length(inneighbors(g, i)) for i in 1:n_vertices(g)))
   return join(map(v -> _newick(g, v), outneighbors(g, r)), ",") * ";"
 end
 
