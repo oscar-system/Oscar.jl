@@ -1072,6 +1072,78 @@ function gmodule_new(chi::Oscar.GAPGroupClassFunction)
   error("no plan yet")
 end
 
+function _do_one!(res, t, M)
+  _t = split_into_homogenous(M)
+  for x = _t
+    _c = map(iszero, coordinates(character(x)))
+    if t .& _c == t
+      @show :bad
+      continue
+    end
+    t .&= map(iszero, coordinates(character(x)))
+    push!(res, x)
+    if !any(t)
+      return true
+    end
+  end
+  return false
+end
+
+function _try_tensor_products!(res::Vector{GModule}, t::Vector{Bool}; limit::Int = 100)
+  for i = 1:length(res)
+    for j = 2:length(res)
+      if dim(res[i])*dim(res[j]) <= limit
+        c = coordinates(tensor_product(character(res[i]), character(res[j])))
+        cc = map(iszero, c) .& t
+        if cc != t
+          @show :bingo
+          M = tensor_product(res[i], res[j]; task = :none)
+          _do_one!(res, t, M) && return true
+        end
+      end
+    end
+  end
+  return false
+end
+
+function _try_squares!(res::Vector{GModule}, t::Vector{Bool}; limit::Int = 100)
+  for i = 1:length(res)
+    if 0 < dim(res[i])*(dim(res[i])-1)/2 <= limit
+      c = coordinates(alternating_square(character(res[i])))
+      cc = map(iszero, c) .& t
+      M = alternating_square(res[i])
+      _do_one!(res, t, M) && return true
+    end
+    if dim(res[i])*(dim(res[i])+1)/2 <= limit
+      c = coordinates(symmetric_square(character(res[i])))
+      cc = map(iszero, c) .& t
+      M = symmetric_square(res[i])
+      _do_one!(res, t, M) && return true
+    end
+  end
+  return false
+end
+
+function _try_perm_character!(res::Vector{GModule}, t::Vector{Bool}, G::GAPGroup, U::GAPGroup; limit::Int = 100)
+  c = coordinates(permutation_character(G, U))
+  cc = map(iszero, c) .& t
+  if cc != t #will give new rep.
+    @show :bingo
+    M = permutation_gmodule(G, U, QQ)
+    _do_one!(res, t, M) && return true
+  end
+  return false
+end
+
+
+function Oscar.symmetric_square(X::Oscar.GAPGroupClassFunction)
+  return symmetric_parts([X], 2)[1]
+end
+
+function Oscar.alternating_square(X::Oscar.GAPGroupClassFunction)
+  return anti_symmetric_parts([X], 2)[1]
+end
+
 function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}} = nothing)
   X = character_table(G)
   s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
@@ -1082,43 +1154,30 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
   else
     t = [true for x = X]
   end
-  res = []
+  res = GModule[]
+  #permutation gmodules are good as the endomorphism ring
+  #is "for free", the endo is used for the splitting
+  #poss. the limits should be adjusted as this is easier...
   for i = s
-    @show c = coordinates(permutation_character(G, i))
-    @show t
-    @show cc = map(iszero, c) .& t
-    if cc != t
-      @show :bingo
-      M = permutation_gmodule(G, i, QQ)
-      @show coordinates(character(M))
-      _t = split_into_homogenous(M)
-      for x = _t
-        @show coordinates(character(x))
-        _c = map(iszero, coordinates(character(x)))
-        if t .& _c == t
-          @show :bad
-          continue
-        end
-        t .&= map(iszero, coordinates(character(x)))
-        push!(res, x)
-      end
-      @show t
-      if !any(t)
-        return res
-      end
-    end
+    _try_perm_character!(res, t, G, i) && return res
   end
+  @show "after permutation modules", t
+
+  _try_tensor_products!(res, t; limit) && return res
+  _try_squares!(res, t; limit) && return res
 
   for i=s
+    @show "order $(order(i))"
     XX = character_table(i)
     for chi = XX
       #careful with multiplicity
-      if degree(chi)*index(G, i) > limit
-        @show :too_large
+      if degree_of_character_field(chi)*degree(chi)*index(G, i) > limit
+        @show :too_large, degree_of_character_field(chi), degree(chi), index(G, i)
         continue
       end
-      @show cc = map(iszero, coordinates(induce(chi, G))) .& t
+      cc = map(iszero, coordinates(induce(chi, G))) .& t
       if cc != t
+        @show "should help"
         v = gmodule_new(chi)
         @assert length(v) == 1
         v = v[1]
@@ -1126,15 +1185,9 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
           if cc[j] != t[j] 
             @show :induce
             V = induce(v, embedding(i, G))[1]
-            @show :split, dim(V)
-            @time _res = split_into_homogenous(V)
-            for mu = _res
-              _cc = map(iszero, coordinates(character(mu))) .& t
-              if _cc != t
-                push!(res, mu)
-                t = _cc
-              end
-            end
+            _do_one!(res, t, V) && return res
+          else
+            @show "bad"
           end
         end
       end
@@ -2806,6 +2859,11 @@ function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
 end
 
 function reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}}, a::ZZMatrix, act::Function)
+  #act(g) -> func: ZZMat -> ZZMat representing the action of g on the matrix
+  # example:
+  # endo: a-> b-> matrix(action(C, a))*b*matrix(action(C, inv(a)))
+  # form: a-> b-> matrix(action(C, a))*b*transpose(matrix(action(C, a)))
+  # hom:  a-> b-> matrix(action(C, a))*b*matrix(action(D, inv(a))))
   G = group(C)
   I = one(G)
   de = ZZ(1)
@@ -2837,14 +2895,14 @@ function reynold(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}}, a::Z
        a = sum(t(a) for t = D)
      end
     den *= de
-    @show nbits(den), maximum(nbits, a)
+#    @show nbits(den), maximum(nbits, a)
     aa = a*QQ(order(C.G), den)
 #    @assert is_positive_definite(aa)
     aa = map_entries(x->abs(x-round(x)), aa)
 #    @show [nbits(denominator(x)) for x = convergents(continued_fraction(aa[10,10]))]
-    @show maximum(aa)*1.0
+#    @show maximum(aa)*1.0
     if maximum(aa) < 1e-5
-      a = map_entries(x->round(ZZRingElem, QQ(x*order(C.G), den)), a)
+      a = map_entries(x->round(ZZRingElem, QQ(x*order(G), den)), a)
       if any(x->act(x)(a) != a, gens(G))
         @show :bad
         continue
@@ -2919,7 +2977,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
 # f = invariant_forms(C)[1]
-#thsi will not give pos. def. forms!!! we need to go via Reynolds.
+# this will not give pos. def. forms!!! we need to go via Reynolds.
 # @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
