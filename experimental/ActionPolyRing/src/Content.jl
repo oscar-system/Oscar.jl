@@ -8,27 +8,51 @@
 
 ### Difference ###
 @doc raw"""
-    difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol},Int}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
+Construct the difference polynomial ring over the base ring `R` with the given elementary symbols and 
+`ndiffs` commuting endomorphisms. 
+
+- If `elementary_symbols` is a vector of symbols, those names are used.  
+- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
+
+In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `ndiffs`.
+
+Returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
+vector of its elementary variables.  
+
+This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
 
 # Examples
 
-```jldoctests
-julia> S, variables = difference_polynomial_ring(QQ, 3, 4)
+```jldoctest
+julia> R, variablesR = difference_polynomial_ring(QQ, 3, 4)
 (Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
 
-julia> S
+julia> R
 Difference polynomial ring in 3 elementary symbols u1, u2, u3
 with 4 commuting endomorphisms
   over rational field
 
-julia> variables
+julia> variablesR
 3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
  u1[0,0,0,0]
  u2[0,0,0,0]
  u3[0,0,0,0]
+
+julia> S, variablesS = difference_polynomial_ring(QQ, [:a, :b, :c], 4)
+(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
+
+julia> S
+Difference polynomial ring in 3 elementary symbols a, b, c
+with 4 commuting endomorphisms
+  over rational field
+
+julia> variablesS
+3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
+ a[0,0,0,0]
+ b[0,0,0,0]
+ c[0,0,0,0]
 ```
 """
 function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
@@ -37,31 +61,6 @@ function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
 end
 
-@doc raw"""
-    difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
-
-Return a tuple consisting of the difference polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
-these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
-method. See there for further information.
-
-# Examples
-
-```jldoctest
-julia> S, variables = difference_polynomial_ring(QQ, [:a, :b, :c], 4)
-(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
-
-julia> S
-Difference polynomial ring in 3 elementary symbols a, b, c
-with 4 commuting endomorphisms
-  over rational field
-
-julia> variables
-3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
- a[0,0,0,0]
- b[0,0,0,0]
- c[0,0,0,0]
-```
-"""
 function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
@@ -70,23 +69,47 @@ end
 
 ### Differential ###
 @doc raw"""
-    differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol},Int}, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
-Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified number of elementary variables and commuting endomorphisms, and the vector of
-these elementary variables. This methods allows for all the keywords of the `set_ranking!` method. See there for further information.
+Construct the differential polynomial ring over the base ring `R` with the given elementary symbols and 
+`ndiffs` commuting derivations. 
+
+- If `elementary_symbols` is a vector of symbols, those names are used.  
+- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
+
+In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `ndiffs`.
+
+Returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the 
+vector of its elementary variables.  
+
+This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
 
 # Examples
 
-```jldoctests
-julia> S, variables = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
+```jldoctest
+julia> R, variablesR = differential_polynomial_ring(QQ, 3, 4)
+(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
+
+julia> R
+Differential polynomial ring in 3 elementary symbols u1, u2, u3
+with 4 commuting endomorphisms
+  over rational field
+
+julia> variablesR
+3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
+ u1[0,0,0,0]
+ u2[0,0,0,0]
+ u3[0,0,0,0]
+
+julia> S, variablesS = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
 (Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
 
 julia> S
 Differential polynomial ring in 3 elementary symbols a, b, c
-with 4 commuting derivations
+with 4 commuting endomorphisms
   over rational field
 
-julia> variables
+julia> variablesS
 3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
  a[0,0,0,0]
  b[0,0,0,0]
@@ -99,31 +122,6 @@ function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
 end
 
-@doc raw"""
-    differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
-
-Return a tuple consisting of the differential polynomial ring over the ring `R` with the specified elementary variables and number of commuting endomorphisms, and the vector of
-these elementary variables. Note that the multiindex [0..0] of length 'ndiffs' is appended to the variable names provided. This methods allows for all the keywords of the `set_ranking!`
-method. See there for further information.
-
-# Examples
-
-```jldoctests
-julia> S, variables = differential_polynomial_ring(QQ, 3, 4)
-(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
-
-julia> S
-Differential polynomial ring in 3 elementary symbols u1, u2, u3
-with 4 commuting derivations
-  over rational field
-
-julia> variables
-3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
- u1[0,0,0,0]
- u2[0,0,0,0]
- u3[0,0,0,0]
-```
-"""
 function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
   dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
   set_ranking!(dpr; kwargs...)
@@ -263,13 +261,6 @@ n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 ###############################################################################
 
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
-
-#=
-function exponent_vector(apre::ActionPolyRingElem, i::Int)
-  __update_internals!(apre)
-  return exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])[__perm_for_sort(parent(apre))]
-end
-=#
 
 function exponent_vector(apre::ActionPolyRingElem, i::Int)
   v = exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])
@@ -911,20 +902,6 @@ end
 symbols(apr::ActionPolyRing) = symbols(__upr(apr))[__perm_for_sort(apr)]
 
 canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
-
-###############################################################################
-#
-#  Update polynomials 
-#
-###############################################################################
-
-function __update_internals!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
-  upr = __upr(parent(dpre))
-  p = data(dpre)
-  if !is_zero(dpre) && nvars(upr) != length(exponent_vector(p, 1))
-    dpre.p = upr(p)
-  end
-end  
 
 ###############################################################################
 #
