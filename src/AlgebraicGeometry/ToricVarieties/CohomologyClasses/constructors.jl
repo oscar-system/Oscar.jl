@@ -6,7 +6,7 @@
     v::NormalToricVarietyType
     p::MPolyQuoRingElem
     function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem, completeness_check::Bool)
-        @req parent(p) == cohomology_ring(v, completeness_check) "The polynomial must reside in the cohomology ring of the toric variety"
+        @req parent(p) == cohomology_ring(v; completeness_check) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
 end
@@ -62,7 +62,7 @@ Cohomology class on a normal toric variety given by 6*x3
 ```
 """
 function cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
-  R = cohomology_ring(toric_variety(d), completeness_check)
+  R = cohomology_ring(toric_variety(d); completeness_check)
   indets = gens(base_ring(R))
   coeff_ring = coefficient_ring(toric_variety(d))
   poly = R(sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)))
