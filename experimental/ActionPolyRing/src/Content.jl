@@ -22,7 +22,7 @@ julia> S, variables = difference_polynomial_ring(QQ, 3, 4)
 julia> S
 Difference polynomial ring in 3 elementary symbols u1, u2, u3
 with 4 commuting endomorphisms
-  over Rational field
+  over rational field
 
 julia> variables
 3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
@@ -53,7 +53,7 @@ julia> S, variables = difference_polynomial_ring(QQ, [:a, :b, :c], 4)
 julia> S
 Difference polynomial ring in 3 elementary symbols a, b, c
 with 4 commuting endomorphisms
-  over Rational field
+  over rational field
 
 julia> variables
 3-element Vector{DifferencePolyRingElem{QQFieldElem}}:
@@ -84,7 +84,7 @@ julia> S, variables = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
 julia> S
 Differential polynomial ring in 3 elementary symbols a, b, c
 with 4 commuting derivations
-  over Rational field
+  over rational field
 
 julia> variables
 3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
@@ -115,7 +115,7 @@ julia> S, variables = differential_polynomial_ring(QQ, 3, 4)
 julia> S
 Differential polynomial ring in 3 elementary symbols u1, u2, u3
 with 4 commuting derivations
-  over Rational field
+  over rational field
 
 julia> variables
 3-element Vector{DifferentialPolyRingElem{QQFieldElem}}:
@@ -994,7 +994,7 @@ This method configures the ranking of the action polynomial ring `apr`, using an
 
 ```jldoctests
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4; partition_name=:pot, index_ordering_name = :degrevlex)[1]; ranking(dpr)
-Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+Ranking of differential polynomial ring in 3 elementary symbols over ZZ
 with elementary symbols partitioned by
   [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 and ordering of the indices defined by
@@ -1004,7 +1004,7 @@ and ordering of the indices defined by
   [0   -1    0    0]
 
 julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]], index_ordering_matrix = identity_matrix(ZZ, 4))
-Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+Ranking of differential polynomial ring in 3 elementary symbols over ZZ
 with elementary symbols partitioned by
   [[0, 1, 1], [1, 0, 0]]
 and ordering of the indices defined by
@@ -1014,7 +1014,7 @@ and ordering of the indices defined by
   [0   0   0   1]
 
 julia> set_ranking!(dpr)
-Ranking of Differential polynomial ring in 3 elementary symbols over ZZ
+Ranking of differential polynomial ring in 3 elementary symbols over ZZ
 with elementary symbols partitioned by
   [[1, 1, 1]]
 and ordering of the indices defined by
