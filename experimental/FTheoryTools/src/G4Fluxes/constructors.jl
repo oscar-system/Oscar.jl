@@ -117,7 +117,7 @@ G4-flux candidate
 function qsm_flux(qsm_model::AbstractFTheoryModel)
   @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
   divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
-  gens_strings = symbols(cox_ring(ambient_space(qsm_model)))
+  gens_strings = symbols(coordinate_ring(ambient_space(qsm_model)))
   e1 = cohomology_class(divs[findfirst(x -> x == :e1, gens_strings)])
   e2 = cohomology_class(divs[findfirst(x -> x == :e2, gens_strings)])
   e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])

@@ -39,8 +39,6 @@
 """
 ```jldoctest
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> zero_section(h)
@@ -74,8 +72,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> zero_section_index(foah15_B3)
@@ -93,8 +89,6 @@ julia> zero_section_index(foah15_B3)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
@@ -114,8 +108,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> length(torsion_sections(foah15_B3))
@@ -133,8 +125,6 @@ julia> length(torsion_sections(foah15_B3))
 """
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> gauge_algebra(t)
@@ -155,8 +145,6 @@ over algebraic closure of rational field
 """
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> global_gauge_group_quotient(t)
@@ -179,8 +167,6 @@ julia> global_gauge_group_quotient(t)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolutions(m)
@@ -194,8 +180,6 @@ julia> resolutions(m)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolutions(m)
@@ -214,8 +198,6 @@ julia> weighted_resolutions(m)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_zero_sections(m)
@@ -229,8 +211,6 @@ julia> resolution_zero_sections(m)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_generating_sections(m)
@@ -244,8 +224,6 @@ julia> resolution_generating_sections(m)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_zero_sections(m)
@@ -259,8 +237,6 @@ julia> weighted_resolution_zero_sections(m)
 """
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_generating_sections(m)
@@ -293,8 +269,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> exceptional_classes(foah11_B3)
@@ -329,8 +303,6 @@ julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
 julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> exceptional_divisor_indices(foah11_B3)

@@ -171,6 +171,6 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, amb_space, fiber_ambient_space)
   model.defining_classes = defining_classes
   model.model_section_parametrization = model_section_parametrization
-  @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
+  @req coordinate_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
   return model
 end

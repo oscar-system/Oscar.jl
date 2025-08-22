@@ -13,6 +13,18 @@ of functionality is shared across them. This page documents that common interfac
 
 ---
 
+## Printouts and Verbosity Control
+
+To receive diagnostic information (e.g. for debugging or introspection), set the verbosity level as follows:
+
+```julia
+set_verbosity_level(:FTheoryModelPrinter, 1)
+```
+
+More details on verbosity settings are available [here](https://nemocas.github.io/AbstractAlgebra.jl/dev/assertions/#AbstractAlgebra.@vprint).
+
+---
+
 ## Model Geometry and Base Specification
 
 These attributes describe the geometric building blocks of the F-theory model—its ambient space, fiber

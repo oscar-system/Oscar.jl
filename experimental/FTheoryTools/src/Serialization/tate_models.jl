@@ -166,6 +166,6 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::D
   end
   model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base_space, amb_space)
   model.defining_classes = defining_classes
-  @req cox_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
+  @req coordinate_ring(ambient_space(model)) == parent(tate_polynomial(model)) "Tate polynomial not in Cox ring of toric ambient space"
   return model
 end
