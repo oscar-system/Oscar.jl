@@ -427,8 +427,15 @@ end
 
 function load_object(s::DeserializerState, T::Type, params::S,
                      key::Union{Symbol, Int}) where S
+  load_node(s, T, key) do _
+    load_object(s, T, params)::T
+  end::T
+end
+
+function load_object(s::DeserializerState, ::Type{UUID}, params::S,
+                     key::Union{Symbol, Int}) where S
   load_node(s, key) do _
-    load_object(s, T, params)
+    load_object(s, UUID, params)
   end
 end
 
@@ -450,7 +457,7 @@ function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+    for attr in keys(s)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -736,9 +743,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
-    id = s.obj[:id]
-    if haskey(global_serializer_state.id_to_obj, UUID(id))
-      return global_serializer_state.id_to_obj[UUID(id)]
+    id = UUID(s.obj[:id])
+    if haskey(global_serializer_state.id_to_obj, id)
+      return global_serializer_state.id_to_obj[id]
     end
   end
 
@@ -800,7 +807,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_typed_object(s; override_params=params)
     end
 
-    if :id in keys(s.obj)
+    if haskey(s, :id)
       load_node(s, :id) do id
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded

@@ -33,11 +33,8 @@ end
 
 load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s, T)
 
-function load_object(s::DeserializerState, ::Type{ZZRingElem})
-  load_node(s) do str
-    return ZZRingElem(str)
-  end
-end
+load_object(s::DeserializerState, ::Type{ZZRingElem}) = ZZRingElem(s.obj)
+
 
 ################################################################################
 # QQFieldElem

@@ -164,7 +164,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
     return ref
   end
   ref = global_serializer_state.obj_to_id[obj] = uuid4()
-  global_serializer_state.id_to_obj[ref] = obj
+  global_serializer_state.id_to_obj[ref] = (T, obj)
   push!(s.refs, ref)
   return ref
 end
@@ -174,7 +174,7 @@ function handle_refs(s::SerializerState)
   if !isempty(s.refs) 
     save_data_dict(s, :_refs) do
       for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
+        _, ref_obj = global_serializer_state.id_to_obj[id]
         s.key = Symbol(id)
         save_data_dict(s) do
           save_typed_object(s, ref_obj)
@@ -196,11 +196,11 @@ function finish_writing(s::SerializerState)
   # nothing to do here
 end
 
-mutable struct DeserializerState{T <: OscarSerializer}
+mutable struct DeserializerState{T <: OscarSerializer, S}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
+  obj::S
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
   with_attrs::Bool
@@ -210,14 +210,15 @@ end
 
 function load_ref(s::DeserializerState, id::UUID)
   if haskey(global_serializer_state.id_to_obj, id)
-    loaded_ref = global_serializer_state.id_to_obj[id]
+    T, loaded_ref = global_serializer_state.id_to_obj[id]
   else
     s.obj = s.refs[Symbol(id)]
     loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[id] = loaded_ref
+    T = typeof(loaded_ref)
+    global_serializer_state.id_to_obj[id] = (T, loaded_ref)
     global_serializer_state.obj_to_id[loaded_ref] = id
   end
-  return loaded_ref
+  return loaded_ref::T
 end
 
 ################################################################################
@@ -225,9 +226,7 @@ end
 
 function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
-  load_node(s) do obj
-    key in keys(obj)
-  end
+  haskey(s.obj, key)
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
@@ -235,15 +234,34 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int})
   s.key = key
 end
 
-function load_node(f::Function, s::DeserializerState,
-                   key::Union{Symbol, Int, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
+function load_node(f::Function, T::Type, s::DeserializerState)
+  obj = s.obj
+  s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
+  s.key = nothing
+  result = f(s.obj)::T
+  s.obj = obj
+  return result
+end
+
+function load_node(f::Function, s::DeserializerState)
   obj = s.obj
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
   result = f(s.obj)
   s.obj = obj
   return result
+end
+
+function load_node(f::Function, s::DeserializerState,
+                   key::Union{Symbol, Int})
+  set_key(s, key)
+  return load_node(f, s)
+end
+
+function load_node(f::Function, s::DeserializerState, T::Type,
+                   key::Union{Symbol, Int})
+  set_key(s, key)
+  return load_node(f, T, s)::T
 end
 
 function load_array_node(f::Function, s::DeserializerState,
@@ -262,10 +280,15 @@ function serializer_open(
   return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
+function deserializer_open(io::IO, serializer::T, with_attrs::Bool) where T <: OscarSerializer
   obj = JSON3.read(io)
   refs = get(obj, :_refs, nothing)
-  
+
+  return DeserializerState{
+    T,
+    Union{JSON3.Object, JSON3.Array, String}
+  }(serializer, obj, nothing, nothing, with_attrs)
+
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
@@ -275,5 +298,8 @@ function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
   #obj = JSON3.read(io)
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+  return DeserializerState{
+    IPCSerializer,
+    Union{Dict{Symbol, Any}, Vector, String}
+  }(serializer, obj, nothing, nothing, with_attrs)
 end
