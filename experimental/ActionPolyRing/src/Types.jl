@@ -4,9 +4,17 @@
 #
 ###############################################################################
 
-abstract type ActionPolyRing{T} <: Ring end 
+abstract type ActionPolyRing{T} <: Ring end
 
 abstract type ActionPolyRingElem{T} <: RingElem end
+
+# To be implemented by subtypes: 
+# Mandatory: 
+#   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
+#   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
+#   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
+#   coefficient_ring(L::MyActionPolyRing{T}) -> parent_type(C) 
+#   vector_space_dim(L::MyActionPolyRing) -> Int
 
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}

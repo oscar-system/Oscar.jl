@@ -11,7 +11,6 @@ using Test
   __perm_for_sort_poly = Oscar.__perm_for_sort_poly
   __is_valid_jet = Oscar.__is_valid_jet
   __is_valid_partition = Oscar.__is_valid_partition
-  __update_internals! = Oscar.__update_internals!
   
   @testset "Conformance tests - Ring interface" begin
     
