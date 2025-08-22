@@ -737,18 +737,101 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    coefficients(p::ActionPolyRingElem)
+
+Return an iterator for the coefficients of `p` with respect to the ranking of the parent of `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2
+3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
+
+julia> cf = coefficients(f)
+Coefficients iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+
+julia> collect(cf)
+3-element Vector{ZZRingElem}:
+ 3
+ -2
+ 1
+```
+"""
 function coefficients(a::ActionPolyRingElem{T}) where {T}
   return ActionPolyCoeffs{T, typeof(a)}(a)
 end
 
+@doc raw"""
+    exponents(p::ActionPolyRingElem)
+
+Return an iterator for the exponents of `p` with respect to the ranking of the parent of `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
+
+julia> ef = exponents(f)
+Exponents iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+
+julia> collect(ef)
+3-element Vector{Vector{Int64}}:
+ [2, 0, 0]
+ [1, 0, 1]
+ [0, 1, 1]
+```
+"""
 function exponents(a::ActionPolyRingElem{T}) where {T}
   return ActionPolyExponentVectors{T, typeof(a)}(a)
 end
 
+@doc raw"""
+    monomials(p::ActionPolyRingElem)
+
+Return an iterator for the monomials of `p` with respect to the ranking of the parent of `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
+
+julia> mf = monomials(f)
+Monomials iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+
+julia> collect(mf)
+3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ b[0,0,0,0]^2
+ b[0,0,0,0]*a[0,0,0,0]
+ c[0,0,0,0]*a[0,0,0,0]
+```
+"""
 function monomials(a::ActionPolyRingElem{T}) where {T}
   return ActionPolyMonomials{T, typeof(a)}(a)
 end
 
+@doc raw"""
+    terms(p::ActionPolyRingElem)
+
+Return an iterator for the terms of `p` with respect to the ranking of the parent of `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
+
+julia> tf = terms(f)
+Terms iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+
+julia> collect(tf)
+3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ 3*b[0,0,0,0]^2
+ -2*b[0,0,0,0]*a[0,0,0,0]
+ c[0,0,0,0]*a[0,0,0,0]
+```
+"""
 function terms(a::ActionPolyRingElem{T}) where {T}
   return ActionPolyTerms{T, typeof(a)}(a)
 end
@@ -911,15 +994,18 @@ function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, Different
 
   perm = (parent(dpre).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
 
-  dpre.permutation = sort(1:n; lt = (i, j) -> begin
-    ei, ej = exps[i], exps[j]
+  dpre.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
+  __set_is_perm_up_to_date!(dpre, true)
+end
+
+function __my_lt_for_vec(perm::Vector{Int})
+  return function ___my_lt_for_vec(ei::Vector{Int}, ej::Vector{Int})
     @inbounds for k in perm
       vi, vj = ei[k], ej[k]
-      vi != vj && return vi > vj #reverse order
+      vi != vj && return vi < vj 
     end
-    false
-  end)
-  __set_is_perm_up_to_date!(dpre, true)
+    return false
+  end
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
