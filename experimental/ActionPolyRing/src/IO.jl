@@ -156,12 +156,13 @@ function Base.show(io::IO, ran::ActionPolyRingRanking)
   io = pretty(io)
   if is_terse(io)
     print(io, "Ranking")
-  end
-  if base_ring(ran) isa DifferencePolyRing
-    print(terse(io), "Ranking of difference polynomial ring")
-  end
-  if base_ring(ran) isa DifferentialPolyRing
-    print(terse(io), "Ranking of differential polynomial ring")
+  else
+    if base_ring(ran) isa DifferencePolyRing
+      print(terse(io), "Ranking of difference polynomial ring")
+    end
+    if base_ring(ran) isa DifferentialPolyRing
+      print(terse(io), "Ranking of differential polynomial ring")
+    end
   end
 end
 
