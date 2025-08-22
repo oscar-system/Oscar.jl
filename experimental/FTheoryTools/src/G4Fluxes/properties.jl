@@ -27,7 +27,7 @@ If all these integrals evaluate to integers, this method returns `true`; otherwi
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate

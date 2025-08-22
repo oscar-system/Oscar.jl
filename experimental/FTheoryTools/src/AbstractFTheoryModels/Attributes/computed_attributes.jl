@@ -41,11 +41,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
 
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  coho_R = cohomology_ring(ambient_space(m), completeness_check = check)
   if !has_attribute(m, :chern_classes)
     cs = Dict{Int64, CohomologyClass}()
-    cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), completeness_check = check)), quick = true)
+    cs[0] = cohomology_class(ambient_space(m), one(coho_R), completeness_check = check)
     diff = degree(leading_term(hypersurface_equation(m))) - sum(coordinate_ring(ambient_space(m)).d)
-    cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
+    cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), completeness_check = check)
     set_attribute!(m, :chern_classes, cs)
     if k == 0
       return cs[0]
@@ -66,12 +67,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   end
 
   # Chern class is not known, so compute and return it...
-  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m)))), quick = true)
+  tdc = toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m))))
+  cy = cohomology_class(tdc, completeness_check = check)
   ck_ambient = chern_class(ambient_space(m), k, completeness_check = check)
   ckm1 = chern_class(m, k-1, check = check)
   new_poly = lift(polynomial(ck_ambient)) - lift(polynomial(cy)) * lift(polynomial(ckm1))
-  coho_R = cohomology_ring(ambient_space(m), completeness_check = check)
-  cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), quick = true)
+  cs[k] = cohomology_class(ambient_space(m), coho_R(new_poly), completeness_check = check)
   set_attribute!(m, :chern_classes, cs)
   return cs[k]
 end

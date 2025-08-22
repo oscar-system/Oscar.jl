@@ -36,7 +36,7 @@ Return the ambient space cohomology class which defines the ``G_4``-flux candida
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -96,9 +96,10 @@ julia> d3_tadpole_constraint(g4, check = false)
       return evaluate(d3_tadpole_constraint(gfs), values_to_evaluate_at)
     end
   end
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))), quick = check))
+  tcc = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))), completeness_check = check)
+  cy = polynomial(tcc)
   poly_of_offset_class = polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy
-  class_of_offset = cohomology_class(ambient_space(m), poly_of_offset_class, quick = check)
+  class_of_offset = cohomology_class(ambient_space(m), poly_of_offset_class, completeness_check = check)
   offset = 1//2* QQ(integrate(class_of_offset, completeness_check = check))
   numb = QQ(euler_characteristic(m; check = check)//24) - offset
   set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
