@@ -752,7 +752,7 @@ julia> collect(cf)
 ```
 """
 function coefficients(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyCoeffs{T, typeof(a)}(a)
+  return ActionPolyCoeffs{typeof(a)}(a)
 end
 
 @doc raw"""
@@ -776,7 +776,7 @@ julia> collect(ef)
 ```
 """
 function exponents(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyExponentVectors{T, typeof(a)}(a)
+  return ActionPolyExponentVectors{typeof(a)}(a)
 end
 
 @doc raw"""
@@ -800,7 +800,7 @@ julia> collect(mf)
 ```
 """
 function monomials(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyMonomials{T, typeof(a)}(a)
+  return ActionPolyMonomials{typeof(a)}(a)
 end
 
 @doc raw"""
@@ -824,7 +824,7 @@ julia> collect(tf)
 ```
 """
 function terms(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyTerms{T, typeof(a)}(a)
+  return ActionPolyTerms{typeof(a)}(a)
 end
 
 __iter_helper(f, poly, state) = state < length(poly) ? (f(poly, state + 1), state + 1) : nothing
@@ -838,15 +838,15 @@ function Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, Actio
    return length(x.poly)
 end
 
-function Base.eltype(::Type{ActionPolyCoeffs{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
-   return T
+function Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT <: ActionPolyRingElem}
+  return elem_type(base_ring_type(PolyT))
 end
 
-function Base.eltype(::Type{ActionPolyExponentVectors{T, PolyT}}) where {T, PolyT <: ActionPolyRingElem{T}}
+function Base.eltype(::Type{ActionPolyExponentVectors{PolyT}}) where {PolyT <: ActionPolyRingElem} 
    return Vector{Int}
 end
 
-function Base.eltype(::Type{<:Union{ActionPolyMonomials{T,PolyT}, ActionPolyTerms{T,PolyT}}}) where {T, PolyT<:ActionPolyRingElem{T}}
+function Base.eltype(::Type{<:Union{ActionPolyMonomials{PolyT}, ActionPolyTerms{PolyT}}}) where {PolyT <: ActionPolyRingElem}
     PolyT
 end
 
@@ -919,8 +919,8 @@ __is_perm_up_to_date(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingEle
 
 # Ring getters
 __upr(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.upoly_ring
-__jtv(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_var
-__vtj(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.var_to_jet
+__jtv(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_var::Dict{Tuple{Int, Vector{Int}}, elem_type(dpr)}
+__vtj(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.var_to_jet::Dict{elem_type(dpr), Tuple{Int, Vector{Int}}}
 __jtu_idx(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_upoly_idx
 __are_perms_up_to_date(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.are_perms_up_to_date
 
@@ -1011,6 +1011,8 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jet
 #  Construction / Getter 
 #
 ###############################################################################
+
+#ranking::Any #Alyways of type DifferenceRanking{T}
 
 @doc raw"""
     ranking(dpr::DifferencePolyRing) -> ActionPolyRingRanking

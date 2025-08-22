@@ -8,14 +8,6 @@ abstract type ActionPolyRing{T} <: Ring end
 
 abstract type ActionPolyRingElem{T} <: RingElem end
 
-# To be implemented by subtypes: 
-# Mandatory: 
-#   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
-#   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
-#   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
-#   coefficient_ring(L::MyActionPolyRing{T}) -> parent_type(C) 
-#   vector_space_dim(L::MyActionPolyRing) -> Int
-
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.Generic.UniversalPolyRing{T}
@@ -25,7 +17,7 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
   jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
-  ranking::Any #Alyways of type DifferenceRanking{T}
+  ranking::Any #Alyways of type ActionPolyRanking{T, DifferencePolyRing{T}}
   permutation::Vector{Int}
 
   function DifferencePolyRing{T}(R::Ring, n_elementary_symbols::Int, ndiffs::Int) where {T}
@@ -78,7 +70,7 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}
   jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
-  ranking::Any #Alyways of type DifferentialRanking{T}
+  ranking::Any #Alyways of type ActionPolyRanking{T, DifferentialPolyRing{T}}
   permutation::Vector{Int}
 
   function DifferentialPolyRing{T}(R::Ring, n_elementary_symbols::Int, ndiffs::Int) where {T}
@@ -128,19 +120,19 @@ end
 #
 ###############################################################################
 
-struct ActionPolyCoeffs{T, PolyT<:ActionPolyRingElem{T}}
+struct ActionPolyCoeffs{PolyT<:ActionPolyRingElem}
    poly::PolyT
 end
 
-struct ActionPolyExponentVectors{T, PolyT<:ActionPolyRingElem{T}}
+struct ActionPolyExponentVectors{PolyT<:ActionPolyRingElem}
    poly::PolyT
 end
 
-struct ActionPolyTerms{T, PolyT<:ActionPolyRingElem{T}}
+struct ActionPolyTerms{PolyT<:ActionPolyRingElem}
    poly::PolyT
 end
 
-struct ActionPolyMonomials{T, PolyT<:ActionPolyRingElem{T}}
+struct ActionPolyMonomials{PolyT<:ActionPolyRingElem}
    poly::PolyT
 end
 
