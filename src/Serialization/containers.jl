@@ -114,7 +114,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
   load_node(s) do v
     if serialize_with_id(params)
       loaded_v::Vector{params} = load_array_node(s) do _
-        load_ref(s)
+        load_object(s, UUID)
       end
     else
       isempty(s.obj) && return params[]
@@ -131,7 +131,7 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
   isempty(s.obj) && return T[]
   v = load_array_node(s) do _
     if serialize_with_id(T)
-      load_ref(s)
+      load_object(s, UUID)
     else
       load_object(s, T, params)
     end
@@ -278,7 +278,7 @@ function load_object(s::DeserializerState, T::Type{<:Tuple}, params::Tuple)
   entries = load_array_node(s) do (i, entry)
     S = fieldtype(T, i)
     if serialize_with_id(S)
-      return load_ref(s)
+      return load_object(s, UUID)
     else
       return load_object(s, S, params[i])
     end

@@ -122,20 +122,7 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)
-  if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      id = s.obj
-      obj = s.obj
-      if isnothing(s.refs)
-        return typeof(global_serializer_state.id_to_obj[UUID(id)])
-      end
-      s.obj = s.refs[Symbol(id)]
-      T = decode_type(s)
-      s.obj = obj
-      return T
-    end
-    return decode_type(s.obj)
-  end
+  s.obj isa String && return decode_type(s.obj)
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
@@ -361,10 +348,7 @@ end
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do obj
     T = decode_type(s)
-    if obj isa String
-      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-      return T
-    end
+    obj isa String && return T
     return load_type_params(s, T)[2]
   end
 end
@@ -392,11 +376,8 @@ function load_type_params(s::DeserializerState, T::Type)
             if obj isa JSON3.Array || obj isa Vector
               return load_type_array_params(s)
             end
-            
             U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
-              return U
-            end
+            obj isa String && return U
             return load_type_params(s, U)[2]
           end
         end
@@ -429,7 +410,6 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   obj = load_node(s, :data) do _

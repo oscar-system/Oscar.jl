@@ -208,7 +208,7 @@ end
 
 # general loading of a reference
 
-function load_ref(id::UUID)
+function load_ref(s::DeserializerState, id::UUID)
   if haskey(global_serializer_state.id_to_obj, id)
     loaded_ref = global_serializer_state.id_to_obj[id]
   else
@@ -219,12 +219,6 @@ function load_ref(id::UUID)
   end
   return loaded_ref
 end
-
-################################################################################
-# UUID
-@register_serialization_type UUID "UUID"
-save_object(s::SerializerState, x::UUID) = save_data_basic(s, x)
-load_object(s::DeserializerState, ::Type{UUID}) = load_ref(UUID(s.obj))
 
 ################################################################################
 

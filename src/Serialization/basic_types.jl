@@ -1,3 +1,11 @@
+################################################################################
+# UUID
+@register_serialization_type UUID "UUID"
+save_object(s::SerializerState, x::UUID) = save_data_basic(s, x)
+load_object(s::DeserializerState, ::Type{UUID}) = load_ref(s, UUID(s.obj))
+
+################################################################################
+
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
   save_data_basic(s, x)
 end
