@@ -1,10 +1,12 @@
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
+  root::Int
 end
 
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
+root(PT::PhylogeneticTree) = PT.root
 
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
@@ -39,7 +41,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   # load graph properties
   pm_ptree.ADJACENCY
 
-  return PhylogeneticTree{T}(pm_ptree)
+  return PhylogeneticTree{T}(pm_ptree, 1)
 end
 
 @doc raw"""
@@ -76,7 +78,7 @@ function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
   pm_ptree = Polymake.graph.PhylogeneticTree{Float64}(COPHENETIC_MATRIX = M, TAXA = taxa)
-  return PhylogeneticTree{Float64}(pm_ptree)
+  return PhylogeneticTree{Float64}(pm_ptree, 1)
 end
 
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
@@ -85,7 +87,7 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   pm_ptree = Polymake.graph.PhylogeneticTree{Rational}(
     COPHENETIC_MATRIX = M, TAXA = taxa
   )
-  return PhylogeneticTree{QQFieldElem}(pm_ptree)
+  return PhylogeneticTree{QQFieldElem}(pm_ptree, 1)
 end
 
 @doc raw"""
@@ -170,15 +172,15 @@ Directed graph with 7 nodes and the following edges:
 (1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
-function adjacency_tree(ptree::PhylogeneticTree)
+function adjacency_tree(ptree::PhylogeneticTree;)
   udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
   n = nv(udir_tree)
 
   dir_tree = Graph{Directed}(n)
 
-  queue = [1]
+  queue = [root(ptree)]
   visited = fill(false, n)
-  visited[1] = true
+  visited[root(ptree)] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
