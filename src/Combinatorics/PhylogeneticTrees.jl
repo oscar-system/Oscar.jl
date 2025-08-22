@@ -106,7 +106,7 @@ Directed graph with 7 nodes and the following edges:
 (1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
-function adjacency_tree(ptree::PhylogeneticTree;)
+function adjacency_tree(ptree::PhylogeneticTree)
   udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
   n = nv(udir_tree)
 
