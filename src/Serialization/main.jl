@@ -243,7 +243,9 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   if serialize_with_id(x)
     # key should already be set before function call
     ref = save_as_ref(s, x)
-    save_object(s, ref)
+    save_data_dict(s) do
+      save_typed_object(s, ref)
+    end
   else
     save_data_dict(s) do
       save_typed_object(s, x)
@@ -327,7 +329,9 @@ function save_type_params(s::SerializerState,
             save_data_array(s, Symbol(param.first)) do
               for entry in param.second
                 if serialize_with_id(entry)
-                  save_object(s, save_as_ref(s, entry))
+                  save_data_dict(s) do 
+                    save_typed_object(s, save_as_ref(s, entry))
+                  end
                 else
                   save_data_dict(s) do
                     save_typed_object(s, entry)
@@ -365,9 +369,6 @@ end
 
 function load_type_params(s::DeserializerState, T::Type)
   if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      return T, load_ref(s)
-    end
     return T, nothing
   end
   if haskey(s, :params)

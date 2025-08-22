@@ -161,12 +161,12 @@ function save_as_ref(s::SerializerState, obj::T) where T
     if !(ref in s.refs)
       push!(s.refs, ref)
     end
-    return string(ref)
+    return ref
   end
   ref = global_serializer_state.obj_to_id[obj] = uuid4()
   global_serializer_state.id_to_obj[ref] = obj
   push!(s.refs, ref)
-  return string(ref)
+  return ref
 end
 
 function handle_refs(s::SerializerState)
@@ -208,18 +208,26 @@ end
 
 # general loading of a reference
 
-function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+function load_ref(id::UUID)
+  if haskey(global_serializer_state.id_to_obj, id)
+    loaded_ref = global_serializer_state.id_to_obj[id]
   else
     s.obj = s.refs[Symbol(id)]
     loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
+    global_serializer_state.id_to_obj[id] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = id
   end
   return loaded_ref
 end
+
+################################################################################
+# UUID
+@register_serialization_type UUID "UUID"
+save_object(s::SerializerState, x::UUID) = save_data_basic(s, x)
+load_object(s::DeserializerState, ::Type{UUID}) = load_ref(UUID(s.obj))
+
+################################################################################
+
 
 function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
@@ -235,10 +243,6 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
-    return load_ref(s)
-  end
-
   !isnothing(key) && set_key(s, key)
   obj = s.obj
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]

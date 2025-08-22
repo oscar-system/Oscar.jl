@@ -2,6 +2,7 @@ function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, 
   save_data_basic(s, x)
 end
 
+
 ################################################################################
 # Bool
 @register_serialization_type Bool 
