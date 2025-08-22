@@ -1012,21 +1012,12 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jet
 #
 ###############################################################################
 
-#ranking::Any #Alyways of type DifferenceRanking{T}
-
 @doc raw"""
-    ranking(dpr::DifferencePolyRing) -> ActionPolyRingRanking
+    ranking(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) -> ActionPolyRingRanking
 
-Return the ranking of the jet variables of the difference polynomial ring `dpr`.
+Return the ranking of the jet variables of the difference or differential polynomial ring `dpr`.
 """
-ranking(dpr::DifferencePolyRing) = dpr.ranking
-  
-@doc raw"""
-    ranking(dpr::DifferentialPolyRing) -> ActionPolyRingRanking
-
-Return the ranking of the jet variables of the differential polynomial ring `dpr`
-"""
-ranking(dpr::DifferentialPolyRing) = dpr.ranking
+ranking(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.ranking::ActionPolyRingRanking(typeof(dpr))
 
 @doc raw"""
     set_ranking!(apr::ActionPolyRing;
