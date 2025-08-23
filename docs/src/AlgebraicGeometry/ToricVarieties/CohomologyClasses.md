@@ -58,6 +58,7 @@ Equality of cohomology classes can be tested via `==`.
 
 ```@docs
 toric_variety(c::CohomologyClass)
+simplify!(c::CohomologyClass)
 coefficients(c::CohomologyClass)
 exponents(c::CohomologyClass)
 polynomial(c::CohomologyClass)

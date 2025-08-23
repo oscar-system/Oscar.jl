@@ -58,7 +58,7 @@ julia> d = toric_divisor(P2, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3
 ```
 """
 function cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
@@ -89,7 +89,7 @@ julia> tdc = toric_divisor_class(P2, [2])
 Divisor class on a normal toric variety
 
 julia> cohomology_class(tdc)
-Cohomology class on a normal toric variety given by 2*x3
+Cohomology class on a normal toric variety given by 2*x1
 ```
 """
 cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true) = cohomology_class(toric_divisor(c), completeness_check = completeness_check)
@@ -114,7 +114,7 @@ julia> l = toric_line_bundle(P2, [2])
 Toric line bundle on a normal toric variety
 
 julia> polynomial(cohomology_class(l))
-2*x3
+2*x1
 ```
 """
 cohomology_class(l::ToricLineBundle; completeness_check::Bool = true) = cohomology_class(toric_divisor(l), completeness_check = completeness_check)
