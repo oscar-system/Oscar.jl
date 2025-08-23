@@ -104,6 +104,7 @@ export Hyperplane
 export IdealSheaf
 export IncidenceMatrix
 export IndexedSet
+export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
 export LazyPoly

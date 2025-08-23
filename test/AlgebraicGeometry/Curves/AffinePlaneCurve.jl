@@ -55,7 +55,7 @@
       Q = F([0, -2])
 
       @test intersection_multiplicity(F, G, Q) == 1
-      @test_throws AbstractAlgebra.InfiniteDimensionError(check_available = true) intersection_multiplicity(F, G, P)
+      @test_throws InfiniteDimensionError intersection_multiplicity(F, G, P)
   end
 
   @testset "singularity functions" begin
