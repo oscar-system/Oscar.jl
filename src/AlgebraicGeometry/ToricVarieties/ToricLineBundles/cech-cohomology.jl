@@ -1,9 +1,16 @@
 #The following function is called, when algorithm="chambers" is specified for all_cohomologies
 function _all_cohomologies_via_cech(tl::ToricLineBundle)
-  our_maps = transpose.(matrix.(_toric_cech_complex(tl)))
+  our_points, our_maps = _toric_cech_complex(tl)
+  our_maps = transpose.(matrix.(our_maps))
   X = toric_variety(tl)
-  alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
-  alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
+
+  #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
+  if dim(X) > 2
+    alternating_sum = abs(sum(sum(length.(values(our_points[k]))) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0)) 
+  else
+    alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
+    alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
+  end
   @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
   rks_maps = push!(rank.(our_maps), alternating_sum)
   return ZZRingElem.([nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]])
@@ -41,7 +48,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Now iterate over the Cech complex
-  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, dim(X) + 1)
+  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, n_maximal_cones(X) + 1)
   cech_complex_maps = Vector{Any}(undef, dim(X))
   comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
   d_k = 0
@@ -97,7 +104,25 @@ function _toric_cech_complex(tl::ToricLineBundle)
     end
     cech_complex_points[k+1] = polyhedron_dict
     previous_number_of_generators = sum(length.(values(polyhedron_dict)))
-
   end
-  return cech_complex_maps
+
+  #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
+  if dim(X) > 2
+    for k in dim(X)+1:n_maximal_cones(X)
+
+      # Find the contributing lattice points
+      polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
+      combs = collect(combinations(n_maximal_cones(X), k+1))
+      for i in 1:length(combs)
+        list_of_lattice_points = PointVector{ZZRingElem}[]
+        generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
+        for (signs, pts) in sign_of_chamber
+          all(x -> x >= 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
+        end
+        polyhedron_dict[combs[i]] = list_of_lattice_points
+      end
+      cech_complex_points[k+1] = polyhedron_dict
+    end
+  end
+  return cech_complex_points, cech_complex_maps
 end
