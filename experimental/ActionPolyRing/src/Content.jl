@@ -92,7 +92,7 @@ julia> R, variablesR = differential_polynomial_ring(QQ, 3, 4)
 
 julia> R
 Differential polynomial ring in 3 elementary symbols u1, u2, u3
-with 4 commuting endomorphisms
+with 4 commuting derivations
   over rational field
 
 julia> variablesR
@@ -106,7 +106,7 @@ julia> S, variablesS = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
 
 julia> S
 Differential polynomial ring in 3 elementary symbols a, b, c
-with 4 commuting endomorphisms
+with 4 commuting derivations
   over rational field
 
 julia> variablesS
