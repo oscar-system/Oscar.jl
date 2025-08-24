@@ -130,32 +130,27 @@ end
 
 ##### Elements #####
 
+### Union ###
+(dpr::Union{DifferencePolyRing, DifferentialPolyRing})() = elem_type(dpr)(dpr)
+
+(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(dpr)(dpr, upre)
+
+(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(mpre::MPolyRingElem) = elem_type(dpr)(dpr, mpre)
+
+(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(a::T) where {T<:RingElement} = dpr(__upr(dpr)(a))
+
 ### Difference ###
-(dpr::DifferencePolyRing)() = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr)
-
-(dpr::DifferencePolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr, upre)
-
-(dpr::DifferencePolyRing)(mpre::MPolyRingElem) = DifferencePolyRingElem{elem_type(base_ring(dpr))}(dpr, mpre)
-
 function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
   @req parent(a) === dpr "Wrong parent"
   return a
 end
 
 ### Differential ###
-(dpr::DifferentialPolyRing)() = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr)
-
-(dpr::DifferentialPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr, upre)
-
-(dpr::DifferentialPolyRing)(mpre::MPolyRingElem) = DifferentialPolyRingElem{elem_type(base_ring(dpr))}(dpr, mpre)
-
 function (dpr::DifferentialPolyRing{T})(a::DifferentialPolyRingElem{T}) where {T}
   @req parent(a) === dpr "Wrong parent"
   return a
 end
 
-### generic ###
-(apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(__upr(apr)(a))
 
 ###############################################################################
 #
@@ -163,35 +158,26 @@ end
 #
 ###############################################################################
 
+### Union ###
+function Base.deepcopy_internal(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, dict::IdDict)
+    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
+    pp = deepcopy_internal(data(dpre), dict)
+    return typeof(dpre)(parent(dpre), pp)
+end
+
+zero(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr()
+
+one(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr(one(__upr(dpr)))
+
 ### Difference ###
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
 
 parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
 
-function Base.deepcopy_internal(dpre::DifferencePolyRingElem{T}, dict::IdDict) where {T}
-    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
-    pp = deepcopy_internal(data(dpre), dict)
-    return DifferencePolyRingElem{T}(parent(dpre), pp)
-end
-
-zero(dpr::DifferencePolyRing) = dpr()
-
-one(dpr::DifferencePolyRing) = dpr(one(__upr(dpr)))
-
 ### Differential ###
 elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{T}
 
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
-
-function Base.deepcopy_internal(dpre::DifferentialPolyRingElem{T}, dict::IdDict) where {T}
-    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
-    pp = deepcopy_internal(data(dpre), dict)
-    return DifferentialPolyRingElem{T}(parent(dpre), pp)
-end
-
-zero(dpr::DifferentialPolyRing) = dpr()
-
-one(dpr::DifferentialPolyRing) = dpr(one(__upr(dpr)))
 
 ### generic ###
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
@@ -231,28 +217,19 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 #
 ###############################################################################
 
-##### Algebras #####
+##### Rings #####
 
-### Difference ###
-ndiffs(dpr::DifferencePolyRing) = dpr.ndiffs
+base_ring(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = base_ring(__upr(dpr))
 
-elementary_symbols(dpr::DifferencePolyRing) = dpr.elementary_symbols
+elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
 
-### Differential ###
-ndiffs(dpr::DifferentialPolyRing) = dpr.ndiffs
+n_elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = length(elementary_symbols(dpr))
 
-elementary_symbols(dpr::DifferentialPolyRing) = dpr.elementary_symbols
+ndiffs(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.ndiffs
 
 ##### Elements #####
 
-parent(dpre::DifferencePolyRingElem) = dpre.parent
-
-parent(dpre::DifferentialPolyRingElem) = dpre.parent
-
-##### Related stuff #####
-base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
-
-n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
+parent(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.parent
 
 ###############################################################################
 #
