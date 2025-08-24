@@ -604,6 +604,7 @@ function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
+edges(g::Graph{Directed}, Directed) = edges(g)
 edges(g::MixedGraph, ::Type{Directed}) = edges(_directed_component(g))
 edges(g::MixedGraph, ::Type{Undirected}) = edges(_undirected_component(g))
 
