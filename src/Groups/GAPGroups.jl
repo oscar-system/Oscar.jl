@@ -1499,7 +1499,7 @@ julia> (length(h), order(representative(h[1])))
 (1, 6)
 
 julia> g = GL(3, 2)
-GL(3,2)
+GL(3, 2)
 
 julia> h = hall_subgroup_classes(g, [2, 3]);
 

@@ -727,7 +727,7 @@ Test the case where a group has a custom name where the first character
 should not be turned into lowercase
 ```jldoctest group_characters.test
 julia> character_table(SL(2,2))
-Character table of SL(2,2)
+Character table of SL(2, 2)
 
   2  1  1  .
   3  1  .  1

@@ -1710,7 +1710,7 @@ and explicit 2-cochains.
 
 ```jldoctest
 julia> G = SL(2,5)
-SL(2,5)
+SL(2, 5)
 
 julia> T = character_table(G);
 

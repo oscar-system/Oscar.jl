@@ -66,13 +66,13 @@ one can start with [a classical matrix group](@ref "Classical groups").
 
 ```jldoctest matgroupxpl
 julia> g = GL(3, GF(2))
-GL(3,2)
+GL(3, 2)
 
 julia> F = GF(4)
 Finite field of degree 2 and characteristic 2
 
 julia> G = GL(3, F)
-GL(3,4)
+GL(3, 4)
 
 julia> is_subset(g, G)
 false
