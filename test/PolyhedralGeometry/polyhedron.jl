@@ -205,6 +205,8 @@
 
     @test dim(full) == ambient_dim(full)
     @test lineality_dim(full) == 3
+    @test length(findall(f-> [1,0] in f, facets(Hyperplane, Q0))) == 2
+    @test length(findall(f-> [1,0] in f, facets(Halfspace, Q0))) == 3
   end
 
   @testset "volume" begin
@@ -766,6 +768,11 @@
       @test vdesc == hdesc
       @test recession_cone(PC) == C
     end
+    pts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
+    inc = incidence_matrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
+    SOP = subdivision_of_points(pts, inc)
+    SC = secondary_cone(SOP)
+    @test polyhedron(SC) isa Polyhedron
   end
 end
 

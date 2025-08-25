@@ -141,3 +141,11 @@ end
   U = PrincipalOpenSubset(X, f)
   @test U isa AbsAffineScheme
 end
+
+@testset "saturation of realization space" begin
+    s = "0******0******0**********0********0*******0*********************0*****************0*************0***********0***************************0*******************0*****************************0************0**0************0****"
+    MD = matroid_from_revlex_basis_encoding(s,3,12)
+    RS = realization_space(MD, char = 0, saturate = true)
+    @test is_reduced(RS) == false
+end
+

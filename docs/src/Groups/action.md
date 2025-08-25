@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -42,6 +43,7 @@ on_indeterminates
 on_lines
 on_echelon_form_mats
 on_subgroups
+induced_action(::Function, ::GAPGroupHomomorphism)
 ```
 
 
@@ -52,21 +54,57 @@ induced by a group (that need not be a permutation group) on a given set.
 A G-set provides an explicit bijection between the elements of the set and
 the corresponding set of positive integers on which the induced permutation
 group acts,
-see [`action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup`](@ref).
-Note that the explicit elements of a G-set `Omega` can be obtained using
-`collect(Omega)`.
+see [`action_homomorphism(Omega::GSet)`](@ref).
+
+The explicit elements of a G-set `Omega` can be obtained using
+`collect(Omega)`,
+the acting group is [`acting_group(Omega::GSet)`](@ref),
+and the function that defines the action is
+[`action_function(Omega::GSet)`](@ref).
+
+In general, the equality of G-sets cannot be checked with `==`,
+but `==` methods are available for special types of G-sets,
+for example conjugacy classes of group elements.
+
+For checking whether two G-sets are equal as sets,
+one can compare the `Set`s of their `collect` values.
 
 ```@docs
 gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
+natural_gset
 permutation
-acting_group(Omega::GSetByElements)
-action_function(Omega::GSetByElements)
-action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+acting_group(Omega::GSet)
+action_function(Omega::GSet)
+action_homomorphism(Omega::GSet)
 is_conjugate(Omega::GSet, omega1, omega2)
 is_conjugate_with_data(Omega::GSet, omega1, omega2)
-orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
+orbit(Omega::GSet, omega)
 orbit(G::PermGroup, omega)
-orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+orbits(Omega::GSet)
+is_transitive(Omega::GSet)
+transitivity(Omega::GSet)
+rank_action(Omega::GSet)
+is_primitive(Omega::GSet)
+is_regular(Omega::GSet)
+is_semiregular(Omega::GSet)
+induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+induced_action_function(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+```
+
+## Block systems of a G-set
+
+If we have a G-set $\Omega$, a *block system* of $\Omega$ is a partition that is invariant under the action of the associated group.
+The group action on $\Omega$ induces a natural action on such a partition.
+
+When calling these methods with a `GSet` as the argument, we require that the group action is transitive.
+The blocks are returned as Julia `Set` objects.
+Note that this is in contrast to the return type when calling the methods with a `PermGroup` as the argument, in which case the blocks are sorted vectors of integers.
+
+```@docs
+blocks(Omega::GSet)
+maximal_blocks(Omega::GSet)
+minimal_block_reps(Omega::GSet)
+all_blocks(Omega::GSet)
 ```
 
 
@@ -75,4 +113,11 @@ orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 ```@docs
 stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
 stabilizer(Omega::GSet)
+```
+
+## Technicalities
+
+```@docs
+GSetByElements
+GSetBySubgroupTransversal
 ```

@@ -1,11 +1,10 @@
-julia> Oscar.randseed!(3371100);
+julia> Oscar.randseed!(VERSION > v"1.13.0-" ? 778754 : 3371100);
 
 julia> Qx, x = QQ["x"];
 
 julia> K, a = number_field(x^4 + 4*x^2 + 2, "a");
 
-julia> b = rand(K, -10:10) # random element with coefficients
-                           # between -10 and 10
+julia> b = rand(K, -10:10) # random element with coefficients between -10 and 10
 5*a^3 - 7*a^2 + 8*a - 8
 
 julia> A, mA = automorphism_group(K);

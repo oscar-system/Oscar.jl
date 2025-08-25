@@ -75,7 +75,7 @@ end
 @doc raw"""
     is_finalized(v::NormalToricVarietyType)
 
-Checks if the Cox ring, the coordinate ring of the torus,
+Check if the Cox ring, the coordinate ring of the torus,
 the cohomology_ring, the Chow ring, the Stanley-Reisner ideal,
 the irrelevant ideal, the ideal of linear relations
 or the toric ideal has been cached. If any of these has been
@@ -217,18 +217,16 @@ julia> coordinate_names(antv)
 end
 
 
-function _cox_ring_weights(v::NormalToricVarietyType)
-    return get_attribute(v, :cox_ring_weights) do
-        f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-        return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
-    end::Vector{FinGenAbGroupElem}
+@attr Vector{FinGenAbGroupElem} function _cox_ring_weights(v::NormalToricVarietyType)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
 end
 
 
 @doc raw"""
     cox_ring(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`, in this case by adding
+Compute the Cox ring of the normal toric variety `v`, in this case by adding
 the Cox grading to the given ring `R`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
@@ -255,7 +253,7 @@ end
 @doc raw"""
     cox_ring(v::NormalToricVarietyType)
 
-Computes the Cox ring of the normal toric variety `v`.
+Compute the Cox ring of the normal toric variety `v`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 For uniformity with schemes, we also support the function
 `coordinate_ring` to refer to the Cox ring.
@@ -539,7 +537,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`
+Compute the coordinate ring of the torus of the normal toric variety `v`
 in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
@@ -553,7 +551,7 @@ end
 @doc raw"""
     coordinate_ring_of_torus(v::NormalToricVarietyType)
 
-Computes the coordinate ring of the torus of the normal toric variety `v`.
+Compute the coordinate ring of the torus of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -582,7 +580,7 @@ end
 @doc raw"""
     character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -602,7 +600,7 @@ character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}
 @doc raw"""
     character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
-Computes the rational function corresponding to a character of the normal toric variety `v`.
+Compute the rational function corresponding to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -650,7 +648,23 @@ julia> character_lattice(p2)
 Z^2
 ```
 """
-@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
+
+
+@doc raw"""
+    lattice_of_one_parameter_subgroups(v::NormalToricVarietyType)
+
+Return the lattice of one parameter subgroups of a normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> lattice_of_one_parameter_subgroups(p2)
+Z^2
+```
+"""
+@attr FinGenAbGroup lattice_of_one_parameter_subgroups(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
 
 
 @doc raw"""
@@ -666,7 +680,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
+@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
 
 
 @doc raw"""
@@ -686,7 +700,7 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
+    return hom(free_abelian_group(ambient_dim(v)), free_abelian_group(n_rays(v)), mat)
 end
 
 
@@ -722,17 +736,28 @@ end
     class_group(v::NormalToricVarietyType)
 
 Return the class group of the normal toric variety `v`.
+"""
+class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
+
+
+@doc raw"""
+    class_group_with_map(v::NormalToricVarietyType)
+
+Return the class group of the normal toric variety `v` together with the map from the torus
+invariant Weil divisor group into the class group.
 
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> class_group(p2)
-Z
+julia> class_group_with_map(p2)
+(Z, Map: Z^3 -> Z)
 ```
 """
-@attr FinGenAbGroup class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
-
+function class_group_with_map(v::NormalToricVarietyType)
+  mapping = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return codomain(mapping), mapping
+end
 
 @doc raw"""
     map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -755,7 +780,7 @@ Map
     # we cannot call class_group unless the attribute exists
     # but we need to make sure to have the correct codomain if it does exist
     if has_attribute(v, :class_group)
-      cg = class_group(v)
+      cg = get_attribute(v, :class_group)
       return map1*map2*hom(codomain(map2), cg, gens(cg))
     else
       return map1*map2
@@ -918,19 +943,29 @@ end
     picard_group(v::NormalToricVarietyType)
 
 Return the Picard group of an abstract normal toric variety `v`.
+"""
+picard_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
+
+
+@doc raw"""
+    picard_group_with_map(v::NormalToricVarietyType)
+
+Return the Picard group of the normal toric variety `v` together with the map from the torus
+invariant Cartier divisor group into the Picard group.
 
 # Examples
 ```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> picard_group(p2)
-Z
+julia> picard_group_with_map(p2)
+(Z, Map: Z^3 -> Z)
 ```
 """
-@attr FinGenAbGroup function picard_group(v::NormalToricVarietyType)
-    return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
+function picard_group_with_map(v::NormalToricVarietyType)
+  mapping = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
+  return codomain(mapping), mapping
 end
+
 
 @doc raw"""
     map_from_picard_group_to_class_group(v::NormalToricVarietyType)
@@ -951,7 +986,7 @@ Map
 @attr FinGenAbGroupHom function map_from_picard_group_to_class_group(v::NormalToricVarietyType)
     f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
     g = snf(domain(f))[2] * f
-    return hom(picard_group(v), class_group(v), matrix(g))
+    return hom(picard_group_with_map(v)[1], class_group_with_map(v)[1], matrix(g))
 end
 
 

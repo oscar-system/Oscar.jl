@@ -26,7 +26,7 @@ end
     basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
     basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra of type `type_rank`.
 
@@ -125,8 +125,9 @@ function basis_lie_highest_weight(
   type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -137,8 +138,9 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -149,14 +151,15 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
     basis_lie_highest_weight_lusztig(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -200,14 +203,15 @@ function basis_lie_highest_weight_lusztig(
 )
   monomial_ordering = :wdegrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_lusztig(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
     basis_lie_highest_weight_string(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -270,14 +274,15 @@ function basis_lie_highest_weight_string(
 )
   monomial_ordering = :neglex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
     basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -309,16 +314,17 @@ over Lie algebra of type A3
 function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
     basis_lie_highest_weight_nz(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
 
-Computes a monomial basis for the highest weight module with highest weight
+Compute a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra $L$ of type `type_rank`.
 
@@ -381,8 +387,9 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -409,7 +416,7 @@ If this is a weighted ordering, the height of the corresponding root is used as 
 
 # Examples
 ```jldoctest
-julia> bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
+julia> mon_bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
  (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, [1, x1, x3, x1*x3, x1^2*x3, x3*x4, x1*x3*x4])
  (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, [x4, x1*x4, x4^2, x3*x4^2, x1*x3*x4^2])
@@ -418,7 +425,7 @@ julia> bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering 
  (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, [x1^2*x4^6, x4^7, x1*x4^7, x2*x4^3*x5, x1*x2*x4^3*x5, x2*x3*x4^3*x5, x1*x2*x3*x4^3*x5, x1^2*x2*x3*x4^3*x5, x2*x3^2*x4^3*x5, x1*x2*x3^2*x4^3*x5, x1^2*x2*x3^2*x4^3*x5, x2*x4^4*x5])
  (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, [x4^9, x1*x3*x4^4*x5, x2*x4^5*x5, x3*x4^5*x5, x3^2*x4^5*x5, x2*x3^2*x4^5*x5, x1*x2*x3^2*x4^5*x5, x3^4*x4*x5^2])
 
-julia> [length(basis[2]) for basis in bases]
+julia> [length(mon_basis[2]) for mon_basis in mon_bases]
 6-element Vector{Int64}:
   7
   5
@@ -427,7 +434,7 @@ julia> [length(basis[2]) for basis in bases]
  12
   8
 
-julia> bases[end][1]
+julia> mon_bases[end][1]
 Monomial basis of a highest weight module
   of highest weight [6, 0]
   of dimension 714
@@ -457,9 +464,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -472,9 +480,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -487,9 +496,10 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end
 
@@ -512,7 +522,7 @@ The monomial ordering is fixed to `degrevlex`.
 
 # Examples
 ```jldoctest
-julia> bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
+julia> mon_bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
  (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, [1, x6, x4, x3, x2, x1, x1*x6])
  (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, [])
@@ -521,7 +531,7 @@ julia> bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
  (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, [])
  (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, [])
 
-julia> [length(basis[2]) for basis in bases]
+julia> [length(mon_basis[2]) for mon_basis in mon_bases]
 6-element Vector{Int64}:
  7
  0
@@ -530,7 +540,7 @@ julia> [length(basis[2]) for basis in bases]
  0
  0
 
-julia> bases[end][1]
+julia> mon_bases[end][1]
 Monomial basis of a highest weight module
   of highest weight [6, 0]
   of dimension 714
@@ -552,10 +562,11 @@ function basis_coordinate_ring_kodaira_ffl(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
+  V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
-    L, highest_weight, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering
   )
 end

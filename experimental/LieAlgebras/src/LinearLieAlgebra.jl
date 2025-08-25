@@ -12,7 +12,7 @@ parent(x::LinearLieAlgebraElem) = x.parent
 
 coefficient_ring(L::LinearLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::LinearLieAlgebra) = L.dim
+vector_space_dim(L::LinearLieAlgebra) = L.dim
 
 @doc raw"""
     matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}
@@ -201,6 +201,17 @@ function set_root_system_and_chevalley_basis!(
 ) where {C<:FieldElem}
   L.root_system = R
   L.chevalley_basis = chev
+end
+
+###############################################################################
+#
+#   change_base_ring
+#
+###############################################################################
+
+function change_base_ring(R::Field, L::LinearLieAlgebra)
+  basis = map(b -> change_base_ring(R, b), matrix_repr_basis(L))
+  return lie_algebra(R, L.n, basis, symbols(L); check=false)
 end
 
 ###############################################################################

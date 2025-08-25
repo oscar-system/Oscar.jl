@@ -241,6 +241,18 @@ function default_ordering(F::FreeMod)
   return F.default_ordering::ModuleOrdering{typeof(F)}
 end
 
+function default_ordering(F::FreeMod{T}) where {T<:Union{ZZRingElem, FieldElem}}
+    if !isdefined(F, :default_ordering)
+        if iszero(F)
+            F.default_ordering = ModuleOrdering(F, Orderings.ModOrdering(Int[], :lex))
+        else
+            F.default_ordering = lex(gens(F))
+        end
+    end
+    return F.default_ordering::ModuleOrdering{typeof(F)}
+end
+
+
 ##############################
 #TODO: move to Singular.jl ?
 
@@ -379,7 +391,7 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, F.S) # the symbols of F
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
@@ -388,7 +400,7 @@ function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, F.S)
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
@@ -529,14 +541,14 @@ end
 ## spaces
 ##########################################################################
 @doc raw"""
-    vector_space_dimension(M::SubquoModule, d::Int)
+    vector_space_dim(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
 Then the command returns the dimension of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
-    vector_space_dimension(M::SubquoModule)
+    vector_space_dim(M::SubquoModule)
 
 If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
 
@@ -548,21 +560,21 @@ julia> F = free_module(R,2);
 
 julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
 
-julia> vector_space_dimension(M,1)
+julia> vector_space_dim(M,1)
 2
 
-julia> vector_space_dimension(M,2)
+julia> vector_space_dim(M,2)
 2
 
-julia> vector_space_dimension(M,3)
+julia> vector_space_dim(M,3)
 1
 
-julia> vector_space_dimension(M)
+julia> vector_space_dim(M)
 6
 
 ```
 """
-function vector_space_dimension(M::SubquoModule)
+function vector_space_dim(M::SubquoModule)
   
   R = base_ring(M)
   F = ambient_free_module(M)
@@ -577,18 +589,18 @@ function vector_space_dimension(M::SubquoModule)
   
   d = 0
   sum_dim = 0
-  tempdim = vector_space_dimension(M,0)
+  tempdim = vector_space_dim(M,0)
 
   while tempdim > 0
     sum_dim = sum_dim + tempdim
     d = d+1
-    tempdim = vector_space_dimension(M,d)
+    tempdim = vector_space_dim(M,d)
   end
  
   return sum_dim
 end
 
-function vector_space_dimension(M::SubquoModule,d::Int64)
+function vector_space_dim(M::SubquoModule,d::Int64)
   R = base_ring(M)
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
@@ -601,7 +613,7 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   return count(t->!(t[1]*t[2] in LM), Iterators.product(monomials_of_degree(R, d), gens(F)))
 end
   
-function vector_space_dimension(M::SubquoModule{T}
+function vector_space_dim(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
@@ -610,10 +622,10 @@ function vector_space_dimension(M::SubquoModule{T}
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)))
+  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
-function vector_space_dimension(M::SubquoModule{T},d::Int64
+function vector_space_dim(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
@@ -622,15 +634,15 @@ function vector_space_dimension(M::SubquoModule{T},d::Int64
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)),d)
+  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
-function vector_space_dimension(M::SubquoModule{T}
+function vector_space_dim(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
 
-function vector_space_dimension(M::SubquoModule{T},d::Int64
+function vector_space_dim(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end

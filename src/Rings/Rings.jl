@@ -1,4 +1,3 @@
-include("integer.jl")
 include("orderings.jl")
 include("mpoly.jl")
 include("mpoly_types.jl")
@@ -13,7 +12,9 @@ include("oscar_singular.jl")
 
 include("special_ideals.jl")
 
+
 include("MPolyMap/Types.jl")
+include("Laurent.jl")
 include("MPolyMap/MPolyAnyMap.jl")
 include("MPolyMap/MPolyRing.jl")
 include("MPolyMap/MPolyQuo.jl")
@@ -26,12 +27,12 @@ include("mpoly-localization_types.jl")
 include("mpoly-localizations.jl")
 include("mpolyquo-localizations.jl")
 include("MPolyMap/flattenings.jl")
+include("MPolyMap/flattening_specializations.jl")
 include("FinField.jl")
 include("NumberField.jl")
 include("FunctionField.jl")
 include("AbelianClosure.jl")
 include("AlgClosureFp.jl")
-include("Laurent.jl")
 include("binomial_ideals.jl")
 
 include("PBWAlgebra.jl")

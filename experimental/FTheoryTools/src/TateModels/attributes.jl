@@ -1,28 +1,15 @@
-###################################################################
-###################################################################
-# 1: Attributes that work the same tor toric and non-toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 1.1 Tate sections and Tate polynomial
-#####################################################
-
-
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
 Return the Tate section ``a_1``.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a1(t)
-a1
+julia> degree(tate_section_a1(t))
+Abelian group element [3]
 ```
 """
 tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
@@ -33,14 +20,13 @@ tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 
 Return the Tate section ``a_2``.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a2(t)
-w*a21
+julia> degree(tate_section_a2(t))
+Abelian group element [6]
 ```
 """
 tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
@@ -51,14 +37,13 @@ tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 
 Return the Tate section ``a_3``.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a3(t)
-w^2*a32
+julia> degree(tate_section_a3(t))
+Abelian group element [9]
 ```
 """
 tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
@@ -69,14 +54,13 @@ tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 
 Return the Tate section ``a_4``.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a4(t)
-w^3*a43
+julia> degree(tate_section_a4(t))
+Abelian group element [12]
 ```
 """
 tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
@@ -87,40 +71,29 @@ tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 
 Return the Tate section ``a_6``.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_section_a6(t)
-0
+julia> degree(tate_section_a6(t))
+Abelian group element [18]
 ```
 """
 tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 
 
-#####################################################
-# 1.2 Tate polynomial
-#####################################################
-
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
 
-Return the Tate polynomial of the global Tate model.
+Return the Tate polynomial of the model.
 
-For convenience and uniformity with (general) hypersurface
-models, we also support the method `hypersurface_equation`
-to access the Tate polynomial.
+Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> tate_polynomial(t)
-w^3*a43*x*z^4 - w^2*a32*y*z^3 + w*a21*x^2*z^2 - a1*x*y*z + x^3 - y^2
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> tate_polynomial(t) == hypersurface_equation(t)
 true
@@ -130,7 +103,7 @@ function tate_polynomial(t::GlobalTateModel)
   if !isdefined(t, :tate_polynomial)
     @req t.tate_ideal_sheaf isa ToricIdealSheafFromCoxRingIdeal "Reconstruction of Tate polynomial is not implemented in the non-toric case"
     if isdefined(t, :tate_ideal_sheaf)
-      tate_ideal = ideal_in_cox_ring(t.tate_ideal_sheaf)
+      tate_ideal = ideal_in_coordinate_ring(t.tate_ideal_sheaf)
       @req isone(ngens(tate_ideal)) "Tate ideal generated by more than one polynomial"
       t.tate_polynomial = first(gens(tate_ideal))
     else
@@ -140,6 +113,12 @@ function tate_polynomial(t::GlobalTateModel)
   return t.tate_polynomial
 end
 
+
+@doc raw"""
+    hypersurface_equation(t::GlobalTateModel)
+
+Alias for [`tate_polynomial(t::GlobalTateModel)`](@ref).
+"""
 hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 
 
@@ -148,34 +127,28 @@ hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
 
 Return the Tate ideal sheaf of the global Tate model.
 
+This method is relevant when the global Tate model cannot be represented by a single
+global polynomial—e.g., after non-toric blowups. In such cases, the model is defined
+locally by an ideal sheaf on each affine patch rather than by a global hypersurface equation.
+
+# Examples
 ```jldoctest
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, non-prime divisor on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> tate_ideal_sheaf(t)
 Sheaf of ideals
-  on normal, simplicial toric variety
+  on normal toric variety
 with restrictions
-   1: Ideal with 1 generator
-   2: Ideal with 1 generator
-   3: Ideal with 1 generator
-   4: Ideal with 1 generator
-   5: Ideal with 3 generators
-   6: Ideal with 3 generators
-   7: Ideal with 3 generators
-   8: Ideal with 3 generators
-   9: Ideal with 4 generators
-  10: Ideal with 4 generators
-  11: Ideal with 4 generators
-  12: Ideal with 4 generators
+  1: Ideal with 1 generator
+  2: Ideal with 1 generator
+  3: Ideal with 1 generator
+  4: Ideal with 2 generators
+  5: Ideal with 2 generators
+  6: Ideal with 2 generators
+  7: Ideal with 5 generators
+  8: Ideal with 5 generators
+  9: Ideal with 5 generators
 ```
 """
 function tate_ideal_sheaf(t::GlobalTateModel)
@@ -192,56 +165,18 @@ function tate_ideal_sheaf(t::GlobalTateModel)
 end
 
 
-
-###################################################################
-###################################################################
-# 2: Attributes that currently only works in toric settings
-###################################################################
-###################################################################
-
-
-#####################################################
-# 2.1 Calabi-Yau hypersurface
-#####################################################
-
-@doc raw"""
-    calabi_yau_hypersurface(t::GlobalTateModel)
-
-Return the Calabi-Yau hypersurface in the toric ambient space
-which defines the global Tate model.
-
-```jldoctest
-julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
-Global Tate model over a concrete base
-
-julia> calabi_yau_hypersurface(t)
-Closed subvariety of a normal toric variety
-```
-"""
-@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req base_space(t) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
-  is_base_space_fully_specified(t) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
-end
-
-
-#####################################################
-# 2.2 Turn a Tate into a Weierstrass model
-#####################################################
-
 @doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
-Return the Weierstrass model which is equivalent to the given Tate model.
+Return the Weierstrass model which is equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
 julia> weierstrass_model(t)
-Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+Weierstrass model over a concrete base
 ```
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
@@ -264,15 +199,15 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   end
 
   # Compute Weierstrass polynomial
-  S = cox_ring(ambient_space(t))
+  S = coordinate_ring(ambient_space(t))
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
 
   # Compute parametrization of Weierstrass sections
-  parametrization = defining_section_parametrization(t)
+  parametrization = model_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_defining_section_parametrization = Dict{String, MPolyRingElem}()
+  new_model_section_parametrization = Dict{String, MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])
@@ -321,13 +256,13 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
     param_f = -1//48 * (param_b2^2 - 24 * param_b4)
     param_g = 1//864 * (param_b2^3 - 36 * param_b2 * param_b4 + 216 * param_b6)
 
-    # Compute defining_section_parametrization
-    new_defining_section_parametrization = Dict("f" => param_f, "g" => param_g)
+    # Compute model_section_parametrization
+    new_model_section_parametrization = Dict("f" => param_f, "g" => param_g)
 
   end
   
   # Compute Weierstrass model
-  model = WeierstrassModel(new_explicit_model_sections, new_defining_section_parametrization, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(new_explicit_model_sections, new_model_section_parametrization, pw, base_space(t), ambient_space(t))
 
   # Copy attributes and return model
   model_attributes = t.__attrs
@@ -338,22 +273,18 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 end
 
 
-#####################################################
-# 2.3 Discriminant and singular loci
-#####################################################
-
 @doc raw"""
     discriminant(t::GlobalTateModel)
 
-Return the discriminant of the global Tate model.
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equivalent to the given global Tate model.
 
+# Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
+julia> t = global_tate_model_over_projective_space(2)
+Global Tate model over a concrete base
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> discriminant(t);
+julia> degree(discriminant(t))
+Abelian group element [36]
 ```
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
@@ -365,37 +296,27 @@ end
 @doc raw"""
     singular_loci(t::GlobalTateModel)
 
-Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)``` at each locus and the refined Tate fiber type.
+Return the singular loci of the Weierstrass model equivalent to the given Tate model,
+along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
+refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for more details.
 
-For the time being, we either explicitly or implicitly focus on toric varieties
-as base spaces. Explicitly, in case the user provides such a variety as base space,
-and implicitly, in case we work over a non-fully specified base. This has the
-advantage that we can "filter out" trivial singular loci.
+!!! warning
+    The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
+    While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
+    The random source can be set with the optional argument `rng`.
 
-Specifically, recall that every closed subvariety of a simplicial toric variety is
-of the form ``V(I)``, where ``I`` is a homogeneous ideal of the Cox ring. Let ``B``
-be the irrelevant ideal of this toric variety. Then, by proposition 5.2.6. of
-[CLS11](@cite), ``V(I)`` is trivial/empty iff ``B^l \subseteq I`` for a suitable ``l \geq 0``.
-This can be checked by checking if the saturation ``I:B^\infty`` is the ideal generated by ``1``.
-
-By treating a non-fully specified base space implicitly as a toric space, we can extend this
-result straightforwardly to this situation also. This is the reason for constructing this
-auxiliary base space.
-
-Let us demonstrate the functionality by computing the singular loci of a Type ``III`` Tate model
-[KMSS11](@cite). In this case, we  will consider Global Tate model over a non-fully specified base.
-The Tate sections are factored as follows:
+Below, we demonstrate this functionality by computing the singular loci of a Type ``III`` Tate model
+[KMSS11](@cite). In this case, the Tate sections are factored as follows:
 - ``a_1 = a_{11} w^1``,
 - ``a_2 = a_{21} w^1``,
 - ``a_3 = a_{31} w^1``,
 - ``a_4 = a_{41} w^1``,
 - ``a_6 = a_{62} w^2``.
-For this factorization, we expect a singularity of Kodaira type ``III`` over the divisor
-``W = {w = 0}``, as desired. So this should be one irreducible component of the discriminant. Moreover,
-we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, while the Weierstrass
-sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
+Hence, there is a Kodaira type ``III`` singularity over the divisor ``{w = 0}``. By theory,
+the discriminant ``\Delta`` vanishes to order 3 on ``{w = 0}``, while the Weierstrass
+sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
 
+# Examples
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
@@ -414,18 +335,17 @@ julia> a6 = a62 * w^2;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base
 
-julia> length(singular_loci(t))
-2
+julia> using Random;
 
-julia> singular_loci(t)[2]
-(Ideal (w), (1, 2, 3), "III")
+julia> sort([k[2:3] for k in singular_loci(t; rng = Random.Xoshiro(1234))])
+2-element Vector{Tuple{Tuple{Int64, Int64, Int64}, String}}:
+ ((0, 0, 1), "I_1")
+ ((1, 2, 3), "III")
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel; rng::AbstractRNG = Random.default_rng())
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
-  return singular_loci(weierstrass_model(t))
+  return singular_loci(weierstrass_model(t); rng)
 end

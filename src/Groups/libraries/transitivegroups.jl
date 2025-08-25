@@ -1,7 +1,7 @@
 """
     has_number_of_transitive_groups(deg::Int)
 
-Return whether the number transitive groups groups of degree `deg` are available for
+Return whether the number of transitive groups of degree `deg` is available for
 use via `number_of_transitive_groups`.
 
 # Examples
@@ -18,7 +18,7 @@ has_number_of_transitive_groups(deg::Int) = has_transitive_groups(deg)
 """
     has_transitive_group_identification(deg::Int)
 
-Return whether identification of transitive groups groups of degree `deg` is available
+Return whether identification of transitive groups of degree `deg` is available
 via `transitive_group_identification`.
 
 # Examples
@@ -35,7 +35,7 @@ has_transitive_group_identification(deg::Int) = has_transitive_groups(deg)
 """
     has_transitive_groups(deg::Int)
 
-Return whether the transitive groups groups of degree `deg` are available for
+Return whether the transitive groups of degree `deg` are available for
 use. This function should be used to test for the scope of the library
 available.
 
@@ -67,6 +67,7 @@ julia> number_of_transitive_groups(30)
 
 julia> number_of_transitive_groups(64)
 ERROR: ArgumentError: the number of transitive groups of degree 64 is not available
+[...]
 ```
 """
 function number_of_transitive_groups(deg::Int)
@@ -84,10 +85,11 @@ The output is a group of type `PermGroup`.
 # Examples
 ```jldoctest
 julia> transitive_group(5,4)
-Alt(5)
+Alternating group of degree 5
 
 julia> transitive_group(5,6)
 ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
+[...]
 ```
 """
 function transitive_group(deg::Int, i::Int)
@@ -131,11 +133,13 @@ true
 
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
+[...]
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
 ERROR: ArgumentError: group is not transitive on its moved points
+[...]
 ```
 """
 function transitive_group_identification(G::PermGroup)
@@ -191,12 +195,12 @@ julia> all_transitive_groups(4)
  Permutation group of degree 4
  Permutation group of degree 4
  Permutation group of degree 4
- Alt(4)
- Sym(4)
+ Alternating group of degree 4
+ Symmetric group of degree 4
 
 julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
- Alt(3)
+ Alternating group of degree 3
  Permutation group of degree 4
  Permutation group of degree 4
  Permutation group of degree 5

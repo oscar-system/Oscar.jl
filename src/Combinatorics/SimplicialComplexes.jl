@@ -38,7 +38,7 @@ Abstract simplicial complex of dimension -1 on 0 vertices
 ```
 
 The original vertices can be recovered:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = simplicial_complex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
@@ -248,7 +248,7 @@ cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_g
 Return the minimal non-faces of the abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
@@ -425,9 +425,9 @@ end
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a sphere.
-Returns false if not a sphere.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a sphere.
+Return `false` if not a sphere.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -444,9 +444,9 @@ is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
 
 Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
 Note that this is undecidable in general.
-Returns true if recognized as a ball.
-Returns false if not a ball.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a ball.
+Return `false` if not a ball.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -463,9 +463,9 @@ is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
 
 Check if the abstract simplicial complex `K` is a combinatorial manifold, possibly with boundary.
 Note that this is undecidable in general.
-Returns true if recognized as a manifold.
-Returns false if not a manifold.
-Returns nothing if heuristics unsuccessful.
+Return `true` if recognized as a manifold.
+Return `false` if not a manifold.
+Return `nothing` if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
@@ -568,7 +568,7 @@ end
 @doc raw"""
     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
-Checks if the given simplicial complexes are isomorphic.
+Check if the given simplicial complexes are isomorphic.
 
 # Examples
 ```jldoctest
@@ -620,7 +620,7 @@ end
 Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
 
 julia> K_with_deletion = deletion(K, Set([1, 2]));
@@ -676,7 +676,7 @@ Given a simplicial complex `K` return the simplicial complex corresponding
 to a permutation on it's vertices given by `g`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 
@@ -704,7 +704,7 @@ end
 Given simplicial complexes `K1` and `K2` return their simplicial product.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K1 = simplicial_complex([[1, 2], [2, 3]])
 Abstract simplicial complex of dimension 1 on 3 vertices
 
@@ -754,7 +754,7 @@ end
 Given simplicial complex `K` returns its barycentric subdivision.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3]])
 Abstract simplicial complex of dimension 2 on 3 vertices
 

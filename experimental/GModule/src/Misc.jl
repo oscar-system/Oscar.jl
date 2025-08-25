@@ -245,6 +245,9 @@ Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AbsSimpleNumField}) = complex
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  if k == base_field(K)
+    return defining_polynomial(K), Hecke.coordinates, representation_matrix
+  end
   @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
@@ -280,8 +283,8 @@ Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
   k = base_ring(F)
   @assert base_ring(G) == k
-  H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+  H = free_module(k, rank(F)*rank(G))
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end
 
 function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
@@ -292,11 +295,11 @@ end
 #TODO: for modern fin. fields as well
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
+  A = abelian_group([characteristic(k) for i = 1:vector_space_dim(M)*degree(k)])
   n = degree(k)
   function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
     a = ZZRingElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       c = m[i]
       for j=0:n-1
         push!(a, coeff(c, j))
@@ -306,7 +309,7 @@ function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   end
   function to_M(a::FinGenAbGroupElem)
     m = fqPolyRepFieldElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
     end
     return M(m)
@@ -329,28 +332,21 @@ function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Gen
   return c
 end
 
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
+function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; error_tolerant::Bool = false)
   c = parent(a)()
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
+      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, error_tolerant = error_tolerant)
       fl || return fl, c
     end
   end
   return true, c
 end
 
-function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = zero_matrix(QQ, nrows(a), ncols(a))
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-      c[i,j] = n//d
-    end
-  end
-  return true, c
+function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; error_tolerant::Bool = false, unbalanced::Bool = false)
+  return Nemo._induce_rational_reconstruction_nosplit(a, pg; error_tolerant, unbalanced)
 end
+
 
 #############################################################################
 ##
@@ -361,6 +357,33 @@ Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
 
 function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
   return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
+end
+
+#over a ring we might have torsion in the modules and I do not
+#know if det/ trace/ ... work and make sense
+#for free/ZZ it would (but difficult to "type")
+function AbstractAlgebra.tr(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return AbstractAlgebra.tr(matrix(h))
+end
+
+function Nemo.det(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return det(matrix(h))
+end
+
+function Nemo.minpoly(R::PolyRing, h::Generic.ModuleHomomorphism{<:FieldElem})
+  return minpoly(R, matrix(h))
+end
+
+function Nemo.minpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return minpoly(matrix(h))
+end
+
+function Nemo.charpoly(R::PolyRing, h::Generic.ModuleHomomorphism{<:FieldElem})
+  return charpoly(R, matrix(h))
+end
+
+function Nemo.charpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
+  return charpoly(matrix(h))
 end
 
 end # module

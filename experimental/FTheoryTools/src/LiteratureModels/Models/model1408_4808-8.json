@@ -42,13 +42,13 @@
         "type": "hypersurface",
         "description": "F-theory hypersurface model with fiber ambient space F_8",
         "gauge_algebra": ["su(2)", "su(2)", "u(1)"],
-        "global_gauge_quotients": [[""], ["-identity_matrix(C,2)"], ["-identity_matrix(C,1)"]]
+        "global_gauge_group_quotients": [[""], ["-identity_matrix(C,2)"], ["-identity_matrix(C,1)"]]
     },
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
-        "model_sections": ["s1", "s2", "s3", "s5", "s6", "s7", "s8"],
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "tunable_sections": ["s1", "s2", "s3", "s5", "s6", "s7", "s8"],
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [ 3,  2,  1,  2, 1, 0, 1],
             [-1,  0,  1, -1, 0, 1, -1],
             [-1, -1, -1,  0, 0, 0, 1]
@@ -64,6 +64,7 @@
         ],
         "hypersurface_equation": "s1*e1^2*e2^4*e3^2*u^3 + s2*e1^2*e2^3*e3*u^2*v + s3*e1^2*e2^2*u*v^2 + s5*e1*e2^2*e3^2*u^2*w + s6*e1*e2*e3*u*v*w +  s7*e1*v^2*w + s8*e3^2*u*w^2",
         "zero_section_class": "e2",
+        "exceptional_classes": ["e1", "e2", "e3"],
         "zero_section": ["s7", "1", "1", "-s8", "0", "1"],
         "generating_sections": [
             ["s7", "1", "-s3", "1", "1", "0"]

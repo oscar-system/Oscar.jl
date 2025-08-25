@@ -574,8 +574,8 @@ Coherent sheaf of modules
     1: [(y//x)]   affine 1-space
     2: [(x//y)]   affine 1-space
 with restrictions
-  1: direct sum of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
-  2: direct sum of (Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1)
+  1: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
+  2: direct sum of FreeMod{FqMPolyRingElem}[Multivariate polynomial ring in 1 variable over GF(7)^1, Multivariate polynomial ring in 1 variable over GF(7)^1]
 
 julia> typeof(W)
 DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}

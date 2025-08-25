@@ -86,12 +86,6 @@ function _gather_tests(path::AbstractString; ignore=[])
   return tests
 end
 
-_setactiveproject(s::String) = @static if VERSION >= v"1.8"
-                                 Base.set_active_project(s)
-                               else
-                                 Base.ACTIVE_PROJECT[] = s
-                               end
-
 @doc raw"""
     Oscar.@_AuxDocTest "Name of the test set", (fix = bool),
     raw\"\"\"
@@ -127,21 +121,15 @@ macro _AuxDocTest(data::Expr)
       end # module
     ),
     # temporarily disable GC logging to avoid glitches in the doctests
-    if VERSION >= v"1.8.0"
-      (
-      if isdefined(GC, :logging_enabled)
-        esc(
-        quote
-          $(logging_flag_var) = GC.logging_enabled()
-          GC.enable_logging(false)
-        end,
-      )
-      else
-        esc(:(GC.enable_logging(false)))
-      end
+    if isdefined(GC, :logging_enabled)
+      esc(
+      quote
+        $(logging_flag_var) = GC.logging_enabled()
+        GC.enable_logging(false)
+      end,
     )
     else
-      nothing
+      esc(:(GC.enable_logging(false)))
     end,
     esc(
       quote
@@ -151,25 +139,20 @@ macro _AuxDocTest(data::Expr)
           fix=$(fix),
           testset=$(testset),
           doctestfilters=[
+            Oscar.doctestfilters()...,
             r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
           ],
         )
       end,
     ),
-    if VERSION >= v"1.8.0"
-      (
-      if isdefined(GC, :logging_enabled)
-        esc(
-        quote
-          GC.enable_logging($(logging_flag_var))
-        end,
-      )
-      else
-        esc(:(GC.enable_logging(true)))
-      end
+    if isdefined(GC, :logging_enabled)
+      esc(
+      quote
+        GC.enable_logging($(logging_flag_var))
+      end,
     )
     else
-      nothing
+      esc(:(GC.enable_logging(true)))
     end,
   )
   Meta.replace_sourceloc!(__source__, result)
@@ -240,7 +223,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         tmpproj = joinpath(mktempdir(), "Project.toml")
         cp(joinpath(Oscar.oscardir, "test", "Project.toml"), tmpproj)
         # activate the temporary project
-        _setactiveproject(tmpproj)
+        Base.set_active_project(tmpproj)
         # and make sure the current project is still available to allow e.g. `using Oscar`
         pushfirst!(LOAD_PATH, dirname(project_path))
         Pkg.resolve()
@@ -264,7 +247,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         # restore load path and project
         if tempproject
           copy!(LOAD_PATH, oldloadpath)
-          _setactiveproject(project_path)
+          Base.set_active_project(project_path)
         end
       end
       if timed

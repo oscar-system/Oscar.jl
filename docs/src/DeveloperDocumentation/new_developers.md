@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Introduction for new developers
 This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
@@ -24,7 +30,7 @@ on these things online.
    - Feel free to contact us on
      [Slack](https://oscar-system.org/slack).
    - Have a look at [our community page](https://www.oscar-system.org/community/).
-4. Please also read our page on [Documenting OSCAR code](@ref).
+4. Please also read our page on [Documenting Code](@ref).
 5. Look at existing code that does similar things to your project to get an
    idea of what OSCAR code should look like. Try to look at multiple examples.
 6. If you are planning to implement a new feature from scratch, please also read
@@ -51,11 +57,11 @@ the following six steps for submitting changes to the OSCAR source:
    git checkout -b yi/document_feature
    ```
 4. Edit your source and try out your changes locally (see below). To use your local copy of
-   the sources, start Julia and
+   the sources, start Julia and enter the package manager by pressing `]`. Then type
    ```
-   ]dev /path/to/local/clone/of/your/fork/of/Oscar.jl
+   dev /path/to/local/clone/of/your/fork/of/Oscar.jl
    ```
-   If this succeeds, you can enter `using Oscar` in Julia and it will use your local
+   If this succeeds, leave the package manager by pressing backspace. You can then enter `using Oscar` in Julia and it will use your local
    copy.
 5. Once you are done editing, push your branch and open a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). It is
    recommended that you open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to the main OSCAR repository

@@ -9,6 +9,7 @@ import Base:
     deepcopy,
     deepcopy_internal,
     hash,
+    join,
     size
     
 import Oscar:
@@ -27,7 +28,6 @@ import Oscar:
     elem_type,
     involution,
     iszero,
-    join,
     parent,
     parent_type,
     tensor_product

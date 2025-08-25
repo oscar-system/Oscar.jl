@@ -146,6 +146,15 @@ Base.copy(p::SLProgram{T}) where {T} = copy_oftype(p, T)
 Base.:(==)(p::SLProgram, q::SLProgram) =
     p.cs == q.cs && p.lines == q.lines && p.int == q.int && p.ret == q.ret
 
+function Base.hash(p::SLProgram, h::UInt)
+    b = 0x86ecede2d1c44fcb % UInt
+    h = hash(p.cs, h)
+    h = hash(p.lines, h)
+    h = hash(p.int, h)
+    h = hash(p.ret, h)
+    return xor(h, b)
+end
+
 constants(p::SLProgram) = p.cs
 _integers(p::SLProgram) = @view p.lines[1:p.int]
 integers(p::SLProgram) = @view p.lines[p.int:-1:1]

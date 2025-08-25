@@ -1,228 +1,11 @@
-function _parse_symbol(symbol::String, I::UnitRange)
-  return ["$symbol[$i]" for i in I]
-end
-function _parse_symbol(symbol::String, n::Int, I::UnitRange)
-  return [symbol*"[$n, $i]" for i in I]
-end
-
-@doc raw"""
-      present_finite_extension_ring(F::Oscar.AffAlgHom)
-
-Given a finite homomorphism `F` $:$ `A` $\rightarrow$ `B`  of algebras of type `<: Union{MPolyRing, MPolyQuoRing}` over a field, return a presentation
-
-$A^r \rightarrow A^s\rightarrow B \rightarrow 0$
-
-of `B` as an `A`-module.
-
-More precisely, return a tuple `(gs, PM, sect)`, say, where
-- `gs` is a vector of polynomials representing generators for `B` as an `A`-module,
-- `PM` is an `r` $\times$ `s`-matrix of polynomials defining the map $A^r \rightarrow A^s$, and
-- `sect` is a function which gives rise to a section of the augmentation map $ A^s\rightarrow B$.
-
-!!! note
-    The finiteness condition on `F` is checked by the function.
-
-!!! note
-    The function is implemented so that the last element of `gs` is `one(B)`.
-
-# Examples
-```jldoctest
-julia> RA, (h,) = polynomial_ring(QQ, [:h]);
-
-julia> A, _ = quo(RA, ideal(RA, [h^9]));
-
-julia> RB, (k, l) = polynomial_ring(QQ, [:k, :l]);
-
-julia> B, _ = quo(RB, ideal(RB, [k^3, l^3]));
-
-julia> F = hom(A, B, [k+l])
-Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (h^9)
-  to quotient of multivariate polynomial ring by ideal (k^3, l^3)
-defined by
-  h -> k + l
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-3-element Vector{QQMPolyRingElem}:
- l^2
- l
- 1
-
-julia> PM
-3×3 Matrix{QQMPolyRingElem}:
- h^3     0       0
- -3*h^2  h^3     0
- 3*h     -3*h^2  h^3
-
-julia> sect(k*l)
-3-element Vector{QQMPolyRingElem}:
- -1
- h
- 0
-
-```
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal(R, [z^2-y^2*(y+1)]);
-
-julia> A, _ = quo(R, I);
-
-julia> B, (s,t) =  polynomial_ring(QQ, [:s, :t]);
-
-julia> F = hom(A,B, [s, t^2-1, t*(t^2-1)])
-Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (-y^3 - y^2 + z^2)
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> s
-  y -> t^2 - 1
-  z -> t^3 - t
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-2-element Vector{QQMPolyRingElem}:
- t
- 1
-
-julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- y   -z
- -z  y^2 + y
-
-julia> sect(t)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
-
-julia> sect(s)
-2-element Vector{QQMPolyRingElem}:
- 0
- x
-
-```
-
-```jldoctest
-julia> A, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c]);
-
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal(R, [x*y]);
-
-julia> B, _ = quo(R, I);
-
-julia> (x, y, z) = gens(B);
-
-julia> F = hom(A, B, [x^2+z, y^2-1, z^3])
-Ring homomorphism
-  from multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal (x*y)
-defined by
-  a -> x^2 + z
-  b -> y^2 - 1
-  c -> z^3
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-2-element Vector{QQMPolyRingElem}:
- y
- 1
-
-julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- a^3 - c  0
- 0        a^3*b + a^3 - b*c - c
-
-julia> sect(y)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
-
-```
-"""
-function  present_finite_extension_ring(F::Oscar.AffAlgHom)
-  A, B = F.domain, F.codomain
-  a, b = ngens(A), ngens(B)
-  
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
-  end
-
-  @assert base_ring(AR) == base_ring(BR)
-
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
-  C, _ = quo(BR, I)
-  gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
-  @assert gs[end] == 1 # the last one should always be 1
-  g = length(gs)
-
-  R, _ = tensor_product(BR, AR, use_product_ordering = true)
-  ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
-  RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
-  gs_lift = [BRtoR(g) for g in gs]
-  
-  # compute the ideal J of the graph of F
-  Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
-  if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end
-  if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoR(g)) end end
-  J = ideal(R, Rels) # the ideal of the graph of F
-  V = groebner_basis(J)
-
-  sect = x -> (y = reduce(BRtoR(x), gens(V));
-	      ans = elem_type(AR)[];
-	      for i in 1:g
-	        q = div(y, gs_lift[i])
-	        push!(ans, RtoAR(q))
-	        y -= q * gs_lift[i]
-	      end; ans)
-
-  FM = free_module(R, g)
-  gB = elem_type(FM)[FM(push!([j == i ? R(1) : R() for j in 1:g-1], -gs_lift[i])) for i in 1:g-1]
-  gJ = elem_type(FM)[FM([j==i ? x : R() for j in 1:g]) for x in gens(V) for i in 1:g]
-  U  = vcat(gB, gJ)
-  S, _ = sub(FM, U)
-  P = groebner_basis(S, ordering = default_ordering(R)*lex(FM))
-  Rw, _ = grade(R, vcat(repeat([1], b), repeat([0], a)))
-  RtoRw = hom(R, Rw, gens(Rw))
-  inA = x -> x == zero(Rw) ?  true : (degree(Int, leading_term(RtoRw(x)))) <= 0
-  PM = vcat([(RtoAR.(transpose(Vector(P[i])))) for i in 1:ngens(P) if all(inA, Vector(P[i]))]...)
-  return gs, PM, sect
-end
-
 ######################################
 @doc raw"""
-      blowup(i::AbstractVarietyMap; symbol::String="e")
+      blow_up(i::AbstractVarietyMap; symbol::String="e")
 
-Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blowup of `Y` along `X`.
+Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
 
 More precisely, return a tuple `(Bl, E, j)`, say, where
-- `Bl`, an abstract variety, is the blowup,
+- `Bl`, an abstract variety, is the blow-up,
 - `E`, an abstract variety, is the exceptional divisor, and
 - `j`, a map of abstract varieties, is the inclusion of `E` into `Bl`.
 
@@ -230,6 +13,42 @@ More precisely, return a tuple `(Bl, E, j)`, say, where
     The resulting maps `Bl` $\rightarrow$ `Y` and `E` $\rightarrow$ `X` are obtained entering `structure_map(Bl)` and `structure_map(E)`, respectively.
 
 # Examples
+
+*Taken from the sage package Chow by Lehn/Sorger:*
+
+```jldoctest
+julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
+AbstractVariety of dim 4
+
+julia> P8 = abstract_projective_space(8)
+AbstractVariety of dim 8
+
+julia> k, l = gens(P2xP2)
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ k
+ l
+
+julia> Se = map(P2xP2, P8, [k+l])
+AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
+
+julia> Bl, E, j = blow_up(Se)
+(AbstractVariety of dim 8, AbstractVariety of dim 7, AbstractVarietyMap from AbstractVariety of dim 7 to AbstractVariety of dim 8)
+
+julia> betti_numbers(Bl)
+9-element Vector{Int64}:
+ 1
+ 2
+ 4
+ 7
+ 8
+ 7
+ 4
+ 2
+ 1
+
+```
+
+*The Steiner problem:*
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -247,7 +66,7 @@ H
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blowup(i)
+julia> Bl, E, j = blow_up(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))
@@ -260,7 +79,7 @@ julia> integral((6*HBl-2*e)^5)
 
 ```
 """
-function blowup(i::AbstractVarietyMap; symbol::String = "e")
+function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   # use construction via generators and relations as in Eisenbud-Harris, Section 13.6
   #  E ---j---> Bl
   #  |          |
@@ -281,12 +100,10 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 
   # we construct E as the projective bundle PN of N, see [E-H, p 472]
 
-  E = abstract_projective_bundle(N) 
+  E = projective_bundle(N)
   AE, RE = E.ring, base_ring(E.ring)
   g = E.struct_map
-  ζ = g.O1  # the first Chern class of O_PN(1)
-  ### Q =  E.bundles[2] # the universal quotient bundle on PN
-  ### ctopQ = top_chern_class(Q)
+  ζ = g.O1  # the first Chern class of O_E(1)
 
   # we set up the generators of ABl
 
@@ -302,12 +119,12 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 
   # by E-H, Prop. 13.12, ABl is generated by jₓ(AE) and  fˣ(AX) as a K-algebra;
   # equivalently, as an AX-algebra, ABl is generated by the e[i].
-  syms = vcat(push!(_parse_symbol(SED, 1:ngs-1), SED), string.(gens(RX))) # set e = e[end]
+  syms = ["$SED[$i]" for i in 1:ngs-1]
+  push!(syms, SED)
   degs = [degree(Int, Z(gs[i])) + 1 for i in 1:ngs]
-  degsRX = [Int(degree(gens(RX)[i])[1])  for i = 1:ngens(RX)]
-  RBl = graded_polynomial_ring(X.base, syms, vcat(degs, degsRX))[1]
-  
-  ev, xv = gens(RBl)[1:ngs], gens(RBl)[ngs+1:end]
+  degsRX = [Int(degree(g)[1])  for g in gens(RX)]
+  RBl, ev, xv = graded_polynomial_ring(X.base, syms, symbols(RX); weights = vcat(degs, degsRX))
+
   RXtoRBl = hom(RX, RBl, xv) # fˣ on polynomial ring level
   jₓgˣ = x -> sum(ev .* RXtoRBl.(sect(x.f))) # AZ --> RBl
 
@@ -346,7 +163,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
     rhs = sum([jₓgˣ(Z(gs[j]) * cN[k]) * (-ev[end])^(rN-k) for k in 1:rN])
     push!(Rels, lhs - rhs)
   end
- 
+
   Rels = minimal_generating_set(ideal(RBl, Rels)) ### TODO: make this an option?
   ABl, _ = quo(RBl, Rels)
   Bl = abstract_variety(X.dim, ABl)
@@ -358,15 +175,15 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   RBltoRX = hom(RBl, RX, vcat(repeat([RX()], ngs), gens(RX)))
   fₓ = x -> (xf = simplify(x).f;
 	     X(RBltoRX(xf));)
-  fₓ = map_from_func(fₓ, ABl, AX)
+  fₓ = MapFromFunc(ABl, AX, fₓ)
   f = AbstractVarietyMap(Bl, X, Bl.(xv), fₓ)
   Bl.struct_map = f
   if isdefined(X, :point) Bl.point = f.pullback(X.point) end
 
   # pullback of j
-  
+
   jˣ = vcat([-ζ * g.pullback(Z(xi)) for xi in gs], [g.pullback(i.pullback(f)) for f in gens(AX)])
-  
+
   # pushforward of j: write as a polynomial in ζ, and compute term by term
 
   REtoRZ = hom(RE, RZ, pushfirst!(gens(RZ), RZ()))
@@ -378,7 +195,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 	      xf -= q * ζ.f^k
 	    end;
 	    Bl(ans))
-  jₓ = map_from_func(jₓ, AE, AX)
+  jₓ = MapFromFunc(AE, ABl, jₓ)
   j = AbstractVarietyMap(E, Bl, jˣ, jₓ)
 
   # the normal bundle of E in Bl is O(-1)
@@ -397,7 +214,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   Bl.T.chern = simplify(f.pullback(total_chern_class(X.T)) + j.pushforward(g.pullback(total_chern_class(Z.T)) * α))
   set_attribute!(E, :projections => [j, g])
   set_attribute!(Bl, :exceptional_divisor => E)
-  set_attribute!(Bl, :description => "Blowup of $X with center $Z")
+  set_attribute!(Bl, :description => "Blow-Up of $X with center $Z")
   if get_attribute(Z, :alg) == true && get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
@@ -406,16 +223,16 @@ end
 
 
 @doc raw"""
-    function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
+    function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
 
-Return the blowup of `X` at `n` points.
+Return the blow-up of `X` at `n` points.
 
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
-julia> Bl = blowup_points(P2, 1)
+julia> Bl = blow_up_points(P2, 1)
 AbstractVariety of dim 2
 
 julia> chow_ring(Bl)
@@ -427,19 +244,19 @@ Quotient
 
 ```
 """
-function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
+function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
   SED = symbol # SED = "e"
   if n == 1
     symbs = [SED]
   else
-    symbs = _parse_symbol(SED, 1:n)
+    symbs = ["$SED[$i]" for i in 1:n]
   end
   Bl = X
   P = abstract_point(base = X.base)
   for i in 1:n
-    Bl = blowup(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
+    Bl = blow_up(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
   end
-  set_attribute!(Bl, :description => "Blowup of $X at $n points")
+  set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
   Bl.struct_map = map(Bl, X)
   if get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
@@ -447,9 +264,90 @@ function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
   return Bl
 end
 
+###############################################################################
+#
+# given an AbsVarietyHom i:Z → X, declare that it is an inclusion and return a
+# new one where pushforward is possible, by adding the extra classes to X
+# this results in a modified X⁺ which represents the same variety X but
+# contains more classes
+#
+#     j  X⁺ f
+#      ↗   ↘
+#    Z ——i—→ X
+#
+# specifically,
+# AˣZ is generated as an AˣX-module by gs[1],…,gs[ngs], computed using `present_finite_extension_ring`
+# AˣX⁺ is generated as an AˣX-algebra by the images of these generators under jₓ, ev[i] = jₓ(gs[i])
+#
+###############################################################################
+### TODO This function needs to be tested and documented
+################################################################################
+#
+function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
+  SED = symbol # SED = "e"
+  Z, X = i.domain, i.codomain
+  AX, RX = X.ring, base_ring(X.ring)
 
+  # we write N for the normal bundle N_{ZX}
 
+  N = -i.T # normal bundle
+  rN = rank(N) # codimension of Z in X
+  rN <= 0 && error("not a proper subvariety")
+  c = top_chern_class(N)
 
+  gs, PM, sect = present_finite_extension_ring(i.pullback)
+  ngs = length(gs)
 
+  # similar to blowup: the last variable below is the class of Z in X⁺
 
+  syms = ["$SED[$i]" for i in 1:ngs-1]
+  push!(syms, SED)
+  degs = [degree(Int, Z(gs[i])) + rN for i in 1:ngs]
+  degsRX = [Int(degree(g)[1])  for g in gens(RX)]
+  RX⁺, ev, xv = graded_polynomial_ring(X.base, syms, symbols(RX); weights = vcat(degs, degsRX))
+  RXtoRX⁺ = hom(RX, RX⁺, xv) # fˣ on polynomial ring level
+  jₓ = x -> sum(ev .* RXtoRX⁺.(sect(x.f))) # AZ --> RX⁺
 
+  # we set up the relations of AX⁺
+
+  Rels = elem_type(RX⁺)[]
+
+  # 1) relations from AX
+
+  if isdefined(AX, :I)
+    for r in RXtoRX⁺.(gens(AX.I)) push!(Rels, r) end
+  end
+
+  # 2) relations for AZ as an AX-module
+
+  for r in RXtoRX⁺.(PM)*ev push!(Rels, r) end
+
+  # 3) jₓx ⋅ jₓy = jₓ(x⋅y⋅c)
+
+  for j in 1:ngs, k in j:ngs
+    push!(Rels, ev[j] * ev[k] - jₓ(Z(gs[j]) * Z(gs[k]) * c))
+  end
+
+  # 4) the points are the same
+
+  if isdefined(Z, :point) && isdefined(X, :point)
+    push!(Rels, RXtoRX⁺(X.point.f) - jₓ(Z.point))
+  end
+
+  Rels = minimal_generating_set(ideal(RX⁺, Rels)) ### TODO: make this an option?
+  AX⁺, _ = quo(RX⁺, Rels)
+  X⁺ = abstract_variety(X.dim, AX⁺)
+
+  set_attribute!(X⁺, :description => "$X")
+  fₓ = MapFromFunc(X⁺.ring, X.ring, x -> error("not defined"))  # TODO check this
+  f = AbstractVarietyMap(X⁺, X, X⁺.(xv), fₓ)
+  X⁺.struct_map = f
+  X⁺.T = pullback(f, X.T)
+  f.T = AbstractBundle(X⁺, X⁺(0)) # there is no relative tangent bundle
+  X⁺.point = f.pullback(X.point)
+  if isdefined(X, :O1) X⁺.O1 = f.pullback(X.O1) end
+  jˣ = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
+  j_ = MapFromFunc(Z.ring, X⁺.ring, x -> X⁺(jₓ(x)))
+  j = AbstractVarietyMap(Z, X⁺, jˣ, j_)
+  return j
+end

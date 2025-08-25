@@ -8,7 +8,7 @@
 struct TropicalSemiring{minOrMax<:Union{typeof(min),typeof(max)}} <: Field
 end
 
-mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
+struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
     parent::TropicalSemiring{minOrMax}
     isinf::Bool        # distinguishes between ±∞ and other tropical numbers
     data::QQFieldElem
@@ -399,6 +399,18 @@ function Base.:(^)(a::TropicalSemiringElem, n::Integer)
     end
     return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
 end
+
+
+################################################################################
+#
+#  Properties
+#
+################################################################################
+
+function characteristic(::TropicalSemiring)
+    error("characteristic of tropical semirings not supported")
+end
+
 
 
 ################################################################################

@@ -3,69 +3,133 @@
 ################
 
 @doc raw"""
-    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass)
+    g4_flux(model::AbstractFTheoryModel, class::CohomologyClass; check::Bool = true)
 
-Construct a G4-flux candidate on an F-theory model. This functionality is
-currently limited to
-- Weierstrass models,
-- global Tate models,
-- hypersurface models.
-Furthermore, our functionality requires a concrete geometry. That is,
-the base space as well as the ambient space must be toric varieties.
-In the toric ambient space $X_\Sigma$, the elliptically fibered space $Y$
-that defines the F-theory model, is given by a hypersurface (cut out by
-the Weierstrass, Tate or hypersurface polynomial, respectively).
+Construct a candidate ``G_4``-flux for a resolved F-theory model from a given cohomology class
+on the toric ambient space.
 
-In this setting, we assume that a $G_4$-flux candidate is represented by a
-cohomology class $h$ in $H^{(2,2)} (X_\Sigma)$. The actual $G_4$-flux candidate
-is then obtained by restricting $h$ to $Y$.
-
-It is worth recalling that the $G_4$-flux candidate is subject to the quantization
-condition $G_4 + \frac{1}{2} c_2(Y) \in H^{/2,2)}( Y_, \mathbb{Z})$ (see [Wit97](@cite)).
-This condition is very hard to verify. However, it is relatively easy to gather
-evidence for this condition to be satisfied/show that it is violated. To this end, let
-$D_1$, $D_2$ be two toric divisors in $X_\Sigma$, then the topological intersection number
-$\left[ h|_Y \right] \cdot \left[ P \right] \cdot \left[ D_1 \right] \cdot \left[ D_2 \right]$
-must be an integer. Even this rather elementary check can be computationally expensive.
-Users can therefore decide to skip this check upon construction by setting the parameter
-`check` to the value `false`.
-
-Another bottleneck can be the computation of the cohomology ring, which is necessary to
-work with cohomology classes on the toric ambient space, which in turn define the G4-flux,
-as explained above. The reason for this is, that by employing the theory explained in
-[CLS11](@cite), we can only work out the cohomology ring of simpicial and complete (i.e. compact)
-toric varieties. However, checking if a toric variety is complete (i.e. compact) can take
-a long time. If the geometry in question is involved and you already know that the variety
-is simplicial and complete, then we recommend to trigger the computation of the cohomology
-ring with `check = false`. This will avoid this time consuming test.
-
-An example is in order.
+By default, `check = true` enables basic consistency and quantization checks. Set `check = false`
+to skip these checks, which can improve performance or allow for exploratory computations.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
-
-julia> g4f = g4_flux(qsm_model, g4_class)
+julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
-
-julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+  - Elementary quantization checks: not executed
+  - Transversality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not computed
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
-  g4_candidate = G4Flux(m, g4_class)
-  if check && !passes_elementary_quantization_checks(g4_candidate)
-    error("Given G4-flux candidate found to violate quantization condition")
+
+  # Step 1: Extract exponent pairs from input class
+  poly = lift(polynomial(g4_class))
+  coeffs = collect(coefficients(poly))
+  exps = extract_exponent_pairs(collect(exponents(poly)))
+  @req length(coeffs) == length(exps) "Mismatch between coefficients and exponent pairs"
+  original_dict = Dict(zip(exps, coeffs))
+
+  # Step 2: Transform using converter dictionary
+  converter_dict = converter_dict_h22_hypersurface(m, check = check)
+  b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+  b_ring_gens = gens(b_ring)
+  converted_poly = zero(b_ring)
+  for (exp_pair, coeff) in original_dict
+    if haskey(converter_dict, exp_pair)
+      terms = converter_dict[exp_pair]
+      sum_term = sum(k[1] * b_ring_gens[k[2][1]] * b_ring_gens[k[2][2]] for k in terms)
+      converted_poly += coeff * sum_term
+    end
   end
-  return g4_candidate
+
+  # Step 3: Extract exponent pairs again from converted poly
+  new_coeffs = collect(coefficients(converted_poly))
+  new_exps = extract_exponent_pairs(collect(exponents(converted_poly)))
+  new_dict = Dict(zip(new_exps, new_coeffs))
+
+  # Step 4: Read off flux coordinates from basis indices
+  basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
+  flux_coords = [get(new_dict, b, 0) for b in basis_indices]
+
+  # Step 5: Build cohomology class
+  coh_ring = cohomology_ring(ambient_space(m), check = check)
+  converted_poly = coh_ring(converted_poly)
+  converted_class = cohomology_class(ambient_space(m), converted_poly, quick = true)
+
+  # Step 6: Build G4Flux and assign attributes
+  g4 = G4Flux(m, converted_class)
+  set_attribute!(g4, :offset, zeros(Int, length(chosen_g4_flux_gens(m))))
+  set_attribute!(g4, :flux_coordinates, flux_coords)
+
+  # Step 7: Final checks
+  if check
+    @req (is_well_quantized(g4) && passes_transversality_checks(g4)) "G4-flux candidate violates quantization and/or transversality condition"
+  end
+
+  return g4
+end
+
+
+# One helper function to avoid repeating exponent extraction logic
+function extract_exponent_pairs(M::Vector{Vector{Int64}})
+  pairs = Tuple{Int, Int}[]
+  for k in 1:length(M)
+    row = copy(M[k])
+    i1 = findfirst(!=(0), row)
+    row[i1] -= 1
+    i2 = findfirst(!=(0), row)
+    push!(pairs, (i1, i2))
+  end
+  return pairs
+end
+
+
+@doc raw"""
+    qsm_flux(qsm_model::AbstractFTheoryModel)
+
+Return the ``G_4``-flux associated with one of the Quadrillion F-theory
+Standard models, as described in [CHLLT19](@cite CHLLT19).
+
+This flux has been pre-validated to pass essential consistency checks.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> qsm_flux(qsm_model)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Transversality checks: satisfied
+  - Non-abelian gauge group: unbroken
+  - Tadpole cancellation check: not computed
+```
+"""
+function qsm_flux(qsm_model::AbstractFTheoryModel)
+  @req arxiv_doi(qsm_model) == "10.48550/arXiv.1903.00009" "Can only compute the QSM flux for a QSM model"
+  divs = torusinvariant_prime_divisors(ambient_space(qsm_model))
+  gens_strings = symbols(coordinate_ring(ambient_space(qsm_model)))
+  e1 = cohomology_class(divs[findfirst(x -> x == :e1, gens_strings)])
+  e2 = cohomology_class(divs[findfirst(x -> x == :e2, gens_strings)])
+  e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])
+  u = cohomology_class(divs[findfirst(x -> x == :u, gens_strings)])
+  v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
+  pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
+  g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
+  my_flux = g4_flux(qsm_model, g4_class, check = false)
+  set_attribute!(my_flux, :is_well_quantized, true)
+  set_attribute!(my_flux, :passes_transversality_checks, true)
+  set_attribute!(my_flux, :breaks_non_abelian_gauge_group, false)
+  return my_flux
 end
 
 
@@ -78,20 +142,13 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   model(gf1) !== model(gf2) && return false
 
   # Currently, can only decide equality for Weierstrass, global Tate and hypersurface models
+  m = model(gf1)
   if (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) == false
     error("Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models")
   end
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
+  cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
   cy = cohomology_class(cl)
 
   # Now can return the result
@@ -107,14 +164,96 @@ function Base.hash(gf::G4Flux, h::UInt)
 end
 
 
+
 ################################################
-# 3: Display
+# 3: Arithmetics
 ################################################
 
-function Base.show(io::IO, g4::G4Flux)
-  properties_string = String["G4-flux candidate"]
-  if !has_attribute(g4, :passes_elementary_quantization_checks)
-    push!(properties_string, "lacking elementary quantization checks")
+function Base.:+(g1::G4Flux, g2::G4Flux)
+  @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
+  R = parent(polynomial(cohomology_class(g1)))
+  new_poly = R(lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2))))
+  new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly, true)
+  return g4_flux(model(g1), new_cohomology_class, check = false)
+end
+
+Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
+
+Base.:-(g::G4Flux) = (-1) * g
+
+function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
+  R = parent(polynomial(cohomology_class(g)))
+  new_poly = R(c * lift(polynomial(cohomology_class(g))))
+  new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly, true)
+  return g4_flux(model(g), new_cohomology_class, check = false)
+end
+
+
+
+################################################
+# 4: Display
+################################################
+
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
+  io = pretty(io)
+  properties_string = ["G4-flux candidate"]
+
+  # Check for elementary quantization checks
+  if has_attribute(g4, :is_well_quantized) && get_attribute(g4, :is_well_quantized) !== nothing
+    if is_well_quantized(g4)
+      push!(properties_string, "  - Elementary quantization checks: satisfied")
+    else
+      push!(properties_string, "  - Elementary quantization checks: violated")
+    end
+  else
+    push!(properties_string, "  - Elementary quantization checks: not executed")
   end
-  join(io, properties_string, " ")
+
+  # Check for transversality checks
+  if has_attribute(g4, :passes_transversality_checks) && get_attribute(g4, :passes_transversality_checks) !== nothing
+    if passes_transversality_checks(g4)
+      push!(properties_string, "  - Transversality checks: satisfied")
+    else
+      push!(properties_string, "  - Transversality checks: violated")
+    end
+  else
+    push!(properties_string, "  - Transversality checks: not executed")
+  end
+
+  # Check for non-abelian gauge group breaking
+  if has_attribute(g4, :breaks_non_abelian_gauge_group) && get_attribute(g4, :breaks_non_abelian_gauge_group) !== nothing
+    if breaks_non_abelian_gauge_group(g4)
+      push!(properties_string, "  - Non-abelian gauge group: broken")
+    else
+      push!(properties_string, "  - Non-abelian gauge group: unbroken")
+    end
+  else
+    push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
+  end
+
+  # Check for tadpole cancellation checks
+  if has_attribute(g4, :passes_tadpole_cancellation_check) && get_attribute(g4, :passes_tadpole_cancellation_check) !== nothing
+    if passes_tadpole_cancellation_check(g4)
+      push!(properties_string, "  - Tadpole cancellation check: satisfied")
+    else
+      push!(properties_string, "  - Tadpole cancellation check: violated")
+    end
+  else
+    push!(properties_string, "  - Tadpole cancellation check: not computed")
+  end
+
+  # Print each line separately, to avoid extra line break at the end
+  for (i, line) in enumerate(properties_string)
+    if i == length(properties_string)
+      print(io, line) # Last line without extra newline
+    else
+      println(io, line) # Print all other lines with line break
+    end
+  end
+end
+
+# Terse and one line printing
+function Base.show(io::IO, g4::G4Flux)
+  print(io, "G4-flux candidate")
 end

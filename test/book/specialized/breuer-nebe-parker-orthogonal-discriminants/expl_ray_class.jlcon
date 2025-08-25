@@ -2,4 +2,11 @@ julia> K, _ = quadratic_field(13)
 (Real quadratic field defined by x^2 - 13, sqrt(13))
 
 julia> ray_class_field(3*maximal_order(K))
-Class field defined mod (<3, 3>, InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}[]) of structure Z/1
+Class field
+  over real quadratic field defined by x^2 - 13
+with modulus
+  finite part <3>
+  infinite part
+    []
+with structure
+  Z/1

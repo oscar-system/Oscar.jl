@@ -473,6 +473,218 @@ function pc_group(c::GAP_Collector)
 end
 
 """
+    exponent_vector(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the exponent vector of `g` as an instance of the type `Vector{T}`,
+each entry corresponding to a group generator.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> exponent_vector(x)
+2-element Vector{ZZRingElem}:
+ -3
+ 2
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> exponent_vector(x)
+2-element Vector{ZZRingElem}:
+ 1
+ 2
+```
+"""
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem}) = exponent_vector(ZZRingElem, g)
+
+function exponent_vector(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return Vector{T}(GAPWrap.Exponents(gObj))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    return Vector{T}(GAPWrap.ExponentsOfPcElement(pcgs, gObj))
+  end
+end
+
+"""
+    relative_order(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the relative order of `g` as an instance of the type `T`,
+with respect to the defining generators. For generators with infinite order, we return 0.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> relative_order(x)
+0
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> relative_order(x)
+2
+```
+"""
+relative_order(g::Union{PcGroupElem,SubPcGroupElem}) = relative_order(ZZRingElem, g)
+
+function relative_order(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return T(GAPWrap.RelativeOrder(gObj))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GapObj(parent(g)))
+    return T(GAPWrap.RelativeOrderOfPcElement(pcgs, gObj))
+  end
+end
+
+"""
+    depth(g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the depth of `g` as integer, relative to the defining generators.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> depth(x)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> depth(x)
+1
+```
+"""
+function depth(g::Union{PcGroupElem,SubPcGroupElem})
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  if GAPWrap.IsPcpElement(gObj)
+    return GAPWrap.Depth(gObj)
+  else # finite PcGroup
+    return GAPWrap.DepthOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+end
+
+"""
+    leading_exponent(::Type{T} = ZZRingElem, g::Union{PcGroupElem,SubPcGroupElem})
+
+Return the leading exponent of `g` as an instance of the type `T`,
+relative to the defining generators. Throws an error if `g` is the neutral element.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> leading_exponent(x)
+-3
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> leading_exponent(x)
+1
+```
+"""
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem}) = leading_exponent(ZZRingElem, g)
+
+function leading_exponent(
+  ::Type{T}, g::Union{PcGroupElem,SubPcGroupElem}
+) where {T<:IntegerUnion}
+  # check if we have a PcpGroup element
+  gObj = GapObj(g)
+  exp = if GAPWrap.IsPcpElement(gObj)
+    GAPWrap.LeadingExponent(gObj)
+  else # finite PcGroup
+    GAPWrap.LeadingExponentOfPcElement(GAPWrap.FamilyPcgs(GapObj(parent(g))), gObj)
+  end
+
+  # if GAP returns fail, error otherwise exp
+  return exp == GAP.Globals.fail ? error("element has no leading exponent") : T(exp)
+end
+
+"""
+    hirsch_length(G::PcGroup)
+
+Return the Hirsch length of `G`.
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> hirsch_length(g)
+1
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> hirsch_length(gg)
+0
+```
+"""
+function hirsch_length(G::PcGroup)
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    return GAPWrap.HirschLength(GG)
+  else # finite PcGroup
+    return 0
+  end
+end
+
+"""
     letters(g::Union{PcGroupElem, SubPcGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
@@ -539,6 +751,8 @@ end
 
 Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
 a group generator and its exponent.
+
+See also [`letters(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
 
 # Examples
 
@@ -628,6 +842,18 @@ end
 
 # Create an Oscar collector from a GAP collector.
 
+const SCP_UNDERLYING_FAMILY = GAP.Globals.SCP_UNDERLYING_FAMILY             # = 1 - the family of our free grp elms
+const SCP_RWS_GENERATORS = GAP.Globals.SCP_RWS_GENERATORS                   # = 2 - the free grp generators used
+const SCP_NUMBER_RWS_GENERATORS = GAP.Globals.SCP_NUMBER_RWS_GENERATORS     # = 3 - number of generators
+const SCP_DEFAULT_TYPE = GAP.Globals.SCP_DEFAULT_TYPE                       # = 4 - default type of the result
+const SCP_IS_DEFAULT_TYPE = GAP.Globals.SCP_IS_DEFAULT_TYPE                 # = 5 - tester for default type
+const SCP_RELATIVE_ORDERS = GAP.Globals.SCP_RELATIVE_ORDERS                 # = 6 - list of relative orders
+const SCP_POWERS = GAP.Globals.SCP_POWERS                                   # = 7 - list of power rhs
+const SCP_CONJUGATES = GAP.Globals.SCP_CONJUGATES                           # = 8 - list of list of conjugates rhs
+const SCP_INVERSES = GAP.Globals.SCP_INVERSES                               # = 9 - list of inverses of the gens
+const SCP_COLLECTOR = GAP.Globals.SCP_COLLECTOR                             # = 10 - collector to use
+const SCP_AVECTOR = GAP.Globals.SCP_AVECTOR                                 # = 11 - avector
+
 """
     collector([::Type{T} = ZZRingElem, ]G::PcGroup) where T <: IntegerUnion
 
@@ -651,12 +877,12 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
   Fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
   GapC = GAP.getbangproperty(Fam, :rewritingSystem)::GapObj
 
-  n = GAP.getbangindex(GapC, 3)::Int
+  n = GAP.getbangindex(GapC, SCP_NUMBER_RWS_GENERATORS)::Int
   c = collector(n, T)
 
-  c.relorders = Vector{T}(GAP.getbangindex(GapC, 6)::GapObj)
+  c.relorders = Vector{T}(GAP.getbangindex(GapC, SCP_RELATIVE_ORDERS)::GapObj)
 
-  Gap_powers = GAP.gap_to_julia(GAP.getbangindex(GapC, 7)::GapObj, recursive = false)
+  Gap_powers = Vector{Union{Nothing, GapObj}}(GAP.getbangindex(GapC, SCP_POWERS)::GapObj, recursive = false)
   for i in 1:length(Gap_powers)
     if Gap_powers[i] !== nothing
       l = GAPWrap.ExtRepOfObj(Gap_powers[i])
@@ -664,12 +890,11 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
     end
   end
 
-  Gap_conj = GAP.gap_to_julia(GAP.getbangindex(GapC, 8)::GapObj, recursive = false)
+  Gap_conj = Vector{Vector{Union{Nothing, GapObj}}}(GAP.getbangindex(GapC, SCP_CONJUGATES)::GapObj)
   for i in 1:length(Gap_conj)
-    Gap_conj_i = GAP.gap_to_julia(Gap_conj[i]::GapObj, recursive = false)
-    for j in 1:length(Gap_conj_i)
-      if Gap_conj_i[j] !== nothing
-        l = GAPWrap.ExtRepOfObj(Gap_conj_i[j])
+    for j in 1:length(Gap_conj[i])
+      if Gap_conj[i][j] !== nothing
+        l = GAPWrap.ExtRepOfObj(Gap_conj[i][j])
         c.conjugates[j,i] = Pair{Int,T}[l[k-1] => T(l[k]) for k in 2:2:length(l)]
       end
     end

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -12,7 +13,7 @@ various kinds of fields:
 - [Generic fraction fields](@ref)
 - local fields ([Padics](@ref) and [Qadics](@ref))
 - finite fields
-- [Algebraic numbers](@ref)
+- [Algebraic closure of the rational numbers](@ref)
 - [Algebraic closure of finite prime fields](@ref)
 
 General textbooks offering details on theory and algorithms include:

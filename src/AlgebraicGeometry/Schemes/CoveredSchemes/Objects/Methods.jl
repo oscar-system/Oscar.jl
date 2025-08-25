@@ -159,12 +159,9 @@ end
 @doc raw"""
     is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
 
-# Input:
-- a reduced scheme ``X``,
-- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
-
-# Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the given reduced scheme ``X`` is normal.
+By default this verifies that `X` is reduced; this expensive test
+can be avoided by setting `check` to `false`.
 
 # Examples
 ```jldoctest
@@ -390,3 +387,17 @@ function _compute_gluing(
     check=false
   )
 end
+
+@doc raw"""
+    irreducible_components(X::AbsCoveredScheme) -> Vector{Tuple{CoveredScheme,CoveredClosedEmbedding}}
+    
+Return the irreducible components of `X` with their reduced structure. 
+
+See [`maximal_associated_points`](@ref) for keyword arguments. 
+"""
+function irreducible_components(X::AbsCoveredScheme,kwargs...)
+  I = ideal_sheaf(X)
+  D = maximal_associated_points(I; kwargs...)
+  return sub.(D)
+end
+

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -19,7 +20,7 @@ polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
 polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
-The complete $H$-representation can be retrieved using [`facets`](@ref facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}})
+The complete $H$-representation can be retrieved using [`facets`](@ref facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}})
 and [`affine_hull`](@ref affine_hull(P::Polyhedron{T}) where {T<:scalar_types}):
 ```jldoctest
 julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
@@ -190,6 +191,7 @@ rss_associahedron
 signed_permutahedron
 stable_set_polytope
 transportation_polytope
+tutte_lifting
 zonotope
 zonotope_vertices_fukuda_matrix
 ```

@@ -39,13 +39,13 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["w"],
-        "model_sections": ["w", "a1", "a21", "a32", "a43"],
+        "tunable_sections": ["w", "a1", "a21", "a32", "a43"],
         "a1": "a1",
         "a2": "a21*w",
         "a3": "a32*w^2",
         "a4": "a43*w^3",
         "a6": "0",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 1, 2, 3, 4],
             [1, 0, -1, -2, -3]
         ],
@@ -80,7 +80,7 @@
                     ["0", "1"],
                     ["0", "1"],
                     ["0", "1"],
-                    ["a32", "-a43"]
+                    ["a32", "a43"]
                 ]
             ]
         ],
@@ -129,7 +129,7 @@
                     ["0", "0", "1"],
                     ["0", "0", "1"],
                     ["0", "0", "1"],
-                    ["a32", "-a43"]
+                    ["a32", "a43"]
                 ]
             ]
         ]

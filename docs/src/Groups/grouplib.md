@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -12,7 +13,7 @@ transitive permutation groups up to degree 48,
 via the GAP package `TransGrp` [Hul23](@cite).
 
 (The groups of degrees 32 and 48 are currently not automatically
-available in Oscar,
+available in OSCAR,
 one has to install additional data in order to access them.)
 
 The arrangement and the names of the groups of degree up to 15 is the same as given in
@@ -127,6 +128,21 @@ small_group
 small_group_identification
 ```
 
+## Groups with a small number of conjugacy classes
+
+The functions in this section give access to the groups with
+up to 14 conjugacy classes.
+These groups have been classified in [V-LV-L85](@cite), [V-LV-L86](@cite),
+[VS07](@cite).
+
+```@docs
+all_groups_with_class_number
+has_number_of_groups_with_class_number
+has_groups_with_class_number
+number_of_groups_with_class_number
+group_with_class_number
+```
+
 ## Atlas of Group Representations
 
 The functions in this section give access to data in the
@@ -141,4 +157,5 @@ number_of_atlas_groups
 all_atlas_group_infos
 atlas_group
 atlas_subgroup
+show_atlas_info
 ```

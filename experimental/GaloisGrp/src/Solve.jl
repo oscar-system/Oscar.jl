@@ -236,14 +236,14 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   return SS
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool=false, check::Bool=true)
   C = base_ring(f)
   Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool=false, check::Bool=true)
   return number_field(f; cached, check)
 end
 
@@ -291,12 +291,12 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
+(Symmetric group of degree 3, Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Sym(3)
- Alt(3)
+ Symmetric group of degree 3
+ Alternating group of degree 3
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)

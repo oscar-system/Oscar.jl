@@ -184,8 +184,10 @@ julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E4 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
 
 julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[5]);g
 t^2*x^3 + (-1//4*t^4 + 2*t)*x^2 + x + y^2
@@ -197,8 +199,10 @@ julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E5 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
 
 julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[6]);g
 (t^2 + 2*t + 1)*x^3 + y^2 - 1//4*t^4
@@ -210,5 +214,7 @@ julia> (x,y) = gens(R); P = K_t.([0,1//2*t^2]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E6 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3

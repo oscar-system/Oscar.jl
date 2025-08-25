@@ -23,19 +23,18 @@ include("ZeroDec.jl")
 #           basering has characteristic 0
 #OUTPUT:    Primary decomposition of I with associated primes in a list 
 @doc raw"""
-    decomp(I::Oscar.ideal; usefglm::Bool)
+    primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool)
 
-Computes the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
-via GTZ. Returns the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
+Compute the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
+via GTZ. Return the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
 set to 'true' then the FGLM - algorithm is used in zero-dimensional computations.
 """
 function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
-    Oscar.singular_assure(I)
     B = base_ring(I)
     trivial = Vector{Singular.sideal}(undef, 0)
     n = 1
-    Is = I.gens.S
-    J = changeOrderOfBasering(I.gens.S, :lex)
+    Is = Oscar.singular_generators(I)
+    J = changeOrderOfBasering(Is, :lex)
     check = oneideal(J.base_ring)
     PDint = decomp_internal(J, trivial, n, check, usefglm)
     

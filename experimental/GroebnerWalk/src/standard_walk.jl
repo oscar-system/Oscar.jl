@@ -44,15 +44,16 @@ function standard_walk(
 
   @v_do :groebner_walk steps = 0
 
-  while current_weight != target_weight
+  while true 
     @vprintln :groebner_walk current_weight
-    G = standard_step(G, current_weight, target)
-
     current_weight = next_weight(G, current_weight, target_weight)
+    G = standard_step(G, current_weight, target)
 
     @v_do :groebner_walk steps += 1
     @vprintln :groebner_walk 2 G
     @vprintln :groebner_walk 2 "======="
+
+    current_weight != target_weight || break
   end
 
   @vprint :groebner_walk "Cones crossed: "
@@ -69,7 +70,7 @@ standard_walk(
 ) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
 
 ###############################################################
-# The standard step is used for the strategies standard and perturbed.
+# The standard step is used for the strategy standard.
 ###############################################################
 
 function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)
@@ -93,7 +94,7 @@ standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_ste
 @doc raw"""
     initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
 
-Returns the initial form of `f` with respect to the weight vector `w`.
+Return the initial form of `f` with respect to the weight vector `w`.
 """
 function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
   R = parent(f)
@@ -120,7 +121,7 @@ end
 @doc raw"""
     initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem})
 
-Returns the initial form of each element in `G` with respect to the weight vector `w`.
+Return the initial form of each element in `G` with respect to the weight vector `w`.
 """
 initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem}) = initial_form.(G, Ref(w))
 initial_forms(G::Oscar.IdealGens, w::Vector{Int}) = initial_form.(G, Ref(ZZ.(w)))
@@ -128,7 +129,7 @@ initial_forms(G::Oscar.IdealGens, w::Vector{Int}) = initial_form.(G, Ref(ZZ.(w))
 @doc raw"""
     next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Vector{ZZRingElem})
 
-Returns the point furthest along the line segment conv(current,target) still in the starting cone 
+Return the point furthest along the line segment conv(current,target) still in the starting cone 
 as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Little, O'Shea, 2005).
 
 # Arguments
@@ -160,7 +161,7 @@ end
 @doc raw"""
     bounding_vectors(I::Oscar.IdealGens)
 
-Returns a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
+Return a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
 "exponent vector of leading monomial" and "exponent vector of tail monomial".
 The bounding vectors form an H-description of the Gröbner cone. 
 (cf. p. 437 [CLO05](@cite)) 

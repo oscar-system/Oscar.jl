@@ -1,4 +1,4 @@
-using JSON
+using Oscar: create_gs2num
 
 ###############################################################################
 ## Graphs
@@ -84,7 +84,6 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   save_object(s, pm_object(PT))
 end
 
-function load_object(s::DeserializerState, T::Type{PhylogeneticTree}, dict::Dict)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
-  return T(bigobject)
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree})
+  load_from_polymake(Dict(s.obj))
 end

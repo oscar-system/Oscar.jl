@@ -5,7 +5,7 @@
 @doc raw"""
     is_normal(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
+Check if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
 ```jldoctest
@@ -19,7 +19,7 @@ is_normal(v::NormalToricVarietyType) = true
 @doc raw"""
     is_affine(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is affine.
+Check if the normal toric variety `v` is affine.
 
 # Examples
 ```jldoctest
@@ -33,7 +33,7 @@ false
 @doc raw"""
     is_projective(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
+Check if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
 # Examples
 ```jldoctest
@@ -68,11 +68,12 @@ true
     if is_projective(v) == false
         return false
     end
-    if torsion_free_rank(class_group(v)) > 1
+    cl = class_group_with_map(v)[1]
+    if torsion_free_rank(cl) > 1
         return false
     end
-    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for g in gens(class_group(v))
+    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(cl)]
+    for g in gens(cl)
         g = [Int(x) for x in g.coeff if !iszero(x)]
         if length(g) > 1
             return false
@@ -88,7 +89,7 @@ end
 @doc raw"""
     is_smooth(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is smooth.
+Check if the normal toric variety `v` is smooth.
 
 # Examples
 ```jldoctest
@@ -102,7 +103,7 @@ true
 @doc raw"""
     is_complete(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is complete.
+Check if the normal toric variety `v` is complete.
 
 # Examples
 ```jldoctest
@@ -116,7 +117,7 @@ true
 @doc raw"""
     has_torusfactor(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` has a torus factor.
+Check if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```jldoctest
@@ -130,7 +131,7 @@ false
 @doc raw"""
     is_orbifold(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is an orbifold.
+Check if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```jldoctest
@@ -144,7 +145,7 @@ true
 @doc raw"""
     is_simplicial(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
+Check if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
 # Examples
 ```jldoctest
@@ -158,7 +159,7 @@ is_simplicial(v::NormalToricVarietyType) = is_orbifold(v)
 @doc raw"""
     is_gorenstein(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is Gorenstein.
+Check if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
@@ -172,7 +173,7 @@ true
 @doc raw"""
     is_q_gorenstein(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is Q-Gorenstein.
+Check if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
 ```jldoctest
@@ -186,7 +187,7 @@ true
 @doc raw"""
     is_fano(v::NormalToricVarietyType)
 
-Checks if the normal toric variety `v` is fano.
+Check if the normal toric variety `v` is fano.
 
 # Examples
 ```jldoctest
@@ -194,4 +195,12 @@ julia> is_fano(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_fano(v::NormalToricVarietyType) = pm_object(v).FANO
+@attr Bool function is_fano(v::NormalToricVarietyType)
+  # [CLS11] Fano implies projective, thus non-projective implies non-Fano. But
+  # non-complete implies non-projective.
+  if !is_complete(v)
+    return false
+  else
+    return is_ample(anticanonical_divisor(v))
+  end
+end

@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Introduction](@id number_theory)
@@ -13,6 +15,12 @@ General textbooks offering details on theory and algorithms include:
 - [Coh00](@cite)
 - [Mar18](@cite)
 - [PZ97](@cite)
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on number theory in OSCAR,
+which can be found [here](https://www.oscar-system.org/tutorials/NumberTheory/).
 
 
 ## Contact

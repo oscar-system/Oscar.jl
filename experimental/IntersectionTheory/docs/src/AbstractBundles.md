@@ -1,9 +1,14 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Bundles
+
+## Types
+
+The OSCAR type for abstract vector bundles is `AbstractBundle`.
 
 ## Constructors
 
@@ -18,11 +23,11 @@ parent(F::AbstractBundle)
 ```
 
 ```@docs
-rank(F::AbstractBundle)
+chern_character(F::AbstractBundle)
 ```
 
 ```@docs
-chern_character(F::AbstractBundle)
+rank(F::AbstractBundle)
 ```
 
 ```@docs
