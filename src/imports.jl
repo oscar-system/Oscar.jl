@@ -94,6 +94,7 @@ import AbstractAlgebra:
   has_gens,
   Ideal,
   Indent,
+  InfiniteDimensionError,
   is_finite_order,
   is_equal_as_morphism,
   is_known,
