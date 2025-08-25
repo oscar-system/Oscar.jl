@@ -250,10 +250,11 @@ _ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int=0) =
 _incidencematrix(::Val{_cone_of_dim}) = _ray_indices
 
 @doc raw"""
-    cones(PF::PolyhedralFan)
+    cones(PF::PolyhedralFan; trivial=true)
 
-Return the ray indices of all non-zero-dimensional
-cones in a polyhedral fan.
+Return the ray indices of all cones in a polyhedral fan.
+If `trivial` is set to `false`, the trivial cone, i.e., the Minkowski sum of the origin
+with the lineality space of the fan, will be omitted.
 
 # Examples
 ```jldoctest
@@ -261,7 +262,7 @@ julia> PF = face_fan(cube(2))
 Polyhedral fan in ambient dimension 2
 
 julia> cones(PF)
-8×4 IncidenceMatrix
+9×4 IncidenceMatrix
  [1, 3]
  [2, 4]
  [1, 2]
@@ -270,15 +271,18 @@ julia> cones(PF)
  [3]
  [2]
  [4]
+ []
 ```
 """
-function cones(PF::_FanLikeType)
+function cones(PF::_FanLikeType; trivial::Bool=true)
   pmo = pm_object(PF)
-  ncones = pmo.HASSE_DIAGRAM.N_NODES
-  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:(ncones - 1)]
-  cones = filter(x -> !(-1 in x) && length(x) > 0, cones)
+  n_maximal_cones(PF) == 0 && return IncidenceMatrix(0, 0)
+  ncones = pmo.HASSE_DIAGRAM.N_NODES - 1
+  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:ncones]
+  filter!(x -> !(-1 in x), cones)
+  trivial || filter!(!isempty, cones)
   cones = [Polymake.to_one_based_indexing(x) for x in cones]
-  return IncidenceMatrix([Vector{Int}(x) for x in cones])
+  return IncidenceMatrix(length(cones), pmo.N_RAYS, [Vector{Int}(x) for x in cones])
 end
 
 @doc raw"""
@@ -588,22 +592,24 @@ julia> n_maximal_cones(PF)
 n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
-    n_cones(PF::PolyhedralFan)
+    n_cones(PF::PolyhedralFan; trivial=true)
 
 Return the number of cones of `PF`.
+If `trivial` is set to `false`, the trivial cone, i.e., the Minkowski sum of the origin
+with the lineality space of the fan, will be omitted.
 
 # Examples
-The cones given in this construction are non-redundant. There are six
+The cones given in this construction are non-redundant. There are five
 cones in this fan.
 ```jldoctest
 julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> n_cones(PF)
-4
+5
 ```
 """
-n_cones(PF::_FanLikeType) = nrows(cones(PF))
+n_cones(PF::_FanLikeType; trivial=true) = nrows(cones(PF; trivial))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)

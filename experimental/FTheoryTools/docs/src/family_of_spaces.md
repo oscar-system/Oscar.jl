@@ -4,27 +4,31 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Families of Spaces
+# [Families of Spaces](@id family_of_spaces)
 
-Many F-theory constructions (e.g. in the literature) work without fully specifying
-the base space of the elliptic fibrations. Put differently, those works consider
-an entire family of base spaces. We aim to support this data structure.
+Many F-theory constructions in the literature work without fully specifying the base space of
+the elliptic fibration. Put differently, they describe an **entire family of base spaces**
+rather than a single one. OSCAR supports such families via a dedicated data structure.
 
-Note of caution: This data structure is subject to discussion. The exact implementation
-details may change drastically in the future. Use with care (as all experimental
-code, of course).
+> **Note of caution**: This data structure is still experimental and under discussion. The implementation details may change significantly in the future. Use with care.
 
+---
 
 ## Constructors
 
-We currently support the following constructor:
+The following constructors are currently supported for creating a `FamilyOfSpaces` object:
+
 ```@docs
 family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int)
+family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, dim::Int)
 ```
+
+---
 
 ## Attributes
 
-We currently support the following attributes:
+The following methods provide access to core attributes of a family of spaces:
+
 ```@docs
 coordinate_ring(f::FamilyOfSpaces)
 weights(f::FamilyOfSpaces)

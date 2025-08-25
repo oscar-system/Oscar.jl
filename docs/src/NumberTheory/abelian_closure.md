@@ -32,7 +32,7 @@ atlas_description
 
 ## Natural embedding
 
-Oscar assumes a natural embedding of the field `K` produced by
+OSCAR assumes a natural embedding of the field `K` produced by
 `K, z = abelian_closure(QQ)` into `F = algebraic_closure(QQ)`,
 which is given by mapping the `n`-th root of unity returned by `z(n)`
 to `root_of_unity(F, n)`.

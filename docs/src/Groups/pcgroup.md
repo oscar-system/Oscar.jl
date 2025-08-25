@@ -62,7 +62,7 @@ Groups which are given by a polycyclic presentation are called
 *polycyclicly presented* groups.
 The rest of this section is about these groups.
 
-Polycyclicly presented groups in Oscar have the type [`PcGroup`](@ref),
+Polycyclicly presented groups in OSCAR have the type [`PcGroup`](@ref),
 their elements have the type [`PcGroupElem`](@ref).
 Analogous to the situation with finitely presented groups and their subgroups,
 there are the types [`SubPcGroup`](@ref) for subgroups
@@ -89,7 +89,7 @@ julia> describe(gg)
 ```
 
 Alternatively, one can take a polycyclic group,
-and let Oscar compute a pc presentation for it.
+and let OSCAR compute a pc presentation for it.
 
 ```jldoctest
 julia> g = symmetric_group(4)

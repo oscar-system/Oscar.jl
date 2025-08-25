@@ -1,7 +1,7 @@
 @doc raw"""
     special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
 
-Computes a family of ``G_4``-fluxes for the F-theory model `m`, defined as a hypersurface
+Compute a family of ``G_4``-fluxes for the F-theory model `m`, defined as a hypersurface
 in a simplicial, complete toric ambient space. The returned fluxes satisfy necessary
 quantization and transversality checks.
 
@@ -10,6 +10,7 @@ Optional keyword arguments:
 - `check`: if `false`, skips computational checks of completeness and simplicity of the ambient toric variety for improved performance.
 - `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = "special"` activates a faster variant described in [BMT25](@cite BMT25).
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
@@ -127,7 +128,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
   ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
-  S = cox_ring(ambient_space(m))
+  S = coordinate_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
   tds = torusinvariant_prime_divisors(ambient_space(m))
   cds = [cohomology_class(td) for td in tds]
@@ -238,8 +239,8 @@ end
 function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
   
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
-  S = cox_ring(ambient_space(m))
-  gS = gens(cox_ring(ambient_space(m)))
+  S = coordinate_ring(ambient_space(m))
+  gS = gens(coordinate_ring(ambient_space(m)))
   linear_relations = matrix(ZZ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))

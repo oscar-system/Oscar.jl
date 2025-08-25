@@ -104,7 +104,35 @@
         @test original == loaded
       end
     end
-    
+
+    @testset "Testing (de)serialization of Matrix{$(T)}" for T in 
+      (
+        UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
+        Int, Int128, Int16, Int32, Int64, Int8,
+        Float16, Float32, Float64
+      )
+      original = [T(1) T(2); T(3) T(4)]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
+    @testset "Testing (de)serialization of Multidimensional Arrays" begin
+      original = [1; 2;; 3; 4;; 5; 6;;;
+                  7; 8;; 9; 10;; 11; 12]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+      F, a = quadratic_field(5)
+      Fxy, (x, y) = F[:x, :y]
+      original = Array{MPolyRingElem, 4}(
+        reshape(reduce(hcat, [x .* Fxy.(original), a .* Fxy.(original)]), 2, 3, 2, 2)
+      )
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
     @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
       (
         (UInt, UInt128), (UInt16, UInt32), (UInt64, UInt8),
@@ -162,11 +190,6 @@
       test_save_load_roundtrip(path, original; params=Qx) do loaded
         @test original == loaded
       end
-    end
-
-    @testset "Test for backwards compatibility" begin
-      loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
-      @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
     end
   end
 end

@@ -30,7 +30,7 @@ module AbelianClosure
 using ..Oscar
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
-             deepcopy_internal, hash, reduce
+             deepcopy_internal, hash, reduce, isinteger
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
@@ -41,7 +41,7 @@ import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic
 import Oscar: pretty, Lowercase
 
 using Hecke
-import Hecke: conductor, data
+import Hecke: conductor, data, is_rational, is_integral, is_algebraic_integer
 
 ################################################################################
 #
@@ -73,7 +73,7 @@ const _QQAb_sparse = QQAbField{AbsNonSimpleNumField}(Dict{Int, AbsNonSimpleNumFi
 Element type for the abelian closure of the rationals.
 For more details see [`abelian_closure(::QQField)`](@ref).
 """
-mutable struct QQAbFieldElem{T} <: Nemo.FieldElem
+struct QQAbFieldElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
@@ -81,7 +81,7 @@ end
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
-mutable struct QQAbFieldGen{T}
+struct QQAbFieldGen{T}
   K::QQAbField{T}
 end
 
@@ -823,37 +823,50 @@ end
 #
 ################################################################################
 
+function neg!(a::QQAbFieldElem)
+  return QQAbFieldElem(neg!(a.data), a.c)
+end
+
 function add!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  b, c = make_compatible(b, c)
-  a, b = make_compatible(a, b)
-  c.data = add!(c.data, a.data, b.data)
-  return c
+  if c.c != a.c
+    return a + b
+  else
+    return QQAbFieldElem(add!(c.data, a.data, b.data), a.c)
+  end
 end
 
 function add!(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  a.data = add!(a.data, b.data)
-  return a
+  return QQAbFieldElem(add!(a.data, b.data), a.c)
 end
 
-function neg!(a::QQAbFieldElem)
-  a.data = neg!(a.data)
-  return a
+function sub!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  if c.c != a.c
+    return a - b
+  else
+    return QQAbFieldElem(sub!(c.data, a.data, b.data), a.c)
+  end
+end
+
+function sub!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  return QQAbFieldElem(sub!(a.data, b.data), a.c)
 end
 
 function mul!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  b, c = make_compatible(b, c)
-  a, b = make_compatible(a, b)
-  c.data = mul!(c.data, a.data, b.data)
-  return c
+  if c.c != a.c
+    return a * b
+  else
+    return QQAbFieldElem(mul!(c.data, a.data, b.data), a.c)
+  end
 end
 
 function mul!(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  a.data = mul!(a.data, b.data)
-  return a
+  return QQAbFieldElem(mul!(a.data, b.data), a.c)
 end
 
 ################################################################################
@@ -927,6 +940,41 @@ AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{Int}) = QQAbFieldElem
 AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{ZZRingElem}) = QQAbFieldElem
 
 AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbFieldElem
+
+###############################################################################
+#
+#  isinteger, is_rational, is_integral
+#
+###############################################################################
+
+@doc raw"""
+    isinteger(a::QQAbFieldElem)
+
+Return whether $a$ is an integer.
+"""
+isinteger(a::QQAbFieldElem) = isinteger(data(a))
+
+@doc raw"""
+    is_rational(a::QQAbFieldElem)
+
+Return whether $a$ is a rational number.
+"""
+is_rational(a::QQAbFieldElem) = is_rational(data(a))
+
+@doc raw"""
+    is_integral(a::QQAbFieldElem)
+
+Returns whether $a$ is integral, that is, whether the minimal
+polynomial of $a$ has integral coefficients.
+"""
+is_integral(a::QQAbFieldElem) = is_integral(data(a))
+
+@doc raw"""
+    is_algebraic_integer(a::QQAbFieldElem)
+
+Return whether $a$ is an algebraic integer.
+"""
+is_algebraic_integer(a::QQAbFieldElem) = is_integral(a)
 
 ###############################################################################
 #
@@ -1017,8 +1065,7 @@ function Oscar.roots(a::QQAbFieldElem{T}, n::Int) where {T}
     _, x = polynomial_ring(parent(a); cached = false)
     fl || return roots(x^n-a)::Vector{QQAbFieldElem{T}}
     b = gens(Hecke.inv(i))[end]
-    c = deepcopy(a)
-    c.data = b
+    c = QQAbFieldElem(b, a.c)
     corr = Hecke.inv(c)
     a *= c^n
     fl = is_root_of_unity(a)

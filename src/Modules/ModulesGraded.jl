@@ -3012,7 +3012,7 @@ by graded submodule of S^1 with 2 generators
 
 ```
 """
-function quotient_ring_as_module(A::MPolyQuoRing)
+function quotient_ring_as_module(A::Union{MPolyQuoRing, MPolyQuoLocRing})
   return quotient_ring_as_module(modulus(A))
 end
 

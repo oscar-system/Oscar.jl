@@ -5,7 +5,7 @@
 @doc raw"""
     is_well_quantized(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux candidate satisfies necessary consistency conditions
+Check whether the given ``G_4``-flux candidate satisfies necessary consistency conditions
 for flux quantization as formulated in [Wit97](@cite):
 
 $G_4 + \frac{1}{2} c_2(\widehat{Y}_4) \in H^{(2,2)}(\widehat{Y}_4, \mathbb{Z})\,.$
@@ -22,13 +22,12 @@ restricts to ``c_2(\widehat{Y}_4)`` on the hypersurface.
 
 If all these integrals evaluate to integers, this method returns `true`; otherwise, it returns `false`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> cohomology_ring(ambient_space(qsm_model), check = false);
-
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -77,9 +76,10 @@ end
 @doc raw"""
     passes_transversality_checks(gf::G4Flux)
 
-Checks whether the ``G_4``-flux satisfies the transversality conditions
-(cf. [Wei18](@cite)). Returns `true` if all conditions are met, otherwise `false`.
+Check whether the ``G_4``-flux satisfies the transversality conditions
+(cf. [Wei18](@cite)). Return `true` if all conditions are met, otherwise `false`.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -115,12 +115,12 @@ G4-flux candidate
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
-  @req has_zero_section_class(m) "Transversality checks require zero section class"
+  @req has_attribute(m, :zero_section_class) "Transversality checks require zero section class"
   
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
    
-  n = ngens(cox_ring(base_space(m)))
+  n = ngens(coordinate_ring(base_space(m)))
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
   zero_sec = zero_section_class(m)
 
@@ -142,13 +142,14 @@ end
 @doc raw"""
     passes_tadpole_cancellation_check(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux satisfies the D3-tadpole cancellation condition. This
+Check whether the given ``G_4``-flux satisfies the D3-tadpole cancellation condition. This
 amounts to verifying that
 
 $\frac{\chi(\widehat{Y}_4)}{24} - \frac{1}{2} \int_{\widehat{Y}_4} G_4 \wedge G_4$
 
 is a non-negative integer.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -192,9 +193,10 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(gf::G4Flux)
 
-Checks whether the given ``G_4``-flux candidate breaks any non-abelian gauge
-symmetries. Returns `true` if any breaking occurs, and `false` otherwise.
+Check whether the given ``G_4``-flux candidate breaks any non-abelian gauge
+symmetries. Return `true` if any breaking occurs, and `false` otherwise.
 
+# Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
@@ -235,11 +237,11 @@ G4-flux candidate
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
 
   # Identify the cohomology classes of all base divisors
-  n = ngens(cox_ring(base_space(m)))
+  n = ngens(coordinate_ring(base_space(m)))
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
 
   # Identify the cohomology classes of all exceptional divisors
-  gS = gens(cox_ring(ambient_space(m)))
+  gS = gens(coordinate_ring(ambient_space(m)))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
   c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]

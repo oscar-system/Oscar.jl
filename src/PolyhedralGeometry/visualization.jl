@@ -1,17 +1,20 @@
 const visual_supported_types = Union{PolyhedralObjectUnion,Graph,SimplicialComplex}
 
 @doc raw"""
-    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{FieldElem, Float64}
+    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...) where T<:Union{FieldElem, Float64}
 
 Visualize a polyhedral object of dimension at most four (in 3-space).
 In dimensions up to 3 a usual embedding is shown.
 Four-dimensional polytopes are visualized as a Schlegel diagram, which is a projection onto one of the facets; e.g., see Chapter 5 of [Zie95](@cite).
 
+The `backend` keyword argument allows the user to pick between a Three.js visualization by default, or passing `:tikz` for a TikZ visualization.
+The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or TikZ code for `:tikz`.
+
 In higher dimensions there is no standard method; use projections to lower dimensions or try ideas from [GJRW10](@cite).
 
 # Extended help
 
-# Keyword Arguments
+# Additional Keyword Arguments
 
 ## Colors
 
@@ -62,10 +65,15 @@ function visualize(
     SubdivisionOfPoints{<:Union{Float64,FieldElem}},
     SimplicialComplex,
   };
-  kwargs...,
+  backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...,
 )
   pmo = _prepare_visualization(P)
-  Polymake.visual(pmo; kwargs...)
+  vpmo = Polymake.visual(Polymake.Visual, pmo; kwargs...)
+  if !isnothing(filename)
+    Polymake.call_function(Nothing, :fan, backend, vpmo; File=filename)
+  else
+    Polymake.call_function(Nothing, :fan, backend, vpmo)
+  end
 end
 
 @doc raw"""
@@ -89,7 +97,9 @@ julia> visualize(P)
 
 ```
 """
-function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
+function visualize(
+  P::Vector; backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...
+)
   P = map(
     p -> begin
       @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
@@ -100,13 +110,18 @@ function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
       Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
     ) for i in 1:length(P)
   ]
-  if isdefined(Main, :IJulia) && Main.IJulia.inited
+  vc = Polymake.call_function(:common, :compose, vis...)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && isnothing(filename)
     # this will return a visual object,
     # the visualization is then triggered by the show method
     return Polymake.call_function(:common, :compose, vis...)
   else
-    # this will call visual in void context and trigger the background viewer
-    Polymake.call_function(Nothing, :common, :compose, vis...)
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :fan, backend, vc; File=filename)
+    else
+      # this will call visual in void context and trigger the background viewer
+      Polymake.call_function(Nothing, :fan, backend, vc)
+    end
     return nothing
   end
 end
