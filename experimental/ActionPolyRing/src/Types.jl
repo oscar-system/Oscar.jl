@@ -8,6 +8,24 @@ abstract type ActionPolyRing{T} <: Ring end
 
 abstract type ActionPolyRingElem{T} <: RingElem end
 
+ # To be implemented by subtypes: 
+ # Mandatory: 
+ #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
+ #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
+ #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
+ #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
+ #   __upr(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
+ #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
+ #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
+ #   __jtu_idx(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, Int}
+ #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
+ #   __are_perms_up_to_date(R::MyActionPolyRing) -> Bool
+ #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
+ #   __is_perm_up_to_date(x::MyActionPolyRing) -> Bool
+ #   ranking(R::MyActionPolyRing) -> ActionPolyRingRanking{MyActionPolyRing{T}}
+ #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.Generic.UnivPoly{T}
+ #
+
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.Generic.UniversalPolyRing{T}
@@ -151,9 +169,7 @@ end
 #   choosing an ordered partition of the set {1, ...,m}, pot and top being the choices of the two trivial
 #   partitions
 
-abstract type ActionRanking end
-
-mutable struct ActionPolyRingRanking{PolyT} <: ActionRanking where {T, PolyT <: ActionPolyRing{T}}
+mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   ring::PolyT
   partition::Vector{Vector{Int}}
   index_ordering_matrix::ZZMatrix
