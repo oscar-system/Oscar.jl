@@ -111,16 +111,13 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
 end
 
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
+  l = length(s.obj)
   load_node(s) do v
     if serialize_with_id(params)
-      loaded_v::Vector{params} = load_array_node(s) do _
-        load_ref(s)
-      end
+      loaded_v = params[load_object(s, UUID, k) for k in 1:l]
     else
       isempty(s.obj) && return params[]
-      loaded_v = load_array_node(s) do obj
-        load_object(s, params)
-      end
+      loaded_v = params[load_object(s, params, k) for k in 1:l]
     end
     return loaded_v
   end
@@ -129,21 +126,20 @@ end
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
   isempty(s.obj) && return T[]
-  v = load_array_node(s) do _
-    if serialize_with_id(T)
-      load_ref(s)
-    else
-      load_object(s, T, params)
-    end
+  l = length(s.obj)
+  if serialize_with_id(T)
+    return T[load_object(s, UUID, k)::T for k in 1:l]
+  else
+    return T[load_object(s, T, params, k) for k in 1:l]
   end
-  return v
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
   isempty(s.obj) && return U[]
-  return load_array_node(s) do _
-    load_object(s, U)
-  end
+  l = length(s.obj)
+  return U[
+    load_object(s, U, k) for k in 1:l
+  ]
 end
 
 ################################################################################
@@ -252,10 +248,11 @@ end
 
 function load_type_params(s::DeserializerState, T::Type{Tuple})
   subtype, params = load_node(s, :params) do _
-    tuple_params = load_array_node(s) do _
-      U = decode_type(s)
-      load_type_params(s, U)
-    end
+    l = length(s.obj)
+    U = decode_type(s)
+    tuple_params = [
+      load_type_params(s, U, k) for k in 1:l
+    ]
     return Tuple([x[1] for x in tuple_params]), Tuple(x[2] for x in tuple_params)
   end
   return T{subtype...}, params
@@ -278,7 +275,7 @@ function load_object(s::DeserializerState, T::Type{<:Tuple}, params::Tuple)
   entries = load_array_node(s) do (i, entry)
     S = fieldtype(T, i)
     if serialize_with_id(S)
-      return load_ref(s)
+      return load_object(s, UUID)
     else
       return load_object(s, S, params[i])
     end
@@ -326,7 +323,7 @@ function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
 end
 
 function load_type_params(s::DeserializerState, T::Type{NamedTuple})
-  subtype, params = load_node(s, :params) do obj
+  subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s, :tuple_params) do _
       U = decode_type(s)
       load_type_params(s, U)
@@ -395,7 +392,7 @@ function save_type_params(
 end
 
 function load_type_params(s::DeserializerState, T::Type{Dict})
-  subtype, params = load_node(s, :params) do obj
+  subtype, params = load_node(s, :params) do _
     if haskey(s, :value_params)
       S, key_params = load_node(s, :key_params) do params
         params isa String && return decode_type(s), nothing

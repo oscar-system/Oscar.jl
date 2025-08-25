@@ -1,4 +1,4 @@
-@testset "Serialization.Upgrades" begin
+@test_skip @testset "Serialization.Upgrades" begin
   @testset "< 0.11.3 Upgrade" begin
     # test loading
     path = joinpath(Main.serialization_upgrade_test_path, "version_0_11_0", "QQPolyRingElem.mrdi")

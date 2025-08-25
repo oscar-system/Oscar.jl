@@ -122,20 +122,7 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)
-  if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      id = s.obj
-      obj = s.obj
-      if isnothing(s.refs)
-        return typeof(global_serializer_state.id_to_obj[UUID(id)])
-      end
-      s.obj = s.refs[Symbol(id)]
-      T = decode_type(s)
-      s.obj = obj
-      return T
-    end
-    return decode_type(s.obj)
-  end
+  s.obj isa String && return decode_type(s.obj)
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
@@ -245,7 +232,9 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   if serialize_with_id(x)
     # key should already be set before function call
     ref = save_as_ref(s, x)
-    save_object(s, ref)
+    save_data_dict(s) do
+      save_typed_object(s, ref)
+    end
   else
     save_data_dict(s) do
       save_typed_object(s, x)
@@ -329,7 +318,9 @@ function save_type_params(s::SerializerState,
             save_data_array(s, Symbol(param.first)) do
               for entry in param.second
                 if serialize_with_id(entry)
-                  save_object(s, save_as_ref(s, entry))
+                  save_data_dict(s) do 
+                    save_typed_object(s, save_as_ref(s, entry))
+                  end
                 else
                   save_data_dict(s) do
                     save_typed_object(s, entry)
@@ -357,19 +348,13 @@ end
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do obj
     T = decode_type(s)
-    if obj isa String
-      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-      return T
-    end
+    obj isa String && return T
     return load_type_params(s, T)[2]
   end
 end
 
 function load_type_params(s::DeserializerState, T::Type)
   if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      return T, load_ref(s)
-    end
     return T, nothing
   end
   if haskey(s, :params)
@@ -391,11 +376,8 @@ function load_type_params(s::DeserializerState, T::Type)
             if obj isa JSON3.Array || obj isa Vector
               return load_type_array_params(s)
             end
-            
             U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
-              return U
-            end
+            obj isa String && return U
             return load_type_params(s, U)[2]
           end
         end
@@ -428,7 +410,6 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   obj = load_node(s, :data) do _
@@ -446,8 +427,15 @@ end
 
 function load_object(s::DeserializerState, T::Type, params::S,
                      key::Union{Symbol, Int}) where S
+  load_node(s, T, key) do _
+    load_object(s, T, params)::T
+  end::T
+end
+
+function load_object(s::DeserializerState, ::Type{UUID}, params::S,
+                     key::Union{Symbol, Int}) where S
   load_node(s, key) do _
-    load_object(s, T, params)
+    load_object(s, UUID, params)
   end
 end
 
@@ -469,7 +457,7 @@ function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+    for attr in keys(s)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -755,9 +743,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
-    id = s.obj[:id]
-    if haskey(global_serializer_state.id_to_obj, UUID(id))
-      return global_serializer_state.id_to_obj[UUID(id)]
+    id = UUID(s.obj[:id])
+    if haskey(global_serializer_state.id_to_obj, id)
+      return global_serializer_state.id_to_obj[id]
     end
   end
 
@@ -819,7 +807,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_typed_object(s; override_params=params)
     end
 
-    if :id in keys(s.obj)
+    if haskey(s, :id)
       load_node(s, :id) do id
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
