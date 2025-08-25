@@ -2,7 +2,19 @@
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
 
-@register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group, :cohomology_ring, :is_complete, :is_smooth, :is_simplicial]
+toric_serialization_list = [
+:cox_ring,
+:map_from_character_lattice_to_torusinvariant_weil_divisor_group,
+:map_from_torusinvariant_cartier_divisor_group_to_class_group,
+:map_from_torusinvariant_cartier_divisor_group_to_picard_group,
+:map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group,
+:map_from_torusinvariant_weil_divisor_group_to_class_group,
+:cohomology_ring,
+:is_complete,
+:is_smooth,
+:is_simplicial]
+
+@register_serialization_type NormalToricVariety uses_id toric_serialization_list
 
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
   save_object(s, ntv.polymakeNTV)

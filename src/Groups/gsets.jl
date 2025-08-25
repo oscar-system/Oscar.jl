@@ -24,6 +24,114 @@ import Hecke.orbit
 
 
 """
+    acting_group(Omega::GSet)
+
+Return the group `G` acting on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> acting_group(gset(G, [1])) == G
+true
+```
+"""
+function acting_group(Omega::GSet)
+  throw(NotImplementedError(:acting_group, Omega))
+end
+
+@doc raw"""
+    action_function(Omega::GSet)
+
+Return the function $f: \Omega \times G \to \Omega$ that defines the G-set.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> action_function(gset(G, [1])) == ^
+true
+
+julia> action_function(gset(G, [[1, 2]])) == on_tuples
+true
+
+julia> action_function(gset(G, on_sets, [[1, 2]])) == on_sets
+true
+```
+"""
+function action_function(Omega::GSet)
+  throw(NotImplementedError(:action_function, Omega))
+end
+
+"""
+    action_homomorphism(Omega::GSet)
+
+Return the group homomorphism `act` with domain `G = acting_group(Omega)`
+and codomain `symmetric_group(n)` that describes the permutation action
+of `G` on `Omega`, where `Omega` has `n` elements.
+
+This means that if an element `g` in `G` maps `collect(Omega)[i]` to
+`collect(Omega)[j]` then `act(g)` maps `i` to `j`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
+
+julia> acthom = action_homomorphism(Omega)
+Group homomorphism
+  from symmetric group of degree 6
+  to symmetric group of degree 15
+
+julia> g = gen(G, 1)
+(1,2,3,4,5,6)
+
+julia> elms = collect(Omega);
+
+julia> actg = acthom(g)
+(1,2,3,5,7,10)(4,6,8,11,14,13)(9,12,15)
+
+julia> elms[1]^g == elms[2]
+true
+
+julia> 1^actg == 2
+true
+```
+"""
+function action_homomorphism(Omega::GSet)
+  throw(NotImplementedError(:action_homomorphism, Omega))
+end
+
+"""
+    orbit(Omega::GSet, omega)
+
+Return the G-set that consists of the elements `fun(omega, g)` where
+`g` is in the group of `Omega` and `fun` is the underlying action of `Omega`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Permutation group of degree 6 and order 16
+
+julia> Omega = gset(G, [1, 5]);
+
+julia> length(orbit(Omega, 1))
+4
+```
+"""
+function orbit(Omega::GSet, omega)
+  throw(NotImplementedError(:orbit, Omega))
+end
+
+# Do not check equality of G-sets via `===` (the default),
+# and do not provide dedicated `==` methods for G-sets.
+function ==(Omega1::GSet, Omega2::GSet)
+  throw(NotImplementedError(:(==), (Omega1, Omega2)))
+end
+
+
+"""
     GSetByElements{T,S} <: GSet{T,S}
 
 Objects of this type represent G-sets that are willing to write down
@@ -71,41 +179,8 @@ function Base.show(io::IO, x::GSetByElements)
   end
 end
 
-"""
-    acting_group(Omega::GSetByElements)
-    acting_group(Omega::GSetBySubgroupTransversal)
-
-Return the group `G` acting on `Omega`.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(4);
-
-julia> acting_group(gset(G, [1])) == G
-true
-```
-"""
 acting_group(Omega::GSetByElements) = Omega.group
 
-@doc raw"""
-    action_function(Omega::GSetByElements)
-
-Return the function $f: \Omega \times G \to \Omega$ that defines the G-set.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(4);
-
-julia> action_function(gset(G, [1])) == ^
-true
-
-julia> action_function(gset(G, [[1, 2]])) == on_tuples
-true
-
-julia> action_function(gset(G, on_sets, [[1, 2]])) == on_sets
-true
-```
-"""
 action_function(Omega::GSetByElements) = Omega.action_function
 
 # The following works for all G-set types that support attributes
@@ -324,8 +399,7 @@ function _induced_action_function(Omega::GSetByElements{T, S}, phi::Map{U, T}) w
 end
 
 @doc raw"""
-    induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
-    induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+    induce(Omega::GSet, phi::GAPGroupHomomorphism)
 
 Return the G-set that is obtained by inducing the G-set `Omega` along `phi`.
 
@@ -375,7 +449,7 @@ function ^(omega::ElementOfGSet, g::T) where {T<:GroupElem}
 end
 
 ==(omega1::ElementOfGSet, omega2::ElementOfGSet) =
-  ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
+  ((omega1.gset === omega2.gset) && (omega1.obj == omega2.obj))
 
 function Base.hash(omega::ElementOfGSet, h::UInt)
   b = 0x4dd1b3e65edeab89 % UInt
@@ -824,42 +898,6 @@ end
 ##
 ##  action homomorphisms
 
-"""
-    action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
-
-Return the group homomorphism `act` with domain `G = acting_group(Omega)`
-and codomain `symmetric_group(n)` that describes the permutation action
-of `G` on `Omega`, where `Omega` has `n` elements.
-
-This means that if an element `g` in `G` maps `collect(Omega)[i]` to
-`collect(Omega)[j]` then `act(g)` maps `i` to `j`.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(6);
-
-julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
-
-julia> acthom = action_homomorphism(Omega)
-Group homomorphism
-  from symmetric group of degree 6
-  to symmetric group of degree 15
-
-julia> g = gen(G, 1)
-(1,2,3,4,5,6)
-
-julia> elms = collect(Omega);
-
-julia> actg = acthom(g)
-(1,2,3,5,7,10)(4,6,8,11,14,13)(9,12,15)
-
-julia> elms[1]^g == elms[2]
-true
-
-julia> 1^actg == 2
-true
-```
-"""
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = acting_group(Omega)
   omega_list = GAP.Obj(collect(Omega))

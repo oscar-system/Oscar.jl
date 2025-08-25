@@ -29,7 +29,7 @@ function command_string(v::NormalToricVarietyType, c::Vector{ZZRingElem})
     # Join and return
     return join(string_list, ";")
 end
-command_string(v::NormalToricVarietyType) = command_string(v, [ZZRingElem(0) for i in 1:torsion_free_rank(picard_group(v))])
+command_string(v::NormalToricVarietyType) = command_string(v, [ZZRingElem(0) for i in 1:torsion_free_rank(picard_group_with_map(v)[1])])
 
 
 

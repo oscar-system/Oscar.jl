@@ -317,7 +317,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   for (key, value) in cl_of_secs
     @req is_effective(value) "Encountered a non-effective (internal) divisor class"
     if model_dict["arxiv_data"]["id"] == "1109.3454" && key == "w" && dim(base_space) == 3
-      if torsion_free_rank(class_group(base_space)) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
+      if torsion_free_rank(class_group_with_map(base_space)[1]) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
         model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
       else
         model_sections[key] = generic_section(toric_line_bundle(value))
@@ -329,7 +329,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # Construct the model
   auxiliary_ring, _ = polynomial_ring(QQ, tune_sec_names, cached=false)
-  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in tune_sec_names])
+  map = hom(auxiliary_ring, coordinate_ring(base_space), [model_sections[k] for k in tune_sec_names])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -407,7 +407,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     # Compute the hypersurface equation and its parametrization
     auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(tune_sec_names, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
-    base_coordinates = string.(gens(cox_ring(base_space)))
+    base_coordinates = string.(gens(coordinate_ring(base_space)))
     auxiliary_ambient_ring2, _ = polynomial_ring(QQ, vcat(base_coordinates, fiber_amb_coordinates), cached=false)
     images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in tune_sec_names]
     images2 = [eval_poly(string(k), auxiliary_ambient_ring2) for k in fiber_amb_coordinates]
@@ -577,7 +577,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
 
   R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))), cached = false)
-  f = hom(R, cox_ring(base_space(model)), collect(values(explicit_model_sections(model))))
+  f = hom(R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model))))
 
   if haskey(model_dict["model_data"], "resolution_generating_sections")    
     vs = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
@@ -622,7 +622,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     
     divs = torusinvariant_prime_divisors(ambient_space(model))
     cohomology_ring(ambient_space(model); check=false)
-    cox_gens = symbols(cox_ring(ambient_space(model)))
+    cox_gens = symbols(coordinate_ring(ambient_space(model)))
 
     if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
       desired_value = Symbol(string.(model_dict["model_data"]["zero_section_class"]))
