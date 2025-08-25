@@ -39,7 +39,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   # load graph properties
   pm_ptree.ADJACENCY
 
-  return PhylogeneticTree{T}(pm_ptree, 1)
+  return PhylogeneticTree{T}(pm_ptree)
 end
 
 @doc raw"""
@@ -88,8 +88,35 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   return PhylogeneticTree{QQFieldElem}(pm_ptree, 1)
 end
 
-function phylogenetic_tree(G::Graph{Directed})
+
+function _newick(g::Graph, v::Int)
+  lvs = leaves(g)
+  distance = 1
+
+  if v in lvs
+    label = has_attribute(g, :species) ? g.species[v] : "v$v"
+    #TODO read this from graph if it exists
+    return "$label:$distance"
+  else
+    return "(" * join(map(v -> _newick(g, v), outneighbors(g, v)), ",") * "):$distance"
+  end
+end
+
+#TODO add example to the docs
+function newick(g::Graph{Directed})
+  @req is_tree(g) "Graph $g is not a tree"
+  r = root(g)
+  return join(map(v -> _newick(g, v), outneighbors(g, r)), ",") * ";"
+end
+
+#TODO add example to the docs
+function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
+                           G::Graph{Directed};
+                           check=false)
+  @req !check || is_tree(G) "Input must be a tree "
+  pt = phylogenetic_tree(T, newick(G))
   
+  return pt
 end
 
 @doc raw"""
