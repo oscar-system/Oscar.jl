@@ -207,6 +207,8 @@ export ToricVanishingSet
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
+export TropicalPointConfiguration
+export TropicalPolyhedron
 export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
@@ -488,6 +490,7 @@ export coroots
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export cotangent_sheaf
+export covector_decomposition
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -1195,6 +1198,7 @@ export maximal_cells
 export maximal_chains
 export maximal_cliques
 export maximal_cones
+export maximal_covectors
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
@@ -1477,6 +1481,7 @@ export projective_unitary_group
 export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
+export pseudovertices
 export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
@@ -1765,9 +1770,12 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
+export tropical_convex_hull
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
+export tropical_point_configuration
+export tropical_polyhedron
 export tropical_polynomial
 export tropical_prevariety
 export tropical_variety
@@ -1852,3 +1860,4 @@ export young_tableau
 export zero_section
 export zonotope
 export zonotope_vertices_fukuda_matrix
+export n_pseudovertices
