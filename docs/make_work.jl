@@ -75,7 +75,12 @@ function setup_experimental_package(Oscar::Module, package_name::String)
 
   # Read doc.main of package
   exp_s = read(doc_main_path, String)
-  exp_doc = eval(Meta.parse(exp_s))
+  exp_doc = try
+    eval(Meta.parse(exp_s))
+  catch
+    println("error while parsing $doc_main_path:")
+    rethrow()
+  end
 
   # Prepend path
   prefix = "Experimental/" * package_name * "/"

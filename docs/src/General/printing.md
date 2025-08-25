@@ -6,7 +6,8 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Printing Options
 
-## The 2 + 1 print modes of Oscar
+## The 2 + 1 print modes of OSCAR
+
 OSCAR has two user print modes `detailed` and `one line` and one internal
 print mode `terse`. The latter is for use during recursion,
 e.g. to print the `base_ring(X)` when in `one line` mode.
@@ -87,6 +88,8 @@ Affine variety
   in 𝔸² over QQ with coordinates [x, y]
 defined by ideal (x, y)
 ```
+
+See also section [Supporting unicode printing](@ref) for additional information.
 
 ## LaTeX and HTML printing
 
