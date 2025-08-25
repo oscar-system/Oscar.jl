@@ -4,16 +4,10 @@
 """
 function complex_faces_by_dimension(K :: SimplicialComplex; mindim::Int=0)
   po = face_poset(K)
-  faces_by_dim = [Set{Set{Int}}() for _ in 1:rank(po)]
-  HD = K.pm_simplicialcomplex.HASSE_DIAGRAM
-  for i in 1:length(po)
-    d = HD.DECORATION[i]
-    Polymake.decoration_rank(d) < mindim && continue
-    Polymake.decoration_face(d) == Set([-1]) && continue
-    push!(faces_by_dim[Polymake.decoration_rank(d)],
-          Polymake.to_one_based_indexing(Polymake.decoration_face(d)))
-  end
-  return faces_by_dim
+  return map(k -> Set(Set{Int}.(
+    data.(
+      elements_of_rank(po, k))
+  )), 1:rank(po))
 end
 
 @doc raw"""
