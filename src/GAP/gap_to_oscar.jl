@@ -67,7 +67,7 @@ function QQAbFieldElem(a::GapInt)
   return z
 end
 
-GAP.gap_to_julia(::Type{QQAbFieldElem}, a::GapInt; recursive::Bool = true) = QQAbFieldElem(a)
+GAP.gap_to_julia_internal(::Type{QQAbFieldElem}, obj::GapInt, ::GAP.JuliaCacheDict, ::Val{recursive}) where recursive = QQAbFieldElem(obj)
 
 (::QQAbField)(a::GapObj) = QQAbFieldElem(a)
 
