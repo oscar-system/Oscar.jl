@@ -1,12 +1,10 @@
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
-  root::Int
 end
 
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
-root(PT::PhylogeneticTree) = PT.root
 
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
@@ -112,9 +110,9 @@ function adjacency_tree(ptree::PhylogeneticTree)
 
   dir_tree = Graph{Directed}(n)
 
-  queue = [root(ptree)]
+  queue = [1]
   visited = fill(false, n)
-  visited[root(ptree)] = true
+  visited[1] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
