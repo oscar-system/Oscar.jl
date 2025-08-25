@@ -340,7 +340,11 @@ end
 # differently.
 =#
 function simplify(c::FreeResolution{T}) where T
-  cut_off = length(c.C.maps)-2
+  if is_complete(c)
+    cut_off = length(c)+1
+  else
+    cut_off = length(c)
+  end
   simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
   phi = map_to_original_complex(simp)
   result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
@@ -378,6 +382,10 @@ function simplify(c::FreeResolution{T}) where T
                  :show=>Hecke.pres_show, 
                  :free_res=>get_attribute(c.C, :free_res)
                 )
+  result.fill = c.C.fill
+  if result.fill == _extend_free_resolution
+    set_attribute!(result, :algorithm => :mres)
+  end
   return FreeResolution(result)
 end
 
@@ -485,7 +493,9 @@ function minimize(c::FreeResolution; check::Bool=true)
   if !is_graded(c[-1]) 
     @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
   end
-  return simplify(c)
+  cm = simplify(c)
+  set_attribute!(cm.C, :minimal=>true)
+  return cm
 end
 
 function simplify(c::ComplexOfMorphisms)

@@ -17,10 +17,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> f = family_of_spaces(ring, grading, d)
+julia> f = family_of_spaces(ring, grading, 3)
 Family of spaces of dimension d = 3
 
 julia> coordinate_ring(f)
@@ -32,9 +29,6 @@ Multivariate polynomial ring in 4 variables over QQ graded by
 ```
 """
 coordinate_ring(f::FamilyOfSpaces) = f.coordinate_ring
-
-# For convenience, so that this space behaves similar to a toric variety.
-cox_ring(f::FamilyOfSpaces) = f.coordinate_ring
 
 
 @doc raw"""
@@ -52,10 +46,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> f = family_of_spaces(ring, grading, d)
+julia> f = family_of_spaces(ring, grading, 3)
 Family of spaces of dimension d = 3
 
 julia> weights(f)
@@ -82,10 +73,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> f = family_of_spaces(ring, grading, d)
+julia> f = family_of_spaces(ring, grading, 3)
 Family of spaces of dimension d = 3
 
 julia> dim(f)
@@ -115,10 +103,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> f = family_of_spaces(coord_ring, grading, d)
+julia> f = family_of_spaces(coord_ring, grading, 3)
 Family of spaces of dimension d = 3
 
 julia> irrelevant_ideal(f)

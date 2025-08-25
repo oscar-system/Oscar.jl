@@ -34,8 +34,6 @@ over an unspecified base:
 # Examples
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> coordinate_ring(ambient_space(t))
@@ -61,8 +59,6 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 
@@ -77,11 +73,11 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 
@@ -98,11 +94,11 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
-julia> length(singular_loci(w))
+julia> using Random;
+
+julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
 ```
 
@@ -113,8 +109,6 @@ hypersurface model. This works as follows:
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
-Assuming that the first row of the given grading is the grading under Kbar
-
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
@@ -132,8 +126,6 @@ julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation_parametrization(h2)
@@ -227,7 +219,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
 
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
-    @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
+    @vprint :FTheoryModelPrinter 1 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   else
     model = _construct_literature_model_over_arbitrary_base(model_dict)
@@ -325,7 +317,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   for (key, value) in cl_of_secs
     @req is_effective(value) "Encountered a non-effective (internal) divisor class"
     if model_dict["arxiv_data"]["id"] == "1109.3454" && key == "w" && dim(base_space) == 3
-      if torsion_free_rank(class_group(base_space)) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
+      if torsion_free_rank(class_group_with_map(base_space)[1]) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
         model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
       else
         model_sections[key] = generic_section(toric_line_bundle(value))
@@ -337,7 +329,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # Construct the model
   auxiliary_ring, _ = polynomial_ring(QQ, tune_sec_names, cached=false)
-  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in tune_sec_names])
+  map = hom(auxiliary_ring, coordinate_ring(base_space), [model_sections[k] for k in tune_sec_names])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -415,7 +407,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     # Compute the hypersurface equation and its parametrization
     auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(tune_sec_names, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
-    base_coordinates = string.(gens(cox_ring(base_space)))
+    base_coordinates = string.(gens(coordinate_ring(base_space)))
     auxiliary_ambient_ring2, _ = polynomial_ring(QQ, vcat(base_coordinates, fiber_amb_coordinates), cached=false)
     images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in tune_sec_names]
     images2 = [eval_poly(string(k), auxiliary_ambient_ring2) for k in fiber_amb_coordinates]
@@ -585,7 +577,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
 
   R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))), cached = false)
-  f = hom(R, cox_ring(base_space(model)), collect(values(explicit_model_sections(model))))
+  f = hom(R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model))))
 
   if haskey(model_dict["model_data"], "resolution_generating_sections")    
     vs = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
@@ -630,7 +622,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     
     divs = torusinvariant_prime_divisors(ambient_space(model))
     cohomology_ring(ambient_space(model); check=false)
-    cox_gens = symbols(cox_ring(ambient_space(model)))
+    cox_gens = symbols(coordinate_ring(ambient_space(model)))
 
     if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
       desired_value = Symbol(string.(model_dict["model_data"]["zero_section_class"]))

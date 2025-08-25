@@ -32,7 +32,7 @@ Automorphism group of
 function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
-  aut = AutomorphismGroup(AutGAP, G)
+  aut = AutomorphismGroup(AutGAP, G, true)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
@@ -249,7 +249,7 @@ end
 Return a matrix inducing `f`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//12 0; 0 2//9]));
 
 julia> OT = orthogonal_group(T)

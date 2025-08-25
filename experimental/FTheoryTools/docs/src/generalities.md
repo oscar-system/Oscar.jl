@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# [Functionality for all F-theory Models](@id functionality_for_all_f_theory_models)
+# [Common Model Ops](@id common_model_ops)
 
 All F-theory models describe elliptic (or genus-one) fibrations. While implementation details vary by
 model—e.g. [Weierstrass Model](@ref weierstrass_model), [Global Tate Model](@ref global_tate_model),
@@ -13,15 +13,28 @@ of functionality is shared across them. This page documents that common interfac
 
 ---
 
+## Printouts and Verbosity Control
+
+To receive diagnostic information (e.g. for debugging or introspection), set the verbosity level as follows:
+
+```julia
+set_verbosity_level(:FTheoryModelPrinter, 1)
+```
+
+More details on verbosity settings are available [here](https://nemocas.github.io/AbstractAlgebra.jl/dev/assertions/#AbstractAlgebra.@vprint).
+
+---
+
 ## Model Geometry and Base Specification
 
 These attributes describe the geometric building blocks of the F-theory model—its ambient space, fiber
-ambient space, and base.
+ambient space, base space and the Calabi–Yau hypersurface.
 
 ```@docs
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
+calabi_yau_hypersurface(m::AbstractFTheoryModel)
 ```
 
 You can also check whether the base space is fully specified as a concrete geometry, or whether it is
@@ -33,12 +46,7 @@ is_base_space_fully_specified(m::AbstractFTheoryModel)
 
 ---
 
-## Topological Invariants: Chern Classes and Hodge Numbers
-
-This section provides access to key topological data of the elliptically fibered Calabi–Yau space underlying
-any F-theory model.
-
-### Chern Classes and Euler Characteristic
+## Chern Classes and Euler Characteristic
 
 The Chern classes of the variety can be computed—or retrieved if precomputed (e.g. in
 [Literature Models](@ref literature_models))—using:
@@ -60,7 +68,9 @@ The Euler characteristic is obtained by integrating the top Chern class:
 euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
-### [Hodge Numbers](@id non_yet_algorithmic_advanced_attributes)
+---
+
+## [Hodge Numbers](@id non_yet_algorithmic_advanced_attributes)
 
 Hodge numbers are essential topological invariants of Calabi–Yau spaces. While not yet (July 2025)
 computed algorithmically, they are stored for certain [Literature Models](@ref literature_models)
@@ -80,6 +90,19 @@ If Hodge numbers are available, they can be used to verify the Euler characteris
 ```@docs
 verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
 ```
+
+---
+
+## [Base Intersection Numbers](@id base_top_data)
+
+The following method returns the triple self-intersection number of the anticanonical class
+``\overline{K}_{B_3}`` of the 3-dimensional base:
+
+```@docs
+kbar3(m::AbstractFTheoryModel)
+```
+
+This number is of ample importance to the F-theory QSMs introduced in [CHLLT19](@cite).
 
 ---
 
@@ -135,6 +158,12 @@ visible in the original model and those that may arise after resolution.
 ```@docs
 generating_sections(::AbstractFTheoryModel)
 torsion_sections(::AbstractFTheoryModel)
+```
+
+You can also add new instances of these two with the following functionality.
+```@docs
+add_generating_section!(m::AbstractFTheoryModel, addition::Vector{String})
+add_torsion_section!(m::AbstractFTheoryModel, addition::Vector{String})
 ```
 
 ---

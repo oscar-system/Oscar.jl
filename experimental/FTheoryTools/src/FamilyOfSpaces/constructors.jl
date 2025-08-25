@@ -35,10 +35,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> family_of_spaces(coord_ring, grading, d)
+julia> family_of_spaces(coord_ring, grading, 3)
 Family of spaces of dimension d = 3
 ```
 """
@@ -64,10 +61,7 @@ julia> grading = [4 6 1 0; 0 0 0 1]
 
 julia> graded_coord_ring, _ = grade(coord_ring, grading);
 
-julia> d = 3
-3
-
-julia> family_of_spaces(graded_coord_ring, d)
+julia> family_of_spaces(graded_coord_ring, 3)
 Family of spaces of dimension d = 3
 ```
 """

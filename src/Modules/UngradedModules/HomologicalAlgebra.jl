@@ -477,7 +477,7 @@ end
 
 #############################
 @doc raw"""
-    homology(C::ComplexOfMorphisms{<:ModuleFP})
+    homology(C::ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
 
 Return the homology of `C`.
 
@@ -515,7 +515,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
+function homology(C::Hecke.ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
@@ -525,7 +525,7 @@ end
 
 
 @doc raw"""
-    homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
+    homology(C::ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
 
 Return the `i`-th homology module of `C`.
 
@@ -553,7 +553,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
+function homology(C::Hecke.ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
   chain_range = Hecke.range(C)
   map_range = Hecke.map_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
@@ -561,7 +561,7 @@ function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
     return kernel(map(C, first(map_range)))[1]
   elseif i == last(chain_range)
     f = map(C,last(map_range))
-    return cokernel(f)    
+    return cokernel(f)
   elseif i in chain_range
     if Hecke.is_chain_complex(C)
       return quo_object(kernel(map(C,i))[1], image(map(C,i+1))[1])

@@ -10,20 +10,25 @@ In F-theory, the standard approach to handling singular geometries is to replace
 via **crepant resolutions**. This process preserves the Calabi–Yau condition and ensures the correct encoding
 of physical data. However, several important caveats apply:
 
-- Not all singularities admit crepant resolutions, rather some singularities are obstructed from being resolved without violating the Calabi–Yau condition.
-- No general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**, which we will discuss below.
+- Not all singularities admit crepant resolutions; some singularities are obstructed from being resolved without violating the Calabi–Yau condition.
+- No general algorithm is known for computing a crepant resolution of a given singular geometry. In practice, one applies all known resolution techniques, guided by mathematical structure and physical expectations. A particularly prominent strategy is a sequence of **blowups**, which we discuss below.
 
 After applying a resolution strategy, one obtains a **partially resolved** model. For the reasons stated above,
-we do not currently verify whether the model has been fully resolved—i.e., whether all resolvable
-singularities have been removed crepantly to the extent possible:
+we do currently no verify whether the model has been fully resolved — i.e., whether all resolvable singularities
+have been removed crepantly to the extent possible. Instead, the following method returns `true` if resolution
+techniques were applied and `false` otherwise.
 
 ```@docs
 is_partially_resolved(m::AbstractFTheoryModel)
 ```
 
+---
+
 ## Blowups
 
-We can execute individual blowups, be they toric or not, with the following functions:
+### Manually Applying Individual Blowups
+
+You can execute individual blowups, whether toric or not, using the following methods:
 
 ```@docs
 blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -31,15 +36,25 @@ blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
 blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 ```
 
-Typically, an entire sequence of blowups is needed to resolve an F-Theory model. If known, it
-can therefore be advantageous to inform the model of the resolution:
+### [Registering And Extracting Known Resolution Sequences](@id working_with_resolution_sequences)
+
+Typically, a full resolution requires a sequence of blowups. The known (weighted) blowup resolution
+sequences, can be accessed with the following methods.
 
 ```@docs
-add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+resolutions(::AbstractFTheoryModel)
+weighted_resolutions(::AbstractFTheoryModel)
 ```
 
-Subsequently, the following method can be used to execute the entire sequence of blowups all
-at once:
+If beyond this, a resolution sequence is known, it is advantageous to
+register it with the model:
+
+```@docs
+add_resolution!(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+add_weighted_resolution!(m::AbstractFTheoryModel, centers::Vector{Tuple{Vector{String}, Vector{Int64}}}, exceptionals::Vector{String})
+```
+
+Once registered, the following method applies the complete sequence of blowups in a single step:
 
 ```@docs
 resolve(m::AbstractFTheoryModel, index::Int)
@@ -47,79 +62,47 @@ resolve(m::AbstractFTheoryModel, index::Int)
 
 ---
 
-## Resolutions and Section Data
+## [Resolution Metadata Functions](@id resolution_meta_data)
 
-The following functions describe known crepant resolutions of singularities and their associated sections. The
-resolution data is represented as blow-up centers and corresponding exceptional divisors, either in standard or
-weighted format. Generating and zero sections are tracked for each resolution when known.
-
-Return the list of all known resolutions for the given model. If no resolutions are known, an error is raised.
-
-```@docs
-resolutions(::AbstractFTheoryModel)
-```
-
-Return a list of known Mordell–Weil zero sections for the given model after each blowup of each known resolution.
-Each element of the list corresponds to a known resolution (in the same order). If no resolution zero sections are
-known, an error is raised.
+These methods retrieve known resolution associated section data.
 
 ```@docs
 resolution_zero_sections(::AbstractFTheoryModel)
-```
-
-Return a list of lists of known Mordell–Weil generating sections for the given model after each known resolution.
-Each element of the outer list corresponds to a known resolution (in the same order), and each element of the list
-associated to a given resolution corresponds to a known generating section (in the same order). If no resolution
-generating sections are known, an error is raised.
-
-```@docs
 resolution_generating_sections(::AbstractFTheoryModel)
-```
-
-Return the list of all known weighted resolutions for the given model. If no weighted resolutions are known, an error
-is raised.
-
-```@docs
-weighted_resolutions(::AbstractFTheoryModel)
-```
-
-Return a list of known Mordell–Weil zero sections for the given model after each known weighted resolution. Each element of
-the list corresponds to a known weighted resolution (in the same order). If no weighted resolution zero sections are known,
-an error is raised.
-
-```@docs
 weighted_resolution_zero_sections(::AbstractFTheoryModel)
+weighted_resolution_generating_sections(::AbstractFTheoryModel)
 ```
 
-Return a list of lists of known Mordell–Weil generating sections for the given model after each known weighted resolution.
-Each element of the outer list corresponds to a known weighted resolution (in the same order), and each element of the list
-associated to a given weighted resolution corresponds to a known generating section (in the same order). If no weighted
-resolution generating sections are known, an error is raised.
+You can also add to this information, if more generating sections or zero sections are known.
 
 ```@docs
-weighted_resolution_generating_sections(::AbstractFTheoryModel)
+add_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
+add_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
+add_weighted_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
+add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
 ```
 
 ---
 
-## Exceptional Divisors
+## [Exceptional Divisors](@id exceptional_divisors)
+
+The following methods return information on exceptional divisors introduced by toric blowups.
+Therefore, these attributes are only available for models build over a concrete toric base space.
 
 ```@docs
 exceptional_classes(::AbstractFTheoryModel)
 exceptional_divisor_indices(::AbstractFTheoryModel)
 ```
 
-These functions return information on exceptional divisors introduced by toric blowups. Available only for models over a concrete
-base that is a `NormalToricVariety`. The cohomology classes are expressed in the toric ambient space.
-
 ---
 
-## Analyzing the resolved Fiber Structure
+## Analyzing the Resolved Fiber Structure
 
-The following is currently only supported for [Global Tate Models](@ref global_tate_models).
+> **Note**: This functionality is currently only supported for [Global Tate Models](@ref global_tate_models).
 
-After resolution, one typically studies the structure of the (resolved) fibers to extract intersection numbers and
-representation theory information. The following method computes the fiber components and their intersection graph:
+After resolution, one typically studies the structure of the resolved fibers to extract intersection numbers
+and representation-theoretic data. The method below computes the fiber components and their intersection graph
+in codimension one of the base space:
 
 ```@docs
 analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})

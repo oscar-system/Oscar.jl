@@ -44,7 +44,7 @@ function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
   if !has_attribute(m, :chern_classes)
     cs = Dict{Int64, CohomologyClass}()
     cs[0] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)), quick = true)
-    diff = degree(leading_term(hypersurface_equation(m))) - sum(cox_ring(ambient_space(m)).d)
+    diff = degree(leading_term(hypersurface_equation(m))) - sum(coordinate_ring(ambient_space(m)).d)
     cs[1] = cohomology_class(toric_divisor_class(ambient_space(m), diff), quick = true)
     set_attribute!(m, :chern_classes, cs)
     if k == 0
@@ -134,9 +134,6 @@ error.
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
-
-julia> h = euler_characteristic(qsm_model; check = false)
-378
 
 julia> h = euler_characteristic(qsm_model; check = false)
 378
