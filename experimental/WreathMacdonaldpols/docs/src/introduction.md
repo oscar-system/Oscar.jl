@@ -38,6 +38,7 @@ of ``\mathbb{Z}^r`` of elements summing up to zero.\
 
 It is equivalent to the data of a partition ``\lambda`` such that ``|\mathrm{quot}_r(\lambda)|=n`` and an element ``\omega \in \mathfrak{S}_r``. Indeed the ``\mathrm{quot}_r(\lambda)`` is an ``r``-multipartition of ``n``. Moreover, the set of ``r``-cores is in bijection with the coroot lattice of type ``A_{r-1}`` (note that this bijection is explicit using abaci). Finally, a partition is entirely determined by its ``r``-core and ``r``-quotient, see Proposition 3.7 in [Ols93](@cite).
 
+
 ```@docs
 wreath_macdonald_polynomial
 wreath_macdonald_polynomials
