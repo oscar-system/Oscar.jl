@@ -131,13 +131,10 @@ end
 ##### Elements #####
 
 ### Union ###
-(dpr::Union{DifferencePolyRing, DifferentialPolyRing})() = elem_type(dpr)(dpr)
-
-(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(dpr)(dpr, upre)
-
-(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(mpre::MPolyRingElem) = elem_type(dpr)(dpr, mpre)
-
-(dpr::Union{DifferencePolyRing, DifferentialPolyRing})(a::T) where {T<:RingElement} = dpr(__upr(dpr)(a))
+(apr::ActionPolyRing)() = elem_type(apr)(apr)
+(apr::ActionPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
+(apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
+(apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(__upr(apr)(a))
 
 ### Difference ###
 function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
@@ -150,7 +147,6 @@ function (dpr::DifferentialPolyRing{T})(a::DifferentialPolyRingElem{T}) where {T
   @req parent(a) === dpr "Wrong parent"
   return a
 end
-
 
 ###############################################################################
 #
@@ -165,10 +161,6 @@ function Base.deepcopy_internal(dpre::Union{DifferencePolyRingElem, Differential
     return typeof(dpre)(parent(dpre), pp)
 end
 
-zero(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr()
-
-one(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr(one(__upr(dpr)))
-
 ### Difference ###
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
 
@@ -180,6 +172,10 @@ elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
+zero(apr::ActionPolyRing) = apr()
+
+one(apr::ActionPolyRing) = apr(one(__upr(apr)))
+
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
 is_square(apre::ActionPolyRingElem) = is_square(data(apre))
@@ -219,11 +215,11 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 
 ##### Rings #####
 
-base_ring(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = base_ring(__upr(dpr))
+base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
+
+n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
 elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
-
-n_elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = length(elementary_symbols(dpr))
 
 ndiffs(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.ndiffs
 
@@ -404,9 +400,7 @@ julia> gens(dpr)
  c[0,0,0,0]
 ```
 """
-function gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
-  return [gen(apr, jet_idx) for jet_idx in jet_idxs]
-end
+gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) = [gen(apr, jet_idx) for jet_idx in jet_idxs]
 
 @doc raw"""
     gens(apr::ActionPolyRing)
@@ -439,9 +433,7 @@ julia> gens(dpr)
  a[0,0,0,0]
 ```
 """
-function gens(apr::ActionPolyRing)
-  return sort!(collect(values(deepcopy(__jtv(apr)))); rev = true)
-end
+gens(apr::ActionPolyRing) = sort!(collect(values(deepcopy(__jtv(apr)))); rev = true)
 
 number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
 
@@ -469,7 +461,7 @@ end
 constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre))
 
 @doc raw"""
-    leading_coefficient(p::ActionPolyRingElem{T}) -> T
+    leading_coefficient(p::ActionPolyRingElem{T}) -> T 
 
 Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term.
 """
@@ -701,7 +693,7 @@ end
 
 ###############################################################################
 #
-#   Iterators
+#  Iterators
 #
 ###############################################################################
 
@@ -728,9 +720,7 @@ julia> collect(cf)
  1
 ```
 """
-function coefficients(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyCoeffs{typeof(a)}(a)
-end
+coefficients(a::ActionPolyRingElem{T}) where {T} = ActionPolyCoeffs{typeof(a)}(a)
 
 @doc raw"""
     exponents(p::ActionPolyRingElem)
@@ -752,9 +742,7 @@ julia> collect(ef)
  [0, 1, 1]
 ```
 """
-function exponents(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyExponentVectors{typeof(a)}(a)
-end
+exponents(a::ActionPolyRingElem{T}) where {T} = ActionPolyExponentVectors{typeof(a)}(a)
 
 @doc raw"""
     monomials(p::ActionPolyRingElem)
@@ -776,9 +764,7 @@ julia> collect(mf)
  c[0,0,0,0]*a[0,0,0,0]
 ```
 """
-function monomials(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyMonomials{typeof(a)}(a)
-end
+monomials(a::ActionPolyRingElem{T}) where {T} = ActionPolyMonomials{typeof(a)}(a)
 
 @doc raw"""
     terms(p::ActionPolyRingElem)
@@ -800,9 +786,7 @@ julia> collect(tf)
  c[0,0,0,0]*a[0,0,0,0]
 ```
 """
-function terms(a::ActionPolyRingElem{T}) where {T}
-  return ActionPolyTerms{typeof(a)}(a)
-end
+terms(a::ActionPolyRingElem{T}) where {T} = ActionPolyTerms{typeof(a)}(a)
 
 __iter_helper(f, poly, state) = state < length(poly) ? (f(poly, state + 1), state + 1) : nothing
 
@@ -811,25 +795,16 @@ Base.iterate(x::ActionPolyExponentVectors, state=0) = __iter_helper(exponent_vec
 Base.iterate(x::ActionPolyMonomials, state=0) = __iter_helper(monomial, x.poly, state)
 Base.iterate(x::ActionPolyTerms, state=0) = __iter_helper(term, x.poly, state)
 
-function Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms})
-   return length(x.poly)
-end
+Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms}) = length(x.poly)
 
-function Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT <: ActionPolyRingElem}
-  return elem_type(base_ring_type(PolyT))
-end
-
-function Base.eltype(::Type{ActionPolyExponentVectors{PolyT}}) where {PolyT <: ActionPolyRingElem} 
-   return Vector{Int}
-end
-
-function Base.eltype(::Type{<:Union{ActionPolyMonomials{PolyT}, ActionPolyTerms{PolyT}}}) where {PolyT <: ActionPolyRingElem}
-    PolyT
-end
+Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT<:ActionPolyRingElem} = elem_type(base_ring_type(PolyT))
+Base.eltype(::Type{ActionPolyExponentVectors{PolyT}}) where {PolyT<:ActionPolyRingElem} = Vector{Int}
+Base.eltype(::Type{ActionPolyMonomials{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT
+Base.eltype(::Type{ActionPolyTerms{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT
 
 ###############################################################################
 #
-#   Promotion rules
+#  Promotion rules
 #
 ###############################################################################
 
@@ -847,7 +822,7 @@ end
 
 ###############################################################################
 #
-#   Random generation
+#  Random generation
 #
 ###############################################################################
 
@@ -858,17 +833,12 @@ rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng
 
 ###############################################################################
 #
-#   Conformance test element generation
+#  Conformance test element generation
 #
 ###############################################################################
 
-function ConformanceTests.generate_element(R::ActionPolyRing{ZZRingElem})
-    return rand(R, 0:4, 0:10, -10:10)
-end
-
-function ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem})
-    return rand(R, 0:4, 0:10, -10:10)
-end
+ConformanceTests.generate_element(R::ActionPolyRing{ZZRingElem}) = rand(R, 0:4, 0:10, -10:10)
+ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem}) = rand(R, 0:4, 0:10, -10:10)
 
 ###############################################################################
 #
@@ -892,6 +862,7 @@ canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 
 # Element getters
 data(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.p
+
 __is_perm_up_to_date(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.is_perm_up_to_date
 
 # Ring getters
@@ -994,7 +965,8 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jet
 
 Return the ranking of the jet variables of the difference or differential polynomial ring `dpr`.
 """
-ranking(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.ranking::ActionPolyRingRanking{typeof(dpr)}
+ranking(dpr::DifferencePolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRanking{DifferencePolyRing{T}}
+ranking(dpr::DifferentialPolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRanking{DifferentialPolyRing{T}}
 
 @doc raw"""
     set_ranking!(apr::ActionPolyRing;
@@ -1057,28 +1029,16 @@ and ordering of the indices defined by
   [0   0   0   1]
 ```
 """
-function set_ranking!(dpr::DifferencePolyRing;
+function set_ranking!(dpr::PolyT;
     partition_name::Symbol = :default,
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
-  )
+  )::ActionPolyRingRanking{PolyT} where {PolyT <: ActionPolyRing}
   
   __set_are_perms_up_to_date!(dpr, false)
   m, n = n_elementary_symbols(dpr), ndiffs(dpr)
-  dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
-end
-
-function set_ranking!(dpr::DifferentialPolyRing;
-    partition_name::Symbol = :default,
-    index_ordering_name::Symbol = :default,
-    partition::Vector{Vector{Int}} = Vector{Int}[],
-    index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
-  )
-  
-  __set_are_perms_up_to_date!(dpr, false)
-  m, n = n_elementary_symbols(dpr), ndiffs(dpr)
-  dpr.ranking = ActionPolyRingRanking{typeof(dpr)}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
+  dpr.ranking = ActionPolyRingRanking{PolyT}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
 end
 
 function __compute_ranking_params(m::Int, n::Int,
@@ -1179,27 +1139,24 @@ end
 __is_valid_partition(par::Vector{Vector{Int}}, m::Int) = all(par_elt -> !is_zero(par_elt), par) && sum(par) == fill(1, m) && all(par_elt -> all(j -> par_elt[j] == 0 || par_elt[j] == 1, 1:m), par)
 
 function __in_block_tie_breaking_matrix(partition::Vector{Vector{Int}})
-    m = length(partition[1])
-    max_ones = maximum(count(isone, vec) for vec in partition)
-    result = zero_matrix(ZZ, max_ones - 1, m)
-
-    for vec in partition
-        pos = 1
-        ones_seen = 0
-        total_ones = count(isone, vec)
-
-        for j in 1:m
-            if isone(vec[j])
-                ones_seen += 1
-                if ones_seen == total_ones
-                    break
-                end
-                result[pos, j] = ZZ(1)
-                pos += 1
-            end
+  m = length(partition[1])
+  max_ones = maximum(count(isone, vec) for vec in partition)
+  result = zero_matrix(ZZ, max_ones - 1, m)
+  for vec in partition
+    pos = 1
+    ones_seen = 0
+    total_ones = count(isone, vec)
+    for j in 1:m
+      if isone(vec[j])
+        ones_seen += 1
+        if ones_seen == total_ones
+          break
         end
+        result[pos, j] = ZZ(1)
+        pos += 1
+      end
     end
-
-    return result
+  end
+  return result
 end
 

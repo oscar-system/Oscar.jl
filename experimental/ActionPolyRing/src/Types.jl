@@ -5,25 +5,51 @@
 ###############################################################################
 
 abstract type ActionPolyRing{T} <: Ring end
-
 abstract type ActionPolyRingElem{T} <: RingElem end
 
  # To be implemented by subtypes: 
- # Mandatory: 
- #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
- #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
- #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
- #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
- #   __upr(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
- #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
- #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
- #   __jtu_idx(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, Int}
- #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
+ # Mandatory:
+ #  Getters:
  #   __are_perms_up_to_date(R::MyActionPolyRing) -> Bool
- #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
  #   __is_perm_up_to_date(x::MyActionPolyRing) -> Bool
- #   ranking(R::MyActionPolyRing) -> ActionPolyRingRanking{MyActionPolyRing{T}}
+ #   __jtu_idx(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, Int}
+ #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
+ #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
+ #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
+ #   __upr(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
+ #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
  #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.Generic.UnivPoly{T}
+ #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
+ #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
+ #   ndiffs(R::MyActionPolyRing) -> Int
+ #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
+ #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
+ #   ranking(R::MyActionPolyRing{T}) -> ActionPolyRingRanking{MyActionPolyRing{T}}
+ #
+ #  Setters:
+ #   function __set_are_perms_up_to_date!(R::MyActionPolyRing, update::Bool)
+ #     R.are_perms_up_to_date = update
+ #   end
+ #
+ #   function __set_is_perm_up_to_date!(x::MyActionPolyRingElem, update::Bool)
+ #     x.is_perm_up_to_date = update
+ #   end
+ #
+ #   function __set_perm_for_sort!(R::MyActionPolyRing)
+ #     R.permutation = sortperm(R.(gens(__upr(R))); rev = true)
+ #     __set_are_perms_up_to_date!(R, true)
+ #   end
+ #
+ #   function __set_perm_for_sort_poly!(x::MyActionPolyRingElem)
+ #     exps = collect(exponents(data(x)))
+ #     n = length(exps)
+ #     n ≤ 1 && (x.permutation = collect(1:n); return __set_is_perm_up_to_date!(x, true))
+ #
+ #     perm = (parent(x).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
+ #
+ #     x.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
+ #     __set_is_perm_up_to_date!(x, true)
+ #   end  
  #
 
 ### Difference ###
@@ -138,21 +164,10 @@ end
 #
 ###############################################################################
 
-struct ActionPolyCoeffs{PolyT<:ActionPolyRingElem}
-   poly::PolyT
-end
-
-struct ActionPolyExponentVectors{PolyT<:ActionPolyRingElem}
-   poly::PolyT
-end
-
-struct ActionPolyTerms{PolyT<:ActionPolyRingElem}
-   poly::PolyT
-end
-
-struct ActionPolyMonomials{PolyT<:ActionPolyRingElem}
-   poly::PolyT
-end
+struct ActionPolyCoeffs{PolyT<:ActionPolyRingElem} poly::PolyT end
+struct ActionPolyExponentVectors{PolyT<:ActionPolyRingElem} poly::PolyT end
+struct ActionPolyTerms{PolyT<:ActionPolyRingElem} poly::PolyT end
+struct ActionPolyMonomials{PolyT<:ActionPolyRingElem} poly::PolyT end
 
 ###############################################################################
 #
