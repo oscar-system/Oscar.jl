@@ -1,23 +1,19 @@
-import DataStructures: DefaultDict
-""" groupby(f, xs)
-
-  Returns a dictionary Dict(i => {x ∈ xs | f(x) = i}).
-"""
-groupby(f, xs) = mergewith(union, Dict(), (Dict(f(x) => Set([x])) for x in xs)...)
-
 """ complex_faces_by_dimension(K::SimplicialComplex, mindim::Int=0)
 
   Returns a Vector{Set{Set{Int}}} fs such that fs[d+1] contains all d-simplices of K.
 """
 function complex_faces_by_dimension(K :: SimplicialComplex; mindim::Int=0)
-  fcts = DefaultDict(Set{Set{Int}}(), groupby(length, facets(K))) # group facets by dimension+1
-  fs = Vector{Set{Set{Int}}}(undef, dim(K)+1) # faces by dimension+1
-  fs[dim(K)+1] = fcts[dim(K)+1]
-  for d in dim(K)-1:-1:mindim # obtain d-simplices
-    # println(fcts[d+1])
-    fs[d+1] = union(fcts[d+1], subsets.(fs[d+2], d+1)...)
+  po = face_poset(K)
+  faces_by_dim = [Set{Set{Int}}() for _ in 1:rank(po)]
+  HD = K.pm_simplicialcomplex.HASSE_DIAGRAM
+  for i in 1:length(po)
+    d = HD.DECORATION[i]
+    Polymake.decoration_rank(d) < mindim && continue
+    Polymake.decoration_face(d) == Set([-1]) && continue
+    push!(faces_by_dim[Polymake.decoration_rank(d)],
+          Polymake.to_one_based_indexing(Polymake.decoration_face(d)))
   end
-  return fs
+  return faces_by_dim
 end
 
 @doc raw"""
@@ -35,7 +31,6 @@ julia> K = simplicial_complex([[1,2,3],[1,2,5],[3,4]])
 Abstract simplicial complex of dimension 2 on 5 vertices
 
 julia> complex_faces(K)
-DefaultDict{Int64, Set{Set{Int64}}, Set{Set{Int64}}}(2 => Set([Set([4, 3])]), 3 => Set([Set([2, 3, 1]), Set([5, 2, 1])]))
 Set{Set{Int64}} with 13 elements:
   Set([4, 3])
   Set([5, 1])
@@ -52,7 +47,6 @@ Set{Set{Int64}} with 13 elements:
   Set([5, 2])
 
 julia> complex_faces(K, 1)
-DefaultDict{Int64, Set{Set{Int64}}, Set{Set{Int64}}}(2 => Set([Set([4, 3])]), 3 => Set([Set([2, 3, 1]), Set([5, 2, 1])]))
 Set{Set{Int64}} with 6 elements:
   Set([4, 3])
   Set([5, 1])
