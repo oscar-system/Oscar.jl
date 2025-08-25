@@ -16,7 +16,7 @@ to skip these checks, which can improve performance or allow for exploratory com
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -40,7 +40,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
 
   # Step 2: Transform using converter dictionary
   converter_dict = converter_dict_h22_hypersurface(m, check = check)
-  b_ring = base_ring(cohomology_ring(ambient_space(m), check = check))
+  b_ring = base_ring(cohomology_ring(ambient_space(m), completeness_check = check))
   b_ring_gens = gens(b_ring)
   converted_poly = zero(b_ring)
   for (exp_pair, coeff) in original_dict
@@ -61,9 +61,9 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   flux_coords = [get(new_dict, b, 0) for b in basis_indices]
 
   # Step 5: Build cohomology class
-  coh_ring = cohomology_ring(ambient_space(m), check = check)
+  coh_ring = cohomology_ring(ambient_space(m), completeness_check = check)
   converted_poly = coh_ring(converted_poly)
-  converted_class = cohomology_class(ambient_space(m), converted_poly, quick = true)
+  converted_class = cohomology_class(ambient_space(m), converted_poly, completeness_check = check)
 
   # Step 6: Build G4Flux and assign attributes
   g4 = G4Flux(m, converted_class)

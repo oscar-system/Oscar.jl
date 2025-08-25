@@ -621,7 +621,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if base_space(model) isa NormalToricVariety && ambient_space(model) isa NormalToricVariety
     
     divs = torusinvariant_prime_divisors(ambient_space(model))
-    cohomology_ring(ambient_space(model); check=false)
+    cohomology_ring(ambient_space(model), completeness_check = false)
     cox_gens = symbols(coordinate_ring(ambient_space(model)))
 
     if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety

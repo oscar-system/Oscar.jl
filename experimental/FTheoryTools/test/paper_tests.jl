@@ -293,7 +293,7 @@ end
 t = literature_model(arxiv_id = "1511.03209")
 t_res = resolve(t, 1)
 amb = ambient_space(t_res)
-cohomology_ring(amb, check = false)
+cohomology_ring(amb, completeness_check = false)
 g4_amb_candidates = chosen_g4_flux_gens(t_res, check = false)
 fg_quant = special_flux_family(t_res, check = false)
 fg_quant_no_break = special_flux_family(t_res, not_breaking = true, check = false)

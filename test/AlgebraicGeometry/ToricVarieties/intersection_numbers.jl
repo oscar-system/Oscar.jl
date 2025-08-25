@@ -39,7 +39,7 @@
   
   @testset "Properties, attributes and arithmetic of cohomology classes" begin
     @test is_trivial(c1) == false
-    @test nrows(exponents(c1)) == 3
+    @test length(exponents(c1)) == 3
     @test length(coefficients(c1)) == 3
     @test QQFieldElem(3) * c1 == ZZRingElem(3) * c1
     @test 2 * c1 != ZZRingElem(3) * c2

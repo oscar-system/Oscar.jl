@@ -259,8 +259,8 @@ julia> d3_tadpole_constraint(fgs);
             change = sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
           else
             change = get!(inter_dict, my_tuple) do
-              return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); check = check))
-            end        
+              return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); completeness_check = check))
+            end
           end
 
           inter_number += val * change
