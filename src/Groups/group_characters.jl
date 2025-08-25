@@ -2182,7 +2182,10 @@ group(chi::GAPGroupClassFunction) = group(parent(chi))
 characteristic(chi::GAPGroupClassFunction) = characteristic(parent(chi))
 
 function class_function(tbl::GAPGroupCharacterTable, values::GapObj)
-    @req GAPWrap.IsClassFunction(values) "values must be a class function"
+    if ! GAPWrap.IsClassFunction(values)
+      @req (GAPWrap.IsList(values) && GAPWrap.IsCyclotomicCollection(values)) "values must be a GAP class function or list"
+      values = GAPWrap.ClassFunction(GapObj(tbl), values)
+    end
     return GAPGroupClassFunction(tbl, values)
 end
 
@@ -2192,8 +2195,7 @@ function class_function(tbl::GAPGroupCharacterTable, values::Vector{<:Union{Inte
 end
 
 function class_function(G::GAPGroup, values::GapObj)
-    @req GAPWrap.IsClassFunction(values) "values must be a class function"
-    return GAPGroupClassFunction(character_table(G), values)
+    return class_function(character_table(G), values)
 end
 
 function class_function(G::GAPGroup, values::Vector{<:Union{Integer, ZZRingElem, Rational, QQFieldElem, QQAbFieldElem}})
