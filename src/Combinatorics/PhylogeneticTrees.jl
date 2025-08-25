@@ -88,6 +88,10 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   return PhylogeneticTree{QQFieldElem}(pm_ptree, 1)
 end
 
+function phylogenetic_tree(G::Graph{Directed})
+  
+end
+
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
