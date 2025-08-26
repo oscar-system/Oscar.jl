@@ -1646,7 +1646,7 @@ julia> basis(G, 2)
   R = X.ring
   try_trim = "Try use `trim!`."
   !(R isa MPolyQuoRing) && error("the ring has no ideal. "*try_trim)
-  dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
+  krull_dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
   b = Oscar._kbase(R)
   ans = [MPolyQuoRingElem[] for i in 0:X.dim]
   for bi in b
@@ -2056,7 +2056,8 @@ julia> degree(C)
 3
 
 ```
-```
+
+```jldoctest
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
@@ -2071,7 +2072,7 @@ julia> degree(C)
 
 ```
 
-```
+```jldoctest
 julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 

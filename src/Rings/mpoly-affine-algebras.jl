@@ -33,8 +33,8 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 as a `K`-vector space, `false` otherwise.
 
 !!! note 
-    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension zero. This condition is checked by the function.
-    
+    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
+    less or equal zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -53,7 +53,7 @@ false
 """
 function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   # We check '<=' because A might be the zero ring, so dim(A) == -1
-  return dim(A) <= 0
+  return krull_dim(A) <= 0
 end
 
 struct InfiniteDimensionError <: Exception

@@ -94,7 +94,7 @@ parent constructor functions
 
 For convenience, `Hecke` also defines these "standard rings" for use in functions
 like `cyclotomic_polynomial`
-```
+```julia
 module Globals
   using Hecke
   const Qx, _ = polynomial_ring(QQ, :x, cached = false)

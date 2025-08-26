@@ -68,11 +68,12 @@ true
     if is_projective(v) == false
         return false
     end
-    if torsion_free_rank(class_group(v)) > 1
+    cl = class_group_with_map(v)[1]
+    if torsion_free_rank(cl) > 1
         return false
     end
-    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for g in gens(class_group(v))
+    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(cl)]
+    for g in gens(cl)
         g = [Int(x) for x in g.coeff if !iszero(x)]
         if length(g) > 1
             return false
@@ -194,4 +195,12 @@ julia> is_fano(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_fano(v::NormalToricVarietyType) = pm_object(v).FANO
+@attr Bool function is_fano(v::NormalToricVarietyType)
+  # [CLS11] Fano implies projective, thus non-projective implies non-Fano. But
+  # non-complete implies non-projective.
+  if !is_complete(v)
+    return false
+  else
+    return is_ample(anticanonical_divisor(v))
+  end
+end

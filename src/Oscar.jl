@@ -41,6 +41,10 @@ if Sys.iswindows()
   windows_error()
 end
 
+if VERSION < v"1.10.0-"
+  error("the required julia version is at least 1.10.0")
+end
+
 function _print_banner(;is_dev = Oscar.is_dev)
   # lets assemble a version string for the banner
   version_string = string(VERSION_NUMBER)
@@ -261,6 +265,8 @@ include("PolyhedralGeometry/PolyhedralGeometry.jl")
 include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
+include("Combinatorics/PhylogeneticTrees.jl")
+
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
@@ -269,8 +275,6 @@ include("Combinatorics/PartiallyOrderedSet/structs.jl")
 include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
-
-include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

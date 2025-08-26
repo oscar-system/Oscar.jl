@@ -273,7 +273,7 @@ end
   L, _ = localization(R, powers_of_element(x-8))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
   f = (x*3*y-4)^5
   f = A(f)
@@ -287,7 +287,7 @@ end
   L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   f = (x*3*y-4)^5
   f = A(f)
   @test id(preimage(id, f)) == f
@@ -543,5 +543,16 @@ end
   WW, _ = quo(W, K)
   @test dim(WW) == -inf
   @test dim(underlying_quotient(WW)) == -inf
+end
+
+@testset "simplification of subquotients" begin
+  R,(x,y) = polynomial_ring(GF(3),2)
+  I = ideal(x)
+  A, _ = quo(R, I)
+  U = complement_of_point_ideal(R, [0, 0])
+  L, _ = localization(A, U)
+  AA, iso, iso_inv = simplify(L)
+  @test all(x==iso(iso_inv(x)) for x in gens(AA))
+  @test all(x==iso_inv(iso(x)) for x in gens(L))
 end
 

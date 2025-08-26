@@ -377,7 +377,7 @@ end
 Elements ``a//b`` of localizations ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of type 
 `MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}`.
 """
-mutable struct MPolyQuoLocRingElem{
+struct MPolyQuoLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,
@@ -1600,7 +1600,14 @@ function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfEle
   return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
+# The `simplify` routine uses Singular's "elimpart". This does not work 
+# when the coefficient ring is not a field. Hence, unless that is the case, 
+# we refrain from doing anything here. 
 function simplify(L::MPolyQuoRing)
+  return L, identity_map(L), identity_map(L)
+end
+
+function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   J = modulus(L)
   R = base_ring(L)
   is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
@@ -1647,6 +1654,22 @@ function simplify(R::MPolyRing)
   f = hom(R, Rnew, gens(Rnew), check=false)
   finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
+end
+
+function simplify(L::MPolyQuoLocRing{<:Field, <:FieldElem, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  A = underlying_quotient(L)::MPolyQuoRing
+  AA, iso, iso_inv = simplify(A)
+  a = point_coordinates(inverted_set(L))
+  b = [evaluate(lift(f), a) for f in images_of_generators(iso_inv)]
+  U = complement_of_point_ideal(base_ring(AA), b)
+  LL, _ = localization(AA, U)
+  return LL, 
+  hom(L, LL, 
+      elem_type(LL)[LL(x) for x in images_of_generators(iso)]
+     ),
+  hom(LL, L, 
+      elem_type(L)[L(x) for x in images_of_generators(iso_inv)]
+     )
 end
 
 @doc raw"""
@@ -2148,8 +2171,10 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyQuoLocalizedIdeal)
-  return dim(pre_image_ideal(I))
+dim(I::MPolyQuoLocalizedIdeal) = krull_dim(I)
+
+@attr Union{Int, NegInf} function krull_dim(I::MPolyQuoLocalizedIdeal)
+  return krull_dim(pre_image_ideal(I))
 end
 
 #############################################################################
@@ -2216,6 +2241,19 @@ function minimal_primes(
   end
 
   return result
+end
+
+@doc raw"""
+    is_equidimensional(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return whether I is equidimensional
+"""
+@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal})
+  return is_equidimensional(saturated_ideal(I))
+end
+
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
 end
 
 @doc raw"""
@@ -2322,7 +2360,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing;
   kk === coefficient_ring(R)::Field || error("change of base field not implemented")
   I = modulus(W)::MPolyLocalizedIdeal
   I_sat = saturated_ideal(modulus(W))::MPolyIdeal
-  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  @assert iszero(krull_dim(I_sat)) "algebra must be zero dimensional"
   o = ordering
   # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
   A, pr = quo(R, I_sat) 
@@ -2348,7 +2386,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   # Collect all monomials which are not in the leading ideal as representatives 
   # of a basis over kk.
   lead_I = leading_ideal(I_shift, ordering=ordering)
-  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  @assert iszero(krull_dim(lead_I)) "quotient must be zero dimensional"
   V_gens = elem_type(R)[]
   done = false
   d = 0
@@ -2587,36 +2625,21 @@ end
   return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
-@attr Int function dim(R::MPolyLocRing)
-  error("Not implemented")
+dim(R::MPolyQuoLocRing) = krull_dim(R)
+
+function krull_dim(R::MPolyQuoLocRing)
+  return krull_dim(modulus(R))
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
   P = prime_ideal(inverted_set(R))
   I = saturated_ideal(modulus(R))
-  dim(I) === -inf && return -inf
-  return dim(I) - dim(P)
+  krull_dim(I) === -inf && return -inf
+  return krull_dim(I) - krull_dim(P)
 end
 
-@attr Union{Int, NegInf} function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  return dim(saturated_ideal(modulus(R)))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
-  # zariski open subset of A^n
-  return dim(base_ring(R))
-end
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
-  P = prime_ideal(inverted_set(R))
-  return codim(P)
-end
-
-
-@attr Union{Int, NegInf} function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
-  # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
-  # because all maximal ideals have the same dimension in this case. 
-  return dim(base_ring(R))
+@attr Union{Int, NegInf} function krull_dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
+  return krull_dim(saturated_ideal(modulus(R)))
 end
 
 ########################################################################
@@ -2853,10 +2876,6 @@ morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPoly
 base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
-
-function dim(R::MPolyQuoLocRing)
-  return dim(modulus(R))
-end
 
 ### extra methods for speedup of mappings
 # See `src/Rings/MPolyMap/MPolyRing.jl` for the original implementation and 

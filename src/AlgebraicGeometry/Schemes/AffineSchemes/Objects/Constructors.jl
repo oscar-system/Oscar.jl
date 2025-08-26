@@ -213,12 +213,12 @@ end
 
 function affine_space(kk::BRT, n::Int; variable_name::VarName="x#") where {BRT<:Field}
   R, _ = polynomial_ring(kk, variable_name => 1:n; cached=false)
-  return variety(spec(R), check=false)
+  return variety(spec(R);is_reduced=true, check=false)
 end
 
 function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Field}
   R, _ = polynomial_ring(kk, var_names; cached=false)
-  return variety(spec(R), check=false)
+  return variety(spec(R);is_reduced=true, check=false)
 end
 
 ########################################################

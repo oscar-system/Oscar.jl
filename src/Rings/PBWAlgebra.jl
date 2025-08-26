@@ -14,7 +14,7 @@ struct PBWAlgOppositeMap{T, S}
   source::PBWAlgRing{T, S}  # target is _opposite(source)
 end
 
-mutable struct PBWAlgElem{T, S} <: NCRingElem
+struct PBWAlgElem{T, S} <: NCRingElem
   parent::PBWAlgRing{T, S}
   sdata::Singular.spluralg{S}
 end
