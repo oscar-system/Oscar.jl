@@ -1777,9 +1777,9 @@ label: shading
 ```
 """
 function label!(G::Graph{T},
-                    edge_labels::Dict{NTuple{2, Int}, S},
-                    vertex_labels::Dict{Int, U};
-                    name::Symbol=:label) where {S <: Union{Int, String}, U <: Union{Int, String}, T <: Union{Directed, Undirected}}
+                edge_labels::Dict{NTuple{2, Int}, S},
+                vertex_labels::Dict{Int, U};
+                name::Symbol=:label) where {S, U, T <: Union{Directed, Undirected}}
   EM = EdgeMap{T, S}(pm_object(G))
   NM = NodeMap{T, U}(pm_object(G))
   set_attribute!(G, name, GraphMap(G, EM, NM))
@@ -1796,7 +1796,7 @@ end
 function label!(G::Graph{T},
                     edge_labels::Dict{NTuple{2, Int}, S},
                     vertex_labels::Nothing;
-                    name::Symbol=:label) where {S <: Union{Int, String}, T <: Union{Directed, Undirected}}
+                    name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
   EM = EdgeMap{T, S}(pm_object(G))
   set_attribute!(G, name, GraphMap(G, EM, nothing))
   for (k, v) in edge_labels

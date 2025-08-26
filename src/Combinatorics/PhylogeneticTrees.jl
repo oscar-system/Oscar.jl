@@ -17,9 +17,11 @@ end
 
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
-
+    phylogenetic_tree(newick::String)
 Construct a rooted phylogenetic tree with Newick representation `newick`.
 `T` indicates the numerical type of the edge lengths.
+
+Calling `phylogenetic_tree` without `T` will default to using QQFieldElem.
 
 # Examples
 Make a phylogenetic tree with 4 leaves from its Newick representation and print
@@ -40,6 +42,9 @@ julia> cophenetic_matrix(phylo_t)
  2.0  0.0  8.0  6.0
  8.0  8.0  0.0  8.0
  6.0  6.0  8.0  0.0
+
+julia> typeof(phylogenetic_tree("((H:3,(C:1,B:1):2):1,G:4);"))
+Oscar.PhylogeneticTree{QQFieldElem}
 ```
 """
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
@@ -99,7 +104,67 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   return PhylogeneticTree{QQFieldElem}(pm_ptree)
 end
 
-#TODO add example to the docs
+@doc raw"""
+     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, g::Graph{Directed}; check=true)
+     phylogenetic_tree(g::Graph{Directed}; check=true)
+
+Constructs a phylogenetic tree from a directed graph.
+If `check` is set to `true` we check that `g` is a tree. Calling `phylogenetic_tree` without a type `T` will default to `QQFieldelem`.
+
+If the graph is labeled on its leaves using the label name `:leaves` and or if the graph is labeled on its edges with the label name `:distance` then this data will persist to the `PhylogeneticTree`.
+
+# Examples
+```jldoctest
+julia> tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3], [5, 4], [5, 6]])
+Directed graph with 6 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)(5, 4)(5, 6)
+
+julia> pt = phylogenetic_tree(tree)
+Phylogenetic tree with QQFieldElem type coefficients
+
+julia> newick(pt)
+"(leaf 2:1,leaf 3:1,leaf 1:1leaf 4):1,leaf 5:1;"
+
+julia> label!(tree, Dict((5, 6) => 1.0,
+                         (5, 4) => 2.0,
+                         (4, 1) => 3.0,
+                         (4, 2) => 4.0,
+                         (4, 3) => 5.0), nothing; name=:distance)
+Directed graph with 6 nodes and the following labeling(s):
+label: distance
+(4, 1) -> 3.0
+(4, 2) -> 4.0
+(4, 3) -> 5.0
+(5, 4) -> 2.0
+(5, 6) -> 1.0
+
+julia> label!(tree, nothing, Dict(1 => "a", 2 => "b", 3 => "c", 6 => "d"); name=:leaves)
+Directed graph with 6 nodes and the following labeling(s):
+label: leaves
+1 -> a
+2 -> b
+3 -> c
+4 -> 
+5 -> 
+6 -> d
+label: distance
+(4, 1) -> 3.0
+(4, 2) -> 4.0
+(4, 3) -> 5.0
+(5, 4) -> 2.0
+(5, 6) -> 1.0
+
+julia> pt = phylogenetic_tree(Float64, tree)
+Phylogenetic tree with Float64 type coefficients
+
+julia> cophenetic_matrix(pt)
+4×4 Matrix{Float64}:
+ 0.0  7.0  8.0  6.0
+ 7.0  0.0  9.0  7.0
+ 8.0  9.0  0.0  8.0
+ 6.0  7.0  8.0  0.0
+```
+"""
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
@@ -114,20 +179,22 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
     :common, :permute_graph, pm_object(undir_g), Polymake.to_zero_based_indexing(p)
   )
 
-  leaves = findall(isone, indegree(g))
+  leaves = findall(x -> isone(x[1]) && iszero(x[2]), collect(zip(indegree(g), outdegree(g))))
   lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}()
   la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph)
   for (i, v) in enumerate(leaves)
+    # sending to zero based indexing is important to guarantee cophenetic
+    # matrix still works
     if has_attribute(g, :leaves)
-      lv[g.leaves[v]] = p[v]
+      lv[g.leaves[v]] = Polymake.to_zero_based_indexing(p[v])
       la[p[v]] = g.leaves[v]
     else
-      lv["leaf $i"] = p[v]
+      lv["leaf $i"] = Polymake.to_zero_based_indexing(p[v])
       la[p[v]] = "leaf $i"
     end
   end
 
-  el = Polymake.EdgeMap{Undirected,Polymake.Rational}(undir_g.pm_graph)
+  el = Polymake.EdgeMap{Undirected,Polymake.convert_to_pm_type(T)}(undir_g.pm_graph)
   for e in edges(g)
     s, d = src(e), dst(e)
     if has_attribute(g, :distance)
@@ -136,13 +203,17 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
       el[p[s], p[d]] = 1
     end
   end
-  
+
   pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(
     ADJACENCY=undir_g.pm_graph,
     LEAVES=lv,
     EDGE_LENGTHS=el,
     LABELS=la
   )
+
+  # load graph properties
+  pt.ADJACENCY
+
   return PhylogeneticTree{T}(pt, p)
 end
 
