@@ -6,6 +6,11 @@ struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Direc
   vertex_perm::Vector{Int}
 end
 
+function PhylogeneticTree{T}(pm::Polymake.LibPolymake.BigObjectAllocated) where T <: Union{Float64, QQFieldElem}
+  return PhylogeneticTree{T}(pm, collect(1:pm.N_NODES))
+end
+
+
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
@@ -43,8 +48,10 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   # load graph properties
   pm_ptree.ADJACENCY
 
-  return PhylogeneticTree{T}(pm_ptree, collect(1:pm_ptree.N_NODES))
+  return PhylogeneticTree{T}(pm_ptree)
 end
+
+phylogenetic_tree(newick::String) = phylogenetic_tree(QQFieldElem, newick)
 
 @doc raw"""
     phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
@@ -80,7 +87,7 @@ function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
   pm_ptree = Polymake.graph.PhylogeneticTree{Float64}(COPHENETIC_MATRIX = M, TAXA = taxa)
-  return PhylogeneticTree{Float64}(pm_ptree, collect(1:pm_ptree.N_NODES))
+  return PhylogeneticTree{Float64}(pm_ptree)
 end
 
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
@@ -89,14 +96,14 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   pm_ptree = Polymake.graph.PhylogeneticTree{Rational}(
     COPHENETIC_MATRIX = M, TAXA = taxa
   )
-  return PhylogeneticTree{QQFieldElem}(pm_ptree, collect(1:pm_ptree.N_NODES))
+  return PhylogeneticTree{QQFieldElem}(pm_ptree)
 end
 
 #TODO add example to the docs
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
-  @req check && is_tree(g) "Input must be a tree "
+  @req check && is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g)) "Input must be a tree"
   r = root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
@@ -121,12 +128,12 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
   end
 
   el = Polymake.EdgeMap{Undirected,Polymake.Rational}(undir_g.pm_graph)
-  for e in edges(undir_g)
+  for e in edges(g)
     s, d = src(e), dst(e)
     if has_attribute(g, :distance)
-      el[s, d] = g.distance[p[s], p[d]]
+      el[p[s], p[d]] = g.distance[s, d]
     else
-      el[s, d] = 1
+      el[p[s], p[d]] = 1
     end
   end
   
@@ -138,6 +145,8 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
   )
   return PhylogeneticTree{T}(pt, p)
 end
+
+phylogenetic_tree(g::Graph{Directed}; check=true) = phylogenetic_tree(QQFieldElem, g; check=check)
 
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
@@ -158,18 +167,16 @@ Directed graph with 7 nodes and the following edges:
 function adjacency_tree(ptree::PhylogeneticTree)
   udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
   n = nv(udir_tree)
-
   dir_tree = Graph{Directed}(n)
-
-  queue = [ptree.vertex_perm[1]]
+  queue = [1]
   visited = fill(false, n)
-  visited[ptree.vertex_perm[1]] = true
+  visited[1] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
       node = ptree.vertex_perm[y]
       if visited[node] == false
-        add_edge!(dir_tree, x, node)
+        add_edge!(dir_tree, ptree.vertex_perm[x], ptree.vertex_perm[node])
         push!(queue, node)
         visited[node] = true
       end

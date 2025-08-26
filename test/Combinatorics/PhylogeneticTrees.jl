@@ -18,5 +18,18 @@
   @test taxa(ptree2) == ["a", "b", "c"]
 
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3], [5, 4], [5, 6]])
-  pt = phylogenetic_tree(QQFieldElem, tree)
+  pt1 = phylogenetic_tree(QQFieldElem, tree)
+  @test newick(pt1) == "(leaf 2:1,leaf 3:1,leaf 1:1leaf 4):1,leaf 5:1;"
+  @test collect(edges(tree)) == collect(edges(adjacency_tree(pt1)))
+
+  label!(tree, nothing, Dict(1 => "a", 2 => "b", 3 => "c", 6 => "d"); name=:leaves)
+  label!(tree, Dict((5, 6) => 1,
+                    (5, 4) => 2,
+                    (4, 1) => 3,
+                    (4, 2) => 4,
+                    (4, 3) => 5), nothing; name=:distance)
+
+  pt2 = phylogenetic_tree(QQFieldElem, tree)
+  @test newick(pt2) == "(b:4,c:5,a:3):2,d:1;"
+  phylogenetic_tree(QQFieldElem, "(b:4,c:5,a:3):2,d:1;")
 end
