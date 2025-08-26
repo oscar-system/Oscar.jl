@@ -42,7 +42,7 @@ The way of combining of these two total orderings to obtain a total ordering of 
 ``\underline{m}``, i.e. by grouping the elements of ``\underline{m}`` into blocks. The first block is considered largest and so on.
 See [`partition`](@ref partition(r::ActionPolyRingRanking)).
 
-Consider two elements ``x_1 = (i_1, J_1), x_2 = (i_2, J_2)`` \in ``X``. Then ``x_1 < x_2`` if and only if:
+Consider two elements ``x_1 = (i_1, J_1), x_2 = (i_2, J_2) \in X``. Then ``x_1 < x_2`` if and only if:
 1. The block of ``i_1`` is smaller than the one of ``i_2``.
 2. ``i_1`` and ``i_2`` are in the same block and ``J_1 < J_2`` with respect to the total ordering on ``\mathbb{N}_0^n``.
 3. ``i_1`` and ``i_2`` are in the same block, ``J_1 = J_2`` and ``i_1 < i_2``.
