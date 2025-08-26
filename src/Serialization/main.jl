@@ -859,6 +859,7 @@ export load_attrs
 export load_node
 export load_object
 export load_ref
+export params_all_equal
 export save
 export save_as_ref
 export save_attrs
@@ -873,7 +874,6 @@ export set_key
 export TypeParams
 export type_params
 export with_attrs
-export params_all_equal
 
 end # module Serialization
 
