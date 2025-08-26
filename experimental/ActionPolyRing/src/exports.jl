@@ -1,7 +1,6 @@
 export ActionPolyRing
 export ActionPolyRingElem
 export ActionPolyRingRanking
-export ActionRanking
 export DifferencePolyRing
 export DifferencePolyRingElem
 export DifferentialPolyRing
