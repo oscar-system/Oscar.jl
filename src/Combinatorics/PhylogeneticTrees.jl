@@ -1,3 +1,6 @@
+# hack needed for graph maps untill update in Polymake
+Polymake.convert_to_pm_type(::Type{<:Polymake.Map{S,T}}) where S where T = Polymake.Map{Polymake.convert_to_pm_type(S), Polymake.convert_to_pm_type(T)}
+
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
   vertex_perm::Vector{Int}
@@ -92,19 +95,47 @@ end
 #TODO add example to the docs
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
-                           check=false)
-  @req !check || is_tree(G) "Input must be a tree "
+                           check=true)
+  @req check && is_tree(g) "Input must be a tree "
   r = root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
   # for the underlying polymake graph
   p[1], p[r] = r, 1
-  tmp_g = deepcopy(g)
+  undir_g = graph_from_edges(Undirected, edges(g))
   Polymake.call_function(
-    :common, :permute_graph, pm_object(tmp_g), Polymake.to_zero_based_indexing(p)
+    :common, :permute_graph, pm_object(undir_g), Polymake.to_zero_based_indexing(p)
   )
 
-  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(ADJACENCY=tmp_g.pm_graph)
+  leaves = findall(isone, indegree(g))
+  lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}()
+  la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph)
+  for (i, v) in enumerate(leaves)
+    if has_attribute(g, :leaves)
+      lv[g.leaves[v]] = p[v]
+      la[p[v]] = g.leaves[v]
+    else
+      lv["leaf $i"] = p[v]
+      la[p[v]] = "leaf $i"
+    end
+  end
+
+  el = Polymake.EdgeMap{Undirected,Polymake.Rational}(undir_g.pm_graph)
+  for e in edges(undir_g)
+    s, d = src(e), dst(e)
+    if has_attribute(g, :distance)
+      el[s, d] = g.distance[p[s], p[d]]
+    else
+      el[s, d] = 1
+    end
+  end
+  
+  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(
+    ADJACENCY=undir_g.pm_graph,
+    LEAVES=lv,
+    EDGE_LENGTHS=el,
+    LABELS=la
+  )
   return PhylogeneticTree{T}(pt, p)
 end
 
