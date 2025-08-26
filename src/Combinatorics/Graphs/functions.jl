@@ -1329,7 +1329,7 @@ The `backend` keyword argument allows the user to pick between a Three.js visual
 or passing `:tikz` for a TikZ visualization, or passing `:graphviz` for a
 [Graphviz](https://graphviz.org/) visualization (requires Graphviz, see [Visualization using Graphviz](@ref)).
 
-The`filename` keyword argument will write visualization code to the `filename` location, this will
+The `filename` keyword argument will write visualization code to the `filename` location, this will
 be html for `:threejs` backend or TikZ code for `:tikz`.
 
 If the graph `G` has a labeling `:color` (see [`label!`](@ref)) then the visualization will use
