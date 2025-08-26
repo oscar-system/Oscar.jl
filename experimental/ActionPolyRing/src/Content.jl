@@ -466,9 +466,7 @@ constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre)
 Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term.
 """
 function leading_coefficient(apre::ActionPolyRingElem{T}) where {T}
-  if length(apre) == 0
-    return zero(T)
-  end
+  @req length(apre) > 0 "Zero polynomial does not have a leading coefficient"
   return coeff(apre, 1) 
 end
 
@@ -499,9 +497,7 @@ Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of t
 """
 function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
   len = length(apre)
-  if len == 0
-    return zero(T)
-  end
+  @req len > 0 "Zero polynomial does not have a trailing coefficient"
   return coeff(apre, len) 
 end
 
@@ -534,6 +530,26 @@ Return the tail of `p` with respect to the ranking of the action polynomial ring
 """
 tail(apre::ActionPolyRingElem) = apre - leading_term(apre)
 
+function derivative(apre::ActionPolyRingElem{T}, var::ActionPolyRingElem{T}) where {T}
+  check_parent(apre, var)
+  @req is_gen(var) "Not a variable"
+  return derivative(apre, __vtj(parent(var))[var])
+end
+
+function derivative(apre::ActionPolyRingElem, i::Int, idx::Vector{Int})
+  apr = parent(apre)
+  @req __is_valid_jet(apr, i, idx) "Invalid jet variable"
+  jtv = __jtv(apr)
+  if haskey(jtv, (i, idx))
+    return apr(derivative(data(apre), data(jtv[(i, idx)])))
+  end
+  return zero(apr)
+end
+
+derivative(apre::ActionPolyRingElem, jet_idx::Tuple{Int,Vector{Int}}) = derivative(apre, jet_idx...)
+
+derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre), i))
+
 ###############################################################################
 #
 #  Action polynomial functionality 
@@ -546,6 +562,8 @@ tail(apre::ActionPolyRingElem) = apre - leading_term(apre)
 Apply the `i`-th endomorphism to the polynomial `p`.
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
+  dpr = parent(dpre)
+  @req i in 1:ndiffs(dpr) "index out of range"
   d = fill(0, ndiffs(parent(dpre)))
   d[i] = 1
   return diff_action(dpre, d)
@@ -685,9 +703,6 @@ Return the leader of the polynomial `p`, that is the largest variable with respe
 """
 function leader(apre::ActionPolyRingElem)
   @req !is_constant(apre) "A constant polynomial has no leader"
-  if is_univariate(apre)
-    return vars(apre)[1]
-  end
   return maximum(vars(apre))
 end
 

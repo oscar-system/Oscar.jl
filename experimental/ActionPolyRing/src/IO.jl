@@ -99,7 +99,7 @@ function Base.show(io::IO, ci::ActionPolyCoeffs)
   else
     print(io, "Coefficients iterator of ")
     print(terse(io), ci.poly)
-  end
+    end
 end
 
 ### Exponents ###

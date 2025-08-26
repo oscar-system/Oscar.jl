@@ -230,6 +230,9 @@ using Test
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
+            Rtmp = polynomial_ring(ZZ; cached = false)[1]
+            @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
+            @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
         
           @testset "Check internals after adding variables" begin
@@ -285,10 +288,12 @@ using Test
             @test is_constant(dpr())
             @test is_univariate(dpr())
             @test_throws ErrorException inv(dpr())
-            @test trailing_coefficient(dpr()) == zero(ZZ)
-            @test leading_coefficient(dpr()) == zero(ZZ)
-            @test_throws ArgumentError leading_term(dpr(0))
-            @test_throws ArgumentError leading_monomial(dpr(0))
+            @test_throws ArgumentError trailing_coefficient(dpr())
+            @test_throws ArgumentError trailing_term(dpr())
+            @test_throws ArgumentError trailing_monomial(dpr())
+            @test_throws ArgumentError leading_coefficient(dpr())
+            @test_throws ArgumentError leading_term(dpr())
+            @test_throws ArgumentError leading_monomial(dpr())
             @test length(dpr()) == 0
             @test collect(coefficients(dpr())) == ZZRingElem[]
             @test collect(exponents(dpr())) == Vector{Int}[]
@@ -309,6 +314,8 @@ using Test
             @test is_univariate(dpr(1))
             @test inv(dpr(1)) == 1
             @test trailing_coefficient(dpr(1)) == one(ZZ)
+            @test trailing_term(dpr(1)) == dpr(1)
+            @test trailing_monomial(dpr(1)) == dpr(1)
             @test leading_coefficient(dpr(1)) == one(ZZ)
             @test leading_term(dpr(1)) == dpr(1)
             @test leading_monomial(dpr(1)) == dpr(1)
@@ -330,6 +337,8 @@ using Test
             @test is_univariate(dpr(-2))
             @test_throws ErrorException inv(dpr(-2))
             @test trailing_coefficient(dpr(-2)) == ZZ(-2)
+            @test trailing_term(dpr(-2)) == dpr(-2)
+            @test trailing_monomial(dpr(-2)) == dpr(1)
             @test leading_coefficient(dpr(-2)) == ZZ(-2)
             @test leading_term(dpr(-2)) == dpr(-2)
             @test leading_monomial(dpr(-2)) == dpr(1)
@@ -391,17 +400,24 @@ using Test
             @test !is_unit(f)
             @test !is_constant(dpr(f))
             @test !is_univariate(f)
+            @test_throws ErrorException to_univariate(f)
+            @test_throws ErrorException to_univariate(polynomial_ring(ZZ; cached = false)[1], f)
             @test_throws ErrorException inv(f)
             @test trailing_coefficient(f) == ZZ(3)
+            @test trailing_monomial(f) == u3_111
+            @test trailing_term(f) == 3*u3_111 
             @test leading_coefficient(f) == ZZ(2)
+            @test leading_monomial(f) == u2_100*u1_100
             @test leading_term(f) == 2*u2_100*u1_100
             @test tail(f) == f - leading_term(f)
-            @test leading_monomial(f) == u2_100*u1_100
             @test degrees(f) == [0,1,1,1,0,1,0]
             for i in 1:length(nvars(dpr))
               @test degree(f, i) == degrees(f)[i]
+              @test degree(f, i) == degree(f, gen(parent(f), i))
             end
-            @test degree(f, 3, [5,5,5]) == 0 && ngens(dpr) == 7            
+            @test degree(f, 3, [5,5,5]) == 0 && ngens(dpr) == 7
+            @test_throws ArgumentError degree(f, 0, [5,5,5])
+            @test_throws ArgumentError degree(f, 1, [5,5,5,5])
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
@@ -445,7 +461,6 @@ using Test
 
         @testset "Check change ranking" begin
           set_ranking!(dpr; partition = [[0,1,1], [1,0,0]], index_ordering_name = :degrevlex)
-          
          
           @test ngens(dpr) == 7
           @test nvars(dpr) == 7
@@ -465,6 +480,9 @@ using Test
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
+            Rtmp = polynomial_ring(ZZ; cached = false)[1]
+            @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
+            @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
           
           @testset "Check internals after changing ranking" begin
@@ -515,15 +533,18 @@ using Test
           @testset "Constant polynomials" begin
             @test dpr() == zero(dpr)
             @test dpr(0) == zero(dpr)
+            @test dpr() == ZZ()
             @test is_zero(dpr())
             @test !is_unit(dpr())
             @test is_constant(dpr())
             @test is_univariate(dpr())
             @test_throws ErrorException inv(dpr())
-            @test trailing_coefficient(dpr()) == zero(ZZ)
-            @test leading_coefficient(dpr()) == zero(ZZ)
-            @test_throws ArgumentError leading_term(dpr(0))
-            @test_throws ArgumentError leading_monomial(dpr(0))
+            @test_throws ArgumentError trailing_coefficient(dpr())
+            @test_throws ArgumentError trailing_term(dpr())
+            @test_throws ArgumentError trailing_monomial(dpr())
+            @test_throws ArgumentError leading_coefficient(dpr())
+            @test_throws ArgumentError leading_term(dpr())
+            @test_throws ArgumentError leading_monomial(dpr())
             @test length(dpr()) == 0
             @test collect(coefficients(dpr())) == ZZRingElem[]
             @test collect(exponents(dpr())) == Vector{Int}[]
@@ -536,8 +557,11 @@ using Test
             @test_throws BoundsError degree(dpr(), 0)
             @test_throws BoundsError degree(dpr(), nvars(dpr) + 1)
             @test total_degree(dpr()) == -1
+            @test_throws ArgumentError leader(dpr())
+            @test initial(dpr()) == ZZ()
 
             @test dpr(1) == one(dpr)
+            @test dpr(1) == ZZ(1)
             @test is_one(dpr(1))
             @test is_unit(dpr(1))
             @test is_constant(dpr(1))
@@ -559,7 +583,10 @@ using Test
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
             @test total_degree(dpr(1)) == 0 
+            @test_throws ArgumentError leader(dpr(1))
+            @test initial(dpr(1)) == ZZ(1)
 
+            @test dpr(-2) == ZZ(-2)
             @test !is_unit(dpr(-2))
             @test is_constant(dpr(-2))
             @test is_univariate(dpr(-2))
@@ -580,6 +607,8 @@ using Test
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
             @test total_degree(dpr(-2)) == 0 
+            @test_throws ArgumentError leader(dpr(-2))
+            @test initial(dpr(-2)) == ZZ(-2)
 
             @test dpr(-5) == -dpr(5)
             @test -1 * dpr(5) == dpr(-5)
@@ -634,15 +663,20 @@ using Test
             @test !is_unit(f)
             @test !is_constant(dpr(f))
             @test !is_univariate(f)
+            @test_throws ErrorException to_univariate(f)
+            @test_throws ErrorException to_univariate(polynomial_ring(ZZ; cached = false)[1], f)
             @test_throws ErrorException inv(f)
             @test trailing_coefficient(f) == ZZ(-6)
+            @test trailing_monomial(f) == u2_100
+            @test trailing_term(f) == -6*u2_100
             @test leading_coefficient(f) == ZZ(-1)
+            @test leading_monomial(f) == u3_111*u1_100
             @test leading_term(f) == -1*u3_111*u1_100
             @test tail(f) == f - leading_term(f)
-            @test leading_monomial(f) == u3_111*u1_100
             @test degrees(f) == [1,1,0,0,1,0,1]
             for i in 1:length(nvars(dpr))
               @test degree(f, i) == degrees(f)[i]
+              @test degree(f, i) == degree(f, gen(parent(f), i))
             end
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
@@ -700,8 +734,40 @@ using Test
 
         f = u1*u2
         g = -3*u1^2*u3 + 4*u2
+        @test gens(dpr) == [u1, u2, u3] #order of variables
+
+        @testset "derivative" begin
+          for i in 1:ngens(dpr)
+            @test is_zero(derivative(dpr(), i))
+            @test is_zero(derivative(dpr(1), i))
+            @test is_zero(derivative(dpr(-2), i))
+            @test derivative(g, i) == derivative(g, gen(dpr, i))
+            @test derivative(g, i) == derivative(g, (i, [0,0,0]))
+          end
+          @test derivative(g, u1) == -6*u1*u3
+          @test derivative(g, u2) == dpr(4)
+          @test derivative(g, u3) == -3*u1^2
+          @test_throws BoundsError derivative(g, 0)
+          @test_throws BoundsError derivative(g, ngens(dpr) + 1)
+          @test_throws ArgumentError derivative(g, (0, [1,1,1]))
+          @test_throws ArgumentError derivative(g, (1, [1,1,1,1]))
+          @test_throws ArgumentError derivative(g, (1, [1,1]))
+          @test_throws ArgumentError derivative(g, (1, [1,-1,1]))
+          @test is_zero(derivative(g, (2, [10,4,2]))) && ngens(dpr) == 3
+        end
+
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
+            @test is_zero(diff_action(dpr(), 1))
+            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test_throws ArgumentError diff_action(dpr(), 0)
+            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test diff_action(dpr(-2), 1) == dpr(-2)
+            @test diff_action(dpr(-2), [0,0,0]) == dpr(-2)
+            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
+            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
+            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
+            
             @test ngens(dpr) == 3
             @test diff_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
@@ -723,6 +789,16 @@ using Test
             @test ngens(dpr) == 15
           end
           if dpr isa DifferentialPolyRing
+            @test is_zero(diff_action(dpr(), 1))
+            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test_throws ArgumentError diff_action(dpr(), 0)
+            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test is_zero(diff_action(dpr(-2), 1))
+            @test diff_action(dpr(-2), [0,0,0]) == -2
+            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
+            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
+            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
+            
             @test ngens(dpr) == 3
             @test diff_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
