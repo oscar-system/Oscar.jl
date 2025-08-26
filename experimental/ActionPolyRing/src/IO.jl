@@ -22,7 +22,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   if is_terse(io)
     print(io, "Difference polynomial ring")
   else
-    print(terse(io), "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
+    print(io, "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
     print(terse(io), Lowercase(), base_ring(dpr))
   end
 end
@@ -45,7 +45,7 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
   if is_terse(io)
     print(io, "Differential polynomial ring")
   else
-    print(terse(io), "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
+    print(io, "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
     print(terse(io), Lowercase(), base_ring(dpr))
   end
 end

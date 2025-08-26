@@ -808,17 +808,13 @@ Base.eltype(::Type{ActionPolyTerms{PolyT}}) where {PolyT<:ActionPolyRingElem} = 
 #
 ###############################################################################
 
-AbstractAlgebra.promote_rule(::Type{DifferencePolyRingElem{T}}, ::Type{DifferencePolyRingElem{T}}) where {T <: RingElement} = DifferencePolyRingElem{T}
-
-function AbstractAlgebra.promote_rule(::Type{DifferencePolyRingElem{T}}, ::Type{V}) where {T <: RingElement, V <: RingElement}
-   AbstractAlgebra.promote_rule(T, V) == T ? DifferencePolyRingElem{T} : Union{}
+function AbstractAlgebra.promote_rule(::Type{PolyT}, ::Type{V}) where
+        {T<:RingElement, V<:RingElement, PolyT<:ActionPolyRingElem{T}}
+    AbstractAlgebra.promote_rule(T, V) == T ? PolyT : Union{}
 end
 
-AbstractAlgebra.promote_rule(::Type{DifferentialPolyRingElem{T}}, ::Type{DifferentialPolyRingElem{T}}) where {T <: RingElement} = DifferentialPolyRingElem{T}
-
-function AbstractAlgebra.promote_rule(::Type{DifferentialPolyRingElem{T}}, ::Type{V}) where {T <: RingElement, V <: RingElement}
-   AbstractAlgebra.promote_rule(T, V) == T ? DifferentialPolyRingElem{T} : Union{}
-end
+AbstractAlgebra.promote_rule(::Type{PolyT}, ::Type{PolyT}) where
+        {T<:RingElement, PolyT<:ActionPolyRingElem{T}} = PolyT
 
 ###############################################################################
 #
@@ -877,20 +873,18 @@ __are_perms_up_to_date(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = d
 # =========================================
 
 function __perm_for_sort(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
-  if __are_perms_up_to_date(dpr) && isdefined(dpr, :permutation)
-    return dpr.permutation
+  if !__are_perms_up_to_date(dpr) || !isdefined(dpr, :permutation)
+    __set_perm_for_sort!(dpr)
   end
-  __set_perm_for_sort!(dpr)
   return dpr.permutation
 end
 
 function __perm_for_sort_poly(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   dpr = parent(dpre)
-  if __are_perms_up_to_date(dpr) && __is_perm_up_to_date(dpre)
-    return dpre.permutation
+  if !__are_perms_up_to_date(dpr) || !__is_perm_up_to_date(dpre)
+    __set_perm_for_sort!(dpr)
+    __set_perm_for_sort_poly!(dpre)
   end
-  __set_perm_for_sort!(dpr)
-  __set_perm_for_sort_poly!(dpre)
   return dpre.permutation
 end
 
@@ -915,7 +909,10 @@ end
 function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   exps = collect(exponents(data(dpre)))
   n = length(exps)
-  n ≤ 1 && (dpre.permutation = collect(1:n); return __set_is_perm_up_to_date!(dpre, true))
+  if n <= 1
+    dpre.permutation = collect(1:n)
+    return __set_is_perm_up_to_date!(dpre, true)
+  end
 
   perm = (parent(dpre).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
 
@@ -1034,11 +1031,12 @@ function set_ranking!(dpr::PolyT;
     index_ordering_name::Symbol = :default,
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
-  )::ActionPolyRingRanking{PolyT} where {PolyT <: ActionPolyRing}
+  ) where {PolyT <: ActionPolyRing}
   
   __set_are_perms_up_to_date!(dpr, false)
   m, n = n_elementary_symbols(dpr), ndiffs(dpr)
   dpr.ranking = ActionPolyRingRanking{PolyT}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
+  return ranking(dpr)
 end
 
 function __compute_ranking_params(m::Int, n::Int,
@@ -1046,7 +1044,7 @@ function __compute_ranking_params(m::Int, n::Int,
     index_ordering_name,
     partition,
     index_ordering_matrix
-  )::Tuple{Vector{Vector{Int64}}, ZZMatrix}
+  )
   
   @req partition_name in [:top, :pot, :default] "Invalid name of partition"
   if partition_name == :default
@@ -1073,7 +1071,6 @@ function __compute_ranking_params(m::Int, n::Int,
     end
   end
 
-  @req index_ordering_name in [:default, :lex, :deglex, :invlex, :deginvlex, :degrevlex] "Invalid name of index ordering"
   R, _ = polynomial_ring(QQ, n; cached = false) # We use a dummy polynomial ring to extract canonical matrices of monomial orderings
   if index_ordering_name == :default
     if is_empty(index_ordering_matrix)

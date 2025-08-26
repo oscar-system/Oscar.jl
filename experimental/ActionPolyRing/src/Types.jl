@@ -43,13 +43,22 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   function __set_perm_for_sort_poly!(x::MyActionPolyRingElem)
  #     exps = collect(exponents(data(x)))
  #     n = length(exps)
- #     n ≤ 1 && (x.permutation = collect(1:n); return __set_is_perm_up_to_date!(x, true))
+ #     if n <= 1
+ #       x.permutation = collect(1:n)
+ #       return __set_is_perm_up_to_date!(x, true)
+ #     end
  #
  #     perm = (parent(x).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
  #
  #     x.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
  #     __set_is_perm_up_to_date!(x, true)
  #   end  
+ #  
+ #  Constructors:
+ #    function (R::MyActionPolyRing{T})(x::MyActionPolyRingElem{T}) where {T}
+ #      @req parent(x) === R "Wrong parent"
+ #      return a
+ #    end
  #
 
 ### Difference ###
