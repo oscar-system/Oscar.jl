@@ -31,7 +31,7 @@
     @test all_cohomologies(l2) == [1, 0, 0]
   end
   
-  @testet "Cohomology with chamber counting" begin
+  @testset "Cohomology with chamber counting" begin
     @test all_cohomologies(l5; algorithm = "chamber counting") == [0, 2, 0]
     @test all_cohomologies(l6; algorithm = "chamber counting") == [21, 0, 0, 0]
   end
