@@ -387,7 +387,7 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
-  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
