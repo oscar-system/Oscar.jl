@@ -472,16 +472,14 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   return operators
 end
 
-function operators_demazure(V::DemazureModuleData)
-  # Computes the operators for the Demazure module V.
+function demazurify_operators(V::DemazureModuleData, simple_operators::Vector{RootSpaceElem})
   op = RootSpaceElem[]
-  for negroot in negative_roots(root_system(base_lie_algebra(V)))
-    if is_positive_root(negroot * V.weyl_group_elem)
-      push!(op, -negroot)
-    end
+  inv_weylgroup_elem = inv(V.weyl_group_elem)
+  for root in simple_operators
+    push!(op, -(root * inv_weylgroup_elem))
   end
   return op
-end
+  end
 
 function sub_weights(w::WeightLatticeElem)
   # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise

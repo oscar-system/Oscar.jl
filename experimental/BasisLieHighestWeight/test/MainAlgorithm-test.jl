@@ -661,15 +661,15 @@ end
     # Test for a specific case in which dependent on the order there are two out of three monomials in a weight space
     type = :A
     rank = 3
-    highest_weight = [1, 2, 0]
+    highest_weight = [2, 1, 0]
     weyl_group_elem = [1, 2, 1]   
 
     for (monomial_ordering, expected_result) in [
-      (:degrevlex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
-      (:lex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
-      (:invlex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])),
-      (:neglex, Set{Vector{Int64}}([[2, 2, 0], [1, 1, 1],])),
-      (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 2], [1, 1, 1],])),
+      (:degrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
+      (:lex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
+      (:invlex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0],])),
+      (:neglex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0],])),
+      (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
     ]
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
     
