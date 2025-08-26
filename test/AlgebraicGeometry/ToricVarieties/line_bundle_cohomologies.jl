@@ -2,6 +2,8 @@
   
   P2 = projective_space(NormalToricVariety, 2)
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
+  X = dP3 * projective_space(NormalToricVariety, 1)
+  F0 = hirzebruch_surface(NormalToricVariety, 0)
   F5 = hirzebruch_surface(NormalToricVariety, 5)
   
   ray_generators = [[1, 0, 0,-2,-3], [0, 1, 0,-2,-3], [0, 0, 1,-2,-3], [-1,-1,-1,-2,-3], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0,-2,-3]]
@@ -12,7 +14,9 @@
   l2 = toric_line_bundle(divisor_of_character(F5, [1, 2]))
   l3 = toric_line_bundle(P2, [1])
   l4 = anticanonical_bundle(weierstrass_over_p3)
-  
+  l5 = toric_line_bundle(F0, [0,-3])
+  l6 = anticanonical_bundle(X)
+
   vs = vanishing_sets(dP3)
   vs2 = vanishing_sets(P2)
   R,_ = polynomial_ring(QQ, 3)
@@ -25,6 +29,11 @@
   @testset "Cohomology with cohomCalg on F5" begin
     @test cohomology(l2, 0) == 1
     @test all_cohomologies(l2) == [1, 0, 0]
+  end
+  
+  @testet "Cohomology with chamber counting" begin
+    @test all_cohomologies(l5; algorithm = "chamber counting") == [0, 2, 0]
+    @test all_cohomologies(l6; algorithm = "chamber counting") == [21, 0, 0, 0]
   end
   
   @testset "Toric vanishing sets of dP3" begin

@@ -1,7 +1,7 @@
 #The following function is called, when algorithm="chambers" is specified for all_cohomologies
 function _all_cohomologies_via_cech(tl::ToricLineBundle)
   our_points, our_maps = _toric_cech_complex(tl)
-  our_maps = transpose.(matrix.(our_maps))
+  our_maps = transpose.(our_maps)
   X = toric_variety(tl)
 
   #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
@@ -12,7 +12,7 @@ function _all_cohomologies_via_cech(tl::ToricLineBundle)
     alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
   end
   @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
-  rks_maps = push!(rank.(our_maps), alternating_sum)
+  rks_maps = push!([rref(M)[1] for M in our_maps], alternating_sum)
   return ZZRingElem.([nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]])
 end
 
@@ -79,14 +79,14 @@ function _toric_cech_complex(tl::ToricLineBundle)
     
     # Compute Cech differential maps
     if k > 0
-      our_sparse_matrix = sparse_matrix(ZZ, 0, previous_number_of_generators)
+      our_sparse_matrix = sparse_matrix(QQ, 0, previous_number_of_generators)
       col_idx = 1
       for comb in combs
         pts = polyhedron_dict[comb]
         sub_combs = collect(combinations(comb, k))  # returns lex-sorted k-subsets
         for pt in pts
           position_vector = Vector{Int}()
-          value_vector = Vector{ZZRingElem}()
+          value_vector = Vector{QQFieldElem}()
           for j in 1:length(sub_combs)
             sub_comb = sub_combs[j]
             if haskey(comb_dict, sub_comb) && haskey(comb_dict[sub_comb], pt)
@@ -96,7 +96,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
               push!(value_vector, sign)
             end
           end
-          push!(our_sparse_matrix, sparse_row(ZZ, position_vector, value_vector))
+          push!(our_sparse_matrix, sparse_row(QQ, position_vector, value_vector))
           col_idx += 1
         end
       end
