@@ -1,5 +1,6 @@
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
+  vertex_perm::Vector{Int}
 end
 
 function pm_object(PT::PhylogeneticTree)
@@ -39,7 +40,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   # load graph properties
   pm_ptree.ADJACENCY
 
-  return PhylogeneticTree{T}(pm_ptree)
+  return PhylogeneticTree{T}(pm_ptree, collect(1:pm_ptree.N_NODES))
 end
 
 @doc raw"""
@@ -76,7 +77,7 @@ function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
   pm_ptree = Polymake.graph.PhylogeneticTree{Float64}(COPHENETIC_MATRIX = M, TAXA = taxa)
-  return PhylogeneticTree{Float64}(pm_ptree)
+  return PhylogeneticTree{Float64}(pm_ptree, collect(1:pm_ptree.N_NODES))
 end
 
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
@@ -85,7 +86,26 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   pm_ptree = Polymake.graph.PhylogeneticTree{Rational}(
     COPHENETIC_MATRIX = M, TAXA = taxa
   )
-  return PhylogeneticTree{QQFieldElem}(pm_ptree)
+  return PhylogeneticTree{QQFieldElem}(pm_ptree, collect(1:pm_ptree.N_NODES))
+end
+
+#TODO add example to the docs
+function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
+                           g::Graph{Directed};
+                           check=false)
+  @req !check || is_tree(G) "Input must be a tree "
+  r = root(g)
+  p = collect(1:n_vertices(g))
+  # root needs to be labeled by 1, se we just transpose 2 vertices
+  # for the underlying polymake graph
+  p[1], p[r] = r, 1
+  tmp_g = deepcopy(g)
+  Polymake.call_function(
+    :common, :permute_graph, pm_object(tmp_g), Polymake.to_zero_based_indexing(p)
+  )
+
+  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(ADJACENCY=tmp_g.pm_graph)
+  return PhylogeneticTree{T}(pt, p)
 end
 
 @doc raw"""
@@ -143,16 +163,17 @@ function adjacency_tree(ptree::PhylogeneticTree)
 
   dir_tree = Graph{Directed}(n)
 
-  queue = [1]
+  queue = [ptree.vertex_perm[1]]
   visited = fill(false, n)
-  visited[1] = true
+  visited[ptree.vertex_perm[1]] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
-      if visited[y] == false
-        add_edge!(dir_tree, x, y)
-        push!(queue, y)
-        visited[y] = true
+      node = ptree.vertex_perm[y]
+      if visited[node] == false
+        add_edge!(dir_tree, x, node)
+        push!(queue, node)
+        visited[node] = true
       end
     end
   end
