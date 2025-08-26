@@ -68,6 +68,25 @@ end
   pts = rational_solutions(I)
   @test length(pts) == 2
   @test issetequal(pts, Vector{elem_type(k)}[k.([a, 1]), k.([-a, 1])])
+
+  let # different coefficient ring
+    k, a = quadratic_field(-1)
+    R, (x, y) = QQ[:x, :y]
+    I = ideal([x^2 + 1, y^3 - 1])
+    pts = rational_solutions(I)
+    @test length(pts) == 0
+    pts = rational_solutions(k, I)
+    @test issetequal(pts, Vector{elem_type(k)}[k.([a, 1]), k.([-a, 1])])
+  end
+
+  let # different coefficient ring
+    k = GF(5)
+    a = k(2)
+    R, (x, y) = k[:x, :y]
+    I = ideal([x^2 + 1, y^3 - 1])
+    pts = rational_solutions(algebraic_closure(k), I)
+    @test length(pts) == 6
+  end
 end
 
 @testset "Rational solutions for homogeneous ideals" begin
@@ -75,4 +94,12 @@ end
   x = homogeneous_coordinates(Q)
   i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
   @test length(rational_solutions(i)) == 1
+
+  let
+    Q = projective_space(QQ, 2)
+    x = homogeneous_coordinates(Q)
+    i = ideal([x[1]^2-2*x[3]^2, x[2]-3*x[3]])
+    @test length(rational_solutions(i)) == 0
+    @test length(rational_solutions(algebraic_closure(QQ), i)) == 2
+  end
 end
