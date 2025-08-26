@@ -96,9 +96,10 @@ function Base.show(io::IO, ci::ActionPolyCoeffs)
   io = pretty(io)
   if is_terse(io)
     print(io, "Coefficients iterator")
+  else
+    print(io, "Coefficients iterator of ")
+    print(terse(io), ci.poly)
   end
-  print(io, "Coefficients iterator of ")
-  print(terse(io), ci.poly)
 end
 
 ### Exponents ###
@@ -106,9 +107,10 @@ function Base.show(io::IO, ei::ActionPolyExponentVectors)
   io = pretty(io)
   if is_terse(io)
     print(io, "Exponents iterator")
+  else
+    print(io, "Exponents iterator of ")
+    print(terse(io), ei.poly)
   end
-  print(io, "Exponents iterator of ")
-  print(terse(io), ei.poly)
 end
 
 ### Monomials ###
@@ -116,9 +118,10 @@ function Base.show(io::IO, mi::ActionPolyMonomials)
   io = pretty(io)
   if is_terse(io)
     print(io, "Monomials iterator")
+  else
+    print(io, "Monomials iterator of ")
+    print(terse(io), mi.poly)
   end
-  print(io, "Monomials iterator of ")
-  print(terse(io), mi.poly)
 end
 
 ### Terms ###
@@ -126,9 +129,10 @@ function Base.show(io::IO, ti::ActionPolyTerms)
   io = pretty(io)
   if is_terse(io)
     print(io, "Terms iterator")
+  else
+    print(io, "Terms iterator of ")
+    print(terse(io), ti.poly)
   end
-  print(io, "Terms iterator of ")
-  print(terse(io), ti.poly)
 end
 
 ###############################################################################
