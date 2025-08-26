@@ -16,4 +16,7 @@
   @test cophenetic_matrix(ptree2) == matrix(QQ, [0   4   9; 4   0   9; 9   9   0])
   @test newick(ptree2) == "c:9/2,(a:2,b:2):5/2;"
   @test taxa(ptree2) == ["a", "b", "c"]
+
+  tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3], [5, 4], [5, 6]])
+  pt = phylogenetic_tree(QQFieldElem, tree)
 end
