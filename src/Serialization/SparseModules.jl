@@ -32,7 +32,7 @@ function save_object(s::SerializerState, F::FreeMod)
 end
 
 function load_object(s::DeserializerState, ::Type{<:FreeMod}, params::Ring)
-  R = params[:base_ring]::Ring
+  R = params
   symbs = load_object(s, Vector{Symbol}, :symbols)
   #rk = load_object(s, Int, :rank)
   return FreeMod(R, symbs)
@@ -77,8 +77,8 @@ end
 function load_object(s::DeserializerState, ::Type{<:SubquoModule}, params::FreeMod)
   F = params
   R = base_ring(F)
-  I = SubModuleOfFreeModule(F, load_object(s, Vector{FreeModElem{elem_type(R)}}, F, :sub))
-  N = SubModuleOfFreeModule(F, load_object(s, Vector{FreeModElem{elem_type(R)}}, F, :quo))
+  I = Oscar.SubModuleOfFreeModule(F, load_object(s, Vector{FreeModElem{elem_type(R)}}, F, :sub))
+  N = Oscar.SubModuleOfFreeModule(F, load_object(s, Vector{FreeModElem{elem_type(R)}}, F, :quo))
   return SubquoModule(I, N)
 end
 
