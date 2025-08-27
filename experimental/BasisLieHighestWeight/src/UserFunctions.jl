@@ -572,10 +572,11 @@ function basis_coordinate_ring_kodaira_ffl(
 end
 
 function basis_lie_demazure(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}; monomial_ordering::Symbol=:degrevlex
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int};
+  monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_asc_height(L))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering) 
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end

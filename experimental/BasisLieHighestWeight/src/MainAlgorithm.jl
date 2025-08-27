@@ -472,11 +472,13 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   return operators
 end
 
-function demazurify_operators(V::DemazureModuleData, simple_operators::Vector{RootSpaceElem})
+function demazurify_operators(
+  V::DemazureModuleData, simple_operators::Vector{RootSpaceElem}
+)
   inv_weyl_group_elem = inv(weyl_group_elem(V))
   op = [-(root * inv_weyl_group_elem) for root in simple_operators]
   return op
-  end
+end
 
 function sub_weights(w::WeightLatticeElem)
   # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise

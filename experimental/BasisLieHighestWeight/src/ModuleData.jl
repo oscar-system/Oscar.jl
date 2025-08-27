@@ -54,48 +54,61 @@ function character(V::SimpleModuleData)
   return V.character
 end
 
-mutable struct DemazureModuleData{C <: FieldElem, LieT <: LieAlgebraElem{C}} <: ModuleData{C, LieT}
-    L::LieAlgebra{C} # parent_type(LieT)
-    highest_weight::WeightLatticeElem
-    weyl_group_elem::WeylGroupElem
+mutable struct DemazureModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
+               ModuleData{C,LieT}
+  L::LieAlgebra{C} # parent_type(LieT)
+  highest_weight::WeightLatticeElem
+  weyl_group_elem::WeylGroupElem
 
-    # The following fields are not set by default, just for caching
-    dim::ZZRingElem
-    character::Dict{WeightLatticeElem, ZZRingElem}
+  # The following fields are not set by default, just for caching
+  dim::ZZRingElem
+  character::Dict{WeightLatticeElem,ZZRingElem}
 
-    function DemazureModuleData(L::LieAlgebra{C}, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem) where {C <: FieldElem}
-        return new{C, elem_type(L)}(L, highest_weight, weyl_group_elem)
-    end
+  function DemazureModuleData(
+    L::LieAlgebra{C}, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem
+  ) where {C<:FieldElem}
+    return new{C,elem_type(L)}(L, highest_weight, weyl_group_elem)
+  end
 end
 
-function DemazureModuleData(L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int})
-    return DemazureModuleData(L, WeightLatticeElem(root_system(L), highest_weight), WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem))
+function DemazureModuleData(
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}
+)
+  return DemazureModuleData(
+    L,
+    WeightLatticeElem(root_system(L), highest_weight),
+    WeylGroupElem(weyl_group(root_system(L)), weyl_group_elem),
+  )
 end
 
-function base_lie_algebra(V::DemazureModuleData{C, LieT}) where {C <: FieldElem, LieT <: LieAlgebraElem{C}}
-    return V.L::parent_type(LieT)
+function base_lie_algebra(
+  V::DemazureModuleData{C,LieT}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
+  return V.L::parent_type(LieT)
 end
 
 function highest_weight(V::DemazureModuleData)
-    return V.highest_weight
+  return V.highest_weight
 end
 
 function character(V::DemazureModuleData)
-    if !isdefined(V, :character)
-      inv_weyl_group_elem = inv(weyl_group_elem(V))
-        _char = demazure_character(ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem)
-        V.character = Dict([(w * inv_weyl_group_elem => k) for (w, k) in _char])
-    end
-    return V.character
+  if !isdefined(V, :character)
+    inv_weyl_group_elem = inv(weyl_group_elem(V))
+    _char = demazure_character(
+      ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem
+    )
+    V.character = Dict([(w * inv_weyl_group_elem => k) for (w, k) in _char])
+  end
+  return V.character
 end
 
 function vector_space_dim(V::DemazureModuleData)
-    if !isdefined(V, :dim)
-        V.dim = sum(values(character(V)); init=zero(ZZ))
-    end
-    return V.dim
+  if !isdefined(V, :dim)
+    V.dim = sum(values(character(V)); init=zero(ZZ))
+  end
+  return V.dim
 end
 
 function weyl_group_elem(V::DemazureModuleData)
-    return V.weyl_group_elem
+  return V.weyl_group_elem
 end

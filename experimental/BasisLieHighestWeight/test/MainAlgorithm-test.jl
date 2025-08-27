@@ -613,16 +613,23 @@ end
 @testset "Demazure" begin
   @testset "Trivial Cases" begin
     for (type, rank, highest_weight) in [
-      (:A, 3, [1, 0, 1]),
-      (:A, 3, [2, 2, 2]),
-      (:B, 2, [1, 1]),
-      (:D, 4, [1, 0, 1, 0]),
-      (:G, 2, [1, 0]),
-    ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
+        (:A, 3, [1, 0, 1]),
+        (:A, 3, [2, 2, 2]),
+        (:B, 2, [1, 1]),
+        (:D, 4, [1, 0, 1, 0]),
+        (:G, 2, [1, 0]),
+      ],
+      monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
 
       # longest weyl group element leads to the same result as a simple module
       mb1 = basis_lie_highest_weight(type, rank, highest_weight; monomial_ordering)
-      mb2 = basis_lie_demazure(type, rank, highest_weight, letters(longest_element(weyl_group(type, rank))); monomial_ordering)
+      mb2 = basis_lie_demazure(
+        type,
+        rank,
+        highest_weight,
+        letters(longest_element(weyl_group(type, rank)));
+        monomial_ordering,
+      )
       @test monomials(mb1) == monomials(mb2)
 
       # empty weyl group element leads to a monomialbasis with only the one element
@@ -633,27 +640,32 @@ end
 
   @testset "Nontrivial Cases" begin
     for (type, rank, highest_weight, weyl_group_elem) in [
-      (:A, 3, [1, 0, 1], [1, 2, 1]),
-      (:A, 3, [2, 2, 2], [1, 2, 1]),
-      (:A, 2, [1,0], [1, 2]),
-      (:A, 2, [1,1], [1, 2]),
-      (:A, 3, [2, 1, 1], [1, 2]),
-      (:A, 3, [1, 2, 0], [1, 2, 1]), #example below
-      (:B, 2, [1, 0], [1, 2]),
-      (:C, 2, [0, 1], [2, 1]), 
-      (:C, 2, [1, 1], [1, 2, 1]), 
-      (:D, 4, [1, 0, 1, 0], [1, 2, 1]),
-      (:G, 2, [1, 0], [1, 2, 1]), 
-    ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
+        (:A, 3, [1, 0, 1], [1, 2, 1]),
+        (:A, 3, [2, 2, 2], [1, 2, 1]),
+        (:A, 2, [1, 0], [1, 2]),
+        (:A, 2, [1, 1], [1, 2]),
+        (:A, 3, [2, 1, 1], [1, 2]),
+        (:A, 3, [1, 2, 0], [1, 2, 1]), #example below
+        (:B, 2, [1, 0], [1, 2]),
+        (:C, 2, [0, 1], [2, 1]),
+        (:C, 2, [1, 1], [1, 2, 1]),
+        (:D, 4, [1, 0, 1, 0], [1, 2, 1]),
+        (:G, 2, [1, 0], [1, 2, 1]),
+      ],
+      monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
 
-      mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
+      mb = basis_lie_demazure(
+        type, rank, highest_weight, weyl_group_elem; monomial_ordering
+      )
       R = root_system(birational_sequence(mb))
 
       char = demazure_character(R, highest_weight, weyl_group_elem)
-      
+
       dict = Dict{WeightLatticeElem,Int64}()
       for mon in monomials(mb)
-        w = WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb))
+        w =
+          WeightLatticeElem(R, highest_weight) -
+          Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb))
         w = w * weyl_group(R)(weyl_group_elem) #the module is twisted and we need to twist it back
         val = get(dict, w, 0) + 1
         dict[w] = val
@@ -667,24 +679,35 @@ end
     type = :A
     rank = 3
     highest_weight = [2, 1, 0]
-    weyl_group_elem = [1, 2, 1]   
+    weyl_group_elem = [1, 2, 1]
 
     for (monomial_ordering, expected_result) in [
-      (:degrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
-      (:lex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
-      (:invlex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0],])),
-      (:neglex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0],])),
-      (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0],])),
+      (:degrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:lex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:invlex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:neglex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
     ]
-      mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
-    
+      mb = basis_lie_demazure(
+        type, rank, highest_weight, weyl_group_elem; monomial_ordering
+      )
+
       R = root_system(birational_sequence(mb))
-      w = WeightLatticeElem(R, highest_weight) - WeightLatticeElem(2 * simple_root(R, 1) + 2 * simple_root(R, 2))
+      w =
+        WeightLatticeElem(R, highest_weight) -
+        WeightLatticeElem(2 * simple_root(R, 1) + 2 * simple_root(R, 2))
 
-      monomials_for_weight_w = filter(mon -> WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w, monomials(mb))
+      monomials_for_weight_w = filter(
+        mon ->
+          WeightLatticeElem(R, highest_weight) -
+          Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w,
+        monomials(mb),
+      )
 
-      exponent_vectors = Set{Vector{Int64}}([only(exponents(m)) for m in monomials_for_weight_w])
-    
+      exponent_vectors = Set{Vector{Int64}}([
+        only(exponents(m)) for m in monomials_for_weight_w
+      ])
+
       @test exponent_vectors == expected_result
     end
   end
