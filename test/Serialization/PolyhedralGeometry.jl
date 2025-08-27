@@ -146,6 +146,7 @@ using Oscar: _integer_variables
       test_save_load_roundtrip(path, [LP1, LP2]) do (loaded1, loaded2)
         @test objective_function(LP1) == objective_function(loaded1)
         @test feasible_region(LP1) == feasible_region(loaded1)
+        @test feasible_region(LP1) == feasible_region(LP2)
       end
 
     end
