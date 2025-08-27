@@ -240,7 +240,7 @@ function hom(
 end
 
 @doc raw"""
-    identity_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+    id_hom(V::LieAlgebraModule) -> LieAlgebraModuleHom
 
 Construct the identity map on `V`.
 
@@ -253,13 +253,13 @@ Standard module
   of dimension 3
 over special linear Lie algebra of degree 3 over QQ
 
-julia> identity_map(V)
+julia> id_hom(V)
 Lie algebra module morphism
   from standard module of dimension 3 over L
   to standard module of dimension 3 over L
 ```
 """
-function identity_map(V::LieAlgebraModule)
+function id_hom(V::LieAlgebraModule)
   return hom(V, V, basis(V); check=false)
 end
 

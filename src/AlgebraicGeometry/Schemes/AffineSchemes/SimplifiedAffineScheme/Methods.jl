@@ -22,7 +22,7 @@ from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsAffineScheme{<:Field})
   # We need to avoid creating a polynomial ring with zero variables
-  dim(X) == 0 && return SimplifiedAffineScheme(X, X, identity_map(X), identity_map(X), check=false)
+  dim(X) == 0 && return SimplifiedAffineScheme(X, X, id_hom(X), id_hom(X), check=false)
 
   L, f, g = simplify(OO(X))
   Y = spec(L)
@@ -69,13 +69,13 @@ function _find_chart(U::AbsAffineScheme, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
   any(W->(W === U), patches(C)) || error("patch not found")
-  return identity_map(U), complement_equations
+  return id_hom(U), complement_equations
 end
 
 function _find_chart(U::PrincipalOpenSubset, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
-  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  any(W->(W === U), patches(C)) && return id_hom(U), complement_equations
   V = ambient_scheme(U)
   ceq = vcat(
              OO(V).(lifted_numerator.(complement_equations)),
@@ -88,7 +88,7 @@ end
 function _find_chart(U::SimplifiedAffineScheme, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
-  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  any(W->(W === U), patches(C)) && return id_hom(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
   ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))
@@ -101,13 +101,13 @@ function _find_chart(U::AbsAffineScheme, W::AbsAffineScheme;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
   W === U || error("wrong target patch")
-  return identity_map(U), complement_equations
+  return id_hom(U), complement_equations
 end
 
 function _find_chart(U::PrincipalOpenSubset, W::AbsAffineScheme;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
-  U === W && return identity_map(U), complement_equations
+  U === W && return id_hom(U), complement_equations
   V = ambient_scheme(U)
   ceq = vcat(
              OO(V).(lifted_numerator.(complement_equations)),
@@ -120,7 +120,7 @@ end
 function _find_chart(U::SimplifiedAffineScheme, W::AbsAffineScheme;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
-  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  any(W->(W === U), patches(C)) && return id_hom(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
   ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))

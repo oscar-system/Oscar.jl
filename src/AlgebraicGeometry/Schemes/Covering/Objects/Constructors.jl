@@ -35,7 +35,7 @@ function Covering(patches::Vector{<:AbsAffineScheme})
   g = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for X in patches
     U = PrincipalOpenSubset(X)
-    f = identity_map(U)
+    f = id_hom(U)
     g[X,X] = SimpleGluing(X, X, f, f, check=false)
   end
   return Covering(patches, g, check=false)

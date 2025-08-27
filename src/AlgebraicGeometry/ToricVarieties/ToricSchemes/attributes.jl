@@ -22,8 +22,8 @@ julia> forget_toric_structure(antv)
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
   Y = underlying_scheme(X)
-  iso = morphism(Y, X, identity_map(OO(X)), check=true)
-  iso_inv = morphism(X, Y, identity_map(OO(X)), check=true)
+  iso = morphism(Y, X, id_hom(OO(X)), check=true)
+  iso_inv = morphism(X, Y, id_hom(OO(X)), check=true)
   set_attribute!(iso, :inverse => iso_inv)
   set_attribute!(iso_inv, :inverse => iso)
   return Y, iso

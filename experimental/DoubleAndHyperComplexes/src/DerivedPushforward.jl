@@ -175,9 +175,9 @@ and `g ∘ f` is the identity on `d`.
 """
 function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
   # the maps from the new to the old complex
-  phi = morphism_type(ChainType)[identity_map(c[first(range(c))])] 
+  phi = morphism_type(ChainType)[id_hom(c[first(range(c))])] 
   # the maps from the old to the new complex
-  psi = morphism_type(ChainType)[identity_map(c[first(range(c))])]
+  psi = morphism_type(ChainType)[id_hom(c[first(range(c))])]
   # the boundary maps in the new complex
   new_maps = morphism_type(ChainType)[]
   for i in map_range(c)

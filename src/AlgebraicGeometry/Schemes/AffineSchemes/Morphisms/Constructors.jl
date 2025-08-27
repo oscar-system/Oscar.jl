@@ -71,7 +71,7 @@ end
 ########################################################################
 
 @doc raw"""
-    identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing})
+    id_hom(X::AbsAffineScheme{<:Any, <:MPolyRing})
 
 This method constructs the identity morphism from an affine scheme to itself.
 
@@ -82,7 +82,7 @@ Affine space of dimension 3
   over rational field
 with coordinates [x1, x2, x3]
 
-julia> identity_map(X)
+julia> id_hom(X)
 Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
@@ -92,10 +92,10 @@ given by the pullback function
   x3 -> x3
 ```
 """
-identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing}) = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
-identity_map(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsAffineScheme{<:Any, <:MPolyQuoRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+id_hom(X::AbsAffineScheme{<:Any, <:MPolyRing}) = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+id_hom(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+id_hom(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+id_hom(X::AbsAffineScheme{<:Any, <:MPolyQuoRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
 
 
 @doc raw"""
@@ -185,7 +185,7 @@ given by the pullback function
   x2 -> x2
   x3 -> x3
 
-julia> m2 = identity_map(X)
+julia> m2 = id_hom(X)
 Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
@@ -194,7 +194,7 @@ given by the pullback function
   x2 -> x2
   x3 -> x3
 
-julia> m3 = identity_map(Y)
+julia> m3 = id_hom(Y)
 Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  scheme(x1)
@@ -244,7 +244,7 @@ Spectrum
       over rational field
     by ideal (x1)
 
-julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
+julia> restrict(id_hom(X), Y, Y) == id_hom(Y)
 true
 ```
 """

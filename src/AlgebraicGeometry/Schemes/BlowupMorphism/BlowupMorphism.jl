@@ -311,7 +311,7 @@ function _do_transform(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf, method::Int
   CX = codomain(p_cov_temp)
   CY = domain(p_cov_temp)
   CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
-  phi = (CY === default_covering(Y) ? Y[CY_simp,CY] : identity_map(CY_simp))
+  phi = (CY === default_covering(Y) ? Y[CY_simp,CY] : id_hom(CY_simp))
   p_cov = compose(phi,p_cov_temp)    # blow up using simplified covering
 
   ## do the transform on the charts

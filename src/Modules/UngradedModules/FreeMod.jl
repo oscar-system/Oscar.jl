@@ -323,7 +323,7 @@ function ambient_module(F::FreeMod, task = :none)
   if task == :none
     return F
   else
-    return F, identity_map(F)
+    return F, id_hom(F)
   end
 end
 

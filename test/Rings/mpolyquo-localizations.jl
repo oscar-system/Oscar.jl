@@ -362,42 +362,42 @@ end
   @test Oscar._has_coefficient_map(L_to_Sl)
   compose(R_to_L, L_to_Sl)
 
-  id_L = identity_map(L)
+  id_L = id_hom(L)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
   prep = hom(R, L, coefficient_ring(R), gens(L))
   id_L = hom(L, L, prep)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
-  prep = hom(R, L, identity_map(coefficient_ring(R)), gens(L))
+  prep = hom(R, L, id_hom(coefficient_ring(R)), gens(L))
   id_L = hom(L, L, prep)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
   R_to_Sl2 = hom(R, Sl, Sl, [u, v])
   L_to_Sl2 = hom(L, Sl, R_to_Sl2)
   @test Oscar._has_coefficient_map(L_to_Sl2)
 
-  phi = compose(identity_map(L), L_to_Sl2)
+  phi = compose(id_hom(L), L_to_Sl2)
   @test phi == L_to_Sl2
-  psi = compose(L_to_Sl2, identity_map(Sl))
+  psi = compose(L_to_Sl2, id_hom(Sl))
   @test psi == L_to_Sl2
 
   R_to_Sl3 = hom(R, Sl, O_KK, [u, v])
   L_to_Sl3 = hom(L, Sl, R_to_Sl3)
   @test Oscar._has_coefficient_map(L_to_Sl3)
 
-  phi = compose(identity_map(L), L_to_Sl3)
+  phi = compose(id_hom(L), L_to_Sl3)
   @test phi == L_to_Sl3
-  psi = compose(L_to_Sl3, identity_map(Sl))
+  psi = compose(L_to_Sl3, id_hom(Sl))
   @test psi == L_to_Sl3
 
 
@@ -414,35 +414,35 @@ end
   S_to_Tl = hom(S, Tl, dirty_reduction, [a, b])
   Sl_to_Tl = hom(Sl, Tl, S_to_Tl)
 
-  id_Sl = identity_map(Sl)
-  phi = compose(identity_map(Sl), Sl_to_Tl)
+  id_Sl = id_hom(Sl)
+  phi = compose(id_hom(Sl), Sl_to_Tl)
   @test phi == Sl_to_Tl
-  psi = compose(Sl_to_Tl, identity_map(Tl))
+  psi = compose(Sl_to_Tl, id_hom(Tl))
   @test psi == Sl_to_Tl
 
 
   L_to_Tl = compose(L_to_Sl, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl)
+  phi = compose(id_hom(L), L_to_Tl)
   @test phi == L_to_Tl
-  psi = compose(L_to_Tl, identity_map(Tl))
+  psi = compose(L_to_Tl, id_hom(Tl))
   @test psi == L_to_Tl
 
   L_to_Tl2 = compose(L_to_Sl2, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl2)
+  phi = compose(id_hom(L), L_to_Tl2)
   @test phi == L_to_Tl2
-  psi = compose(L_to_Tl2, identity_map(Tl))
+  psi = compose(L_to_Tl2, id_hom(Tl))
   @test psi == L_to_Tl2
 
   L_to_Tl3 = compose(L_to_Sl3, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl3)
+  phi = compose(id_hom(L), L_to_Tl3)
   @test phi == L_to_Tl3
-  psi = compose(L_to_Tl3, identity_map(Tl))
+  psi = compose(L_to_Tl3, id_hom(Tl))
   @test psi == L_to_Tl3
 
 

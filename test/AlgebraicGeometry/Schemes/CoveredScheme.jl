@@ -54,8 +54,8 @@
     @test Oscar.poly_type(spec(R)) === Oscar.poly_type(spec(L)) === Oscar.poly_type(Ccov[1][2])
     Lnew, f, g = simplify(L)
     @test !(L == Lnew)
-    @test compose(f, g) == identity_map(L)
-    @test compose(g, f) == identity_map(Lnew)
+    @test compose(f, g) == id_hom(L)
+    @test compose(g, f) == id_hom(Lnew)
 
     C1 = default_covering(Ccov)
     C2, f, g = simplify(C1)
@@ -267,7 +267,7 @@
     (x, y) = gens(S)
     X = covered_scheme(IP1)
     cov = default_covering(X)
-    f = identity_map(cov)
+    f = id_hom(cov)
     cc, p1, p2 = fiber_product(f, f)
     Phi = hom(S, S, [x+y, x-y])
     phi = ProjectiveSchemeMor(IP1, IP1, Phi)
@@ -279,7 +279,7 @@
     ref = domain(g_cov)
 
     inc_cc = Oscar.refinement_morphism(ref, orig)
-    id_orig = identity_map(orig)
+    id_orig = id_hom(orig)
 
     fp_cc_orig, p1, p2 = fiber_product(inc_cc, id_orig)
 
@@ -294,7 +294,7 @@
     (x, y) = gens(S)
 
     X = covered_scheme(IP1)
-    id_X = identity_map(X)
+    id_X = id_hom(X)
     fiber_product(id_X, id_X)
 
     Phi = hom(S, S, [x+y, x-y])

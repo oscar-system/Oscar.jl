@@ -265,7 +265,7 @@ function hom(
 end
 
 @doc raw"""
-    identity_map(L::LieAlgebra) -> LieAlgebraHom
+    id_hom(L::LieAlgebra) -> LieAlgebraHom
 
 Construct the identity map on `L`.
 
@@ -276,13 +276,13 @@ Special linear Lie algebra of degree 3
   of dimension 8
 over rational field
 
-julia> identity_map(L)
+julia> id_hom(L)
 Lie algebra morphism
   from special linear Lie algebra of degree 3 over QQ
   to special linear Lie algebra of degree 3 over QQ
 ```
 """
-function identity_map(L::LieAlgebra)
+function id_hom(L::LieAlgebra)
   return hom(L, L, basis(L); check=false)
 end
 

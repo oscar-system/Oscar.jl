@@ -30,7 +30,7 @@ function base_ring_morphism(phi::ProjectiveSchemeMor)
   if isdefined(phi, :base_ring_morphism)
     return phi.base_ring_morphism
   end
-  return identity_map(base_ring(domain(phi)))
+  return id_hom(base_ring(domain(phi)))
 end
 
 # in case we have honest base schemes, also make the map of schemes available

@@ -57,8 +57,8 @@ Concrete instance of an `AbsGluing` for gluings of affine schemes
      domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
     (OO(domain(f)) === OO(codomain(g)) &&
     OO(domain(g)) ===  OO(codomain(f))) || error("domain/codomain mismatch: maps can not be mutually inverse")
-    @check compose(f, g) == identity_map(domain(f)) "gluing maps are not inverse of each other"
-    @check compose(g, f) == identity_map(domain(g)) "gluing maps are not inverse of each other"
+    @check compose(f, g) == id_hom(domain(f)) "gluing maps are not inverse of each other"
+    @check compose(g, f) == id_hom(domain(g)) "gluing maps are not inverse of each other"
     return new{typeof(X), typeof(Y),
                typeof(domain(f)), typeof(domain(g)),
                typeof(f), typeof(g)

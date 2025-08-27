@@ -1220,7 +1220,7 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
 
   if length(list) == 1
     result = first(list)
-    return result, [identity_map(result)]
+    return result, [id_hom(result)]
   end
   patch_list = AbsAffineScheme[]
   anc_list = AbsAffineScheme[]

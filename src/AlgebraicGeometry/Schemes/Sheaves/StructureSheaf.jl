@@ -14,7 +14,7 @@ end
 ### restrictions
 function produce_restriction_map(F::StructureSheafOfRings, V::AbsAffineScheme, U::AbsAffineScheme)
   V === U || error("basic affine patches must be the same")
-  return identity_map(OO(V))
+  return id_hom(OO(V))
 end
 
 function produce_restriction_map(

@@ -26,7 +26,7 @@ end
 
 inclusion_morphism(X::AffineSchemeOpenSubscheme, Y::AbsAffineScheme; check::Bool=true) = inclusion_morphism(X, AffineSchemeOpenSubscheme(Y), check=check)
 
-function identity_map(U::AffineSchemeOpenSubscheme)
+function id_hom(U::AffineSchemeOpenSubscheme)
   phi = AffineSchemeOpenSubschemeMor(U, U,
                     [morphism(V, ambient_scheme(U), gens(OO(V)), check=false) for V in affine_patches(U)],
                     check=false

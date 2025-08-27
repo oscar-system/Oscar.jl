@@ -63,7 +63,7 @@ function (fac::SummandProjectionFactory)(self::AbsHyperComplexMorphism, i::Tuple
     end
   end
   res = hom(cod, dom, img_gens)
-  if fac.check && compose(inc, res) != identity_map(dom)
+  if fac.check && compose(inc, res) != id_hom(dom)
     error("given map failed to be of the required format.")
   end
   return res

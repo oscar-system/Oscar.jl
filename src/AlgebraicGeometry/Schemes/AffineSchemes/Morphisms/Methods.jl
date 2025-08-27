@@ -272,7 +272,7 @@ Spectrum
       over rational field
     by ideal (x1)
 
-julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
+julia> restrict(id_hom(X), Y, Y) == id_hom(Y)
 true
 ```
 """
