@@ -19,6 +19,8 @@ abstract type AbstractGraph{T <: GraphTypes} end
   end
 end
 
+const GraphMapValueTypes = Union{String, Bool, Int, QQFieldElem}
+
 struct GraphMap{T, S <: Union{Nothing, EdgeMap}, U <: Union{Nothing, NodeMap}}
   graph::Graph{T}
   edge_map::S

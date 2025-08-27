@@ -1750,7 +1750,6 @@ function graph_from_edges(::Type{Mixed},
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
 end
 
-
 @doc raw"""
     label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
 Given a graph `G`, add labels to the edges and optionally to the vertices with the given `name`.
@@ -1787,9 +1786,9 @@ label: shading
 ```
 """
 function label!(G::Graph{T},
-                edge_labels::Dict{NTuple{2, Int}, S},
-                vertex_labels::Dict{Int, U};
-                name::Symbol=:label) where {S, U, T <: Union{Directed, Undirected}}
+                edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
+                vertex_labels::Dict{Int, <: GraphMapValueTypes};
+                name::Symbol=:label) where {T <: Union{Directed, Undirected}}
   
   @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
   EM = EdgeMap(pm_object(G), edge_labels)
@@ -1801,9 +1800,9 @@ function label!(G::Graph{T},
 end
 
 function label!(G::Graph{T},
-                edge_labels::Dict{NTuple{2, Int}, S},
+                edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
                 vertex_labels::Nothing;
-                name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
+                name::Symbol=:label) where {T <: Union{Directed, Undirected}}
   @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
   EM = EdgeMap(pm_object(G), edge_labels)
   set_attribute!(G, name, GraphMap(G, EM, nothing))
@@ -1861,18 +1860,18 @@ julia> K.color[1]
 ```
 """
 function graph_from_labeled_edges(::Type{T},
-                                  edge_labels::Dict{NTuple{2, Int}, U},
-                                  vertex_labels::Union{Dict{Int, V}, Nothing}=nothing;
+                                  edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
+                                  vertex_labels::Union{Dict{Int, <: GraphMapValueTypes}, Nothing}=nothing;
                                   name::Symbol=:label, 
-                                  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, U, V}
+                                  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   label!(G, edge_labels, vertex_labels; name=name)
 end
 
-function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, U},
-                                  vertex_labels::Union{Dict{Int, V}, Nothing}=nothing;
-                                  name::Symbol=:label, n_vertices::Int=-1) where {U, V}
+function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
+                                  vertex_labels::Union{Dict{Int, GraphMapValueTypes}, Nothing}=nothing;
+                                  name::Symbol=:label, n_vertices::Int=-1)
   graph_from_labeled_edges(Undirected, edge_labels, vertex_labels; name=name, n_vertices=n_vertices)
 end
 
