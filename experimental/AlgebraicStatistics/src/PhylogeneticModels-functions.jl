@@ -31,7 +31,7 @@ root(graph::Graph) = roots(graph)[1]
 
 function sort_edges(graph::Graph)
   edgs = collect(edges(graph))
-  leaves_idx = findall(edge -> dst(edge) in Oscar.leaves(graph), edgs)
+  leaves_idx = findall(edge -> dst(edge) in leaves(graph), edgs)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
 end
 
@@ -60,7 +60,7 @@ function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
 end
 
 function biconnected_components(g::Graph{Undirected})
-    im = Polymake.call_function(:graph, :biconnected_components, Oscar.pm_object(g))::IncidenceMatrix
+    im = Polymake.call_function(:graph, :biconnected_components, pm_object(g))::IncidenceMatrix
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
 end
 
@@ -129,6 +129,12 @@ function level_phylogenetic_network(G::Graph{Directed})
     maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
 end
 
+function tree_edges(N::PhylogeneticNetwork)
+  hyb = hybrids(N)
+  egdes_N = collect(edges(N))
+  egdes_N[findall(e -> !(dst(e) in collect(keys(hyb))), egdes_N)]
+end
+
 ###################################################################################
 #
 #       Auxiliary functions to access parameters
@@ -175,6 +181,10 @@ entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
 
 
 function entry_hybrid_parameter(PM::PhylogeneticModel, e::Edge)
+  if !(dst(e) in collect(keys(hybrids(graph(PM)))))
+    error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
+  end
+
   parameter_ring(PM)[4][e]
 end
 
@@ -195,11 +205,17 @@ function leaves_indices(PM::PhylogeneticModel)
 
   return leaves_indices
 end
-function leaves_indices(PM::GroupBasedPhylogeneticModel)
-  return leaves_indices(phylogenetic_model(PM))
+
+leaves_indices(PM::GroupBasedPhylogeneticModel) = leaves_indices(phylogenetic_model(PM))
+
+function hybrid_indices(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}) where {M, L, T}
+  hyb = hybrids(graph(PM))
+  hyb_indices = collect(Iterators.product([tuple(1:2...) for _ in keys(hyb)]...))
+
+  return hyb_indices
 end
 
-function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int})
+function fully_observed_probability(PM::PhylogeneticModel{Graph{Directed}, M, L, T}, vertices_states::Dict{Int, Int}) where{M, L, T}
   gr = graph(PM)
 
   r = root(gr)
@@ -220,7 +236,27 @@ function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict
   return monomial
 end
 
-function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int})
+function fully_observed_probability(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+
+  r = root(subtree)
+  monomial = entry_root_distribution(PM, vertices_states[r])
+  
+  for edge in edges(subtree)
+    state_parent = vertices_states[src(edge)]
+    state_child = vertices_states[dst(edge)]
+    # get the symbolfrom the transition matrix signature
+    sym = entry_transition_matrix(PM, state_parent, state_child, edge)
+    # we can try and avoid this here if this becomes a bottle neck
+    # it's related to the comment below about using a polynomial context
+    # i.e., this is just the adding of exponents which are integer vectors
+    # which would be much faster than polynomial multiplication
+    monomial = monomial * sym
+  end
+
+  return monomial
+end
+
+function leaves_probability(PM::PhylogeneticModel{Graph{Directed}, M, L, T}, leaves_states::Dict{Int, Int}) where{M, L, T}
   gr = graph(PM)
   int_nodes = interior_nodes(gr)
 
@@ -234,6 +270,23 @@ function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}
       vertices_states[int_node] = label
     end
     poly = poly + fully_observed_probability(PM, vertices_states)
+  end 
+  return poly
+end 
+
+function leaves_probability(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+  int_nodes = interior_nodes(subtree)
+
+  interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
+  vertices_states = leaves_states
+
+  poly = 0
+  # Might be useful in the future to use a polynomial ring context
+  for labels in interior_indices
+    for (int_node, label) in zip(int_nodes, labels)
+      vertices_states[int_node] = label
+    end
+    poly = poly + fully_observed_probability(PM, vertices_states, subtree)
   end 
   return poly
 end 
