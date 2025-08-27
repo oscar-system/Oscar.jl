@@ -13,8 +13,8 @@ function gmodule_new(chi::Oscar.GAPGroupClassFunction)
     if !is_zero(scalar_product(permutation_character(G, i), chi))
       M = permutation_gmodule(G, i, QQ)
       t = split_into_homogenous(M)
-      tt = map(character, t)
-      return [t[i] for i=1:length(t) if !is_zero(scalar_product(tt[i], chi))]
+      tt = [character(domain(x)) for x = t]
+      return [domain(t[i]) for i=1:length(t) if !is_zero(scalar_product(tt[i], chi))]
     end
   end
   error("no plan yet")
@@ -22,12 +22,14 @@ end
 
 function _do_one!(res, t, M)
   _t = split_into_homogenous(M)
-  for x = _t
+  for _x = _t
+    x = domain(_x)
     _c = map(iszero, coordinates(character(x)))
     if t .& _c == t
-      @show :bad
+      @show :bad, "module known", _c
       continue
     end
+    @show "found", _c
     t .&= map(iszero, coordinates(character(x)))
     push!(res, x)
     if !any(t)
@@ -109,28 +111,96 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
   _try_tensor_products!(res, t; limit) && return res
   _try_squares!(res, t; limit) && return res
 
+  all_K = [x for x = subgroup_reps(G) if order(x) <= 20] #how to do this?
+
   for i=s
     @show "order $(order(i))"
     XX = character_table(i)
     for chi = XX
       #careful with multiplicity
-      if degree_of_character_field(chi)*degree(chi)*index(G, i) > limit
+      deg = degree_of_character_field(chi)*degree(chi)*index(G, i) 
+      if deg > limit^2
         @show :too_large, degree_of_character_field(chi), degree(chi), index(G, i)
         continue
       end
-      cc = map(iszero, coordinates(induce(chi, G))) .& t
+      chi_G = induce(chi, G)
+      cc = map(iszero, coordinates(chi_G)) .& t
       if cc != t
-        @show "should help"
+        @show "could help"
         v = gmodule_new(chi)
         @assert length(v) == 1
         v = v[1]
-        for j=1:length(t)
-          if cc[j] != t[j] 
-            @show :induce
-            V = induce(v, embedding(i, G))[1]
-            _do_one!(res, t, V) && return res
-          else
-            @show "bad"
+        if deg <= limit
+          @show "direct induce"
+          for j=1:length(t)
+            if cc[j] != t[j] 
+              @show :induce
+              V = induce(v, embedding(i, G))[1]
+              _do_one!(res, t, V) && return res
+            else
+#              @show "bad"
+            end
+          end
+        else
+          local V
+          have_V = false
+          good_K = []
+          for K = all_K
+            dim_C = scalar_product(restrict(chi_G, K), trivial_character(K))
+            if dim_C <= limit
+              #test if K makes sense
+              @show t 
+              @show [is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i = 1:length(t)]
+              if all(i->!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))), 1:length(t))
+                @show "condense would give no info"
+                continue
+              end
+              push!(good_K, (K, dim_C))
+            end
+          end
+          sort!(good_K, lt = (a,b) -> a[2] < b[2])
+          randG = [rand(G) for i=1:20]
+          @show good_K
+          for _K = good_K[1:1]
+            K = _K[1]
+            if !have_V
+              V = induce(v, embedding(i, G))[1]
+              have_V = true
+            end
+            @show "condense", V, K
+            c, mc = condense(V, K)
+            @assert dim(c) <= limit
+            sp = split_into_homogenous(c)
+            @show "split done"
+            #TODO: use the traces in some form to decide which element in
+            #      sp needs spinning - generically, there should be only one
+            #      this is via Allan's trace vectors
+            #      not sure what happens if split_into_homo has multiplicities
+            #TODO: trace vectors: Allan adds more "generators" to the condensed
+            #      module to have traces and to avoid problems from
+            #      condensing Q[G] wrongly. Not sure if this is the correct
+            #      way...
+            for _t = sp
+              d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit)
+              if dim(d) > limit || d == V
+                @show "spin too large", d, limit
+              end
+              dim(d) > limit && continue
+              @assert dim(d) < dim(V)
+              @show dim(d), dim(V), coordinates(character(d))
+              if dim(d) <= limit
+                _do_one!(res, t, d) && return res
+              end
+              if !any(cc .& t)
+                @show "OK, leaving this level"
+                #can't get any more out of V
+                break
+              end
+            end
+            if !any(cc .& t)
+              #can't get any more out of V
+              break
+            end
           end
         end
       end
@@ -139,6 +209,176 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
   return res
   error("no plan yet")
 end
+
+function dim_condensed(C::GModule, K::Oscar.GAPGroup)
+  #Allan, Cor. 3.5.5.
+  return Int(scalar_product(restrict(character(C), K), trivial_character(K)))
+end
+
+function idempotent(C::GModule, iKG::Map, v::AbstractAlgebra.FPModuleElem)
+  #use a pc-rep tp reduce the calls to action and the number of terms
+  #if C is huge and K small, using action on elements will be better
+  #once action without matrix is implemented...
+  return QQ(1, order(domain(iKG)))*sum(action(C, iKG(k), v) for k = domain(iKG))
+end
+
+function idempotent(C::GModule, iKG::Map, v::Vector{<:AbstractAlgebra.FPModuleElem})
+  #use a pc-rep tp reduce the calls to action and the number of terms
+  #if C is huge and K small, using action on elements will be better
+  #once action without matrix is implemented...
+  s = copy(v)
+  for k = domain(iKG)
+    isone(k) && continue
+    s .+= action(C, iKG(k), v)
+  end
+  return QQ(1, order(domain(iKG))).*s
+end
+
+function idempotent(C::GModule, iKG::Map)
+  #use a pc-rep tp reduce the calls to action and the number of terms
+  return QQ(1, order(domain(iKG)))*sum([action(C, iKG(k)) for k = domain(iKG)])
+end
+
+function condense(C::GModule, K::Oscar.GAPGroup)
+  #K should be a subgroup of G for the G-Module C
+  G = group(C)
+  iKG = embedding(K, G)
+  #phi = 1/|K| sum_K k in Z[G] should be an idempotent
+  #we want to get C phi as a module - without a group, this is algebra
+  #only. The operation should be 
+  #  phi g phi
+  d = dim_condensed(C, K)
+  M = C.M
+  i = 1
+  #TODO: spinning properly - or different strategy
+  #      here I "condense" along a basis, alternatively, or better
+  #      spin the elements to get operation and larger images
+  #      there is/ might be the problem that gens(G) is too small,
+  #      ie. the condensation is not the condenstation of Q[G]
+  #      we want the image and the operation...
+  phi = idempotent(C, iKG)
+  ge = elem_type(C.M)[]
+  s, ms = sub(C.M, ge)
+  i = 0
+  while length(ge) < d
+    i += 1
+    x = phi(C.M[i])
+    if has_preimage_with_preimage(ms, x)[1]
+      continue
+    end
+    push!(ge, x)
+    s, ms = sub(C.M, ge)
+  end
+  #try to reduce/ improve
+  x = matrix(ms)
+  n = numerator(x)
+  @show maximum(nbits, n)
+  n = saturate(n)
+  n = lll(n)
+  @show maximum(nbits, n)
+  ms = hom(s, C.M, matrix(QQ, n))
+  #action and preimage allows vectors
+  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))) for g = gens(G)]), ms
+#  return gmodule(nothing, [hom(s, s, preimage(ms, idempotent(C, iKG, action(C, g, map(ms, gens(s)))))) for g = gens(G)]), ms
+end
+
+function spin(C::GModule, v::Vector)
+  s, ms = sub(C.M, v)
+  v = map(ms, gens(s))
+  done = false
+  while !done
+    done = true
+    for m = v, g = gens(group(C))
+      x = action(C, g, m)
+      if has_preimage_with_preimage(ms, x)[1]
+        continue
+      end
+      done = false
+      push!(v, x)
+      s, ms = sub(C.M, v)
+      v = map(ms, gens(s))
+      break
+    end
+  end
+  return gmodule(group(C), [hom(s, s, preimage(ms, action(C, g, v))) for g = gens(group(C))])
+end
+
+#same as above, but bypass modules and work with matrices directly
+function spin2(C::GModule, v::Vector; limit::Int = 50)
+  s = vcat([x.v for x = v]...)
+  r = rref!(s)  
+  piv = Int[]
+  i = 1
+  for j=1:r
+    while is_zero_entry(s, j, i)
+      i += 1
+    end
+    push!(piv, i)
+  end
+
+  done = false
+  x = zero_matrix(QQ, 1, ncols(s))
+  while !done
+    done = true
+    for m = 1:r, g = gens(group(C))
+      #(bad) strategy: for each basis element (row in s) test if the image
+      #is also in.
+      #non-trivial part: use reduce_mod! as a membership test 
+      #  ... and insert the reduced vector into the correct row
+      #  of s - to not redo the rref
+      #possibly not test the same row/ gen combination over and over?
+      #might be tricky as elements change due to reduction to the top
+      #maybe not do this? (the reduce_mod! below). For the spin we don't need
+      #it, for the upper reduce_mod! (membership) neither ...
+      mul!(x, view(s, m:m, :), matrix(action(C, g)))  #if action is matrix free...
+      reduce_mod!(x, view(s, 1:r, :))
+      if is_zero(x)
+        continue
+      end
+      done = false
+      i = 1
+      while is_zero_entry(x, 1, i)
+        i += 1
+      end
+      mul!(x, inv(x[1, i]))
+      ta = searchsorted(piv, i)
+      @assert length(ta) == 0
+      if first(ta) == 1
+        pushfirst!(piv, i)
+        s = vcat(x, view(s, 1:r, :))
+      elseif first(ta) <= r
+        insert!(piv, first(ta), i)
+        _s = view(s, 1:first(ta)-1, :)
+        reduce_mod!(_s, x)
+        s = vcat(_s, x, view(s, first(ta):r, :))
+      else
+        push!(piv, i)
+        _s = view(s, 1:r, :)
+        reduce_mod!(_s, x)
+        s = vcat(_s, x)
+      end
+      if nrows(s) > limit
+        return C
+      end
+      r += 1
+#      _x = rref(s)
+#      @show x[2] - s
+#      @assert _x[1] == r
+#      @assert _x[2] == s
+      break
+    end
+  end
+  v = [C.M(collect(view(s, i, :))) for i=1:r]
+  ss, mss = sub(C.M, v)
+  #preimage can handle vectors of elements, this means only one rref
+  #possibly eventually homs should use the solve_ctx?
+  #similarly, action can handle vectors, removing identical group theory
+  return gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v))) for g = gens(group(C))])
+#  return gmodule(group(C), [hom(ss, ss, [preimage(mss, action(C, g, m)) for m = v]) for g = gens(group(C))])
+end
+
+
+
 
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []
@@ -153,11 +393,13 @@ function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
     h = hom(M, M, hom(M.M, M.M, matrix(x)))
     k, mk = kernel(h)
     @assert dim(k) > 0
-    q, mq = quo(M, mk.module_map)
-    @assert dim(q) > 0
+#    q, mq = quo(M, mk.module_map) #TODO: for uncondense we cannot use
+          #quotients
+          #is quotient equivalent to kernel of other factor?
+#    @assert dim(q) > 0
     append!(H, split_into_homogenous(k))
-    append!(H, split_into_homogenous(q))
-    break
+#    append!(H, split_into_homogenous(q))
+#    break
   end
   return H
 end
@@ -198,12 +440,15 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   #            need to look for more elements - but how many?
   E, mE = endo(M)
   Z_M = maximal_order(E)
-  chi = character(M)
-  chi, k, m = galois_representative_and_multiplicity(chi)
 
-  if m == 1
-    @show :is_irr
-    return [M]
+  if group(M) !== nothing
+    chi = character(M)
+    chi, k, m = galois_representative_and_multiplicity(chi)
+
+    if m == 1
+      @show :is_irr
+      return [M]
+    end
   end
 
   S = []
@@ -375,6 +620,7 @@ end
 function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p28: HomogeneousComponents(M)
   #Careful: the list in the end contains homogenous components - but
+  randG = [rand(G) for i=1:20]
   #         with lots of repetition
   #TODO: write and use CentreOfEndomorphismRing
   #      have a sane overall strategy
@@ -393,7 +639,7 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
     lf = factor(f)
     if length(lf) == 1
       if degree(f) == dim(C)
-        return [M]
+        return [hom(M, M, id_hom(M.M))]
       end
       continue
     end
@@ -420,7 +666,7 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
 #      @assert dim(q) > 0 && dim(k) > 0
 #      _, mF = restrict_endo(mC, mk)
 #      set_attribute!(k, :center_endo => mF)
-      push!(H, k)
+      push!(H, mk)
 #      append!(H, split_into_homogenous(k))
 #      _, mF = proj_endo(mC, hom(M, q, mq; check = false))
 #      set_attribute!(q, :center_endo => mF)
