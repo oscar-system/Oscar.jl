@@ -1,6 +1,3 @@
-# hack needed for graph maps untill update in Polymake
-Polymake.convert_to_pm_type(::Type{<:Polymake.Map{S,T}}) where S where T = Polymake.Map{Polymake.convert_to_pm_type(S), Polymake.convert_to_pm_type(T)}
-
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
   vertex_perm::Vector{Int}
@@ -14,6 +11,8 @@ end
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
+
+vertex_perm(pt::PhylogeneticTree) = pt.vertex_perm
 
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
@@ -235,25 +234,33 @@ Directed graph with 7 nodes and the following edges:
 (1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
-function adjacency_tree(ptree::PhylogeneticTree)
+function adjacency_tree(ptree::PhylogeneticTree{T}) where T
   udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
   n = nv(udir_tree)
   dir_tree = Graph{Directed}(n)
+  edge_lengths = pm_object(ptree).EDGE_LENGTHS
+  edge_labels = Dict{NTuple{2, Int}, T}()
+
   queue = [1]
   visited = fill(false, n)
   visited[1] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
-      node = ptree.vertex_perm[y]
+      node = vertex_perm(ptree)[y]
       if visited[node] == false
-        add_edge!(dir_tree, ptree.vertex_perm[x], ptree.vertex_perm[node])
+        add_edge!(dir_tree, vertex_perm(ptree)[x], vertex_perm(ptree)[node])
+        edge_labels[vertex_perm(ptree)[x], vertex_perm(ptree)[node]] = edge_lengths[x, node]
         push!(queue, node)
         visited[node] = true
       end
     end
   end
-
+  label!(dir_tree, edge_labels, nothing; name=:distance)
+  label!(dir_tree,
+         nothing,
+         Dict{Int, String}(
+           v => pm_object(ptree).LABELS[vertex_perm(ptree)[v]] for v in 1:n ); name=:leaves)
   return dir_tree
 end
 

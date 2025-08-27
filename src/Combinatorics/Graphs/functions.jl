@@ -386,6 +386,7 @@ struct Edge
     target::Int64
 end
 
+Edge(t::NTuple{2, Int}) = Edge(t[1], t[2])
 
 @doc raw"""
     src(e::Edge)
@@ -638,8 +639,9 @@ false
 ```
 """
 function has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    return Polymake._has_edge(pmg, source-1, target-1)
+  (!_has_node(g, source) || !_has_node(g, target)) && return false
+  pmg = pm_object(g)
+  return Polymake._has_edge(pmg, source-1, target-1)
 end
 function has_edge(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
     return has_edge(g, src(e), dst(e))
@@ -1780,41 +1782,33 @@ function label!(G::Graph{T},
                 edge_labels::Dict{NTuple{2, Int}, S},
                 vertex_labels::Dict{Int, U};
                 name::Symbol=:label) where {S, U, T <: Union{Directed, Undirected}}
-  EM = EdgeMap{T, S}(pm_object(G))
-  NM = NodeMap{T, U}(pm_object(G))
+  
+  @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
+  EM = EdgeMap(pm_object(G), edge_labels)
+
+  @req all(Base.Fix1(_has_node, G), keys(vertex_labels)) "Vertex does not exist for a given label"
+  NM = NodeMap(pm_object(G), vertex_labels)
   set_attribute!(G, name, GraphMap(G, EM, NM))
-  for (k, v) in edge_labels
-    getproperty(G,name)[k] = v
-  end
-  for (k, v) in vertex_labels
-    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
-    getproperty(G,name)[k] = v
-  end
   return G
 end
 
 function label!(G::Graph{T},
-                    edge_labels::Dict{NTuple{2, Int}, S},
-                    vertex_labels::Nothing;
-                    name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
-  EM = EdgeMap{T, S}(pm_object(G))
+                edge_labels::Dict{NTuple{2, Int}, S},
+                vertex_labels::Nothing;
+                name::Symbol=:label) where {S, T <: Union{Directed, Undirected}}
+  @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
+  EM = EdgeMap(pm_object(G), edge_labels)
   set_attribute!(G, name, GraphMap(G, EM, nothing))
-  for (k, v) in edge_labels
-    getproperty(G,name)[k] = v
-  end
   return G
 end
 
 function label!(G::Graph{T},
                     edge_labels::Nothing,
                     vertex_labels::Dict{Int, U};
-                    name::Symbol=:label) where {U <: Union{Int, String}, T <: Union{Directed, Undirected}}
-  NM = NodeMap{T, U}(pm_object(G))
+                name::Symbol=:label) where {U, T <: Union{Directed, Undirected}}
+  @req all(Base.Fix1(_has_node, G), keys(vertex_labels)) "Vertex does not exist for a given label"
+  NM = NodeMap(pm_object(G), vertex_labels)
   set_attribute!(G, name, GraphMap(G, nothing, NM))
-  for (k, v) in vertex_labels
-    @req k <= number_of_vertices(G) "Cannot label a vertex that is not in the graph"
-    getproperty(G,name)[k] = v
-  end
   return G
 end
 
@@ -1859,18 +1853,18 @@ julia> K.color[1]
 ```
 """
 function graph_from_labeled_edges(::Type{T},
-                                   edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
-                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
-                                   name::Symbol=:label, 
-                                   n_vertices::Int=-1) where T <: Union{Directed, Undirected}
+                                  edge_labels::Dict{NTuple{2, Int}, U},
+                                  vertex_labels::Union{Dict{Int, V}, Nothing}=nothing;
+                                  name::Symbol=:label, 
+                                  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, U, V}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   label!(G, edge_labels, vertex_labels; name=name)
 end
 
-function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, <: Union{Int, String}},
-                                   vertex_labels::Union{Dict{Int, <: Union{Int, String}}, Nothing}=nothing;
-                                   name::Symbol=:label, n_vertices::Int=-1)
+function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, U},
+                                  vertex_labels::Union{Dict{Int, V}, Nothing}=nothing;
+                                  name::Symbol=:label, n_vertices::Int=-1) where {U, V}
   graph_from_labeled_edges(Undirected, edge_labels, vertex_labels; name=name, n_vertices=n_vertices)
 end
 
