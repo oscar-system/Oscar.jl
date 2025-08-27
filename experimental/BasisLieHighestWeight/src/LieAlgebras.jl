@@ -18,7 +18,7 @@ function matrices_of_operators(
     if is_pos_root
       return change_base_ring(ZZ, transformation_matrices[pos_i + number_of_positive_roots(R)])  # take f_alpha for positive root alpha
     elseif is_neg_root
-      return change_base_ring(ZZ, transformation_matrices[neg_i - number_of_positive_roots(R)])  # take e_alpha for negative root alpha
+      return change_base_ring(ZZ, transformation_matrices[neg_i])  # take e_alpha for negative root alpha
     else
       error("unreachable")
     end
