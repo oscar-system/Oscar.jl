@@ -2046,9 +2046,14 @@ julia> g = graph_from_edges([[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(3, 2)(4, 2)(4, 3)
 
-julia> induced_subgraph(g, 1:3)
+julia> induced_subgraph(g, 2:4)
 Undirected graph with 3 nodes and the following edges:
 (2, 1)(3, 1)(3, 2)
+and the following labeling(s):
+label: vertexlabels
+1 -> 2
+2 -> 3
+3 -> 4
 ```
 """
 function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}) where {T <: Union{Directed, Undirected}}
