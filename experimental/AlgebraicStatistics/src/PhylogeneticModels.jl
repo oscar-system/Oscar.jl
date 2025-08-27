@@ -995,7 +995,7 @@ function parametrization(PM::PhylogeneticModel)
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
 
-  # need to double check the order of the keys here is consitent,
+  # TODO: need to double check the order of the keys here is consitent,
   # otherwise we need to add a sort
   lvs_indices = keys(gens(R))
   map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
@@ -1022,6 +1022,7 @@ end
 
 Constructs an affine parametrization of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
 """
+# TODO: this is for trees. Fix and add function for networks
 function affine_parametrization(PM::PhylogeneticModel)
   R, p = model_ring(PM) 
   S, _ = parameter_ring(PM)
