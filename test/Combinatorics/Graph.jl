@@ -207,6 +207,7 @@
         @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
 
         edge_labels = Dict{NTuple{2, Int}, QQFieldElem}((5, 6) => 3//4, (7, 8) => 3)
+        vertex_labels = Dict{Int, QQFieldElem}(3 => 1//4, 9 => 10)
         G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
         @test_throws ArgumentError G3.label[10]
         @test_throws ArgumentError G3.label[6, 5]
@@ -215,6 +216,7 @@
         @test G3.label[1] == 0
         @test labelings(G3) == [:label]
         @test G3.label[5, 6] isa QQFieldElem
+        @test G3.label[3] isa QQFieldElem
         
         vertex_labels[5] = 3
         edge_labels[2, 3] = 4

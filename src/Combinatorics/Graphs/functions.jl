@@ -951,13 +951,16 @@ _has_edge_map(GM::GraphMap) = !isnothing(GM.edge_map)
 function Base.getindex(GM::GraphMap, i::Int)
   @req _has_vertex_map(GM) "Graph map not defined for vertices"
   @req _has_node(GM.graph, i) "Graph doesn't have vertex $i"
-  return GM.vertex_map[i]
+  return _pmdata_for_oscar(GM.vertex_map[i], QQ)
 end
 
 function Base.getindex(GM::GraphMap, i::Int, j::Int)
   @req has_edge(GM.graph, i, j) "Graph doesn't have edge ($i, $j) "
   @req _has_edge_map(GM) "Graph map not defined on edges"
-  return GM.edge_map[i, j]
+  # currently you cannot create an edge map with an oscar number
+  # in this way we can use _pmdata_for_oscar safely by always passing the field as QQ
+  
+  return _pmdata_for_oscar(GM.edge_map[i, j], QQ)
 end
 
 function Base.getindex(GM::GraphMap, e::Edge)
@@ -1587,6 +1590,11 @@ function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <:
           for e in edges(G)
             println(io, "")
             print(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
+          end
+        else
+          println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
+          for e in edges(G)
+            print(io, "($(src(e)), $(dst(e)))")
           end
         end
         if _has_vertex_map(getproperty(G, label))
