@@ -5,6 +5,60 @@
 
 ###################################################################################
 #
+#       Phylogenetic Networks
+#
+###################################################################################
+
+struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
+  graph::Graph{Directed}
+  hybrids::Dict{Int, Vector{Edge}}
+
+  function PhylogeneticNetwork(G::Graph{Directed},
+                              hybrid_edgs::Union{Nothing, Vector{Edge}} = nothing)
+
+    if isnothing(hybrid_edgs)
+      h_nodes = hybrid_vertices(G)
+      hybrid_edgs = Dict{Int, Vector{Edge}}(i => hybrid_edges(G, i) for i in h_nodes)
+    end
+
+    if !is_phylogenetic_network(G)
+      error("The graph `$(edges(G))` with `$(length(hybrid_edgs))` 
+            hybrid nodes is not a phylogenetic network.")
+    end
+
+    level = level_phylogenetic_network(G)
+    return new{length(hybrid_edgs), level}(G, hybrid_edgs)
+  end
+end
+
+function phylogenetic_network(G::Graph{Directed})
+    return PhylogeneticNetwork(G, nothing)
+end
+
+function Base.show(io::IO, N::PhylogeneticNetwork)
+  G = N.graph
+  print(io, "Phylogenetic network $G")  
+end
+
+function Base.show(io::IO, m::MIME"text/plain", N::PhylogeneticNetwork) 
+  print(io, "Phylogenetic network")
+end
+
+level(::PhylogeneticNetwork{N, L}) where {N, L} = L
+n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
+graph(N::PhylogeneticNetwork) = N.graph
+
+hybrids(N::PhylogeneticNetwork) = N.hybrids
+hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
+hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
+
+
+n_edges(N::PhylogeneticNetwork) = n_edges(graph(N))
+leaves(N::PhylogeneticNetwork) = leaves(graph(N))
+edges(N::PhylogeneticNetwork) = edges(graph(N))
+
+###################################################################################
+#
 #       Phylogenetic Models
 #
 ###################################################################################
@@ -36,6 +90,7 @@ base field (e.g., `QQ` for rational numbers).
 """
 @attributes mutable struct PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
+  # do we need binary trees/networs? Check if works otherwise!
   base_field::Field
   graph::GT
   labelings::L
@@ -64,7 +119,28 @@ base field (e.g., `QQ` for rational numbers).
                                                                     varnames)
   end
 
-  function PhylogeneticModel(G::Graph{Directed},
+  function PhylogeneticModel(F::Field,
+                             N::PhylogeneticNetwork,
+                             trans_matrix_structure::Matrix,
+                             root_distribution::Union{Nothing, Vector} = nothing,
+                             varnames::VarName="p")
+    n_states = size(trans_matrix_structure)[1]
+    if isnothing(root_distribution)
+      root_distribution = F.(repeat([1//n_states], outer = n_states))
+    end
+    G = graph(N)
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{PhylogeneticNetwork, typeof(first(trans_matrix_structure)), 
+               typeof(graph_maps), typeof(first(root_distribution))}(F, N,
+                                                                    graph_maps,
+                                                                    trans_matrix_structure,
+                                                                    root_distribution,
+                                                                    n_states,
+                                                                    varnames)
+  end
+
+  function PhylogeneticModel(G::Union{Graph{Directed}, PhylogeneticNetwork},
                              trans_matrix_structure::Matrix{M},
                              root_distribution::Vector{T},
                              varnames::VarName="p") where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
@@ -79,13 +155,14 @@ base field (e.g., `QQ` for rational numbers).
     PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
   end
 
-  function PhylogeneticModel(G::Graph{Directed},
+  function PhylogeneticModel(G::Union{Graph{Directed}, PhylogeneticNetwork},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varnames::VarName="p")
     return PhylogeneticModel(QQ, G, trans_matrix_structure, 
                              root_distribution, varnames)
   end
+
 end
 
 @doc raw"""
@@ -98,25 +175,24 @@ If `root_distribution` is not provided, a uniform distribution is assumed. If `F
 
 If `trans_matrix_structure` is a `Matrix{<: MPolyRing{<:MPolyRingElem}}` and `root_distribution` is a `Vector{<: MPolyRing}`, then the constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
 """
-function phylogenetic_model(F::Field, G::Graph{Directed},
+function phylogenetic_model(F::Field, G::Union{Graph{Directed}, PhylogeneticNetwork},
                             trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{M},
+function phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork}, trans_matrix_structure::Matrix{M},
                             root_distribution::Vector{T},
                             varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
   PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix,
+function phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork}, trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   return PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
-
 
 @doc raw"""
     n_states(PM::PhylogeneticModel)

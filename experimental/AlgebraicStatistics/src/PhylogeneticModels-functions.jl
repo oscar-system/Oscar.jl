@@ -54,6 +54,75 @@ function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
   return d
 end
 
+function biconnected_components(g::Graph{Undirected})
+    im = Polymake.call_function(:graph, :biconnected_components, Oscar.pm_object(g))::IncidenceMatrix
+    return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+###################################################################################
+#
+#       Auxiliary graph functions for phylogenetic networks
+#
+###################################################################################
+
+function is_phylogenetic_network(G::Graph{Directed})
+    ## We assume phylogenetic networks are binary
+
+    A = matrix(ZZ, adjacency_matrix(G))
+    indegrees = sum(A[i,:] for i in 1:size(A)[1])
+    outdegrees = sum(A[:,i] for i in 1:size(A)[1])
+
+    roots = findall(indegrees .== 0) #findall((indegrees .== 0) .& (outdegrees .== 2))
+    lvs = findall((indegrees .== 1) .& (outdegrees .== 0))
+    tree_nodes = findall((indegrees .== 1) .& (outdegrees .<= 2) .& (outdegrees .> 0))
+    h_nodes = findall((indegrees .== 2) .& (outdegrees .== 1))
+
+    if length(roots) != 1
+        return false
+    end
+
+    if length(lvs) == 0
+        return false
+    end
+
+    if length(vertices(G)) != length(vcat(roots, lvs, tree_nodes, h_nodes))
+        return false
+    end
+
+    return true
+end
+
+function hybrid_vertices(G::Graph{Directed})
+    A = matrix(ZZ, adjacency_matrix(G))
+    indegrees = sum(A[i,:] for i in 1:size(A)[1])
+    outdegrees = sum(A[:,i] for i in 1:size(A)[1])
+
+    findall((indegrees .== 2) .& (outdegrees .== 1))
+end
+
+function hybrid_edges(G::Graph{Directed})
+    hybrid_nodes = hybrid_vertices(G)
+    [[Edge(j, i) for j in sort(inneighbors(G, i))] for i in hybrid_nodes]
+end
+
+function hybrid_edges(G::Graph{Directed}, i)
+    hybrid_nodes = hybrid_vertices(G)
+    if !(i in hybrid_nodes)
+        error("$i is not a hybrid node.")
+    end
+    [Edge(j, i) for j in sort(inneighbors(G, i))]
+end
+
+function level_phylogenetic_network(G::Graph{Directed})
+    if !is_phylogenetic_network(G)
+        error("$G is not a phylogenetic network.")
+    end
+
+    h_nodes = hybrid_vertices(G)
+    bicon_comps = biconnected_components(graph_from_edges(Undirected,edges(G)))
+
+    maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
+end
 
 ###################################################################################
 #
