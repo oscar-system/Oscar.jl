@@ -635,11 +635,15 @@ end
     for (type, rank, highest_weight, weyl_group_elem) in [
       (:A, 3, [1, 0, 1], [1, 2, 1]),
       (:A, 3, [2, 2, 2], [1, 2, 1]),
+      (:A, 2, [1,0], [1, 2]),
+      (:A, 2, [1,1], [1, 2]),
+      (:A, 3, [2, 1, 1], [1, 2]),
       (:A, 3, [1, 2, 0], [1, 2, 1]), #example below
-      #(:B, 2, [1, 0], [1, 2]), #this fails currently because operators acting upwards are missing
-      #(:C, 2, [1, 1], [1, 2, 1]), #this fails currently because operators acting upwards are missing
+      (:B, 2, [1, 0], [1, 2]),
+      (:C, 2, [0, 1], [2, 1]), 
+      (:C, 2, [1, 1], [1, 2, 1]), 
       (:D, 4, [1, 0, 1, 0], [1, 2, 1]),
-      #(:G, 2, [1, 0], [1, 2, 1]), #this fails currently because operators acting upwards are missing
+      (:G, 2, [1, 0], [1, 2, 1]), 
     ], monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
 
       mb = basis_lie_demazure(type, rank, highest_weight, weyl_group_elem; monomial_ordering)
@@ -650,6 +654,7 @@ end
       dict = Dict{WeightLatticeElem,Int64}()
       for mon in monomials(mb)
         w = WeightLatticeElem(R, highest_weight) - Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb))
+        w = w * weyl_group(R)(weyl_group_elem) #the module is twisted and we need to twist it back
         val = get(dict, w, 0) + 1
         dict[w] = val
       end
