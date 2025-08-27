@@ -473,11 +473,8 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
 end
 
 function demazurify_operators(V::DemazureModuleData, simple_operators::Vector{RootSpaceElem})
-  op = RootSpaceElem[]
   inv_weylgroup_elem = inv(V.weyl_group_elem)
-  for root in simple_operators
-    push!(op, -(root * inv_weylgroup_elem))
-  end
+  op = [-(root * inv_weylgroup_elem) for root in simple_operators]
   return op
   end
 
