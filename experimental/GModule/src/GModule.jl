@@ -29,11 +29,19 @@ import Hecke: data
 #   second tries to conjugate down to k
 
 import Oscar: _vec, gmodule, GAPWrap
-import Oscar: MultGrp, MultGrpElem, CoChain, GrpCoh
+import Oscar: MultGrp, MultGrpElem, CoChain, GrpCoh, GModuleElem
 import Oscar: local_schur_indices
 
 import AbstractAlgebra: Group, Module, pretty
 import Base: parent
+
+function Oscar.gens(C::GModule)
+  return [GModuleElem(C, x) for x = gens(C.M)]
+end
+
+function Base.getindex(C::GModule, i::Int)
+  return GModuleElem(C, C.M[i])
+end
 
 """
     restriction_of_scalars(M::GModule, phi::Map)
@@ -1868,15 +1876,16 @@ function _rref!(V::Vector{<:MatElem{<:FieldElem}})
   o = 1
   for i = CartesianIndices((1:n, 1:m))
     j = findall(x->!iszero(x[i]), V)
+    j = [x for x = j if x >= o]
     isempty(j) && continue
     if j[1] != o
       V[o], V[j[1]] = V[j[1]], V[o]
-      j[1] = o
     end
     if !isone(V[o][i])
       V[o] *= inv(V[o][i])
     end
-    for k=o+1:length(V)
+    for k=1:length(V)
+      k == o && continue
       iszero(V[k][i]) && continue
       V[k] -= V[k][i] * V[o]
       @assert iszero(V[k][i])
@@ -2099,7 +2108,6 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
       T = [induce_crt(tt[i], ZZRingElem(p), T[i], pp)[1] for i=1:length(T)]
       @assert base_ring(T[1]) == ZZ
       pp *= p
-      @show nbits(pp)
       S = QQMatrix[]
       if nbits(pp) > min(reco, bt)
         if nbits(pp) > reco
