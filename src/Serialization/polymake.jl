@@ -169,8 +169,7 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
     k = string(k)
     key_str = parent_key == "" ? k : parent_key * "." * k
     first(k) == '_' && continue
-    if v isa Tuple
-      @req Polymake.bigobject_prop_is_multiple(bot, key_str) "this should be a multiple subobject $key_str"
+    if v isa Tuple && Polymake.bigobject_prop_is_multiple(bot, key_str)
       subobjtype = Polymake.bigobject_prop_type(bot, key_str)
       for e in v
         subobj = Polymake.BigObject(subobjtype)
