@@ -248,4 +248,16 @@
       rem_edge!(G, 3, 1)
       @test is_acylic(G)
     end
+
+    @testset "subgraph" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
+      sg = induced_subgraph(G, [1, 2])
+      @test ne(sg) == 1
+      @test nv(sg) == 2
+      @test sg isa Graph{Directed}
+      G2 = complete_bipartite_graph(3, 3)
+      sg2 = induced_subgraph(G2, [1, 2, 3])
+      @test ne(sg2) == 0
+      @test nv(sg2) == 3
+    end
 end

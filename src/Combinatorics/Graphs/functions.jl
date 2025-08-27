@@ -1513,7 +1513,8 @@ function visualize(G::Graph{T};
                    kwargs...) where {T <: Union{Directed, Undirected}}
   BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
 
-  defaults = (;VertexLabels = collect(1:n_vertices(G)))
+  allvert = 1:n_vertices(G)
+  defaults = (; VertexLabels = has_attribute(G,:vertexlabels) ? getindex.(Ref(G.vertexlabels), allvert) : collect(allvert))
   if has_attribute(G, :color)
     defaults = merge(defaults,
                      NamedTuple(k => v for (k, v) in
@@ -2029,4 +2030,36 @@ function is_acylic(G::Graph{Directed})
     end
   end
   return !any(a) # The graph is acyclic if all edges have been removed
+end
+
+@doc raw"""
+    induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}) where {T <: Union{Directed, Undirected}}
+
+Create a new graph induced by `g` on the given subset of vertices.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 2)(4, 3)
+
+julia> induced_subgraph(g, 1:3)
+Undirected graph with 3 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)
+```
+"""
+function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}) where {T <: Union{Directed, Undirected}}
+  overt = sort(Int.(v))
+  pvert = Polymake.Set(Polymake.to_zero_based_indexing(overt))
+  subg = Polymake.common.induced_subgraph(pm_object(g), pvert)
+  newsym = T === Directed ? Symbol("GraphAdjacency__Directed::new") : Symbol("GraphAdjacency__Undirected::new")
+  nsg =  Polymake.call_function(:common, newsym, nothing, subg)
+  Polymake._squeeze(nsg)
+  og = Graph{T}(nsg)
+  if has_attribute(g, :vertexlabels)
+    label!(og, nothing, Dict(pairs(getindex.(Ref(g.vertexlabels), overt))); name=:vertexlabels)
+  else
+    label!(og, nothing, Dict(pairs(overt)); name=:vertexlabels)
+  end
+  return og
 end
