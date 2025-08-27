@@ -137,6 +137,17 @@ using Oscar: _integer_variables
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
+
+      P = dodecahedron()
+      F = coefficient_field(P)
+      a = gen(number_field(F))
+      LP1 = linear_program(P, F.([3, -2, 4]);k=2,convention = :min)
+      LP2 = linear_program(P, F.([3, a - 2, 4]);k=2,convention = :min)
+      test_save_load_roundtrip(path, [LP1, LP2]) do (loaded1, loaded2)
+        @test objective_function(LP1) == objective_function(loaded1)
+        @test feasible_region(LP1) == feasible_region(loaded1)
+      end
+
     end
 
     @testset "MixedIntegerLinearProgram" begin
