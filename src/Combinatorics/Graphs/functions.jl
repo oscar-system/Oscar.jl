@@ -1576,30 +1576,29 @@ _to_string(::Type{Mixed}) = "Mixed"
 
 function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <: GraphTypes}
   if n_edges(G) > 0
-    print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following ")
+    print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following")
     labels = labelings(G)
     printedges = all(l->!_has_edge_map(getproperty(G,l)), labels)
     if printedges
       if T == Mixed
-        println(io, "Directed edges:")
+        println(io, "\nDirected edges:")
         for e in edges(G, Directed)
           print(io, "($(src(e)), $(dst(e)))")
         end
-        println(io, "")
-        println(io, "Undirected edges:")
+        println(io, "\nUndirected edges:")
         for e in edges(G, Undirected)
           print(io, "($(src(e)), $(dst(e)))")
         end
       else
-        println(io, "edges:")  # at least one new line is needed
+        println(io, " edges:")  # at least one new line is needed
         for e in edges(G)
           print(io, "($(src(e)), $(dst(e)))")
         end
       end
     end
     if !isempty(labels)
-      printedges && print(io, "\nand the following ")
-      print(io, "labeling(s):")
+      printedges && print(io, "\nand the following")
+      print(io, " labeling(s):")
       for label in labels
         println(io, "")
         print(io, "label: $label")
