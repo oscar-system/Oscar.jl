@@ -16,7 +16,7 @@ Take ``r`` and ``n`` two integers and consider the complex reflection group ``G(
 
 We denote by ``\mathbb{K}`` the field ``\mathbb{Q}(q,t)``, where ``q`` and ``t`` are indeterminates over ``\mathbb{Q}``. Let ``R`` denote the ring of symmetric functions over ``\mathbb{K}``, see ``\S I.2`` in [Mac15](@cite). The ring of ``r``-multisymmetric functions is the ``r``-fold tensor product of ``R`` over ``\mathbb{K}``. If one equips ``\bigoplus_{n \in \mathbb{Z}_{\geq 0}}{K_{G(r,1,n)}}`` with the induction product, then in light of Theorem ``2.3`` in [Wen19](@cite), we identify the ring of ``r``-multisymmetric functions and ``\bigoplus_{n \in \mathbb{Z}_{\geq 0}}{K_{G(r,1,n)}}``.\
 
-For ``\lambda`` a partition, denote respectively by ``\mathrm{core}_r(\lambda)`` and ``\mathrm{quot}_r(\lambda)`` the ``r``-core and ``r``-quotient of ``\lambda``. Moreover, let us equip the set of partitions with ``\leq``, the dominance order. For an element ``\omega`` of ``\mathfrak{S}_r`` and a partition ``\lambda``, define ``\omega.\lambda`` to be the partition with the same ``r``-core as ``\lambda`` and ``r``-quotient equal to ``\omega.\mathrm{quot}_r(\lambda)`` where ``\omega`` acts by permuting the ``r`` partitions. We define the order ``\leq_{\omega}`` as follows. If ``\lambda`` and ``\mu`` are two partitions, then ``\lambda \leq_{\omega} \mu`` if ``\omega.\lambda \leq \omega.\mu``.
+For ``\lambda`` a partition, denote respectively by ``\mathrm{core}_r(\lambda)`` and ``\mathrm{quot}_r(\lambda)`` the ``r``-core and ``r``-quotient of ``\lambda``, see ``I.3`` in [Ols93](@cite). Moreover, let us equip the set of partitions with ``\leq``, the dominance order. For an element ``\omega`` of ``\mathfrak{S}_r`` and a partition ``\lambda``, define ``\omega.\lambda`` to be the partition with the same ``r``-core as ``\lambda`` and ``r``-quotient equal to ``\omega.\mathrm{quot}_r(\lambda)`` where ``\omega`` acts by permuting the ``r`` partitions. We define the order ``\leq_{\omega}`` as follows. If ``\lambda`` and ``\mu`` are two partitions, then ``\lambda \leq_{\omega} \mu`` if ``\omega.\lambda \leq \omega.\mu``.
 We now give a simple characterization of the wreath Macdonald polynomials.\
 \
 For each partition ``\lambda`` such that ``|\mathrm{quot}_r(\lambda)|=n`` and each ``\omega \in \mathfrak{S}_r``, the wreath Macdonald polynomial ``H^{\omega}_{\lambda}`` is the ``r``-multisymmetric function uniquely characterized by
@@ -33,10 +33,12 @@ To be more precise, Bezrukavnikov and Finkelberg prove that ``H^{\omega}_{\lambd
 
 Finally, the wreath Macdonald polynomials can be interpreted as the eigenbasis of explicit vertex operators, see [Wen19](@cite).
 
-In our implementation, wreath Macdonald polynomials depend on two parameters. The first parameter is
- an ``r``-multipartition of ``n`` (the ``r``-quotient of ``\lambda``). The second parameter is an element of the affine Weyl group
- of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}`` (the ``r``-core of ``\lambda``). The finite Weyl group acts by permutation. The element of the coroot lattice is given in the canonical basis. It is then the sublattice
-of ``\mathbb{Z}^r`` of elements summing up to zero.
+In our implementation, wreath Macdonald polynomials depend on two parameters. The first parameter is an ``r``-multipartition of ``n`` . The second parameter is an element of the affine Weyl group
+ of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}``, where the finite Weyl group acts by permutation. The element of the coroot lattice is given in the canonical basis. It is then the sublattice
+of ``\mathbb{Z}^r`` of elements summing up to zero.\
+
+It is equivalent to the data of a partition ``\lambda`` such that ``|\mathrm{quot}_r(\lambda)|=n`` and an element ``\omega \in \mathfrak{S}_r``. Indeed the ``\mathrm{quot}_r(\lambda)`` is an ``r``-multipartition of ``n``. Moreover, the set of ``r``-cores is in bijection with the coroot lattice of type ``A_{r-1}`` (note that this bijection is explicit using abaci). Finally, a partition is entirely determined by its ``r``-core and ``r``-quotient, see Proposition 3.7 in [Ols93](@cite).
+
 
 ```@docs
 wreath_macdonald_polynomial
