@@ -21,16 +21,21 @@ function n_leaves(graph::Graph)
   length(leaves(graph))
 end
 
-function root(graph::Graph)
+function roots(graph::Graph)
   n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
-  return findall(x -> x == 0, n_parents)[1]
+  return findall(x -> x == 0, n_parents)
 end
+
+root(graph::Graph) = roots(graph)[1]
+
 
 function sort_edges(graph::Graph)
   edgs = collect(edges(graph))
   leaves_idx = findall(edge -> dst(edge) in Oscar.leaves(graph), edgs)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
 end
+
+sort_edges(N::PhylogeneticNetwork) = sort_edges(graph(N))
 
 function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
 
@@ -137,8 +142,7 @@ function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: VarName, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
-  tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][tr_mat[i,j], Edge(u,v)]
+  entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, <: T}, i::Int, j::Int, e::Edge) where {L, T}
@@ -147,40 +151,34 @@ function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
-  tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][Edge(u,v)](tr_mat[i,j])
+  entry_transition_matrix(PM, i, j, Edge(u,v))
 end
-
 
 # Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
-function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
-  entry_transition_matrix(phylogenetic_model(PM), i, j, e)
-end
+entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge) = entry_transition_matrix(phylogenetic_model(PM), i, j, e)
+entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int) = entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
 
-# ?
-function entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
-  entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
-end
 
 function entry_root_distribution(PM::PhylogeneticModel, i::Int)
   parameter_ring(PM)[3][i]
 end
 
-#?
-function entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
-  entry_root_distribution(phylogenetic_model(PM), i)
-  
-end
+entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int) = entry_root_distribution(phylogenetic_model(PM), i)
+
 
 function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)
   parameter_ring(PM)[2][x[i], e]
 end
 
-function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int)
-  x = fourier_parameters(PM)
-  parameter_ring(PM)[2][x[i], Edge(u,v)]
+entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int) = entry_fourier_parameter(PM, i, Edge(u,v))
+
+
+function entry_hybrid_parameter(PM::PhylogeneticModel, e::Edge)
+  parameter_ring(PM)[4][e]
 end
+
+entry_hybrid_parameter(PM::PhylogeneticModel, u::Int, v::Int) = entry_hybrid_parameter(PM, Edge(u,v))
 
 
 ###################################################################################
