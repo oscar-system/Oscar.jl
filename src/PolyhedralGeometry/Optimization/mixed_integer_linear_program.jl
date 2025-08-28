@@ -37,6 +37,7 @@ function mixed_integer_linear_program(
     integer_variables = 1:ambDim
   end
   size(objective, 1) == ambDim || error("objective has wrong dimension.")
+  objective = coefficient_field(P).(objective)
   milp = Polymake.polytope.MixedIntegerLinearProgram{_scalar_type_to_polymake(T)}(;
     LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables)
   )
