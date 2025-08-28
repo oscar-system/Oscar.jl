@@ -56,7 +56,7 @@ end
 
 function root(graph::Graph)
   n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
-  return findfirst(x -> x == 0, n_parents)[1]
+  return findall(x -> x == 0, n_parents)[1]
 end
 
 
