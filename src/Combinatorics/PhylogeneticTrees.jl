@@ -48,7 +48,6 @@ Oscar.PhylogeneticTree{QQFieldElem}
 """
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
   pm_ptree = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(NEWICK = newick)
-  println(pm_ptree.EDGE_LENGTHS)
   # load graph properties
   pm_ptree.ADJACENCY
 
@@ -179,29 +178,33 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
   )
 
   leaves = findall(x -> isone(x[1]) && iszero(x[2]), collect(zip(indegree(g), outdegree(g))))
-  lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}()
-  la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph)
+  lvd = Dict{String, Int}()
+  lad = Dict{Int, String}()
   for (i, v) in enumerate(leaves)
     # sending to zero based indexing is important to guarantee cophenetic
     # matrix still works
     if has_attribute(g, :leaves)
-      lv[g.leaves[v]] = Polymake.to_zero_based_indexing(p[v])
-      la[p[v]] = g.leaves[v]
+      lvd[g.leaves[v]] = Polymake.to_zero_based_indexing(p[v])
+      lad[p[v]] = g.leaves[v]
     else
-      lv["leaf $i"] = Polymake.to_zero_based_indexing(p[v])
-      la[p[v]] = "leaf $i"
+      lvd["leaf $i"] = Polymake.to_zero_based_indexing(p[v])
+      lad[p[v]] = "leaf $i"
     end
   end
+  lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}(lvd)
+  la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph, lad)
 
-  el = Polymake.EdgeMap{Undirected,Polymake.convert_to_pm_type(T)}(undir_g.pm_graph)
+  eld = Dict{NTuple{2, Int}, T}()
   for e in edges(g)
     s, d = src(e), dst(e)
     if has_attribute(g, :distance)
-      el[p[s], p[d]] = g.distance[s, d]
+      eld[p[s], p[d]] = g.distance[s, d]
     else
-      el[p[s], p[d]] = 1
+      eld[p[s], p[d]] = 1
     end
   end
+
+  el = Polymake.EdgeMap{Undirected,Polymake.convert_to_pm_type(T)}(undir_g.pm_graph, eld)
 
   pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(
     ADJACENCY=undir_g.pm_graph,
