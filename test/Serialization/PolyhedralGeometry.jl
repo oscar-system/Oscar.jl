@@ -142,13 +142,16 @@ using Oscar: _integer_variables
       F = coefficient_field(P)
       a = gen(number_field(F))
       LP1 = linear_program(P, F.([3, -2, 4]);k=2,convention = :min)
-      LP2 = linear_program(P, F.([3, a - 2, 4]);k=2,convention = :min)
+      LP2 = linear_program(P, F.([-1, a - 2, a + 5]);k=2,convention = :min)
+      ov1 = optimal_value(LP1)
+      ov2 = optimal_value(LP2)
       test_save_load_roundtrip(path, [LP1, LP2]) do (loaded1, loaded2)
         @test objective_function(LP1) == objective_function(loaded1)
         @test feasible_region(LP1) == feasible_region(loaded1)
+        @test ov1 == optimal_value(loaded1)
+        @test ov2 == optimal_value(loaded2)
         @test feasible_region(LP1) == feasible_region(LP2)
       end
-
     end
 
     @testset "MixedIntegerLinearProgram" begin
