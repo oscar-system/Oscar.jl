@@ -19,7 +19,7 @@ abstract type AbstractGraph{T <: GraphTypes} end
   end
 end
 
-const GraphMapValueTypes = Union{String, Bool, Int, QQFieldElem}
+const GraphMapValueTypes = Union{String, Bool, Int, QQFieldElem, Float64}
 
 struct GraphMap{T, S <: Union{Nothing, EdgeMap}, U <: Union{Nothing, NodeMap}}
   graph::Graph{T}

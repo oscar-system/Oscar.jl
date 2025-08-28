@@ -1810,8 +1810,8 @@ function label!(G::Graph{T},
 end
 
 function label!(G::Graph{T},
-                    edge_labels::Nothing,
-                    vertex_labels::Dict{Int, U};
+                edge_labels::Nothing,
+                vertex_labels::Dict{Int, <: GraphMapValueTypes};
                 name::Symbol=:label) where {U, T <: Union{Directed, Undirected}}
   @req all(Base.Fix1(_has_node, G), keys(vertex_labels)) "Vertex does not exist for a given label"
   NM = NodeMap(pm_object(G), vertex_labels)
