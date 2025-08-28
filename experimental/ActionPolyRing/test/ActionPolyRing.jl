@@ -424,7 +424,7 @@ using Test
             
             @test leader(f) == u1_100
             @test degree(f, leader(f)) == 1
-            @test initial(f) == leading_term(f)/leader(f)
+            @test initial(f) == 2*u2_100 - u3_111
 
             @test dpr(data(f) + data(g)) == f + g
             @test dpr(-data(f)) == -f
@@ -453,7 +453,7 @@ using Test
             
             @test leader(g) == u1_010
             @test degree(g, leader(g)) == 1
-            @test initial(g) == leading_term(g)/leader(g)
+            @test initial(g) == -u1_100 + u1 + 3
 
           end
         
@@ -684,7 +684,7 @@ using Test
             
             @test leader(f) == u3_111
             @test degree(f, leader(f)) == 1
-            @test initial(f) == leading_term(f)/leader(f)
+            @test initial(f) == -u1_100 + u1 + 3 
 
             @test dpr(data(f) + data(g)) == f + g
             @test dpr(-data(f)) == -f
@@ -708,7 +708,7 @@ using Test
             
             @test leader(g) == u1_100
             @test degree(g, leader(g)) == 1
-            @test initial(g) == leading_term(g)/leader(g)
+            @test initial(g) == -u1_010 + 2
             
             @test cg == ZZRingElem[-1,2,1,3,-2,-6]
             @test eg == [[0,0,0,0,1,1,0],[0,0,0,0,1,0,0],[0,0,0,0,0,1,1],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1],[0,0,0,0,0,0,0]]

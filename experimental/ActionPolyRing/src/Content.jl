@@ -693,7 +693,17 @@ function initial(apre::ActionPolyRingElem)
   if is_constant(apre)
     return apre
   end
-  return remove(leading_term(apre), leader(apre))[2]
+  res = parent(apre)()
+  ld = leader(apre)
+  ld_ind = var_index(ld)
+  d = degree(apre, ld_ind)
+  for (t,e) in zip(terms(apre), exponents(apre))
+    if e[ld_ind] < d
+      break
+    end
+    res += remove(t, ld)[2] 
+  end
+  return res
 end
 
 @doc raw"""
