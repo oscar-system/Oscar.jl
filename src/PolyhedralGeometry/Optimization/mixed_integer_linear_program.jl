@@ -128,8 +128,9 @@ function objective_function(
   milp::MixedIntegerLinearProgram{T}; as::Symbol=:pair
 ) where {T<:scalar_types}
   if as == :pair
-    return Vector{T}(milp.polymake_milp.LINEAR_OBJECTIVE[2:end]),
-    convert(T, milp.polymake_milp.LINEAR_OBJECTIVE[1])
+    cf = coefficient_field(milp)
+    return T[cf(x) for x in milp.polymake_milp.LINEAR_OBJECTIVE[2:end]],
+    cf.(milp.polymake_milp.LINEAR_OBJECTIVE[1])
   elseif as == :function
     (c, k) = objective_function(milp; as=:pair)
     return x -> sum(x .* c) + k

@@ -173,7 +173,7 @@ using Oscar: _integer_variables
       F = coefficient_field(P)
       a = gen(number_field(F))
 
-      MILP = mixed_integer_linear_program(
+      MILP1 = mixed_integer_linear_program(
         P,
         [3,-2, a];
         k=2,
@@ -181,6 +181,21 @@ using Oscar: _integer_variables
         integer_variables=[1, 2]
       )
 
+      MILP2 = mixed_integer_linear_program(
+        P,
+        [-3 * a,-2, 3];
+        k=2,
+        convention = :max,
+        integer_variables=[1, 2]
+      )
+
+      test_save_load_roundtrip(path, [MILP1, MILP2]) do (loaded1, loaded2)
+        @test objective_function(MILP1) == objective_function(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded2)
+        @test Oscar._integer_variables(MILP1) == Oscar._integer_variables(loaded1)
+        @test Oscar._integer_variables(MILP2) == Oscar._integer_variables(loaded2)
+      end
     end
 
     @testset "SubdivisionOfPoints" begin

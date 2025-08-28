@@ -254,13 +254,13 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   all = Polymake._lookup_multi(pm_object(fr), "MILP")
   index = 0
   for i in 1:length(all)
-    if all[i].LINEAR_OBJECTIVE == milp_coeffs && all[i].INTEGER_VARIABLES == int_vars
+    if _pmdata_for_oscar(all[i].LINEAR_OBJECTIVE, field) == milp_coeffs && all[i].INTEGER_VARIABLES == Set(int_vars)
       index = i
       break
     end
   end
-  lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
-  return MixedIntegerLinearProgram{coeff_type}(fr, lp, Symbol(conv), field)
+  milp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
+  return MixedIntegerLinearProgram{coeff_type}(fr, milp, Symbol(conv), field)
 end
 
 # use generic serialization for the other types:
