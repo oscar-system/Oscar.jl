@@ -1,3 +1,7 @@
+function _root(g::Graph{Directed})
+  findfirst(isempty, Base.Fix1(inneighbors, g).(1:n_vertices(g)))
+end
+
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
   vertex_perm::Vector{Int}
@@ -167,7 +171,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
   @req check && is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g)) "Input must be a tree"
-  r = root(g)
+  r = _root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
   # for the underlying polymake graph
