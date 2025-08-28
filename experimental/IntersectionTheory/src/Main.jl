@@ -1841,8 +1841,7 @@ end
 @doc raw"""
     dual_basis(X::AbstractVariety)
 
-If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here,
-`K = base(X)`.
+If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here, `K = base(X)`.
 
 dual_basis(X::AbstractVariety, k::Int)
 
