@@ -1843,7 +1843,7 @@ end
 
 If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here, `K = base(X)`.
 
-dual_basis(X::AbstractVariety, k::Int)
+    dual_basis(X::AbstractVariety, k::Int)
 
 If `X` has been given a point class, return the elements of degree `k` in the dual basis.
 
@@ -2761,7 +2761,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   set_attribute!(Fl, :section => section)
 
   if get_attribute(X, :alg) == true ### DIFF Song
-    set_attribute!(PF, :alg => true) ### DIFF Song
+    set_attribute!(Fl, :alg => true) ### DIFF Song
   end ### DIFF Song
 
   if l == 2
