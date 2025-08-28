@@ -48,7 +48,7 @@ Oscar.PhylogeneticTree{QQFieldElem}
 """
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
   pm_ptree = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(NEWICK = newick)
-
+  println(pm_ptree.EDGE_LENGTHS)
   # load graph properties
   pm_ptree.ADJACENCY
 

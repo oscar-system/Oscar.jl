@@ -32,5 +32,13 @@
   pt2 = phylogenetic_tree(QQFieldElem, tree)
   
   @test newick(pt2) == "(b:4,c:5,a:3):2,d:1;"
-  phylogenetic_tree(QQFieldElem, "(b:4,c:5,a:3):2,d:1;")
+  at = adjacency_tree(pt2)
+
+  for v in 1:n_vertices(tree)
+    @test at.leaves[v] == tree.leaves[v]
+  end
+
+  for e in edges(tree)
+    @test at.distance[e] == tree.distance[e]
+  end
 end
