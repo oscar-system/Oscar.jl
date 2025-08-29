@@ -306,6 +306,7 @@ using Test
             @test_throws BoundsError degree(dpr(), 0)
             @test_throws BoundsError degree(dpr(), nvars(dpr) + 1)
             @test total_degree(dpr()) == -1
+            @test degree(dpr(), 3, [5,5,5]) == -1
 
             @test dpr(1) == one(dpr)
             @test is_one(dpr(1))
@@ -331,6 +332,7 @@ using Test
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
             @test total_degree(dpr(1)) == 0 
+            @test degree(dpr(1), 3, [5,5,5]) == 0
 
             @test !is_unit(dpr(-2))
             @test is_constant(dpr(-2))
@@ -557,6 +559,7 @@ using Test
             @test_throws BoundsError degree(dpr(), 0)
             @test_throws BoundsError degree(dpr(), nvars(dpr) + 1)
             @test total_degree(dpr()) == -1
+            @test degree(dpr(), 3, [5,5,5]) == -1
             @test_throws ArgumentError leader(dpr())
             @test initial(dpr()) == ZZ()
 
@@ -583,6 +586,7 @@ using Test
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
             @test total_degree(dpr(1)) == 0 
+            @test degree(dpr(1), 3, [5,5,5]) == 0
             @test_throws ArgumentError leader(dpr(1))
             @test initial(dpr(1)) == ZZ(1)
 

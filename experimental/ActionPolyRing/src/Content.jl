@@ -278,6 +278,9 @@ function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
   upr = __upr(apr)
   @req __is_valid_jet(apr, i, jet) "Invalid jet variable"
+  if is_zero(apre)
+    return -1
+  end
   jtv = __jtv(apr)
   if haskey(jtv, (i,jet))
     idx = findfirst(var -> var == data(jtv[(i,jet)]), gens(upr))
