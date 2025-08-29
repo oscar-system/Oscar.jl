@@ -1329,7 +1329,8 @@ The `backend` keyword argument allows the user to pick between
 - `:threejs`: a Three.js visualization (default),
 - `:tikz`: a TikZ visualization, or
 - `:graphviz`: a [Graphviz](https://graphviz.org/) visualization.
-The Graphviz visualization requires a postscript reader and loading the julia package `Graphviz_jll` before OSCAR.
+The Graphviz visualization requires a postscript reader and loading the julia
+package `Graphviz_jll` before OSCAR.
 
 If `filename` is specified, OSCAR will write visualization code to `filename`
 (html for `:threejs`, TikZ code for `:tikz`, dot for `:graphviz`).
