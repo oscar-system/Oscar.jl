@@ -125,7 +125,7 @@ julia> pt = phylogenetic_tree(tree)
 Phylogenetic tree with QQFieldElem type coefficients
 
 julia> newick(pt)
-"(leaf 2:1,leaf 3:1,leaf 1:1leaf 4):1,leaf 5:1;"
+"(leaf 2:1,leaf 3:1,leaf 1:1):1,leaf 4:1;"
 
 julia> label!(tree, Dict((5, 6) => 1.0,
                          (5, 4) => 2.0,
