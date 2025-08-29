@@ -18,7 +18,7 @@ a vector of elements in $F$;
 these elements are called the *defining relators* of $G$,
 see [`relators`](@ref).
 
-Finitely presented groups in Oscar have the type [`FPGroup`](@ref),
+Finitely presented groups in OSCAR have the type [`FPGroup`](@ref),
 their elements have the type [`FPGroupElem`](@ref).
 
 ## Basic Creation
@@ -76,7 +76,7 @@ julia> map(epi, gens(F)) == gens(G)
 true
 ```
 
-Subgroups of finitely presented groups in Oscar have the type
+Subgroups of finitely presented groups in OSCAR have the type
 [`SubFPGroup`](@ref),
 their elements have the type [`SubFPGroupElem`](@ref).
 We distinguish between full finitely presented groups and their subgroups

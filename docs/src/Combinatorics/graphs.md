@@ -14,10 +14,10 @@ A *graph* consists of two sets of data:
 - a finite set $V := \{1,\ldots,n\}$ of *vertices*; and
 - a finite set $E \subseteq V\times V$ of *edges*.
 
-There are two types of graphs, *directed* and *undirected*. For a *directed
+There are three types of graphs, *directed*, *undirected* and *mixed*. For a *directed
 graph* the elements of $E$ are considered to be ordered pairs, for an
 *undirected graph* the elements of $E$ are unordered pairs or rather sets with
-two elements.
+two elements, a *mixed graph* has a *directed component* and an *undirected component*.
 
 The interface is modeled alongside the
 [Graphs.jl](https://juliagraphs.org/Graphs.jl/dev/) interface to
@@ -40,16 +40,17 @@ vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
 graph_from_labeled_edges
+induced_subgraph
 ```
 
 ### Modifying graphs
 ```@docs
-add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
-add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
-rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
+add_edge!
+add_vertices!
+add_vertex!
+rem_edge!
+rem_vertex!
+rem_vertices!
 label!
 ```
 
@@ -82,7 +83,7 @@ complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+has_edge
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -110,6 +111,7 @@ src(e::Edge)
 ```@docs
 visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
+
 ## Saving and loading
 
 Objects of type `Graph` can be saved to a file and loaded with the methods

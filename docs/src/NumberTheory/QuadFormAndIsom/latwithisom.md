@@ -10,7 +10,7 @@ We call *lattice with isometry* any pair $(L, f)$ consisting of an integer
 lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
 about [Integer Lattices](@ref) of the documentation for new users.
 
-In Oscar, such a pair is encoded in the type called `ZZLatWithIsom`:
+In OSCAR, such a pair is encoded in the type called `ZZLatWithIsom`:
 
 ```@docs
 ZZLatWithIsom

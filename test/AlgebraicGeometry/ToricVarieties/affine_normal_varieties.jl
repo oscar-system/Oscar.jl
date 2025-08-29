@@ -23,7 +23,7 @@
     @test torsion_free_rank(domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
     @test torsion_free_rank(codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
     @test elementary_divisors(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
-    @test elementary_divisors(class_group(antv)) == [ 2 ]
+    @test elementary_divisors(class_group_with_map(antv)[1]) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
     @test length(torusinvariant_prime_divisors(antv)) == 2
     @test gorenstein_index(antv) == 1
@@ -62,6 +62,6 @@
   end
   
   @testset "Construct from fans" begin
-    @test is_trivial(picard_group(antv6)) == true
+    @test is_trivial(picard_group_with_map(antv6)[1]) == true
   end
 end

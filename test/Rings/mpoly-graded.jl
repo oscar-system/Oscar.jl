@@ -596,3 +596,12 @@ end
     @test issetequal(minimal_generating_set(ideal(gb)), [x, y])
   end
 end
+
+@testset "change_base_ring for graded rings" begin
+  S, (x, y) = graded_polynomial_ring(ZZ, [:x, :y])
+  S101, mod_map = change_base_ring(GF(101), S)
+  @test is_graded(S101)
+  @test grading_group(S) === grading_group(S101)
+  @test degree.(gens(S)) == degree.(gens(S101))
+end
+

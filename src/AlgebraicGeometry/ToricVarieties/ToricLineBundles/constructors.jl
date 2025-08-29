@@ -8,7 +8,7 @@ abstract type ToricCoherentSheaf end
     toric_variety::NormalToricVarietyType
     picard_class::FinGenAbGroupElem
     function ToricLineBundle(toric_variety::NormalToricVarietyType, picard_class::FinGenAbGroupElem)
-        @req parent(picard_class) === picard_group(toric_variety) "The class must belong to the Picard group of the toric variety"
+        @req parent(picard_class) === picard_group_with_map(toric_variety)[1] "The class must belong to the Picard group of the toric variety"
         return new(toric_variety, picard_class)
     end
 end
@@ -29,7 +29,9 @@ in the Picard group of the toric variety in question.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
+julia> pc = picard_group_with_map(P2)[1];
+
+julia> l = toric_line_bundle(P2, pc([1]))
 Toric line bundle on a normal toric variety
 ```
 """
@@ -52,7 +54,7 @@ Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
-    return ToricLineBundle(v, picard_group(v)(picard_class))
+    return ToricLineBundle(v, picard_group_with_map(v)[1](picard_class))
 end
 
 

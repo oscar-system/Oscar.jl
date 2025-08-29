@@ -1,6 +1,5 @@
 ################################################################################
 # Upgrade Summary
-# 
 # - `ZZLatWithIsom`: we now only serialized the ambient `QuadSpaceWithIsom` and
 # a basis matrix of the underlying lattice; the upgrade recovers the basis matrix
 # in the old tree.

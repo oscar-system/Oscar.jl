@@ -317,7 +317,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   for (key, value) in cl_of_secs
     @req is_effective(value) "Encountered a non-effective (internal) divisor class"
     if model_dict["arxiv_data"]["id"] == "1109.3454" && key == "w" && dim(base_space) == 3
-      if torsion_free_rank(class_group(base_space)) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
+      if torsion_free_rank(class_group_with_map(base_space)[1]) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
         model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
       else
         model_sections[key] = generic_section(toric_line_bundle(value))
