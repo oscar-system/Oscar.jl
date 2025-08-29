@@ -2035,9 +2035,13 @@ function is_acylic(G::Graph{Directed})
 end
 
 @doc raw"""
-    induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}) where {T <: Union{Directed, Undirected}}
+    induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_labelings::Bool=true) where {T <: Union{Directed, Undirected}}
 
 Create a new graph induced by `g` on the given subset of vertices.
+Please note that the subset of vertices will be sorted ascending before being used.
+The original vertices can be identified with the `vertexlabels` labeling.
+
+Unless the keyword argument `copy_labelings` is set to false, all labelings will be transformed and copied to the subgraph.
 
 # Examples
 ```jldoctest
@@ -2055,18 +2059,29 @@ label: vertexlabels
 3 -> 4
 ```
 """
-function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}) where {T <: Union{Directed, Undirected}}
-  overt = sort(Int.(v))
+function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_labelings::Bool=true) where {T <: Union{Directed, Undirected}}
+  overt = unique(sort(Int.(v)))
   pvert = Polymake.Set(Polymake.to_zero_based_indexing(overt))
   subg = Polymake.common.induced_subgraph(pm_object(g), pvert)
   newsym = T === Directed ? Symbol("GraphAdjacency__Directed::new") : Symbol("GraphAdjacency__Undirected::new")
   nsg =  Polymake.call_function(:common, newsym, nothing, subg)
   Polymake._squeeze(nsg)
   og = Graph{T}(nsg)
-  if has_attribute(g, :vertexlabels)
-    label!(og, nothing, Dict(pairs(getindex.(Ref(g.vertexlabels), overt))); name=:vertexlabels)
-  else
+  if !has_attribute(g, :vertexlabels)
+    # we always do the vertexlabels to keep a reference to the original vertices
     label!(og, nothing, Dict(pairs(overt)); name=:vertexlabels)
+  end
+  if copy_labelings
+    for (l, gm) in _graph_maps(g)
+      el = vl = nothing
+      if _has_vertex_map(gm)
+        vl = Dict(pairs(getindex.(Ref(gm), overt)))
+      end
+      if _has_edge_map(gm)
+        el = Dict((src(e),dst(e)) => gm[overt[src(e)],overt[dst(e)]] for e in edges(og))
+      end
+      label!(og, el, vl; name=l)
+    end
   end
   return og
 end
