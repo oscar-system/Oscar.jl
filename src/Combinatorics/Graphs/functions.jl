@@ -1524,7 +1524,8 @@ function visualize(G::Graph{T};
                    kwargs...) where {T <: Union{Directed, Undirected}}
   BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
 
-  defaults = (;VertexLabels = collect(1:n_vertices(G)))
+  allvert = 1:n_vertices(G)
+  defaults = (; VertexLabels = has_attribute(G,:vertexlabels) ? getindex.(Ref(G.vertexlabels), allvert) : collect(allvert))
   if has_attribute(G, :color)
     defaults = merge(defaults,
                      NamedTuple(k => v for (k, v) in
@@ -1586,9 +1587,29 @@ _to_string(::Type{Mixed}) = "Mixed"
 
 function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <: GraphTypes}
   if n_edges(G) > 0
+    print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following")
     labels = labelings(G)
+    printedges = all(l->!_has_edge_map(getproperty(G,l)), labels)
+    if printedges
+      if T == Mixed
+        println(io, "\nDirected edges:")
+        for e in edges(G, Directed)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
+        println(io, "\nUndirected edges:")
+        for e in edges(G, Undirected)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
+      else
+        println(io, " edges:")  # at least one new line is needed
+        for e in edges(G)
+          print(io, "($(src(e)), $(dst(e)))")
+        end
+      end
+    end
     if !isempty(labels)
-      print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following labeling(s):")
+      printedges && print(io, "\nand the following")
+      print(io, " labeling(s):")
       for label in labels
         println(io, "")
         print(io, "label: $label")
@@ -1603,24 +1624,6 @@ function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <:
             println(io, "")
             print(io, "$v -> $(getproperty(G, label)[v])")
           end
-        end
-      end
-    else
-      if T == Mixed
-        println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following")  # at least one new line is needed
-        println(io, "Directed edges:")
-        for e in edges(G, Directed)
-          print(io, "($(src(e)), $(dst(e)))")
-        end
-        println(io, "")
-        println(io, "Undirected edges:")
-        for e in edges(G, Undirected)
-          print(io, "($(src(e)), $(dst(e)))")
-        end
-      else
-        println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
-        for e in edges(G)
-          print(io, "($(src(e)), $(dst(e)))")
         end
       end
     end
@@ -2040,4 +2043,56 @@ function is_acylic(G::Graph{Directed})
     end
   end
   return !any(a) # The graph is acyclic if all edges have been removed
+end
+
+@doc raw"""
+    induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_labelings::Bool=true) where {T <: Union{Directed, Undirected}}
+
+Create a new graph induced by `g` on the given subset of vertices.
+Please note that the subset of vertices will be sorted ascending before being used.
+The original vertices can be identified with the `vertexlabels` labeling.
+
+Unless the keyword argument `copy_labelings` is set to false, all labelings will be transformed and copied to the subgraph.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 2)(4, 3)
+
+julia> induced_subgraph(g, 2:4)
+Undirected graph with 3 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)
+and the following labeling(s):
+label: vertexlabels
+1 -> 2
+2 -> 3
+3 -> 4
+```
+"""
+function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_labelings::Bool=true) where {T <: Union{Directed, Undirected}}
+  overt = unique(sort(Int.(v)))
+  pvert = Polymake.Set(Polymake.to_zero_based_indexing(overt))
+  subg = Polymake.common.induced_subgraph(pm_object(g), pvert)
+  newsym = T === Directed ? Symbol("GraphAdjacency__Directed::new") : Symbol("GraphAdjacency__Undirected::new")
+  nsg =  Polymake.call_function(:common, newsym, nothing, subg)
+  Polymake._squeeze(nsg)
+  og = Graph{T}(nsg)
+  if !has_attribute(g, :vertexlabels)
+    # we always do the vertexlabels to keep a reference to the original vertices
+    label!(og, nothing, Dict(pairs(overt)); name=:vertexlabels)
+  end
+  if copy_labelings
+    for (l, gm) in _graph_maps(g)
+      el = vl = nothing
+      if _has_vertex_map(gm)
+        vl = Dict(pairs(getindex.(Ref(gm), overt)))
+      end
+      if _has_edge_map(gm)
+        el = Dict((src(e),dst(e)) => gm[overt[src(e)],overt[dst(e)]] for e in edges(og))
+      end
+      label!(og, el, vl; name=l)
+    end
+  end
+  return og
 end

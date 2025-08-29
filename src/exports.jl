@@ -819,6 +819,7 @@ export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power
 export induced_ring_ordering
+export induced_subgraph
 export initial
 export inneighbors
 export inner_automorphism
