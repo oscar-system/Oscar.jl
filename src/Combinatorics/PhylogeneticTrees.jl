@@ -146,8 +146,8 @@ label: leaves
 1 -> a
 2 -> b
 3 -> c
-4 -> 
-5 -> 
+4 ->
+5 ->
 6 -> d
 label: distance
 (4, 1) -> 3.0
@@ -237,8 +237,22 @@ Make a phylogenetic tree with given Newick format and print its underlying graph
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
 julia> adjacency_tree(ptree)
-Directed graph with 7 nodes and the following edges:
-(1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
+Directed graph with 7 nodes and the following labeling(s):
+label: leaves
+1 ->
+2 ->
+3 -> H
+4 ->
+5 -> C
+6 -> B
+7 -> G
+label: distance
+(1, 2) -> 1.0
+(1, 7) -> 4.0
+(2, 3) -> 3.0
+(2, 4) -> 2.0
+(4, 5) -> 1.0
+(4, 6) -> 1.0
 ```
 """
 function adjacency_tree(ptree::PhylogeneticTree{T}) where T

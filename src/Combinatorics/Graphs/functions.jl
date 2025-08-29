@@ -1623,11 +1623,6 @@ function Base.show(io::IO, m::MIME"text/plain", G::AbstractGraph{T}) where {T <:
             println(io, "")
             print(io, "($(src(e)), $(dst(e))) -> $(getproperty(G, label)[e])")
           end
-        else
-          println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
-          for e in edges(G)
-            print(io, "($(src(e)), $(dst(e)))")
-          end
         end
         if _has_vertex_map(getproperty(G, label))
           for v in 1:n_vertices(G)
