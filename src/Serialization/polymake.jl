@@ -71,14 +71,22 @@ end
 
 function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field, parent_key::String="")
   data = Dict{Symbol,Any}()
+  bot = Polymake.bigobject_type(bo)
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
     key_str = parent_key == "" ? pname : parent_key * "." * pname
     if p isa Polymake.PropertyValue
       @debug "missing c++ mapping: skipping $pname of type $(Polymake.typeinfo_string(p, true))"
     elseif p isa Polymake.BigObject
-       obj = _bigobject_to_dict(p, coeff, key_str)
-       merge!(data, obj)
+      if Polymake.bigobject_prop_is_multiple(bot, pname)
+        arr = Polymake._lookup_multi(bo, pname)
+        # this must be without parent key (since will be stored below a parent key)
+        d = Oscar.Serialization._bigobject_to_dict.(arr, Ref(coeff))
+        data[Symbol(pname)] = Tuple(d)
+      else
+        obj = _bigobject_to_dict(p, coeff, key_str)
+        merge!(data, obj)
+      end
     else
       try
         obj = _pmdata_for_oscar(p, coeff)
@@ -110,13 +118,20 @@ end
 
 function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_key::String="")
   delay_loading = Tuple{Symbol,Any}[]
+  bot = Polymake.bigobject_type(obj)
   for (k, v) in dict
     # keys of dict are symbols
     k = string(k)
     key_str = parent_key == "" ? k : parent_key * "." * k
     first(k) == '_' && continue
-
-    if v isa Dict
+    if v isa Tuple && Polymake.bigobject_prop_is_multiple(bot, key_str)
+      subobjtype = Polymake.bigobject_prop_type(bot, key_str)
+      for e in v
+        subobj = Polymake.BigObject(subobjtype)
+        Polymake.add(obj, key_str, subobj)
+        _load_bigobject_from_dict!(subobj, e, "") # the parent string is empty because we assign to the subobject
+      end
+    elseif v isa Dict
       _load_bigobject_from_dict!(obj, v, key_str)
     else
       pmv = convert(Polymake.PolymakeType, v)

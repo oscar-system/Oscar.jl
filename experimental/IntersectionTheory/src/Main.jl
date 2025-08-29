@@ -1839,32 +1839,13 @@ function intersection_matrix(a::Vector{}, b=nothing)
 end
 
 @doc raw"""
-     dual_basis(X::AbstractVariety, k::Int)
-
-Compute the dual basis of the additive basis in codimension `k` given by
-`basis(X, k)` (the returned elements are therefore in codimension
-$\dim X-k$).
-"""
-function dual_basis(X::AbstractVariety, k::Int)
-  T = Dict{Int, Vector{elem_type(X.ring)}}
-  d = get_attribute!(X, :dual_basis) do
-    T()
-  end::T
-  if !(k in keys(d))
-    B = basis(X)
-    b_k = B[k+1]
-    b_comp = B[X.dim-k+1]
-    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
-    d[k] = M * b_comp
-    d[X.dim-k] = transpose(M) * b_k
-  end
-  return d[k]
-end
-
-@doc raw"""
     dual_basis(X::AbstractVariety)
+
+If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here, `K = base(X)`.
+
     dual_basis(X::AbstractVariety, k::Int)
-If `K = base(X)`, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)` (return the elements of degree `k` in the dual basis).
+
+If `X` has been given a point class, return the elements of degree `k` in the dual basis.
 
 !!! note
     The basis elements are ordered by decreasing degree (geometrically, by decreasing codimension).
@@ -1922,6 +1903,23 @@ function _expp(x::MPolyDecRingOrQuoElem; truncate::Int=-1)
     e[i+1] = QQ(-1, i) * sum(p[j+1] * e[i-j+1] for j in 1:i)
   end
   simplify(sum(e))
+end
+
+function dual_basis(X::AbstractVariety, k::Int)
+  isdefined(X, :point) || error("point class not defined") ### DIFF Song
+  T = Dict{Int, Vector{elem_type(X.ring)}}
+  d = get_attribute!(X, :dual_basis) do
+    T()
+  end::T
+  if !(k in keys(d))
+    B = basis(X)
+    b_k = B[k+1]
+    b_comp = B[X.dim-k+1]
+    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
+    d[k] = M * b_comp
+    d[X.dim-k] = transpose(M) * b_k
+  end
+  return d[k]
 end
 
 function _logg(x::MPolyDecRingOrQuoElem)
@@ -2252,9 +2250,9 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = map(D, F.parent) # skip the flag abstract_variety
-  if isdefined(F.parent, :O1)
-    D.O1 = pullback(D.struct_map, F.parent.O1)
-  end
+  if isdefined(F.parent, :O1) ### DIFF Song
+    D.O1 = pullback(D.struct_map, F.parent.O1) ### DIFF Song
+  end ### DIFF Song
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
@@ -2468,9 +2466,9 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   PF.struct_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
-  if get_attribute(X, :alg) == true
-    set_attribute!(PF, :alg => true)
-  end
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(PF, :alg => true) ### DIFF Song
+  end ### DIFF Song
   return PF
 end
 
@@ -2761,6 +2759,11 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   Fl.struct_map = p
   set_attribute!(Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
+
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(Fl, :alg => true) ### DIFF Song
+  end ### DIFF Song
+
   if l == 2
      set_attribute!(Fl, :grassmannian => :relative)
   end
