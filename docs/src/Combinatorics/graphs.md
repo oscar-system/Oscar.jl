@@ -110,6 +110,7 @@ src(e::Edge)
 ```@docs
 visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
+
 ## Saving and loading
 
 Objects of type `Graph` can be saved to a file and loaded with the methods
