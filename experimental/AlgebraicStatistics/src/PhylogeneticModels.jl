@@ -1,6 +1,3 @@
-# hack until update in Polymake.jl
-
-Polymake.convert_to_pm_type(::Type{<:Polymake.Map{S,T}}) where S where T = Polymake.Map{Polymake.convert_to_pm_type(S), Polymake.convert_to_pm_type(T)}
 ################################################
 #### PHYLOGENETIC DATA STRUCTURES & METHODS ####
 ################################################
@@ -72,8 +69,8 @@ base field (e.g., `QQ` for rational numbers).
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
-    if is_tree(G)
-      pt = phylogenetic_tree(QQFieldElem, newick(G))
+    if _is_tree(G)
+      pt = phylogenetic_tree(QQFieldElem, G)
       return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
     end
     n_states = size(trans_matrix_structure)[1]
