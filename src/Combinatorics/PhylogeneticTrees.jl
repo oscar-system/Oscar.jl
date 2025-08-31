@@ -1,3 +1,4 @@
+_is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
 function _root(g::Graph{Directed})
   findfirst(isempty, Base.Fix1(inneighbors, g).(1:n_vertices(g)))
 end
@@ -170,7 +171,7 @@ julia> cophenetic_matrix(pt)
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
-  @req check && is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g)) "Input must be a tree"
+  @req check && _is_tree(g) "Input must be a tree"
   r = _root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
@@ -269,11 +270,11 @@ function adjacency_tree(ptree::PhylogeneticTree{T}) where T
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
       node = vertex_perm(ptree)[y]
-      if visited[node] == false
-        add_edge!(dir_tree, vertex_perm(ptree)[x], vertex_perm(ptree)[node])
-        edge_labels[vertex_perm(ptree)[x], vertex_perm(ptree)[node]] = edge_lengths[x, node]
-        push!(queue, node)
-        visited[node] = true
+      if visited[y] == false
+        add_edge!(dir_tree, vertex_perm(ptree)[x], node)
+        edge_labels[vertex_perm(ptree)[x], node] = edge_lengths[x, y]
+        push!(queue, y)
+        visited[y] = true
       end
     end
   end
