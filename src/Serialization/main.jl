@@ -16,7 +16,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
@@ -859,6 +860,7 @@ export load_attrs
 export load_node
 export load_object
 export load_ref
+export params_all_equal
 export save
 export save_as_ref
 export save_attrs

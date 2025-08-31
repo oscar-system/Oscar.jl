@@ -208,3 +208,11 @@ function change_base_ring(phi::Any, R::MPolyRing)
   psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end
+
+function change_base_ring(phi::Any, R::MPolyDecRing)
+  kk = coefficient_ring(R)
+  L = parent(phi(zero(kk)))
+  RR, _ = graded_polynomial_ring(L, symbols(R); cached = false, weights=weights(R))
+  psi = hom(R, RR, phi, gens(RR); check=false)
+  return RR, psi
+end
