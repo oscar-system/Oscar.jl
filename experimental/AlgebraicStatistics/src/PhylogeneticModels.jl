@@ -53,7 +53,7 @@ base field (e.g., `QQ` for rational numbers).
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
-    graph_maps = NamedTuple(_graph_maps(adjacency_tree(G)))
+    graph_maps = NamedTuple(_graph_maps(adjacency_tree(G; add_labels=false)))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
 
     return new{

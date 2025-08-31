@@ -16,7 +16,6 @@ end
 function pm_object(PT::PhylogeneticTree)
   return PT.pm_ptree
 end
-root(PT::PhylogeneticTree) = PT.root
 
 vertex_perm(pt::PhylogeneticTree) = pt.vertex_perm
 
@@ -290,7 +289,7 @@ label: distance
 (4, 6) -> 1.0
 ```
 """
-function adjacency_tree(ptree::PhylogeneticTree{T}) where T
+function adjacency_tree(ptree::PhylogeneticTree{T}; add_labels=true) where T
   udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
   n = nv(udir_tree)
   dir_tree = Graph{Directed}(n)
@@ -312,11 +311,11 @@ function adjacency_tree(ptree::PhylogeneticTree{T}) where T
       end
     end
   end
-  label!(dir_tree, edge_labels, nothing; name=:distance)
-  label!(dir_tree,
-         nothing,
-         Dict{Int, String}(
-           v => pm_object(ptree).LABELS[vertex_perm(ptree)[v]] for v in 1:n ); name=:leaves)
+  add_labels && label!(dir_tree, edge_labels, nothing; name=:distance)
+  add_labels && label!(dir_tree,
+                       nothing,
+                       Dict{Int, String}(
+                         v => pm_object(ptree).LABELS[vertex_perm(ptree)[v]] for v in 1:n ); name=:leaves)
   return dir_tree
 end
 

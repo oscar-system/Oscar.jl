@@ -112,6 +112,7 @@ end
 #
 ###################################################################################
 
+root(PM::PhylogeneticModel) = _root(adjacency_tree(graph(PM)))
 
 function leaves_indices(PM::PhylogeneticModel)
   leave_nodes = leaves(graph(PM))
@@ -127,7 +128,7 @@ end
 function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int})
   gr = graph(PM)
 
-  r = root(gr)
+  r = root(PM)
   monomial = entry_root_distribution(PM, vertices_states[r])
   
   for edge in edges(gr)
