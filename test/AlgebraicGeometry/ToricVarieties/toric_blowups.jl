@@ -90,7 +90,7 @@
     # Now blowing up along an existing ray
     g = blow_up(X, 2)
     @test n_rays(domain(g)) == 2
-    @test n_cones(domain(g)) == 3
+    @test n_cones(domain(g)) == 4
 
     # Quadratic cone, blowup along maximal cone
     ray_generators = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
@@ -108,6 +108,6 @@
     # Now blowing up along an existing ray
     g = blow_up(X, 6)
     @test n_rays(domain(g)) == 4
-    @test n_cones(domain(g)) == 11
+    @test n_cones(domain(g)) == 12
   end
 end

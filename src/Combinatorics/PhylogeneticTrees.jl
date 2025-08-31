@@ -1,6 +1,9 @@
+# hack needed for graph maps untill update in Polymake
+Polymake.convert_to_pm_type(::Type{<:Polymake.Map{S,T}}) where S where T = Polymake.Map{Polymake.convert_to_pm_type(S), Polymake.convert_to_pm_type(T)}
+
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
-  root::Int
+  vertex_perm::Vector{Int}
 end
 
 function pm_object(PT::PhylogeneticTree)
@@ -41,7 +44,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   # load graph properties
   pm_ptree.ADJACENCY
 
-  return PhylogeneticTree{T}(pm_ptree, 1)
+  return PhylogeneticTree{T}(pm_ptree, collect(1:pm_ptree.N_NODES))
 end
 
 @doc raw"""
@@ -78,7 +81,7 @@ function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
   pm_ptree = Polymake.graph.PhylogeneticTree{Float64}(COPHENETIC_MATRIX = M, TAXA = taxa)
-  return PhylogeneticTree{Float64}(pm_ptree, 1)
+  return PhylogeneticTree{Float64}(pm_ptree, collect(1:pm_ptree.N_NODES))
 end
 
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
@@ -87,7 +90,54 @@ function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   pm_ptree = Polymake.graph.PhylogeneticTree{Rational}(
     COPHENETIC_MATRIX = M, TAXA = taxa
   )
-  return PhylogeneticTree{QQFieldElem}(pm_ptree, 1)
+  return PhylogeneticTree{QQFieldElem}(pm_ptree, collect(1:pm_ptree.N_NODES))
+end
+
+#TODO add example to the docs
+function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
+                           g::Graph{Directed};
+                           check=true)
+  @req check && is_tree(g) "Input must be a tree "
+  r = root(g)
+  p = collect(1:n_vertices(g))
+  # root needs to be labeled by 1, se we just transpose 2 vertices
+  # for the underlying polymake graph
+  p[1], p[r] = r, 1
+  undir_g = graph_from_edges(Undirected, edges(g))
+  Polymake.call_function(
+    :common, :permute_graph, pm_object(undir_g), Polymake.to_zero_based_indexing(p)
+  )
+
+  leaves = findall(isone, indegree(g))
+  lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}()
+  la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph)
+  for (i, v) in enumerate(leaves)
+    if has_attribute(g, :leaves)
+      lv[g.leaves[v]] = p[v]
+      la[p[v]] = g.leaves[v]
+    else
+      lv["leaf $i"] = p[v]
+      la[p[v]] = "leaf $i"
+    end
+  end
+
+  el = Polymake.EdgeMap{Undirected,Polymake.Rational}(undir_g.pm_graph)
+  for e in edges(undir_g)
+    s, d = src(e), dst(e)
+    if has_attribute(g, :distance)
+      el[s, d] = g.distance[p[s], p[d]]
+    else
+      el[s, d] = 1
+    end
+  end
+  
+  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(
+    ADJACENCY=undir_g.pm_graph,
+    LEAVES=lv,
+    EDGE_LENGTHS=el,
+    LABELS=la
+  )
+  return PhylogeneticTree{T}(pt, p)
 end
 
 @doc raw"""
@@ -123,41 +173,6 @@ function newick(ptree::PhylogeneticTree)
   return convert(String, pm_object(ptree).NEWICK)::String
 end
 
-function _newick(g::Graph, v::Int)
-  lvs = leaves(g)
-  distance = 1
-
-  if v in lvs
-    label = has_attribute(g, :species) ? g.species[v] : "v$v"
-    #TODO read this from graph if it exists
-    return "$label:$distance"
-  else
-    return "(" * join(map(v -> _newick(g, v), outneighbors(g, v)), ",") * "):$distance"
-  end
-end
-
-#TODO add example to the docs
-function newick(g::Graph{Directed})
-  @req is_tree(g) "Graph $g is not a tree"
-  # we can find root since tree is directed
-  r = findfirst(iszero,
-                (length(inneighbors(g, i)) for i in 1:n_vertices(g)))
-  return join(map(v -> _newick(g, v), outneighbors(g, r)), ",") * ";"
-end
-
-#TODO add example to the docs
-function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
-                           G::Graph{Directed};
-                           check=false)
-  @req !check || is_tree(G) "Input must be a tree "
-  pt = phylogenetic_tree(T, newick(G))
-  new_G = adjacency_tree(pt)
-  for data in G.__attrs
-    set_attribute!(new_G, data)
-  end
-  return pt
-end
-
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
@@ -180,16 +195,17 @@ function adjacency_tree(ptree::PhylogeneticTree;)
 
   dir_tree = Graph{Directed}(n)
 
-  queue = [root(ptree)]
+  queue = [ptree.vertex_perm[1]]
   visited = fill(false, n)
-  visited[root(ptree)] = true
+  visited[ptree.vertex_perm[1]] = true
   while length(queue) > 0
     x = popfirst!(queue)
     for y in neighbors(udir_tree, x)
-      if visited[y] == false
-        add_edge!(dir_tree, x, y)
-        push!(queue, y)
-        visited[y] = true
+      node = ptree.vertex_perm[y]
+      if visited[node] == false
+        add_edge!(dir_tree, x, node)
+        push!(queue, node)
+        visited[node] = true
       end
     end
   end
