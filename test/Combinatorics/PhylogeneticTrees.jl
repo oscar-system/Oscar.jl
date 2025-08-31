@@ -41,4 +41,10 @@
   for e in edges(tree)
     @test at.distance[e] == tree.distance[e]
   end
+
+  tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
+  pt = phylogenetic_tree(QQFieldElem, tree)
+  a_tree = adjacency_tree(pt)
+  @test collect(edges(a_tree)) == collect(edges(tree))
+  @test_throws ArgumentError a_tree.distance[1, 2]
 end
